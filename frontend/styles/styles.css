@@ -1,0 +1,181 @@
+.Resizer {
+  background: #000;
+  opacity: 0.2;
+  z-index: 1;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  -moz-background-clip: padding;
+  -webkit-background-clip: padding;
+  background-clip: padding-box;
+}
+
+.Resizer:hover {
+  -webkit-transition: all 2s ease;
+  transition: all 2s ease;
+}
+
+.Resizer.horizontal {
+  height: 11px;
+  margin: -5px 0;
+  border-top: 5px solid rgba(255, 255, 255, 0);
+  border-bottom: 5px solid rgba(255, 255, 255, 0);
+  cursor: row-resize;
+  width: 100%;
+}
+
+.Resizer.horizontal:hover {
+  border-top: 5px solid rgba(0, 0, 0, 0.5);
+  border-bottom: 5px solid rgba(0, 0, 0, 0.5);
+}
+
+.Resizer.vertical {
+  width: 11px;
+  margin: 0 -5px;
+  border-left: 5px solid rgba(255, 255, 255, 0);
+  border-right: 5px solid rgba(255, 255, 255, 0);
+  cursor: col-resize;
+}
+
+.Resizer.vertical:hover {
+  border-left: 5px solid rgba(0, 0, 0, 0.5);
+  border-right: 5px solid rgba(0, 0, 0, 0.5);
+}
+.Resizer.disabled {
+  cursor: not-allowed;
+}
+.Resizer.disabled:hover {
+  border-color: transparent;
+}
+
+.triangle {
+  border-style: solid;
+  border-color: transparent transparent #171d65 transparent;
+  border-width: 0 0px 310px 0px;
+  height: 0;
+  width: 100%;
+  box-sizing: content-box;
+  position: relative;
+  margin: 0px 0 50px 0;
+  z-index: -2;
+}
+
+.triangle:after {
+  content: "";
+  position: absolute;
+  top: 310px;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-color: #171d65 transparent transparent transparent;
+  border-width: 115px 80vw 0 20vw;
+  z-index: -2;
+}
+
+.bubble:after {
+  content: "";
+  position: absolute;
+  display: block;
+  width: 0;
+  z-index: 1;
+  border-style: solid;
+  border-color: #e6eaef transparent;
+  border-width: 20px 20px 0;
+  bottom: -20px;
+  left: 20%;
+  margin-left: -20px;
+}
+
+.airplaneHandshake {
+  z-index: -1;
+  background-image: url("https://s3.amazonaws.com/static.simiotics.com/case_studies/humbug_handshake.svg");
+}
+
+.ScrollableWrapper {
+  overflow: hidden;
+}
+.NonScroll {
+  overflow: hidden;
+  flex: 1 1 auto;
+}
+
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+/* Chrome only */
+@media screen and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: 0.001dpcm) {
+  ::-webkit-scrollbar {
+    width: 0.5rem;
+    height: 1px;
+  }
+
+  .Main *:hover::-webkit-scrollbar-thumb {
+    background-color: transparent;
+  }
+
+  .Main *:hover::-webkit-scrollbar-thumb {
+    background-color: #7a7fbc;
+    border-radius: 0.25rem;
+  }
+}
+
+/*  ----- Firefox specific ------- */
+.ScrollableWrapper .Scrollable:hover {
+  scrollbar-width: thin;
+  scrollbar-color: #53b9d1 #eaebf7;
+}
+
+.ScrollableWrapper .Scrollable {
+  scrollbar-width: thin;
+  scrollbar-color: #53b9d1 #eaebf7;
+  /* max-height: 100%; */
+  overflow-y: auto;
+  overflow-x: hidden;
+  overflow-y: overlay !important;
+}
+
+/*  ----- react-mde specific ------- */
+.mde-text {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  max-height: 100%;
+}
+
+.mde-text:hover {
+  scrollbar-width: thin;
+  scrollbar-color: #53b9d1 transparent;
+}
+
+.mde-preview {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  max-height: 100%;
+  word-break: break-word;
+}
+
+.mde-preview  * {
+  word-break: break-word;
+}
+
+.mde-preview:hover {
+  scrollbar-width: thin;
+  scrollbar-color: #53b9d1 transparent;
+}
+
+.mde-preview {
+  overflow-y: auto;
+  max-height: calc(100% - 49px);
+}
+
+.mde-text {
+  overflow-y: auto;
+  max-height: calc(100% - 49px);
+}
+
+.form {
+  max-width: 420px;
+  width: 100%;
+  padding: 0.5rem;
+}
