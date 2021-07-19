@@ -1,21 +1,7 @@
-
-import { jsx } from "@emotion/react";
-import { useState, useRef, useEffect, useContext } from "react";
-import {
-  Box,
-  Flex,
-  Spinner,
-  Container,
-  Button,
-  VStack,
-  Center,
-} from "@chakra-ui/react";
-import {
-  useJournalEntries,
-  useRouter,
-  useJournalPermissions,
-} from "../core/hooks";
-import { EntryList, NewEntryModal } from ".";
+import React, { useRef, useEffect, useContext } from "react";
+import { Box, Flex, Spinner, Button, Center } from "@chakra-ui/react";
+import { useJournalEntries, useJournalPermissions } from "../core/hooks";
+import EntryList from "./EntryList";
 import UIContext from "../core/providers/UIProvider/context";
 
 const pageSize = 25;
@@ -23,15 +9,16 @@ const isContent = false;
 
 const EntriesNavigation = () => {
   const ui = useContext(UIContext);
-  const router = useRouter();
 
   const { currentUserPermissions: permissions } = useJournalPermissions(
-    router.params.id,
-    router.params.appScope
+    `9b0d7567-4634-4bf7-946d-60ef4414aa93`,
+    `personal`
   );
 
   const loadMoreButtonRef = useRef(null);
-  const { id: journalId, appScope } = router.params;
+
+  const journalId = `9b0d7567-4634-4bf7-946d-60ef4414aa93`;
+  const appScope = `personal`;
 
   const {
     fetchMore,
@@ -48,7 +35,6 @@ const EntriesNavigation = () => {
     isContent,
     searchQuery: ui.searchTerm,
   });
-  const [newEntryModal, toggleNewEntryModal] = useState();
 
   const handleScroll = ({ currentTarget }) => {
     if (
@@ -68,7 +54,7 @@ const EntriesNavigation = () => {
   }, [journalId, ui.searchTerm, refetch, setSearchTerm]);
 
   const entriesPagesData = EntriesPages
-    ? EntriesPages.map((page) => {
+    ? EntriesPages.pages.map((page) => {
         return page.data;
       })
     : [""];
@@ -90,23 +76,6 @@ const EntriesNavigation = () => {
       direction="column"
       flexGrow={1}
     >
-      <Flex align="center" height={12} borderColor="white.300">
-        {canCreate && (
-          <Button
-            width="100%"
-            variant="solid"
-            colorScheme="secondary"
-            alignSelf="center"
-            height={12}
-            m={0}
-            borderRadius={0}
-            // mb={2}
-            onClick={() => toggleNewEntryModal(true)}
-          >
-            New Entry
-          </Button>
-        )}
-      </Flex>
       {entries && !isLoading ? (
         <Flex
           className="ScrollableWrapper"
@@ -133,22 +102,6 @@ const EntriesNavigation = () => {
                 disableCopy={!canCreate}
               />
             ))}
-            {entries.length === 0 && (
-              <Center>
-                <VStack>
-                  <Container pt={8}>
-                    This journal has no entries so far.{" "}
-                  </Container>
-                  <Button
-                    onClick={() => toggleNewEntryModal(true)}
-                    variant="outline"
-                    colorScheme="suggested"
-                  >
-                    Create one
-                  </Button>
-                </VStack>
-              </Center>
-            )}
             {canFetchMore && !isFetchingMore && (
               <Center>
                 <Button
@@ -185,13 +138,6 @@ const EntriesNavigation = () => {
             speed="1.5s"
           />
         </Center>
-      )}
-
-      {newEntryModal && (
-        <NewEntryModal
-          toggleModal={toggleNewEntryModal}
-          journalId={journalId}
-        />
       )}
     </Box>
   );

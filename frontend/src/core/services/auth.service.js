@@ -3,6 +3,7 @@ import { http } from "../utils";
 const AUTH_URL = process.env.NEXT_PUBLIC_SIMIOTICS_AUTH_URL;
 
 export const login = ({ username, password }) => {
+  console.log('login',username, password)
   const data = new FormData();
   data.append("username", username);
   data.append("password", password);

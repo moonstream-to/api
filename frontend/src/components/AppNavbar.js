@@ -1,6 +1,4 @@
-
-import { jsx } from "@emotion/react";
-import { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import RouterLink from "next/link";
 import {
   Flex,
@@ -27,9 +25,8 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon,
 } from "@chakra-ui/icons";
-import { IoIosJournal } from "react-icons/io";
+import { MdTimeline } from "react-icons/md";
 import useRouter from "../core/hooks/useRouter";
-import SearchBar from "./SearchBar";
 import UIContext from "../core/providers/UIProvider/context";
 import AccountIconButton from "./AccountIconButton";
 
@@ -101,48 +98,15 @@ const AppNavbar = () => {
       {!ui.isMobileView && (
         <>
           <Flex
-            minW={["100%", "50%", "60%", "80%", null, "80%"]}
+            width="100%"
             id="SearchBarwButtons"
             position="relative"
             alignItems="baseline"
-            // bgColor="unsafe.100"
+            justifyContent="flex-end"
           >
-            <IconButton
-              ml={4}
-              colorScheme="blue"
-              aria-label="App navigation"
-              icon={<IoIosJournal />}
-              onClick={() => {
-                ui.isMobileView
-                  ? ui.setSidebarToggled(!ui.sidebarToggled)
-                  : ui.setSidebarVisible(!ui.sidebarVisible);
-              }}
-            />
-            <SearchBar
-              pl={4}
-              position="absolute"
-              left="64px"
-              w={
-                isSearchBarActive
-                  ? [
-                      "100%",
-                      "calc(100% - 80px)",
-                      "calc(100% - 0px)",
-                      "calc(100% - 0px)",
-                      null,
-                      "100%",
-                    ]
-                  : ["64px", "64px", "50%", "55%", null, "60%"]
-              }
-              h="2rem"
-              bgColor="primary.1200"
-              alignSelf="center"
-              transition="0.5s"
-            />
-            {/* <Fade in={!ui.searchBarActive}> */}
             {!ui.isMobileView && (
               <ButtonGroup
-                position="relative"
+                // position="relative"
                 left={
                   isSearchBarActive
                     ? "100%"
@@ -154,8 +118,6 @@ const AppNavbar = () => {
                 colorScheme="secondary"
                 spacing={4}
                 px={2}
-                justifyContent="space-between"
-                width={["64px", "70%", "60%", "45%", null, "40%"]}
                 zIndex={ui.searchBarActive ? -10 : 0}
                 size={["xs", "xs", "xs", "lg", null, "lg"]}
               >
@@ -169,13 +131,9 @@ const AppNavbar = () => {
                     Product
                   </Button>
                 </RouterLink>
-                {/* <Button>Explore</Button> */}
-                {/* <Button>Docs</Button> */}
               </ButtonGroup>
             )}
-            {/* </Fade> */}
           </Flex>
-          {/* <Spacer /> */}
 
           <Flex justifyContent="flex-end" width="30%" pr={2}>
             <IconButton
@@ -211,8 +169,6 @@ const AppNavbar = () => {
               size="lg"
               h="32px"
             />
-            {/* <IconButton>Explore</IconButton>
-        <IconButton>Docs</IconButton> */}
           </Flex>
         </>
       )}
@@ -227,7 +183,6 @@ const AppNavbar = () => {
                 h="32px"
                 m={0}
                 size={iconSize}
-                // size={["md", "lg", null, "md"]}
                 colorScheme="gray"
                 aria-label="App navigation"
                 icon={<HamburgerIcon />}
@@ -238,28 +193,19 @@ const AppNavbar = () => {
                 }}
               />
             )}
-
-            <SearchBar
-              pl={4}
-              // position="absolute"
-              w={
-                isSearchBarActive
-                  ? [
-                      "100%",
-                      "calc(100%)",
-                      "calc(100% - 64px)",
-                      "calc(100% - 164px)",
-                      null,
-                      "100%",
-                    ]
-                  : ["32px", "32px", "40%", "55%", null, "60%"]
-              }
-              h="2rem"
-              px={isSearchBarActive ? 2 : 0}
-              bgColor="primary.1200"
-              alignSelf="center"
-              transition="0.5s"
-            />
+            <RouterLink href="/stream" passHref>
+              <IconButton
+                m={0}
+                variant="link"
+                justifyContent="space-evenly"
+                alignContent="center"
+                h="32px"
+                size={iconSize}
+                colorScheme="gray"
+                aria-label="go to ticker"
+                icon={<MdTimeline />}
+              />
+            </RouterLink>
             {!isSearchBarActive && (
               <IconButton
                 m={0}

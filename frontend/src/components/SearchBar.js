@@ -1,4 +1,3 @@
-
 import { jsx } from "@emotion/react";
 import {
   useState,
@@ -69,11 +68,9 @@ const SearchBar = (props) => {
 
         delete newQuery.entryId;
         ui.setSearchTerm(InputFieldValue);
-        router.push(
-          { pathname: "/app/[appScope]/[id]/entries", query: newQuery },
-          undefined,
-          { shallow: false }
-        );
+        router.push({ pathname: "/stream/", query: newQuery }, undefined, {
+          shallow: false,
+        });
       }
     } else {
       setShowError(true);
@@ -86,7 +83,9 @@ const SearchBar = (props) => {
 
   useEffect(() => {
     const cache =
-      router.params.appScope === "public" ? publicJournalsCache : journalsCache;
+      router.params.appScope === "personal"
+        ? publicJournalsCache
+        : journalsCache;
     if (router.params.id && !cache.isLoading) {
       const newJournal = cache.data.find(
         (journal) => journal.id === router.params.id

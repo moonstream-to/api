@@ -1,6 +1,4 @@
-
-import { jsx } from "@emotion/react";
-import { Fragment, useContext } from "react";
+import React, { Fragment, useContext } from "react";
 import RouterLink from "next/link";
 import {
   Flex,
@@ -14,12 +12,12 @@ import {
   MenuItem,
   MenuGroup,
   MenuDivider,
-  IconButton,
   Link,
 } from "@chakra-ui/react";
-import { ChevronDownIcon, HamburgerIcon } from "@chakra-ui/icons";
+import { ChevronDownIcon } from "@chakra-ui/icons";
 import useModals from "../core/hooks/useModals";
 import UIContext from "../core/providers/UIProvider/context";
+import ChakraAccountIconButton from "./AccountIconButton";
 
 const LandingNavbar = () => {
   const ui = useContext(UIContext);
@@ -50,7 +48,7 @@ const LandingNavbar = () => {
           >
             <Spacer />
             {ui.isLoggedIn && (
-              <RouterLink href="/app" passHref>
+              <RouterLink href="/stream" passHref>
                 <Button
                   as={Link}
                   colorScheme="secondary"
@@ -84,41 +82,7 @@ const LandingNavbar = () => {
                 Log in
               </Button>
             )}
-            <RouterLink href="/pricing" passHref>
-              <Button color="white" fontWeight="400">
-                Pricing
-              </Button>
-            </RouterLink>
-            <RouterLink href="/case-studies/activeloop" passHref>
-              <Button color="white" fontWeight="400" as={Link}>
-                Case study
-              </Button>
-            </RouterLink>
-
-            <Menu>
-              <MenuButton
-                size="xl"
-                aria-label="menu"
-                as={IconButton}
-                color="white"
-                icon={<HamburgerIcon />}
-              >
-                About us
-              </MenuButton>
-              <MenuList
-                w={["100%", "16rem", "18rem", "20rem", "22rem", "24rem"]}
-              >
-                <RouterLink href="/team" passHref>
-                  <MenuItem>Team and careers</MenuItem>
-                </RouterLink>
-                <RouterLink href="/events" passHref>
-                  <MenuItem>Bugout events</MenuItem>
-                </RouterLink>
-                <MenuItem as="a" href="http://blog.bugout.dev">
-                  Blog
-                </MenuItem>
-              </MenuList>
-            </Menu>
+            {ui.isLoggedIn && <ChakraAccountIconButton />}
           </ButtonGroup>
         </Fragment>
       )}
@@ -149,7 +113,7 @@ const LandingNavbar = () => {
           >
             <MenuGroup>
               {ui.isLoggedIn && (
-                <RouterLink href="/app" passHref>
+                <RouterLink href="/stream" passHref>
                   <MenuItem bgColor="secondary.600">Open App</MenuItem>
                 </RouterLink>
               )}

@@ -1,12 +1,17 @@
-import { useQuery, useMutation, useQueryCache } from "react-query";
+import { useQuery, useMutation, useQueryClient } from "react-query";
 import { JournalService } from "../services";
 import { useToast } from ".";
 import { queryCacheProps } from "./hookCommon";
 
 const useJournalPermissions = (journalId, journalScope) => {
-  const cache = useQueryCache();
+  const cache = useQueryClient();
   const toast = useToast();
-  const { data, isLoading, refetch: getPermissions, error } = useQuery(
+  const {
+    data,
+    isLoading,
+    refetch: getPermissions,
+    error,
+  } = useQuery(
     ["journal-permissions", { journalId }],
     async () => {
       if (journalId) {
@@ -64,7 +69,7 @@ const useJournalPermissions = (journalId, journalScope) => {
     }
   );
 
-  const [setJournalPermission, setJournalPermissionStatus] = useMutation(
+  const setJournalPermissionMutation = useMutation(
     JournalService.setJournalPermission(journalId),
     {
       onMutate: (data) => {
@@ -111,7 +116,7 @@ const useJournalPermissions = (journalId, journalScope) => {
     }
   );
 
-  const [removeJournalPermission, removeJournalPermissionStatus] = useMutation(
+  const removeJournalPermissionMutation = useMutation(
     JournalService.deleteJournalPermission(journalId),
     {
       onMutate: (data) => {
@@ -125,11 +130,10 @@ const useJournalPermissions = (journalId, journalScope) => {
         const index = previousJournalPermissionResponse.findIndex(
           (i) => i.holder_id === data.holder_id
         );
-        newJournalPermissionResponse[
-          index
-        ].permissions = newJournalPermissionResponse[index].permissions.filter(
-          (value) => !data.permission_list.includes(value)
-        );
+        newJournalPermissionResponse[index].permissions =
+          newJournalPermissionResponse[index].permissions.filter(
+            (value) => !data.permission_list.includes(value)
+          );
 
         if (newJournalPermissionResponse[index].permissions.length < 1) {
           newJournalPermissionResponse.splice(index, 1);
@@ -154,17 +158,9 @@ const useJournalPermissions = (journalId, journalScope) => {
     }
   );
 
-  //ToDo: const addUserMutation = useMutation(.. when upgrading to React Query 3
-  const setJournalPermissionMutation = {
-    setJournalPermission,
-    setJournalPermissionStatus,
-  };
 
-  //ToDo: const removeJournalPermissionMutation = useMutation(.. when upgrading to React Query 3
-  const removeJournalPermissionMutation = {
-    removeJournalPermission,
-    removeJournalPermissionStatus,
-  };
+
+
 
   const holders = data;
   return {

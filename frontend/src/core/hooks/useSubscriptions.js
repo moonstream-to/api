@@ -5,19 +5,58 @@ import { queryCacheProps } from "./hookCommon";
 import useStripe from "./useStripe";
 import { useQuery } from "react-query";
 
-const useSubscriptions = (groupId) => {
+const useSubscriptions = () => {
   const toast = useToast();
   const stripe = useStripe();
 
-  const [manageSubscription, mangeSeatsStatus] = useMutation(
-    SubscriptionsService.manageSubscription(),
+  // const manageSubscription = useMutation(
+  //   SubscriptionsService.manageSubscription(),
+  //   {
+  //     onError: (error) => toast(error, "error"),
+  //     onSuccess: (response) => {
+  //       const { session_id: sessionId, session_url: sessionUrl } =
+  //         response.data;
+  //       if (sessionId) {
+  //         stripe.redirectToCheckout({ sessionId });
+  //       } else if (sessionUrl) {
+  //         window.location = sessionUrl;
+  //       }
+  //     },
+  //   }
+  // );
+
+  const getSubscriptions = async () => {
+    const response = await SubscriptionsService.getSubscriptions();
+    return response.data.data;
+  };
+
+  const subscriptionsCache = useQuery(["subscriptions"], getSubscriptions, {
+    ...queryCacheProps,
+    onError: (error) => {
+      toast(error, "error");
+    },
+  });
+
+  const getSubscriptionTypes = async () => {
+    const response = await SubscriptionsService.getTypes();
+    return response.data.data;
+  };
+
+  const typesCache = useQuery(["subscription_types"], getSubscriptionTypes, {
+    ...queryCacheProps,
+    onError: (error) => {
+      toast(error, "error");
+    },
+  });
+
+  const createSubscription = useMutation(
+    SubscriptionsService.createSubscription(),
     {
       onError: (error) => toast(error, "error"),
       onSuccess: (response) => {
-        const {
-          session_id: sessionId,
-          session_url: sessionUrl,
-        } = response.data;
+        subscriptionsCache.refetch();
+        const { session_id: sessionId, session_url: sessionUrl } =
+          response.data;
         if (sessionId) {
           stripe.redirectToCheckout({ sessionId });
         } else if (sessionUrl) {
@@ -27,28 +66,21 @@ const useSubscriptions = (groupId) => {
     }
   );
 
-  const manageSubscriptionMutation = {
-    manageSubscription,
-    isLoading: mangeSeatsStatus.isLoading,
-  };
+  const changeNote = useMutation(SubscriptionsService.modifySubscription(), {
+    onError: (error) => toast(error, "error"),
+    onSuccess: (response) => {
+      subscriptionsCache.refetch();
+    },
+  });
 
-  const getSubscriptions = async () => {
-    const response = await SubscriptionsService.getSubscriptions(groupId);
-    return response.data.subscriptions;
-  };
+  const deleteSubscription = useMutation(SubscriptionsService.deleteSubscription(), {
+    onError: (error) => toast(error, "error"),
+    onSuccess: (response) => {
+      subscriptionsCache.refetch();
+    },
+  });
 
-  const subscriptionsCache = useQuery(
-    ["subscriptions", groupId],
-    getSubscriptions,
-    {
-      ...queryCacheProps,
-      onError: (error) => {
-        toast(error, "error");
-      },
-    }
-  );
-
-  return { manageSubscriptionMutation, subscriptionsCache };
+  return { createSubscription, subscriptionsCache, typesCache, changeNote, deleteSubscription };
 };
 
 export default useSubscriptions;

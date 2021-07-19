@@ -1,4 +1,7 @@
-import axios from "axios";
+import enableMockupRequests from "./mockupRequests";
+let axios = require("axios");
+
+enableMockupRequests(axios);
 
 const http = (config) => {
   const token = localStorage.getItem("BUGOUT_ACCESS_TOKEN");
@@ -15,4 +18,5 @@ const http = (config) => {
   return axios(options);
 };
 
+export { axios };
 export default http;

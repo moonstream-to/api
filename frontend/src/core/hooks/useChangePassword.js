@@ -5,17 +5,18 @@ import { AuthService } from "../../core/services";
 const useChangePassword = () => {
   const toast = useToast();
 
-  const [changePassword, { isLoading, data }] = useMutation(
-    AuthService.changePassword,
-    {
-      onError: (error) => {
-        toast(error, "error");
-      },
-      onSuccess: () => {
-        toast("Your password has been successfully changed", "success");
-      },
-    }
-  );
+  const {
+    mutate: changePassword,
+    isLoading,
+    data,
+  } = useMutation(AuthService.changePassword, {
+    onError: (error) => {
+      toast(error, "error");
+    },
+    onSuccess: () => {
+      toast("Your password has been successfully changed", "success");
+    },
+  });
 
   return { changePassword, isLoading, data };
 };

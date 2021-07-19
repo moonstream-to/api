@@ -1,5 +1,4 @@
-
-import { jsx } from "@emotion/react";
+import React from "react";
 import { IconButton } from "@chakra-ui/react";
 import {
   Table,
@@ -13,7 +12,9 @@ import {
   Spinner,
 } from "@chakra-ui/react";
 import { DeleteIcon } from "@chakra-ui/icons";
-import { CopyButton, ConfirmationRequest, NewTokenTr } from ".";
+import CopyButton from "./CopyEntryButton";
+import ConfirmationRequest from "./ConfirmationRequest";
+import NewTokenTr from "./NewTokenTr";
 import { useForm } from "react-hook-form";
 
 const TokenList = ({

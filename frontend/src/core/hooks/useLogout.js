@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useContext } from "react";
-import { useMutation, useQueryCache } from "react-query";
+import { useMutation, useQueryClient } from "react-query";
 import { useUser, useRouter, useAnalytics } from ".";
 import UIContext from "../providers/UIProvider/context";
 import { AuthService } from "../services";
@@ -8,7 +8,7 @@ const useLogout = () => {
   const { setLoggingOut } = useContext(UIContext);
   const router = useRouter();
   const analytics = useAnalytics();
-  const [revoke, { data }] = useMutation(AuthService.revoke, {
+  const {mutate: revoke, data } = useMutation(AuthService.revoke, {
     onSuccess: () => {
       if (analytics.isLoaded) {
         analytics.mixpanel.track(
@@ -19,7 +19,7 @@ const useLogout = () => {
     },
   });
   const { setUser } = useUser();
-  const cache = useQueryCache();
+  const cache = useQueryClient();
 
   const logout = useCallback(() => {
     setLoggingOut(true);

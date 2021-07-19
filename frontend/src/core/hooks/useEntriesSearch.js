@@ -5,7 +5,12 @@ import { useToast } from ".";
 const useEntriesSearch = ({ journalId }) => {
   const toast = useToast();
 
-  const [entriesSearch, { isLoading, error, data }] = useMutation(
+  const {
+    mutateAsync: entriesSearch,
+    isLoading,
+    error,
+    data,
+  } = useMutation(
     JournalService.searchEntries({ journalId }),
 
     {

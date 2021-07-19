@@ -24,7 +24,7 @@ const AccountIconButton = (props) => {
         {...props}
         as={IconButton}
         aria-label="Account menu"
-        icon={<RiAccountCircleLine />}
+        icon={<RiAccountCircleLine size="26px"/>}
         // variant="outline"
         color="gray.100"
       />
@@ -35,12 +35,6 @@ const AccountIconButton = (props) => {
         m={0}
       >
         <MenuGroup>
-          <RouterLink href="/account/teams" passHref>
-            <MenuItem>Teams</MenuItem>
-          </RouterLink>
-          <RouterLink href="/account/tokens" passHref>
-            <MenuItem>Tokens</MenuItem>
-          </RouterLink>
           <RouterLink href="/account/security" passHref>
             <MenuItem>Security</MenuItem>
           </RouterLink>

@@ -1,9 +1,8 @@
-
-import { jsx } from "@emotion/react";
+import React from "react";
 import { useBreakpointValue, Flex } from "@chakra-ui/react";
 import SplitPane, { Pane } from "react-split-pane";
 import { getLayout as getSiteLayout } from "./AppLayout";
-import { EntriesNavigation } from "../components";
+import EntriesNavigation from "../components/EntriesNavigation";
 import { useContext } from "react";
 import UIContext from "../core/providers/UIProvider/context";
 const EntriesLayout = (props) => {

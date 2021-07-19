@@ -2,16 +2,19 @@ import { useMutation } from "react-query";
 import { AuthService } from "../services";
 
 const useTokens = () => {
-  const [list, { isLoading, error, data }] = useMutation(
-    AuthService.getTokenList
-  );
-  const [revoke] = useMutation(AuthService.revokeToken, {
+  const {
+    mutate: list,
+    isLoading,
+    error,
+    data,
+  } = useMutation(AuthService.getTokenList);
+  const { mutate: revoke } = useMutation(AuthService.revokeToken, {
     onSuccess: () => {
       list();
     },
   });
 
-  const [update] = useMutation(AuthService.updateToken, {
+  const { mutate: update } = useMutation(AuthService.updateToken, {
     onSuccess: () => {
       list();
     },

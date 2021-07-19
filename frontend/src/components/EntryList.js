@@ -1,67 +1,52 @@
-
-import { jsx } from "@emotion/react";
-import { Fragment, useContext } from "react";
-import { Flex, Heading, Text, LinkBox } from "@chakra-ui/react";
+import React, { useContext } from "react";
+import { Flex, Heading, Text, IconButton } from "@chakra-ui/react";
 import moment from "moment";
-import { EntryCard, TagsList, DeleteEntryButton, CopyEntryButton } from ".";
+import { ViewIcon } from "@chakra-ui/icons";
 import { useRouter } from "../core/hooks";
-import RouterLink from "next/link";
 import UIContext from "../core/providers/UIProvider/context";
 
-const EntryList = ({ entry, disableDelete, disableCopy }) => {
+const EntryList = ({ entry }) => {
   const ui = useContext(UIContext);
   const router = useRouter();
-  const { id: journalId, entryId, appScope } = router.params;
 
+  const handleViewClicked = (entryId) => {
+    ui.setEntryId(entryId);
+    ui.setEntriesViewMode("entry");
+    router.push({
+      pathname: `/stream/${entry.id}`,
+      query: router.query,
+    });
+  };
   return (
-    <RouterLink
-      href={{
-        pathname: `/app/${appScope}/${journalId}/entries/${entry.id}`,
-        query: router.query,
-      }}
-      passHref
+    <Flex
+      px={6}
+      borderTop="1px"
+      borderColor="white.300"
+      transition="0.1s"
+      _hover={{ bg: "secondary.200" }}
+      width="100%"
+      direction="row"
+      justifyContent="normal"
+      alignItems="baseline"
     >
-      <LinkBox
-        onClick={() =>
-          ui.setEntriesViewMode(ui.isMobileView ? "entry" : "split")
-        }
-      >
-        <EntryCard isActive={entryId === entry.id ? true : false}>
-          <Heading as="h3" fontWeight="500" fontSize="md">
-            {entry.title}
-          </Heading>
-          <Flex alignItems="baseline">
-            <Text opacity="0.5" fontSize="xs">
-              {moment(entry.created_at).format("DD MMM, YYYY")}{" "}
-            </Text>
-            {entryId === entry.id && (
-              <Fragment>
-                {!disableDelete && (
-                  <DeleteEntryButton
-                    id={entryId}
-                    journalId={journalId}
-                    appScope={appScope}
-                  />
-                )}
-                {!disableCopy && (
-                  <CopyEntryButton id={entryId} journalId={journalId} />
-                )}
-              </Fragment>
-            )}
-          </Flex>
-          <Flex align="start">
-            <Flex
-              width="100%"
-              mt={2}
-              align="center"
-              justifyContent="space-between"
-            >
-              <TagsList tags={entry.tags} />
-            </Flex>
-          </Flex>
-        </EntryCard>
-      </LinkBox>
-    </RouterLink>
+      <Flex flexGrow={1}>
+        <Heading as="h3" fontWeight="500" fontSize="md">
+          {entry.title}
+        </Heading>
+      </Flex>
+
+      <Text opacity="0.5" fontSize="xs" alignSelf="baseline">
+        {moment(entry.created_at).format("DD MMM, YYYY, h:mm:ss")}{" "}
+      </Text>
+      <IconButton
+        p={0}
+        variant="ghost"
+        boxSize="32px"
+        colorScheme="primary"
+        icon={<ViewIcon />}
+        onClick={() => handleViewClicked(entry.id)}
+      />
+    </Flex>
   );
 };
 

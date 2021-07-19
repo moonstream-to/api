@@ -19,6 +19,9 @@ const UIProvider = ({ children }) => {
 
   const { modal, toggleModal } = useContext(ModalContext);
   const [searchTerm, setSearchTerm] = useQuery("q", " ", true, false);
+
+  const [entryId, setEntryId] = useState();
+
   const [searchBarActive, setSearchBarActive] = useState(false);
 
   // ******* APP state ********
@@ -26,8 +29,9 @@ const UIProvider = ({ children }) => {
   const [isLoggingOut, setLoggingOut] = useState(false);
   const [isAppReady, setAppReady] = useState(false);
   const [isAppView, setAppView] = useState(
-    router.nextRouter.asPath.includes("/app") ||
-      router.nextRouter.asPath.includes("/account")
+    router.nextRouter.asPath.includes("/stream") ||
+      router.nextRouter.asPath.includes("/account") ||
+      router.nextRouter.asPath.includes("/subscriptions")
   );
 
   useEffect(() => {
@@ -61,8 +65,9 @@ const UIProvider = ({ children }) => {
 
   useEffect(() => {
     setAppView(
-      router.nextRouter.asPath.includes("/app") ||
-        router.nextRouter.asPath.includes("/account")
+      router.nextRouter.asPath.includes("/stream") ||
+        router.nextRouter.asPath.includes("/account") ||
+        router.nextRouter.asPath.includes("/subscriptions")
     );
   }, [router.nextRouter.asPath, user]);
 
@@ -72,13 +77,13 @@ const UIProvider = ({ children }) => {
   const [sidebarVisible, setSidebarVisible] = useStorage(
     window.sessionStorage,
     "sidebarVisible",
-    false
+    true
   );
   // Whether sidebar should be smaller state
   const [sidebarCollapsed, setSidebarCollapsed] = useStorage(
     window.sessionStorage,
     "sidebarCollapsed",
-    false
+    true
   );
 
   // Whether sidebar should be toggled in mobile view
@@ -96,14 +101,6 @@ const UIProvider = ({ children }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobileView]);
 
-  // //When entrering appView - start with showing sidebar at all times
-  useEffect(() => {
-    if (isAppView) {
-      setSidebarVisible(true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAppView]);
-
   // *********** Entries layout states **********************
 
   /**
@@ -111,18 +108,11 @@ const UIProvider = ({ children }) => {
    * Default true in mobile mode and false in desktop mode
    */
   const [entriesViewMode, setEntriesViewMode] = useState(
-    isMobileView ? (router.params?.entryId ? "entry" : "list") : "split"
+    router.params?.entryId ? "entry" : "list"
   );
 
   useEffect(() => {
-    setEntriesViewMode(
-      isMobileView ? (router.params?.entryId ? "entry" : "list") : "split"
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isMobileView]);
-
-  useEffect(() => {
-    setEntriesViewMode(isMobileView ? "list" : "split");
+    setEntriesViewMode(router.params?.entryId ? "entry" : "list");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.params?.id]);
 
@@ -151,6 +141,8 @@ const UIProvider = ({ children }) => {
         setEntriesViewMode,
         modal,
         toggleModal,
+        entryId,
+        setEntryId,
       }}
     >
       {children}

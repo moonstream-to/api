@@ -43,7 +43,7 @@ const useSignUp = (source) => {
     const requested_pricing = window.sessionStorage.getItem(
       "requested_pricing_plan"
     );
-    const redirectURL = requested_pricing ? "/account/teams" : "/app";
+    const redirectURL = requested_pricing ? "/subscriptions" : "/stream";
 
     router.push(redirectURL);
     window.sessionStorage.clear("requested_pricing");

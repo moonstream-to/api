@@ -16,17 +16,11 @@ const useJournalEntry = (journalId, entryId, journalScope) => {
     return entry;
   };
 
-  const {
-    data,
-    isLoading,
-    isFetchedAfterMount,
-    refetch,
-    isError,
-    error,
-  } = useQuery(["journal-entry", { journalId, entryId }], getEntry, {
-    ...queryCacheProps,
-    onError: (error) => toast(error, "error"),
-  });
+  const { data, isLoading, isFetchedAfterMount, refetch, isError, error } =
+    useQuery(["journal-entry", { journalId, entryId }], getEntry, {
+      ...queryCacheProps,
+      onError: (error) => toast(error, "error"),
+    });
 
   return { data, isFetchedAfterMount, isLoading, refetch, isError, error };
 };
