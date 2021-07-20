@@ -51,13 +51,31 @@ const List = () => {
         </Thead>
         <Tbody>
           {subscriptionsCache.data.subscriptions.map((subscription) => {
+            let iconLink;
+            switch (subscription.subscription_type) {
+              case "ethereum_blockchain":
+                iconLink =
+                  "https://ethereum.org/static/c48a5f760c34dfadcf05a208dab137cc/31987/eth-diamond-rainbow.png";
+                break;
+              case `ethereum_txpool`:
+                iconLink =
+                  "https://ethereum.org/static/a183661dd70e0e5c70689a0ec95ef0ba/31987/eth-diamond-purple.png";
+                break;
+              case `algorand_blockchain`:
+                iconLink =
+                  "https://www.algorand.com/assets/media-kit/logos/logo-marks/png/algorand_logo_mark_black.png";
+                break;
+              case `algorand_txpool`:
+                iconLink =
+                  "https://www.algorand.com/assets/media-kit/logos/logo-marks/png/algorand_logo_mark_white.png";
+                break;
+              default:
+                console.error("no icon found for this pool");
+            }
             return (
               <Tr key={`token-row-${subscription.address}`}>
                 <Td>
-                  <Image
-                    h="32px"
-                    src="https://ethereum.org/static/c48a5f760c34dfadcf05a208dab137cc/31987/eth-diamond-rainbow.png"
-                  />
+                  <Image h="32px" src={iconLink} alt="pool icon" />
                 </Td>
                 <Td mr={4} p={0}>
                   <CopyButton>{subscription.address}</CopyButton>
