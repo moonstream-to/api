@@ -14,6 +14,7 @@ import UIContext from "../core/providers/UIProvider/context";
 import React from "react";
 import { HamburgerIcon } from "@chakra-ui/icons";
 import { MdTimeline, MdSettings } from "react-icons/md";
+import { ImStatsBars } from "react-icons/im";
 // import RouterLink from "next/link";
 // import RouterLink from "next/link";
 
@@ -60,11 +61,18 @@ const Sidebar = () => {
           </MenuItem>
         </Menu>
         <Menu iconShape="square">
+          <MenuItem icon={<ImStatsBars />}>
+            {" "}
+            <RouterLink href="/analytics">Analytics </RouterLink>
+          </MenuItem>
+        </Menu>
+        <Menu iconShape="square">
           <MenuItem icon={<MdSettings />}>
             {" "}
             <RouterLink href="/subscriptions">Subscriptions </RouterLink>
           </MenuItem>
         </Menu>
+
       </SidebarContent>
       <SidebarFooter>
         {/**
