@@ -1,5 +1,5 @@
 import React from "react";
-import { Flex, Link, HStack, Skeleton, Box, Title } from "@chakra-ui/react";
+import { Flex, Link, HStack, Skeleton, Box, Heading } from "@chakra-ui/react";
 import { ExternalLinkIcon } from "@chakra-ui/icons";
 import { useJournalEntry, useRouter } from "../../src/core/hooks";
 import FourOFour from "../../src/components/FourOFour";
@@ -8,8 +8,10 @@ import Tags from "../../src/components/Tags";
 import CustomIcon from "../../src/components/CustomIcon";
 import { getLayout } from "../../src/layouts/EntriesLayout";
 import MarkdownView from "react-showdown";
+import Scrollable from "../../src/components/Scrollable";
 
 const Entry = () => {
+  const showdownHighlight = require("showdown-highlight");
   const router = useRouter();
   const { entryId } = router.params;
   const journalId = `9b0d7567-4634-4bf7-946d-60ef4414aa93`;
@@ -19,7 +21,7 @@ const Entry = () => {
     isLoading,
     isError,
     error,
-  } = useJournalEntry(journalId, entryId);
+  } = useJournalEntry(journalId, entryId, "personal");
 
   const contextUrl = () => {
     if (entry?.context_url) {
@@ -75,7 +77,7 @@ const Entry = () => {
           >
             {contextUrl()}
           </Box>
-          <Title
+          <Heading
             overflow="hidden"
             width={entry?.context_url ? "calc(100% - 28px)" : "100%"}
             // height="auto"
@@ -88,7 +90,7 @@ const Entry = () => {
             textAlign="left"
           >
             {entry?.title}
-          </Title>
+          </Heading>
         </HStack>
       </Skeleton>
       <Skeleton
@@ -105,13 +107,17 @@ const Entry = () => {
         flexGrow={1}
         id="EditorSkeleton"
         mx={2}
+        mr={isFetchedAfterMount || entry ? 0 : 2}
         mt={1}
         isLoaded={isFetchedAfterMount || entry}
       >
-        <MarkdownView
-          markdown={entry?.content}
-          options={{ tables: true, emoji: true }}
-        />
+        <Scrollable>
+          <MarkdownView
+            markdown={entry?.content}
+            options={{ tables: true, emoji: true }}
+            extensions={showdownHighlight()}
+          />
+        </Scrollable>
       </Skeleton>
     </Flex>
   );

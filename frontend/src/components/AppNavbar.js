@@ -16,6 +16,8 @@ import {
   PopoverArrow,
   PopoverCloseButton,
   useBreakpointValue,
+  Spacer,
+  Fade,
 } from "@chakra-ui/react";
 import {
   HamburgerIcon,
@@ -97,15 +99,41 @@ const AppNavbar = () => {
     <>
       {!ui.isMobileView && (
         <>
-          <Flex
-            width="100%"
-            id="SearchBarwButtons"
-            position="relative"
-            alignItems="baseline"
-            justifyContent="flex-end"
-          >
-            {!ui.isMobileView && (
+          <Flex width="100%" px={2}>
+            <Fade in={ui.entriesViewMode === "entry"}>
+              <Button
+                m={0}
+                alignSelf="center"
+                variant="outline"
+                justifyContent="space-evenly"
+                alignContent="center"
+                h="32px"
+                size="sm"
+                colorScheme="gray"
+                aria-label="App navigation"
+                leftIcon={<ArrowLeftIcon />}
+                onClick={() => {
+                  router.push(
+                    {
+                      pathname: "/stream",
+                      query: router.query,
+                    },
+                    undefined,
+                    { shallow: false }
+                  );
+                  // router.params?.entryId && ui.entriesViewMode === "entry"
+                  // ?
+                  ui.setEntriesViewMode("list");
+                  //   : router.nextRouter.back();
+                }}
+              >
+                Back to stream
+              </Button>
+            </Fade>
+            <Spacer />
+            <Flex placeSelf="flex-end">
               <ButtonGroup
+                alignSelf="center"
                 // position="relative"
                 left={
                   isSearchBarActive
@@ -132,43 +160,15 @@ const AppNavbar = () => {
                   </Button>
                 </RouterLink>
               </ButtonGroup>
-            )}
-          </Flex>
-
-          <Flex justifyContent="flex-end" width="30%" pr={2}>
-            <IconButton
-              hidden={true}
-              colorScheme="primary"
-              variant="link"
-              h="32px"
-              size="lg"
-              color="gray.100"
-              borderColor="transparent"
-              borderWidth={0}
-              aria-label="Create new"
-              icon={<PlusSquareIcon />}
-            />
-            <SupportPopover />
-
-            <IconButton
-              hidden={true}
-              colorScheme="primary"
-              variant="link"
-              h="32px"
-              size="lg"
-              color="gray.100"
-              outlineColor="transparent"
-              // colorScheme="blue"
-              aria-label="Alerts"
-              icon={<BellIcon />}
-            />
-            <AccountIconButton
-              colorScheme="primary"
-              variant="link"
-              color="gray.100"
-              size="lg"
-              h="32px"
-            />
+              <SupportPopover />
+              <AccountIconButton
+                colorScheme="primary"
+                variant="link"
+                color="gray.100"
+                size="lg"
+                h="32px"
+              />
+            </Flex>
           </Flex>
         </>
       )}

@@ -1,8 +1,10 @@
+import React from "react";
 import "/styles/styles.css";
 import "/styles/sidebar.css";
+import "highlight.js/styles/github.css";
 import App from "next/app";
 import dynamic from "next/dynamic";
-import {  QueryClient, QueryClientProvider } from "react-query";
+import { QueryClient, QueryClientProvider } from "react-query";
 import HeadSEO from "../src/components/HeadSEO";
 import HeadLinks from "../src/components/HeadLinks";
 const AppContext = dynamic(() => import("../src/AppContext"), {
