@@ -2,7 +2,6 @@ import {
   ProSidebar,
   Menu,
   MenuItem,
-
   SidebarHeader,
   SidebarFooter,
   SidebarContent,
@@ -15,8 +14,6 @@ import React from "react";
 import { HamburgerIcon } from "@chakra-ui/icons";
 import { MdTimeline, MdSettings } from "react-icons/md";
 import { ImStatsBars } from "react-icons/im";
-// import RouterLink from "next/link";
-// import RouterLink from "next/link";
 
 const Sidebar = () => {
   const ui = useContext(UIContext);
@@ -72,7 +69,6 @@ const Sidebar = () => {
             <RouterLink href="/subscriptions">Subscriptions </RouterLink>
           </MenuItem>
         </Menu>
-
       </SidebarContent>
       <SidebarFooter>
         {/**
