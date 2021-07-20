@@ -1,8 +1,7 @@
 
-import { jsx } from "@emotion/react";
 import { Flex } from "@chakra-ui/react";
 import { getLayout as getSiteLayout } from "./RootLayout";
-import { useContext } from "react";
+import React, { useContext } from "react";
 import UIContext from "../core/providers/UIProvider/context";
 
 const AppLayout = ({ children }) => {

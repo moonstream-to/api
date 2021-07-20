@@ -4,6 +4,7 @@ import { useStorage, useQuery, useRouter } from "../../hooks";
 import UIContext from "./context";
 import UserContext from "../UserProvider/context";
 import ModalContext from "../ModalProvider/context";
+import { v4 as uuid4 } from "uuid";
 
 const UIProvider = ({ children }) => {
   const router = useRouter();
@@ -24,6 +25,10 @@ const UIProvider = ({ children }) => {
 
   const [searchBarActive, setSearchBarActive] = useState(false);
 
+  // ****** Session state *****
+  // Whether sidebar should be toggled in mobile view
+  const [sessionId] = useStorage(window.sessionStorage, "sessionID", uuid4());
+
   // ******* APP state ********
   const [isLoggedIn, setLoggedIn] = useState(user && user.username);
   const [isLoggingOut, setLoggingOut] = useState(false);
@@ -31,7 +36,8 @@ const UIProvider = ({ children }) => {
   const [isAppView, setAppView] = useState(
     router.nextRouter.asPath.includes("/stream") ||
       router.nextRouter.asPath.includes("/account") ||
-      router.nextRouter.asPath.includes("/subscriptions")
+      router.nextRouter.asPath.includes("/subscriptions") ||
+      router.nextRouter.asPath.includes("/analytics")
   );
 
   useEffect(() => {
@@ -67,7 +73,8 @@ const UIProvider = ({ children }) => {
     setAppView(
       router.nextRouter.asPath.includes("/stream") ||
         router.nextRouter.asPath.includes("/account") ||
-        router.nextRouter.asPath.includes("/subscriptions")
+        router.nextRouter.asPath.includes("/subscriptions") ||
+        router.nextRouter.asPath.includes("/analytics")
     );
   }, [router.nextRouter.asPath, user]);
 
@@ -143,6 +150,7 @@ const UIProvider = ({ children }) => {
         toggleModal,
         entryId,
         setEntryId,
+        sessionId,
       }}
     >
       {children}

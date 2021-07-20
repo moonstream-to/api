@@ -16,8 +16,19 @@ const Scrollable = (props) => {
   });
 
   return (
-    <Flex className="ScrollableWrapper" direction="column" w="100%" overflowY="hidden" maxH="100%">
-      <Box className="Scrollable" direction="column" ref={scrollerRef} overflowY="scroll">
+    <Flex
+      className="ScrollableWrapper"
+      direction="column"
+      w="100%"
+      overflowY="hidden"
+      maxH="100%"
+    >
+      <Box
+        className="Scrollable"
+        direction="column"
+        ref={scrollerRef}
+        overflowY="scroll"
+      >
         {props.children}
       </Box>
     </Flex>
