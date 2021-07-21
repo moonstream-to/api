@@ -14,12 +14,12 @@ if MOONSTREAM_DATA_JOURNAL_ID is None:
     raise ValueError("MOONSTREAM_DATA_JOURNAL_ID environment variable must be set")
 
 # Origin
-RAW_ORIGIN = os.environ.get("MOONSTREAM_CORS_ALLOWED_ORIGINS")
-if RAW_ORIGIN is None:
+RAW_ORIGINS = os.environ.get("MOONSTREAM_CORS_ALLOWED_ORIGINS")
+if RAW_ORIGINS is None:
     raise ValueError(
         "MOONSTREAM_CORS_ALLOWED_ORIGINS environment variable must be set (comma-separated list of CORS allowed origins)"
     )
-ORIGINS = RAW_ORIGIN.split(",")
+ORIGINS = RAW_ORIGINS.split(",")
 
 # OpenAPI
 DOCS_TARGET_PATH = "docs"
