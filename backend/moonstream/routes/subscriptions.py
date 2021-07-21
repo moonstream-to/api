@@ -2,12 +2,11 @@
 The Moonstream subscriptions HTTP API
 """
 import logging
-from typing import Any, Dict
-import uuid
+from typing import Dict
 
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
-from fastapi import Body, FastAPI, Form, HTTPException, Request, Query
+from fastapi import Body, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from .. import data
@@ -28,8 +27,8 @@ tags_metadata = [
 ]
 
 app = FastAPI(
-    title=f"Moonstream API.",
-    description="The Bugout blockchain inspector API.",
+    title=f"Moonstream subscriptions API.",
+    description="User subscriptions endpoints.",
     version=MOONSTREAM_VERSION,
     openapi_tags=tags_metadata,
     openapi_url="/openapi.json",

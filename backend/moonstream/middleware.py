@@ -27,6 +27,7 @@ class BroodAuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(
         self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ):
+        # Filter out endpoints with proper method to work without Bearer token (as create_user, login, etc)
         path = request.url.path.rstrip("/")
         method = request.method
         if path in self.whitelist.keys() and self.whitelist[path] == method:

@@ -3,8 +3,7 @@ import os
 from bugout.app import Bugout
 
 # Bugout
-# TODO(kompotkot): CHANGE TO PROD!!!!!!!
-bugout_client = Bugout("http://127.0.0.1:7474", "http://127.0.0.1:7475")
+bugout_client = Bugout()
 
 MOONSTREAM_APPLICATION_ID = os.environ.get("MOONSTREAM_APPLICATION_ID")
 if MOONSTREAM_APPLICATION_ID is None:

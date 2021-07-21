@@ -3,14 +3,13 @@ The Moonstream HTTP API
 """
 import logging
 
-from bugout.data import BugoutUser
 from fastapi import FastAPI, Form
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import data
 from .routes.subscriptions import app as subscriptions_api
 from .routes.users import app as users_api
-from .settings import ORIGINS, bugout_client as bc, MOONSTREAM_APPLICATION_ID
+from .settings import ORIGINS
 from .version import MOONSTREAM_VERSION
 
 logging.basicConfig(level=logging.INFO)

@@ -33,8 +33,8 @@ tags_metadata = [
 ]
 
 app = FastAPI(
-    title=f"Moonstream API.",
-    description="The Bugout blockchain inspector API.",
+    title=f"Moonstream users API.",
+    description="User, token and password handlers.",
     version=MOONSTREAM_VERSION,
     openapi_tags=tags_metadata,
     openapi_url="/openapi.json",
