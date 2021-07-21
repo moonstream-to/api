@@ -8,6 +8,7 @@ from fastapi import FastAPI, Form
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import data
+from .routes.subscriptions import app as subscriptions_api
 from .routes.users import app as users_api
 from .settings import ORIGINS, bugout_client as bc, MOONSTREAM_APPLICATION_ID
 from .version import MOONSTREAM_VERSION
@@ -36,4 +37,5 @@ async def version_handler() -> data.VersionResponse:
     return data.VersionResponse(version=MOONSTREAM_VERSION)
 
 
+app.mount("/subscriptions", subscriptions_api)
 app.mount("/users", users_api)
