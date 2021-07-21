@@ -1,12 +1,12 @@
 import logging
-from typing import Awaitable, Callable, Dict, List, Optional
+from typing import Awaitable, Callable, Dict, Optional
 
 from bugout.data import BugoutUser
 from bugout.exceptions import BugoutResponseException
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi import Request, Response
 
-from .settings import bugout_client as bc
+from .settings import MOONSTREAM_APPLICATION_ID, bugout_client as bc
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +51,10 @@ class BroodAuthMiddleware(BaseHTTPMiddleware):
                 return Response(
                     status_code=403,
                     content="Only verified accounts can access journals",
+                )
+            if str(user.application_id) != str(MOONSTREAM_APPLICATION_ID):
+                return Response(
+                    status_code=403, content="User does not belong to this application"
                 )
         except BugoutResponseException as e:
             return Response(status_code=e.status_code, content=e.detail)
