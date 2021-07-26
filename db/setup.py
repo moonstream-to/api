@@ -5,7 +5,7 @@ with open("README.md") as ifp:
     long_description = ifp.read()
 
 setup(
-    name="moonstream-db",
+    name="moonstreamdb",
     version="0.0.1",
     author="Bugout.dev",
     author_email="engineers@bugout.dev",
