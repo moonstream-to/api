@@ -87,7 +87,9 @@ def add_block_transaction(
     db_session.add(tx_obj)
 
 
-def process_blocks(blocks_numbers: List[int], with_transactions: bool = False, check: bool = False):
+def process_blocks(
+    blocks_numbers: List[int], with_transactions: bool = False, check: bool = False
+):
     """
     Open database and geth sessions and fetch block data from blockchain.
     """
@@ -104,7 +106,9 @@ def process_blocks(blocks_numbers: List[int], with_transactions: bool = False, c
             db_session.commit()
 
 
-def crawl(block_numbers_list: List[int], with_transactions: bool = False):
+def crawl(
+    block_numbers_list: List[int], with_transactions: bool = False, check: bool = False
+):
     """
     Execute crawler.
     """
@@ -117,4 +121,5 @@ def crawl(block_numbers_list: List[int], with_transactions: bool = False):
                 process_blocks,
                 block_numbers_list[worker - 1 :: MOONSTREAM_CRAWL_WORKERS],
                 with_transactions,
+                check,
             )

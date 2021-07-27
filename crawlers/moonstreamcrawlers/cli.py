@@ -39,7 +39,7 @@ def ethcrawler_blocks_add_handler(args: argparse.Namespace) -> None:
     startTime = time.time()
     for blocks_numbers_list in blocks_numbers_lists:
         crawl(
-            blocks_numbers=blocks_numbers_list,
+            block_numbers_list=blocks_numbers_list,
             with_transactions=bool(strtobool(args.transactions)),
             check=bool(strtobool(args.check)),
         )
