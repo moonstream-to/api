@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="13px" viewBox="0 0 16 13" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>ic_email@3x</title>
+    <g id="web_final" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="04-01-register" transform="translate(-895.000000, -310.000000)">
+            <g id="Group" transform="translate(891.000000, 304.000000)">
+                <rect id="Rectangle-Copy-4" x="0" y="0" width="24" height="24"></rect>
+                <g id="Group-7" transform="translate(5.000000, 7.000000)" stroke="#83859E" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+                    <path d="M1.4,2.30926389e-14 L12.6,2.30926389e-14 C13.37,2.30926389e-14 14,0.63 14,1.4 L14,9.8 C14,10.57 13.37,11.2 12.6,11.2 L1.4,11.2 C0.63,11.2 0,10.57 0,9.8 L0,1.4 C0,0.63 0.63,2.30926389e-14 1.4,2.30926389e-14 Z" id="Path"></path>
+                    <polyline id="Path" points="14 1.4 7 6.3 0 1.4"></polyline>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
