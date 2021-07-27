@@ -27,8 +27,6 @@ const useSubscriptions = () => {
 
   const getSubscriptions = async () => {
     const response = await SubscriptionsService.getSubscriptions();
-    console.log("getSubscriptions");
-    console.log(response.data);
     return response.data;
   };
 

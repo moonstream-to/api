@@ -2,7 +2,6 @@ import { http } from "../utils";
 // import axios from "axios";
 
 const API = process.env.NEXT_PUBLIC_MOONSTREAM_API_URL;
-console.log(API);
 
 export const getStream = ({ searchTerm, limit, offset, isContent }) =>
   http({
@@ -49,7 +48,6 @@ export const deleteJournal = (id) => () =>
 export const createSubscription =
   () =>
   ({ address, type, label, color }) => {
-    console.log("createSubscription: ", address, type, label);
     const data = new FormData();
     data.append("address", address);
     data.append("subscription_type_id", type);

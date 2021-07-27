@@ -23,10 +23,8 @@ const List = (data) => {
     useSubscriptions();
 
   const updateCallback = ({ id, note }) => {
-    console.log("updateCallback", id);
     changeNote.mutate({ id, note });
   };
-  console.log(data);
 
   if (subscriptionsCache.data) {
     return (

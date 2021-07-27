@@ -44,7 +44,7 @@ const NewSubscription = ({ isFreeOption, onClose }) => {
       type: isFreeOption ? "free" : radioState,
     });
   };
-  console.log(typesCache.data);
+
   return (
     <form onSubmit={handleSubmit(createSubscriptionWrap)}>
       <ModalHeader>Subscribe to a new address</ModalHeader>
