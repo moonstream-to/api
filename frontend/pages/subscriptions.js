@@ -100,7 +100,7 @@ const Subscriptions = () => {
                 Add new
               </Button>
             </Flex>
-            <SubscriptionsList />
+            <SubscriptionsList data={subscriptionsCache.data} />
           </Flex>
         </ScaleFade>
       )}

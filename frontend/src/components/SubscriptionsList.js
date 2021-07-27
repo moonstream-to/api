@@ -18,12 +18,11 @@ import CopyButton from "./CopyButton";
 import { useSubscriptions } from "../core/hooks";
 import ConfirmationRequest from "./ConfirmationRequest";
 
-const List = () => {
+const List = (data) => {
   const { subscriptionsCache, changeNote, deleteSubscription } =
     useSubscriptions();
 
   const updateCallback = ({ id, note }) => {
-    console.log('updateCallback', id)
     changeNote.mutate({ id, note });
   };
 
