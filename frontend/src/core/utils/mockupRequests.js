@@ -90,12 +90,12 @@ const enableMockupRequests = (axiosInstance) => {
     ],
   });
 
-  mock.onGet(`${MOCK_API}/subscriptions/`).reply(200, {
-    data: {
-      is_free_subscription_availible: true,
-      subscriptions: MockSubscriptions,
-    },
-  });
+  // mock.onGet(`${MOCK_API}/subscriptions/`).reply(200, {
+  //   data: {
+  //     is_free_subscription_availible: true,
+  //     subscriptions: MockSubscriptions,
+  //   },
+  // });
 
   mock.onPost(`${MOCK_API}/subscriptions/`).reply((config) => {
     const params = config.data; // FormData of {name: ..., file: ...}

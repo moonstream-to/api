@@ -18,13 +18,14 @@ import CopyButton from "./CopyButton";
 import { useSubscriptions } from "../core/hooks";
 import ConfirmationRequest from "./ConfirmationRequest";
 
-const List = () => {
+const List = (data) => {
   const { subscriptionsCache, changeNote, deleteSubscription } =
     useSubscriptions();
 
   const updateCallback = ({ id, note }) => {
     changeNote.mutate({ id, note });
   };
+  console.log(data);
 
   if (subscriptionsCache.data) {
     return (
@@ -45,7 +46,7 @@ const List = () => {
             <Th>Token</Th>
             <Th>Address</Th>
             <Th>Date Created</Th>
-            <Th>Note</Th>
+            <Th>label</Th>
             <Th>Actions</Th>
           </Tr>
         </Thead>
@@ -85,11 +86,11 @@ const List = () => {
                   <Editable
                     colorScheme="primary"
                     placeholder="enter note here"
-                    defaultValue={subscription.note}
+                    defaultValue={subscription.label}
                     onSubmit={(nextValue) =>
                       updateCallback({
                         id: subscription.id,
-                        note: nextValue,
+                        label: nextValue,
                       })
                     }
                   >

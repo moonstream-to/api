@@ -1,18 +1,31 @@
 import { http } from "../utils";
 // import axios from "axios";
 
-const API = process.env.NEXT_PUBLIC_SIMIOTICS_AUTH_URL;
+const API = process.env.NEXT_PUBLIC_MOONSTREAM_API_URL;
+console.log(API);
+
+// export const getTypes = () =>
+//   http({
+//     method: "GET",
+//     url: `${API}/subscription_types/`,
+//   });
+
+// export const getSubscriptions = () =>
+//   http({
+//     method: "GET",
+//     url: `${API}/subscriptions/`,
+//   });
 
 export const getTypes = () =>
   http({
     method: "GET",
-    url: `${API}/subscription_types/`,
+    url: `${API}/subscriptions/types`,
   });
 
 export const getSubscriptions = () =>
   http({
     method: "GET",
-    url: `${API}/subscriptions/`,
+    url: `${API}/subscriptions`,
   });
 
 export const create = ({ address, note, blockchain }) => {
@@ -35,12 +48,13 @@ export const deleteJournal = (id) => () =>
 
 export const createSubscription =
   () =>
-  ({ address, type, note }) => {
-    console.log("createSubscription: ", address, type, note);
+  ({ address, type, label, color }) => {
+    console.log("createSubscription: ", address, type, label);
     const data = new FormData();
     data.append("address", address);
-    data.append("subscription_type", type);
-    data.append("note", note);
+    data.append("subscription_type_id", type);
+    data.append("color", color);
+    data.append("label", label);
     return http({
       method: "POST",
       url: `${API}/subscriptions/`,
