@@ -14,21 +14,24 @@ def connect(ipc_path: Optional[str] = MOONSTREAM_IPC_PATH):
     return web3_client
 
 
-def add_block(db_session, block: BlockData, block_number: int) -> None:
+def add_block(
+    db_session, block: BlockData, block_number: int, check: bool = False
+) -> None:
     """
     Add block if doesn't presented in database.
     """
-    block_exist = (
-        db_session.query(EthereumBlock)
-        .filter(EthereumBlock.block_number == block_number)
-        .one_or_none()
-    )
-    if block_exist is not None and block_exist.hash == block.hash.hex():
-        print(f"Block: {block_number} exists")
-        return
-    if block_exist is not None and block_exist.hash != block.hash.hex():
-        print(f"Block: {block_number} exists, but incorrect")
-        db_session.delete(block_exist)
+    if check:
+        block_exist = (
+            db_session.query(EthereumBlock)
+            .filter(EthereumBlock.block_number == block_number)
+            .one_or_none()
+        )
+        if block_exist is not None and block_exist.hash == block.hash.hex():
+            print(f"Block: {block_number} exists")
+            return
+        if block_exist is not None and block_exist.hash != block.hash.hex():
+            print(f"Block: {block_number} exists, but incorrect")
+            db_session.delete(block_exist)
 
     block_obj = EthereumBlock(
         block_number=block.number,
@@ -54,17 +57,21 @@ def add_block(db_session, block: BlockData, block_number: int) -> None:
     return
 
 
-def add_block_transaction(db_session, block_number, tx) -> None:
+def add_block_transaction(
+    db_session, block_number: int, tx, check: bool = False
+) -> None:
     """
     Add block transaction if doesn't presented in database.
     """
-    tx_exist = (
-        db_session.query(EthereumTransaction)
-        .filter(EthereumTransaction.hash == tx.hash.hex())
-        .one_or_none()
-    )
-    if tx_exist is not None:
-        return
+    if check:
+        tx_exist = (
+            db_session.query(EthereumTransaction)
+            .filter(EthereumTransaction.hash == tx.hash.hex())
+            .one_or_none()
+        )
+        if tx_exist is not None:
+            return
+
     tx_obj = EthereumTransaction(
         hash=tx.hash.hex(),
         block_number=block_number,
@@ -80,7 +87,7 @@ def add_block_transaction(db_session, block_number, tx) -> None:
     db_session.add(tx_obj)
 
 
-def process_blocks(blocks_numbers: List[int], with_transactions: bool = False):
+def process_blocks(blocks_numbers: List[int], with_transactions: bool = False, check: bool = False):
     """
     Open database and geth sessions and fetch block data from blockchain.
     """
@@ -90,10 +97,10 @@ def process_blocks(blocks_numbers: List[int], with_transactions: bool = False):
             block: BlockData = web3_client.eth.get_block(
                 block_number, full_transactions=with_transactions
             )
-            add_block(db_session, block, block_number)
+            add_block(db_session, block, block_number, check=check)
             if with_transactions:
                 for tx in block.transactions:
-                    add_block_transaction(db_session, block.number, tx)
+                    add_block_transaction(db_session, block.number, tx, check=check)
             db_session.commit()
 
 

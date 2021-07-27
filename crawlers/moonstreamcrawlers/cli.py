@@ -38,7 +38,11 @@ def ethcrawler_blocks_add_handler(args: argparse.Namespace) -> None:
 
     startTime = time.time()
     for blocks_numbers_list in blocks_numbers_lists:
-        crawl(blocks_numbers_list, bool(strtobool(args.transactions)))
+        crawl(
+            blocks_numbers=blocks_numbers_list,
+            with_transactions=bool(strtobool(args.transactions)),
+            check=bool(strtobool(args.check)),
+        )
     print(
         f"Required time: {time.time() - startTime} for: {blocks_numbers_list_raw_len} "
         f"blocks with {MOONSTREAM_CRAWL_WORKERS} workers"
@@ -84,6 +88,13 @@ def main() -> None:
         choices=["True", "False"],
         default="False",
         help="Add or not block transactions",
+    )
+    parser_ethcrawler_blocks_add.add_argument(
+        "-c",
+        "--check",
+        choices=["True", "False"],
+        default="False",
+        help="If True, it will check existence of block and transaction before write to database",
     )
 
     parser_ethcrawler_blocks_add.set_defaults(func=ethcrawler_blocks_add_handler)
