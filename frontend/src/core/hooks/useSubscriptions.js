@@ -27,7 +27,7 @@ const useSubscriptions = () => {
 
   const getSubscriptions = async () => {
     const response = await SubscriptionsService.getSubscriptions();
-    return response.data.data;
+    return response.data;
   };
 
   const subscriptionsCache = useQuery(["subscriptions"], getSubscriptions, {
@@ -39,7 +39,7 @@ const useSubscriptions = () => {
 
   const getSubscriptionTypes = async () => {
     const response = await SubscriptionsService.getTypes();
-    return response.data.data;
+    return response.data;
   };
 
   const typesCache = useQuery(["subscription_types"], getSubscriptionTypes, {
@@ -73,14 +73,23 @@ const useSubscriptions = () => {
     },
   });
 
-  const deleteSubscription = useMutation(SubscriptionsService.deleteSubscription(), {
-    onError: (error) => toast(error, "error"),
-    onSuccess: (response) => {
-      subscriptionsCache.refetch();
-    },
-  });
+  const deleteSubscription = useMutation(
+    SubscriptionsService.deleteSubscription(),
+    {
+      onError: (error) => toast(error, "error"),
+      onSuccess: (response) => {
+        subscriptionsCache.refetch();
+      },
+    }
+  );
 
-  return { createSubscription, subscriptionsCache, typesCache, changeNote, deleteSubscription };
+  return {
+    createSubscription,
+    subscriptionsCache,
+    typesCache,
+    changeNote,
+    deleteSubscription,
+  };
 };
 
 export default useSubscriptions;
