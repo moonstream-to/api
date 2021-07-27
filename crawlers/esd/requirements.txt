@@ -1,0 +1,15 @@
+alembic==1.6.5
+certifi==2021.5.30
+charset-normalizer==2.0.3
+greenlet==1.1.0
+idna==3.2
+Mako==1.1.4
+MarkupSafe==2.0.1
+-e git+ssh://git@github.com/zomglings/moonstock.git@8acebb7c8a1872cd0a9c2b663f86be3877a20636#egg=moonstreamdb&subdirectory=db
+psycopg2-binary==2.9.1
+python-dateutil==2.8.2
+python-editor==1.0.4
+requests==2.26.0
+six==1.16.0
+SQLAlchemy==1.4.22
+urllib3==1.26.6
