@@ -6,7 +6,7 @@ from typing import Dict, List
 
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
-from fastapi import Body, FastAPI, HTTPException, Request
+from fastapi import Body, FastAPI, HTTPException, Request, Form
 from fastapi.middleware.cors import CORSMiddleware
 
 from .. import data
@@ -51,11 +51,21 @@ app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
 
 @app.post("/", tags=["subscriptions"], response_model=data.SubscriptionResourceData)
 async def add_subscription_handler(
-    request: Request, subscription_data: data.CreateSubscriptionRequest = Body(...)
+    request: Request,  # subscription_data: data.CreateSubscriptionRequest = Body(...)
+    address: str = Form(...),
+    color: str = Form(...),
+    label: str = Form(...),
+    subscription_type_id: str = Form(...),
 ) -> data.SubscriptionResourceData:
     """
     Add subscription to blockchain stream data for user.
     """
+    subscription_data = data.CreateSubscriptionRequest(
+        address=address,
+        color=color,
+        label=label,
+        subscription_type_id=subscription_type_id,
+    )
 
     token = request.state.token
 
@@ -107,6 +117,34 @@ async def add_subscription_handler(
         color=resource.resource_data["color"],
         label=resource.resource_data["label"],
         subscription_type_id=resource.resource_data["subscription_type_id"],
+    )
+
+
+@app.delete(
+    "/{subscription_id}",
+    tags=["subscriptions"],
+    response_model=data.SubscriptionResourceData,
+)
+async def delete_subscription_handler(request: Request, subscription_id: str):
+    """
+    Delete subscriptions.
+    """
+
+    token = request.state.token
+    try:
+        deleted_resource = bc.delete_resource(token=token, resource_id=subscription_id)
+    except BugoutResponseException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        raise HTTPException(status_code=500)
+
+    return data.SubscriptionResourceData(
+        id=str(deleted_resource.id),
+        user_id=deleted_resource.resource_data["user_id"],
+        address=deleted_resource.resource_data["address"],
+        color=deleted_resource.resource_data["color"],
+        label=deleted_resource.resource_data["label"],
+        subscription_type_id=deleted_resource.resource_data["subscription_type_id"],
     )
 
 
