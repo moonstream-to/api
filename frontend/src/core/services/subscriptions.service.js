@@ -4,17 +4,17 @@ import { http } from "../utils";
 const API = process.env.NEXT_PUBLIC_MOONSTREAM_API_URL;
 console.log(API);
 
-// export const getTypes = () =>
-//   http({
-//     method: "GET",
-//     url: `${API}/subscription_types/`,
-//   });
-
-// export const getSubscriptions = () =>
-//   http({
-//     method: "GET",
-//     url: `${API}/subscriptions/`,
-//   });
+export const getStream = ({ searchTerm, limit, offset, isContent }) =>
+  http({
+    method: "GET",
+    url: `${API}/stream`,
+    params: {
+      q: searchTerm,
+      limit: encodeURIComponent(limit),
+      offset: encodeURIComponent(offset),
+      content: encodeURIComponent(isContent),
+    },
+  });
 
 export const getTypes = () =>
   http({
@@ -65,7 +65,6 @@ export const createSubscription =
 export const modifySubscription =
   () =>
   ({ id, note }) => {
-    console.log("modifySubscription: ", note, id);
     const data = new FormData();
     data.append("note", note);
     data.append("id", id);
@@ -77,10 +76,9 @@ export const modifySubscription =
   };
 
 export const deleteSubscription = () => (id) => {
-  console.log("deleteSubscription: ", id);
   return http({
     method: "DELETE",
-    url: `${API}/subscription/${id}`,
+    url: `${API}/subscriptions/${id}`,
   });
 };
 

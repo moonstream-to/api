@@ -23,6 +23,7 @@ const List = (data) => {
     useSubscriptions();
 
   const updateCallback = ({ id, note }) => {
+    console.log("updateCallback", id);
     changeNote.mutate({ id, note });
   };
   console.log(data);
@@ -44,9 +45,9 @@ const List = (data) => {
         <Thead>
           <Tr>
             <Th>Token</Th>
+            <Th>Label</Th>
             <Th>Address</Th>
             <Th>Date Created</Th>
-            <Th>label</Th>
             <Th>Actions</Th>
           </Tr>
         </Thead>
@@ -78,10 +79,6 @@ const List = (data) => {
                 <Td>
                   <Image h="32px" src={iconLink} alt="pool icon" />
                 </Td>
-                <Td mr={4} p={0}>
-                  <CopyButton>{subscription.address}</CopyButton>
-                </Td>
-                <Td py={0}>{moment(subscription.created_at).format("L")}</Td>
                 <Td py={0}>
                   <Editable
                     colorScheme="primary"
@@ -101,6 +98,11 @@ const List = (data) => {
                     <EditableInput maxW="40rem" />
                   </Editable>
                 </Td>
+                <Td mr={4} p={0}>
+                  <CopyButton>{subscription.address}</CopyButton>
+                </Td>
+                <Td py={0}>{moment(subscription.created_at).format("L")}</Td>
+
                 <Td py={0}>
                   <ConfirmationRequest
                     bodyMessage={"please confirm"}

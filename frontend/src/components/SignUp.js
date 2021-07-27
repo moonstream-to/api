@@ -1,7 +1,7 @@
 /** @jsxRuntime classic */
 /** @jsx jsx */
 import { jsx } from "@emotion/react";
-import { useEffect } from "react";
+import { useContext, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {
   Heading,
@@ -15,24 +15,26 @@ import {
   Input,
   InputRightElement,
 } from "@chakra-ui/react";
-import CustomIcon from "./CustomIcon"
+import CustomIcon from "./CustomIcon";
 import { useSignUp } from "../core/hooks";
 import Modal from "./Modal";
 import PasswordInput from "./PasswordInput";
+import UIContext from "../core/providers/UIProvider/context";
 
 const SignUp = ({ toggleModal }) => {
   const { handleSubmit, errors, register } = useForm();
-  const { signUp, isLoading, data } = useSignUp();
+  const { signUp, isLoading, isSuccess } = useSignUp();
+  const ui = useContext(UIContext);
+
 
   useEffect(() => {
-    if (!data) {
-      return;
+    if (isSuccess) {
+      ui.toggleModal(null);
     }
-    toggleModal("verify");
-  }, [data, toggleModal]);
+  }, [isSuccess, toggleModal]);
 
   return (
-    <Modal onClose={() => toggleModal(null)}>
+    <Modal onClose={() => ui.toggleModal(null)}>
       <Heading mt={2} size="md">
         Create an account
       </Heading>

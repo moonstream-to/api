@@ -11,7 +11,7 @@ import RouterLink from "next/link";
 import { Flex, Image, IconButton } from "@chakra-ui/react";
 import UIContext from "../core/providers/UIProvider/context";
 import React from "react";
-import { HamburgerIcon } from "@chakra-ui/icons";
+import { HamburgerIcon, ArrowLeftIcon, ArrowRightIcon } from "@chakra-ui/icons";
 import { MdTimeline, MdSettings } from "react-icons/md";
 import { ImStatsBars } from "react-icons/im";
 
@@ -19,6 +19,7 @@ const Sidebar = () => {
   const ui = useContext(UIContext);
   return (
     <ProSidebar
+      width="240px"
       breakPoint="lg"
       toggled={ui.sidebarToggled}
       onToggle={ui.setSidebarToggled}
@@ -32,7 +33,15 @@ const Sidebar = () => {
             justifySelf="flex-start"
             colorScheme="primary"
             aria-label="App navigation"
-            icon={<HamburgerIcon />}
+            icon={
+              ui.isMobileView ? (
+                <HamburgerIcon />
+              ) : ui.sidebarCollapsed ? (
+                <ArrowRightIcon />
+              ) : (
+                <ArrowLeftIcon />
+              )
+            }
             onClick={() => {
               ui.isMobileView
                 ? ui.setSidebarToggled(!ui.sidebarToggled)
@@ -42,7 +51,7 @@ const Sidebar = () => {
           <Image
             // as={Link}
             // to="/"
-            h="3rem"
+            w="150px"
             py="0.75rem"
             pl={5}
             src="/icons/bugout-dev-white.svg"

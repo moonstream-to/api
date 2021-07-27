@@ -10,28 +10,31 @@ const useSignUp = (source) => {
   const { inviteAccept } = useInviteAccept();
   const analytics = useAnalytics();
 
-  const [signUp, { isLoading, error, data }] = useMutation(
-    AuthService.register(),
-    {
-      onSuccess: (response) => {
-        localStorage.setItem("BUGOUT_ACCESS_TOKEN", response.data.access_token);
-        const invite_code = window.sessionStorage.getItem("invite_code");
-        if (invite_code) {
-          inviteAccept(invite_code);
-        }
+  const {
+    mutate: signUp,
+    isLoading,
+    error,
+    data,
+    isSuccess
+  } = useMutation(AuthService.register(), {
+    onSuccess: (response) => {
+      localStorage.setItem("BUGOUT_ACCESS_TOKEN", response.data.access_token);
+      const invite_code = window.sessionStorage.getItem("invite_code");
+      if (invite_code) {
+        inviteAccept(invite_code);
+      }
 
-        if (analytics.isLoaded) {
-          analytics.mixpanel.track(
-            `${analytics.MIXPANEL_EVENTS.CONVERT_TO_USER}`,
-            { full_url: router.nextRouter.asPath, code: source }
-          );
-        }
-      },
-      onError: (error) => {
-        toast(error, "error");
-      },
-    }
-  );
+      if (analytics.isLoaded) {
+        analytics.mixpanel.track(
+          `${analytics.MIXPANEL_EVENTS.CONVERT_TO_USER}`,
+          { full_url: router.nextRouter.asPath, code: source }
+        );
+      }
+    },
+    onError: (error) => {
+      toast(error, "error");
+    },
+  });
 
   useEffect(() => {
     if (!data) {
@@ -54,6 +57,7 @@ const useSignUp = (source) => {
     isLoading,
     data,
     error,
+    isSuccess,
   };
 };
 
