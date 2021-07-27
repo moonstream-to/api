@@ -2,7 +2,7 @@
 The Moonstream subscriptions HTTP API
 """
 import logging
-from typing import Dict
+from typing import Dict, List
 
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
@@ -49,18 +49,47 @@ whitelist_paths.update(DOCS_PATHS)
 app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
 
 
-@app.post("/", tags=["subscriptions"], response_model=data.SubscriptionResponse)
+@app.post("/", tags=["subscriptions"], response_model=data.SubscriptionResourceData)
 async def add_subscription_handler(
-    request: Request, subscription_data: data.SubscriptionRequest = Body(...)
-) -> data.SubscriptionResponse:
+    request: Request, subscription_data: data.CreateSubscriptionRequest = Body(...)
+) -> data.SubscriptionResourceData:
     """
     Add subscription to blockchain stream data for user.
     """
+
     token = request.state.token
+
+    params = {"type": "subscription_type"}
+
+    # request availble subscriptions
+    try:
+        subscription_resources: BugoutResources = bc.list_resources(
+            token=token, params=params
+        )
+    except BugoutResponseException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        raise HTTPException(status_code=500)
+
+    # allowed subscriptions
+    subscription_ids_list = [
+        resource.resource_data["id"] for resource in subscription_resources.resources
+    ]
+
+    if subscription_data.subscription_type_id not in subscription_ids_list:
+        raise HTTPException(
+            status_code=403, detail="Subscription type is not avilable."
+        )
+
     user = request.state.user
+
+    # chek if that contract not already setted up
+
     resource_data = {"user_id": str(user.id)}
     resource_data.update(subscription_data)
+
     try:
+
         resource: BugoutResource = bc.create_resource(
             token=token,
             application_id=MOONSTREAM_APPLICATION_ID,
@@ -70,9 +99,14 @@ async def add_subscription_handler(
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
         raise HTTPException(status_code=500)
-    return data.SubscriptionResponse(
+
+    return data.SubscriptionResourceData(
+        id=str(resource.id),
         user_id=resource.resource_data["user_id"],
-        blockchain=resource.resource_data["blockchain"],
+        address=resource.resource_data["address"],
+        color=resource.resource_data["color"],
+        label=resource.resource_data["label"],
+        subscription_type_id=resource.resource_data["subscription_type_id"],
     )
 
 
@@ -86,15 +120,48 @@ async def get_subscriptions_handler(request: Request) -> data.SubscriptionsListR
     try:
         resources: BugoutResources = bc.list_resources(token=token, params=params)
     except BugoutResponseException as e:
+        if e.detail == "Resources not found":
+            return data.SubscriptionsListResponse(subscriptions=[])
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
         raise HTTPException(status_code=500)
+
     return data.SubscriptionsListResponse(
         subscriptions=[
-            data.SubscriptionResponse(
+            data.SubscriptionResourceData(
+                id=str(resource.id),
                 user_id=resource.resource_data["user_id"],
-                blockchain=resource.resource_data["blockchain"],
+                address=resource.resource_data["address"],
+                color=resource.resource_data["color"],
+                label=resource.resource_data["label"],
+                subscription_type_id=resource.resource_data["subscription_type_id"],
             )
+            for resource in resources.resources
+        ]
+    )
+
+
+@app.get(
+    "/types", tags=["subscriptions"], response_model=data.SubscriptionTypesListResponce
+)
+async def get_available_subscriptions_type(
+    request: Request,
+) -> data.SubscriptionTypesListResponce:
+
+    """
+    Get available's subscriptions types.
+    """
+    token = request.state.token
+    params = {"type": "subscription_type"}
+    try:
+        resources: BugoutResources = bc.list_resources(token=token, params=params)
+    except BugoutResponseException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        raise HTTPException(status_code=500)
+    return data.SubscriptionTypesListResponce(
+        subscriptions=[
+            data.SubscriptionTypeResourceData.validate(resource.resource_data)
             for resource in resources.resources
         ]
     )
