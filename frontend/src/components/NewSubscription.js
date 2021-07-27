@@ -49,9 +49,25 @@ const NewSubscription = ({ isFreeOption, onClose }) => {
       <ModalHeader>Subscribe to a new address</ModalHeader>
       <ModalCloseButton />
       <ModalBody>
+        <FormControl isInvalid={errors.label}>
+          <Input
+            my={2}
+            type="text"
+            autoComplete="off"
+            placeholder="Enter label"
+            name="label"
+            ref={register({ required: "label is required!" })}
+          ></Input>
+          <FormErrorMessage color="unsafe.400" pl="1">
+            {errors.label && errors.label.message}
+          </FormErrorMessage>
+        </FormControl>
         <FormControl isInvalid={errors.address}>
           <Input
-            placeholder="new address"
+            type="text"
+            autoComplete="off"
+            my={2}
+            placeholder="Enter address"
             name="address"
             ref={register({ required: "address is required!" })}
           ></Input>
@@ -78,11 +94,7 @@ const NewSubscription = ({ isFreeOption, onClose }) => {
                 });
                 if (!type.subscription_plan_id) return "";
                 return (
-                  <RadioCard
-                    onClick={() => console.log("hello")}
-                    key={`subscription-type-${type.id}`}
-                    {...radio}
-                  >
+                  <RadioCard key={`subscription-type-${type.id}`} {...radio}>
                     {type.name}
                   </RadioCard>
                 );
@@ -90,11 +102,6 @@ const NewSubscription = ({ isFreeOption, onClose }) => {
             </HStack>
           </FormControl>
         </Stack>
-        <Input
-          placeholder="Add some notes"
-          name="note"
-          ref={register()}
-        ></Input>
       </ModalBody>
       <ModalFooter>
         <Button

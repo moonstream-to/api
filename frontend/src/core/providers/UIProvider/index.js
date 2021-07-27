@@ -42,13 +42,13 @@ const UIProvider = ({ children }) => {
 
   useEffect(() => {
     if (isAppView && isAppReady && !user?.username && !isLoggingOut) {
-      toggleModal("login");
+      // toggleModal("login");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAppView, isAppReady, user, isLoggingOut]);
 
   useEffect(() => {
-    if (isLoggingOut && !isAppView && !user) {
+    if (isLoggingOut && !isAppView && user) {
       setLoggingOut(false);
     }
   }, [isAppView, user, isLoggingOut]);
@@ -90,7 +90,7 @@ const UIProvider = ({ children }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useStorage(
     window.sessionStorage,
     "sidebarCollapsed",
-    true
+    false
   );
 
   // Whether sidebar should be toggled in mobile view

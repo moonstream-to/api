@@ -3,6 +3,18 @@ import { http } from "../utils";
 
 const API = process.env.NEXT_PUBLIC_SIMIOTICS_AUTH_URL;
 
+export const getStream = ({ searchTerm, limit, offset, isContent }) =>
+  http({
+    method: "GET",
+    url: `${API}/stream`,
+    params: {
+      q: searchTerm,
+      limit: encodeURIComponent(limit),
+      offset: encodeURIComponent(offset),
+      content: encodeURIComponent(isContent),
+    },
+  });
+
 export const getTypes = () =>
   http({
     method: "GET",
@@ -35,12 +47,11 @@ export const deleteJournal = (id) => () =>
 
 export const createSubscription =
   () =>
-  ({ address, type, note }) => {
-    console.log("createSubscription: ", address, type, note);
+  ({ address, type, label }) => {
     const data = new FormData();
     data.append("address", address);
     data.append("subscription_type", type);
-    data.append("note", note);
+    data.append("label", label);
     return http({
       method: "POST",
       url: `${API}/subscriptions/`,
@@ -51,7 +62,6 @@ export const createSubscription =
 export const modifySubscription =
   () =>
   ({ id, note }) => {
-    console.log("modifySubscription: ", note, id);
     const data = new FormData();
     data.append("note", note);
     data.append("id", id);
@@ -63,7 +73,6 @@ export const modifySubscription =
   };
 
 export const deleteSubscription = () => (id) => {
-  console.log("deleteSubscription: ", id);
   return http({
     method: "DELETE",
     url: `${API}/subscription/${id}`,
