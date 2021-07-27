@@ -95,11 +95,7 @@ const NewSubscription = ({ isFreeOption, onClose }) => {
                 });
                 if (!type.subscription_plan_id) return "";
                 return (
-                  <RadioCard
-                    onClick={() => setRadioState(type.id)}
-                    key={`subscription_type_${type.id}`}
-                    {...radio}
-                  >
+                  <RadioCard key={`subscription_type_${type.id}`} {...radio}>
                     {type.name}
                   </RadioCard>
                 );
