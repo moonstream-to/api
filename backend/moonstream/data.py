@@ -1,7 +1,7 @@
 """
 Pydantic schemas for the Moonstream HTTP API
 """
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -41,3 +41,19 @@ class SubscriptionResponse(BaseModel):
 
 class SubscriptionsListResponse(BaseModel):
     subscriptions: List[SubscriptionResponse] = Field(default_factory=list)
+
+
+class EVMFunctionSignature(BaseModel):
+    type = "function"
+    hex_signature: str
+    text_signature_candidates: Optional[List[str]] = None
+
+
+class EVMEventSignature(BaseModel):
+    type = "event"
+    hex_signature: str
+    text_signature_candidates: Optional[List[str]] = None
+
+class ContractABI(BaseModel):
+    functions: List[EVMFunctionSignature]
+    events: List[EVMEventSignature]
