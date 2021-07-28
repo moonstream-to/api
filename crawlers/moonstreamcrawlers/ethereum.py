@@ -38,7 +38,6 @@ def add_block(db_session, block: BlockData) -> None:
         transactions_root=block.transactionsRoot.hex(),
     )
     db_session.add(block_obj)
-    print(f"Added new block: {block.number}")
 
 
 def add_block_transactions(db_session, block: BlockData) -> None:
@@ -115,7 +114,9 @@ def check_missing_blocks(blocks_numbers: List[int]) -> List[int]:
     return missing_blocks_numbers
 
 
-def crawl(block_numbers_list: List[int], with_transactions: bool = False) -> None:
+def crawl_blocks_executor(
+    block_numbers_list: List[int], with_transactions: bool = False
+) -> None:
     """
     Execute crawler in processes.
     """

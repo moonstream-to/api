@@ -5,7 +5,12 @@ import argparse
 from distutils.util import strtobool
 import time
 
-from .ethereum import crawl, check_missing_blocks, synchronize_latest_blocks
+from .ethereum import (
+    crawl_blocks_executor,
+    crawl_blocks,
+    check_missing_blocks,
+    synchronize_latest_blocks,
+)
 from .settings import MOONSTREAM_CRAWL_WORKERS
 
 
@@ -53,7 +58,8 @@ def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
         for blocks_numbers_list in yield_blocks_numbers_lists(
             f"{bottom_block_number}-{top_block_number}"
         ):
-            crawl(
+            print(f"Adding blocks {blocks_numbers_list[0]}-{blocks_numbers_list[-1]}")
+            crawl_blocks_executor(
                 block_numbers_list=blocks_numbers_list,
                 with_transactions=bool(strtobool(args.transactions)),
             )
@@ -68,15 +74,13 @@ def ethcrawler_blocks_add_handler(args: argparse.Namespace) -> None:
     startTime = time.time()
 
     for blocks_numbers_list in yield_blocks_numbers_lists(args.blocks):
-        crawl(
+        print(f"Adding blocks {blocks_numbers_list[0]}-{blocks_numbers_list[-1]}")
+        crawl_blocks_executor(
             block_numbers_list=blocks_numbers_list,
             with_transactions=bool(strtobool(args.transactions)),
         )
 
-    print(
-        f"Required {time.time() - startTime} "
-        f"with {MOONSTREAM_CRAWL_WORKERS} workers"
-    )
+    print(f"Required {time.time() - startTime} with {MOONSTREAM_CRAWL_WORKERS} workers")
 
 
 def ethcrawler_blocks_missing_handler(args: argparse.Namespace) -> None:
@@ -95,13 +99,18 @@ def ethcrawler_blocks_missing_handler(args: argparse.Namespace) -> None:
     time.sleep(5)
 
     if (len(missing_blocks_numbers_total)) > 0:
-        crawl(
-            missing_blocks_numbers_total,
-            with_transactions=bool(strtobool(args.transactions)),
-        )
+        if args.lazy:
+            crawl_blocks(
+                missing_blocks_numbers_total,
+                with_transactions=bool(strtobool(args.transactions)),
+            )
+        else:
+            crawl_blocks_executor(
+                missing_blocks_numbers_total,
+                with_transactions=bool(strtobool(args.transactions)),
+            )
     print(
-        f"Required {time.time() - startTime} "
-        f"with {MOONSTREAM_CRAWL_WORKERS} workers "
+        f"Required {time.time() - startTime} with {MOONSTREAM_CRAWL_WORKERS} workers "
         f"for {len(missing_blocks_numbers_total)} missing blocks"
     )
 
@@ -175,6 +184,13 @@ def main() -> None:
         choices=["True", "False"],
         default="True",
         help="Add or not block transactions",
+    )
+    parser_ethcrawler_blocks_missing.add_argument(
+        "-l",
+        "--lazy",
+        choices=["True", "False"],
+        default="False",
+        help="Lazy block adding one by one",
     )
     parser_ethcrawler_blocks_missing.set_defaults(
         func=ethcrawler_blocks_missing_handler
