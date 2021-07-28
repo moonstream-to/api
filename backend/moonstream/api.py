@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from . import data
 from .routes.subscriptions import app as subscriptions_api
 from .routes.users import app as users_api
+from .routes.txinfo import app as txinfo_api
 from .settings import ORIGINS
 from .version import MOONSTREAM_VERSION
 
@@ -38,3 +39,4 @@ async def version_handler() -> data.VersionResponse:
 
 app.mount("/subscriptions", subscriptions_api)
 app.mount("/users", users_api)
+app.mount("/txinfo", txinfo_api)

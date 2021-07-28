@@ -167,3 +167,5 @@ alembic.dev.ini
 alembic.prod.ini
 .db/
 .venv/
+.secrets/
+.moonstreamdb

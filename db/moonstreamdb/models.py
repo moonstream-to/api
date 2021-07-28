@@ -129,3 +129,33 @@ class EthereumPendingTransaction(Base):  # type: ignore
     indexed_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )
+
+
+class ESDFunctionSignature(Base):
+    """
+    Function signature from Ethereum Signature Database.
+    """
+
+    __tablename__ = "esd_function_signatures"
+
+    id = Column(Integer, primary_key=True)
+    text_signature = Column(Text, nullable=False)
+    hex_signature = Column(VARCHAR(10), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=utcnow(), nullable=False
+    )
+
+
+class ESDEventSignature(Base):
+    """
+    Function signature from Ethereum Signature Database.
+    """
+
+    __tablename__ = "esd_event_signatures"
+
+    id = Column(Integer, primary_key=True)
+    text_signature = Column(Text, nullable=False)
+    hex_signature = Column(VARCHAR(66), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=utcnow(), nullable=False
+    )

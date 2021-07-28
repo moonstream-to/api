@@ -31,6 +31,11 @@ prod.env
 .env.production
 dev.env.local
 .env.local
-.env.dev
-.env.development
+.env.development.local
+.env.test.local
+.env.production.local
 .secrets/
+
+# vercel
+.vercel
+

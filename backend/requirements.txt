@@ -8,14 +8,15 @@ certifi==2021.5.30
 charset-normalizer==2.0.3
 click==8.0.1
 fastapi==0.66.0
--e git+https://git@github.com/bugout-dev/moonstream.git@876c23aac10f07da700798f47c44797a4ae157bb#egg=moonstreamdb&subdirectory=db
 h11==0.12.0
 idna==3.2
 jmespath==0.10.0
+-e git+ssh://git@github.com/bugout-dev/moonstream.git@b9c828fc7f811af88a9f3a45dd7f5c4053433366#egg=moonstreamdb&subdirectory=db
 mypy==0.910
 mypy-extensions==0.4.3
 pathspec==0.9.0
 pydantic==1.8.2
+pyevmasm==0.2.3
 python-dateutil==2.8.2
 python-multipart==0.0.5
 regex==2021.7.6

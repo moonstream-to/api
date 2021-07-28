@@ -70,4 +70,42 @@ class SubscriptionResponse(BaseModel):
 
 
 class SubscriptionsListResponse(BaseModel):
-    subscriptions: List[SubscriptionResourceData] = Field(default_factory=list)
+    subscriptions: List[SubscriptionResponse] = Field(default_factory=list)
+
+
+class EVMFunctionSignature(BaseModel):
+    type = "function"
+    hex_signature: str
+    text_signature_candidates: List[str] = Field(default_factory=list)
+
+
+class EVMEventSignature(BaseModel):
+    type = "event"
+    hex_signature: str
+    text_signature_candidates: List[str] = Field(default_factory=list)
+
+
+class ContractABI(BaseModel):
+    functions: List[EVMFunctionSignature]
+    events: List[EVMEventSignature]
+
+
+class EthereumTransaction(BaseModel):
+    gas: int
+    gasPrice: int
+    value: int
+    from_address: str = Field(alias="from")
+    to_address: Optional[str] = Field(default=None, alias="to")
+    hash: Optional[str] = None
+    input: Optional[str] = None
+
+
+class TxinfoEthereumBlockchainRequest(BaseModel):
+    tx: EthereumTransaction
+
+
+class TxinfoEthereumBlockchainResponse(BaseModel):
+    tx: EthereumTransaction
+    abi: Optional[ContractABI] = None
+    errors: List[str] = Field(default_factory=list)
+
