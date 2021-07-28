@@ -17,7 +17,7 @@ fileConfig(config.config_file_name)
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from db.models import Base as ExplorationBase
+from moonstreamdb.models import Base as ExplorationBase
 
 target_metadata = ExplorationBase.metadata
 
@@ -25,7 +25,7 @@ target_metadata = ExplorationBase.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
-from db.models import EthereumBlock, EthereumTransaction, EthereumPendingTransaction
+from moonstreamdb.models import EthereumBlock, EthereumTransaction, EthereumPendingTransaction
 
 
 def include_symbol(tablename, schema):
