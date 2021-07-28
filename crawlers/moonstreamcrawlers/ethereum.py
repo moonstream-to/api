@@ -44,23 +44,20 @@ def add_block_transactions(db_session, block: BlockData) -> None:
     """
     Add block transactions.
     """
-    transactions_pack = []
     for tx in block.transactions:
-        transactions_pack.append(
-            EthereumTransaction(
-                hash=tx.hash.hex(),
-                block_number=block.number,
-                from_address=tx["from"],
-                to_address=tx.to,
-                gas=tx.gas,
-                gas_price=tx.gasPrice,
-                input=tx.input,
-                nonce=tx.nonce,
-                transaction_index=tx.transactionIndex,
-                value=tx.value,
-            )
+        tx_obj = EthereumTransaction(
+            hash=tx.hash.hex(),
+            block_number=block.number,
+            from_address=tx["from"],
+            to_address=tx.to,
+            gas=tx.gas,
+            gas_price=tx.gasPrice,
+            input=tx.input,
+            nonce=tx.nonce,
+            transaction_index=tx.transactionIndex,
+            value=tx.value,
         )
-    db_session.bulk_save_objects(transactions_pack)
+        db_session.add(tx_obj)
 
 
 def get_latest_blocks(with_transactions: bool = False) -> None:
@@ -122,9 +119,6 @@ def crawl_blocks_executor(
     """
     with ProcessPoolExecutor(max_workers=MOONSTREAM_CRAWL_WORKERS) as executor:
         for worker in range(1, MOONSTREAM_CRAWL_WORKERS + 1):
-            print(
-                f"Added executor for list of blocks with len: {len(block_numbers_list[worker-1::MOONSTREAM_CRAWL_WORKERS])}"
-            )
             executor.submit(
                 crawl_blocks,
                 block_numbers_list[worker - 1 :: MOONSTREAM_CRAWL_WORKERS],
