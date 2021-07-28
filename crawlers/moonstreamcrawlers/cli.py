@@ -9,7 +9,7 @@ from .ethereum import (
     crawl_blocks_executor,
     crawl_blocks,
     check_missing_blocks,
-    synchronize_latest_blocks,
+    get_latest_blocks,
 )
 from .settings import MOONSTREAM_CRAWL_WORKERS
 
@@ -52,9 +52,14 @@ def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
     Synchronize latest Ethereum blocks with database.
     """
     while True:
-        bottom_block_number, top_block_number = synchronize_latest_blocks(
+        bottom_block_number, top_block_number = get_latest_blocks(
             bool(strtobool(args.transactions))
         )
+        if bottom_block_number >= top_block_number:
+            print(
+                f"Synchronization is unnecessary for blocks {bottom_block_number}-{top_block_number}"
+            )
+            break
         for blocks_numbers_list in yield_blocks_numbers_lists(
             f"{bottom_block_number}-{top_block_number}"
         ):
