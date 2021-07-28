@@ -8,7 +8,7 @@ certifi==2021.5.30
 charset-normalizer==2.0.3
 click==8.0.1
 fastapi==0.66.0
--e git+https://git@github.com/bugout-dev/moonstream.git@60e90219a8e24077a1ab046463775f837df5f03e#egg=moonstreamdb&subdirectory=db
+-e git+https://git@github.com/bugout-dev/moonstream.git@876c23aac10f07da700798f47c44797a4ae157bb#egg=moonstreamdb&subdirectory=db
 h11==0.12.0
 idna==3.2
 jmespath==0.10.0
