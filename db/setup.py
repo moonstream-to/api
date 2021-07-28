@@ -1,12 +1,14 @@
 from setuptools import find_packages, setup
 
+from moonstreamdb.version import MOONSTREAMDB_VERSION
+
 long_description = ""
 with open("README.md") as ifp:
     long_description = ifp.read()
 
 setup(
     name="moonstreamdb",
-    version="0.0.1",
+    version=MOONSTREAMDB_VERSION,
     author="Bugout.dev",
     author_email="engineers@bugout.dev",
     license="Apache License 2.0",
@@ -28,7 +30,7 @@ setup(
     ],
     python_requires=">=3.6",
     packages=find_packages(),
-    package_data={"bugout": ["py.typed"]},
+    package_data={"moonstreamdb": ["py.typed"]},
     zip_safe=False,
     install_requires=["alembic", "psycopg2-binary", "sqlalchemy"],
     extras_require={"dev": ["black", "mypy"]},
