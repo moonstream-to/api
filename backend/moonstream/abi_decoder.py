@@ -44,7 +44,10 @@ def decode_signatures(
 
 
 def decode_abi(source: str, session: Optional[Session] = None) -> ContractABI:
-    disassembled = pyevmasm.disassemble_all(binascii.unhexlify(source))
+    normalized_source = source
+    if normalized_source[:2] == "0x":
+        normalized_source = normalized_source[2:]
+    disassembled = pyevmasm.disassemble_all(binascii.unhexlify(normalized_source))
     function_hex_signatures = []
     event_hex_signatures = []
 
