@@ -17,12 +17,10 @@ def query_for_text_signatures(
     session: Session,
     hex_signature: str,
     db_model: Union[ESDFunctionSignature, ESDEventSignature],
-) -> Optional[List[str]]:
+) -> List[str]:
     query = session.query(db_model)
     query = query.filter(db_model.hex_signature == hex_signature)
     results = query.all()
-    if not results:
-        return None
     text_signatures = []
     for el in results:
         text_signatures.append(el.text_signature)
@@ -97,6 +95,8 @@ def main() -> None:
     source: Optional[str] = None
     with args.infile as ifp:
         source = ifp.read().strip()
+    if source is None:
+        raise ValueError("Could not read ABI.")
 
     abi = decode_abi(source)
     print(abi.json())

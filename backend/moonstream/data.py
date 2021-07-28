@@ -76,13 +76,14 @@ class SubscriptionsListResponse(BaseModel):
 class EVMFunctionSignature(BaseModel):
     type = "function"
     hex_signature: str
-    text_signature_candidates: Optional[List[str]] = None
+    text_signature_candidates: List[str] = Field(default_factory=list)
 
 
 class EVMEventSignature(BaseModel):
     type = "event"
     hex_signature: str
-    text_signature_candidates: Optional[List[str]] = None
+    text_signature_candidates: List[str] = Field(default_factory=list)
+
 
 class ContractABI(BaseModel):
     functions: List[EVMFunctionSignature]
