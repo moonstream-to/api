@@ -12,10 +12,12 @@ fastapi==0.66.0
 h11==0.12.0
 idna==3.2
 jmespath==0.10.0
+-e git+ssh://git@github.com/bugout-dev/moonstock.git@8acebb7c8a1872cd0a9c2b663f86be3877a20636#egg=moonstreamdb&subdirectory=db
 mypy==0.910
 mypy-extensions==0.4.3
 pathspec==0.9.0
 pydantic==1.8.2
+pyevmasm==0.2.3
 python-dateutil==2.8.2
 python-multipart==0.0.5
 regex==2021.7.6
