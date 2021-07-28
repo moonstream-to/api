@@ -24,8 +24,12 @@ def query_for_text_signatures(
         text_signatures.append(el.text_signature)
     return text_signatures
 
+
 def decode_signatures(
-    session: Session, hex_signatures: List[str], data_model: Union[Type[EVMEventSignature], Type[EVMFunctionSignature]], db_model: Union[ESDEventSignature, ESDFunctionSignature]
+    session: Session,
+    hex_signatures: List[str],
+    data_model: Union[Type[EVMEventSignature], Type[EVMFunctionSignature]],
+    db_model: Union[ESDEventSignature, ESDFunctionSignature],
 ) -> List[Union[EVMEventSignature, EVMFunctionSignature]]:
     decoded_signatures = []
     for hex_signature in hex_signatures:
@@ -35,6 +39,7 @@ def decode_signatures(
         )
         decoded_signatures.append(signature)
     return decoded_signatures
+
 
 def decode_abi(source: str) -> ContractABI:
     disassembled = pyevmasm.disassemble_all(binascii.unhexlify(source))
@@ -52,8 +57,15 @@ def decode_abi(source: str) -> ContractABI:
                 event_hex_signatures.append(hex_signature)
 
     with yield_db_session_ctx() as session:
-        function_signatures = decode_signatures(session, function_hex_signatures, EVMFunctionSignature, ESDFunctionSignature)
-        event_signatures = decode_signatures(session, event_hex_signatures, EVMEventSignature, ESDEventSignature)
-        
-        abi = ContractABI(functions=cast(EVMFunctionSignature, function_signatures), events=cast(EVMEventSignature, event_signatures))
+        function_signatures = decode_signatures(
+            session, function_hex_signatures, EVMFunctionSignature, ESDFunctionSignature
+        )
+        event_signatures = decode_signatures(
+            session, event_hex_signatures, EVMEventSignature, ESDEventSignature
+        )
+
+        abi = ContractABI(
+            functions=cast(EVMFunctionSignature, function_signatures),
+            events=cast(EVMEventSignature, event_signatures),
+        )
         return abi
