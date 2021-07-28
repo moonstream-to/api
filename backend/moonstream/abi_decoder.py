@@ -1,6 +1,5 @@
 import argparse
 import binascii
-import json
 import sys
 from typing import List, Optional, Union, Type, cast
 
