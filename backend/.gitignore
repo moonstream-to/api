@@ -165,3 +165,4 @@ dev.env
 prod.env
 .moonstream
 .venv
+.secrets
