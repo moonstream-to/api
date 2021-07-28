@@ -12,10 +12,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from .. import data
 from ..middleware import BroodAuthMiddleware
 from ..settings import (
-    MOONSTREAM_APPLICATION_ID,
     DOCS_TARGET_PATH,
-    ORIGINS,
     DOCS_PATHS,
+    MOONSTREAM_APPLICATION_ID,
+    MOONSTREAM_SUBSCRIPTIONS_USER_TOKEN,
+    ORIGINS,
     bugout_client as bc,
 )
 from ..version import MOONSTREAM_VERSION
@@ -192,7 +193,9 @@ async def get_available_subscriptions_type(
     token = request.state.token
     params = {"type": "subscription_type"}
     try:
-        resources: BugoutResources = bc.list_resources(token=token, params=params)
+        resources: BugoutResources = bc.list_resources(
+            token=MOONSTREAM_SUBSCRIPTIONS_USER_TOKEN, params=params
+        )
     except BugoutResponseException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
