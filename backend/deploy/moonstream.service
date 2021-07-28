@@ -5,9 +5,9 @@ After=network.target
 [Service]
 User=ubuntu
 Group=www-data
-WorkingDirectory=/home/ubuntu/app
-EnvironmentFile=/home/ubuntu/secrets/app.env
-ExecStart=/home/ubuntu/server-env/bin/uvicorn --host 0.0.0.0 --port 7481 --workers 8 moonstream.api:app
+WorkingDirectory=/home/ubuntu/moonstream
+EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
+ExecStart=/home/ubuntu/moonstream-env/bin/uvicorn --host 0.0.0.0 --port 7481 --workers 8 moonstream.api:app
 SyslogIdentifier=moonstream
 
 [Install]

@@ -234,28 +234,5 @@ const enableMockupRequests = (axiosInstance) => {
       offset: 0,
     },
   });
-
-  mock.onGet(`${MOCK_API}/subscriptions/`).reply(200, {
-    data: {
-      is_free_subscription_availible: true,
-      subscriptions: MockSubscriptions,
-    },
-  });
-
-  mock.onPost(`${MOCK_API}/subscriptions/`).reply((config) => {
-    const params = config.data; // FormData of {name: ..., file: ...}
-    const id = params.get("id");
-    const label = params.get("label");
-    const address = params.get("address");
-    const subscription_type = params.get("subscription_type");
-
-    return new Promise(function (resolve) {
-      setTimeout(function () {
-        const data = { id, label, address, subscription_type };
-        MockSubscriptions.push({ ...data });
-        resolve([200, { message: "OK", result: true }]);
-      }, 1000);
-    });
-  });
 };
 export default enableMockupRequests;

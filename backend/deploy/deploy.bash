@@ -3,19 +3,24 @@
 # Deployment script - intended to run on Moonstream servers
 
 # Main
-APP_DIR="${APP_DIR:-/home/ubuntu/app}"
+APP_DIR="${APP_DIR:-/home/ubuntu/moonstream}"
 AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
-PYTHON_ENV_DIR="${PYTHON_ENV_DIR:-/home/ubuntu/app-env}"
+PYTHON_ENV_DIR="${PYTHON_ENV_DIR:-/home/ubuntu/moonstream-env}"
 PYTHON="${PYTHON_ENV_DIR}/bin/python"
 PIP="${PYTHON_ENV_DIR}/bin/pip"
 SCRIPT_DIR="$(realpath $(dirname $0))"
 PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.py"
-SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/app-secrets}"
+SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/moonstream-secrets}"
 PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
 AWS_SSM_PARAMETER_PATH="${AWS_SSM_PARAMETER_PATH:-/moonstream/prod}"
 SERVICE_FILE="${SCRIPT_DIR}/moonstream.service"
 
 set -eu
+
+echo
+echo
+echo "Updating pip and setuptools"
+"${PIP}" install -U pip setuptools
 
 echo
 echo
