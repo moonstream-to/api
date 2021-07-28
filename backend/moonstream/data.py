@@ -88,3 +88,24 @@ class EVMEventSignature(BaseModel):
 class ContractABI(BaseModel):
     functions: List[EVMFunctionSignature]
     events: List[EVMEventSignature]
+
+
+class EthereumTransaction(BaseModel):
+    gas: int
+    gasPrice: int
+    value: int
+    from_address: str = Field(alias="from")
+    to_address: Optional[str] = Field(default=None, alias="to")
+    hash: Optional[str] = None
+    input: Optional[str] = None
+
+
+class TxinfoEthereumBlockchainRequest(BaseModel):
+    tx: EthereumTransaction
+
+
+class TxinfoEthereumBlockchainResponse(BaseModel):
+    tx: EthereumTransaction
+    abi: Optional[ContractABI] = None
+    errors: List[str] = Field(default_factory=list)
+
