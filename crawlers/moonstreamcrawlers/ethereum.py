@@ -10,7 +10,7 @@ from moonstreamdb.models import EthereumBlock, EthereumTransaction
 
 
 def connect(ipc_path: Optional[str] = MOONSTREAM_IPC_PATH):
-    web3_client = Web3(Web3.IPCProvider(ipc_path))
+    web3_client = Web3(Web3.HTTPProvider("http://localhost:8545"))
     return web3_client
 
 
@@ -151,6 +151,7 @@ def crawl_blocks_executor(
             results.append(result)
 
     wait(results)
-    print("Errors:")
-    for error in errors:
-        print(f"- {error}")
+    if len(errors) > 0:
+        print("Errors:")
+        for error in errors:
+            print(f"- {error}")
