@@ -58,7 +58,7 @@ class EthereumBlock(Base):  # type: ignore
     extra_data = Column(VARCHAR(128))
     gas_limit = Column(BigInteger)
     gas_used = Column(BigInteger)
-    hash = Column(VARCHAR(256))
+    hash = Column(VARCHAR(256), index=True)
     logs_bloom = Column(VARCHAR(1024))
     miner = Column(VARCHAR(256))
     nonce = Column(VARCHAR(256))
@@ -79,15 +79,13 @@ class EthereumTransaction(Base):  # type: ignore
     __tablename__ = "ethereum_transactions"
 
     hash = Column(
-        VARCHAR(256),
-        primary_key=True,
-        unique=True,
-        nullable=False,
+        VARCHAR(256), primary_key=True, unique=True, nullable=False, index=True
     )
     block_number = Column(
         BigInteger,
         ForeignKey("ethereum_blocks.block_number", ondelete="CASCADE"),
         nullable=False,
+        index=True,
     )
     from_address = Column(VARCHAR(256), index=True)
     to_address = Column(VARCHAR(256), index=True)
@@ -96,7 +94,7 @@ class EthereumTransaction(Base):  # type: ignore
     input = Column(Text)
     nonce = Column(VARCHAR(256))
     transaction_index = Column(BigInteger)
-    value = Column(Text)
+    value = Column(Text, index=True)
 
     indexed_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
@@ -107,15 +105,13 @@ class EthereumPendingTransaction(Base):  # type: ignore
     __tablename__ = "ethereum_pending_transactions"
 
     hash = Column(
-        VARCHAR(256),
-        primary_key=True,
-        unique=True,
-        nullable=False,
+        VARCHAR(256), primary_key=True, unique=True, nullable=False, index=True
     )
     block_number = Column(
         BigInteger,
         ForeignKey("ethereum_blocks.block_number", ondelete="CASCADE"),
         nullable=False,
+        index=True,
     )
     from_address = Column(VARCHAR(256), index=True)
     to_address = Column(VARCHAR(256), index=True)
@@ -124,7 +120,7 @@ class EthereumPendingTransaction(Base):  # type: ignore
     input = Column(Text)
     nonce = Column(VARCHAR(256))
     transaction_index = Column(BigInteger)
-    value = Column(Text)
+    value = Column(Text, index=True)
 
     indexed_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
@@ -138,7 +134,7 @@ class ESDFunctionSignature(Base):
 
     __tablename__ = "esd_function_signatures"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, index=True)
     text_signature = Column(Text, nullable=False)
     hex_signature = Column(VARCHAR(10), nullable=False)
     created_at = Column(
@@ -153,7 +149,7 @@ class ESDEventSignature(Base):
 
     __tablename__ = "esd_event_signatures"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, index=True)
     text_signature = Column(Text, nullable=False)
     hex_signature = Column(VARCHAR(66), nullable=False)
     created_at = Column(
