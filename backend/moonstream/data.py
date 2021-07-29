@@ -97,7 +97,15 @@ class EthereumTransaction(BaseModel):
     from_address: str = Field(alias="from")
     to_address: Optional[str] = Field(default=None, alias="to")
     hash: Optional[str] = None
+    block_hash: Optional[str] = Field(default=None, alias="blockHash")
+    block_number: Optional[int] = Field(default=None, alias="blockNumber")
     input: Optional[str] = None
+    nonce: Optional[int] = None
+    r: Optional[str] = None
+    s: Optional[str] = None
+    v: Optional[str] = None
+    transaction_index: Optional[int] = Field(default=None, alias="transactionIndex")
+    transaction_type: str = Field(default="0x0", alias="type")
 
 
 class TxinfoEthereumBlockchainRequest(BaseModel):
