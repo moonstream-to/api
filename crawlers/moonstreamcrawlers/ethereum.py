@@ -1,4 +1,4 @@
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import Future, ProcessPoolExecutor, wait
 from typing import List, Optional
 
 from web3 import Web3
@@ -129,12 +129,17 @@ def crawl_blocks_executor(
     for i, block_number in enumerate(block_numbers_list):
         worker_job_lists[i % MOONSTREAM_CRAWL_WORKERS].append(block_number)
 
+    results: List[Future] = []
+
     with ProcessPoolExecutor(max_workers=MOONSTREAM_CRAWL_WORKERS) as executor:
         for worker in worker_indices:
             if verbose:
                 print(f"Spawned process for {len(worker_job_lists[worker])} blocks")
-            executor.submit(
+            result = executor.submit(
                 crawl_blocks,
                 worker_job_lists[worker],
                 with_transactions,
             )
+            results.append(result)
+
+    wait(results)
