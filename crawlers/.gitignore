@@ -165,3 +165,4 @@ prod.env
 prod.env.ps1
 dev.env.ps1
 .venv
+.crawlers
