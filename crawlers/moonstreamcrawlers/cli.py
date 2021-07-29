@@ -4,81 +4,94 @@ Moonstream crawlers CLI.
 import argparse
 from distutils.util import strtobool
 import time
-from typing import List
 
-from .ethereum import crawl, check_missing_blocks
+from .ethereum import (
+    crawl_blocks_executor,
+    crawl_blocks,
+    check_missing_blocks,
+    get_latest_blocks,
+)
 from .settings import MOONSTREAM_CRAWL_WORKERS
 
 
-def get_blocks_numbers_lists(
-    bottom_block_number: int, top_block_number: int
-) -> List[List[int]]:
+def yield_blocks_numbers_lists(blocks_range_str: str) -> None:
     """
     Generate list of blocks.
+    Block steps used to prevent long executor tasks and data loss possibility.
     """
     block_step = 1000
-    blocks_numbers_list_raw = list(range(top_block_number, bottom_block_number - 1, -1))
-    blocks_numbers_list_raw_len = len(blocks_numbers_list_raw)
-    # Block steps used to prevent long executor tasks and data loss possibility
-    # Block step 2 convert [1,2,3] -> [[1,2],[3]]
-    if blocks_numbers_list_raw_len / block_step > 1:
-        blocks_numbers_lists = [
-            blocks_numbers_list_raw[i : i + block_step]
-            for i in range(0, blocks_numbers_list_raw_len, block_step)
-        ]
-    else:
-        blocks_numbers_lists = [blocks_numbers_list_raw]
 
-    return blocks_numbers_lists, blocks_numbers_list_raw_len
+    try:
+        blocks_start_end = blocks_range_str.split("-")
+        bottom_block_number = int(blocks_start_end[0])
+        top_block_number = int(blocks_start_end[1])
+        required_blocks_len = top_block_number - bottom_block_number + 1
+    except Exception:
+        print(
+            "Wrong format provided, expected {bottom_block}-{top_block}, as ex. 105-340"
+        )
+        return
+
+    print(f"Required {required_blocks_len} blocks to process")
+
+    while not top_block_number < bottom_block_number:
+        temp_bottom_block_number = top_block_number - block_step
+        if temp_bottom_block_number < bottom_block_number:
+            temp_bottom_block_number = bottom_block_number - 1
+        blocks_numbers_list = list(
+            range(top_block_number, temp_bottom_block_number, -1)
+        )
+
+        yield blocks_numbers_list
+
+        top_block_number -= block_step
+
+
+def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
+    """
+    Synchronize latest Ethereum blocks with database.
+    """
+    while True:
+        bottom_block_number, top_block_number = get_latest_blocks(
+            bool(strtobool(args.transactions))
+        )
+        if bottom_block_number >= top_block_number:
+            print(
+                f"Synchronization is unnecessary for blocks {bottom_block_number}-{top_block_number}"
+            )
+            break
+        for blocks_numbers_list in yield_blocks_numbers_lists(
+            f"{bottom_block_number}-{top_block_number}"
+        ):
+            print(f"Adding blocks {blocks_numbers_list[0]}-{blocks_numbers_list[-1]}")
+            crawl_blocks_executor(
+                block_numbers_list=blocks_numbers_list,
+                with_transactions=bool(strtobool(args.transactions)),
+            )
+        print(f"Synchronized blocks from {bottom_block_number} to {top_block_number}")
+        time.sleep(10)
 
 
 def ethcrawler_blocks_add_handler(args: argparse.Namespace) -> None:
     """
     Add blocks to moonstream database.
     """
-    try:
-        blocks_start_end = args.blocks.split("-")
-        bottom_block_number = int(blocks_start_end[0])
-        top_block_number = int(blocks_start_end[1])
-    except Exception:
-        print(
-            "Wrong format provided, expected {bottom_block}-{top_block}, as ex. 105-340"
-        )
-        return
-
-    blocks_numbers_lists, blocks_numbers_list_raw_len = get_blocks_numbers_lists(
-        bottom_block_number, top_block_number
-    )
-
     startTime = time.time()
-    for blocks_numbers_list in blocks_numbers_lists:
-        crawl(
+
+    for blocks_numbers_list in yield_blocks_numbers_lists(args.blocks):
+        print(f"Adding blocks {blocks_numbers_list[0]}-{blocks_numbers_list[-1]}")
+        crawl_blocks_executor(
             block_numbers_list=blocks_numbers_list,
             with_transactions=bool(strtobool(args.transactions)),
         )
-    print(
-        f"Required time: {time.time() - startTime} for: {blocks_numbers_list_raw_len} "
-        f"blocks with {MOONSTREAM_CRAWL_WORKERS} workers"
-    )
+
+    print(f"Required {time.time() - startTime} with {MOONSTREAM_CRAWL_WORKERS} workers")
 
 
 def ethcrawler_blocks_missing_handler(args: argparse.Namespace) -> None:
-    try:
-        blocks_start_end = args.blocks.split("-")
-        bottom_block_number = int(blocks_start_end[0])
-        top_block_number = int(blocks_start_end[1])
-    except Exception:
-        print(
-            "Wrong format provided, expected {bottom_block}-{top_block}, as ex. 105-340"
-        )
-        return
-
-    blocks_numbers_lists, blocks_numbers_list_raw_len = get_blocks_numbers_lists(
-        bottom_block_number, top_block_number
-    )
     startTime = time.time()
     missing_blocks_numbers_total = []
-    for blocks_numbers_list in blocks_numbers_lists:
+    for blocks_numbers_list in yield_blocks_numbers_lists(args.blocks):
         print(
             f"Check missing blocks from {blocks_numbers_list[0]} to {blocks_numbers_list[-1]}"
         )
@@ -91,14 +104,22 @@ def ethcrawler_blocks_missing_handler(args: argparse.Namespace) -> None:
     time.sleep(5)
 
     if (len(missing_blocks_numbers_total)) > 0:
-        crawl(
-            missing_blocks_numbers_total,
-            with_transactions=bool(strtobool(args.transactions)),
-        )
+        if bool(strtobool(args.lazy)):
+            print("Executed lazy block crawler")
+            crawl_blocks(
+                missing_blocks_numbers_total,
+                with_transactions=bool(strtobool(args.transactions)),
+                verbose=True,
+            )
+        else:
+            crawl_blocks_executor(
+                missing_blocks_numbers_total,
+                with_transactions=bool(strtobool(args.transactions)),
+                verbose=True,
+            )
     print(
-        f"Required time: {time.time() - startTime} for: {blocks_numbers_list_raw_len} "
-        f"blocks with {MOONSTREAM_CRAWL_WORKERS} workers"
-        f" with {len(missing_blocks_numbers_total)} missing blocks"
+        f"Required {time.time() - startTime} with {MOONSTREAM_CRAWL_WORKERS} workers "
+        f"for {len(missing_blocks_numbers_total)} missing blocks"
     )
 
 
@@ -126,6 +147,18 @@ def main() -> None:
         description="Ethereum blocks commands"
     )
 
+    parser_ethcrawler_blocks_sync = subcommands_ethcrawler_blocks.add_parser(
+        "synchronize", description="Synchronize to latest ethereum block commands"
+    )
+    parser_ethcrawler_blocks_sync.add_argument(
+        "-t",
+        "--transactions",
+        choices=["True", "False"],
+        default="True",
+        help="Add or not block transactions",
+    )
+    parser_ethcrawler_blocks_sync.set_defaults(func=ethcrawler_blocks_sync_handler)
+
     parser_ethcrawler_blocks_add = subcommands_ethcrawler_blocks.add_parser(
         "add", description="Add ethereum blocks commands"
     )
@@ -139,7 +172,7 @@ def main() -> None:
         "-t",
         "--transactions",
         choices=["True", "False"],
-        default="False",
+        default="True",
         help="Add or not block transactions",
     )
     parser_ethcrawler_blocks_add.set_defaults(func=ethcrawler_blocks_add_handler)
@@ -157,8 +190,15 @@ def main() -> None:
         "-t",
         "--transactions",
         choices=["True", "False"],
-        default="False",
+        default="True",
         help="Add or not block transactions",
+    )
+    parser_ethcrawler_blocks_missing.add_argument(
+        "-l",
+        "--lazy",
+        choices=["True", "False"],
+        default="False",
+        help="Lazy block adding one by one",
     )
     parser_ethcrawler_blocks_missing.set_defaults(
         func=ethcrawler_blocks_missing_handler
