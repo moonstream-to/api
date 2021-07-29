@@ -33,7 +33,7 @@ setup(
     package_data={"moonstreamcrawlers": ["py.typed"]},
     zip_safe=False,
     install_requires=[
-        "moonstreamdb @ git+https://git@github.com/bugout-dev/moonstream.git@876c23aac10f07da700798f47c44797a4ae157bb#egg=moonstreamdb&subdirectory=db",
+        "moonstreamdb @ git+https://git@github.com/bugout-dev/moonstream.git@f027f6bc6bb5bc5c74d5cbc75d01c70f94466325#egg=moonstreamdb&subdirectory=db",
         "requests",
         "tqdm",
         "web3"
