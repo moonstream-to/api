@@ -151,6 +151,8 @@ def crawl_blocks_executor(
             results.append(result)
 
     wait(results)
+    # TODO(kompotkot): Return list of errors and colors responsible for 
+    # handling errors
     if len(errors) > 0:
         print("Errors:")
         for error in errors:
