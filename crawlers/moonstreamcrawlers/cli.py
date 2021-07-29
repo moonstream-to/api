@@ -104,15 +104,18 @@ def ethcrawler_blocks_missing_handler(args: argparse.Namespace) -> None:
     time.sleep(5)
 
     if (len(missing_blocks_numbers_total)) > 0:
-        if args.lazy:
+        if bool(strtobool(args.lazy)):
+            print("Executed lazy block crawler")
             crawl_blocks(
                 missing_blocks_numbers_total,
                 with_transactions=bool(strtobool(args.transactions)),
+                verbose=True,
             )
         else:
             crawl_blocks_executor(
                 missing_blocks_numbers_total,
                 with_transactions=bool(strtobool(args.transactions)),
+                verbose=True,
             )
     print(
         f"Required {time.time() - startTime} with {MOONSTREAM_CRAWL_WORKERS} workers "

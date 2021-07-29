@@ -75,7 +75,9 @@ def get_latest_blocks(with_transactions: bool = False) -> None:
     return block_latest_exist.block_number, block_latest.number
 
 
-def crawl_blocks(blocks_numbers: List[int], with_transactions: bool = False) -> None:
+def crawl_blocks(
+    blocks_numbers: List[int], with_transactions: bool = False, verbose: bool = False
+) -> None:
     """
     Open database and geth sessions and fetch block data from blockchain.
     """
@@ -91,6 +93,9 @@ def crawl_blocks(blocks_numbers: List[int], with_transactions: bool = False) -> 
                 add_block_transactions(db_session, block)
 
             db_session.commit()
+
+            if verbose:
+                print(f"Added {block_number} block")
 
 
 def check_missing_blocks(blocks_numbers: List[int]) -> List[int]:
@@ -112,15 +117,22 @@ def check_missing_blocks(blocks_numbers: List[int]) -> List[int]:
 
 
 def crawl_blocks_executor(
-    block_numbers_list: List[int], with_transactions: bool = False
+    block_numbers_list: List[int],
+    with_transactions: bool = False,
+    verbose: bool = False,
 ) -> None:
     """
     Execute crawler in processes.
     """
     with ProcessPoolExecutor(max_workers=MOONSTREAM_CRAWL_WORKERS) as executor:
         for worker in range(1, MOONSTREAM_CRAWL_WORKERS + 1):
+            worker_block_numbers_list = block_numbers_list[
+                worker - 1 :: MOONSTREAM_CRAWL_WORKERS
+            ]
+            if verbose:
+                print(f"Spawned process for {len(worker_block_numbers_list)} blocks")
             executor.submit(
                 crawl_blocks,
-                block_numbers_list[worker - 1 :: MOONSTREAM_CRAWL_WORKERS],
+                worker_block_numbers_list,
                 with_transactions,
             )
