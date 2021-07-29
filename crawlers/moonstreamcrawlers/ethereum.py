@@ -124,6 +124,13 @@ def crawl_blocks_executor(
     """
     Execute crawler in processes.
     """
+    errors: List[Exception] = []
+
+    def record_error(f: Future) -> None:
+        error = f.exception()
+        if error is not None:
+            errors.append(error)
+
     worker_indices = range(MOONSTREAM_CRAWL_WORKERS)
     worker_job_lists = [[] for _ in worker_indices]
     for i, block_number in enumerate(block_numbers_list):
@@ -140,6 +147,10 @@ def crawl_blocks_executor(
                 worker_job_lists[worker],
                 with_transactions,
             )
+            result.add_done_callback(record_error)
             results.append(result)
 
     wait(results)
+    print("Errors:")
+    for error in errors:
+        print(f"- {error}")
