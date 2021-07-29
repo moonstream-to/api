@@ -3,10 +3,12 @@ Moonstream crawlers CLI.
 """
 import argparse
 from distutils.util import strtobool
+import json
+import sys
 import time
 from typing import List
 
-from .ethereum import crawl, check_missing_blocks
+from .ethereum import crawl, check_missing_blocks, process_contract_deployments
 from .settings import MOONSTREAM_CRAWL_WORKERS
 
 
@@ -102,6 +104,12 @@ def ethcrawler_blocks_missing_handler(args: argparse.Namespace) -> None:
     )
 
 
+def ethcrawler_contracts_update_handler(args: argparse.Namespace) -> None:
+    results = process_contract_deployments()
+    with args.outfile:
+        json.dump(results, args.outfile)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Moonstream crawlers CLI")
     parser.set_defaults(func=lambda _: parser.print_help())
@@ -162,6 +170,31 @@ def main() -> None:
     )
     parser_ethcrawler_blocks_missing.set_defaults(
         func=ethcrawler_blocks_missing_handler
+    )
+
+    parser_ethcrawler_contracts = subcommands_ethcrawler.add_parser(
+        "contracts", description="Ethereum smart contract related crawlers"
+    )
+    parser_ethcrawler_contracts.set_defaults(
+        func=lambda _: parser_ethcrawler_contracts.print_help()
+    )
+    subcommands_ethcrawler_contracts = parser_ethcrawler_contracts.add_subparsers(
+        description="Ethereum contracts commands"
+    )
+
+    parser_ethcrawler_contracts_update = subcommands_ethcrawler_contracts.add_parser(
+        "update",
+        description="Update smart contract registry to include newly deployed smart contracts",
+    )
+    parser_ethcrawler_contracts_update.add_argument(
+        "-o",
+        "--outfile",
+        type=argparse.FileType("w"),
+        default=sys.stdout,
+        help="(Optional) File to write new (transaction_hash, contract_address) pairs to",
+    )
+    parser_ethcrawler_contracts_update.set_defaults(
+        func=ethcrawler_contracts_update_handler
     )
 
     args = parser.parse_args()

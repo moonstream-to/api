@@ -36,9 +36,9 @@ setup(
         "moonstreamdb @ git+https://git@github.com/bugout-dev/moonstream.git@a52a2b94533699927d555e050da2807adea4ba12#egg=moonstreamdb&subdirectory=db",
         "requests",
         "tqdm",
-        "web3"
+        "web3",
     ],
-    extras_require={"dev": ["black", "mypy"]},
+    extras_require={"dev": ["black", "mypy", "types-requests"]},
     entry_points={
         "console_scripts": ["moonstreamcrawlers=moonstreamcrawlers.cli:main"]
     },
