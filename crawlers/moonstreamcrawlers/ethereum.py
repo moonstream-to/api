@@ -128,10 +128,19 @@ def process_contract_deployments() -> List[Tuple[str, str]]:
         current_offset = 0
         limit = 10
         transactions_remaining = True
+        existing_contract_transaction_hashes = db_session.query(
+            EthereumSmartContract.transaction_hash
+        )
+
         while transactions_remaining:
             contract_deployments = (
                 db_session.query(EthereumTransaction)
                 .order_by(desc(EthereumTransaction.block_number))
+                .filter(
+                    EthereumTransaction.hash.notin_(
+                        existing_contract_transaction_hashes
+                    )
+                )
                 .filter(EthereumTransaction.to_address == None)
                 .limit(limit)
                 .offset(current_offset)
