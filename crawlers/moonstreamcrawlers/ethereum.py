@@ -124,15 +124,17 @@ def crawl_blocks_executor(
     """
     Execute crawler in processes.
     """
+    worker_indices = range(MOONSTREAM_CRAWL_WORKERS)
+    worker_job_lists = [[] for _ in worker_indices]
+    for i, block_number in enumerate(block_numbers_list):
+        worker_job_lists[i % MOONSTREAM_CRAWL_WORKERS].append(block_number)
+
     with ProcessPoolExecutor(max_workers=MOONSTREAM_CRAWL_WORKERS) as executor:
-        for worker in range(1, MOONSTREAM_CRAWL_WORKERS + 1):
-            worker_block_numbers_list = block_numbers_list[
-                worker - 1 :: MOONSTREAM_CRAWL_WORKERS
-            ]
+        for worker in worker_indices:
             if verbose:
-                print(f"Spawned process for {len(worker_block_numbers_list)} blocks")
+                print(f"Spawned process for {len(worker_job_lists[worker])} blocks")
             executor.submit(
                 crawl_blocks,
-                worker_block_numbers_list,
+                worker_job_lists[worker],
                 with_transactions,
             )
