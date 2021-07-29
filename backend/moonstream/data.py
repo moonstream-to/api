@@ -106,6 +106,8 @@ class TxinfoEthereumBlockchainRequest(BaseModel):
 
 class TxinfoEthereumBlockchainResponse(BaseModel):
     tx: EthereumTransaction
+    is_smart_contract_deployment: bool = False
+    is_smart_contract_call: bool = False
+    smart_contract_address: Optional[str] = None
     abi: Optional[ContractABI] = None
     errors: List[str] = Field(default_factory=list)
-

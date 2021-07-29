@@ -11,18 +11,16 @@ from typing import Any, Dict
 from fastapi import (
     FastAPI,
     Depends,
-    HTTPException,
-    Request,
 )
 from fastapi.middleware.cors import CORSMiddleware
 from moonstreamdb.db import yield_db_session
+from moonstreamdb.models import EthereumSmartContract
 from sqlalchemy.orm import Session
 
 from ..abi_decoder import decode_abi
 from ..data import TxinfoEthereumBlockchainRequest, TxinfoEthereumBlockchainResponse
 from ..middleware import BroodAuthMiddleware
 from ..settings import (
-    MOONSTREAM_APPLICATION_ID,
     DOCS_TARGET_PATH,
     ORIGINS,
     DOCS_PATHS,
@@ -60,6 +58,8 @@ whitelist_paths.update(DOCS_PATHS)
 app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
 
 
+# TODO(zomglings): Factor out the enrichment logic into a separate action, because it may be useful
+# independently from serving API calls (e.g. data processing).
 @app.post(
     "/ethereum_blockchain",
     tags=["txinfo"],
@@ -77,4 +77,18 @@ async def txinfo_ethereum_blockchain_handler(
             logger.error(r"Could not decode ABI:")
             logger.error(err)
             response.errors.append("Could not decode ABI from the given input")
+
+    smart_contract = (
+        db_session.query(EthereumSmartContract)
+        .filter(EthereumSmartContract.transaction_hash == txinfo_request.tx.hash)
+        .one_or_none()
+    )
+
+    if smart_contract is not None:
+        response.smart_contract_address = smart_contract.address
+        if txinfo_request.tx.to_address is None:
+            response.is_smart_contract_deployment = True
+        elif txinfo_request.tx.to_address == smart_contract.address:
+            response.is_smart_contract_call = True
+
     return response
