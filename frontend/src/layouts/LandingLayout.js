@@ -1,5 +1,4 @@
-
-import { jsx } from "@emotion/react";
+import React from "@emotion/react";
 import { Scrollable, Footer } from "../components";
 import { getLayout as getSiteLayout } from "./index";
 
