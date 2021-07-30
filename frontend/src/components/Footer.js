@@ -64,12 +64,12 @@ const Footer = () => (
         </RouterLink> */}
       </Flex>
       <Flex {...SITEMAP_FLEX_PROPS}>
-        <Heading pb={8} size="md">
+        {/* <Heading pb={8} size="md">
           Legal
         </Heading>
         <RouterLink href="/tos" passHref>
           <Link {...LINKS_SIZES}>Terms of service</Link>
-        </RouterLink>
+        </RouterLink> */}
         {/* <RouterLink passHref href="/privacy-policy">
           <Link {...LINKS_SIZES}>Privacy policy</Link>
         </RouterLink> */}
