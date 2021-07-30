@@ -108,6 +108,7 @@ class EthereumSmartContract(Base):  # type: ignore
         VARCHAR(256),
         ForeignKey("ethereum_transactions.hash", ondelete="CASCADE"),
         nullable=False,
+        index=True,
     )
     address = Column(VARCHAR(256), nullable=False, index=True)
 
