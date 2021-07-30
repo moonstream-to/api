@@ -1,3 +1,4 @@
+import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import (
     BigInteger,
@@ -99,6 +100,19 @@ class EthereumTransaction(Base):  # type: ignore
     )
 
 
+class EthereumSmartContract(Base):  # type: ignore
+    __tablename__ = "ethereum_smart_contracts"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    transaction_hash = Column(
+        VARCHAR(256),
+        ForeignKey("ethereum_transactions.hash", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    address = Column(VARCHAR(256), nullable=False, index=True)
+
+
 class EthereumPendingTransaction(Base):  # type: ignore
     __tablename__ = "ethereum_pending_transactions"
 
@@ -125,7 +139,7 @@ class EthereumPendingTransaction(Base):  # type: ignore
     )
 
 
-class ESDFunctionSignature(Base):
+class ESDFunctionSignature(Base):  # type: ignore
     """
     Function signature from Ethereum Signature Database.
     """
@@ -140,7 +154,7 @@ class ESDFunctionSignature(Base):
     )
 
 
-class ESDEventSignature(Base):
+class ESDEventSignature(Base):  # type: ignore
     """
     Function signature from Ethereum Signature Database.
     """
