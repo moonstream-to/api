@@ -71,13 +71,13 @@ def get_latest_blocks(with_transactions: bool = False) -> None:
         "latest", full_transactions=with_transactions
     )
     with yield_db_session_ctx() as db_session:
-        block_latest_exist = (
-            db_session.query(EthereumBlock)
+        block_number_latest_exist = (
+            db_session.query(EthereumBlock.block_number)
             .order_by(EthereumBlock.block_number.desc())
             .first()
         )
 
-    return block_latest_exist.block_number, block_latest.number
+    return block_number_latest_exist, block_latest.number
 
 
 def crawl_blocks(
@@ -112,7 +112,7 @@ def check_missing_blocks(blocks_numbers: List[int]) -> List[int]:
     for block_number in blocks_numbers:
         with yield_db_session_ctx() as db_session:
             block_exist = (
-                db_session.query(EthereumBlock)
+                db_session.query(EthereumBlock.block_number)
                 .filter(EthereumBlock.block_number == block_number)
                 .one_or_none()
             )
