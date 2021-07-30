@@ -23,7 +23,6 @@ const List = () => {
     useSubscriptions();
 
   const updateCallback = ({ id, note }) => {
-    console.log('updateCallback', id)
     changeNote.mutate({ id, note });
   };
 
