@@ -8,7 +8,7 @@ const UserProvider = ({ children }) => {
   const [isInit, setInit] = useState(false);
 
   const getUser = useCallback(() => {
-    const token = localStorage.getItem("BUGOUT_ACCESS_TOKEN");
+    const token = localStorage.getItem("MOONSTREAM_ACCESS_TOKEN");
     if (!token) {
       setInit(true);
       return setUser(null);

@@ -34,7 +34,7 @@ const useLogout = () => {
       return;
     }
 
-    localStorage.removeItem("BUGOUT_ACCESS_TOKEN");
+    localStorage.removeItem("MOONSTREAM_ACCESS_TOKEN");
     cache.clear();
   }, [data, cache]);
 

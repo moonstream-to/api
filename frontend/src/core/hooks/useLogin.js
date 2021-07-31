@@ -28,7 +28,7 @@ const useLogin = (loginType) => {
         if (!data) {
           return;
         }
-        localStorage.setItem("BUGOUT_ACCESS_TOKEN", data.data.access_token);
+        localStorage.setItem("MOONSTREAM_ACCESS_TOKEN", data.data.access_token);
         const invite_code = window.sessionStorage.getItem("invite_code");
         if (invite_code) {
           inviteAccept(invite_code);
