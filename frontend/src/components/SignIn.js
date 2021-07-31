@@ -15,7 +15,7 @@ import {
   Input,
   InputRightElement,
 } from "@chakra-ui/react";
-import CustomIcon from "./CustomIcon"
+import CustomIcon from "./CustomIcon";
 import { useLogin } from "../core/hooks";
 import PasswordInput from "./PasswordInput";
 import Modal from "./Modal";
@@ -51,7 +51,7 @@ const SignIn = ({ toggleModal }) => {
                 colorScheme="primary"
                 placeholder="Your Bugout username"
                 name="username"
-                {...register('username', { required: true })}
+                {...register("username", { required: true })}
                 ref={register({ required: "Username is required!" })}
               />
               <InputRightElement>

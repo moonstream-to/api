@@ -1,4 +1,3 @@
-
 import { jsx } from "@emotion/react";
 import { Heading, Box, Text, Center, VStack } from "@chakra-ui/react";
 const Page404 = () => (

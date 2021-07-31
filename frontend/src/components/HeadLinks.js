@@ -1,4 +1,3 @@
-
 import { jsx } from "@emotion/react";
 import Head from "next/head";
 import propTypes from "prop-types";

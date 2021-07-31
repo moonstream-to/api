@@ -1,4 +1,3 @@
-
 import { jsx } from "@emotion/react";
 import { GridItem } from "@chakra-ui/react";
 import { Heading, Text, Image } from "@chakra-ui/react";

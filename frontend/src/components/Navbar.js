@@ -13,7 +13,6 @@ const AppNavbar = React.lazy(() => import("./AppNavbar"));
 const Navbar = () => {
   const { modal, toggleModal, isAppView, isLoggedIn } = useContext(UIContext);
 
-
   return (
     <Flex
       boxShadow={["sm", "md"]}

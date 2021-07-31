@@ -58,8 +58,7 @@ const useJournalEntries = ({
     getNextPageParam: (lastGroup) => {
       return lastGroup.next_offset === null ? false : lastGroup.next_offset;
     },
-    onSuccess: (data) => {
-    },
+    onSuccess: (data) => {},
     enabled: !!enabled,
   });
 

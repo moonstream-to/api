@@ -2,7 +2,7 @@
 /** @jsx jsx */
 import { jsx } from "@emotion/react";
 import { Flex, Heading, Text, Link } from "@chakra-ui/react";
-import CustomIcon from "../components/CustomIcon"
+import CustomIcon from "../components/CustomIcon";
 import RouterLink from "next/link";
 
 const ICONS = [
@@ -14,8 +14,7 @@ const ICONS = [
   { social: "twit", link: "https://twitter.com/Bugout_dev" },
   {
     social: "slack",
-    link:
-      "https://join.slack.com/t/bugout-dev/shared_invite/zt-fhepyt87-5XcJLy0iu702SO_hMFKNhQ",
+    link: "https://join.slack.com/t/bugout-dev/shared_invite/zt-fhepyt87-5XcJLy0iu702SO_hMFKNhQ",
   },
 ];
 

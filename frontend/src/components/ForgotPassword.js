@@ -13,8 +13,8 @@ import {
   Input,
   InputRightElement,
 } from "@chakra-ui/react";
-import CustomIcon from "./CustomIcon"
-import Modal from "./Modal"
+import CustomIcon from "./CustomIcon";
+import Modal from "./Modal";
 
 const ForgotPassword = ({ toggleModal }) => {
   const toast = useToast();
