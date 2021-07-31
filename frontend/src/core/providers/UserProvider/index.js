@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import http from "axios";
-import { AUTH_URL } from "./constants";
 import UserContext from "./context";
+import { AUTH_URL } from "../../services/auth.service";
 
 const UserProvider = ({ children }) => {
   const [user, setUser] = useState();
@@ -16,7 +16,7 @@ const UserProvider = ({ children }) => {
 
     const headers = { Authorization: `Bearer ${token}` };
     http
-      .get(`${AUTH_URL}/user`, { headers })
+      .get(`${AUTH_URL}/`, { headers })
       .then((response) => {
         setUser(response.data);
       })

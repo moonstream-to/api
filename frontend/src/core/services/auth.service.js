@@ -1,7 +1,7 @@
 import { http } from "../utils";
 
 const API_URL = process.env.NEXT_PUBLIC_MOONSTREAM_API_URL;
-const AUTH_URL = `${API_URL}/users`;
+export const AUTH_URL = `${API_URL}/users`;
 
 export const login = ({ username, password }) => {
   const data = new FormData();

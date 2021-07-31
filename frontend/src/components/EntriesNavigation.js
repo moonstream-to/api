@@ -82,7 +82,7 @@ const EntriesNavigation = () => {
       );
       _setNewFilterState(props);
     },
-    [subscriptionsCache.data.subscriptions]
+    [subscriptionsCache?.data?.subscriptions]
   );
   const loadMoreButtonRef = useRef(null);
 
