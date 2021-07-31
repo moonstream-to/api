@@ -1,6 +1,5 @@
-import { jsx } from "@emotion/react";
 import { useUser, useRouter } from "../core/hooks";
-import { useEffect, Fragment, useState } from "react";
+import { React, useEffect, Fragment, useState } from "react";
 import { Heading, Center, Spinner, Link, Button } from "@chakra-ui/react";
 import RouterLink from "next/link";
 const ACCOUNT_SCREEN_WIDGETS = {

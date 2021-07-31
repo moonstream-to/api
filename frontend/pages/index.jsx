@@ -17,7 +17,7 @@ import {
 import { Grid, GridItem } from "@chakra-ui/react";
 import { useUser, useAnalytics, useModals, useRouter } from "../src/core/hooks";
 import { openPopupWidget, InlineWidget } from "react-calendly";
-import TrustedBadge from "../src/components/TrustedBadge"
+import TrustedBadge from "../src/components/TrustedBadge";
 import { getLayout } from "../src/layouts";
 
 const TEXT_PROPS = {
