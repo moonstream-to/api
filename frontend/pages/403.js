@@ -1,5 +1,3 @@
-
-import { jsx } from "@emotion/react";
 import FourOThree from "../src/components/FourOThree";
 
 const Page403 = () => {

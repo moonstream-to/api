@@ -1,5 +1,4 @@
-
-import { jsx } from "@emotion/react";
+import { React } from "react";
 import { Flex, Image, Link } from "@chakra-ui/react";
 
 const TrustedBadge = ({ name, caseURL, ImgURL }) => {
@@ -20,7 +19,6 @@ const TrustedBadge = ({ name, caseURL, ImgURL }) => {
         alt={name}
       ></Image>
       {caseURL && (
-        // <RouterLink href={caseURL} passHref scroll={true}>
         <Link
           fontSize={["sm", null, "md", "lg"]}
           textColor="secondary.900"
@@ -28,7 +26,6 @@ const TrustedBadge = ({ name, caseURL, ImgURL }) => {
         >
           {`Read case study >`}
         </Link>
-        // </RouterLink>
       )}
     </Flex>
   );
