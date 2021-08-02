@@ -194,7 +194,6 @@ async def get_available_subscriptions_type(
     """
     Get available's subscriptions types.
     """
-    token = request.state.token
     params = {"type": "subscription_type"}
     try:
         resources: BugoutResources = bc.list_resources(
