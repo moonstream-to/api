@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && next export -o build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint ./ --ext js,jsx,ts,tsx --fix",
+    "pretty": "prettier --write \"./**/*.{js,jsx,json}\""
   },
   "dependencies": {
     "@chakra-ui/icons": "^1.0.14",
@@ -30,6 +31,7 @@
     "react-query": "^3.18.1",
     "react-showdown": "^2.3.0",
     "react-split-pane": "^0.1.92",
+    "react-xarrows": "^2.0.2",
     "showdown": "^1.9.1",
     "showdown-highlight": "^2.1.8",
     "uuid": "^8.3.2"

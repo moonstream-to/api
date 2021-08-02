@@ -56,8 +56,8 @@ whitelist_paths.update(
     {
         "/users": "POST",
         "/users/token": "POST",
-        "/users/password/restore": "POST",
-        "/users/password/reset": "POST",
+        "/users/password/reset_initiate": "POST",
+        "/users/password/reset_complete": "POST",
     }
 )
 app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
@@ -87,11 +87,10 @@ async def get_user_handler(request: Request) -> BugoutUser:
     return user
 
 
-@app.post("/password/restore", tags=["users"], response_model=Dict[str, Any])
-async def restore_password_handler(request: Request) -> Dict[str, Any]:
-    user = request.state.user
+@app.post("/password/reset_initiate", tags=["users"], response_model=Dict[str, Any])
+async def restore_password_handler(email: str = Form(...)) -> Dict[str, Any]:
     try:
-        response = bc.restore_password(email=user.email)
+        response = bc.restore_password(email=email)
     except BugoutResponseException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
@@ -99,7 +98,7 @@ async def restore_password_handler(request: Request) -> Dict[str, Any]:
     return response
 
 
-@app.post("/password/reset", tags=["users"], response_model=BugoutUser)
+@app.post("/password/reset_complete", tags=["users"], response_model=BugoutUser)
 async def reset_password_handler(
     reset_id: str = Form(...), new_password: str = Form(...)
 ) -> BugoutUser:

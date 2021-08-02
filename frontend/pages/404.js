@@ -1,5 +1,4 @@
-
-import { jsx } from "@emotion/react";
+import React from "react";
 import FourOFour from "../src/components/FourOFour";
 
 const Page404 = () => {

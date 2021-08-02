@@ -22,9 +22,9 @@ export const getResultsByEndpoint = async (query, endpoint, clientID) => {
     // myself, I would have to implement the logic to handle multiple origins (since the
     // Access-Control-Allow-Origins only takes one origin).
     // At that point, uncomment the following:
-    // const token = localStorage.getItem('BUGOUT_ACCESS_TOKEN')
+    // const token = localStorage.getItem('MOONSTREAM_ACCESS_TOKEN')
     // if (token) {
-    //     headers.Authorization = `Bearer ${localStorage.getItem('BUGOUT_ACCESS_TOKEN')}`
+    //     headers.Authorization = `Bearer ${localStorage.getItem('MOONSTREAM_ACCESS_TOKEN')}`
     // }
 
     const response = await fetch(requestURL, { method, headers });

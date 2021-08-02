@@ -1,6 +1,4 @@
-
-import { Fragment } from "react";
-import { jsx } from "@emotion/react";
+import { Fragment, React } from "react";
 import {
   useClipboard,
   IconButton,

@@ -4,7 +4,7 @@ let axios = require("axios");
 enableMockupRequests(axios);
 
 const http = (config) => {
-  const token = localStorage.getItem("BUGOUT_ACCESS_TOKEN");
+  const token = localStorage.getItem("MOONSTREAM_ACCESS_TOKEN");
   const authorization = token ? { Authorization: `Bearer ${token}` } : {};
   const defaultHeaders = config.headers ?? {};
   const options = {

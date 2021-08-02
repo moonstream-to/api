@@ -54,21 +54,34 @@ def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
     """
     Synchronize latest Ethereum blocks with database.
     """
+    starting_block: int = args.start
     while True:
         bottom_block_number, top_block_number = get_latest_blocks(
             bool(strtobool(args.transactions))
         )
+        bottom_block_number = max(bottom_block_number + 1, starting_block)
         if bottom_block_number >= top_block_number:
             print(
-                f"Synchronization is unnecessary for blocks {bottom_block_number}-{top_block_number}"
+                f"Synchronization is unnecessary for blocks {bottom_block_number}-{top_block_number - 1}"
             )
-            break
-        for blocks_numbers_list in yield_blocks_numbers_lists(
-            f"{bottom_block_number}-{top_block_number}"
-        ):
-            print(f"Adding blocks {blocks_numbers_list[0]}-{blocks_numbers_list[-1]}")
-            crawl_blocks_executor(
-                block_numbers_list=blocks_numbers_list,
+            time.sleep(20)
+            continue
+        if top_block_number - bottom_block_number >= 10:
+            for blocks_numbers_list in yield_blocks_numbers_lists(
+                f"{bottom_block_number}-{top_block_number}"
+            ):
+                print(
+                    f"Adding blocks {blocks_numbers_list[-1]}-{blocks_numbers_list[0]}"
+                )
+                crawl_blocks_executor(
+                    block_numbers_list=blocks_numbers_list,
+                    with_transactions=bool(strtobool(args.transactions)),
+                )
+        else:
+            blocks_numbers_list = range(bottom_block_number, top_block_number + 1)
+            print(f"Adding blocks {bottom_block_number}-{top_block_number - 1}")
+            crawl_blocks(
+                blocks_numbers=blocks_numbers_list,
                 with_transactions=bool(strtobool(args.transactions)),
             )
         print(f"Synchronized blocks from {bottom_block_number} to {top_block_number}")
@@ -82,7 +95,7 @@ def ethcrawler_blocks_add_handler(args: argparse.Namespace) -> None:
     startTime = time.time()
 
     for blocks_numbers_list in yield_blocks_numbers_lists(args.blocks):
-        print(f"Adding blocks {blocks_numbers_list[0]}-{blocks_numbers_list[-1]}")
+        print(f"Adding blocks {blocks_numbers_list[-1]}-{blocks_numbers_list[0]}")
         crawl_blocks_executor(
             block_numbers_list=blocks_numbers_list,
             with_transactions=bool(strtobool(args.transactions)),
@@ -165,6 +178,13 @@ def main() -> None:
         choices=["True", "False"],
         default="True",
         help="Add or not block transactions",
+    )
+    parser_ethcrawler_blocks_sync.add_argument(
+        "-s",
+        "--start",
+        type=int,
+        default=0,
+        help="(Optional) Block to start synchronization from. Default: 0",
     )
     parser_ethcrawler_blocks_sync.set_defaults(func=ethcrawler_blocks_sync_handler)
 

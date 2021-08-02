@@ -2,7 +2,7 @@
 /** @jsx jsx */
 import { jsx } from "@emotion/react";
 import { Flex } from "@chakra-ui/react";
-import CustomIcon from "../CustomIcon"
+import CustomIcon from "../CustomIcon";
 import styles from "./styles";
 
 const Modal = ({ children, onClose }) => (

@@ -12,6 +12,29 @@ const AnalyticsProvider = ({ children }) => {
   const router = useRouter();
 
   useEffect(() => {
+    let durationSeconds = 0;
+
+    const intervalId =
+      isLoaded &&
+      setInterval(() => {
+        durationSeconds = durationSeconds + 1;
+        mixpanel.track(
+          MIXPANEL_EVENTS.LEFT_PAGE,
+          {
+            duration_seconds: durationSeconds,
+            url: router.nextRouter.pathname,
+            query: router.query,
+            pathParams: router.params,
+          },
+          { transport: "sendBeacon" }
+        );
+      }, 1000);
+
+    return () => clearInterval(intervalId);
+    // eslint-disable-next-line
+  }, [isLoaded]);
+
+  useEffect(() => {
     isLoaded &&
       mixpanel.track(MIXPANEL_EVENTS.PAGEVIEW, {
         url: router.nextRouter.pathname,

@@ -1,6 +1,4 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-import { jsx } from "@emotion/react";
+import React from "react";
 import RouterLink from "next/link";
 import {
   Menu,
@@ -24,7 +22,7 @@ const AccountIconButton = (props) => {
         {...props}
         as={IconButton}
         aria-label="Account menu"
-        icon={<RiAccountCircleLine size="26px"/>}
+        icon={<RiAccountCircleLine size="26px" />}
         // variant="outline"
         color="gray.100"
       />
