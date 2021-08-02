@@ -222,8 +222,8 @@ def main() -> None:
     parser_ethcrawler_blocks_sync.add_argument(
         "--order",
         type=processing_order,
-        choices=valid_processing_orders,
-        help="Order in which to process blocks",
+        default=ProcessingOrder.DESCENDING,
+        help="Order in which to process blocks (choices: desc, asc; default: desc)",
     )
     parser_ethcrawler_blocks_sync.set_defaults(func=ethcrawler_blocks_sync_handler)
 
