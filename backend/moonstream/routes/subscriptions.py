@@ -15,7 +15,7 @@ from ..settings import (
     DOCS_TARGET_PATH,
     DOCS_PATHS,
     MOONSTREAM_APPLICATION_ID,
-    MOONSTREAM_SUBSCRIPTIONS_USER_TOKEN,
+    MOONSTREAM_AUTO_USER_TOKEN,
     ORIGINS,
     bugout_client as bc,
 )
@@ -47,6 +47,11 @@ app.add_middleware(
 
 whitelist_paths: Dict[str, str] = {}
 whitelist_paths.update(DOCS_PATHS)
+whitelist_paths.update(
+    {
+        "/subscriptions/types": "GET"
+    }
+)
 app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
 
 
@@ -194,7 +199,7 @@ async def get_available_subscriptions_type(
     params = {"type": "subscription_type"}
     try:
         resources: BugoutResources = bc.list_resources(
-            token=MOONSTREAM_SUBSCRIPTIONS_USER_TOKEN, params=params
+            token=MOONSTREAM_AUTO_USER_TOKEN, params=params
         )
     except BugoutResponseException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)

@@ -13,12 +13,12 @@ MOONSTREAM_DATA_JOURNAL_ID = os.environ.get("MOONSTREAM_DATA_JOURNAL_ID")
 if MOONSTREAM_DATA_JOURNAL_ID is None:
     raise ValueError("MOONSTREAM_DATA_JOURNAL_ID environment variable must be set")
 
-MOONSTREAM_SUBSCRIPTIONS_USER_TOKEN = os.environ.get(
-    "MOONSTREAM_SUBSCRIPTIONS_USER_TOKEN"
+MOONSTREAM_AUTO_USER_TOKEN = os.environ.get(
+    "MOONSTREAM_AUTO_USER_TOKEN"
 )
-if MOONSTREAM_SUBSCRIPTIONS_USER_TOKEN is None:
+if MOONSTREAM_AUTO_USER_TOKEN is None:
     raise ValueError(
-        "MOONSTREAM_SUBSCRIPTIONS_USER_TOKEN environment variable must be set"
+        "MOONSTREAM_AUTO_USER_TOKEN environment variable must be set"
     )
 
 # Origin
