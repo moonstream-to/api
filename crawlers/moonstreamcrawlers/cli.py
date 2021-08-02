@@ -103,6 +103,7 @@ def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
             crawl_blocks_executor(
                 block_numbers_list=blocks_numbers_list,
                 with_transactions=bool(strtobool(args.transactions)),
+                num_processes=args.jobs,
             )
 
         print(f"Synchronized blocks from {bottom_block_number} to {top_block_number}")
@@ -224,6 +225,16 @@ def main() -> None:
         type=processing_order,
         default=ProcessingOrder.DESCENDING,
         help="Order in which to process blocks (choices: desc, asc; default: desc)",
+    )
+    parser_ethcrawler_blocks_sync.add_argument(
+        "-j",
+        "--jobs",
+        type=int,
+        default=MOONSTREAM_CRAWL_WORKERS,
+        help=(
+            f"Number of processes to use when synchronizing (default: {MOONSTREAM_CRAWL_WORKERS})."
+            " If you set to 1, the main process handles synchronization without spawning subprocesses."
+        )
     )
     parser_ethcrawler_blocks_sync.set_defaults(func=ethcrawler_blocks_sync_handler)
 
