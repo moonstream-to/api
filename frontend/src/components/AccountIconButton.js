@@ -24,7 +24,7 @@ const AccountIconButton = (props) => {
         {...props}
         as={IconButton}
         aria-label="Account menu"
-        icon={<RiAccountCircleLine size="26px"/>}
+        icon={<RiAccountCircleLine size="26px" />}
         // variant="outline"
         color="gray.100"
       />

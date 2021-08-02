@@ -1,4 +1,10 @@
-import React, { useRef, useEffect, useContext, useState } from "react";
+import React, {
+  useRef,
+  useEffect,
+  useContext,
+  useState,
+  useCallback,
+} from "react";
 import {
   Flex,
   Spinner,
@@ -67,14 +73,17 @@ const EntriesNavigation = () => {
   ]);
   const [filterState, setFilterState] = useState([]);
 
-  const setNewFilterState = (props) => {
-    console.log(
-      "setNewFilterState",
-      props,
-      subscriptionsCache.data.subscriptions[0].id
-    );
-    _setNewFilterState(props);
-  };
+  const setNewFilterState = useCallback(
+    (props) => {
+      console.log(
+        "setNewFilterState",
+        props,
+        subscriptionsCache.data.subscriptions[0].id
+      );
+      _setNewFilterState(props);
+    },
+    [subscriptionsCache?.data?.subscriptions]
+  );
   const loadMoreButtonRef = useRef(null);
 
   const { fetchMore, isFetchingMore, canFetchMore, EntriesPages, isLoading } =
@@ -97,11 +106,14 @@ const EntriesNavigation = () => {
     }
   };
 
-  const setFilterProps = (filterIdx, props) => {
-    const newFilterProps = [...newFilterState];
-    newFilterProps[filterIdx] = { ...newFilterProps[filterIdx], ...props };
-    setNewFilterState(newFilterProps);
-  };
+  const setFilterProps = useCallback(
+    (filterIdx, props) => {
+      const newFilterProps = [...newFilterState];
+      newFilterProps[filterIdx] = { ...newFilterProps[filterIdx], ...props };
+      setNewFilterState(newFilterProps);
+    },
+    [newFilterState, setNewFilterState]
+  );
 
   useEffect(() => {
     if (
@@ -112,7 +124,7 @@ const EntriesNavigation = () => {
         value: subscriptionsCache.data.subscriptions[0].address,
       });
     }
-  }, [subscriptionsCache.isLoading]);
+  }, [subscriptionsCache, newFilterState, setFilterProps]);
 
   const entriesPagesData = EntriesPages
     ? EntriesPages.pages.map((page) => {

@@ -1,5 +1,4 @@
-
-import { jsx } from "@emotion/react";
+import { React } from "react";
 import { Heading, Box, Text, Center, VStack } from "@chakra-ui/react";
 const Page404 = () => (
   <Box pt={8} w="100%" h="100%">

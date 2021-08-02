@@ -1,5 +1,5 @@
-import Footer from "../components/Footer"
-import Scrollable from "../components/Scrollable"
+import Footer from "../components/Footer";
+import Scrollable from "../components/Scrollable";
 import RootLayout from "./RootLayout";
 
 const LayoutWrapper = ({ children }) => {

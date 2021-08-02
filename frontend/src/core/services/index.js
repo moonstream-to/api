@@ -7,7 +7,6 @@ import * as GroupService from "./group.service";
 import * as PreferencesService from "./preferences.service";
 import * as HumbugService from "./humbug.service";
 import * as InvitesService from "./invites.service";
-import * as UserService from "./user.service";
 import * as SubscriptionsService from "./subscriptions.service";
 
 export {
@@ -20,6 +19,5 @@ export {
   PreferencesService,
   HumbugService,
   InvitesService,
-  UserService,
   SubscriptionsService,
 };

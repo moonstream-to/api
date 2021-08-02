@@ -62,35 +62,31 @@ export const getJournalsScopes = () => {
   });
 };
 
-export const setJournalPermission = (journalId) => ({
-  holder_type,
-  holder_id,
-  permission_list,
-}) => {
-  const data = new FormData();
-  data.append("holder_type", holder_type);
-  data.append("holder_id", holder_id);
-  data.append("permission_list", permission_list);
+export const setJournalPermission =
+  (journalId) =>
+  ({ holder_type, holder_id, permission_list }) => {
+    const data = new FormData();
+    data.append("holder_type", holder_type);
+    data.append("holder_id", holder_id);
+    data.append("permission_list", permission_list);
 
-  return http({
-    method: "POST",
-    url: `${API}/journals/${journalId}/scopes`,
-    data: { holder_type, holder_id, permission_list },
-  });
-};
+    return http({
+      method: "POST",
+      url: `${API}/journals/${journalId}/scopes`,
+      data: { holder_type, holder_id, permission_list },
+    });
+  };
 
-export const deleteJournalPermission = (journalId) => ({
-  holder_type,
-  holder_id,
-  permission_list,
-}) => {
-  return http({
-    method: "DELETE",
-    url: `${API}/journals/${journalId}/scopes`,
-    data: { holder_type, holder_id, permission_list },
-    // permission_list: ["read"]
-  });
-};
+export const deleteJournalPermission =
+  (journalId) =>
+  ({ holder_type, holder_id, permission_list }) => {
+    return http({
+      method: "DELETE",
+      url: `${API}/journals/${journalId}/scopes`,
+      data: { holder_type, holder_id, permission_list },
+      // permission_list: ["read"]
+    });
+  };
 
 export const getPublicJournals = () =>
   http({
@@ -98,32 +94,30 @@ export const getPublicJournals = () =>
     url: `${API}/public/`,
   });
 
-export const searchEntries = ({ journalId }) => ({
-  searchTerm,
-  limit,
-  offset,
-  isContent,
-  journalType,
-}) => {
-  const journalScope = journalType === "personal" ? "journals" : "public";
-  return http({
-    method: "GET",
-    url: `${API}/${journalScope}/${journalId}/search`,
-    params: {
-      // filters: searchTags,
-      q: searchTerm,
-      limit: encodeURIComponent(limit),
-      offset: encodeURIComponent(offset),
-      content: encodeURIComponent(isContent),
-    },
-  });
-};
+export const searchEntries =
+  ({ journalId }) =>
+  ({ searchTerm, limit, offset, isContent, journalType }) => {
+    const journalScope = journalType === "personal" ? "journals" : "public";
+    return http({
+      method: "GET",
+      url: `${API}/${journalScope}/${journalId}/search`,
+      params: {
+        // filters: searchTags,
+        q: searchTerm,
+        limit: encodeURIComponent(limit),
+        offset: encodeURIComponent(offset),
+        content: encodeURIComponent(isContent),
+      },
+    });
+  };
 
-export const publicSearchEntries = ({ journalId }) => (query) =>
-  http({
-    method: "GET",
-    url: `${API}/public/${journalId}/search?q=${query}`,
-  });
+export const publicSearchEntries =
+  ({ journalId }) =>
+  (query) =>
+    http({
+      method: "GET",
+      url: `${API}/public/${journalId}/search?q=${query}`,
+    });
 
 export const getPublicJournal = (key, { journalId }) =>
   http({
@@ -131,9 +125,11 @@ export const getPublicJournal = (key, { journalId }) =>
     url: `${API}/public/${journalId}`,
   });
 
-export const getJournalStats = (key, { journalId }) => () =>
-  http({
-    method: "GET",
-    url: `${API}/journals/${journalId}/stats`,
-    params: { stats_version: 5 },
-  });
+export const getJournalStats =
+  (key, { journalId }) =>
+  () =>
+    http({
+      method: "GET",
+      url: `${API}/journals/${journalId}/stats`,
+      params: { stats_version: 5 },
+    });

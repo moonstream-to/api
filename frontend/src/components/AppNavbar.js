@@ -21,9 +21,7 @@ import {
 } from "@chakra-ui/react";
 import {
   HamburgerIcon,
-  PlusSquareIcon,
   QuestionOutlineIcon,
-  BellIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
 } from "@chakra-ui/icons";

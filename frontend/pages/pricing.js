@@ -30,7 +30,7 @@ function PriceWrapper({ children }) {
   );
 }
 
-const Pricing = (props) => {
+const Pricing = () => {
   return (
     <Box py={12} minH="100vh">
       <VStack spacing={2} textAlign="center">
@@ -224,20 +224,6 @@ export async function getStaticProps() {
     image:
       "https://s3.amazonaws.com/static.simiotics.com/landing/aviator-2.svg",
   };
-
-//   const assetPreload = Object.keys(assets).map((key) => {
-//     return {
-//       rel: "preload",
-//       href: assets[key],
-//       as: "image",
-//     };
-//   });
-//   const preconnects = [
-//     { rel: "preconnect", href: "https://s3.amazonaws.com" },
-//     { rel: "preconnect", href: "https://assets.calendly.com/" },
-//   ];
-
-//   const preloads = assetPreload.concat(preconnects);
 
   return {
     props: { metaTags },

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { InputGroup, InputRightElement, Input } from "@chakra-ui/react";
-import CustomIcon from "./CustomIcon"
+import CustomIcon from "./CustomIcon";
 
 const PasswordInput = ({ placeholder, name }, ref) => {
   const [showPassword, togglePassword] = useState(false);
