@@ -54,11 +54,12 @@ def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
     """
     Synchronize latest Ethereum blocks with database.
     """
+    starting_block: int = args.start
     while True:
         bottom_block_number, top_block_number = get_latest_blocks(
             bool(strtobool(args.transactions))
         )
-        bottom_block_number = bottom_block_number + 1
+        bottom_block_number = max(bottom_block_number + 1, starting_block)
         if bottom_block_number >= top_block_number:
             print(
                 f"Synchronization is unnecessary for blocks {bottom_block_number}-{top_block_number - 1}"
@@ -177,6 +178,13 @@ def main() -> None:
         choices=["True", "False"],
         default="True",
         help="Add or not block transactions",
+    )
+    parser_ethcrawler_blocks_sync.add_argument(
+        "-s",
+        "--start",
+        type=int,
+        default=0,
+        help="(Optional) Block to start synchronization from. Default: 0",
     )
     parser_ethcrawler_blocks_sync.set_defaults(func=ethcrawler_blocks_sync_handler)
 
