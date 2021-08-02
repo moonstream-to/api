@@ -11,7 +11,7 @@ from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
 
 from .settings import (
-    MOONSTREAM_SUBSCRIPTIONS_USER_TOKEN,
+    MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_APPLICATION_ID,
     bugout_client as bc,
 )
@@ -37,7 +37,7 @@ def add_subscription_handler(args: argparse.Namespace) -> None:
         # resolve index
         try:
             resources: BugoutResources = bc.list_resources(
-                token=MOONSTREAM_SUBSCRIPTIONS_USER_TOKEN, params=params
+                token=MOONSTREAM_ADMIN_ACCESS_TOKEN, params=params
             )
             new_subscription_id = (
                 max(
@@ -72,7 +72,7 @@ def add_subscription_handler(args: argparse.Namespace) -> None:
         try:
 
             resource: BugoutResource = bc.create_resource(
-                token=MOONSTREAM_SUBSCRIPTIONS_USER_TOKEN,
+                token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
                 application_id=MOONSTREAM_APPLICATION_ID,
                 resource_data=resource_data,
             )
