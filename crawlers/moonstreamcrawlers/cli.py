@@ -3,9 +3,11 @@ Moonstream crawlers CLI.
 """
 import argparse
 from distutils.util import strtobool
+from enum import Enum
 import json
 import sys
 import time
+from typing import Iterator, List
 
 from .ethereum import (
     crawl_blocks_executor,
@@ -17,37 +19,62 @@ from .ethereum import (
 from .settings import MOONSTREAM_CRAWL_WORKERS
 
 
-def yield_blocks_numbers_lists(blocks_range_str: str) -> None:
+class ProcessingOrder(Enum):
+    DESCENDING = 0
+    ASCENDING = 1
+
+
+def yield_blocks_numbers_lists(
+    blocks_range_str: str,
+    order: ProcessingOrder = ProcessingOrder.DESCENDING,
+    block_step: int = 1000,
+) -> Iterator[List[int]]:
     """
     Generate list of blocks.
     Block steps used to prevent long executor tasks and data loss possibility.
     """
-    block_step = 1000
-
     try:
         blocks_start_end = blocks_range_str.split("-")
-        bottom_block_number = int(blocks_start_end[0])
-        top_block_number = int(blocks_start_end[1])
-        required_blocks_len = top_block_number - bottom_block_number + 1
+        input_start_block = int(blocks_start_end[0])
+        input_end_block = int(blocks_start_end[1])
     except Exception:
         print(
             "Wrong format provided, expected {bottom_block}-{top_block}, as ex. 105-340"
         )
         return
 
-    print(f"Required {required_blocks_len} blocks to process")
+    starting_block = max(input_start_block, input_end_block)
+    ending_block = min(input_start_block, input_end_block)
 
-    while not top_block_number < bottom_block_number:
-        temp_bottom_block_number = top_block_number - block_step
-        if temp_bottom_block_number < bottom_block_number:
-            temp_bottom_block_number = bottom_block_number - 1
-        blocks_numbers_list = list(
-            range(top_block_number, temp_bottom_block_number, -1)
-        )
+    stepsize = -1
+    if order == ProcessingOrder.ASCENDING:
+        starting_block = min(input_start_block, input_end_block)
+        ending_block = max(input_start_block, input_end_block)
+        stepsize = 1
+
+    current_block = starting_block
+
+    def keep_going() -> bool:
+        if order == ProcessingOrder.ASCENDING:
+            return current_block <= ending_block
+        return current_block >= ending_block
+
+    while keep_going():
+        temp_ending_block = current_block + stepsize * block_step
+        if order == ProcessingOrder.ASCENDING:
+            if temp_ending_block > ending_block:
+                temp_ending_block = ending_block + 1
+        else:
+            if temp_ending_block < ending_block:
+                temp_ending_block = ending_block - 1
+        blocks_numbers_list = list(range(current_block, temp_ending_block, stepsize))
 
         yield blocks_numbers_list
 
-        top_block_number -= block_step
+        if order == ProcessingOrder.ASCENDING:
+            current_block += block_step
+        else:
+            current_block -= block_step
 
 
 def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
@@ -169,6 +196,18 @@ def main() -> None:
         description="Ethereum blocks commands"
     )
 
+    valid_processing_orders = {
+        "asc": ProcessingOrder.ASCENDING,
+        "desc": ProcessingOrder.DESCENDING,
+    }
+
+    def processing_order(raw_order: str) -> ProcessingOrder:
+        if raw_order in valid_processing_orders:
+            return valid_processing_orders[raw_order]
+        raise ValueError(
+            f"Invalid processing order ({raw_order}). Valid choices: {valid_processing_orders.keys()}"
+        )
+
     parser_ethcrawler_blocks_sync = subcommands_ethcrawler_blocks.add_parser(
         "synchronize", description="Synchronize to latest ethereum block commands"
     )
@@ -185,6 +224,12 @@ def main() -> None:
         type=int,
         default=0,
         help="(Optional) Block to start synchronization from. Default: 0",
+    )
+    parser_ethcrawler_blocks_sync.add_argument(
+        "--order",
+        type=processing_order,
+        choices=valid_processing_orders,
+        help="Order in which to process blocks",
     )
     parser_ethcrawler_blocks_sync.set_defaults(func=ethcrawler_blocks_sync_handler)
 
