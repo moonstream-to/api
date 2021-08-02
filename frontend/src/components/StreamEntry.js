@@ -48,16 +48,13 @@ const StreamEntry = ({ entry, filterCallback, filterConstants }) => {
             filterCallback({
               direction: filterConstants.DIRECTIONS.SOURCE,
               type: filterConstants.FILTER_TYPES.ADDRESS,
-              value: entry.from,
+              value: entry.from_address,
               conditon: filterConstants.CONDITION.EQUAL,
             })
           }
         >
           {"From:"}
-          {`${entry.from_label} - ${entry.from.slice(
-            0,
-            5
-          )}...${entry.from.slice(-3, -1)}`}
+          {`${entry.from_label} - ${entry.from_address}`}
         </Tag>{" "}
         <Tag
           alignSelf="center"
@@ -67,16 +64,13 @@ const StreamEntry = ({ entry, filterCallback, filterConstants }) => {
             filterCallback({
               direction: filterConstants.DIRECTIONS.DESTINATION,
               type: filterConstants.FILTER_TYPES.ADDRESS,
-              value: entry.to,
+              value: entry.to_address,
               conditon: filterConstants.CONDITION.EQUAL,
             })
           }
         >
           {"To:"}
-          {`${entry.to_label} - ${entry.to.slice(0, 5)}...${entry.to.slice(
-            -3,
-            -1
-          )}`}
+          {`${entry.to_label} - ${entry.to_address}`}
         </Tag>{" "}
         <Tag alignSelf="center" colorScheme="secondary" variant="subtle">
           Gas Price: {entry.gasPrice}

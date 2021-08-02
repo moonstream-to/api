@@ -70,7 +70,7 @@ class SubscriptionResponse(BaseModel):
 
 
 class SubscriptionsListResponse(BaseModel):
-    subscriptions: List[SubscriptionResponse] = Field(default_factory=list)
+    subscriptions: List[SubscriptionResourceData] = Field(default_factory=list)
 
 
 class EVMFunctionSignature(BaseModel):
@@ -106,6 +106,22 @@ class EthereumTransaction(BaseModel):
     v: Optional[str] = None
     transaction_index: Optional[int] = Field(default=None, alias="transactionIndex")
     transaction_type: str = Field(default="0x0", alias="type")
+
+
+class EthereumTransactionItem(BaseModel):
+    from_label: Optional[str] = "from_label"
+    to_label: Optional[str] = "to_label"
+    gas: int
+    gasPrice: int
+    value: int
+    from_address: Optional[str]  # = Field(alias="from")
+    to_address: Optional[str]  # = Field(default=None, alias="to")
+    hash: Optional[str] = None
+    input: Optional[str] = None
+
+
+class EthereumTransactionResponse(BaseModel):
+    stream: List[EthereumTransactionItem]
 
 
 class TxinfoEthereumBlockchainRequest(BaseModel):
