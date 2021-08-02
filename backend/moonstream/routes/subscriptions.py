@@ -47,11 +47,7 @@ app.add_middleware(
 
 whitelist_paths: Dict[str, str] = {}
 whitelist_paths.update(DOCS_PATHS)
-whitelist_paths.update(
-    {
-        "/subscriptions/types": "GET"
-    }
-)
+whitelist_paths.update({"/subscriptions/types": "GET"})
 app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
 
 
@@ -80,7 +76,7 @@ async def add_subscription_handler(
     # request availble subscriptions
     try:
         subscription_resources: BugoutResources = bc.list_resources(
-            token=token, params=params
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN, params=params
         )
     except BugoutResponseException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
