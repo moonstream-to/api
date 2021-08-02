@@ -136,6 +136,7 @@ def crawl_blocks_executor(
     block_numbers_list: List[int],
     with_transactions: bool = False,
     verbose: bool = False,
+    num_processes: int = MOONSTREAM_CRAWL_WORKERS,
 ) -> None:
     """
     Execute crawler in processes.
@@ -153,27 +154,28 @@ def crawl_blocks_executor(
         worker_job_lists[i % MOONSTREAM_CRAWL_WORKERS].append(block_number)
 
     results: List[Future] = []
+    if num_processes == 1:
+        return crawl_blocks(block_numbers_list, with_transactions, verbose)
+    else:
+        with ProcessPoolExecutor(max_workers=MOONSTREAM_CRAWL_WORKERS) as executor:
+            for worker in worker_indices:
+                if verbose:
+                    print(f"Spawned process for {len(worker_job_lists[worker])} blocks")
+                result = executor.submit(
+                    crawl_blocks,
+                    worker_job_lists[worker],
+                    with_transactions,
+                )
+                result.add_done_callback(record_error)
+                results.append(result)
 
-    with ProcessPoolExecutor(max_workers=MOONSTREAM_CRAWL_WORKERS) as executor:
-        for worker in worker_indices:
-            if verbose:
-                print(f"Spawned process for {len(worker_job_lists[worker])} blocks")
-            result = executor.submit(
-                crawl_blocks,
-                worker_job_lists[worker],
-                with_transactions,
-            )
-            result.add_done_callback(record_error)
-            results.append(result)
-
-    wait(results)
-    # TODO(kompotkot): Return list of errors and colors responsible for
-    # handling errors
-    if len(errors) > 0:
-        print("Errors:")
-        for error in errors:
-            print(f"- {error}")
-
+        wait(results)
+        # TODO(kompotkot): Return list of errors and colors responsible for
+        # handling errors
+        if len(errors) > 0:
+            print("Errors:")
+            for error in errors:
+                print(f"- {error}")
 
 def process_contract_deployments() -> List[Tuple[str, str]]:
     """

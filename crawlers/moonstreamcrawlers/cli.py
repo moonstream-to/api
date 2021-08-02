@@ -93,24 +93,18 @@ def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
             )
             time.sleep(20)
             continue
-        if top_block_number - bottom_block_number >= 10:
-            for blocks_numbers_list in yield_blocks_numbers_lists(
-                f"{bottom_block_number}-{top_block_number}"
-            ):
-                print(
-                    f"Adding blocks {blocks_numbers_list[-1]}-{blocks_numbers_list[0]}"
-                )
-                crawl_blocks_executor(
-                    block_numbers_list=blocks_numbers_list,
-                    with_transactions=bool(strtobool(args.transactions)),
-                )
-        else:
-            blocks_numbers_list = range(bottom_block_number, top_block_number + 1)
-            print(f"Adding blocks {bottom_block_number}-{top_block_number - 1}")
-            crawl_blocks(
-                blocks_numbers=blocks_numbers_list,
+
+        for blocks_numbers_list in yield_blocks_numbers_lists(
+            f"{bottom_block_number}-{top_block_number}",
+            order=args.order,
+        ):
+            print(f"Adding blocks {blocks_numbers_list[-1]}-{blocks_numbers_list[0]}")
+            # TODO(kompotkot): Set num_processes argument based on number of blocks to synchronize.
+            crawl_blocks_executor(
+                block_numbers_list=blocks_numbers_list,
                 with_transactions=bool(strtobool(args.transactions)),
             )
+
         print(f"Synchronized blocks from {bottom_block_number} to {top_block_number}")
         time.sleep(10)
 
