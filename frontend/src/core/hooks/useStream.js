@@ -18,13 +18,6 @@ const useJournalEntries = ({
         pageParam = 0;
       }
 
-      const searchTags = searchTerm.split(" ").filter(function (n) {
-        if (n.startsWith("#")) return n;
-        else {
-          return null;
-        }
-      });
-
       const response = await SubscriptionsService.getStream({
         searchTerm,
         isContent,
@@ -58,7 +51,7 @@ const useJournalEntries = ({
     getNextPageParam: (lastGroup) => {
       return lastGroup.next_offset === null ? false : lastGroup.next_offset;
     },
-    onSuccess: (data) => {},
+    onSuccess: () => {},
     enabled: !!enabled,
   });
 

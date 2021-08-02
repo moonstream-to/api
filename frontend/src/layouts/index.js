@@ -1,3 +1,4 @@
+import React from "react";
 import Footer from "../components/Footer";
 import Scrollable from "../components/Scrollable";
 import RootLayout from "./RootLayout";

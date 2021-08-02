@@ -1,10 +1,10 @@
-import { jsx } from "@emotion/react";
+import React from "react";
 import { Scrollable, Footer } from "../components";
 import { getLayout as getSiteLayout } from "./index";
 
 const DefaultLayout = (props) => {
   return (
-    <Scrollable>
+    <Scrollable bgImg={""}>
       {props.children}
       <Footer />
     </Scrollable>

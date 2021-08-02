@@ -59,31 +59,54 @@ const Sidebar = () => {
           />
         </Flex>
       </SidebarHeader>
-      <SidebarContent>
-        <Menu iconShape="square">
-          <MenuItem icon={<MdTimeline />}>
-            {" "}
-            <RouterLink href="/stream">Stream</RouterLink>
-          </MenuItem>
-        </Menu>
-        <Menu iconShape="square">
-          <MenuItem icon={<ImStatsBars />}>
-            {" "}
-            <RouterLink href="/analytics">Analytics </RouterLink>
-          </MenuItem>
-        </Menu>
-        <Menu iconShape="square">
-          <MenuItem icon={<MdSettings />}>
-            {" "}
-            <RouterLink href="/subscriptions">Subscriptions </RouterLink>
-          </MenuItem>
-        </Menu>
-      </SidebarContent>
-      <SidebarFooter>
-        {/**
-         *  You can add a footer for the sidebar ex: copyright
-         */}
-      </SidebarFooter>
+      {ui.isLoggedIn && (
+        <SidebarContent>
+          <Menu iconShape="square">
+            <MenuItem icon={<MdTimeline />}>
+              {" "}
+              <RouterLink href="/stream">Stream</RouterLink>
+            </MenuItem>
+          </Menu>
+          <Menu iconShape="square">
+            <MenuItem icon={<ImStatsBars />}>
+              {" "}
+              <RouterLink href="/analytics">Analytics </RouterLink>
+            </MenuItem>
+          </Menu>
+          <Menu iconShape="square">
+            <MenuItem icon={<MdSettings />}>
+              {" "}
+              <RouterLink href="/subscriptions">Subscriptions </RouterLink>
+            </MenuItem>
+          </Menu>
+        </SidebarContent>
+      )}
+      {!ui.isLoggedIn && (
+        <SidebarContent>
+          <Menu iconShape="square">
+            <MenuItem
+              onClick={() => {
+                ui.toggleModal("register");
+                ui.setSidebarToggled(false);
+              }}
+            >
+              Sign up
+            </MenuItem>
+          </Menu>
+          <Menu iconShape="square">
+            <MenuItem
+              onClick={() => {
+                ui.toggleModal("login");
+                ui.setSidebarToggled(false);
+              }}
+            >
+              Login
+            </MenuItem>
+          </Menu>
+        </SidebarContent>
+      )}
+
+      <SidebarFooter></SidebarFooter>
     </ProSidebar>
   );
 };

@@ -1,4 +1,4 @@
-import { jsx } from "@emotion/react";
+import React from "react";
 import { Box } from "@chakra-ui/react";
 import { getLayout as getSiteLayout } from "./AppLayout";
 

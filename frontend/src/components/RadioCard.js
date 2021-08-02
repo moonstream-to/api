@@ -8,7 +8,7 @@ const RadioCard = (props) => {
   const checkbox = getCheckboxProps();
 
   return (
-    <Flex as="label" h="fill-availible" onClick={() => console.log("hello2")}>
+    <Flex as="label" h="fill-availible">
       <input {...input} />
       <Box
         justifyContent="left"

@@ -63,7 +63,7 @@ const EntriesNavigation = () => {
   const ui = useContext(UIContext);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { subscriptionsCache } = useSubscriptions();
-  const [newFilterState, _setNewFilterState] = useState([
+  const [newFilterState, setNewFilterState] = useState([
     {
       type: FILTER_TYPES.ADDRESS,
       direction: DIRECTIONS.SOURCE,
@@ -73,17 +73,6 @@ const EntriesNavigation = () => {
   ]);
   const [filterState, setFilterState] = useState([]);
 
-  const setNewFilterState = useCallback(
-    (props) => {
-      console.log(
-        "setNewFilterState",
-        props,
-        subscriptionsCache.data.subscriptions[0].id
-      );
-      _setNewFilterState(props);
-    },
-    [subscriptionsCache?.data?.subscriptions]
-  );
   const loadMoreButtonRef = useRef(null);
 
   const { fetchMore, isFetchingMore, canFetchMore, EntriesPages, isLoading } =
@@ -144,7 +133,6 @@ const EntriesNavigation = () => {
   };
 
   const dropFilterArrayItem = (idx) => {
-    console.log("dropFilterArrayItem", idx, filterState);
     const newArray = [...filterState];
     newArray[idx].type = FILTER_TYPES.DISABLED;
     setFilterState(newArray);
@@ -160,18 +148,15 @@ const EntriesNavigation = () => {
   };
 
   const handleConditionChange = (idx) => (e) => {
-    console.log("handleConditionChange", idx, e.target.value);
     setFilterProps(idx, { condition: parseInt(e.target.value) });
   };
 
   const handleFilterStateCallback = (props) => {
-    console.log("handleFilterStateCallback", props);
     const newFilterState = [...filterState];
     newFilterState.push({ ...props });
     setFilterState(newFilterState);
   };
   if (subscriptionsCache.isLoading) return "";
-  console.log("filterstate test", filterState);
   return (
     <Flex
       id="JournalNavigation"

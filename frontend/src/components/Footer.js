@@ -1,27 +1,19 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-import { jsx } from "@emotion/react";
-import { Flex, Heading, Text, Link } from "@chakra-ui/react";
+import React from "react";
+import { Flex, Text, Link } from "@chakra-ui/react";
 import CustomIcon from "../components/CustomIcon";
-import RouterLink from "next/link";
 
 const ICONS = [
   {
-    social: "youtube",
-    link: "https://www.youtube.com/channel/UCLVwTlHSiTl05av2GIDPtvQ",
+    social: "discord",
+    link: "https://discord.gg/FetK5BxD",
   },
-  { social: "in", link: "https://www.linkedin.com/company/bugoutdev/" },
+
   { social: "twit", link: "https://twitter.com/Bugout_dev" },
   {
     social: "slack",
     link: "https://join.slack.com/t/bugout-dev/shared_invite/zt-fhepyt87-5XcJLy0iu702SO_hMFKNhQ",
   },
 ];
-
-const LINKS_SIZES = {
-  fontWeight: "300",
-  fontSize: "lg",
-};
 
 const SITEMAP_FLEX_PROPS = {
   px: 2,
@@ -54,32 +46,32 @@ const Footer = () => (
       maxW="40rem"
     >
       <Flex {...SITEMAP_FLEX_PROPS}>
-        <Heading pb={8} size="md">
+        {/* <Heading pb={8} size="md">
           About
-        </Heading>
-        <RouterLink passHref href="/team">
+        </Heading> */}
+        {/* <RouterLink passHref href="/team">
           <Link {...LINKS_SIZES}>Team</Link>
-        </RouterLink>
-        <RouterLink passHref href="/events">
+        </RouterLink> */}
+        {/* <RouterLink passHref href="/events">
           <Link {...LINKS_SIZES}>Events</Link>
         </RouterLink>
         <RouterLink passHref href="http://blog.bugout.dev">
           <Link {...LINKS_SIZES}>Blog</Link>
-        </RouterLink>
+        </RouterLink> */}
       </Flex>
       <Flex {...SITEMAP_FLEX_PROPS}>
-        <Heading pb={8} size="md">
+        {/* <Heading pb={8} size="md">
           Legal
         </Heading>
         <RouterLink href="/tos" passHref>
           <Link {...LINKS_SIZES}>Terms of service</Link>
-        </RouterLink>
-        <RouterLink passHref href="/privacy-policy">
+        </RouterLink> */}
+        {/* <RouterLink passHref href="/privacy-policy">
           <Link {...LINKS_SIZES}>Privacy policy</Link>
-        </RouterLink>
+        </RouterLink> */}
       </Flex>
 
-      <Flex {...SITEMAP_FLEX_PROPS}>
+      {/* <Flex {...SITEMAP_FLEX_PROPS}>
         <Heading pb={8} size="md">
           Product
         </Heading>
@@ -89,14 +81,14 @@ const Footer = () => (
         <RouterLink passHref href={"/case-studies/activeloop"}>
           <Link {...LINKS_SIZES}>Case studies</Link>
         </RouterLink>
-      </Flex>
+      </Flex> */}
     </Flex>
     <Flex
       direction="column"
       flexGrow="1"
       w="100%"
       maxW="40rem"
-      alignItems={["center", "center", null, "flex-end"]}
+      alignItems={["flex-end", "flex-end", null, "flex-end"]}
       pr={[0, null, 8]}
     >
       <Text
@@ -106,12 +98,12 @@ const Footer = () => (
         fontSize="xl"
         fontWeight="500"
       >
-        Power to the developers!
+        Stay in touch
         <span role="img" aria-label="heart">
           💙
         </span>
       </Text>
-      <Flex px={2} width="100%" maxW="30rem" justifyContent="space-between">
+      <Flex px={2} width="100%" maxW="30rem" justifyContent="flex-end">
         {ICONS.map((icon, index) => (
           <Link
             key={`social-footer-icons-${index}`}
