@@ -12,6 +12,10 @@ const ICONS = [
   },
 
   { social: "twit", link: "https://twitter.com/Bugout_dev" },
+  {
+    social: "slack",
+    link: "https://join.slack.com/t/bugout-dev/shared_invite/zt-fhepyt87-5XcJLy0iu702SO_hMFKNhQ",
+  },
 ];
 
 const LINKS_SIZES = {

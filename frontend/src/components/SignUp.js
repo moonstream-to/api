@@ -30,8 +30,7 @@ const SignUp = ({ toggleModal }) => {
     if (isSuccess) {
       ui.toggleModal(null);
     }
-    // eslint-disable-next-line
-  }, [isSuccess, toggleModal]);
+  }, [isSuccess, toggleModal, ui]);
 
   return (
     <Modal onClose={() => ui.toggleModal(null)}>

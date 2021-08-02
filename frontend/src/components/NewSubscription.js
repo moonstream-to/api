@@ -44,6 +44,7 @@ const NewSubscription = ({ isFreeOption, onClose }) => {
       type: isFreeOption ? "free" : radioState,
     });
   };
+
   return (
     <form onSubmit={handleSubmit(createSubscriptionWrap)}>
       <ModalHeader>Subscribe to a new address</ModalHeader>
@@ -84,9 +85,9 @@ const NewSubscription = ({ isFreeOption, onClose }) => {
 
           <FormControl isInvalid={errors.type}>
             <HStack {...group} alignItems="stretch">
-              {typesCache.data.map((type) => {
+              {typesCache.data.subscriptions.map((type) => {
                 const radio = getRadioProps({
-                  value: type.subscription_type,
+                  value: type.id,
                   isDisabled:
                     !type.active ||
                     (isFreeOption &&
@@ -94,7 +95,7 @@ const NewSubscription = ({ isFreeOption, onClose }) => {
                 });
                 if (!type.subscription_plan_id) return "";
                 return (
-                  <RadioCard key={`subscription-type-${type.id}`} {...radio}>
+                  <RadioCard key={`subscription_type_${type.id}`} {...radio}>
                     {type.name}
                   </RadioCard>
                 );
@@ -102,6 +103,7 @@ const NewSubscription = ({ isFreeOption, onClose }) => {
             </HStack>
           </FormControl>
         </Stack>
+        <Input placeholder="color" name="color" ref={register()}></Input>
       </ModalBody>
       <ModalFooter>
         <Button

@@ -15,7 +15,6 @@ import {
   ModalOverlay,
   ModalContent,
 } from "@chakra-ui/react";
-import { headingStyle } from "./index";
 import NewSubscription from "../src/components/NewSubscription";
 import { AiOutlinePlusCircle } from "react-icons/ai";
 
@@ -25,6 +24,18 @@ const Subscriptions = () => {
   const [isAddingFreeSubscription, setIsAddingFreeSubscription] = useState();
 
   document.title = `My Subscriptions`;
+
+  // TODO(zomglings): This should be imported from some common location. For now, copied from
+  // pages/account/security.js. It was attempting to get imported from "./index", but is not defined
+  // there.
+  const headingStyle = {
+    as: "h2",
+    pt: 2,
+    mb: 4,
+    borderBottom: "solid",
+    borderColor: "primary.50",
+    borderBottomWidth: "2px",
+  };
 
   const newSubscriptionClicked = (isForFree) => {
     setIsAddingFreeSubscription(isForFree);
@@ -100,7 +111,7 @@ const Subscriptions = () => {
                 Add new
               </Button>
             </Flex>
-            <SubscriptionsList />
+            <SubscriptionsList data={subscriptionsCache.data} />
           </Flex>
         </ScaleFade>
       )}

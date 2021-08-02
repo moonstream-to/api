@@ -1,4 +1,4 @@
-import React, { Fragment } from "react";
+import { Fragment, React } from "react";
 import {
   useClipboard,
   IconButton,

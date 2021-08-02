@@ -1,7 +1,7 @@
 import { http } from "../utils";
 // import axios from "axios";
 
-const API = process.env.NEXT_PUBLIC_SIMIOTICS_AUTH_URL;
+const API = process.env.NEXT_PUBLIC_MOONSTREAM_API_URL;
 
 export const getStream = ({ searchTerm, limit, offset, isContent }) =>
   http({
@@ -18,13 +18,13 @@ export const getStream = ({ searchTerm, limit, offset, isContent }) =>
 export const getTypes = () =>
   http({
     method: "GET",
-    url: `${API}/subscription_types/`,
+    url: `${API}/subscriptions/types`,
   });
 
 export const getSubscriptions = () =>
   http({
     method: "GET",
-    url: `${API}/subscriptions/`,
+    url: `${API}/subscriptions`,
   });
 
 export const create = ({ address, note, blockchain }) => {
@@ -47,10 +47,11 @@ export const deleteJournal = (id) => () =>
 
 export const createSubscription =
   () =>
-  ({ address, type, label }) => {
+  ({ address, type, label, color }) => {
     const data = new FormData();
     data.append("address", address);
-    data.append("subscription_type", type);
+    data.append("subscription_type_id", type);
+    data.append("color", color);
     data.append("label", label);
     return http({
       method: "POST",
@@ -75,7 +76,7 @@ export const modifySubscription =
 export const deleteSubscription = () => (id) => {
   return http({
     method: "DELETE",
-    url: `${API}/subscription/${id}`,
+    url: `${API}/subscriptions/${id}`,
   });
 };
 

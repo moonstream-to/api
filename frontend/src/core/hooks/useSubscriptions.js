@@ -11,7 +11,7 @@ const useSubscriptions = () => {
 
   const getSubscriptions = async () => {
     const response = await SubscriptionsService.getSubscriptions();
-    return response.data.data;
+    return response.data;
   };
 
   const subscriptionsCache = useQuery(["subscriptions"], getSubscriptions, {
@@ -23,7 +23,7 @@ const useSubscriptions = () => {
 
   const getSubscriptionTypes = async () => {
     const response = await SubscriptionsService.getTypes();
-    return response.data.data;
+    return response.data;
   };
 
   const typesCache = useQuery(["subscription_types"], getSubscriptionTypes, {
