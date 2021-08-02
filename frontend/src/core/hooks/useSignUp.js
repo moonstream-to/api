@@ -18,10 +18,7 @@ const useSignUp = (source) => {
     isSuccess,
   } = useMutation(AuthService.register(), {
     onSuccess: (response) => {
-      localStorage.setItem(
-        "MOONSTREAM_ACCESS_TOKEN",
-        response.data.access_token
-      );
+      localStorage.setItem("MOONSTREAM_ACCESS_TOKEN", response.data.id);
       const invite_code = window.sessionStorage.getItem("invite_code");
       if (invite_code) {
         inviteAccept(invite_code);
