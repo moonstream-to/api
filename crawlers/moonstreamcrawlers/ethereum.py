@@ -71,16 +71,21 @@ def add_block_transactions(db_session, block: BlockData) -> None:
         db_session.add(tx_obj)
 
 
-def get_latest_blocks(with_transactions: bool = False) -> None:
+def get_latest_blocks(with_transactions: bool = False) -> Tuple[Optional[int], int]:
     web3_client = connect()
     block_latest: BlockData = web3_client.eth.get_block(
         "latest", full_transactions=with_transactions
     )
     with yield_db_session_ctx() as db_session:
-        block_number_latest_exist = (
+        block_number_latest_exist_row = (
             db_session.query(EthereumBlock.block_number)
             .order_by(EthereumBlock.block_number.desc())
             .first()
+        )
+        block_number_latest_exist = (
+            None
+            if block_number_latest_exist_row is None
+            else block_number_latest_exist_row[0]
         )
 
     return block_number_latest_exist, block_latest.number
