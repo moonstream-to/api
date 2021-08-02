@@ -155,16 +155,12 @@ const Homepage = () => {
     };
   }, []);
 
-
   return (
     <Fade in>
       <Box
         width="100%"
         flexDirection="column"
         sx={{ scrollBehavior: "smooth" }}
-        // bgColor="primary.1900"
-        // backgroundImage={`url(${assets["background"]})`}
-        // backgroundImage={`url(https://cdn3.vectorstock.com/i/1000x1000/75/62/moon-landscape-game-background-vector-24977562.jpg)`}
         bgSize="cover"
       >
         <Flex
@@ -193,29 +189,14 @@ const Homepage = () => {
             >
               <chakra.header boxSize="full" minH="100vh">
                 <Box
-                  // h="100%"
-                  // w="full"
-                  // transition=""
-                  // bgPos={["initial", "initial", "center", null, "center"]}
                   bgPos="bottom"
                   bgColor="transparent"
                   backgroundImage={`url(${assets[`${background}`]})`}
                   bgSize="cover"
                   boxSize="full"
                   minH="100vh"
-                  // bgP
-                  // h="container.sm"
-                  // h={backgroundH}
-                  // minH="100vh"
-                  // minH="auto"
                 >
-                  <Flex
-                    align="center"
-                    // pos="relative"
-                    justify="center"
-                    boxSize="full"
-                    // bg="blackAlpha.700"
-                  >
+                  <Flex align="center" justify="center" boxSize="full">
                     <Stack
                       textAlign="center"
                       alignItems="center"
@@ -225,15 +206,8 @@ const Homepage = () => {
                       h="100%"
                       pt={["10vh", null, "30vh"]}
                     >
-                      <Heading
-                        size="2xl"
-                        fontWeight="semibold"
-                        color="white"
-                        // textTransform="uppercase"
-                      >
-                        {/* <LoadingDots isActive> */}
+                      <Heading size="2xl" fontWeight="semibold" color="white">
                         All the crypto data you care about in a single stream
-                        {/* </LoadingDots> */}
                       </Heading>
                       <chakra.span
                         my={12}
@@ -266,8 +240,6 @@ const Homepage = () => {
               pt={["20px", "20px", "100px", null, "120px"]}
               pb={["20px", "56px", null, "184px"]}
               minH="100vh"
-              // bgSize="cover"
-              // bgImage={`url(${assets["background"]})`}
             >
               <Heading
                 {...HEADING_PROPS}
@@ -277,13 +249,7 @@ const Homepage = () => {
                 Data you can add to your stream:
               </Heading>
 
-              <SimpleGrid
-                columns={[1, 2, 2, 4, null, 4]}
-                // overflowY="clip"
-                // direction={["column", null, "row"]}
-                // flexWrap="nowrap"
-                // justifyContent={["center", null, "space-evenly"]}
-              >
+              <SimpleGrid columns={[1, 2, 2, 4, null, 4]}>
                 <Stack spacing={1} px={1} alignItems="center">
                   <ChakraImage
                     boxSize={["220px", "220px", "xs", null, "xs"]}
@@ -334,11 +300,9 @@ const Homepage = () => {
                 w="100%"
                 direction={["column", "row", "column", null, "column"]}
                 flexWrap={["nowrap", "nowrap", "nowrap", null, "nowrap"]}
-                // justifyContent="center"
                 pb="66px"
               >
                 <ConnectedButtons
-                  // title={"Are you a..."}
                   title={"You are..."}
                   button1={{
                     label: "Crypto trader",
