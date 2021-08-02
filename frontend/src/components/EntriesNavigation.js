@@ -179,8 +179,18 @@ const EntriesNavigation = () => {
 
   const handleFilterStateCallback = (props) => {
     console.log("handleFilterStateCallback", props);
-    const newFilterState = [...filterState];
-    newFilterState.push({ ...props });
+    const oldFilterState = [...filterState];
+    oldFilterState.push({ ...props });
+
+    const newFilterState = oldFilterState;
+    ui.setSearchTerm(
+      newFilterState
+        .map((filter) => {
+          return filter.direction + ":" + filter.value;
+        })
+        .join("+")
+    );
+
     setFilterState(newFilterState);
   };
   if (subscriptionsCache.isLoading) return "";
@@ -268,33 +278,15 @@ const EntriesNavigation = () => {
                               </Select>
                             )}
                             {filter.direction === DIRECTIONS.DESTINATION && (
-                              <Select
-                                variant="solid"
-                                colorScheme="primary"
-                                name="address"
-                                onChange={handleAddressChange(idx)}
-                              >
-                                {!subscriptionsCache.isLoading &&
-                                  subscriptionsCache.data.subscriptions.map(
-                                    (subscription, idx) => {
-                                      return (
-                                        <option
-                                          value={subscription.address}
-                                          key={`subscription-filter-item-${idx}`}
-                                        >
-                                          {`${
-                                            subscription.label
-                                          } - ${subscription.address.slice(
-                                            0,
-                                            5
-                                          )}...${subscription.address.slice(
-                                            -3
-                                          )}`}
-                                        </option>
-                                      );
-                                    }
-                                  )}
-                              </Select>
+                              <Input
+                                type="text"
+                                onChange={(e) =>
+                                  setFilterProps(idx, {
+                                    value: e.target.value,
+                                  })
+                                }
+                                placeholder="Type in address"
+                              />
                             )}
                           </>
                         )}
