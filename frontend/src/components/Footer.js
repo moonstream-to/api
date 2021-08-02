@@ -1,9 +1,6 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-import { jsx } from "@emotion/react";
-import { Flex, Heading, Text, Link } from "@chakra-ui/react";
+import React from "react";
+import { Flex, Text, Link } from "@chakra-ui/react";
 import CustomIcon from "../components/CustomIcon";
-import RouterLink from "next/link";
 
 const ICONS = [
   {
@@ -17,11 +14,6 @@ const ICONS = [
     link: "https://join.slack.com/t/bugout-dev/shared_invite/zt-fhepyt87-5XcJLy0iu702SO_hMFKNhQ",
   },
 ];
-
-const LINKS_SIZES = {
-  fontWeight: "300",
-  fontSize: "lg",
-};
 
 const SITEMAP_FLEX_PROPS = {
   px: 2,
@@ -54,12 +46,12 @@ const Footer = () => (
       maxW="40rem"
     >
       <Flex {...SITEMAP_FLEX_PROPS}>
-        <Heading pb={8} size="md">
+        {/* <Heading pb={8} size="md">
           About
-        </Heading>
-        <RouterLink passHref href="/team">
+        </Heading> */}
+        {/* <RouterLink passHref href="/team">
           <Link {...LINKS_SIZES}>Team</Link>
-        </RouterLink>
+        </RouterLink> */}
         {/* <RouterLink passHref href="/events">
           <Link {...LINKS_SIZES}>Events</Link>
         </RouterLink>

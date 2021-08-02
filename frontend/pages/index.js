@@ -78,6 +78,7 @@ const Homepage = () => {
 
   useEffect(() => {
     assets["background720"] = `${AWS_PATH}/background720.png`;
+    assets["background1920"] = `${AWS_PATH}/background1920.png`;
     assets["background2880"] = `${AWS_PATH}/background2880.png`;
     assets["background3840"] = `${AWS_PATH}/background3840.png`;
   }, []);
@@ -120,7 +121,6 @@ const Homepage = () => {
       router.nextRouter.asPath.slice(0, 2) !== "/?" &&
       router.nextRouter.asPath.slice(0, 2) !== "/#"
     ) {
-      console.log("replacing!");
       router.replace(router.nextRouter.asPath, undefined, {
         shallow: true,
       });
@@ -159,7 +159,6 @@ const Homepage = () => {
   return (
     <Fade in>
       <Box
-        onLo
         width="100%"
         flexDirection="column"
         sx={{ scrollBehavior: "smooth" }}
@@ -541,14 +540,13 @@ const Homepage = () => {
 
 export async function getStaticProps() {
   const metaTags = {
-    title: "Bugout: Measure the success of your dev tool",
+    title: "Moonstream.to: All your crypto data in one stream",
     description:
-      "Get usage metrics and crash reports. Improve your users' experience",
+      "From the Ethereum transaction pool to Elon Musk’s latest tweets get all the crypto data you care about in one stream.",
     keywords:
-      "bugout, bugout-dev, bugout.dev, usage-metrics, analytics, dev-tool ,knowledge, docs, journal, entry, find-anything",
-    url: "https://bugout.dev",
-    image:
-      "https://s3.amazonaws.com/static.simiotics.com/landing/aviator-2.svg",
+      "blockchain, crypto, data, trading, smart contracts, ethereum, solana, transactions, defi, finance, decentralized",
+    url: "https://www.moonstream.to",
+    image: `${AWS_PATH}/crypto+traders.png`,
   };
 
   const assetPreload = Object.keys(assets).map((key) => {
@@ -558,10 +556,7 @@ export async function getStaticProps() {
       as: "image",
     };
   });
-  const preconnects = [
-    { rel: "preconnect", href: "https://s3.amazonaws.com" },
-    { rel: "preconnect", href: "https://assets.calendly.com/" },
-  ];
+  const preconnects = [{ rel: "preconnect", href: "https://s3.amazonaws.com" }];
 
   const preloads = assetPreload.concat(preconnects);
 
