@@ -35,14 +35,6 @@ const AnalyticsProvider = ({ children }) => {
   }, [isLoaded]);
 
   useEffect(() => {
-    if (isLoaded) {
-      console.log(
-        "track:",
-        router.nextRouter.pathname,
-        router.query,
-        router.params
-      );
-    }
     isLoaded &&
       mixpanel.track(MIXPANEL_EVENTS.PAGEVIEW, {
         url: router.nextRouter.pathname,

@@ -7,7 +7,7 @@ const Scrollable = (props) => {
   const [path, setPath] = useState();
 
   const [scrollDepth, setScrollDepth] = useState(0);
-  const { mixpanel } = useAnalytics();
+  const { mixpanel, isLoaded } = useAnalytics();
 
   const getScrollPrecent = ({ currentTarget }) => {
     const scroll_level =
@@ -21,9 +21,10 @@ const Scrollable = (props) => {
     if (currentScroll > scrollDepth) {
       // withTracking(
       setScrollDepth(currentScroll);
-      mixpanel.people.increment({
-        [`Scroll depth at: ${router.nextRouter.pathname}`]: currentScroll,
-      });
+      isLoaded &&
+        mixpanel.people.increment({
+          [`Scroll depth at: ${router.nextRouter.pathname}`]: currentScroll,
+        });
     }
   };
 

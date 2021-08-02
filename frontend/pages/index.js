@@ -1,4 +1,10 @@
-import React, { useEffect, Suspense, useContext, useState } from "react";
+import React, {
+  useLayoutEffect,
+  useEffect,
+  Suspense,
+  useContext,
+  useState,
+} from "react";
 import {
   Flex,
   Heading,
@@ -83,23 +89,12 @@ const Homepage = () => {
     assets["background3840"] = `${AWS_PATH}/background3840.png`;
   }, []);
 
-  useEffect(() => {
-    console.log(
-      "isLargerChanged, ",
-      isLargerThan720px,
-      isLargerThan1920px,
-      isLargerThan2880px,
-      isLargerThan3840px,
-      backgroundLoaded720,
-      backgroundLoaded1920,
-      backgroundLoaded2880,
-      backgroundLoaded3840
-    );
-    if (isLargerThan3840px && backgroundLoaded3840) {
+  useLayoutEffect(() => {
+    if (backgroundLoaded3840) {
       setBackground("background3840");
-    } else if (isLargerThan2880px && backgroundLoaded2880) {
+    } else if (backgroundLoaded2880) {
       setBackground("background2880");
-    } else if (isLargerThan1920px && backgroundLoaded1920) {
+    } else if (backgroundLoaded1920) {
       setBackground("background1920");
     } else {
       setBackground("background720");
@@ -127,26 +122,32 @@ const Homepage = () => {
     }
   }, [isInit, router]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     console.log("rerender check");
     const imageLoader720 = new Image();
     imageLoader720.src = `${AWS_PATH}/background720.png`;
     imageLoader720.onload = () => {
       setBackgroundLoaded720(true);
     };
+  }, []);
 
+  useLayoutEffect(() => {
     const imageLoader1920 = new Image();
     imageLoader1920.src = `${AWS_PATH}/background1920.png`;
     imageLoader1920.onload = () => {
       setBackgroundLoaded1920(true);
     };
+  }, []);
 
+  useLayoutEffect(() => {
     const imageLoader2880 = new Image();
     imageLoader2880.src = `${AWS_PATH}/background2880.png`;
     imageLoader2880.onload = () => {
       setBackgroundLoaded2880(true);
     };
+  }, []);
 
+  useLayoutEffect(() => {
     const imageLoader3840 = new Image();
     imageLoader3840.src = `${AWS_PATH}/background3840.png`;
     imageLoader3840.onload = () => {
@@ -154,7 +155,6 @@ const Homepage = () => {
     };
   }, []);
 
-  console.log("backgroundLoaded", background);
 
   return (
     <Fade in>
@@ -191,16 +191,18 @@ const Homepage = () => {
               minH="100vh"
               // bgColor="primary.1200"
             >
-              <chakra.header boxSize="full">
+              <chakra.header boxSize="full" minH="100vh">
                 <Box
                   // h="100%"
                   // w="full"
                   // transition=""
                   // bgPos={["initial", "initial", "center", null, "center"]}
                   bgPos="bottom"
+                  bgColor="transparent"
                   backgroundImage={`url(${assets[`${background}`]})`}
                   bgSize="cover"
                   boxSize="full"
+                  minH="100vh"
                   // bgP
                   // h="container.sm"
                   // h={backgroundH}

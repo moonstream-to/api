@@ -63,7 +63,7 @@ const EntriesNavigation = () => {
   const ui = useContext(UIContext);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { subscriptionsCache } = useSubscriptions();
-  const [newFilterState, _setNewFilterState] = useState([
+  const [newFilterState, setNewFilterState] = useState([
     {
       type: FILTER_TYPES.ADDRESS,
       direction: DIRECTIONS.SOURCE,
@@ -73,17 +73,6 @@ const EntriesNavigation = () => {
   ]);
   const [filterState, setFilterState] = useState([]);
 
-  const setNewFilterState = useCallback(
-    (props) => {
-      console.log(
-        "setNewFilterState",
-        props,
-        subscriptionsCache.data.subscriptions[0].id
-      );
-      _setNewFilterState(props);
-    },
-    [subscriptionsCache?.data?.subscriptions]
-  );
   const loadMoreButtonRef = useRef(null);
 
   const { fetchMore, isFetchingMore, canFetchMore, EntriesPages, isLoading } =
