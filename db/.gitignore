@@ -163,7 +163,11 @@ cython_debug/
 # Custom
 dev.env
 prod.env
+dev.env.ps1
+prod.env.ps1
 alembic.dev.ini
 alembic.prod.ini
 .db/
 .venv/
+.secrets/
+.moonstreamdb

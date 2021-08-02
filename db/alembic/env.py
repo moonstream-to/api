@@ -25,14 +25,17 @@ target_metadata = ExplorationBase.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
-from moonstreamdb.models import EthereumBlock, EthereumTransaction, EthereumPendingTransaction
+from moonstreamdb.models import EthereumBlock, EthereumTransaction, EthereumPendingTransaction, EthereumSmartContract, ESDEventSignature, ESDFunctionSignature
 
 
 def include_symbol(tablename, schema):
     return tablename in {
         EthereumBlock.__tablename__,
         EthereumTransaction.__tablename__,
+        EthereumSmartContract.__tablename__,
         EthereumPendingTransaction.__tablename__,
+        ESDEventSignature.__tablename__,
+        ESDFunctionSignature.__tablename__,
     }
 
 

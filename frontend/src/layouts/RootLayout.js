@@ -1,5 +1,3 @@
-
-import { jsx } from "@emotion/react";
 import { Flex, Spinner } from "@chakra-ui/react";
 import React, { Suspense, useContext, useState, useEffect } from "react";
 const Sidebar = React.lazy(() => import("../components/Sidebar"));
@@ -30,7 +28,7 @@ const RootLayout = (props) => {
       maxH="100%"
     >
       <Suspense fallback="">
-        {ui.isAppView && ui.isLoggedIn && <Sidebar />}
+        <Sidebar />
       </Suspense>
       <Flex
         direction="column"

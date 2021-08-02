@@ -9,22 +9,6 @@ const useSubscriptions = () => {
   const toast = useToast();
   const stripe = useStripe();
 
-  // const manageSubscription = useMutation(
-  //   SubscriptionsService.manageSubscription(),
-  //   {
-  //     onError: (error) => toast(error, "error"),
-  //     onSuccess: (response) => {
-  //       const { session_id: sessionId, session_url: sessionUrl } =
-  //         response.data;
-  //       if (sessionId) {
-  //         stripe.redirectToCheckout({ sessionId });
-  //       } else if (sessionUrl) {
-  //         window.location = sessionUrl;
-  //       }
-  //     },
-  //   }
-  // );
-
   const getSubscriptions = async () => {
     const response = await SubscriptionsService.getSubscriptions();
     return response.data;
@@ -68,7 +52,7 @@ const useSubscriptions = () => {
 
   const changeNote = useMutation(SubscriptionsService.modifySubscription(), {
     onError: (error) => toast(error, "error"),
-    onSuccess: (response) => {
+    onSuccess: () => {
       subscriptionsCache.refetch();
     },
   });
@@ -77,7 +61,7 @@ const useSubscriptions = () => {
     SubscriptionsService.deleteSubscription(),
     {
       onError: (error) => toast(error, "error"),
-      onSuccess: (response) => {
+      onSuccess: () => {
         subscriptionsCache.refetch();
       },
     }

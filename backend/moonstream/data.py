@@ -70,4 +70,52 @@ class SubscriptionResponse(BaseModel):
 
 
 class SubscriptionsListResponse(BaseModel):
-    subscriptions: List[SubscriptionResourceData] = Field(default_factory=list)
+    subscriptions: List[SubscriptionResponse] = Field(default_factory=list)
+
+
+class EVMFunctionSignature(BaseModel):
+    type = "function"
+    hex_signature: str
+    text_signature_candidates: List[str] = Field(default_factory=list)
+
+
+class EVMEventSignature(BaseModel):
+    type = "event"
+    hex_signature: str
+    text_signature_candidates: List[str] = Field(default_factory=list)
+
+
+class ContractABI(BaseModel):
+    functions: List[EVMFunctionSignature]
+    events: List[EVMEventSignature]
+
+
+class EthereumTransaction(BaseModel):
+    gas: int
+    gasPrice: int
+    value: int
+    from_address: str = Field(alias="from")
+    to_address: Optional[str] = Field(default=None, alias="to")
+    hash: Optional[str] = None
+    block_hash: Optional[str] = Field(default=None, alias="blockHash")
+    block_number: Optional[int] = Field(default=None, alias="blockNumber")
+    input: Optional[str] = None
+    nonce: Optional[int] = None
+    r: Optional[str] = None
+    s: Optional[str] = None
+    v: Optional[str] = None
+    transaction_index: Optional[int] = Field(default=None, alias="transactionIndex")
+    transaction_type: str = Field(default="0x0", alias="type")
+
+
+class TxinfoEthereumBlockchainRequest(BaseModel):
+    tx: EthereumTransaction
+
+
+class TxinfoEthereumBlockchainResponse(BaseModel):
+    tx: EthereumTransaction
+    is_smart_contract_deployment: bool = False
+    is_smart_contract_call: bool = False
+    smart_contract_address: Optional[str] = None
+    abi: Optional[ContractABI] = None
+    errors: List[str] = Field(default_factory=list)

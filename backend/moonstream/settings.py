@@ -5,8 +5,9 @@ from bugout.app import Bugout
 # Bugout
 bugout_client = Bugout()
 
-MOONSTREAM_APPLICATION_ID = os.environ.get("MOONSTREAM_APPLICATION_ID")
-if MOONSTREAM_APPLICATION_ID is None:
+# Default value is "" instead of None so that mypy understands that MOONSTREAM_APPLICATION_ID is a string
+MOONSTREAM_APPLICATION_ID = os.environ.get("MOONSTREAM_APPLICATION_ID", "")
+if MOONSTREAM_APPLICATION_ID == "":
     raise ValueError("MOONSTREAM_APPLICATION_ID environment variable must be set")
 
 MOONSTREAM_DATA_JOURNAL_ID = os.environ.get("MOONSTREAM_DATA_JOURNAL_ID")

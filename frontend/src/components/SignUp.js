@@ -26,12 +26,11 @@ const SignUp = ({ toggleModal }) => {
   const { signUp, isLoading, isSuccess } = useSignUp();
   const ui = useContext(UIContext);
 
-
   useEffect(() => {
     if (isSuccess) {
       ui.toggleModal(null);
     }
-  }, [isSuccess, toggleModal]);
+  }, [isSuccess, toggleModal, ui]);
 
   return (
     <Modal onClose={() => ui.toggleModal(null)}>

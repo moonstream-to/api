@@ -18,6 +18,15 @@ const UIProvider = ({ children }) => {
     "2xl": false,
   });
 
+  const currentBreakpoint = useBreakpointValue({
+    base: 0,
+    sm: 1,
+    md: 2,
+    lg: 3,
+    xl: 4,
+    "2xl": 5,
+  });
+
   const { modal, toggleModal } = useContext(ModalContext);
   const [searchTerm, setSearchTerm] = useQuery("q", " ", true, false);
 
@@ -104,9 +113,26 @@ const UIProvider = ({ children }) => {
   useEffect(() => {
     if (isMobileView) {
       setSidebarVisible(true);
+      setSidebarCollapsed(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobileView]);
+
+  //Sidebar is visible at at breakpoint value less then 2
+  //Sidebar is visible always in appView
+  useEffect(() => {
+    if (currentBreakpoint < 2) {
+      setSidebarVisible(true);
+      setSidebarCollapsed(false);
+    } else {
+      if (!isAppView) {
+        setSidebarVisible(false);
+      } else {
+        setSidebarVisible(true);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentBreakpoint, isAppView]);
 
   // *********** Entries layout states **********************
 

@@ -105,7 +105,6 @@ async def add_subscription_handler(
     resource_data.update(subscription_data)
 
     try:
-
         resource: BugoutResource = bc.create_resource(
             token=token,
             application_id=MOONSTREAM_APPLICATION_ID,

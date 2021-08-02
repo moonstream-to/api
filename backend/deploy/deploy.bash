@@ -4,6 +4,7 @@
 
 # Main
 APP_DIR="${APP_DIR:-/home/ubuntu/moonstream}"
+APP_BACKEND_DIR="${APP_DIR}/backend"
 AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
 PYTHON_ENV_DIR="${PYTHON_ENV_DIR:-/home/ubuntu/moonstream-env}"
 PYTHON="${PYTHON_ENV_DIR}/bin/python"
@@ -25,7 +26,7 @@ echo "Updating pip and setuptools"
 echo
 echo
 echo "Updating Python dependencies"
-"${PIP}" install -r "${APP_DIR}/requirements.txt"
+"${PIP}" install -r "${APP_BACKEND_DIR}/requirements.txt"
 
 echo
 echo
