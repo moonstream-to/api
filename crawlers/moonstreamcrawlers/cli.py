@@ -105,9 +105,7 @@ def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
                 with_transactions=bool(strtobool(args.transactions)),
                 num_processes=args.jobs,
             )
-
         print(f"Synchronized blocks from {bottom_block_number} to {top_block_number}")
-        time.sleep(5)
 
 
 def ethcrawler_blocks_add_handler(args: argparse.Namespace) -> None:
