@@ -1,8 +1,8 @@
 from concurrent.futures import Future, ProcessPoolExecutor, wait
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 from sqlalchemy import desc
-from web3 import Web3
+from web3 import Web3, IPCProvider, HTTPProvider
 from web3.types import BlockData
 
 from .settings import MOONSTREAM_IPC_PATH, MOONSTREAM_CRAWL_WORKERS
@@ -14,9 +14,14 @@ from moonstreamdb.models import (
 )
 
 
-# TODO(kompotkot): Write logic to chose between http and ipc
-def connect(ipc_path: str = MOONSTREAM_IPC_PATH):
-    web3_client = Web3(Web3.IPCProvider(ipc_path))
+def connect(web3_uri: Optional[str] = MOONSTREAM_IPC_PATH):
+    web3_provider: Union[IPCProvider, HTTPProvider] = Web3.IPCProvider()
+    if web3_uri is not None:
+        if web3_uri.startswith("http://") or web3_uri.startswith("https://"):
+            web3_provider = Web3.HTTPProvider(web3_uri)
+        else:
+            web3_provider = Web3.IPCProvider(web3_uri)
+    web3_client = Web3(web3_provider)
     return web3_client
 
 
