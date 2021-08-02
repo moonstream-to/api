@@ -91,7 +91,7 @@ def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
             print(
                 f"Synchronization is unnecessary for blocks {bottom_block_number}-{top_block_number - 1}"
             )
-            time.sleep(20)
+            time.sleep(5)
             continue
 
         for blocks_numbers_list in yield_blocks_numbers_lists(
@@ -107,7 +107,7 @@ def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
             )
 
         print(f"Synchronized blocks from {bottom_block_number} to {top_block_number}")
-        time.sleep(10)
+        time.sleep(5)
 
 
 def ethcrawler_blocks_add_handler(args: argparse.Namespace) -> None:
@@ -234,7 +234,7 @@ def main() -> None:
         help=(
             f"Number of processes to use when synchronizing (default: {MOONSTREAM_CRAWL_WORKERS})."
             " If you set to 1, the main process handles synchronization without spawning subprocesses."
-        )
+        ),
     )
     parser_ethcrawler_blocks_sync.set_defaults(func=ethcrawler_blocks_sync_handler)
 
