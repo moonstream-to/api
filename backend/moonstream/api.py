@@ -42,3 +42,4 @@ async def version_handler() -> data.VersionResponse:
 app.mount("/subscriptions", subscriptions_api)
 app.mount("/users", users_api)
 app.mount("/streams", streams_api)
+app.mount("/txinfo", txinfo_api)

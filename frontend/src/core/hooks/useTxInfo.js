@@ -4,13 +4,14 @@ import { queryCacheProps } from "./hookCommon";
 import { useToast } from ".";
 
 const useTxInfo = (transaction) => {
+    console.log("Use hook", transaction)
     const toast = useToast();
     const getTxInfo = async () => {
-        const data = await TxInfoService.getTxInfo(transaction);
-        return data;
+        const response = await TxInfoService.getTxInfo(transaction);
+        return response.data;
     }
     const { data, isLoading, isFetchedAfterMount, refetch, isError, error } =
-    useQuery(["txinfo", {transaction}], getTxInfo, {
+    useQuery(["txinfo", transaction.tx.hash ], getTxInfo, {
       ...queryCacheProps,
       onError: (error) => toast(error, "error"),
     });

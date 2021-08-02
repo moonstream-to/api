@@ -42,7 +42,12 @@ const raw_transaction = {
     "value": 0
   }
 }
- const test = useTxInfo(raw_transaction)
+ async function test() {
+  const testt = await useTxInfo(raw_transaction)
+  console.log(testt)
+
+ } 
+ test()
  console.log(test)
  let isFetchedAfterMount = false;
  let isLoading = false;

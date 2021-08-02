@@ -13,7 +13,7 @@ const StreamEntry = ({ entry, filterCallback, filterConstants }) => {
     ui.setEntryId(entryId);
     ui.setEntriesViewMode("entry");
     router.push({
-      pathname: `/stream/${entry.id}`,
+      pathname: `/stream/${entry.hash}`,
       query: router.query,
     });
   };
@@ -92,7 +92,7 @@ const StreamEntry = ({ entry, filterCallback, filterConstants }) => {
         boxSize="32px"
         colorScheme="primary"
         icon={<ViewIcon />}
-        onClick={() => handleViewClicked(entry.id)}
+        onClick={() => handleViewClicked(entry)}
       />
     </Flex>
   );
