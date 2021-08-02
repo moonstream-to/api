@@ -9,22 +9,6 @@ const useSubscriptions = () => {
   const toast = useToast();
   const stripe = useStripe();
 
-  // const manageSubscription = useMutation(
-  //   SubscriptionsService.manageSubscription(),
-  //   {
-  //     onError: (error) => toast(error, "error"),
-  //     onSuccess: (response) => {
-  //       const { session_id: sessionId, session_url: sessionUrl } =
-  //         response.data;
-  //       if (sessionId) {
-  //         stripe.redirectToCheckout({ sessionId });
-  //       } else if (sessionUrl) {
-  //         window.location = sessionUrl;
-  //       }
-  //     },
-  //   }
-  // );
-
   const getSubscriptions = async () => {
     const response = await SubscriptionsService.getSubscriptions();
     return response.data.data;
@@ -68,19 +52,28 @@ const useSubscriptions = () => {
 
   const changeNote = useMutation(SubscriptionsService.modifySubscription(), {
     onError: (error) => toast(error, "error"),
-    onSuccess: (response) => {
+    onSuccess: () => {
       subscriptionsCache.refetch();
     },
   });
 
-  const deleteSubscription = useMutation(SubscriptionsService.deleteSubscription(), {
-    onError: (error) => toast(error, "error"),
-    onSuccess: (response) => {
-      subscriptionsCache.refetch();
-    },
-  });
+  const deleteSubscription = useMutation(
+    SubscriptionsService.deleteSubscription(),
+    {
+      onError: (error) => toast(error, "error"),
+      onSuccess: () => {
+        subscriptionsCache.refetch();
+      },
+    }
+  );
 
-  return { createSubscription, subscriptionsCache, typesCache, changeNote, deleteSubscription };
+  return {
+    createSubscription,
+    subscriptionsCache,
+    typesCache,
+    changeNote,
+    deleteSubscription,
+  };
 };
 
 export default useSubscriptions;

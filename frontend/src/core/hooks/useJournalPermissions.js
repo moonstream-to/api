@@ -158,10 +158,6 @@ const useJournalPermissions = (journalId, journalScope) => {
     }
   );
 
-
-
-
-
   const holders = data;
   return {
     holders,

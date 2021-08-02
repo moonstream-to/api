@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && next export -o build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint ./ --ext js,jsx,ts,tsx --fix",
+    "pretty": "prettier --write \"./**/*.{js,jsx,json}\""
   },
   "dependencies": {
     "@chakra-ui/icons": "^1.0.14",

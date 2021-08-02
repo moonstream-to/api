@@ -22,7 +22,7 @@ const NewSubscription = ({ isFreeOption, onClose }) => {
   const { typesCache, createSubscription } = useSubscriptions();
   const { handleSubmit, errors, register } = useForm();
   const [radioState, setRadioState] = useState("ethereum_blockchain");
-  let { getRootProps, getRadioProps, ref } = useRadioGroup({
+  let { getRootProps, getRadioProps } = useRadioGroup({
     name: "type",
     defaultValue: radioState,
     onChange: setRadioState,

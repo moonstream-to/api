@@ -3,7 +3,6 @@ import { http } from "../utils";
 const AUTH_URL = process.env.NEXT_PUBLIC_SIMIOTICS_AUTH_URL;
 
 export const login = ({ username, password }) => {
-  console.log('login',username, password)
   const data = new FormData();
   data.append("username", username);
   data.append("password", password);
@@ -22,24 +21,26 @@ export const revoke = () => {
   });
 };
 
-export const register = () => ({ username, email, password }) => {
-  const data = new FormData();
-  data.append("username", username);
-  data.append("email", email);
-  data.append("password", password);
+export const register =
+  () =>
+  ({ username, email, password }) => {
+    const data = new FormData();
+    data.append("username", username);
+    data.append("email", email);
+    data.append("password", password);
 
-  return http({
-    method: "POST",
-    url: `${AUTH_URL}/user`,
-    data,
-  }).then(() =>
-    http({
+    return http({
       method: "POST",
-      url: `${AUTH_URL}/token`,
+      url: `${AUTH_URL}/user`,
       data,
-    })
-  );
-};
+    }).then(() =>
+      http({
+        method: "POST",
+        url: `${AUTH_URL}/token`,
+        data,
+      })
+    );
+  };
 
 export const verify = ({ code }) => {
   const data = new FormData();

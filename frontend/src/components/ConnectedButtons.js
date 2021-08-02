@@ -1,12 +1,5 @@
 import React, { useEffect, useRef, useContext } from "react";
-import {
-  Flex,
-  Heading,
-  Button,
-  Link,
-  SimpleGrid,
-  useBreakpointValue,
-} from "@chakra-ui/react";
+import { Flex, Heading, Button, Link, SimpleGrid } from "@chakra-ui/react";
 import Xarrow, { useXarrow } from "react-xarrows";
 import UIContext from "../core/providers/UIProvider/context";
 
@@ -17,19 +10,11 @@ const ArrowCTA = (props) => {
   const box2Ref = useRef(null);
   const box3Ref = useRef(null);
 
-  const gridSetup = useBreakpointValue({
-    base: "column",
-    sm: "horizontal",
-    md: "grid",
-    lg: "grid",
-    xl: "grid",
-    "2xl": "grid",
-  });
-
   const updateXarrow = useXarrow();
 
   useEffect(() => {
     updateXarrow();
+    // eslint-disable-next-line
   }, [ui.isMobileView]);
 
   return (

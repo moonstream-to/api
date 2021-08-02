@@ -8,7 +8,11 @@ const useGroup = (groupId) => {
   const cache = useQueryCache();
   const toast = useToast();
 
-  const { data: GroupUsersResponse, isLoading, refetch: getUsers } = useQuery(
+  const {
+    data: GroupUsersResponse,
+    isLoading,
+    refetch: getUsers,
+  } = useQuery(
     ["group-users", groupId],
     GroupService.getGroupUsers,
     queryCacheProps

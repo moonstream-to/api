@@ -26,11 +26,11 @@ const SignUp = ({ toggleModal }) => {
   const { signUp, isLoading, isSuccess } = useSignUp();
   const ui = useContext(UIContext);
 
-
   useEffect(() => {
     if (isSuccess) {
       ui.toggleModal(null);
     }
+    // eslint-disable-next-line
   }, [isSuccess, toggleModal]);
 
   return (

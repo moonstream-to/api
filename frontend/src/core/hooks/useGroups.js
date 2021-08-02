@@ -15,11 +15,11 @@ const useGroups = () => {
     return response?.data?.groups;
   };
 
-  const { data, isLoading, refetch: getGroups } = useQuery(
-    "groups",
-    fetchGroups,
-    queryCacheProps
-  );
+  const {
+    data,
+    isLoading,
+    refetch: getGroups,
+  } = useQuery("groups", fetchGroups, queryCacheProps);
 
   const [createGroup, createStatus] = useMutation(
     (groupName) => GroupService.createGroup(groupName),

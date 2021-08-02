@@ -14,15 +14,10 @@ import {
   useBreakpointValue,
 } from "@chakra-ui/react";
 // import Xarrow, { useXarrow } from "react-xarrows";
-import React, { useContext, useEffect } from "react";
+import React, { useContext } from "react";
 import UIContext from "../core/providers/UIProvider/context";
 
 const Feature = ({ text, icon, iconBg, bullets }) => {
-  // const updateXarrow = useXarrow();
-  useEffect(() => {
-    // updateXarrow();
-  }, []);
-  console.log("bullets;", bullets);
   return (
     <Flex direction="column">
       <Stack direction={"row"} align={"center"}>
@@ -83,11 +78,6 @@ const SplitWithImage = ({
   });
 
   const ui = useContext(UIContext);
-  // const updateXarrow = useXarrow();
-  const iconBgColor = useColorModeValue(
-    `${colorScheme}.100`,
-    `${colorScheme}.900`
-  );
 
   const [isVisible, setVisible] = React.useState(true);
   const domRef = React.useRef();
@@ -106,7 +96,6 @@ const SplitWithImage = ({
       py={0}
       className={`fade-in-section ${isVisible ? "is-visible" : ""}`}
       ref={domRef}
-      // onAnimationIteration={() => updateXarrow()}
     >
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={[0, 0, 10, null, 10]}>
         {mirror && !ui.isMobileView && (
@@ -119,7 +108,7 @@ const SplitWithImage = ({
             />
           </Flex>
         )}
-        <Stack spacing={4}>
+        <Stack spacing={4} justifyContent="center">
           <Text
             id={`MoonBadge ${elementName}`}
             // id={`MoonBadge${elementName}`}
@@ -134,17 +123,6 @@ const SplitWithImage = ({
           >
             {badge}
           </Text>
-          {/* <Xarrow
-            dashness={{
-              strokeLen: 10,
-              nonStrokeLen: 15,
-              animation: -2,
-            }}
-            color="#212990"
-            showHead={false}
-            start={"CryptoTraderButton"} //can be react ref
-            end={`MoonBadge ${elementName}`} //or an id
-          /> */}
           <Heading>{title}</Heading>
           <Text color={`primary.500`} fontSize={"lg"}>
             {body}
@@ -158,7 +136,6 @@ const SplitWithImage = ({
             }
           >
             {bullets?.map((bullet, idx) => {
-              console.log("bullet1", bullet?.bullets);
               return (
                 <Feature
                   key={`splitWImageBullet-${idx}-${title}`}
@@ -177,23 +154,24 @@ const SplitWithImage = ({
                   colorScheme={colorScheme}
                   variant="outline"
                   mt={[0, 0, null, 16]}
-                  textTransform={"uppercase"}
                   fontSize={["xs", "sm", "lg", null, "lg"]}
                   size={buttonSize}
+                  onClick={cta.onClick}
                 >
-                  {cta}
+                  {cta.label}
                 </Button>
               </Center>
             </Container>
           </Stack>
         </Stack>
         {(!mirror || ui.isMobileView) && (
-          <Flex>
+          <Flex justifyContent="center">
             <Image
               rounded={"md"}
               alt={"feature image"}
               src={imgURL}
-              objectFit={"cover"}
+              objectFit={"contain"}
+              // boxSize={ui.isMobileView ? "lg" : null}
             />
           </Flex>
         )}

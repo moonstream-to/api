@@ -1,4 +1,3 @@
-
 import { Flex } from "@chakra-ui/react";
 import { getLayout as getSiteLayout } from "./RootLayout";
 import React, { useContext } from "react";

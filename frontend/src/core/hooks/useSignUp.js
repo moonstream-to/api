@@ -15,7 +15,7 @@ const useSignUp = (source) => {
     isLoading,
     error,
     data,
-    isSuccess
+    isSuccess,
   } = useMutation(AuthService.register(), {
     onSuccess: (response) => {
       localStorage.setItem("BUGOUT_ACCESS_TOKEN", response.data.access_token);

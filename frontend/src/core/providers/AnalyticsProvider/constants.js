@@ -12,13 +12,14 @@ export const MIXPANEL_EVENTS = {
   LAST_LOGIN_DATE: "Last  login date",
   LAST_VISITED: "Last visited",
   TOAST_ERROR_DISPLAYED: "Error Toast",
-  HOMEPAGE_SCROLL_DEPTH: "Homepage scroll depth",
+  SCROLL_DEPTH: "Homepage scroll depth",
   CONVERT_TO_USER: "User Signs up",
   USER_LOGS_IN: "User Logs in",
   USER_LOGS_OUT: "User Logs out",
   PAGEVIEW: "Page view",
   PRICING_PLAN_CLICKED: "Pricing Plan clicked",
   BUTTON_CLICKED: "Button clicked",
+  LEFT_PAGE: "Left page",
 };
 
 export default MIXPANEL_EVENTS;

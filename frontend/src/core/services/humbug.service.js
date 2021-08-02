@@ -50,20 +50,19 @@ export const getTokens = (humbugId) => {
   });
 };
 
-export const createRestrictedToken = (humbugId) => ({
-  appName,
-  appVersion,
-}) => {
-  const data = new FormData();
-  data.append("app_name", appName);
-  data.append("app_version", appVersion);
+export const createRestrictedToken =
+  (humbugId) =>
+  ({ appName, appVersion }) => {
+    const data = new FormData();
+    data.append("app_name", appName);
+    data.append("app_version", appVersion);
 
-  return http({
-    method: "POST",
-    url: `${API}/humbug/${humbugId}/tokens`,
-    data,
-  });
-};
+    return http({
+      method: "POST",
+      url: `${API}/humbug/${humbugId}/tokens`,
+      data,
+    });
+  };
 
 export const deleteRestrictedToken = (humbugId) => (tokenId) => {
   const data = new FormData();

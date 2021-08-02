@@ -8,7 +8,7 @@ const useLogout = () => {
   const { setLoggingOut } = useContext(UIContext);
   const router = useRouter();
   const analytics = useAnalytics();
-  const {mutate: revoke, data } = useMutation(AuthService.revoke, {
+  const { mutate: revoke, data } = useMutation(AuthService.revoke, {
     onSuccess: () => {
       if (analytics.isLoaded) {
         analytics.mixpanel.track(

@@ -92,7 +92,7 @@ const Footer = () => (
       flexGrow="1"
       w="100%"
       maxW="40rem"
-      alignItems={["center", "center", null, "flex-end"]}
+      alignItems={["flex-end", "flex-end", null, "flex-end"]}
       pr={[0, null, 8]}
     >
       <Text

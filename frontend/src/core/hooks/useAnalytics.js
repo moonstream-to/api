@@ -2,9 +2,8 @@ import AnalyticsContext from "../providers/AnalyticsProvider/context";
 import { useContext } from "react";
 import { useState, useEffect, useCallback } from "react";
 const useAnalytics = () => {
-  const { mixpanel, isLoaded, MIXPANEL_EVENTS, MIXPANEL_PROPS } = useContext(
-    AnalyticsContext
-  );
+  const { mixpanel, isLoaded, MIXPANEL_EVENTS, MIXPANEL_PROPS } =
+    useContext(AnalyticsContext);
   const [trackProps, setTrackProps] = useState({
     event: null,
     props: null,

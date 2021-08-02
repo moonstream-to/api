@@ -20,7 +20,18 @@ const LandingNavbar = () => {
   return (
     <>
       <>
-        <Flex position="absolute" left="calc(50% - 100px)">
+        {ui.isMobileView && (
+          <>
+            <IconButton
+              alignSelf="flex-start"
+              colorScheme="primary"
+              variant="solid"
+              onClick={() => ui.setSidebarToggled(!ui.sidebarToggled)}
+              icon={<HamburgerIcon />}
+            />
+          </>
+        )}
+        <Flex ml={ui.isMobileView ? 2 : 8} justifySelf="flex-start">
           <RouterLink href="/" passHref>
             <Link>
               <Image
@@ -81,17 +92,6 @@ const LandingNavbar = () => {
           </>
         )}
       </>
-
-      {ui.isMobileView && (
-        <>
-          <IconButton
-            colorScheme="secondary"
-            variant="solid"
-            onClick={() => ui.setSidebarToggled(!ui.sidebarToggled)}
-            icon={<HamburgerIcon />}
-          />
-        </>
-      )}
     </>
   );
 };

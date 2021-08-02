@@ -1,116 +1,118 @@
-import React, { useState, useEffect, Suspense, useContext } from "react";
+import React, { useEffect, Suspense, useContext, useState } from "react";
 import {
   Flex,
   Heading,
-  Text,
   Box,
-  Image,
+  Image as ChakraImage,
   Button,
-  useBreakpointValue,
   Center,
   Fade,
   chakra,
   Stack,
+  Link,
+  SimpleGrid,
+  useMediaQuery,
 } from "@chakra-ui/react";
 import { Grid, GridItem } from "@chakra-ui/react";
 import { useUser, useAnalytics, useModals, useRouter } from "../src/core/hooks";
 import { getLayout } from "../src/layouts";
 import SplitWithImage from "../src/components/SplitWithImage";
-import {
-  IoAnalyticsSharp,
-  IoLogoBitcoin,
-  IoSearchSharp,
-} from "react-icons/io5";
 import ConnectedButtons from "../src/components/ConnectedButtons";
 import UIContext from "../src/core/providers/UIProvider/context";
+import { MIXPANEL_PROPS } from "../src/core/providers/AnalyticsProvider/constants";
+import { FaFileContract } from "react-icons/fa";
+import { RiDashboardFill } from "react-icons/ri";
+import {
+  GiMeshBall,
+  GiLogicGateXor,
+  GiSuspicious,
+  GiHook,
+} from "react-icons/gi";
+import { AiFillApi } from "react-icons/ai";
+import { BiTransfer } from "react-icons/bi";
+import { IoTelescopeSharp } from "react-icons/io5";
 
 const HEADING_PROPS = {
   fontWeight: "700",
   fontSize: ["4xl", "5xl", "4xl", "5xl", "6xl", "7xl"],
 };
-
-const TRIPLE_PICS_PROPS = {
-  fontSize: ["1xl", "2xl", "2xl", "2xl", "3xl", "3xl"],
-  textAlign: "center",
-  fontWeight: "600",
-  py: 4,
-};
-
-const TRIPLE_PICS_TEXT = {
-  fontSize: ["lg", "xl", "xl", "xl", "2xl", "3xl"],
-  textAlign: "center",
-  fontWeight: "400",
-  mb: ["2rem", "2rem", "0", null, "0"],
-};
-
-const CARD_CONTAINER = {
-  className: "CardContainer",
-  w: "100%",
-  mx: [0, 0, "2rem", null, "4rem"],
-
-  alignSelf: ["center", null, "flex-start"],
-};
-
-const IMAGE_CONTAINER = {
-  className: "ImageContainer",
-  // objectFit: "contain",
-  h: ["10rem", null],
-  // h: ["10rem", "14rem", "14rem", "15rem", "18rem", "20rem"],
-  justifyContent: "center",
-};
-
 const AWS_PATH =
   "https://s3.amazonaws.com/static.simiotics.com/moonstream/assets";
 
 const assets = {
-  background: `https://s3.amazonaws.com/static.simiotics.com/landing/landing-background-2.png`,
-  aviator: `https://s3.amazonaws.com/static.simiotics.com/landing/aviator-2.svg`,
-  icon1: `${AWS_PATH}/Image+1.png`,
-  icon2: `${AWS_PATH}/Image+2.png`,
-  icon3: `${AWS_PATH}/Image+3.png`,
-  icon4: `${AWS_PATH}/Image+4.png`,
-  icon5: `${AWS_PATH}/Image+5.png`,
-  icon6: `${AWS_PATH}/Image+6.png`,
+  background720: `${AWS_PATH}/background720.png`,
+  background1920: `${AWS_PATH}/background720.png`,
+  background2880: `${AWS_PATH}/background720.png`,
+  background3840: `${AWS_PATH}/background720.png`,
+  minedTransactions: `${AWS_PATH}/Ethereum+mined+transactions.png`,
+  pendingTransactions: `${AWS_PATH}/Ethereum+pending+transactions.png`,
+  priceInformation: `${AWS_PATH}/Price+information.png`,
+  socialMediaPosts: `${AWS_PATH}/Social+media+posts.png`,
+  algorithmicFunds: `${AWS_PATH}/algorithmic+funds.png`,
+  cryptoTraders: `${AWS_PATH}/crypto+traders.png`,
+  smartDevelopers: `${AWS_PATH}/smart+contract+developers.png`,
 };
 const Homepage = () => {
   const ui = useContext(UIContext);
+  const [background, setBackground] = useState("background720");
+  const [backgroundLoaded720, setBackgroundLoaded720] = useState(false);
+  const [backgroundLoaded1920, setBackgroundLoaded1920] = useState(false);
+  const [backgroundLoaded2880, setBackgroundLoaded2880] = useState(false);
+  const [backgroundLoaded3840, setBackgroundLoaded3840] = useState(false);
+
   const router = useRouter();
-  const buttonSize = useBreakpointValue({
-    base: "md",
-    sm: "md",
-    md: "md",
-    lg: "lg",
-    xl: "xl",
-    "2xl": "xl",
-  });
-
-  const ButtonRadius = "2xl";
-  const buttonWidth = ["100%", "100%", "40%", "45%", "45%", "45%"];
-  const buttonMinWidth = "10rem";
   const { isInit } = useUser();
-  const { withTracking, MIXPANEL_EVENTS } = useAnalytics();
-
+  const { MIXPANEL_EVENTS, track } = useAnalytics();
   const { toggleModal } = useModals();
-  const [scrollDepth, setScrollDepth] = useState(0);
+  const [
+    isLargerThan720px,
+    isLargerThan1920px,
+    isLargerThan2880px,
+    isLargerThan3840px,
+  ] = useMediaQuery([
+    "(min-width: 720px)",
+    "(min-width: 1920px)",
+    "(min-width: 2880px)",
+    "(min-width: 3840px)",
+  ]);
 
-  const getScrollPrecent = ({ currentTarget }) => {
-    const scroll_level =
-      (100 * (currentTarget.scrollTop + currentTarget.clientHeight)) /
-      currentTarget.scrollHeight;
-    return scroll_level;
-  };
+  useEffect(() => {
+    assets["background720"] = `${AWS_PATH}/background720.png`;
+    assets["background2880"] = `${AWS_PATH}/background2880.png`;
+    assets["background3840"] = `${AWS_PATH}/background3840.png`;
+  }, []);
 
-  const handleScroll = (e) => {
-    const currentScroll = Math.ceil(getScrollPrecent(e) / 10);
-
-    if (currentScroll > scrollDepth) {
-      withTracking(
-        setScrollDepth(currentScroll),
-        MIXPANEL_EVENTS.HOMEPAGE_SCROLL_DEPTH,
-        scrollDepth
-      );
+  useEffect(() => {
+    console.log(
+      "isLargerChanged, ",
+      isLargerThan720px,
+      isLargerThan1920px,
+      isLargerThan2880px,
+      isLargerThan3840px,
+      backgroundLoaded720,
+      backgroundLoaded1920,
+      backgroundLoaded2880,
+      backgroundLoaded3840
+    );
+    if (isLargerThan3840px && backgroundLoaded3840) {
+      setBackground("background3840");
+    } else if (isLargerThan2880px && backgroundLoaded2880) {
+      setBackground("background2880");
+    } else if (isLargerThan1920px && backgroundLoaded1920) {
+      setBackground("background1920");
+    } else {
+      setBackground("background720");
     }
-  };
+  }, [
+    isLargerThan720px,
+    isLargerThan1920px,
+    isLargerThan2880px,
+    isLargerThan3840px,
+    backgroundLoaded720,
+    backgroundLoaded1920,
+    backgroundLoaded2880,
+    backgroundLoaded3840,
+  ]);
 
   useEffect(() => {
     if (
@@ -118,19 +120,53 @@ const Homepage = () => {
       router.nextRouter.asPath.slice(0, 2) !== "/?" &&
       router.nextRouter.asPath.slice(0, 2) !== "/#"
     ) {
+      console.log("replacing!");
       router.replace(router.nextRouter.asPath, undefined, {
         shallow: true,
       });
     }
   }, [isInit, router]);
 
+  useEffect(() => {
+    console.log("rerender check");
+    const imageLoader720 = new Image();
+    imageLoader720.src = `${AWS_PATH}/background720.png`;
+    imageLoader720.onload = () => {
+      setBackgroundLoaded720(true);
+    };
+
+    const imageLoader1920 = new Image();
+    imageLoader1920.src = `${AWS_PATH}/background1920.png`;
+    imageLoader1920.onload = () => {
+      setBackgroundLoaded1920(true);
+    };
+
+    const imageLoader2880 = new Image();
+    imageLoader2880.src = `${AWS_PATH}/background2880.png`;
+    imageLoader2880.onload = () => {
+      setBackgroundLoaded2880(true);
+    };
+
+    const imageLoader3840 = new Image();
+    imageLoader3840.src = `${AWS_PATH}/background3840.png`;
+    imageLoader3840.onload = () => {
+      setBackgroundLoaded3840(true);
+    };
+  }, []);
+
+  console.log("backgroundLoaded", background);
+
   return (
     <Fade in>
       <Box
+        onLo
         width="100%"
         flexDirection="column"
-        onScroll={(e) => handleScroll(e)}
         sx={{ scrollBehavior: "smooth" }}
+        // bgColor="primary.1900"
+        // backgroundImage={`url(${assets["background"]})`}
+        // backgroundImage={`url(https://cdn3.vectorstock.com/i/1000x1000/75/62/moon-landscape-game-background-vector-24977562.jpg)`}
+        bgSize="cover"
       >
         <Flex
           direction="column"
@@ -138,22 +174,43 @@ const Homepage = () => {
           position="relative"
           w="100%"
           overflow="initial"
+          pt={0}
         >
           <Suspense fallback={""}></Suspense>
 
-          <Grid templateColumns="repeat(12,1fr)">
-            <GridItem px="0" colSpan="12" pb={[1, 2, null, 8]}>
-              <chakra.header>
+          <Grid
+            templateColumns="repeat(12,1fr)"
+            mt={0}
+            border="none"
+            boxSizing="content-box"
+          >
+            <GridItem
+              mt={0}
+              px="0"
+              colSpan="12"
+              pb={[1, 2, null, 8]}
+              minH="100vh"
+              // bgColor="primary.1200"
+            >
+              <chakra.header boxSize="full">
                 <Box
-                  w="full"
-                  h="container.sm"
-                  backgroundImage={`url(${assets["background"]})`}
-                  bgPos="center"
+                  // h="100%"
+                  // w="full"
+                  // transition=""
+                  // bgPos={["initial", "initial", "center", null, "center"]}
+                  bgPos="bottom"
+                  backgroundImage={`url(${assets[`${background}`]})`}
                   bgSize="cover"
+                  boxSize="full"
+                  // bgP
+                  // h="container.sm"
+                  // h={backgroundH}
+                  // minH="100vh"
+                  // minH="auto"
                 >
                   <Flex
                     align="center"
-                    pos="relative"
+                    // pos="relative"
                     justify="center"
                     boxSize="full"
                     // bg="blackAlpha.700"
@@ -162,14 +219,16 @@ const Homepage = () => {
                       textAlign="center"
                       alignItems="center"
                       spacing={6}
-                      maxW="1220px"
+                      maxW="1620px"
                       px="7%"
+                      h="100%"
+                      pt={["10vh", null, "30vh"]}
                     >
                       <Heading
-                        size="xl"
+                        size="2xl"
                         fontWeight="semibold"
                         color="white"
-                        textTransform="uppercase"
+                        // textTransform="uppercase"
                       >
                         {/* <LoadingDots isActive> */}
                         All the crypto data you care about in a single stream
@@ -177,6 +236,7 @@ const Homepage = () => {
                       </Heading>
                       <chakra.span
                         my={12}
+                        fontSize={["lg", null, "xl"]}
                         display="inline-block"
                         color="primary.200"
                         textDecor="underline"
@@ -186,6 +246,7 @@ const Homepage = () => {
                         pool to Elon Musk’s latest tweets.
                       </chakra.span>
                       <chakra.span
+                        fontSize={["lg", null, "xl"]}
                         display="inline-block"
                         color="primary.300"
                         textDecor="underline"
@@ -203,8 +264,9 @@ const Homepage = () => {
               colSpan="12"
               pt={["20px", "20px", "100px", null, "120px"]}
               pb={["20px", "56px", null, "184px"]}
-              bgSize="cover"
-              bgImage={`url(${assets["background"]})`}
+              minH="100vh"
+              // bgSize="cover"
+              // bgImage={`url(${assets["background"]})`}
             >
               <Heading
                 {...HEADING_PROPS}
@@ -214,91 +276,59 @@ const Homepage = () => {
                 Data you can add to your stream:
               </Heading>
 
-              <Flex
-                direction={["column", null, "row"]}
-                flexWrap="nowrap"
-                justifyContent={["center", null, "space-evenly"]}
+              <SimpleGrid
+                columns={[1, 2, 2, 4, null, 4]}
+                // overflowY="clip"
+                // direction={["column", null, "row"]}
+                // flexWrap="nowrap"
+                // justifyContent={["center", null, "space-evenly"]}
               >
-                <Box {...CARD_CONTAINER}>
-                  <Flex {...IMAGE_CONTAINER}>
-                    <Image
-                      objectFit="contain"
-                      src={assets["icon2"]}
-                      alt="privacy is our prioriy"
-                    />
-                  </Flex>
-                  <Heading {...TRIPLE_PICS_PROPS}>
+                <Stack spacing={1} px={1} alignItems="center">
+                  <ChakraImage
+                    boxSize={["220px", "220px", "xs", null, "xs"]}
+                    objectFit="contain"
+                    src={assets["minedTransactions"]}
+                    alt="mined transactions"
+                  />
+                  <Heading textAlign="center ">
                     Ethereum mined transactions
                   </Heading>
-                  <Text {...TRIPLE_PICS_TEXT}></Text>
-                </Box>
-                <Box {...CARD_CONTAINER}>
-                  <Flex {...IMAGE_CONTAINER}>
-                    <Image
-                      objectFit="contain"
-                      src={assets["icon1"]}
-                      alt="live metrics"
-                    />
-                  </Flex>
-                  <Heading {...TRIPLE_PICS_PROPS}>
+                </Stack>
+                <Stack spacing={1} px={1} alignItems="center">
+                  <ChakraImage
+                    boxSize={["220px", "220px", "xs", null, "xs"]}
+                    objectFit="contain"
+                    src={assets["pendingTransactions"]}
+                    alt="mined transactions"
+                  />
+                  <Heading textAlign="center ">
                     Ethereum pending transactions
                   </Heading>
-                  <Text {...TRIPLE_PICS_TEXT}></Text>
-                </Box>
-                <Box {...CARD_CONTAINER}>
-                  <Flex {...IMAGE_CONTAINER}>
-                    <Image
-                      objectFit="contain"
-                      src={assets["icon1"]}
-                      alt="live metrics"
-                    />
-                  </Flex>
-                  <Heading {...TRIPLE_PICS_PROPS}>
-                    Centralized exchanges
-                  </Heading>
-                  <Text {...TRIPLE_PICS_TEXT}></Text>
-                </Box>
-
-                <Box {...CARD_CONTAINER}>
-                  <Flex {...IMAGE_CONTAINER}>
-                    <Image
-                      objectFit="contain"
-                      src={assets["icon3"]}
-                      alt="we make it simple for user"
-                    />
-                  </Flex>
-                  <Heading {...TRIPLE_PICS_PROPS}>Social media posts</Heading>
-                  <Text {...TRIPLE_PICS_TEXT}></Text>
-                </Box>
-              </Flex>
-              {/* <Text
-                textAlign="center"
-                fontSize={["xl", "2xl", "2xl", "3xl", "4xl", "5xl"]}
-                fontWeight="600"
-                pt={[4, null, 12]}
-              >
-                We currently support Python, Javascript and Go!
-                <br />
-                Want us to support other programming languages?{" "}
-                <Button
-                  size="2xl"
-                  colorScheme="primary"
-                  variant="link"
-                  onClick={() => toggleModal("Integration")}
-                >
-                  Let us know
-                </Button>
-              </Text> */}
-            </GridItem>
-            <GridItem
-              px={["7%", "12px", "7%", null, "7%"]}
-              colSpan="12"
-              pb={[1, 2, null, 8]}
-              pt="5.125rem"
-              mb="66px"
-              bgGradient="linear-gradient(to bottom, #e9eaf4, #efeff7, #f4f4f9, #fafafc, #ffffff)"
-              borderRadius="md"
-            >
+                </Stack>
+                <Stack spacing={1} px={1} alignItems="center">
+                  <ChakraImage
+                    boxSize={["220px", "220px", "xs", null, "xs"]}
+                    objectFit="contain"
+                    src={assets["priceInformation"]}
+                    alt="mined transactions"
+                  />
+                  <Heading textAlign="center ">Centralized exchanges</Heading>
+                </Stack>
+                <Stack spacing={1} px={1} alignItems="center">
+                  <ChakraImage
+                    boxSize={["220px", "220px", "xs", null, "xs"]}
+                    objectFit="contain"
+                    src={assets["socialMediaPosts"]}
+                    alt="mined transactions"
+                  />
+                  <Heading textAlign="center ">Social media posts</Heading>
+                </Stack>
+              </SimpleGrid>
+              <Center>
+                <Heading pt="160px" pb="60px">
+                  Moonstream is ment for you if
+                </Heading>
+              </Center>
               <Flex
                 w="100%"
                 direction={["column", "row", "column", null, "column"]}
@@ -312,17 +342,29 @@ const Homepage = () => {
                   button1={{
                     label: "Crypto trader",
                     link: "/#cryptoTrader",
-                    onClick: null,
+                    onClick: () => {
+                      track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                        [`${MIXPANEL_PROPS.BUTTON_CLICKED}`]: `scroll to CryptoTrader`,
+                      });
+                    },
                   }}
                   button2={{
                     label: "Algorithmic Fund",
                     link: "/#algoFund",
-                    onClick: null,
+                    onClick: () => {
+                      track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                        [`${MIXPANEL_PROPS.BUTTON_CLICKED}`]: `scroll to AlgoFund`,
+                      });
+                    },
                   }}
                   button3={{
                     label: "Developer",
                     link: "/#smartDeveloper",
-                    onClick: null,
+                    onClick: () => {
+                      track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                        [`${MIXPANEL_PROPS.BUTTON_CLICKED}`]: `scroll to Developer`,
+                      });
+                    },
                   }}
                 />
               </Flex>
@@ -336,8 +378,15 @@ const Homepage = () => {
               minH={ui.isMobileView ? "100vh" : null}
             >
               <SplitWithImage
-                // cta={"Trader early access"}
-                cta={"I want early access!"}
+                cta={{
+                  label: "I want early access!",
+                  onClick: () => {
+                    track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                      [`${MIXPANEL_PROPS.BUTTON_CLICKED}`]: `Early access CTA: Crypto trader`,
+                    });
+                    toggleModal("hubspot-trader");
+                  },
+                }}
                 elementName={"element1"}
                 colorScheme="suggested"
                 badge={`For crypto traders`}
@@ -346,25 +395,25 @@ const Homepage = () => {
                 bullets={[
                   {
                     text: `Subscribe to the defi contracts you care about`,
-                    icon: IoLogoBitcoin,
+                    icon: FaFileContract,
                     color: "suggested.50",
                     bgColor: "suggested.900",
                   },
                   {
                     text: `Make sense of how others are calling these contracts using Moonstream dashboards.
                     `,
-                    icon: IoAnalyticsSharp,
+                    icon: RiDashboardFill,
                     color: "suggested.50",
                     bgColor: "suggested.900",
                   },
                   {
                     text: `Get data directly from the transaction pool through our global network of Ethereum nodes`,
-                    icon: IoSearchSharp,
+                    icon: GiMeshBall,
                     color: "suggested.50",
                     bgColor: "suggested.900",
                   },
                 ]}
-                imgURL={assets["icon2"]}
+                imgURL={assets["cryptoTraders"]}
               />
             </GridItem>
             <GridItem
@@ -376,37 +425,40 @@ const Homepage = () => {
               minH={ui.isMobileView ? "100vh" : null}
             >
               <SplitWithImage
-                // cta={"Algoritmic fund early access"}
-                cta={"I want early access!"}
+                cta={{
+                  label: "I want early access!",
+                  onClick: () => {
+                    track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                      [`${MIXPANEL_PROPS.BUTTON_CLICKED}`]: `Early access CTA: Algo fund`,
+                    });
+                    toggleModal("hubspot-fund");
+                  },
+                }}
                 elementName={"element2"}
                 mirror={true}
                 colorScheme="secondary"
                 badge={`For algorithmic funds`}
-                //   title={`Get API access to your stream`}
-                //   body={`Specify actions.
-                //   Something happens on blockchain and we automatically execute for them.
-                //  Algorithmic trading on the blockchain`}
                 bullets={[
                   {
                     text: `Get API access to your stream`,
-                    icon: IoLogoBitcoin,
+                    icon: AiFillApi,
                     color: "secondary.50",
                     bgColor: "secondary.900",
                   },
                   {
                     text: `Set conditions that trigger predefined actions`,
-                    icon: IoAnalyticsSharp,
+                    icon: GiLogicGateXor,
                     color: "secondary.50",
                     bgColor: "secondary.900",
                   },
                   {
                     text: `Execute transactions directly on Moonstream nodes`,
-                    icon: IoSearchSharp,
+                    icon: BiTransfer,
                     color: "secondary.50",
                     bgColor: "secondary.900",
                   },
                 ]}
-                imgURL={assets["icon3"]}
+                imgURL={assets["algorithmicFunds"]}
               />
             </GridItem>
             <GridItem
@@ -418,36 +470,39 @@ const Homepage = () => {
               minH={ui.isMobileView ? "100vh" : null}
             >
               <SplitWithImage
-                // cta={"Developer early access"}
-                cta={"I want early access!"}
+                cta={{
+                  label: "I want early access!",
+                  onClick: () => {
+                    track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                      [`${MIXPANEL_PROPS.BUTTON_CLICKED}`]: `Early access CTA: developer`,
+                    });
+                    toggleModal("hubspot-developer");
+                  },
+                }}
                 elementName={"element3"}
                 colorScheme="primary"
                 badge={`For smart contract developers`}
-                // title={`Learn how people use your smart contracts`}
-                // body={`
-                // Connect decentralized application with centralized application
-                // Creat Blockchain based web hooks and get full visibility of your smart contracts`}
                 bullets={[
                   {
                     text: `See how people use your smart contracts`,
-                    icon: IoLogoBitcoin,
+                    icon: IoTelescopeSharp,
                     color: "primary.50",
                     bgColor: "primary.900",
                   },
                   {
                     text: `Set up alerts on suspicious activity`,
-                    icon: IoAnalyticsSharp,
+                    icon: GiSuspicious,
                     color: "primary.50",
                     bgColor: "primary.900",
                   },
                   {
                     text: `Register webhooks to connect your off-chain infrastructure`,
-                    icon: IoSearchSharp,
+                    icon: GiHook,
                     color: "primary.50",
                     bgColor: "primary.900",
                   },
                 ]}
-                imgURL={assets["icon6"]}
+                imgURL={assets["smartDevelopers"]}
               />
             </GridItem>
             <GridItem
@@ -459,29 +514,26 @@ const Homepage = () => {
             >
               <Center>
                 <Button
+                  as={Link}
+                  isExternal
+                  href={"https://discord.gg/FetK5BxD"}
                   size="lg"
                   variant="solid"
                   colorScheme="suggested"
                   id="test"
+                  onClick={() => {
+                    track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                      [`${MIXPANEL_PROPS.BUTTON_CLICKED}`]: `Join our discord`,
+                    });
+                    toggleModal("hubspot");
+                  }}
                 >
-                  Join our waitlist
+                  Join our discord
                 </Button>
               </Center>
             </GridItem>
           </Grid>
         </Flex>
-        {/* <ConnectElements
-          selector=".MoonBadge"
-          overlay={100}
-          elements={[
-            { from: ".element1", to: ".element2" },
-            { from: ".element2", to: ".element3" },
-            // { from: ".element3", to: ".element4" },
-            // { from: ".element5", to: ".element4" },
-            // { from: ".element6", to: ".element4" },
-            // { from: ".element7", to: ".element4" },
-          ]}
-        /> */}
       </Box>
     </Fade>
   );

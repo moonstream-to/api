@@ -1,7 +1,7 @@
 import moment from "moment";
 const MOCK_API = process.env.NEXT_PUBLIC_SIMIOTICS_AUTH_URL;
 var MockAdapter = require("axios-mock-adapter");
-const makeid = (length) => {
+export const makeid = (length) => {
   var result = "";
   var characters =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -12,7 +12,7 @@ const makeid = (length) => {
   return result;
 };
 
-const makenum = (length) => {
+export const makenum = (length) => {
   var result = "";
   var characters = "0123456789";
   var charactersLength = characters.length;

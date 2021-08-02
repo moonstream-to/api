@@ -36,10 +36,12 @@ const useLogin = (loginType) => {
         getUser();
         if (analytics.isLoaded) {
           analytics.mixpanel.people.set_once({
-            [`${analytics.MIXPANEL_EVENTS.FIRST_LOGIN_DATE}`]: new Date().toISOString(),
+            [`${analytics.MIXPANEL_EVENTS.FIRST_LOGIN_DATE}`]:
+              new Date().toISOString(),
           });
           analytics.mixpanel.people.set({
-            [`${analytics.MIXPANEL_EVENTS.LAST_LOGIN_DATE}`]: new Date().toISOString(),
+            [`${analytics.MIXPANEL_EVENTS.LAST_LOGIN_DATE}`]:
+              new Date().toISOString(),
           });
           analytics.mixpanel.track(
             `${analytics.MIXPANEL_EVENTS.USER_LOGS_IN}`,
