@@ -3,7 +3,9 @@ import os
 from bugout.app import Bugout
 
 # Bugout
-bugout_client = Bugout()
+BUGOUT_BROOD_URL = os.environ.get("BUGOUT_BROOD_URL", "https://auth.bugout.dev")
+BUGOUT_SPIRE_URL = os.environ.get("BUGOUT_SPIRE_URL", "https://spire.bugout.dev")
+bugout_client = Bugout(brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIRE_URL)
 
 # Default value is "" instead of None so that mypy understands that MOONSTREAM_APPLICATION_ID is a string
 MOONSTREAM_APPLICATION_ID = os.environ.get("MOONSTREAM_APPLICATION_ID", "")
@@ -14,13 +16,9 @@ MOONSTREAM_DATA_JOURNAL_ID = os.environ.get("MOONSTREAM_DATA_JOURNAL_ID")
 if MOONSTREAM_DATA_JOURNAL_ID is None:
     raise ValueError("MOONSTREAM_DATA_JOURNAL_ID environment variable must be set")
 
-MOONSTREAM_ADMIN_ACCESS_TOKEN = os.environ.get(
-    "MOONSTREAM_ADMIN_ACCESS_TOKEN"
-)
+MOONSTREAM_ADMIN_ACCESS_TOKEN = os.environ.get("MOONSTREAM_ADMIN_ACCESS_TOKEN")
 if MOONSTREAM_ADMIN_ACCESS_TOKEN is None:
-    raise ValueError(
-        "MOONSTREAM_ADMIN_ACCESS_TOKEN environment variable must be set"
-    )
+    raise ValueError("MOONSTREAM_ADMIN_ACCESS_TOKEN environment variable must be set")
 
 # Origin
 RAW_ORIGINS = os.environ.get("MOONSTREAM_CORS_ALLOWED_ORIGINS")

@@ -177,6 +177,7 @@ def crawl_blocks_executor(
             for error in errors:
                 print(f"- {error}")
 
+
 def process_contract_deployments() -> List[Tuple[str, str]]:
     """
     Checks for new smart contracts that have been deployed to the blockchain but not registered in
