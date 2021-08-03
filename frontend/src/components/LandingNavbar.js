@@ -36,8 +36,8 @@ const LandingNavbar = () => {
             <Link>
               <Image
                 w="200px"
-                src="/icons/bugout-dev-white.svg"
-                alt="bugout.dev"
+                src="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/White+logo.svg"
+                alt="Moonstream logo"
               />
             </Link>
           </RouterLink>
