@@ -83,7 +83,7 @@ const TxInfo = (props) => {
                     ))}
                 </Tbody>
             </Table>
-            {transaction.abi && 
+            {transaction.tx.input && transaction.tx.input !== "0x" &&
                 <TxABI 
                 byteCode={transaction.tx.input} 
                 abi={transaction.abi}
