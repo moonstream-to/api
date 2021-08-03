@@ -119,16 +119,19 @@ def check_missing_blocks(blocks_numbers: List[int]) -> List[int]:
     Query block from postgres. If block does not presented in database,
     add to missing blocks numbers list.
     """
-    missing_blocks_numbers = []
-    for block_number in blocks_numbers:
-        with yield_db_session_ctx() as db_session:
-            block_exist = (
-                db_session.query(EthereumBlock.block_number)
-                .filter(EthereumBlock.block_number == block_number)
-                .one_or_none()
-            )
-            if block_exist is None:
-                missing_blocks_numbers.append(block_number)
+    bottom_block = min(blocks_numbers[-1], blocks_numbers[0])
+    top_block = max(blocks_numbers[-1], blocks_numbers[0])
+    with yield_db_session_ctx() as db_session:
+        blocks_exist_raw = (
+            db_session.query(EthereumBlock.block_number)
+            .filter(EthereumBlock.block_number >= bottom_block)
+            .filter(EthereumBlock.block_number <= top_block)
+            .all()
+        )
+    blocks_exist = [block[0] for block in blocks_exist_raw]
+    missing_blocks_numbers = [
+        block for block in blocks_numbers if block not in blocks_exist
+    ]
     return missing_blocks_numbers
 
 
