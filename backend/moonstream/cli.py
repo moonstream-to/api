@@ -50,6 +50,7 @@ def add_subscription_handler(args: argparse.Namespace) -> None:
                 )
         except Exception as e:
             print("Unexpected Exception on request to brood")
+            raise
 
         subscription_data = {
             "type": "subscription_type",
