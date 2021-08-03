@@ -56,7 +56,8 @@ def add_subscription_handler(args: argparse.Namespace) -> None:
             "id": str(new_subscription_id),
             "name": args.name,
             "description": args.description,
-            "subscription_plan_id": args.subscription_plan_id,
+            "stripe_product_id": args.stripe_product_id,
+            "stripe_price_id": args.stripe_price_id,
             "active": args.active,
         }
 
@@ -111,11 +112,18 @@ def main() -> None:
         help="Description for user",
     )
     parser_subscription_create.add_argument(
-        "-s",
-        "--subscription_plan_id",
+        "--stripe-product-id",
         required=False,
+        default=None,
         type=str,
-        help="Stripe subscription id",
+        help="Stripe product id",
+    )
+    parser_subscription_create.add_argument(
+        "--stripe-price-id",
+        required=False,
+        default=None,
+        type=str,
+        help="Stripe price id",
     )
     parser_subscription_create.add_argument(
         "--active",
