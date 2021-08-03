@@ -407,7 +407,6 @@ const EntriesNavigation = () => {
               id="StreamEntry"
               overflowY="scroll"
               direction="column"
-
               w="100%"
               onScroll={(e) => handleScroll(e)}
             >
