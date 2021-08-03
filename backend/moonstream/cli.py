@@ -3,7 +3,7 @@ Moonstream CLI
 """
 import argparse
 
-from bugout.data import BugoutResource, BugoutResources
+from bugout.data import BugoutResources
 from bugout.exceptions import BugoutResponseException
 
 from .settings import (
@@ -109,7 +109,7 @@ def main() -> None:
     )
     parser_subscription_create.add_argument(
         "-d",
-        "--descriptions",
+        "--description",
         required=True,
         type=str,
         help="Description for user",
