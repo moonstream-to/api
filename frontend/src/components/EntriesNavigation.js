@@ -369,13 +369,12 @@ const EntriesNavigation = () => {
                   onClick={() => setStreamState.toggle()}
                   icon={
                     isStreamOn ? (
-                      <IoStopCircleOutline size="full" />
+                      <IoStopCircleOutline size="32px" />
                     ) : (
-                      <IoPlayCircleOutline size="full" />
+                      <IoPlayCircleOutline size="32px" />
                     )
                   }
                   colorScheme={isStreamOn ? "unsafe" : "suggested"}
-                  variant="solid"
                 />
               </Flex>
               {filterState.map((filter, idx) => {
