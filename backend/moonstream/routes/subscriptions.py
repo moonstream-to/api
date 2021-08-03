@@ -47,11 +47,7 @@ app.add_middleware(
 
 whitelist_paths: Dict[str, str] = {}
 whitelist_paths.update(DOCS_PATHS)
-whitelist_paths.update(
-    {
-        "/subscriptions/types": "GET"
-    }
-)
+whitelist_paths.update({"/subscriptions/types": "GET"})
 app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
 
 
