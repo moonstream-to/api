@@ -49,49 +49,49 @@ const TxABI = (props) => {
   );
 };
 const TxInfo = (props) => {
-    const transaction = props.transaction;
-    const dont_display = (key) => {
-        return !["input"].includes(key)
-    }
-    return (
-        <Box boxShadow="xs" p="6" rounded="md">
-            <StatGroup>
-                <Stat>
-                    <StatLabel>Value</StatLabel>
-                    <StatNumber>{transaction.tx.value}</StatNumber>
-                    <StatHelpText>amount of ETH to transfer in WEI</StatHelpText>
-                </Stat>
-                <Stat>
-                    <StatLabel>Gas</StatLabel>
-                    <StatNumber>{transaction.tx.gas}</StatNumber>
-                    <StatHelpText>gas limit for transaction</StatHelpText>
-                </Stat>
-                <Stat>
-                    <StatLabel>Gas price</StatLabel>
-                    <StatNumber>{transaction.tx.gasPrice}</StatNumber>
-                    <StatHelpText>the fee the sender pays per unit of gas</StatHelpText>
-                </Stat>
-            </StatGroup>
-            
-            <Table variant="simple" >
-                <Tbody>
-                    {Object.keys(transaction.tx).filter(dont_display).map((key) => (
-                        (transaction.tx[key] != undefined && <Tr key = {key}>
-                            <Td>{key}</Td>
-                            <Td>{transaction.tx[key]}</Td>
-                        </Tr>)
-                    ))}
-                </Tbody>
-            </Table>
-            {transaction.tx.input && transaction.tx.input !== "0x" &&
-                <TxABI 
-                byteCode={transaction.tx.input} 
-                abi={transaction.abi}
-                />
-            }
-        </Box>
-        
-            
-    )
-}
+  const transaction = props.transaction;
+  const dont_display = (key) => {
+    return !["input"].includes(key);
+  };
+  return (
+    <Box boxShadow="xs" p="6" rounded="md">
+      <StatGroup>
+        <Stat>
+          <StatLabel>Value</StatLabel>
+          <StatNumber>{transaction.tx.value}</StatNumber>
+          <StatHelpText>amount of ETH to transfer in WEI</StatHelpText>
+        </Stat>
+        <Stat>
+          <StatLabel>Gas</StatLabel>
+          <StatNumber>{transaction.tx.gas}</StatNumber>
+          <StatHelpText>gas limit for transaction</StatHelpText>
+        </Stat>
+        <Stat>
+          <StatLabel>Gas price</StatLabel>
+          <StatNumber>{transaction.tx.gasPrice}</StatNumber>
+          <StatHelpText>the fee the sender pays per unit of gas</StatHelpText>
+        </Stat>
+      </StatGroup>
+
+      <Table variant="simple">
+        <Tbody>
+          {Object.keys(transaction.tx)
+            .filter(dont_display)
+            .map(
+              (key) =>
+                transaction.tx[key] != undefined && (
+                  <Tr key={key}>
+                    <Td>{key}</Td>
+                    <Td>{transaction.tx[key]}</Td>
+                  </Tr>
+                )
+            )}
+        </Tbody>
+      </Table>
+      {transaction.tx.input && transaction.tx.input !== "0x" && (
+        <TxABI byteCode={transaction.tx.input} abi={transaction.abi} />
+      )}
+    </Box>
+  );
+};
 export default TxInfo;
