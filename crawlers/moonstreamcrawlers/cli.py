@@ -134,8 +134,10 @@ def ethcrawler_blocks_missing_handler(args: argparse.Namespace) -> None:
         missing_blocks_numbers = check_missing_blocks(
             blocks_numbers=blocks_numbers_list,
         )
+        if len(missing_blocks_numbers) > 0:
+            print(f"Found {len(missing_blocks_numbers)} missing blocks")
         missing_blocks_numbers_total.extend(missing_blocks_numbers)
-    print(f"Found {len(missing_blocks_numbers_total)} missing blocks")
+    print(f"Found {len(missing_blocks_numbers_total)} missing blocks total")
 
     time.sleep(5)
 
