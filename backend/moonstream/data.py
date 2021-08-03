@@ -94,8 +94,8 @@ class EthereumTransaction(BaseModel):
     gas: int
     gasPrice: int
     value: int
-    from_address: str = Field(alias="from_address")
-    to_address: Optional[str] = Field(default=None, alias="to_adress")
+    from_address: str
+    to_address: Optional[str]
     hash: Optional[str] = None
     block_hash: Optional[str] = Field(default=None, alias="blockHash")
     block_number: Optional[int] = Field(default=None, alias="blockNumber")
