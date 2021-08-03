@@ -42,6 +42,7 @@ const StreamEntry = ({ entry, filterCallback, filterConstants }) => {
   };
 
   const [showFullView] = useMediaQuery(["(min-width: 420px)"]);
+  console.log(entry);
 
   return (
     <Flex
@@ -321,9 +322,9 @@ const StreamEntry = ({ entry, filterCallback, filterConstants }) => {
                   flexGrow={1}
                 >
                   <Text mx={0} py="2px" fontSize="sm" w="calc(100%)" h="100%">
-                    {moment(entry.timestamp)
-                      // .format("DD MMM, YYYY, h:mm:ss")
-                      .fromNow()}{" "}
+                    {moment(entry.timestamp * 1000).format(
+                      "DD MMM, YYYY, HH:mm:ss"
+                    )}{" "}
                   </Text>
                 </Stack>
               )}

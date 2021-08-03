@@ -4,6 +4,8 @@ Pydantic schemas for the Moonstream HTTP API
 from enum import Enum
 from typing import List, Optional
 
+from sqlalchemy.sql.operators import notendswith_op
+
 
 from pydantic import BaseModel, Field
 
@@ -109,15 +111,19 @@ class EthereumTransaction(BaseModel):
 
 
 class EthereumTransactionItem(BaseModel):
-    from_label: Optional[str] = "from_label"
-    to_label: Optional[str] = "to_label"
+    color: Optional[str]
+    from_label: Optional[str] = None
+    to_label: Optional[str] = None
     gas: int
     gasPrice: int
     value: int
+    nonce: Optional[str]
     from_address: Optional[str]  # = Field(alias="from")
     to_address: Optional[str]  # = Field(default=None, alias="to")
     hash: Optional[str] = None
     input: Optional[str] = None
+    timestamp: Optional[int] = None
+    subscription_type_id: Optional[str] = None
 
 
 class EthereumTransactionResponse(BaseModel):
