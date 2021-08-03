@@ -87,8 +87,19 @@ const LandingNavbar = () => {
                   Log in
                 </Button>
               )}
-              {ui.isLoggedIn && <ChakraAccountIconButton />}
+              {ui.isLoggedIn && (
+                <ChakraAccountIconButton
+                  variant="link"
+                  colorScheme="secondary"
+                />
+              )}
             </ButtonGroup>
+          </>
+        )}
+        {ui.isLoggedIn && ui.isMobileView && (
+          <>
+            <Spacer />
+            <ChakraAccountIconButton variant="link" colorScheme="secondary" />
           </>
         )}
       </>

@@ -123,7 +123,6 @@ const Homepage = () => {
   }, [isInit, router]);
 
   useLayoutEffect(() => {
-    console.log("rerender check");
     const imageLoader720 = new Image();
     imageLoader720.src = `${AWS_PATH}/background720.png`;
     imageLoader720.onload = () => {

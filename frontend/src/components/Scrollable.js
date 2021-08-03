@@ -19,7 +19,6 @@ const Scrollable = (props) => {
   const handleScroll = (e) => {
     const currentScroll = Math.ceil(getScrollPrecent(e) / 10);
     if (currentScroll > scrollDepth) {
-      // withTracking(
       setScrollDepth(currentScroll);
       isLoaded &&
         mixpanel.people.increment({

@@ -38,7 +38,7 @@ const SignIn = ({ toggleModal }) => {
         Login now
       </Heading>
       <Text color="gray.1200" fontSize="md">
-        To your Bugout account
+        To your Moonstream account
       </Text>
       <form onSubmit={handleSubmit(login)}>
         <Stack width="100%" pt={4} spacing={3}>
@@ -49,7 +49,7 @@ const SignIn = ({ toggleModal }) => {
                 autoComplete="username"
                 variant="filled"
                 colorScheme="primary"
-                placeholder="Your Bugout username"
+                placeholder="Your Moonstream username"
                 name="username"
                 {...register("username", { required: true })}
                 ref={register({ required: "Username is required!" })}
@@ -64,7 +64,7 @@ const SignIn = ({ toggleModal }) => {
           </FormControl>
           <FormControl isInvalid={errors.password}>
             <PasswordInput
-              placeholder="Your Bugout password"
+              placeholder="Your Moonstream password"
               name="password"
               ref={register({ required: "Password is required!" })}
             />

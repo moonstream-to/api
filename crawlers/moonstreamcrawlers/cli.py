@@ -2,7 +2,6 @@
 Moonstream crawlers CLI.
 """
 import argparse
-from distutils.util import strtobool
 from enum import Enum
 import json
 import sys
@@ -84,7 +83,7 @@ def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
     starting_block: int = args.start
     while True:
         bottom_block_number, top_block_number = get_latest_blocks(
-            bool(strtobool(args.transactions))
+            with_transactions=not args.notransactions
         )
         bottom_block_number = max(bottom_block_number + 1, starting_block)
         if bottom_block_number >= top_block_number:
@@ -102,7 +101,7 @@ def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
             # TODO(kompotkot): Set num_processes argument based on number of blocks to synchronize.
             crawl_blocks_executor(
                 block_numbers_list=blocks_numbers_list,
-                with_transactions=bool(strtobool(args.transactions)),
+                with_transactions=not args.notransactions,
                 num_processes=args.jobs,
             )
         print(f"Synchronized blocks from {bottom_block_number} to {top_block_number}")
@@ -118,7 +117,7 @@ def ethcrawler_blocks_add_handler(args: argparse.Namespace) -> None:
         print(f"Adding blocks {blocks_numbers_list[-1]}-{blocks_numbers_list[0]}")
         crawl_blocks_executor(
             block_numbers_list=blocks_numbers_list,
-            with_transactions=bool(strtobool(args.transactions)),
+            with_transactions=not args.notransactions,
         )
 
     print(f"Required {time.time() - startTime} with {MOONSTREAM_CRAWL_WORKERS} workers")
@@ -134,24 +133,26 @@ def ethcrawler_blocks_missing_handler(args: argparse.Namespace) -> None:
         missing_blocks_numbers = check_missing_blocks(
             blocks_numbers=blocks_numbers_list,
         )
+        if len(missing_blocks_numbers) > 0:
+            print(f"Found {len(missing_blocks_numbers)} missing blocks")
         missing_blocks_numbers_total.extend(missing_blocks_numbers)
-    print(f"Found {len(missing_blocks_numbers_total)} missing blocks")
+    print(f"Found {len(missing_blocks_numbers_total)} missing blocks total")
 
     time.sleep(5)
 
     if (len(missing_blocks_numbers_total)) > 0:
-        if bool(strtobool(args.lazy)):
+        if args.lazy:
             print("Executed lazy block crawler")
             crawl_blocks(
                 missing_blocks_numbers_total,
-                with_transactions=bool(strtobool(args.transactions)),
-                verbose=True,
+                with_transactions=not args.notransactions,
+                verbose=args.verbose,
             )
         else:
             crawl_blocks_executor(
                 missing_blocks_numbers_total,
-                with_transactions=bool(strtobool(args.transactions)),
-                verbose=True,
+                with_transactions=not args.notransactions,
+                verbose=args.verbose,
             )
     print(
         f"Required {time.time() - startTime} with {MOONSTREAM_CRAWL_WORKERS} workers "
@@ -205,11 +206,10 @@ def main() -> None:
         "synchronize", description="Synchronize to latest ethereum block commands"
     )
     parser_ethcrawler_blocks_sync.add_argument(
-        "-t",
-        "--transactions",
-        choices=["True", "False"],
-        default="True",
-        help="Add or not block transactions",
+        "-n",
+        "--notransactions",
+        action="store_true",
+        help="Skip crawling block transactions",
     )
     parser_ethcrawler_blocks_sync.add_argument(
         "-s",
@@ -246,11 +246,10 @@ def main() -> None:
         help="List of blocks range in format {bottom_block}-{top_block}",
     )
     parser_ethcrawler_blocks_add.add_argument(
-        "-t",
-        "--transactions",
-        choices=["True", "False"],
-        default="True",
-        help="Add or not block transactions",
+        "-n",
+        "--notransactions",
+        action="store_true",
+        help="Skip crawling block transactions",
     )
     parser_ethcrawler_blocks_add.set_defaults(func=ethcrawler_blocks_add_handler)
 
@@ -264,18 +263,22 @@ def main() -> None:
         help="List of blocks range in format {bottom_block}-{top_block}",
     )
     parser_ethcrawler_blocks_missing.add_argument(
-        "-t",
-        "--transactions",
-        choices=["True", "False"],
-        default="True",
-        help="Add or not block transactions",
+        "-n",
+        "--notransactions",
+        action="store_true",
+        help="Skip crawling block transactions",
     )
     parser_ethcrawler_blocks_missing.add_argument(
         "-l",
         "--lazy",
-        choices=["True", "False"],
-        default="False",
+        action="store_true",
         help="Lazy block adding one by one",
+    )
+    parser_ethcrawler_blocks_missing.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Print additional information",
     )
     parser_ethcrawler_blocks_missing.set_defaults(
         func=ethcrawler_blocks_missing_handler

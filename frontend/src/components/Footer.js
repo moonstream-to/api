@@ -8,11 +8,7 @@ const ICONS = [
     link: "https://discord.gg/FetK5BxD",
   },
 
-  { social: "twit", link: "https://twitter.com/Bugout_dev" },
-  {
-    social: "slack",
-    link: "https://join.slack.com/t/bugout-dev/shared_invite/zt-fhepyt87-5XcJLy0iu702SO_hMFKNhQ",
-  },
+  { social: "twit", link: "https://twitter.com/moonstreamto" },
 ];
 
 const SITEMAP_FLEX_PROPS = {
@@ -98,7 +94,7 @@ const Footer = () => (
         fontSize="xl"
         fontWeight="500"
       >
-        Stay in touch
+        Stay in touch{` `}
         <span role="img" aria-label="heart">
           💙
         </span>
