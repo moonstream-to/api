@@ -48,6 +48,8 @@ def add_subscription_handler(args: argparse.Namespace) -> None:
                 raise BroodResourcesInteractionException(
                     f"status_code={e.status_code}, detail={e.detail}"
                 )
+            # If Brood returns 404, then we want to continue execution of the outer try block
+            # with new_subscription_id as 0. That's why we don't have an "else" condition here.
         except Exception as e:
             print("Unexpected Exception on request to brood")
             raise
