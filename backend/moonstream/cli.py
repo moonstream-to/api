@@ -2,12 +2,8 @@
 Moonstream CLI
 """
 import argparse
-from distutils.util import strtobool
-import json
-from typing import List
-import uuid
 
-from bugout.data import BugoutResource, BugoutResources
+from bugout.data import BugoutResources
 from bugout.exceptions import BugoutResponseException
 
 from .settings import (
@@ -33,7 +29,6 @@ def add_subscription_handler(args: argparse.Namespace) -> None:
     params = {"type": "subscription_type"}
 
     try:
-
         # resolve index
         try:
             resources: BugoutResources = bc.list_resources(
@@ -53,28 +48,27 @@ def add_subscription_handler(args: argparse.Namespace) -> None:
                 raise BroodResourcesInteractionException(
                     f"status_code={e.status_code}, detail={e.detail}"
                 )
+            # If Brood returns 404, then we want to continue execution of the outer try block
+            # with new_subscription_id as 0. That's why we don't have an "else" condition here.
         except Exception as e:
             print("Unexpected Exception on request to brood")
+            raise
 
         subscription_data = {
+            "type": "subscription_type",
             "id": str(new_subscription_id),
             "name": args.name,
             "description": args.description,
-            "subscription_plan_id": args.subscription_plan_id,
+            "stripe_product_id": args.stripe_product_id,
+            "stripe_price_id": args.stripe_price_id,
             "active": args.active,
         }
 
-        # Add subscriptions
-
-        resource_data = {"type": "subscription_type"}
-        resource_data.update(subscription_data)
-
         try:
-
-            resource: BugoutResource = bc.create_resource(
+            bc.create_resource(
                 token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
                 application_id=MOONSTREAM_APPLICATION_ID,
-                resource_data=resource_data,
+                resource_data=subscription_data,
             )
         except BugoutResponseException as e:
             print(f"status_code={e.status_code}, detail={e.detail}")
@@ -95,7 +89,7 @@ def main() -> None:
     subcommands = parser.add_subparsers(description="Moonstream commands")
 
     parser_subscription = subcommands.add_parser(
-        "subscription", description="Moonstream subscription"
+        "subscription-type", description="Manage Moonstream subscription types"
     )
     parser_subscription.set_defaults(func=lambda _: parser_subscription.print_help())
     subcommands_subscription = parser_subscription.add_subparsers(
@@ -115,17 +109,24 @@ def main() -> None:
     )
     parser_subscription_create.add_argument(
         "-d",
-        "--descriptions",
+        "--description",
         required=True,
         type=str,
         help="Description for user",
     )
     parser_subscription_create.add_argument(
-        "-s",
-        "--subscription_plan_id",
+        "--stripe-product-id",
         required=False,
+        default=None,
         type=str,
-        help="Stripe sibscription id",
+        help="Stripe product id",
+    )
+    parser_subscription_create.add_argument(
+        "--stripe-price-id",
+        required=False,
+        default=None,
+        type=str,
+        help="Stripe price id",
     )
     parser_subscription_create.add_argument(
         "--active",
@@ -133,3 +134,10 @@ def main() -> None:
         help="Set this flag to create a verified user",
     )
     parser_subscription_create.set_defaults(func=add_subscription_handler)
+
+    args = parser.parse_args()
+    args.func(args)
+
+
+if __name__ == "__main__":
+    main()
