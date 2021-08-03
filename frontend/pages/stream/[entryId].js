@@ -7,6 +7,7 @@ import { useRouter } from "../../src/core/hooks";
 import Tags from "../../src/components/Tags";
 import Scrollable from "../../src/components/Scrollable";
 import TxInfo from "../../src/components/TxInfo";
+import { getLayout } from "../../src/layouts/EntriesLayout";
 
 const Entry = () => {
   const router = useRouter();
@@ -168,5 +169,5 @@ const Entry = () => {
   );
 };
 
-//Entry.getLayout = getLayout;
+Entry.getLayout = getLayout;
 export default Entry;
