@@ -11,7 +11,7 @@ fastapi==0.66.0
 h11==0.12.0
 idna==3.2
 jmespath==0.10.0
--e git+https://git@github.com/bugout-dev/moonstream.git@3326379b174a626cf876c7b60dd7db8afe2daba9#egg=moonstreamdb&subdirectory=db
+-e git+https://git@github.com/bugout-dev/moonstream.git@ec3278e192119d1e8a273cfaab6cb53890d2e8e9#egg=moonstreamdb&subdirectory=db
 mypy==0.910
 mypy-extensions==0.4.3
 pathspec==0.9.0
