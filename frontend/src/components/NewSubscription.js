@@ -93,7 +93,6 @@ const NewSubscription = ({ isFreeOption, onClose }) => {
                     (isFreeOption &&
                       type.subscription_type !== "ethereum_blockchain"),
                 });
-                if (!type.subscription_plan_id) return "";
                 return (
                   <RadioCard key={`subscription_type_${type.id}`} {...radio}>
                     {type.name}
