@@ -1,10 +1,21 @@
-import React, { useContext } from "react";
-import { Flex, Text, IconButton, Tag } from "@chakra-ui/react";
+import React, { useContext, useEffect, useState } from "react";
+import {
+  Flex,
+  Text,
+  IconButton,
+  Stack,
+  Tooltip,
+  useClipboard,
+  Heading,
+  Image,
+  useMediaQuery,
+} from "@chakra-ui/react";
 import moment from "moment";
-import { ViewIcon } from "@chakra-ui/icons";
+import { ArrowRightIcon } from "@chakra-ui/icons";
 import { useRouter } from "../core/hooks";
 import UIContext from "../core/providers/UIProvider/context";
-import { useQuery } from "react-query";
+import { useToast } from "../core/hooks";
+
 
 const StreamEntry = ({ entry, filterCallback, filterConstants }) => {
   const ui = useContext(UIContext);
