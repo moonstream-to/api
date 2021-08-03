@@ -21,9 +21,7 @@ import {
 } from "@chakra-ui/react";
 import {
   HamburgerIcon,
-  PlusSquareIcon,
   QuestionOutlineIcon,
-  BellIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
 } from "@chakra-ui/icons";
@@ -77,17 +75,15 @@ const AppNavbar = () => {
             </Text>
             <Text>
               <Link
-                href="mailto:support@bugout.dev"
+                href="mailto:support@moonstream.to"
                 fontWeight="600"
                 textColor="primary.500"
               >
-                support@bugout.dev
+                support@moonstream.to
               </Link>
             </Text>
             <Text fontWeight="700" textColor="primary.500">
-              <Link href="https://join.slack.com/t/bugout-dev/shared_invite/zt-fhepyt87-5XcJLy0iu702SO_hMFKNhQ">
-                Slack
-              </Link>
+              <Link href="https://discord.gg/K56VNUQGvA">Discord</Link>
             </Text>
           </PopoverBody>
         </PopoverContent>
@@ -232,7 +228,7 @@ const AppNavbar = () => {
                   // to="/"
                   h="2.5rem"
                   minW="2.5rem"
-                  src="/icons/ant-white.svg"
+                  src="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/White+logo.svg"
                   alt="Go to app root"
                 />
               </Link>

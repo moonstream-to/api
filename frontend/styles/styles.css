@@ -134,6 +134,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   overflow-y: overlay !important;
+  scroll-behavior: smooth;
 }
 
 /*  ----- react-mde specific ------- */
@@ -183,4 +184,19 @@
 
 code {
   white-space: pre-line !important;
+}
+
+
+.fade-in-section {
+  opacity: 0;
+  transform: translateY(5vh);
+  visibility: hidden;
+  transition: opacity 0.3s ease-out, transform 0.6s ease-out;
+  will-change: opacity, visibility;
+}
+.fade-in-section.is-visible {
+
+  opacity: 1;
+  transform: none;
+  visibility: visible;
 }

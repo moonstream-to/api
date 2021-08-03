@@ -101,7 +101,6 @@ const Entry = () => {
         mt={1}
         isLoaded={isFetchedAfterMount || entry}
       >
-        
         <Scrollable>
         {!isLoading && (<TxInfo transaction = {entry}></TxInfo> )}
         </Scrollable>

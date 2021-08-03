@@ -1,49 +1,53 @@
 import React from "react";
-import {Code, Stat, StatLabel, StatGroup, StatHelpText, StatNumber, Box, VStack} from "@chakra-ui/react";
 import {
-    Table,
-    Thead,
-    Tbody,
-    Tfoot,
-    Tr,
-    Th,
-    Td,
-    TableCaption,
-  } from "@chakra-ui/react"
+  Code,
+  Stat,
+  StatLabel,
+  StatGroup,
+  StatHelpText,
+  StatNumber,
+  Box,
+  VStack,
+} from "@chakra-ui/react";
+import { Table, Thead, Tbody, Tr, Th, Td } from "@chakra-ui/react";
 
 const TxABI = (props) => {
-    const byteCode = props.byteCode;
-    const abi = props.abi;
-    console.log(abi.functions)
-    return (
-        <VStack spacing={3}>
-            <br/>
-            <h2>Transaction smart contract bytecode:</h2>
-            <Code w="95%"  colorScheme="facebook">
-                {byteCode}
-            </Code>
-            <h2>Smart contract abi:</h2>
-            <Table>
-                <Thead>
-                    <Tr>
-                        <Th>Signature hex</Th>
-                        <Th>Decompiled signature</Th>
-                        <Th>Signature type</Th>
-                    </Tr>
-                </Thead>
-                <Tbody>
-                    {abi.functions.concat(abi.events).map(el => (
-                        <Tr key = {el.hex_signature}>
-                            <Td>{el.hex_signature}</Td>
-                            <Td>{el.text_signature_candidates.length>0 ? el.text_signature_candidates.join(", ") : "Unknown"}</Td>
-                            <Td>{el.type}</Td>
-                        </Tr>
-                    ))}
-                </Tbody>
-            </Table>
-        </VStack>
-    )
-}
+  const byteCode = props.byteCode;
+  const abi = props.abi;
+  console.log(abi.functions);
+  return (
+    <VStack spacing={3}>
+      <br />
+      <h2>Transaction smart contract bytecode:</h2>
+      <Code w="95%" colorScheme="facebook">
+        {byteCode}
+      </Code>
+      <h2>Smart contract abi:</h2>
+      <Table>
+        <Thead>
+          <Tr>
+            <Th>Signature hex</Th>
+            <Th>Decompiled signature</Th>
+            <Th>Signature type</Th>
+          </Tr>
+        </Thead>
+        <Tbody>
+          {abi.functions.concat(abi.events).map((el) => (
+            <Tr key={el.hex_signature}>
+              <Td>{el.hex_signature}</Td>
+              <Td>
+                {el.text_signature_candidates.length > 0
+                  ? el.text_signature_candidates.join(", ")
+                  : "Unknown"}
+              </Td>
+              <Td>{el.type}</Td>
+            </Tr>
+          ))}
+        </Tbody>
+      </Table>
+    </VStack>
+  );
+};
 const TxInfo = (props) => {
     const transaction = props.transaction;
     const dont_display = (key) => {

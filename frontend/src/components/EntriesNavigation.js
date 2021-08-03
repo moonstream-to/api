@@ -1,4 +1,10 @@
-import React, { useRef, useEffect, useContext, useState } from "react";
+import React, {
+  useRef,
+  useEffect,
+  useContext,
+  useState,
+  useCallback,
+} from "react";
 import {
   Flex,
   Spinner,
@@ -57,7 +63,7 @@ const EntriesNavigation = () => {
   const ui = useContext(UIContext);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { subscriptionsCache } = useSubscriptions();
-  const [newFilterState, _setNewFilterState] = useState([
+  const [newFilterState, setNewFilterState] = useState([
     {
       type: FILTER_TYPES.ADDRESS,
       direction: DIRECTIONS.SOURCE,
@@ -67,15 +73,6 @@ const EntriesNavigation = () => {
   ]);
   const [filterState, setFilterState] = useState([]);
 
-  const setNewFilterState = (props) => {
-    console.log(subscriptionsCache.data.subscriptions);
-    console.log(
-      "setNewFilterState",
-      props,
-      subscriptionsCache.data.subscriptions[0].address
-    );
-    _setNewFilterState(props);
-  };
   const loadMoreButtonRef = useRef(null);
 
   const { fetchMore, isFetchingMore, canFetchMore, EntriesPages, isLoading } =
@@ -98,11 +95,14 @@ const EntriesNavigation = () => {
     }
   };
 
-  const setFilterProps = (filterIdx, props) => {
-    const newFilterProps = [...newFilterState];
-    newFilterProps[filterIdx] = { ...newFilterProps[filterIdx], ...props };
-    setNewFilterState(newFilterProps);
-  };
+  const setFilterProps = useCallback(
+    (filterIdx, props) => {
+      const newFilterProps = [...newFilterState];
+      newFilterProps[filterIdx] = { ...newFilterProps[filterIdx], ...props };
+      setNewFilterState(newFilterProps);
+    },
+    [newFilterState, setNewFilterState]
+  );
 
   useEffect(() => {
     if (
@@ -113,7 +113,7 @@ const EntriesNavigation = () => {
         value: subscriptionsCache.data.subscriptions[0].address,
       });
     }
-  }, [subscriptionsCache.isLoading]);
+  }, [subscriptionsCache, newFilterState, setFilterProps]);
 
   const entriesPagesData = EntriesPages
     ? EntriesPages.pages.map((page) => {
@@ -140,7 +140,6 @@ const EntriesNavigation = () => {
   const dropFilterArrayItem = (idx) => {
     console.log("dropFilterArrayItem", idx, filterState);
     const oldArray = [...filterState];
-    //newArray[idx].type = FILTER_TYPES.DISABLED;
     const newArray = oldArray.filter(function (ele) {
       return ele != oldArray[idx];
     });
@@ -173,15 +172,23 @@ const EntriesNavigation = () => {
   };
 
   const handleConditionChange = (idx) => (e) => {
-    console.log("handleConditionChange", idx, e.target.value);
     setFilterProps(idx, { condition: parseInt(e.target.value) });
   };
 
   const handleFilterStateCallback = (props) => {
     console.log("handleFilterStateCallback", props);
-    const newFilterState = [...filterState];
-    newFilterState.push({ ...props });
-    setFilterState(newFilterState);
+    const currentFilterState = [...filterState];
+    currentFilterState.push({ ...props });
+
+    ui.setSearchTerm(
+      currentFilterState
+        .map((filter) => {
+          return filter.direction + ":" + filter.value;
+        })
+        .join("+")
+    );
+
+    setFilterState(currentFilterState);
   };
   if (subscriptionsCache.isLoading) return "";
 
@@ -268,33 +275,15 @@ const EntriesNavigation = () => {
                               </Select>
                             )}
                             {filter.direction === DIRECTIONS.DESTINATION && (
-                              <Select
-                                variant="solid"
-                                colorScheme="primary"
-                                name="address"
-                                onChange={handleAddressChange(idx)}
-                              >
-                                {!subscriptionsCache.isLoading &&
-                                  subscriptionsCache.data.subscriptions.map(
-                                    (subscription, idx) => {
-                                      return (
-                                        <option
-                                          value={subscription.address}
-                                          key={`subscription-filter-item-${idx}`}
-                                        >
-                                          {`${
-                                            subscription.label
-                                          } - ${subscription.address.slice(
-                                            0,
-                                            5
-                                          )}...${subscription.address.slice(
-                                            -3
-                                          )}`}
-                                        </option>
-                                      );
-                                    }
-                                  )}
-                              </Select>
+                              <Input
+                                type="text"
+                                onChange={(e) =>
+                                  setFilterProps(idx, {
+                                    value: e.target.value,
+                                  })
+                                }
+                                placeholder="Type in address"
+                              />
                             )}
                           </>
                         )}
@@ -411,16 +400,14 @@ const EntriesNavigation = () => {
             className="ScrollableWrapper"
             w="100%"
             overflowY="hidden"
-            // maxH="100%"
             h="calc(100% - 3rem)"
           >
             <Flex
               className="Scrollable"
               id="StreamEntry"
-              // flexGrow={1}
               overflowY="scroll"
               direction="column"
-              height="100%"
+
               w="100%"
               onScroll={(e) => handleScroll(e)}
             >

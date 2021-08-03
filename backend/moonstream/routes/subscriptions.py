@@ -12,10 +12,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from .. import data
 from ..middleware import BroodAuthMiddleware
 from ..settings import (
-    MOONSTREAM_APPLICATION_ID,
     DOCS_TARGET_PATH,
-    ORIGINS,
     DOCS_PATHS,
+    MOONSTREAM_APPLICATION_ID,
+    MOONSTREAM_ADMIN_ACCESS_TOKEN,
+    ORIGINS,
     bugout_client as bc,
 )
 from ..version import MOONSTREAM_VERSION
@@ -46,6 +47,7 @@ app.add_middleware(
 
 whitelist_paths: Dict[str, str] = {}
 whitelist_paths.update(DOCS_PATHS)
+whitelist_paths.update({"/subscriptions/types": "GET"})
 app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
 
 
@@ -74,7 +76,7 @@ async def add_subscription_handler(
     # request availble subscriptions
     try:
         subscription_resources: BugoutResources = bc.list_resources(
-            token=token, params=params
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN, params=params
         )
     except BugoutResponseException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
@@ -188,10 +190,11 @@ async def get_available_subscriptions_type(
     """
     Get available's subscriptions types.
     """
-    token = request.state.token
     params = {"type": "subscription_type"}
     try:
-        resources: BugoutResources = bc.list_resources(token=token, params=params)
+        resources: BugoutResources = bc.list_resources(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN, params=params
+        )
     except BugoutResponseException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:

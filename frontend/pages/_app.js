@@ -10,7 +10,9 @@ import HeadLinks from "../src/components/HeadLinks";
 const AppContext = dynamic(() => import("../src/AppContext"), {
   ssr: false,
 });
-import DefaultLayout from "../src/layouts";
+const DefaultLayout = dynamic(() => import("../src/layouts"), {
+  ssr: false,
+});
 
 export default class CachingApp extends App {
   constructor(props) {

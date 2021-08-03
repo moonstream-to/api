@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
 import http from "axios";
-import { AUTH_URL } from "./constants";
 import UserContext from "./context";
+import { AUTH_URL } from "../../services/auth.service";
 
 const UserProvider = ({ children }) => {
   const [user, setUser] = useState();
   const [isInit, setInit] = useState(false);
 
   const getUser = useCallback(() => {
-    const token = localStorage.getItem("BUGOUT_ACCESS_TOKEN");
+    const token = localStorage.getItem("MOONSTREAM_ACCESS_TOKEN");
     if (!token) {
       setInit(true);
       return setUser(null);
@@ -16,7 +16,7 @@ const UserProvider = ({ children }) => {
 
     const headers = { Authorization: `Bearer ${token}` };
     http
-      .get(`${AUTH_URL}/user`, { headers })
+      .get(`${AUTH_URL}/`, { headers })
       .then((response) => {
         setUser(response.data);
       })

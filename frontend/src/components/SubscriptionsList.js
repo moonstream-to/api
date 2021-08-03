@@ -18,7 +18,7 @@ import CopyButton from "./CopyButton";
 import { useSubscriptions } from "../core/hooks";
 import ConfirmationRequest from "./ConfirmationRequest";
 
-const List = (data) => {
+const SubscriptionsList = () => {
   const { subscriptionsCache, changeNote, deleteSubscription } =
     useSubscriptions();
 
@@ -127,4 +127,4 @@ const List = (data) => {
     return "";
   }
 };
-export default List;
+export default SubscriptionsList;

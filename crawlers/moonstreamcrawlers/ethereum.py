@@ -1,8 +1,8 @@
 from concurrent.futures import Future, ProcessPoolExecutor, wait
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 from sqlalchemy import desc
-from web3 import Web3
+from web3 import Web3, IPCProvider, HTTPProvider
 from web3.types import BlockData
 
 from .settings import MOONSTREAM_IPC_PATH, MOONSTREAM_CRAWL_WORKERS
@@ -14,9 +14,14 @@ from moonstreamdb.models import (
 )
 
 
-# TODO(kompotkot): Write logic to chose between http and ipc
-def connect(ipc_path: str = MOONSTREAM_IPC_PATH):
-    web3_client = Web3(Web3.IPCProvider(ipc_path))
+def connect(web3_uri: Optional[str] = MOONSTREAM_IPC_PATH):
+    web3_provider: Union[IPCProvider, HTTPProvider] = Web3.IPCProvider()
+    if web3_uri is not None:
+        if web3_uri.startswith("http://") or web3_uri.startswith("https://"):
+            web3_provider = Web3.HTTPProvider(web3_uri)
+        else:
+            web3_provider = Web3.IPCProvider(web3_uri)
+    web3_client = Web3(web3_provider)
     return web3_client
 
 
@@ -66,16 +71,21 @@ def add_block_transactions(db_session, block: BlockData) -> None:
         db_session.add(tx_obj)
 
 
-def get_latest_blocks(with_transactions: bool = False) -> None:
+def get_latest_blocks(with_transactions: bool = False) -> Tuple[Optional[int], int]:
     web3_client = connect()
     block_latest: BlockData = web3_client.eth.get_block(
         "latest", full_transactions=with_transactions
     )
     with yield_db_session_ctx() as db_session:
-        block_number_latest_exist = (
+        block_number_latest_exist_row = (
             db_session.query(EthereumBlock.block_number)
             .order_by(EthereumBlock.block_number.desc())
             .first()
+        )
+        block_number_latest_exist = (
+            None
+            if block_number_latest_exist_row is None
+            else block_number_latest_exist_row[0]
         )
 
     return block_number_latest_exist, block_latest.number
@@ -126,6 +136,7 @@ def crawl_blocks_executor(
     block_numbers_list: List[int],
     with_transactions: bool = False,
     verbose: bool = False,
+    num_processes: int = MOONSTREAM_CRAWL_WORKERS,
 ) -> None:
     """
     Execute crawler in processes.
@@ -143,27 +154,28 @@ def crawl_blocks_executor(
         worker_job_lists[i % MOONSTREAM_CRAWL_WORKERS].append(block_number)
 
     results: List[Future] = []
+    if num_processes == 1:
+        return crawl_blocks(block_numbers_list, with_transactions, verbose)
+    else:
+        with ProcessPoolExecutor(max_workers=MOONSTREAM_CRAWL_WORKERS) as executor:
+            for worker in worker_indices:
+                if verbose:
+                    print(f"Spawned process for {len(worker_job_lists[worker])} blocks")
+                result = executor.submit(
+                    crawl_blocks,
+                    worker_job_lists[worker],
+                    with_transactions,
+                )
+                result.add_done_callback(record_error)
+                results.append(result)
 
-    with ProcessPoolExecutor(max_workers=MOONSTREAM_CRAWL_WORKERS) as executor:
-        for worker in worker_indices:
-            if verbose:
-                print(f"Spawned process for {len(worker_job_lists[worker])} blocks")
-            result = executor.submit(
-                crawl_blocks,
-                worker_job_lists[worker],
-                with_transactions,
-            )
-            result.add_done_callback(record_error)
-            results.append(result)
-
-    wait(results)
-    # TODO(kompotkot): Return list of errors and colors responsible for
-    # handling errors
-    if len(errors) > 0:
-        print("Errors:")
-        for error in errors:
-            print(f"- {error}")
-
+        wait(results)
+        # TODO(kompotkot): Return list of errors and colors responsible for
+        # handling errors
+        if len(errors) > 0:
+            print("Errors:")
+            for error in errors:
+                print(f"- {error}")
 
 def process_contract_deployments() -> List[Tuple[str, str]]:
     """
