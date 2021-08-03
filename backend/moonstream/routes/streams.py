@@ -3,6 +3,9 @@ The Moonstream subscriptions HTTP API
 """
 import logging
 from typing import Any, cast, Dict, List, Optional, Set, Union
+from pydantic.utils import to_camel
+
+from sqlalchemy.engine.base import Transaction
 
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
@@ -72,60 +75,119 @@ async def search_transactions(
 
     # get user subscriptions
 
+    token = request.state.token
+    params = {"user_id": str(request.state.user.id)}
+    try:
+        user_subscriptions_resources: BugoutResources = bc.list_resources(
+            token=token, params=params
+        )
+    except BugoutResponseException as e:
+        if e.detail == "Resources not found":
+            return data.EthereumTransactionResponse(stream=[])
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        raise HTTPException(status_code=500)
+
+    subscriptions_addresses = [
+        resource.resource_data["address"]
+        for resource in user_subscriptions_resources.resources
+    ]
+
     if q == "" or q == " ":
-        token = request.state.token
-        params = {"user_id": str(request.state.user.id)}
-        try:
-            user_subscriptions_resources: BugoutResources = bc.list_resources(
-                token=token, params=params
-            )
-            print(user_subscriptions_resources)
-        except BugoutResponseException as e:
-            if e.detail == "Resources not found":
-                return data.EthereumTransactionResponse(stream=[])
-            raise HTTPException(status_code=e.status_code, detail=e.detail)
-        except Exception as e:
-            raise HTTPException(status_code=500)
-        user_subscriptions_resources
-        # search_query = search.normalized_search_query(q, filters, strict_filter_mode=False)
 
         filters = [
             or_(
-                EthereumTransaction.to_address == resource.resource_data["address"],
-                EthereumTransaction.from_address == resource.resource_data["address"],
+                EthereumTransaction.to_address == address,
+                EthereumTransaction.from_address == address,
             )
-            for resource in user_subscriptions_resources.resources
+            for address in subscriptions_addresses
         ]
         filters = or_(*filters)
 
     else:
-        print(f"query:|{q}|")
-        filters = database_search_query(q)
+        filters = database_search_query(q, allowed_addresses=subscriptions_addresses)
         if not filters:
             return data.EthereumTransactionResponse(stream=[])
         filters = and_(*filters)
 
-    transactions = db_session.query(EthereumTransaction).filter(filters).limit(25)
+    address_to_subscriptions = {
+        resource.resource_data["address"]: resource.resource_data
+        for resource in user_subscriptions_resources.resources
+    }
 
-    print(transactions)
-
-    response = [
-        data.EthereumTransactionItem(
-            gas=transaction.gas,
-            gasPrice=transaction.gas_price,
-            value=transaction.value,
-            from_address=transaction.from_address,
-            to_address=transaction.to_address,
-            hash=transaction.hash,
-            input=transaction.input,
+    ethereum_transactions = (
+        db_session.query(
+            EthereumTransaction.hash,
+            EthereumTransaction.block_number,
+            EthereumTransaction.from_address,
+            EthereumTransaction.to_address,
+            EthereumTransaction.gas,
+            EthereumTransaction.gas_price,
+            EthereumTransaction.input,
+            EthereumTransaction.nonce,
+            EthereumTransaction.value,
+            EthereumBlock.timestamp,
         )
-        for transaction in transactions
-    ]
+        .join(EthereumBlock)
+        .filter(filters)
+        .limit(25)
+    )
+
+    response = []
+    for (
+        hash,
+        block_number,
+        from_address,
+        to_address,
+        gas,
+        gas_price,
+        input,
+        nonce,
+        value,
+        timestamp,
+    ) in ethereum_transactions:
+
+        subscription_type_id = None
+        from_label = None
+        to_label = None
+        color = None
+
+        if from_address in subscriptions_addresses:
+            from_label = address_to_subscriptions[from_address]["label"]
+            subscription_type_id = address_to_subscriptions[from_address][
+                "subscription_type_id"
+            ]
+            color = address_to_subscriptions[from_address]["color"]
+
+        if to_address in subscriptions_addresses:
+            subscription_type_id = address_to_subscriptions[to_address][
+                "subscription_type_id"
+            ]
+            to_label = address_to_subscriptions[to_address]["label"]
+            color = address_to_subscriptions[to_address]["color"]
+
+        response.append(
+            data.EthereumTransactionItem(
+                color=color,
+                from_label=from_label,
+                to_label=to_label,
+                gas=gas,
+                gasPrice=gas_price,
+                value=value,
+                from_address=from_address,
+                to_address=to_address,
+                hash=hash,
+                input=input,
+                nonce=nonce,
+                timestamp=timestamp,
+                subscription_type_id="1",
+            )
+        )
 
     return data.EthereumTransactionResponse(stream=response)
 
 
-def database_search_query(q: str):
+def database_search_query(q: str, allowed_addresses: List[str]):
 
     filters = q.split("+")
     constructed_filters = []
@@ -146,6 +208,8 @@ def database_search_query(q: str):
             constructed_filters.append(EthereumTransaction.to_address == filter_value)
 
         if filter_type == "from" and filter_value:
+            if filter_value not in allowed_addresses:
+                continue
             constructed_filters.append(EthereumTransaction.from_address == filter_value)
 
         if filter_type == "address" and filter_value:
