@@ -110,7 +110,7 @@ const EntriesNavigation = () => {
       newFilterState[0].value === null
     ) {
       setFilterProps(0, {
-        value: subscriptionsCache.data.subscriptions[0].address,
+        value: subscriptionsCache?.data?.subscriptions[0]?.address,
       });
     }
   }, [subscriptionsCache, newFilterState, setFilterProps]);
@@ -253,7 +253,7 @@ const EntriesNavigation = () => {
                                 onChange={handleAddressChange(idx)}
                               >
                                 {!subscriptionsCache.isLoading &&
-                                  subscriptionsCache.data.subscriptions.map(
+                                  subscriptionsCache?.data?.subscriptions.map(
                                     (subscription, idx) => {
                                       return (
                                         <option
@@ -318,7 +318,8 @@ const EntriesNavigation = () => {
                             direction: DIRECTIONS.SOURCE,
                             condition: CONDITION.EQUAL,
                             value:
-                              subscriptionsCache.data.subscriptions[0].address,
+                              subscriptionsCache?.data?.subscriptions[0]
+                                ?.address,
                           },
                         ])
                       }
@@ -334,7 +335,8 @@ const EntriesNavigation = () => {
                             direction: DIRECTIONS.DESTINATION,
                             condition: CONDITION.EQUAL,
                             value:
-                              subscriptionsCache.data.subscriptions[0].address,
+                              subscriptionsCache?.data?.subscriptions[0]
+                                ?.address,
                           },
                         ])
                       }
@@ -407,7 +409,6 @@ const EntriesNavigation = () => {
               id="StreamEntry"
               overflowY="scroll"
               direction="column"
-
               w="100%"
               onScroll={(e) => handleScroll(e)}
             >

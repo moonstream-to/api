@@ -55,7 +55,6 @@ const StreamEntry = ({ entry, filterCallback, filterConstants }) => {
       transition="0.1s"
       _hover={{ bg: "secondary.200" }}
       flexBasis="50px"
-      flexGrow={1}
       direction="row"
       justifySelf="center"
       justifyContent="normal"
