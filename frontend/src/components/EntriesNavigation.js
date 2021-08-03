@@ -31,6 +31,7 @@ import {
   TagLabel,
   TagCloseButton,
   Spacer,
+  useBoolean,
 } from "@chakra-ui/react";
 import { useSubscriptions } from "../core/hooks";
 import StreamEntry from "./StreamEntry";
@@ -38,6 +39,7 @@ import UIContext from "../core/providers/UIProvider/context";
 import { FaFilter } from "react-icons/fa";
 import useStream from "../core/hooks/useStream";
 import { ImCancelCircle } from "react-icons/im";
+import { IoStopCircleOutline, IoPlayCircleOutline } from "react-icons/io5";
 
 const pageSize = 25;
 const FILTER_TYPES = {
@@ -61,6 +63,7 @@ const CONDITION = {
 
 const EntriesNavigation = () => {
   const ui = useContext(UIContext);
+  const [isStreamOn, setStreamState] = useBoolean(true);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { subscriptionsCache } = useSubscriptions();
   const [newFilterState, setNewFilterState] = useState([
@@ -80,7 +83,7 @@ const EntriesNavigation = () => {
       pageSize,
       refreshRate: 1500,
       searchQuery: ui.searchTerm,
-      enabled: true,
+      enabled: isStreamOn,
       isContent: false,
     });
 
@@ -358,8 +361,22 @@ const EntriesNavigation = () => {
               </DrawerFooter>
             </DrawerContent>
           </Drawer>
-          <Flex h="3rem" w="100%" bgColor="gray.200" alignItems="center">
+          <Flex h="3rem" w="100%" bgColor="gray.100" alignItems="center">
             <Flex maxW="90%">
+              <Flex direction="column">
+                <IconButton
+                  size="sm"
+                  onClick={() => setStreamState.toggle()}
+                  icon={
+                    isStreamOn ? (
+                      <IoStopCircleOutline size="32px" />
+                    ) : (
+                      <IoPlayCircleOutline size="32px" />
+                    )
+                  }
+                  colorScheme={isStreamOn ? "unsafe" : "suggested"}
+                />
+              </Flex>
               {filterState.map((filter, idx) => {
                 if (filter.type === FILTER_TYPES.DISABLED) return "";
                 return (
