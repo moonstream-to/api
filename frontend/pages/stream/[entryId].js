@@ -1,11 +1,9 @@
 import React from "react";
-import { Flex, Link, HStack, Skeleton, Box, Heading, Center, Spinner } from "@chakra-ui/react";
-import { ExternalLinkIcon } from "@chakra-ui/icons";
+import { Flex, HStack, Skeleton, Box, Heading, Center, Spinner } from "@chakra-ui/react";
 import { useTxInfo, useTxCashe, useRouter } from "../../src/core/hooks";
 import FourOFour from "../../src/components/FourOFour";
 import FourOThree from "../../src/components/FourOThree";
 import Tags from "../../src/components/Tags";
-import CustomIcon from "../../src/components/CustomIcon";
 import { getLayout } from "../../src/layouts/EntriesLayout";
 import Scrollable from "../../src/components/Scrollable";
 import TxInfo from "../../src/components/TxInfo"
