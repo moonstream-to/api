@@ -48,7 +48,7 @@ const FILTER_TYPES = {
   HASH: 4,
   DISABLED: 99,
 };
-const DIRECTIONS = { SOURCE: 0, DESTINATION: 1 };
+const DIRECTIONS = { SOURCE: "from", DESTINATION: "to" };
 const CONDITION = {
   EQUAL: 0,
   CONTAINS: 1,
@@ -127,19 +127,43 @@ const EntriesNavigation = () => {
   const canDelete = false;
 
   const dropNewFilterArrayItem = (idx) => {
-    const newArray = [...newFilterState];
-    delete newArray[idx];
+    const oldArray = [...newFilterState];
+
+    const newArray = oldArray.filter(function (ele) {
+      return ele != oldArray[idx];
+    });
+    console.log(newFilterState);
+    console.log(newArray);
     setNewFilterState(newArray);
   };
 
   const dropFilterArrayItem = (idx) => {
-    const newArray = [...filterState];
-    newArray[idx].type = FILTER_TYPES.DISABLED;
+    console.log("dropFilterArrayItem", idx, filterState);
+    const oldArray = [...filterState];
+    const newArray = oldArray.filter(function (ele) {
+      return ele != oldArray[idx];
+    });
+
     setFilterState(newArray);
+    setNewFilterState(newArray);
+    ui.setSearchTerm(
+      newArray
+        .map((filter) => {
+          return filter.direction + ":" + filter.value;
+        })
+        .join("+")
+    );
   };
 
   const handleFilterSubmit = () => {
     setFilterState(newFilterState);
+    ui.setSearchTerm(
+      newFilterState
+        .map((filter) => {
+          return filter.direction + ":" + filter.value;
+        })
+        .join("+")
+    );
     onClose();
   };
 
@@ -152,11 +176,22 @@ const EntriesNavigation = () => {
   };
 
   const handleFilterStateCallback = (props) => {
-    const newFilterState = [...filterState];
-    newFilterState.push({ ...props });
-    setFilterState(newFilterState);
+    console.log("handleFilterStateCallback", props);
+    const currentFilterState = [...filterState];
+    currentFilterState.push({ ...props });
+
+    ui.setSearchTerm(
+      currentFilterState
+        .map((filter) => {
+          return filter.direction + ":" + filter.value;
+        })
+        .join("+")
+    );
+
+    setFilterState(currentFilterState);
   };
   if (subscriptionsCache.isLoading) return "";
+
   return (
     <Flex
       id="JournalNavigation"
@@ -178,6 +213,7 @@ const EntriesNavigation = () => {
                   Source:
                 </Text>
                 {newFilterState.map((filter, idx) => {
+                  console.log("197", newFilterState);
                   if (filter.type === FILTER_TYPES.DISABLED) return "";
                   return (
                     <Flex
@@ -281,7 +317,8 @@ const EntriesNavigation = () => {
                             type: FILTER_TYPES.ADDRESS,
                             direction: DIRECTIONS.SOURCE,
                             condition: CONDITION.EQUAL,
-                            value: subscriptionsCache.data.subscriptions[0].id,
+                            value:
+                              subscriptionsCache.data.subscriptions[0].address,
                           },
                         ])
                       }
@@ -296,7 +333,8 @@ const EntriesNavigation = () => {
                             type: FILTER_TYPES.ADDRESS,
                             direction: DIRECTIONS.DESTINATION,
                             condition: CONDITION.EQUAL,
-                            value: null,
+                            value:
+                              subscriptionsCache.data.subscriptions[0].address,
                           },
                         ])
                       }
@@ -362,16 +400,14 @@ const EntriesNavigation = () => {
             className="ScrollableWrapper"
             w="100%"
             overflowY="hidden"
-            // maxH="100%"
             h="calc(100% - 3rem)"
           >
             <Flex
               className="Scrollable"
               id="StreamEntry"
-              // flexGrow={1}
               overflowY="scroll"
               direction="column"
-              height="100%"
+
               w="100%"
               onScroll={(e) => handleScroll(e)}
             >

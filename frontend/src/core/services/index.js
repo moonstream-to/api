@@ -8,6 +8,7 @@ import * as PreferencesService from "./preferences.service";
 import * as HumbugService from "./humbug.service";
 import * as InvitesService from "./invites.service";
 import * as SubscriptionsService from "./subscriptions.service";
+import * as TxInfoService from "./txinfo.service";
 
 export {
   SearchService,
@@ -20,4 +21,5 @@ export {
   HumbugService,
   InvitesService,
   SubscriptionsService,
+  TxInfoService,
 };

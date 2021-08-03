@@ -54,7 +54,7 @@ const Sidebar = () => {
             w="150px"
             py="0.75rem"
             pl={5}
-            src="/icons/bugout-dev-white.svg"
+            src="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/White+logo.svg"
             alt="bugout.dev"
           />
         </Flex>

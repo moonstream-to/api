@@ -6,7 +6,7 @@ const API = process.env.NEXT_PUBLIC_MOONSTREAM_API_URL;
 export const getStream = ({ searchTerm, limit, offset, isContent }) =>
   http({
     method: "GET",
-    url: `${API}/stream`,
+    url: `${API}/streams/`,
     params: {
       q: searchTerm,
       limit: encodeURIComponent(limit),
