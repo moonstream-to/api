@@ -37,7 +37,8 @@ export { default as useStripe } from "./useStripe";
 export { default as useSubscriptions } from "./useSubscriptions";
 export { default as useToast } from "./useToast";
 export { default as useTokens } from "./useTokens";
-export { default as useTxInfo } from "./useTxInfo"
+export { default as useTxInfo } from "./useTxInfo";
+export { default as useTxCashe } from "./useTxCache"
 export { default as useUpdateEntry } from "./useUpdateEntry";
 export { default as useUpdateTag } from "./useUpdateTag";
 export { default as useUser } from "./useUser";

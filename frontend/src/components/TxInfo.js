@@ -72,10 +72,10 @@ const TxInfo = (props) => {
             <Table variant="simple" >
                 <Tbody>
                     {Object.keys(transaction.tx).filter(dont_display).map((key) => (
-                        <Tr key = {key}>
+                        (transaction.tx[key] != undefined && <Tr key = {key}>
                             <Td>{key}</Td>
                             <Td>{transaction.tx[key]}</Td>
-                        </Tr>
+                        </Tr>)
                     ))}
                 </Tbody>
             </Table>

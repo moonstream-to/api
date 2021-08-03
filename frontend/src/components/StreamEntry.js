@@ -2,16 +2,18 @@ import React, { useContext } from "react";
 import { Flex, Text, IconButton, Tag } from "@chakra-ui/react";
 import moment from "moment";
 import { ViewIcon } from "@chakra-ui/icons";
-import { useRouter } from "../core/hooks";
+import { useRouter, useTxCashe } from "../core/hooks";
 import UIContext from "../core/providers/UIProvider/context";
+
 
 const StreamEntry = ({ entry, filterCallback, filterConstants }) => {
   const ui = useContext(UIContext);
   const router = useRouter();
-
+  const txCache = useTxCashe;
   const handleViewClicked = (entryId) => {
     ui.setEntryId(entryId);
     ui.setEntriesViewMode("entry");
+    txCache.setCurrentTransaction(entry);
     router.push({
       pathname: `/stream/${entry.hash}`,
       query: router.query,
@@ -92,7 +94,7 @@ const StreamEntry = ({ entry, filterCallback, filterConstants }) => {
         boxSize="32px"
         colorScheme="primary"
         icon={<ViewIcon />}
-        onClick={() => handleViewClicked(entry)}
+        onClick={() => { handleViewClicked(entry)}}
       />
     </Flex>
   );

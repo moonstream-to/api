@@ -4,7 +4,7 @@ import { queryCacheProps } from "./hookCommon";
 import { useToast } from ".";
 
 const useTxInfo = (transaction) => {
-    console.log("Use hook", transaction)
+    console.log(transaction)
     const toast = useToast();
     const getTxInfo = async () => {
         const response = await TxInfoService.getTxInfo(transaction);
