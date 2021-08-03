@@ -400,16 +400,14 @@ const EntriesNavigation = () => {
             className="ScrollableWrapper"
             w="100%"
             overflowY="hidden"
-            // maxH="100%"
             h="calc(100% - 3rem)"
           >
             <Flex
               className="Scrollable"
               id="StreamEntry"
-              // flexGrow={1}
               overflowY="scroll"
               direction="column"
-              height="100%"
+
               w="100%"
               onScroll={(e) => handleScroll(e)}
             >
