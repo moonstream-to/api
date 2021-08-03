@@ -481,7 +481,7 @@ const Homepage = () => {
                 <Button
                   as={Link}
                   isExternal
-                  href={"https://discord.gg/FetK5BxD"}
+                  href={"https://discord.gg/K56VNUQGvA"}
                   size="lg"
                   variant="solid"
                   colorScheme="suggested"
