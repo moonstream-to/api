@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useContext} from "react";
 import { Flex, HStack, Skeleton, Box, Heading, Center, Spinner } from "@chakra-ui/react";
 import { useTxInfo, useTxCashe, useRouter } from "../../src/core/hooks";
 import FourOFour from "../../src/components/FourOFour";
@@ -7,36 +7,41 @@ import Tags from "../../src/components/Tags";
 import { getLayout } from "../../src/layouts/EntriesLayout";
 import Scrollable from "../../src/components/Scrollable";
 import TxInfo from "../../src/components/TxInfo"
+import UIContext from "../../src/core/providers/UIProvider/context";
 
 const Entry = () => {
+  const ui = useContext(UIContext);
   const router = useRouter();
   const { entryId } = router.params;
   const txCache = useTxCashe;
 
+  const callReroute = () => {
+    ui.setEntriesViewMode("list");
+    router.push({
+      pathname: `/stream`,
+      query: router.query,
+    });
+    const LoadingSpinner = () => (
+      <Box px="12%" my={12} width="100%">
+        <Center>
+          <Spinner
+            hidden={false}
+            my={0}
+            size="lg"
+            color="primary.500"
+            thickness="4px"
+            speed="1.5s"
+          />
+        </Center>
+      </Box>
+    );
+    return (
+      <LoadingSpinner/>
+    )
+  } 
+
   const transaction = txCache.getCurrentTransaction()
-  if (!transaction || transaction.hash != entryId) {
-      router.push({
-        pathname: `/stream/`,
-        query: router.query,
-      });
-      const LoadingSpinner = () => (
-        <Box px="12%" my={12} width="100%">
-          <Center>
-            <Spinner
-              hidden={false}
-              my={0}
-              size="lg"
-              color="primary.500"
-              thickness="4px"
-              speed="1.5s"
-            />
-          </Center>
-        </Box>
-      );
-      return (
-        <LoadingSpinner/>
-      )
-  }
+  
   const {
     data: entry,
     isFetchedAfterMount,
@@ -44,7 +49,8 @@ const Entry = () => {
     isError,
     error,
   } = useTxInfo({tx:transaction})
-  const title = transaction.hash
+  
+  if (isError) {return callReroute()}
   if (isError && error.response.status === 404) return <FourOFour />;
   if (isError && error.response.status === 403) return <FourOThree />;
   // if (!entry || isLoading) return "";
@@ -77,7 +83,7 @@ const Entry = () => {
             fontSize="1.5rem"
             textAlign="left"
           >
-            {title}
+            {entry && entry.hash}
           </Heading>
         </HStack>
       </Skeleton>
