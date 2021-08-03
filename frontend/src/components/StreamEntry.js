@@ -14,7 +14,7 @@ import moment from "moment";
 import { ArrowRightIcon } from "@chakra-ui/icons";
 import { useRouter } from "../core/hooks";
 import UIContext from "../core/providers/UIProvider/context";
-import { useToast } from "../core/hooks";
+import { useToast, useTxCashe } from "../core/hooks";
 
 const StreamEntry = ({ entry, filterCallback, filterConstants }) => {
   const ui = useContext(UIContext);
@@ -30,17 +30,18 @@ const StreamEntry = ({ entry, filterCallback, filterConstants }) => {
     } else if (copyString) {
       onCopy();
     }
-  }, [copyString, onCopy, hasCopied, toast]);
 
+  }, [copyString, onCopy, hasCopied, toast]);  
   const handleViewClicked = (entryId) => {
     ui.setEntryId(entryId);
     ui.setEntriesViewMode("entry");
+    useTxCashe.setCurrentTransaction(entry)
     router.push({
-      pathname: `/stream/${entry.id}`,
+      pathname: `/stream/${entry.hash}`,
       query: router.query,
     });
   };
-
+  
   const [showFullView] = useMediaQuery(["(min-width: 420px)"]);
   console.log(entry);
 
