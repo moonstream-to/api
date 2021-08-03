@@ -24,7 +24,7 @@ export const getTypes = () =>
 export const getSubscriptions = () =>
   http({
     method: "GET",
-    url: `${API}/subscriptions`,
+    url: `${API}/subscriptions/`,
   });
 
 export const create = ({ address, note, blockchain }) => {
@@ -79,10 +79,3 @@ export const deleteSubscription = () => (id) => {
     url: `${API}/subscriptions/${id}`,
   });
 };
-
-// export const getSubscriptions = (groupId) => {
-//   return http({
-//     method: "GET",
-//     url: `${API}/groups/${groupId}/subscriptions`,
-//   });
-// };
