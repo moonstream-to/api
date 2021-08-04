@@ -1,2 +1,2 @@
-# moonstock
+# moonstream
 The Bugout blockchain inspector
