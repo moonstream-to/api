@@ -8,7 +8,8 @@ import "focus-visible/dist/focus-visible";
 import dynamic from "next/dynamic";
 import { ReactQueryCacheProvider, QueryCache } from "react-query";
 import { ReactQueryDevtools } from "react-query-devtools";
-import { HeadSEO, HeadLinks } from "../src/components";
+import HeadLinks from "../src/components/HeadLinks";
+import HeadSEO from "../src/components/HeadSEO";
 const AppContext = dynamic(() => import("../src/AppContext"), {
   ssr: false,
 });
