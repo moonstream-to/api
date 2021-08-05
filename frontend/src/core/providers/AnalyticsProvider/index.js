@@ -28,7 +28,7 @@ const AnalyticsProvider = ({ children }) => {
           },
           { transport: "sendBeacon" }
         );
-      }, 1000);
+      }, 30000);
 
     return () => clearInterval(intervalId);
     // eslint-disable-next-line

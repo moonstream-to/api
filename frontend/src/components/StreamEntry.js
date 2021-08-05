@@ -14,9 +14,9 @@ import moment from "moment";
 import { ArrowRightIcon } from "@chakra-ui/icons";
 import { useRouter } from "../core/hooks";
 import UIContext from "../core/providers/UIProvider/context";
-import { useToast, useTxCashe } from "../core/hooks";
+import { useToast } from "../core/hooks";
 
-const StreamEntry = ({ entry, filterCallback, filterConstants }) => {
+const StreamEntry = ({ entry }) => {
   const ui = useContext(UIContext);
   const router = useRouter();
   const [copyString, setCopyString] = useState(false);
@@ -34,7 +34,7 @@ const StreamEntry = ({ entry, filterCallback, filterConstants }) => {
   const handleViewClicked = (entryId) => {
     ui.setEntryId(entryId);
     ui.setEntriesViewMode("entry");
-    useTxCashe.setCurrentTransaction(entry);
+    ui.setCurrentTransaction(entry);
     router.push({
       pathname: `/stream/${entry.hash}`,
       query: router.query,

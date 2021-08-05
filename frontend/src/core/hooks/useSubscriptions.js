@@ -50,12 +50,15 @@ const useSubscriptions = () => {
     }
   );
 
-  const changeNote = useMutation(SubscriptionsService.modifySubscription(), {
-    onError: (error) => toast(error, "error"),
-    onSuccess: () => {
-      subscriptionsCache.refetch();
-    },
-  });
+  const updateSubscription = useMutation(
+    SubscriptionsService.modifySubscription(),
+    {
+      onError: (error) => toast(error, "error"),
+      onSuccess: () => {
+        subscriptionsCache.refetch();
+      },
+    }
+  );
 
   const deleteSubscription = useMutation(
     SubscriptionsService.deleteSubscription(),
@@ -71,7 +74,7 @@ const useSubscriptions = () => {
     createSubscription,
     subscriptionsCache,
     typesCache,
-    changeNote,
+    updateSubscription,
     deleteSubscription,
   };
 };

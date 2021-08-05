@@ -62,9 +62,10 @@ export const createSubscription =
 
 export const modifySubscription =
   () =>
-  ({ id, note }) => {
+  ({ id, label, color }) => {
     const data = new FormData();
-    data.append("note", note);
+    color && data.append("color", color);
+    label && data.append("label", label);
     data.append("id", id);
     return http({
       method: "POST",

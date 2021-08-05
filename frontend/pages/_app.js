@@ -6,12 +6,19 @@ import "highlight.js/styles/github.css";
 import "focus-visible/dist/focus-visible";
 import dynamic from "next/dynamic";
 import { QueryClient, QueryClientProvider } from "react-query";
-import HeadLinks from "../src/components/HeadLinks";
-import HeadSEO from "../src/components/HeadSEO";
+
+const HeadSEO = dynamic(() => import("../src/components/HeadSEO"), {
+  ssr: false,
+});
+const HeadLinks = dynamic(() => import("../src/components/HeadLinks"), {
+  ssr: false,
+});
 const AppContext = dynamic(() => import("../src/AppContext"), {
   ssr: false,
 });
-import DefaultLayout from "../src/layouts";
+const DefaultLayout = dynamic(() => import("../src/layouts"), {
+  ssr: false,
+});
 import { useRouter } from "next/router";
 import NProgress from "nprogress";
 
@@ -21,7 +28,7 @@ export default function CachingApp({ Component, pageProps }) {
   const router = useRouter();
 
   useEffect(() => {
-    const handleStart = (url) => {
+    const handleStart = () => {
       NProgress.start();
     };
     const handleStop = () => {
