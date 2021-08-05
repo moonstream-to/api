@@ -1,6 +1,4 @@
-/** @jsx jsx */
-import { jsx } from "@emotion/react";
-import { useEffect, useState } from "react";
+import { React, useEffect, useState } from "react";
 import "/styles/styles.css";
 import "/styles/nprogress.css";
 import "/styles/sidebar.css";
