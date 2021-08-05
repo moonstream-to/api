@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-from moonstreamcrawlers.version import MOONSTREAMCRAWLERS_VERSION
+from mooncrawl.version import MOONSTREAMCRAWLERS_VERSION
 
 long_description = ""
 with open("README.md") as ifp:
