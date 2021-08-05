@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-from mooncrawl.version import MOONSTREAMCRAWLERS_VERSION
+from mooncrawl.version import MOONCRAWL_VERSION
 
 long_description = ""
 with open("README.md") as ifp:
@@ -8,7 +8,7 @@ with open("README.md") as ifp:
 
 setup(
     name="mooncrawl",
-    version=MOONSTREAMCRAWLERS_VERSION,
+    version=MOONCRAWL_VERSION,
     author="Bugout.dev",
     author_email="engineers@bugout.dev",
     license="Apache License 2.0",
