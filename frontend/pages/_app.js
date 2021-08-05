@@ -16,7 +16,7 @@ import { useRouter } from "next/router";
 import NProgress from "nprogress";
 
 export default function CachingApp({ Component, pageProps }) {
-  const [queryCache] = useState(new QueryClient());
+  const [queryClient] = useState(new QueryClient());
 
   const router = useRouter();
 
@@ -42,6 +42,8 @@ export default function CachingApp({ Component, pageProps }) {
   const getLayout =
     Component.getLayout || ((page) => <DefaultLayout>{page}</DefaultLayout>);
 
+  console.log("_app loaded", router.asPath);
+
   return (
     <>
       <style global jsx>{`
@@ -57,7 +59,7 @@ export default function CachingApp({ Component, pageProps }) {
       `}</style>
       {pageProps.metaTags && <HeadSEO {...pageProps.metaTags} />}
       {pageProps.preloads && <HeadLinks links={pageProps.preloads} />}
-      <QueryClientProvider queryCache={queryCache}>
+      <QueryClientProvider client={queryClient}>
         <AppContext>{getLayout(<Component {...pageProps} />)}</AppContext>
       </QueryClientProvider>
     </>
