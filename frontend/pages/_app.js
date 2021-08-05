@@ -25,7 +25,7 @@ export default class CachingApp extends App {
     const getLayout =
       Component.getLayout || ((page) => <DefaultLayout>{page}</DefaultLayout>);
 
-    console.log("rendering _app");
+    console.warn("rendering _app");
     return (
       <>
         <style global jsx>{`
