@@ -1,6 +1,5 @@
 import { React, useEffect, useState } from "react";
 import {
-  chakra,
   Box,
   Popover,
   PopoverTrigger,
@@ -22,7 +21,7 @@ import { makeColor } from "../core/utils/makeColor";
 import { BiRefresh } from "react-icons/bi";
 import { GithubPicker } from "react-color";
 
-const _ColorSelector = (props) => {
+const ColorSelector = (props) => {
   const { onOpen, onClose, isOpen } = useDisclosure();
   const [color, setColor] = useState(props.initialColor ?? makeColor());
   const [triggerColor, setTriggerColor] = useState(color);
@@ -41,7 +40,6 @@ const _ColorSelector = (props) => {
     <Popover isOpen={isOpen} onOpen={onOpen} onClose={onClose}>
       <PopoverTrigger>
         <Box
-          {...props}
           placeSelf="center"
           boxSize="24px"
           borderRadius="sm"
@@ -100,7 +98,5 @@ const _ColorSelector = (props) => {
     </Popover>
   );
 };
-
-const ColorSelector = chakra(_ColorSelector);
 
 export default ColorSelector;

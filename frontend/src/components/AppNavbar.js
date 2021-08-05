@@ -227,7 +227,6 @@ const AppNavbar = () => {
             {!isSearchBarActive && (
               <AccountIconButton
                 variant="link"
-                mx={0}
                 justifyContent="space-evenly"
                 alignContent="center"
                 h="32px"
