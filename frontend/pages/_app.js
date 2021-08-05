@@ -13,6 +13,7 @@ const AppContext = dynamic(() => import("../src/AppContext"), {
 const DefaultLayout = dynamic(() => import("../src/layouts"), {
   ssr: false,
 });
+import router from "next/router";
 
 export default class CachingApp extends App {
   constructor(props) {
@@ -25,6 +26,7 @@ export default class CachingApp extends App {
     const getLayout =
       Component.getLayout || ((page) => <DefaultLayout>{page}</DefaultLayout>);
 
+    console.warn("rendering _app in path:,", router.asPath);
     return (
       <>
         <style global jsx>{`
