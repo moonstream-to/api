@@ -208,7 +208,7 @@ const Homepage = () => {
                       maxW="1620px"
                       px="7%"
                       h="100%"
-                      pt={["10vh", null, "30vh"]}
+                      pt={["10vh", null, "20vh"]}
                     >
                       <Heading size="2xl" fontWeight="semibold" color="white">
                         All the crypto data you care about in a single stream
@@ -218,7 +218,6 @@ const Homepage = () => {
                         fontSize={["lg", null, "xl"]}
                         display="inline-block"
                         color="primary.200"
-                        textDecor="underline"
                       >
                         Get all the crypto data you need in a single stream.
                         From pending transactions in the Ethereum transaction
@@ -228,7 +227,6 @@ const Homepage = () => {
                         fontSize={["lg", null, "xl"]}
                         display="inline-block"
                         color="primary.300"
-                        textDecor="underline"
                       >
                         Access this data through the Moonstream dashboard or API
                       </chakra.span>
