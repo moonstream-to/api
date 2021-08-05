@@ -1,19 +1,26 @@
-import React, {useContext} from "react";
-import { Flex, HStack, Skeleton, Box, Heading, Center, Spinner } from "@chakra-ui/react";
-import { useTxInfo, useTxCashe, useRouter } from "../../src/core/hooks";
+import React, { useContext } from "react";
+import {
+  Flex,
+  HStack,
+  Skeleton,
+  Box,
+  Heading,
+  Center,
+  Spinner,
+} from "@chakra-ui/react";
+import { useTxInfo, useRouter } from "../../src/core/hooks";
 import FourOFour from "../../src/components/FourOFour";
 import FourOThree from "../../src/components/FourOThree";
 import Tags from "../../src/components/Tags";
 import { getLayout } from "../../src/layouts/EntriesLayout";
 import Scrollable from "../../src/components/Scrollable";
-import TxInfo from "../../src/components/TxInfo"
+import TxInfo from "../../src/components/TxInfo";
 import UIContext from "../../src/core/providers/UIProvider/context";
 
 const Entry = () => {
   const ui = useContext(UIContext);
   const router = useRouter();
   const { entryId } = router.params;
-  const txCache = useTxCashe;
 
   const callReroute = () => {
     ui.setEntriesViewMode("list");
@@ -35,22 +42,20 @@ const Entry = () => {
         </Center>
       </Box>
     );
-    return (
-      <LoadingSpinner/>
-    )
-  } 
+    return <LoadingSpinner />;
+  };
 
-  const transaction = txCache.getCurrentTransaction()
-  
   const {
     data: entry,
     isFetchedAfterMount,
     isLoading,
     isError,
     error,
-  } = useTxInfo({tx:transaction})
-  
-  if (isError) {return callReroute()}
+  } = useTxInfo({ tx: ui.currentTransaction });
+
+  if (isError) {
+    return callReroute();
+  }
   if (isError && error.response.status === 404) return <FourOFour />;
   if (isError && error.response.status === 403) return <FourOThree />;
   // if (!entry || isLoading) return "";
@@ -106,7 +111,7 @@ const Entry = () => {
         isLoaded={isFetchedAfterMount || entry}
       >
         <Scrollable>
-        {!isLoading && (<TxInfo transaction = {entry}></TxInfo> )}
+          {!isLoading && <TxInfo transaction={entry}></TxInfo>}
         </Scrollable>
       </Skeleton>
     </Flex>
