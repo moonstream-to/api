@@ -16,6 +16,7 @@
     "@emotion/styled": "^11.3.0",
     "@stripe/stripe-js": "^1.16.0",
     "axios": "^0.21.1",
+    "focus-visible": "^5.2.0",
     "framer-motion": "^4.1.17",
     "mixpanel-browser": "^2.41.0",
     "moment": "^2.29.1",
