@@ -3,11 +3,9 @@ import "/styles/styles.css";
 import "/styles/nprogress.css";
 import "/styles/sidebar.css";
 import "highlight.js/styles/github.css";
-import "react-mde/lib/styles/css/react-mde-all.css";
 import "focus-visible/dist/focus-visible";
 import dynamic from "next/dynamic";
-import { ReactQueryCacheProvider, QueryCache } from "react-query";
-import { ReactQueryDevtools } from "react-query-devtools";
+import { QueryClient, QueryClientProvider } from "react-query";
 import HeadLinks from "../src/components/HeadLinks";
 import HeadSEO from "../src/components/HeadSEO";
 const AppContext = dynamic(() => import("../src/AppContext"), {
@@ -18,7 +16,7 @@ import { useRouter } from "next/router";
 import NProgress from "nprogress";
 
 export default function CachingApp({ Component, pageProps }) {
-  const [queryCache] = useState(new QueryCache());
+  const [queryCache] = useState(new QueryClient());
 
   const router = useRouter();
 
@@ -59,10 +57,9 @@ export default function CachingApp({ Component, pageProps }) {
       `}</style>
       {pageProps.metaTags && <HeadSEO {...pageProps.metaTags} />}
       {pageProps.preloads && <HeadLinks links={pageProps.preloads} />}
-      <ReactQueryCacheProvider queryCache={queryCache}>
-        <ReactQueryDevtools initialIsOpen={false} />
+      <QueryClientProvider queryCache={queryCache}>
         <AppContext>{getLayout(<Component {...pageProps} />)}</AppContext>
-      </ReactQueryCacheProvider>
+      </QueryClientProvider>
     </>
   );
 }
