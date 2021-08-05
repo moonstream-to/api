@@ -117,10 +117,12 @@ const Homepage = () => {
       router.nextRouter.asPath.slice(0, 2) !== "/#" &&
       router.nextRouter.asPath.slice(0, 11) !== "/index.html"
     ) {
-      console.log("redirect attempt..");
-      router.replace(router.nextRouter.asPath, router.nextRouter.asPath, {
-        shallow: false,
-      });
+      console.warn("redirect attempt..");
+      if (typeof window !== "undefined") {
+        router.replace(router.nextRouter.asPath, router.nextRouter.asPath, {
+          shallow: false,
+        });
+      }
     }
   }, [isInit, router]);
 
