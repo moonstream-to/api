@@ -1,42 +1,84 @@
 import React, {
-  useLayoutEffect,
-  useEffect,
-  Suspense,
-  useContext,
   useState,
+  useContext,
+  Suspense,
+  useEffect,
+  useLayoutEffect,
 } from "react";
 import {
+  Fade,
   Flex,
   Heading,
   Box,
   Image as ChakraImage,
   Button,
   Center,
-  Fade,
   chakra,
   Stack,
   Link,
   SimpleGrid,
   useMediaQuery,
+  Grid,
+  GridItem,
 } from "@chakra-ui/react";
-import { Grid, GridItem } from "@chakra-ui/react";
-import { useUser, useAnalytics, useModals, useRouter } from "../src/core/hooks";
-import { getLayout } from "../src/layouts";
-import SplitWithImage from "../src/components/SplitWithImage";
-import ConnectedButtons from "../src/components/ConnectedButtons";
-import UIContext from "../src/core/providers/UIProvider/context";
+import dynamic from "next/dynamic";
+import useUser from "../src/core/hooks/useUser";
+import useAnalytics from "../src/core/hooks/useAnalytics";
+import useModals from "../src/core/hooks/useModals";
+import useRouter from "../src/core/hooks/useRouter";
+const SplitWithImage = dynamic(
+  () => import("../src/components/SplitWithImage"),
+  {
+    ssr: false,
+  }
+);
+const ConnectedButtons = dynamic(
+  () => import("../src/components/ConnectedButtons"),
+  {
+    ssr: false,
+  }
+);
+const UIContext = dynamic(
+  () => import("../src/core/providers/UIProvider/context"),
+  {
+    ssr: false,
+  }
+);
+
 import { MIXPANEL_PROPS } from "../src/core/providers/AnalyticsProvider/constants";
-import { FaFileContract } from "react-icons/fa";
-import { RiDashboardFill } from "react-icons/ri";
-import {
-  GiMeshBall,
-  GiLogicGateXor,
-  GiSuspicious,
-  GiHook,
-} from "react-icons/gi";
-import { AiFillApi } from "react-icons/ai";
-import { BiTransfer } from "react-icons/bi";
-import { IoTelescopeSharp } from "react-icons/io5";
+const RiDashboardFill = dynamic(() =>
+  import("react-icons/ri").then((mod) => mod.RiDashboardFill)
+);
+const FaFileContract = dynamic(() =>
+  import("react-icons/fa").then((mod) => mod.FaFileContract)
+);
+const GiMeshBall = dynamic(() =>
+  import("react-icons/gi").then((mod) => mod.GiMeshBall)
+);
+
+const GiLogicGateXor = dynamic(() =>
+  import("react-icons/gi").then((mod) => mod.GiLogicGateXor)
+);
+
+const GiSuspicious = dynamic(() =>
+  import("react-icons/gi").then((mod) => mod.GiSuspicious)
+);
+
+const GiHook = dynamic(() =>
+  import("react-icons/gi").then((mod) => mod.GiHook)
+);
+
+const AiFillApi = dynamic(() =>
+  import("react-icons/ai").then((mod) => mod.AiFillApi)
+);
+
+const BiTransfer = dynamic(() =>
+  import("react-icons/bi").then((mod) => mod.BiTransfer)
+);
+
+const IoTelescopeSharp = dynamic(() =>
+  import("react-icons/io5").then((mod) => mod.IoTelescopeSharp)
+);
 
 const HEADING_PROPS = {
   fontWeight: "700",
@@ -532,8 +574,5 @@ export async function getStaticProps() {
     props: { metaTags, preloads },
   };
 }
-
-Homepage.layout = "default";
-Homepage.getLayout = getLayout;
 
 export default Homepage;
