@@ -4,7 +4,6 @@ import {
   Flex,
   Button,
   Image,
-  ButtonGroup,
   Text,
   IconButton,
   Link,
@@ -128,34 +127,6 @@ const AppNavbar = () => {
             </Fade>
             <Spacer />
             <Flex placeSelf="flex-end">
-              <ButtonGroup
-                alignSelf="center"
-                // position="relative"
-                left={
-                  isSearchBarActive
-                    ? "100%"
-                    : ["64px", "30%", "50%", "55%", null, "60%"]
-                }
-                // hidden={ui.searchBarActive}
-                display={isSearchBarActive ? "hidden" : "block"}
-                variant="link"
-                colorScheme="secondary"
-                spacing={4}
-                px={2}
-                zIndex={ui.searchBarActive ? -10 : 0}
-                size={["xs", "xs", "xs", "lg", null, "lg"]}
-              >
-                <RouterLink href="/pricing" passHref>
-                  <Button color="white" fontWeight="400">
-                    Pricing
-                  </Button>
-                </RouterLink>
-                <RouterLink href="/product" passHref>
-                  <Button color="white" fontWeight="400">
-                    Product
-                  </Button>
-                </RouterLink>
-              </ButtonGroup>
               <SupportPopover />
               <AccountIconButton
                 colorScheme="primary"

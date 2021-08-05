@@ -119,10 +119,10 @@ const Homepage = () => {
     ) {
       console.warn("redirect attempt..");
       if (typeof window !== "undefined") {
-        console.warn("window present");
-        // router.replace(router.nextRouter.asPath, router.nextRouter.asPath, {
-        //   shallow: false,
-        // });
+        console.warn("window present:", window.location.pathname);
+        router.replace(router.nextRouter.asPath, router.nextRouter.asPath, {
+          shallow: false,
+        });
       }
     }
   }, [isInit, router]);
