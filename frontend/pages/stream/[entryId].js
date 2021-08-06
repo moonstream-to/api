@@ -53,7 +53,6 @@ const Entry = () => {
     isError,
     error,
   } = useTxInfo({ tx: ui.currentTransaction });
-  setInterval(() => console.log(entry, isFetchedAfterMount, isLoading, isError, error), 100)
   if (!isFetching) {
     return callReroute();
   }
