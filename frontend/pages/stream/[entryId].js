@@ -49,11 +49,12 @@ const Entry = () => {
     data: entry,
     isFetchedAfterMount,
     isLoading,
+    isFetching, //If transaction.tx is undefined, will not fetch
     isError,
     error,
   } = useTxInfo({ tx: ui.currentTransaction });
-
-  if (isError) {
+  setInterval(() => console.log(entry, isFetchedAfterMount, isLoading, isError, error), 100)
+  if (!isFetching) {
     return callReroute();
   }
   if (isError && error.response.status === 404) return <FourOFour />;

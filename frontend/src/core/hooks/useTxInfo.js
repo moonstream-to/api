@@ -10,13 +10,13 @@ const useTxInfo = (transaction) => {
     return response.data;
   };
   const { data, isLoading, isFetchedAfterMount, refetch, isError, error } =
-    useQuery(["txinfo", transaction.tx.hash], getTxInfo, {
+    useQuery(["txinfo", (transaction.tx && transaction.tx.hash)], getTxInfo, {
       ...queryCacheProps,
       enabled: !!transaction.tx,
       onError: (error) => toast(error, "error"),
     });
-
-  return { data, isFetchedAfterMount, isLoading, refetch, isError, error };
+  const isFetching = !!transaction.tx;
+  return { data, isFetchedAfterMount, isLoading, refetch, isFetching, isError, error };
 };
 
 export default useTxInfo;
