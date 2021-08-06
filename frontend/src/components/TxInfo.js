@@ -58,7 +58,6 @@ const TxInfo = (props) => {
       <StatGroup>
         <Stat>
           <StatLabel>Value</StatLabel>
-          <StatNumber>{transaction.tx.value} wei</StatNumber>
           <StatNumber>{toEth(transaction.tx.value)} eth</StatNumber>
           <StatHelpText>amount of ETH to transfer</StatHelpText>
         </Stat>
@@ -70,7 +69,7 @@ const TxInfo = (props) => {
         </Stat>
         <Stat>
           <StatLabel>Gas price</StatLabel>
-          <StatNumber>{transaction.tx.gasPrice} wei</StatNumber>
+          <StatNumber>{toEth(transaction.tx.gasPrice)} eth</StatNumber>
           <StatHelpText>the fee the sender pays per unit of gas</StatHelpText>
         </Stat>
       </StatGroup>
