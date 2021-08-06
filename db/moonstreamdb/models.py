@@ -1,4 +1,5 @@
-import sqlalchemy
+import uuid
+
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import (
     BigInteger,
@@ -11,6 +12,7 @@ from sqlalchemy import (
     Text,
     VARCHAR,
 )
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import expression
 from sqlalchemy.ext.compiler import compiles
 
@@ -100,17 +102,64 @@ class EthereumTransaction(Base):  # type: ignore
     )
 
 
-class EthereumSmartContract(Base):  # type: ignore
-    __tablename__ = "ethereum_smart_contracts"
+class EthereumAddress(Base):  # type: ignore
+    __tablename__ = "ethereum_addresses"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        unique=True,
+        nullable=False,
+    )
     transaction_hash = Column(
         VARCHAR(256),
         ForeignKey("ethereum_transactions.hash", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
         index=True,
     )
     address = Column(VARCHAR(256), nullable=False, index=True)
+    created_at = Column(
+        DateTime(timezone=True), server_default=utcnow(), nullable=False
+    )
+
+
+class EthereumLabel(Base):  # type: ignore
+    """
+    {
+        label: ERC20,
+        metadata: {
+            name: 123,
+            symbol: qwe
+        }
+    }
+
+    {
+        label: Exchange
+        metadata: {}
+    }
+    """
+
+    __tablename__ = "ethereum_labels"
+
+    id = Column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        unique=True,
+        nullable=False,
+    )
+    label = Column(VARCHAR(256), nullable=False, index=True)
+    address = Column(
+        Integer,
+        ForeignKey("ethereum_addresses.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    metadata = Column(JSONB, nullable=True)
+    created_at = Column(
+        DateTime(timezone=True), server_default=utcnow(), nullable=False
+    )
 
 
 class EthereumPendingTransaction(Base):  # type: ignore

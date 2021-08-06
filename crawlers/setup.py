@@ -40,6 +40,10 @@ setup(
     ],
     extras_require={"dev": ["black", "mypy", "types-requests"]},
     entry_points={
-        "console_scripts": ["moonstreamcrawlers=moonstreamcrawlers.cli:main"]
+        "console_scripts": [
+            "ethcrawler=moonstreamcrawlers.ethcrawler:main",
+            "esd=moonstreamcrawlers.esd:main",
+            "identity=moonstreamcrawlers.identity:main"
+        ]
     },
 )
