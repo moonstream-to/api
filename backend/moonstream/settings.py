@@ -39,3 +39,5 @@ DOCS_PATHS = {}
 for path in MOONSTREAM_OPENAPI_LIST:
     DOCS_PATHS[f"/{path}/{DOCS_TARGET_PATH}"] = "GET"
     DOCS_PATHS[f"/{path}/{DOCS_TARGET_PATH}/openapi.json"] = "GET"
+
+DEFAULT_PAGE_SIZE = 10

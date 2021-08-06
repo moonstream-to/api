@@ -1,6 +1,7 @@
 import { useInfiniteQuery } from "react-query";
 import { queryCacheProps } from "./hookCommon";
 import { SubscriptionsService } from "../services";
+import moment from "moment";
 
 const useJournalEntries = ({
   refreshRate,
@@ -9,31 +10,29 @@ const useJournalEntries = ({
   searchQuery,
   enabled,
 }) => {
-  const limit = pageSize ? pageSize : 25;
+  //const limit = pageSize ? pageSize : 25;
 
   const getStream =
     (searchTerm) =>
-    async ({ pageParam = 0 }) => {
-      if (!pageParam) {
-        pageParam = 0;
-      }
+    async ({ pageParam = { start_time: 0, end_time: 0 } }) => {
+      console.log("pageParam", pageParam);
 
       const response = await SubscriptionsService.getStream({
-        searchTerm,
-        isContent,
-        limit,
-        offset: pageParam,
+        searchTerm: searchTerm,
+        start_time: pageParam.start_time,
+        end_time: pageParam.end_time,
       });
+
       const newEntryList = response.data.stream.map((entry) => ({
         ...entry,
       }));
+
+      console.log("response.data", response.data);
       return {
         data: [...newEntryList],
         pageParams: {
-          pageParam: pageParam + 1,
-          next_offset: response.data.next_offset,
-          total_results: response.data.total_results,
-          offset: response.data.offset,
+          start_time: response.data.start_time,
+          end_time: response.data.end_time,
         },
       };
     };
@@ -42,6 +41,9 @@ const useJournalEntries = ({
     data: EntriesPages,
     isFetchingMore,
     isLoading,
+    fetchNextPage,
+    fetchPreviousPage,
+    hasNextPage,
     canFetchMore,
     fetchMore,
     refetch,
@@ -49,7 +51,14 @@ const useJournalEntries = ({
     refetchInterval: refreshRate,
     ...queryCacheProps,
     getNextPageParam: (lastGroup) => {
-      return lastGroup.next_offset === null ? false : lastGroup.next_offset;
+      console.log("lastGroup", lastGroup);
+      console.log("canFetchMore", canFetchMore);
+      console.log("fetchMore", fetchMore);
+      console.log("fetchNextPage", fetchNextPage);
+      console.log("fetchPreviousPage", fetchPreviousPage);
+      console.log("hasNextPage", hasNextPage);
+
+      return 1;
     },
     onSuccess: () => {},
     enabled: !!enabled,
