@@ -64,7 +64,7 @@ const TxInfo = (props) => {
         <Stat>
           <StatLabel>Gas</StatLabel>
           <StatNumber>{transaction.tx.gas}</StatNumber>
-          <StatHelpText>gas limit for transaction</StatHelpText>
+          <StatHelpText>gas unit used for transaction</StatHelpText>
         </Stat>
         <Stat>
           <StatLabel>Gas price</StatLabel>

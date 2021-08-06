@@ -88,7 +88,7 @@ const Entry = () => {
             fontSize="1.5rem"
             textAlign="left"
           >
-            {entry && entry.hash}
+            {entry && entry.tx.hash}
           </Heading>
         </HStack>
       </Skeleton>
