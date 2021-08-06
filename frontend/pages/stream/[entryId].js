@@ -49,11 +49,11 @@ const Entry = () => {
     data: entry,
     isFetchedAfterMount,
     isLoading,
+    isFetching, //If transaction.tx is undefined, will not fetch
     isError,
     error,
   } = useTxInfo({ tx: ui.currentTransaction });
-
-  if (isError) {
+  if (!isFetching) {
     return callReroute();
   }
   if (isError && error.response.status === 404) return <FourOFour />;
@@ -88,7 +88,7 @@ const Entry = () => {
             fontSize="1.5rem"
             textAlign="left"
           >
-            {entry && entry.hash}
+            {entry && entry.tx.hash}
           </Heading>
         </HStack>
       </Skeleton>
