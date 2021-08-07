@@ -1,87 +1,7 @@
-import { useInfiniteQuery } from "react-query";
+import { useState } from "react";
+
 import { queryCacheProps } from "./hookCommon";
 import { SubscriptionsService } from "../services";
-import moment from "moment";
-
-// const useJournalEntries = ({
-//   refreshRate,
-//   isContent,
-//   pageSize,
-//   searchQuery,
-//   enabled,
-// }) => {
-//   //const limit = pageSize ? pageSize : 25;
-
-//   const getStream =
-//     (searchTerm) =>
-//     async ({
-//       pageParam = {
-//         start_time: moment().unix(),
-//       },
-//     }) => {
-//       console.log("pageParam", pageParam);
-//       console.log("moment().unix()", moment().unix());
-
-//       const response = await SubscriptionsService.getStream({
-//         searchTerm: searchTerm,
-//         start_time: pageParam.start_time,
-//         end_time: pageParam.start_time - 1000,
-//       });
-
-//       const newEntryList = response.data.stream.map((entry) => ({
-//         ...entry,
-//       }));
-
-//       console.log("response.data", response.data);
-//       return {
-//         data: [...newEntryList],
-//         pageParams: {
-//           next_future_timestamp: response.data.next_future_timestamp,
-//           next_past_transaction_timestamp:
-//             response.data.next_past_transaction_timestamp,
-//           start_time: response.data.start_time,
-//           end_time: response.data.end_time,
-//         },
-//       };
-//     };
-
-//   const {
-//     data: EntriesPages,
-//     isFetchingMore,
-//     isLoading,
-//     hasPreviousPage,
-//     fetchPreviousPage,
-//     hasNextPage,
-//     fetchNextPage,
-//     refetch,
-//   } = useInfiniteQuery(["stream", { searchQuery }], getStream(searchQuery), {
-//     refetchInterval: refreshRate,
-//     ...queryCacheProps,
-//     getNextPageParam: (lastGroup) => {
-//       return {
-//         start_time: moment().unix(),
-//       };
-//     },
-//     getPreviousPageParam: (lastGroup) => {
-//       return {
-//         start_time: lastGroup.pageParams.next_past_transaction_timestamp,
-//       };
-//     },
-//     onSuccess: () => {},
-//     enabled: !!enabled,
-//   });
-
-//   return {
-//     EntriesPages,
-//     hasPreviousPage,
-//     fetchPreviousPage,
-//     hasNextPage,
-//     fetchNextPage,
-//     isFetchingMore,
-//     refetch,
-//     isLoading,
-//   };
-// };
 
 const useJournalEntries = ({
   refreshRate,
@@ -92,11 +12,71 @@ const useJournalEntries = ({
   include_end,
   enabled,
 }) => {
+  const [streamBoundary, setStreamBoundary] = useState({
+    start_time: null,
+    end_time: null,
+    include_start: false,
+    include_end: false,
+    next_event_time: null,
+    previous_event_time: null,
+  });
+
+  const updateStreamBoundaryWith = (pageBoundary) => {
+    if (!pageBoundary) {
+      return streamBoundary;
+    }
+    let newBoundary = { ...streamBoundary };
+    // We do not check if there is no overlap between the streamBoundary and the pageBoundary - we assume
+    // that there *is* an overlap and even if there isn't the stream should gracefully respect the
+    // pageBoundary because that was the most recent request the user made.
+    // TODO(zomglings): If there is no overlap in boundaries, replace streamBoundary with pageBoundary.
+    // No overlap logic:
+    // if (<no overlap>) {
+    //   setStreamBoundary(pageBoundary)
+    //   return pageBoundary
+    // }
+    if (
+      !newBoundary.start_time ||
+      (pageBoundary.start_time &&
+        pageBoundary.start_time <= newBoundary.start_time)
+    ) {
+      newBoundary.start_time = pageBoundary.start_time;
+      newBoundary.include_start =
+        newBoundary.include_start || pageBoundary.include_start;
+    }
+    if (
+      !newBoundary.end_time ||
+      (pageBoundary.end_time && pageBoundary.end_time >= newBoundary.end_time)
+    ) {
+      newBoundary.end_time = pageBoundary.end_time;
+      newBoundary.include_end =
+        newBoundary.include_end || pageBoundary.include_end;
+    }
+
+    if (
+      !newBoundary.next_event_time ||
+      (pageBoundary.next_event_time &&
+        pageBoundary.next_event_time > newBoundary.next_event_time)
+    ) {
+      newBoundary.next_event_time = pageBoundary.next_event_time;
+    }
+
+    if (
+      !newBoundary.previous_event_time ||
+      (pageBoundary.previous_event_time &&
+        pageBoundary.previous_event_time > newBoundary.previous_event_time)
+    ) {
+      newBoundary.previous_event_time = pageBoundary.previous_event_time;
+    }
+
+    setStreamBoundary(newBoundary);
+    return newBoundary;
+  };
+
   // set our get method
   const getStream =
     (searchTerm, start_time, end_time, include_start, include_end) =>
     async () => {
-
       // Request with params to streams
       const response = await SubscriptionsService.getStream({
         searchTerm: searchTerm,
@@ -113,6 +93,7 @@ const useJournalEntries = ({
 
       return {
         data: [...newEventsList],
+        // TODO(andrey): Get rid of this.
         pageParams: {
           // timeinterval
           start_time: response.data.start_time, // from old
@@ -129,30 +110,26 @@ const useJournalEntries = ({
       };
     };
 
+  const { data, isLoading, refetch } = useQuery(
+    ["stream", { searchQuery }],
+    getStream(searchQuery, start_time, end_time, include_start, include_end),
+    {
+      refetchInterval: refreshRate,
+      ...queryCacheProps,
+      onSuccess: (response) => {
+        // TODO(andrey): Response should send page parameters inside "boundary" object (can be null).
+        updateStreamBoundaryWith(response.data.boundary);
+      },
+      enabled: !!enabled,
+    }
+  );
 
-    const {
-
-        data,
-        isLoading, 
-        refetch,
-
-        } = useQuery(["stream", { searchQuery }], getStream(searchQuery, 
-                                                            start_time,
-                                                            end_time,
-                                                            include_start,
-                                                            include_end ),
-        {
-          refetchInterval: refreshRate,
-          ...queryCacheProps,
-          onSuccess: () => {},
-          enabled: !!enabled,
-        });
-      
-        return {
-        EntriesPages: data,
-        isLoading, 
-        refetch,
-        };
-      };
+  return {
+    EntriesPages: data,
+    isLoading,
+    refetch,
+    streamBoundary,
+    updateStreamBoundaryWith,
+  };
 };
 export default useJournalEntries;
