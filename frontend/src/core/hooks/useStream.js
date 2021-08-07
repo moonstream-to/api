@@ -3,75 +3,156 @@ import { queryCacheProps } from "./hookCommon";
 import { SubscriptionsService } from "../services";
 import moment from "moment";
 
+// const useJournalEntries = ({
+//   refreshRate,
+//   isContent,
+//   pageSize,
+//   searchQuery,
+//   enabled,
+// }) => {
+//   //const limit = pageSize ? pageSize : 25;
+
+//   const getStream =
+//     (searchTerm) =>
+//     async ({
+//       pageParam = {
+//         start_time: moment().unix(),
+//       },
+//     }) => {
+//       console.log("pageParam", pageParam);
+//       console.log("moment().unix()", moment().unix());
+
+//       const response = await SubscriptionsService.getStream({
+//         searchTerm: searchTerm,
+//         start_time: pageParam.start_time,
+//         end_time: pageParam.start_time - 1000,
+//       });
+
+//       const newEntryList = response.data.stream.map((entry) => ({
+//         ...entry,
+//       }));
+
+//       console.log("response.data", response.data);
+//       return {
+//         data: [...newEntryList],
+//         pageParams: {
+//           next_future_timestamp: response.data.next_future_timestamp,
+//           next_past_transaction_timestamp:
+//             response.data.next_past_transaction_timestamp,
+//           start_time: response.data.start_time,
+//           end_time: response.data.end_time,
+//         },
+//       };
+//     };
+
+//   const {
+//     data: EntriesPages,
+//     isFetchingMore,
+//     isLoading,
+//     hasPreviousPage,
+//     fetchPreviousPage,
+//     hasNextPage,
+//     fetchNextPage,
+//     refetch,
+//   } = useInfiniteQuery(["stream", { searchQuery }], getStream(searchQuery), {
+//     refetchInterval: refreshRate,
+//     ...queryCacheProps,
+//     getNextPageParam: (lastGroup) => {
+//       return {
+//         start_time: moment().unix(),
+//       };
+//     },
+//     getPreviousPageParam: (lastGroup) => {
+//       return {
+//         start_time: lastGroup.pageParams.next_past_transaction_timestamp,
+//       };
+//     },
+//     onSuccess: () => {},
+//     enabled: !!enabled,
+//   });
+
+//   return {
+//     EntriesPages,
+//     hasPreviousPage,
+//     fetchPreviousPage,
+//     hasNextPage,
+//     fetchNextPage,
+//     isFetchingMore,
+//     refetch,
+//     isLoading,
+//   };
+// };
+
 const useJournalEntries = ({
   refreshRate,
-  isContent,
-  pageSize,
   searchQuery,
+  start_time,
+  end_time,
+  include_start,
+  include_end,
   enabled,
 }) => {
-  //const limit = pageSize ? pageSize : 25;
-
+  // set our get method
   const getStream =
-    (searchTerm) =>
-    async ({ pageParam = { start_time: 0, end_time: 0 } }) => {
-      console.log("pageParam", pageParam);
+    (searchTerm, start_time, end_time, include_start, include_end) =>
+    async () => {
 
+      // Request with params to streams
       const response = await SubscriptionsService.getStream({
         searchTerm: searchTerm,
-        start_time: pageParam.start_time,
-        end_time: pageParam.end_time,
+        start_time: start_time,
+        end_time: end_time,
+        include_start: include_start,
+        include_end: include_end,
       });
 
-      const newEntryList = response.data.stream.map((entry) => ({
-        ...entry,
+      // new events from stream
+      const newEventsList = response.data.stream.map((event) => ({
+        ...event,
       }));
 
-      console.log("response.data", response.data);
       return {
-        data: [...newEntryList],
+        data: [...newEventsList],
         pageParams: {
-          start_time: response.data.start_time,
-          end_time: response.data.end_time,
+          // timeinterval
+          start_time: response.data.start_time, // from old
+          end_time: response.data.end_time, // to new
+
+          // closes available transactions
+          next_event_time: response.data.next_event_time,
+          previous_event_time: response.data.previous_event_time,
+
+          // boundaries
+          include_start: response.data.include_start,
+          include_end: response.data.include_end,
         },
       };
     };
 
-  const {
-    data: EntriesPages,
-    isFetchingMore,
-    isLoading,
-    fetchNextPage,
-    fetchPreviousPage,
-    hasNextPage,
-    canFetchMore,
-    fetchMore,
-    refetch,
-  } = useInfiniteQuery(["stream", { searchQuery }], getStream(searchQuery), {
-    refetchInterval: refreshRate,
-    ...queryCacheProps,
-    getNextPageParam: (lastGroup) => {
-      console.log("lastGroup", lastGroup);
-      console.log("canFetchMore", canFetchMore);
-      console.log("fetchMore", fetchMore);
-      console.log("fetchNextPage", fetchNextPage);
-      console.log("fetchPreviousPage", fetchPreviousPage);
-      console.log("hasNextPage", hasNextPage);
 
-      return 1;
-    },
-    onSuccess: () => {},
-    enabled: !!enabled,
-  });
+    const {
 
-  return {
-    EntriesPages,
-    fetchMore,
-    isFetchingMore,
-    canFetchMore,
-    refetch,
-    isLoading,
-  };
+        data,
+        isLoading, 
+        refetch,
+
+        } = useQuery(["stream", { searchQuery }], getStream(searchQuery, 
+                                                            start_time,
+                                                            end_time,
+                                                            include_start,
+                                                            include_end ),
+        {
+          refetchInterval: refreshRate,
+          ...queryCacheProps,
+          onSuccess: () => {},
+          enabled: !!enabled,
+        });
+      
+        return {
+        EntriesPages: data,
+        isLoading, 
+        refetch,
+        };
+      };
 };
-
 export default useJournalEntries;

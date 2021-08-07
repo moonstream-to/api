@@ -14,7 +14,7 @@ from sqlalchemy.sql.expression import desc, false
 
 from . import data
 
-from .settings import DEFAULT_PAGE_SIZE
+from .settings import DEFAULT_STREAM_TIMEINTERVAL
 
 
 logger = logging.getLogger(__name__)
@@ -107,10 +107,64 @@ async def get_transaction_in_blocks(
             EthereumBlock.timestamp <= start_time
         )
 
+        print(start_time)
+
+        future_last_transaction = (
+            db_session.query(
+                EthereumTransaction.hash,
+                EthereumTransaction.block_number,
+                EthereumTransaction.from_address,
+                EthereumTransaction.to_address,
+                EthereumTransaction.gas,
+                EthereumTransaction.gas_price,
+                EthereumTransaction.input,
+                EthereumTransaction.nonce,
+                EthereumTransaction.value,
+                EthereumBlock.timestamp.label("timestamp"),
+            )
+            .join(EthereumBlock)
+            .filter(filters)
+            .filter(EthereumBlock.timestamp > start_time)
+            .order_by(text("timestamp desc"))
+            .limit(1)
+        ).one_or_none()
+        start_time = False
+
+        if future_last_transaction:
+            next_future_timestamp = future_last_transaction[-1]
+        else:
+            next_future_timestamp = None
+
     if end_time:
         ethereum_transactions = ethereum_transactions.filter(
             EthereumBlock.timestamp >= end_time
         )
+        print("end_time", end_time)
+        next_last_transaction = (
+            db_session.query(
+                EthereumTransaction.hash,
+                EthereumTransaction.block_number,
+                EthereumTransaction.from_address,
+                EthereumTransaction.to_address,
+                EthereumTransaction.gas,
+                EthereumTransaction.gas_price,
+                EthereumTransaction.input,
+                EthereumTransaction.nonce,
+                EthereumTransaction.value,
+                EthereumBlock.timestamp.label("timestamp"),
+            )
+            .join(EthereumBlock)
+            .filter(filters)
+            .filter(1628263498 > EthereumBlock.timestamp)
+            .order_by(text("timestamp desc"))
+            .limit(1)
+        ).one_or_none()
+        start_time = False
+        print("next_last_transaction_timestamp", next_last_transaction)
+        if next_last_transaction:
+            next_last_transaction_timestamp = next_last_transaction[-1]
+        else:
+            next_last_transaction_timestamp = None
 
     print(f"count: {ethereum_transactions.count()}")
 
@@ -166,7 +220,12 @@ async def get_transaction_in_blocks(
             )
         )
 
-    return response, start_time, end_time
+    return (
+        response,
+        end_time,
+        next_future_timestamp,
+        next_last_transaction_timestamp,
+    )
 
 
 def database_search_query(q: str, allowed_addresses: List[str]):

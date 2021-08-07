@@ -131,6 +131,8 @@ class EthereumTransactionResponse(BaseModel):
     stream: List[EthereumTransactionItem]
     start_time: int
     end_time: int
+    next_future_timestamp: Optional[int] = None
+    next_past_transaction_timestamp: Optional[int] = None
 
 
 class TxinfoEthereumBlockchainRequest(BaseModel):

@@ -92,8 +92,9 @@ async def search_transactions(
         print("address_to_subscriptions")
         (
             transactions_in_blocks,
-            first_item_time,
-            last_item_time,
+            end_time,
+            next_future_timestamp,
+            next_last_transaction_timestamp,
         ) = await actions.get_transaction_in_blocks(
             db_session=db_session,
             query=q,
@@ -104,6 +105,11 @@ async def search_transactions(
 
         transactions.extend(transactions_in_blocks)
 
+
     return data.EthereumTransactionResponse(
-        stream=transactions, start_time=first_item_time, end_time=last_item_time
+        stream=transactions,
+        next_future_timestamp=next_future_timestamp,
+        next_past_transaction_timestamp=next_last_transaction_timestamp,
+        end_time=end_time,
+        start_time=start_time,
     )

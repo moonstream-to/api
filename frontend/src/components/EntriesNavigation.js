@@ -78,22 +78,40 @@ const EntriesNavigation = () => {
 
   const loadMoreButtonRef = useRef(null);
 
-  const { fetchMore, isFetchingMore, canFetchMore, EntriesPages, isLoading } =
-    useStream({
-      pageSize,
-      refreshRate: 1500,
-      searchQuery: ui.searchTerm,
-      enabled: isStreamOn,
-      isContent: false,
-    });
+  // const {
+  //   fetchPreviousPage,
+  //   isFetchingMore,
+  //   hasPreviousPage,
+  //   EntriesPages,
+  //   isLoading,
+  //   hasNextPage,
+  //   fetchNextPage,
+  // } = useStream({
+  //   pageSize,
+  //   refreshRate: 1500,
+  //   searchQuery: ui.searchTerm,
+  //   enabled: isStreamOn,
+  //   isContent: false,
+  // });
+
+  const { EntriesPages, isLoading, refetch } = useStream({
+    refreshRate: 1500,
+    searchQuery: ui.searchTerm,
+    start_time,
+    end_time,
+    include_start,
+    include_end,
+    enabled: isStreamOn,
+    isContent: false,
+  });
 
   const handleScroll = ({ currentTarget }) => {
     if (
       currentTarget.scrollTop + currentTarget.clientHeight >=
       0.5 * currentTarget.scrollHeight
     ) {
-      if (!isFetchingMore && canFetchMore) {
-        fetchMore();
+      if (!isLoading && hasPreviousPage) {
+        fetchPreviousPage();
       }
     }
   };
@@ -439,10 +457,10 @@ const EntriesNavigation = () => {
                   filterConstants={{ DIRECTIONS, CONDITION, FILTER_TYPES }}
                 />
               ))}
-              {canFetchMore && !isFetchingMore && (
+              {hasPreviousPage && !isFetchingMore && (
                 <Center>
                   <Button
-                    onClick={() => fetchMore()}
+                    onClick={() => fetchPreviousPage()}
                     variant="outline"
                     colorScheme="suggested"
                   >
@@ -450,7 +468,7 @@ const EntriesNavigation = () => {
                   </Button>
                 </Center>
               )}
-              {canFetchMore && isFetchingMore && (
+              {hasPreviousPage && isFetchingMore && (
                 <Center>
                   <Spinner
                     hidden={!isFetchingMore}
