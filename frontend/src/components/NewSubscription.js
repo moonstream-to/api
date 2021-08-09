@@ -118,7 +118,7 @@ const NewSubscription = ({ isFreeOption, onClose }) => {
               onChange={() => null}
             ></Input>
             <FormErrorMessage color="unsafe.400" pl="1">
-              {errors.subscription_type_ && errors.subscription_type_.message}
+              {errors.subscription_type && errors.subscription_type.message}
             </FormErrorMessage>
           </FormControl>
         </Stack>
