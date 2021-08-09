@@ -328,7 +328,7 @@ def trending(
         )
         transactions_out = transactions_out_query.all()
         results["transactions_out"] = [
-            {"address": row[0], "metric": row[1]} for row in transactions_out
+            {"address": row[0], "statistic": row[1]} for row in transactions_out
         ]
 
         transactions_in_query = make_query(
@@ -339,7 +339,7 @@ def trending(
         )
         transactions_in = transactions_in_query.all()
         results["transactions_in"] = [
-            {"address": row[0], "metric": row[1]} for row in transactions_in
+            {"address": row[0], "statistic": row[1]} for row in transactions_in
         ]
 
         value_out_query = make_query(
@@ -350,7 +350,7 @@ def trending(
         )
         value_out = value_out_query.all()
         results["value_out"] = [
-            {"address": row[0], "metric": float(row[1])} for row in value_out
+            {"address": row[0], "statistic": int(row[1])} for row in value_out
         ]
 
         value_in_query = make_query(
@@ -361,7 +361,7 @@ def trending(
         )
         value_in = value_in_query.all()
         results["value_in"] = [
-            {"address": row[0], "metric": float(row[1])} for row in value_in
+            {"address": row[0], "statistic": int(row[1])} for row in value_in
         ]
 
         pass
