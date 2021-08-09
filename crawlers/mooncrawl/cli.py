@@ -16,6 +16,8 @@ from .ethereum import (
     check_missing_blocks,
     get_latest_blocks,
     process_contract_deployments,
+    DateRange,
+    trending,
 )
 from .settings import MOONSTREAM_CRAWL_WORKERS
 
@@ -167,8 +169,15 @@ def ethcrawler_contracts_update_handler(args: argparse.Namespace) -> None:
 
 
 def ethcrawler_trending_handler(args: argparse.Namespace) -> None:
-    with args.outfile:
-        print(args)
+    date_range = DateRange(
+        start_time=args.start,
+        end_time=args.end,
+        include_start=args.include_start,
+        include_end=args.include_end,
+    )
+    results = trending(date_range)
+    with args.outfile as ofp:
+        json.dump(results, ofp)
 
 
 def main() -> None:
