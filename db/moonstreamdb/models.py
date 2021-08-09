@@ -11,6 +11,7 @@ from sqlalchemy import (
     Numeric,
     Text,
     VARCHAR,
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import expression
@@ -123,18 +124,19 @@ class EthereumLabel(Base):  # type: ignore
     Example of label_data:
         {
             "label": "ERC20",
-            "metadata": {
+            "label_data": {
                 "name": "Uniswap",
                 "symbol": "UNI"
             }
         },
         {
             "label": "Exchange"
-            "metadata": {...}
+            "label_data": {...}
         }
     """
 
     __tablename__ = "ethereum_labels"
+    __table_args__ = (UniqueConstraint("label", "address_id"),)
 
     id = Column(
         UUID(as_uuid=True),
@@ -144,7 +146,7 @@ class EthereumLabel(Base):  # type: ignore
         nullable=False,
     )
     label = Column(VARCHAR(256), nullable=False, index=True)
-    address = Column(
+    address_id = Column(
         Integer,
         ForeignKey("ethereum_addresses.id", ondelete="CASCADE"),
         nullable=False,

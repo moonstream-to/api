@@ -1,11 +1,47 @@
 import argparse
+import json
 
 from .db import yield_db_session_ctx
-from .models import EthereumLabel
+from .models import EthereumAddress, EthereumLabel
 
 
 def labels_add_handler(args: argparse.Namespace) -> None:
-    pass
+    """
+    Add new label for ethereum address.
+    """
+    try:
+        label_data = json.loads(args.data)
+    except ValueError as err:
+        print(str(err))
+        raise ValueError("Unable to parse data as dictionary")
+
+    with yield_db_session_ctx() as db_session:
+        address = (
+            db_session.query(EthereumAddress)
+            .filter(EthereumAddress.address == str(args.address))
+            .one_or_none()
+        )
+        if address is None:
+            print(f"There is no {args.address} address")
+            return
+
+        label = EthereumLabel(
+            label=args.label, address_id=address.id, label_data=label_data
+        )
+        db_session.add(label)
+        db_session.commit()
+
+        print(
+            json.dumps(
+                {
+                    "id": str(label.id),
+                    "label": str(label.label),
+                    "address_id": str(label.address_id),
+                    "label_data": str(label.label_data),
+                    "created_at": str(label.created_at),
+                }
+            )
+        )
 
 
 def labels_list_handler(args: argparse.Namespace) -> None:
@@ -13,9 +49,25 @@ def labels_list_handler(args: argparse.Namespace) -> None:
     Return list of all labels.
     """
     with yield_db_session_ctx() as db_session:
-        labels = db_session.query(EthereumLabel).all()
+        query = db_session.query(EthereumLabel).all()
+        if str(args.address) is not None:
+            query = query.filter(EthereumAddress.address == str(args.address))
+        labels = query.all()
 
-    print(labels.json())
+    print(
+        json.dumps(
+            [
+                {
+                    "id": str(label.id),
+                    "label": str(label.label),
+                    "address_id": str(label.address_id),
+                    "label_data": str(label.label_data),
+                    "created_at": str(label.created_at),
+                }
+                for label in labels
+            ]
+        )
+    )
 
 
 def main():
@@ -44,10 +96,20 @@ def main():
         required=True,
         help="New label name",
     )
+    parser_labels_add.add_argument(
+        "-d",
+        "--data",
+        help="New label data",
+    )
     parser_labels_add.set_defaults(func=labels_add_handler)
 
     parser_labels_list = subcommands_labels.add_parser(
         "list", description="List all meta labels command"
+    )
+    parser_labels_list.add_argument(
+        "-a",
+        "--address",
+        help="Filter address",
     )
     parser_labels_list.set_defaults(func=labels_list_handler)
 
