@@ -8,13 +8,18 @@ import sys
 import time
 from typing import Iterator, List
 
+import dateutil.parser
+
 from .ethereum import (
     crawl_blocks_executor,
     crawl_blocks,
     check_missing_blocks,
     get_latest_blocks,
     process_contract_deployments,
+    DateRange,
+    trending,
 )
+from .publish import publish_json
 from .settings import MOONSTREAM_CRAWL_WORKERS
 
 
@@ -164,6 +169,23 @@ def ethcrawler_contracts_update_handler(args: argparse.Namespace) -> None:
         json.dump(results, args.outfile)
 
 
+def ethcrawler_trending_handler(args: argparse.Namespace) -> None:
+    date_range = DateRange(
+        start_time=args.start,
+        end_time=args.end,
+        include_start=args.include_start,
+        include_end=args.include_end,
+    )
+    results = trending(date_range)
+    if args.humbug:
+        opening_bracket = "[" if args.include_start else "("
+        closing_bracket = "]" if args.include_end else ")"
+        title = f"Ethereum trending addresses: {opening_bracket}{args.start}, {args.end}{closing_bracket}"
+        publish_json("ethereum_trending", args.humbug, title, results)
+    with args.outfile as ofp:
+        json.dump(results, ofp)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Moonstream crawlers CLI")
     parser.set_defaults(func=lambda _: parser.print_help())
@@ -305,6 +327,47 @@ def main() -> None:
     parser_ethcrawler_contracts_update.set_defaults(
         func=ethcrawler_contracts_update_handler
     )
+
+    parser_ethcrawler_trending = subcommands.add_parser(
+        "trending", description="Trending addresses on the Ethereum blockchain"
+    )
+    parser_ethcrawler_trending.add_argument(
+        "-s",
+        "--start",
+        type=dateutil.parser.parse,
+        required=True,
+        help="Start time for window to calculate trending addresses in",
+    )
+    parser_ethcrawler_trending.add_argument(
+        "--include-start",
+        action="store_true",
+        help="Set this flag if range should include start time",
+    )
+    parser_ethcrawler_trending.add_argument(
+        "-e",
+        "--end",
+        type=dateutil.parser.parse,
+        required=True,
+        help="End time for window to calculate trending addresses in",
+    )
+    parser_ethcrawler_trending.add_argument(
+        "--include-end",
+        action="store_true",
+        help="Set this flag if range should include end time",
+    )
+    parser_ethcrawler_trending.add_argument(
+        "--humbug",
+        default=None,
+        help="If you would like to write this data to a Moonstream journal, please provide a Humbug token for that here.",
+    )
+    parser_ethcrawler_trending.add_argument(
+        "-o",
+        "--outfile",
+        type=argparse.FileType("w"),
+        default=sys.stdout,
+        help="Optional file to write output to. By default, prints to stdout.",
+    )
+    parser_ethcrawler_trending.set_defaults(func=ethcrawler_trending_handler)
 
     args = parser.parse_args()
     args.func(args)
