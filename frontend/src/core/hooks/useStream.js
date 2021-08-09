@@ -32,15 +32,15 @@ const useJournalEntries = ({
 
       return {
         data: [...newEventsList],
-        boundaries: { ...response.data.boundaries },
+        boundaries: { ...response.data.boundaries, update: false },
       };
     };
 
   const { data, isLoading, refetch } = useQuery(
-    ["stream", { searchQuery }],
+    ["stream", searchQuery],
     getStream(searchQuery, start_time, end_time, include_start, include_end),
     {
-      refetchInterval: refreshRate,
+      //refetchInterval: refreshRate,
       ...queryCacheProps,
       onSuccess: (response) => {
         // response is object which return condition in getStream

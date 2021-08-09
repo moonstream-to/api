@@ -30,6 +30,7 @@ import {
   Tag,
   TagLabel,
   TagCloseButton,
+  Stack,
   Spacer,
   useBoolean,
 } from "@chakra-ui/react";
@@ -82,9 +83,10 @@ const EntriesNavigation = () => {
     start_time: null,
     end_time: null,
     include_start: false,
-    include_end: false,
+    include_end: true,
     next_event_time: null,
     previous_event_time: null,
+    update: false,
   });
 
   const updateStreamBoundaryWith = (pageBoundary) => {
@@ -105,71 +107,49 @@ const EntriesNavigation = () => {
     //   setStreamBoundary(pageBoundary)
     //   return pageBoundary
     // }
-    console.log("start_time");
-    console.log(
-      "pageBoundary.start_time <= newBoundary.start_time",
-      pageBoundary.start_time <= newBoundary.start_time
-    );
 
     if (
       !newBoundary.start_time ||
       (pageBoundary.start_time &&
-        pageBoundary.start_time <= newBoundary.start_time) ||
-      ((pageBoundary.start_time > streamBoundary.end_time ||
-        (pageBoundary.start_time == streamBoundary.end_time &&
-          !streamBoundary.include_end)) &&
-        pageBoundary.end_time > streamBoundary.end_time) ||
-      pageBoundary.end_time == 0 // meen go with server
+        pageBoundary.start_time <= newBoundary.start_time)
     ) {
       newBoundary.start_time = pageBoundary.start_time;
       newBoundary.include_start =
         newBoundary.include_start || pageBoundary.include_start;
     }
+    newBoundary.include_start =
+      newBoundary.include_start || pageBoundary.include_start;
 
     if (
       !newBoundary.end_time ||
-      (pageBoundary.end_time &&
-        pageBoundary.end_time >= newBoundary.end_time) ||
-      ((pageBoundary.end_time < streamBoundary.start_time ||
-        (pageBoundary.end_time == streamBoundary.start_time &&
-          !streamBoundary.include_start)) &&
-        pageBoundary.start_time < streamBoundary.start_time)
+      (pageBoundary.end_time && pageBoundary.end_time >= newBoundary.end_time)
     ) {
       newBoundary.end_time = pageBoundary.end_time;
       newBoundary.include_end =
         newBoundary.include_end || pageBoundary.include_end;
     }
-    newBoundary.next_event_time = pageBoundary.next_event_time;
-    newBoundary.previous_event_time = pageBoundary.previous_event_time;
 
-    // console.log(
-    //   "pageBoundary.next_event_time < newBoundary.next_event_time && pageBoundary.end_time <= streamBoundary.start_tim",
-    //   pageBoundary.next_event_time < newBoundary.next_event_time &&
-    //     pageBoundary.end_time <= streamBoundary.start_tim
-    // );
-    // if (
-    //   !newBoundary.next_event_time ||
-    //   pageBoundary.next_event_time == 0 ||
-    //   (pageBoundary.next_event_time &&
-    //     pageBoundary.next_event_time > newBoundary.next_event_time) ||
-    //   (pageBoundary.next_event_time < newBoundary.next_event_time &&
-    //     pageBoundary.end_time <= streamBoundary.start_time)
-    // ) {
-    //   newBoundary.next_event_time = pageBoundary.next_event_time;
-    // }
+    newBoundary.include_end =
+      newBoundary.include_end || pageBoundary.include_end;
 
-    // if (
-    //   !newBoundary.previous_event_time ||
-    //   pageBoundary.previous_event_time == 0 ||
-    //   (pageBoundary.previous_event_time &&
-    //     pageBoundary.previous_event_time < newBoundary.previous_event_time) ||
-    //   (pageBoundary.previous_event_time > newBoundary.previous_event_time &&
-    //     pageBoundary.start_time >= streamBoundary.end_time) ||
-    //   pageBoundary.end_time == 0
-    // ) {
-    //   newBoundary.previous_event_time = pageBoundary.previous_event_time;
-    // }
+    if (
+      !newBoundary.next_event_time ||
+      pageBoundary.next_event_time == 0 ||
+      (pageBoundary.next_event_time &&
+        pageBoundary.next_event_time > newBoundary.next_event_time)
+    ) {
+      newBoundary.next_event_time = pageBoundary.next_event_time;
+    }
 
+    if (
+      !newBoundary.previous_event_time ||
+      pageBoundary.previous_event_time == 0 ||
+      (pageBoundary.previous_event_time &&
+        pageBoundary.previous_event_time < newBoundary.previous_event_time)
+    ) {
+      newBoundary.previous_event_time = pageBoundary.previous_event_time;
+    }
+    newBoundary.update = pageBoundary.update;
     setStreamBoundary(newBoundary);
     return newBoundary;
   };
@@ -199,6 +179,14 @@ const EntriesNavigation = () => {
   //     }
   //   }
   // };
+
+  useEffect(() => {
+    if (EntriesPages && !isLoading && streamBoundary.update) {
+      console.log("streamBoundary.update", streamBoundary.update);
+      streamBoundary.update = false;
+      refetch();
+    }
+  }, [streamBoundary]);
 
   const setFilterProps = useCallback(
     (filterIdx, props) => {
@@ -531,23 +519,35 @@ const EntriesNavigation = () => {
               w="100%"
               //onScroll={(e) => handleScroll(e)}
             >
-              {streamBoundary.next_event_time &&
-              streamBoundary.end_time != 0 &&
-              !isLoading ? (
-                <Center>
+              <Stack direction="row" justifyContent="space-between">
+                <Button
+                  onClick={() => {
+                    setStreamBoundary({
+                      start_time: null,
+                      end_time: null,
+                      include_start: false,
+                      include_end: true,
+                      next_event_time: null,
+                      previous_event_time: null,
+                      update: true,
+                    });
+                  }}
+                  variant="outline"
+                  colorScheme="suggested"
+                >
+                  Refresh to newest
+                </Button>
+
+                {streamBoundary.next_event_time &&
+                streamBoundary.end_time != 0 &&
+                !isLoading ? (
                   <Button
                     onClick={() => {
-                      console.log("*********************");
-                      console.log("*********************");
-                      console.log("*********************");
-                      console.log("***       UP      ***");
-                      console.log("*********************");
-                      console.log("*********************");
                       updateStreamBoundaryWith({
-                        start_time: streamBoundary.end_time,
-                        end_time: streamBoundary.next_event_time,
+                        end_time: streamBoundary.next_event_time + 5 * 60,
                         include_start: false,
                         include_end: true,
+                        update: true,
                       });
                     }}
                     variant="outline"
@@ -555,10 +555,10 @@ const EntriesNavigation = () => {
                   >
                     Load latest transaction
                   </Button>
-                </Center>
-              ) : (
-                "" // some strange behaivior without else condition return 0 wich can see on frontend page
-              )}
+                ) : (
+                  "" // some strange behaivior without else condition return 0 wich can see on frontend page
+                )}
+              </Stack>
               {entries.map((entry, idx) => (
                 <StreamEntry
                   key={`entry-list-${idx}`}
@@ -573,27 +573,11 @@ const EntriesNavigation = () => {
                 <Center>
                   <Button
                     onClick={() => {
-                      console.log("updateStreamBoundaryWith");
-                      console.log("streamBoundary", streamBoundary);
-                      console.log(
-                        "streamBoundary.previous_event_time",
-                        streamBoundary.previous_event_time
-                      );
-                      console.log(
-                        "streamBoundary.start_time",
-                        streamBoundary.start_time
-                      );
-                      console.log("*********************");
-                      console.log("*********************");
-                      console.log("*********************");
-                      console.log("***      DOWN     ***");
-                      console.log("*********************");
-                      console.log("*********************");
                       updateStreamBoundaryWith({
-                        start_time: streamBoundary.previous_event_time,
-                        end_time: streamBoundary.start_time,
+                        start_time: streamBoundary.previous_event_time - 5 * 60,
                         include_start: false,
                         include_end: true,
+                        update: true,
                       });
 
                       //fetchPreviousPage();

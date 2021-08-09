@@ -86,14 +86,16 @@ async def get_transaction_in_blocks(
 
     # If not start_time and end_time not present
     # Get latest transaction
-    if boundaries.start_time == 0 and boundaries.end_time == 0:
+    if boundaries.end_time == 0:
         ethereum_transaction_start_point = (
             ethereum_transactions_in_subscriptions.order_by(
                 text("timestamp desc")
             ).limit(1)
         ).one_or_none()
-        boundaries.end_time = 0
-        boundaries.start_time = ethereum_transaction_start_point[-1]
+        boundaries.end_time = ethereum_transaction_start_point[-1]
+        boundaries.start_time = (
+            ethereum_transaction_start_point[-1] - DEFAULT_STREAM_TIMEINTERVAL
+        )
 
     if boundaries.start_time != 0 and boundaries.end_time != 0:
         if boundaries.start_time > boundaries.end_time:
@@ -102,8 +104,30 @@ async def get_transaction_in_blocks(
                 boundaries.start_time,
             )
 
-    if boundaries.start_time:
+    if boundaries.end_time:
         ethereum_transactions = ethereum_transactions_in_subscriptions.filter(
+            include_or_not_lower(
+                EthereumBlock.timestamp, boundaries.include_end, boundaries.end_time
+            )
+        )
+
+        next_transaction = (
+            ethereum_transactions_in_subscriptions.filter(
+                EthereumBlock.timestamp > boundaries.end_time
+            )
+            .order_by(text("timestamp ASC"))
+            .limit(1)
+        )
+
+        next_transaction = next_transaction.one_or_none()
+
+        if next_transaction:
+            boundaries.next_event_time = next_transaction[-1]
+        else:
+            boundaries.next_event_time = None
+
+    if boundaries.start_time:
+        ethereum_transactions = ethereum_transactions.filter(
             include_or_not_grater(
                 EthereumBlock.timestamp,
                 boundaries.include_start,
@@ -118,41 +142,11 @@ async def get_transaction_in_blocks(
             .order_by(text("timestamp desc"))
             .limit(1)
         ).one_or_none()
-        # start_time = False
 
         if previous_transaction:
             boundaries.previous_event_time = previous_transaction[-1]
         else:
-            boundaries.previous_event_time = 0
-    else:
-        if boundaries.end_time:
-            boundaries.start_time = boundaries.end_time - DEFAULT_STREAM_TIMEINTERVAL
-
-    if boundaries.end_time:
-        ethereum_transactions = ethereum_transactions.filter(
-            include_or_not_lower(
-                EthereumBlock.timestamp, boundaries.include_end, boundaries.end_time
-            )
-        )
-        print("end_time", boundaries.end_time)
-        next_transaction = (
-            ethereum_transactions_in_subscriptions.filter(
-                EthereumBlock.timestamp > boundaries.end_time
-            )
-            .order_by(text("timestamp ASC"))
-            .limit(1)
-        )
-
-        next_transaction = next_transaction.one_or_none()
-
-        if next_transaction:
-            boundaries.next_event_time = next_transaction[-1]
-        else:
-            boundaries.next_event_time = 0
-    else:
-        boundaries.end_time = 0
-
-    print(f"count: {ethereum_transactions.count()}")
+            boundaries.previous_event_time = None
 
     response = []
     for (
