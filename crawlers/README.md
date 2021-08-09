@@ -1,4 +1,4 @@
-# moonstream crawlers
+# Moonstream Crawlers
 
 ## Installation
 
@@ -24,13 +24,13 @@ This crawler retrieves Ethereum function signatures from the Ethereum Signature 
 #### Crawling ESD function signatures
 
 ```bash
-python -m moonstreamcrawlers.esd --interval 0.3 functions
+python -m mooncrawl.esd --interval 0.3 functions
 ```
 
 #### Crawling ESD event signatures
 
 ```bash
-python -m moonstreamcrawlers.esd --interval 0.3 events
+python -m mooncrawl.esd --interval 0.3 events
 ```
 
 ### Ethereum contract registrar
@@ -41,17 +41,17 @@ addresses from transaction receipts.
 To run this crawler:
 
 ```bash
-python -m moonstreamcrawlers.cli ethcrawler contracts update
+python -m mooncrawl.cli ethcrawler contracts update
 ```
 
 Output is JSON list of pairs `[..., (<transaction_hash>, <contract_address>), ...]`, so you can pipe to `jq`:
 
 ```bash
-python -m moonstreamcrawlers.cli ethcrawler contracts update | jq .
+python -m mooncrawl.cli ethcrawler contracts update | jq .
 ```
 
 You can also specify an output file:
 
 ```bash
-python -m moonstreamcrawlers.cli ethcrawler contracts update -o new_contracts.json
+python -m mooncrawl.cli ethcrawler contracts update -o new_contracts.json
 ```

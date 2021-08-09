@@ -17,13 +17,17 @@ import moment from "moment";
 import CopyButton from "./CopyButton";
 import { useSubscriptions } from "../core/hooks";
 import ConfirmationRequest from "./ConfirmationRequest";
+import ColorSelector from "./ColorSelector";
 
 const SubscriptionsList = () => {
-  const { subscriptionsCache, changeNote, deleteSubscription } =
+  const { subscriptionsCache, updateSubscription, deleteSubscription } =
     useSubscriptions();
 
-  const updateCallback = ({ id, note }) => {
-    changeNote.mutate({ id, note });
+  const updateCallback = ({ id, label, color }) => {
+    const data = { id: id };
+    label && (data.label = label);
+    color && (data.color = color);
+    updateSubscription.mutate(data);
   };
 
   if (subscriptionsCache.data) {
@@ -45,6 +49,7 @@ const SubscriptionsList = () => {
             <Th>Token</Th>
             <Th>Label</Th>
             <Th>Address</Th>
+            <Th>Color</Th>
             <Th>Date Created</Th>
             <Th>Actions</Th>
           </Tr>
@@ -98,6 +103,15 @@ const SubscriptionsList = () => {
                 </Td>
                 <Td mr={4} p={0}>
                   <CopyButton>{subscription.address}</CopyButton>
+                </Td>
+                <Td>
+                  <ColorSelector
+                    // subscriptionId={subscription.id}
+                    initialColor={subscription.color}
+                    callback={(color) =>
+                      updateCallback({ id: subscription.id, color: color })
+                    }
+                  />
                 </Td>
                 <Td py={0}>{moment(subscription.created_at).format("L")}</Td>
 

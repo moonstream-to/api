@@ -149,6 +149,10 @@ const UIProvider = ({ children }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.params?.id]);
 
+  // *********** TX stream state **********************
+
+  const [currentTransaction, setCurrentTransaction] = useState(undefined);
+
   // ********************************************************
 
   return (
@@ -177,6 +181,8 @@ const UIProvider = ({ children }) => {
         entryId,
         setEntryId,
         sessionId,
+        currentTransaction,
+        setCurrentTransaction,
       }}
     >
       {children}

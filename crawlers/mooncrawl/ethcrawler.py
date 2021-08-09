@@ -82,9 +82,7 @@ def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
     """
     starting_block: int = args.start
     while True:
-        bottom_block_number, top_block_number = get_latest_blocks(
-            with_transactions=not args.notransactions
-        )
+        bottom_block_number, top_block_number = get_latest_blocks(args.confirmations)
         bottom_block_number = max(bottom_block_number + 1, starting_block)
         if bottom_block_number >= top_block_number:
             print(
@@ -209,6 +207,13 @@ def main() -> None:
         type=int,
         default=0,
         help="(Optional) Block to start synchronization from. Default: 0",
+    )
+    parser_ethcrawler_blocks_sync.add_argument(
+        "-c",
+        "--confirmations",
+        type=int,
+        default=0,
+        help="Number of confirmations we require before storing a block in the database. (Default: 0)",
     )
     parser_ethcrawler_blocks_sync.add_argument(
         "--order",
