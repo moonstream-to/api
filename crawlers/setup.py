@@ -34,6 +34,7 @@ setup(
     zip_safe=False,
     install_requires=[
         "moonstreamdb @ git+https://git@github.com/bugout-dev/moonstream.git@ec3278e192119d1e8a273cfaab6cb53890d2e8e9#egg=moonstreamdb&subdirectory=db",
+        "python-dateutil",
         "requests",
         "tqdm",
         "web3",
