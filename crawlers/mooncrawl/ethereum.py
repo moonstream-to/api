@@ -290,13 +290,13 @@ def trending(
     end_timestamp = int(date_range.end_time.timestamp())
 
     def make_query(
-        transaction_column: Column,
-        aggregate_column: Column,
+        identifying_column: Column,
+        statistic_column: Column,
         aggregate_func: Callable,
         aggregate_label: str,
     ) -> Query:
         query = db_session.query(
-            transaction_column, aggregate_func(aggregate_column).label(aggregate_label)
+            identifying_column, aggregate_func(statistic_column).label(aggregate_label)
         ).join(
             EthereumBlock,
             EthereumTransaction.block_number == EthereumBlock.block_number,
@@ -312,7 +312,7 @@ def trending(
             query = query.filter(EthereumBlock.timestamp < end_timestamp)
 
         query = (
-            query.group_by(transaction_column).order_by(desc(aggregate_label)).limit(10)
+            query.group_by(identifying_column).order_by(desc(aggregate_label)).limit(10)
         )
 
         return query
