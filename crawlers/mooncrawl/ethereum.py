@@ -9,7 +9,7 @@ from .settings import MOONSTREAM_IPC_PATH, MOONSTREAM_CRAWL_WORKERS
 from moonstreamdb.db import yield_db_session_ctx
 from moonstreamdb.models import (
     EthereumBlock,
-    EthereumSmartContract,
+    EthereumAddress,
     EthereumTransaction,
 )
 
@@ -227,7 +227,7 @@ def process_contract_deployments() -> List[Tuple[str, str]]:
         limit = 10
         transactions_remaining = True
         existing_contract_transaction_hashes = db_session.query(
-            EthereumSmartContract.transaction_hash
+            EthereumAddress.transaction_hash
         )
 
         while transactions_remaining:
@@ -251,7 +251,7 @@ def process_contract_deployments() -> List[Tuple[str, str]]:
                     if contract_address is not None:
                         results.append((deployment.hash, contract_address))
                         db_session.add(
-                            EthereumSmartContract(
+                            EthereumAddress(
                                 transaction_hash=deployment.hash,
                                 address=contract_address,
                             )
