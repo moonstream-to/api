@@ -77,12 +77,8 @@ def main():
     parser.set_defaults(func=lambda _: parser.print_help())
     subcommands = parser.add_subparsers(description="Crawlers commands")
 
-    parser_cmc = subcommands.add_parser(
-        "cmc", description="Coinmarketcap commands"
-    )
-    parser_cmc.set_defaults(
-        func=lambda _: parser_cmc.print_help()
-    )
+    parser_cmc = subcommands.add_parser("cmc", description="Coinmarketcap commands")
+    parser_cmc.set_defaults(func=lambda _: parser_cmc.print_help())
     subcommands_parser_cmc = parser_cmc.add_subparsers(
         description="Ethereum blocks commands"
     )
