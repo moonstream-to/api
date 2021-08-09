@@ -19,6 +19,7 @@ from .ethereum import (
     DateRange,
     trending,
 )
+from .publish import publish_json
 from .settings import MOONSTREAM_CRAWL_WORKERS
 
 
@@ -176,6 +177,11 @@ def ethcrawler_trending_handler(args: argparse.Namespace) -> None:
         include_end=args.include_end,
     )
     results = trending(date_range)
+    if args.humbug:
+        opening_bracket = "[" if args.include_start else "("
+        closing_bracket = "]" if args.include_end else ")"
+        title = f"Ethereum trending addresses: {opening_bracket}{args.start}, {args.end}{closing_bracket}"
+        publish_json("ethereum_trending", args.humbug, title, results)
     with args.outfile as ofp:
         json.dump(results, ofp)
 
