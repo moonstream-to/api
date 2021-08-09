@@ -105,13 +105,7 @@ class EthereumTransaction(Base):  # type: ignore
 class EthereumAddress(Base):  # type: ignore
     __tablename__ = "ethereum_addresses"
 
-    id = Column(
-        UUID(as_uuid=True),
-        primary_key=True,
-        default=uuid.uuid4,
-        unique=True,
-        nullable=False,
-    )
+    id = Column(Integer, primary_key=True, autoincrement=True)
     transaction_hash = Column(
         VARCHAR(256),
         ForeignKey("ethereum_transactions.hash", ondelete="CASCADE"),
@@ -126,18 +120,18 @@ class EthereumAddress(Base):  # type: ignore
 
 class EthereumLabel(Base):  # type: ignore
     """
-    {
-        label: ERC20,
-        metadata: {
-            name: 123,
-            symbol: qwe
+    Example of label_data:
+        {
+            "label": "ERC20",
+            "metadata": {
+                "name": "Uniswap",
+                "symbol": "UNI"
+            }
+        },
+        {
+            "label": "Exchange"
+            "metadata": {...}
         }
-    }
-
-    {
-        label: Exchange
-        metadata: {}
-    }
     """
 
     __tablename__ = "ethereum_labels"
@@ -156,7 +150,7 @@ class EthereumLabel(Base):  # type: ignore
         nullable=False,
         index=True,
     )
-    metadata = Column(JSONB, nullable=True)
+    label_data = Column(JSONB, nullable=True)
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )
