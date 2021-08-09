@@ -191,16 +191,8 @@ def main() -> None:
     parser.set_defaults(func=lambda _: parser.print_help())
     subcommands = parser.add_subparsers(description="Crawlers commands")
 
-    parser_ethcrawler = subcommands.add_parser(
-        "ethcrawler", description="Ethereum crawler"
-    )
-    parser_ethcrawler.set_defaults(func=lambda _: parser_ethcrawler.print_help())
-    subcommands_ethcrawler = parser_ethcrawler.add_subparsers(
-        description="Ethereum crawler commands"
-    )
-
     # Ethereum blocks parser
-    parser_ethcrawler_blocks = subcommands_ethcrawler.add_parser(
+    parser_ethcrawler_blocks = subcommands.add_parser(
         "blocks", description="Ethereum blocks commands"
     )
     parser_ethcrawler_blocks.set_defaults(
@@ -311,7 +303,7 @@ def main() -> None:
         func=ethcrawler_blocks_missing_handler
     )
 
-    parser_ethcrawler_contracts = subcommands_ethcrawler.add_parser(
+    parser_ethcrawler_contracts = subcommands.add_parser(
         "contracts", description="Ethereum smart contract related crawlers"
     )
     parser_ethcrawler_contracts.set_defaults(
@@ -336,7 +328,7 @@ def main() -> None:
         func=ethcrawler_contracts_update_handler
     )
 
-    parser_ethcrawler_trending = subcommands_ethcrawler.add_parser(
+    parser_ethcrawler_trending = subcommands.add_parser(
         "trending", description="Trending addresses on the Ethereum blockchain"
     )
     parser_ethcrawler_trending.add_argument(
