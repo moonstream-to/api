@@ -3,6 +3,8 @@ import logging
 
 
 from typing import Dict, Any, List, Optional, Union
+
+from sqlalchemy.engine.base import Transaction
 from moonstreamdb.models import (
     EthereumBlock,
     EthereumTransaction,
@@ -10,7 +12,6 @@ from moonstreamdb.models import (
 )
 from sqlalchemy import or_, and_, text
 from sqlalchemy.orm import Session
-from sqlalchemy.sql.expression import desc, false
 
 from . import data
 
@@ -24,17 +25,25 @@ async def get_transaction_in_blocks(
     db_session: Session,
     query: str,
     user_subscriptions_resources_by_address: Dict[str, Any],
-    start_time: Optional[int] = 0,
-    end_time: Optional[int] = 0,
-) -> List[data.EthereumTransactionItem]:
+    boundaries: data.PageBoundary,
+) -> data.EthereumTransactionResponse:
+
+    """
+    Request transactions from database based on addresses from user subscriptions
+    and selected boundaries.
+
+    streams  empty for user without subscriptions
+    Return last available transaction if boundaries is empty
+
+    """
 
     subscriptions_addresses = list(user_subscriptions_resources_by_address.keys())
 
-    if start_time < 1438215988:  # first block
-        start_time = False
+    if boundaries.start_time < 1438215988:  # first block
+        boundaries.start_time = 0
 
-    if end_time < 1438215988:  # first block
-        end_time = False
+    if boundaries.end_time < 1438215988:  # first block
+        boundaries.end_time = 0
 
     if query == "" or query == " ":
 
@@ -48,38 +57,17 @@ async def get_transaction_in_blocks(
         filters = or_(*filters)
 
     else:
-        filters = database_search_query(
+        filters = parse_search_query_to_sqlalchemy_filters(
             query, allowed_addresses=subscriptions_addresses
         )
         if not filters:
-            return [], None, None
+            return data.EthereumTransactionResponse(
+                stream=[],
+                boundaries=boundaries,
+            )
         filters = and_(*filters)
 
-    # Get start point
-    if start_time is False and end_time is False:
-        ethereum_transaction_start_point = (
-            db_session.query(
-                EthereumTransaction.hash,
-                EthereumTransaction.block_number,
-                EthereumTransaction.from_address,
-                EthereumTransaction.to_address,
-                EthereumTransaction.gas,
-                EthereumTransaction.gas_price,
-                EthereumTransaction.input,
-                EthereumTransaction.nonce,
-                EthereumTransaction.value,
-                EthereumBlock.timestamp.label("timestamp"),
-            )
-            .join(EthereumBlock)
-            .filter(filters)
-            .order_by(text("timestamp desc"))
-            .limit(1)
-        ).one_or_none()
-        start_time = False
-        print(ethereum_transaction_start_point)
-        end_time = ethereum_transaction_start_point[-1]
-
-    ethereum_transactions = (
+    ethereum_transactions_in_subscriptions = (
         db_session.query(
             EthereumTransaction.hash,
             EthereumTransaction.block_number,
@@ -96,80 +84,78 @@ async def get_transaction_in_blocks(
         .filter(filters)
     )
 
-    print(f"last record: {end_time}")
+    # If not start_time and end_time not present
+    # Get latest transaction
+    if boundaries.start_time == 0 and boundaries.end_time == 0:
+        ethereum_transaction_start_point = (
+            ethereum_transactions_in_subscriptions.order_by(
+                text("timestamp desc")
+            ).limit(1)
+        ).one_or_none()
+        boundaries.end_time = 0
+        boundaries.start_time = ethereum_transaction_start_point[-1]
 
-    if start_time and end_time:
-        if start_time < end_time:
-            start_time, end_time = end_time, start_time
+    if boundaries.start_time != 0 and boundaries.end_time != 0:
+        if boundaries.start_time > boundaries.end_time:
+            boundaries.start_time, boundaries.end_time = (
+                boundaries.end_time,
+                boundaries.start_time,
+            )
 
-    if start_time:
-        ethereum_transactions = ethereum_transactions.filter(
-            EthereumBlock.timestamp <= start_time
+    if boundaries.start_time:
+        ethereum_transactions = ethereum_transactions_in_subscriptions.filter(
+            include_or_not_grater(
+                EthereumBlock.timestamp,
+                boundaries.include_start,
+                boundaries.start_time,
+            )
         )
 
-        print(start_time)
-
-        future_last_transaction = (
-            db_session.query(
-                EthereumTransaction.hash,
-                EthereumTransaction.block_number,
-                EthereumTransaction.from_address,
-                EthereumTransaction.to_address,
-                EthereumTransaction.gas,
-                EthereumTransaction.gas_price,
-                EthereumTransaction.input,
-                EthereumTransaction.nonce,
-                EthereumTransaction.value,
-                EthereumBlock.timestamp.label("timestamp"),
+        previous_transaction = (
+            ethereum_transactions_in_subscriptions.filter(
+                EthereumBlock.timestamp < boundaries.start_time
             )
-            .join(EthereumBlock)
-            .filter(filters)
-            .filter(EthereumBlock.timestamp > start_time)
             .order_by(text("timestamp desc"))
             .limit(1)
         ).one_or_none()
-        start_time = False
+        # start_time = False
 
-        if future_last_transaction:
-            next_future_timestamp = future_last_transaction[-1]
+        if previous_transaction:
+            boundaries.previous_event_time = previous_transaction[-1]
         else:
-            next_future_timestamp = None
+            boundaries.previous_event_time = 0
+    else:
+        if boundaries.end_time:
+            boundaries.start_time = boundaries.end_time - DEFAULT_STREAM_TIMEINTERVAL
 
-    if end_time:
+    if boundaries.end_time:
         ethereum_transactions = ethereum_transactions.filter(
-            EthereumBlock.timestamp >= end_time
-        )
-        print("end_time", end_time)
-        next_last_transaction = (
-            db_session.query(
-                EthereumTransaction.hash,
-                EthereumTransaction.block_number,
-                EthereumTransaction.from_address,
-                EthereumTransaction.to_address,
-                EthereumTransaction.gas,
-                EthereumTransaction.gas_price,
-                EthereumTransaction.input,
-                EthereumTransaction.nonce,
-                EthereumTransaction.value,
-                EthereumBlock.timestamp.label("timestamp"),
+            include_or_not_lower(
+                EthereumBlock.timestamp, boundaries.include_end, boundaries.end_time
             )
-            .join(EthereumBlock)
-            .filter(filters)
-            .filter(1628263498 > EthereumBlock.timestamp)
-            .order_by(text("timestamp desc"))
+        )
+        print("end_time", boundaries.end_time)
+        next_transaction = (
+            ethereum_transactions_in_subscriptions.filter(
+                EthereumBlock.timestamp > boundaries.end_time
+            )
+            .order_by(text("timestamp ASC"))
             .limit(1)
-        ).one_or_none()
-        start_time = False
-        print("next_last_transaction_timestamp", next_last_transaction)
-        if next_last_transaction:
-            next_last_transaction_timestamp = next_last_transaction[-1]
+        )
+
+        next_transaction = next_transaction.one_or_none()
+
+        if next_transaction:
+            boundaries.next_event_time = next_transaction[-1]
         else:
-            next_last_transaction_timestamp = None
+            boundaries.next_event_time = 0
+    else:
+        boundaries.end_time = 0
 
     print(f"count: {ethereum_transactions.count()}")
 
     response = []
-    for row_index, (
+    for (
         hash,
         block_number,
         from_address,
@@ -180,8 +166,9 @@ async def get_transaction_in_blocks(
         nonce,
         value,
         timestamp,
-    ) in enumerate(ethereum_transactions):
+    ) in ethereum_transactions:
 
+        # Apply subscription data to each transaction
         subscription_type_id = None
         from_label = None
         to_label = None
@@ -220,15 +207,28 @@ async def get_transaction_in_blocks(
             )
         )
 
-    return (
-        response,
-        end_time,
-        next_future_timestamp,
-        next_last_transaction_timestamp,
-    )
+    return data.EthereumTransactionResponse(stream=response, boundaries=boundaries)
 
 
-def database_search_query(q: str, allowed_addresses: List[str]):
+def include_or_not_grater(value1, include, value2):
+    if include:
+        return value1 >= value2
+    else:
+        return value1 > value2
+
+
+def include_or_not_lower(value1, include, value2):
+    if include:
+        return value1 <= value2
+    else:
+        return value1 < value2
+
+
+def parse_search_query_to_sqlalchemy_filters(q: str, allowed_addresses: List[str]):
+
+    """
+    Return list of sqlalchemy filters or empty list
+    """
 
     filters = q.split("+")
     constructed_filters = []

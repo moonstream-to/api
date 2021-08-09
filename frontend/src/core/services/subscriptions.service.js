@@ -3,17 +3,6 @@ import { http } from "../utils";
 
 const API = process.env.NEXT_PUBLIC_MOONSTREAM_API_URL;
 
-export const getStream = ({ searchTerm, start_time, end_time }) =>
-  http({
-    method: "GET",
-    url: `${API}/streams/`,
-    params: {
-      q: searchTerm,
-      start_time: encodeURIComponent(start_time),
-      end_time: encodeURIComponent(end_time),
-    },
-  });
-
 export const getTypes = () =>
   http({
     method: "GET",

@@ -20,7 +20,6 @@ from .. import data
 from ..middleware import BroodAuthMiddleware
 from ..settings import (
     MOONSTREAM_APPLICATION_ID,
-    DEFAULT_PAGE_SIZE,
     DOCS_TARGET_PATH,
     ORIGINS,
     DOCS_PATHS,
@@ -63,6 +62,8 @@ async def search_transactions(
     q: str = Query(""),
     start_time: Optional[int] = Query(0),  # Optional[int] = Query(0),  #
     end_time: Optional[int] = Query(0),  # Optional[int] = Query(0),  #
+    include_start: bool = Query(False),
+    include_end: bool = Query(False),
     db_session: Session = Depends(db.yield_db_session),
 ):
 
@@ -86,30 +87,28 @@ async def search_transactions(
         for resource in user_subscriptions_resources.resources
     }
 
-    transactions: List[Any] = []
+    # transactions: List[Any] = []
+
+    boundaries = data.PageBoundary(
+        start_time=start_time,
+        end_time=end_time,
+        next_event_time=0,
+        previous_event_time=0,
+        include_start=include_start,
+        include_end=include_end,
+    )
+    print(boundaries)
 
     if address_to_subscriptions:
         print("address_to_subscriptions")
-        (
-            transactions_in_blocks,
-            end_time,
-            next_future_timestamp,
-            next_last_transaction_timestamp,
-        ) = await actions.get_transaction_in_blocks(
+        response = await actions.get_transaction_in_blocks(
             db_session=db_session,
             query=q,
             user_subscriptions_resources_by_address=address_to_subscriptions,
-            start_time=start_time,
-            end_time=end_time,
+            boundaries=boundaries,
         )
+        print(response.boundaries)
 
-        transactions.extend(transactions_in_blocks)
-
-
-    return data.EthereumTransactionResponse(
-        stream=transactions,
-        next_future_timestamp=next_future_timestamp,
-        next_past_transaction_timestamp=next_last_transaction_timestamp,
-        end_time=end_time,
-        start_time=start_time,
-    )
+        return response
+    else:
+        return data.EthereumTransactionResponse(stream=[], boundaries=boundaries)

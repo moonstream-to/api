@@ -127,12 +127,18 @@ class EthereumTransactionItem(BaseModel):
     subscription_type_id: Optional[str] = None
 
 
-class EthereumTransactionResponse(BaseModel):
-    stream: List[EthereumTransactionItem]
+class PageBoundary(BaseModel):
     start_time: int
     end_time: int
-    next_future_timestamp: Optional[int] = None
-    next_past_transaction_timestamp: Optional[int] = None
+    next_event_time: Optional[int] = None
+    previous_event_time: Optional[int] = None
+    include_start: bool = False
+    include_end: bool = False
+
+
+class EthereumTransactionResponse(BaseModel):
+    stream: List[EthereumTransactionItem]
+    boundaries: Optional[PageBoundary]
 
 
 class TxinfoEthereumBlockchainRequest(BaseModel):

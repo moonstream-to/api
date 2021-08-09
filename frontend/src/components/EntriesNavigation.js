@@ -78,43 +78,127 @@ const EntriesNavigation = () => {
 
   const loadMoreButtonRef = useRef(null);
 
-  // const {
-  //   fetchPreviousPage,
-  //   isFetchingMore,
-  //   hasPreviousPage,
-  //   EntriesPages,
-  //   isLoading,
-  //   hasNextPage,
-  //   fetchNextPage,
-  // } = useStream({
-  //   pageSize,
-  //   refreshRate: 1500,
-  //   searchQuery: ui.searchTerm,
-  //   enabled: isStreamOn,
-  //   isContent: false,
-  // });
+  const [streamBoundary, setStreamBoundary] = useState({
+    start_time: null,
+    end_time: null,
+    include_start: false,
+    include_end: false,
+    next_event_time: null,
+    previous_event_time: null,
+  });
+
+  const updateStreamBoundaryWith = (pageBoundary) => {
+    console.log("pageBoundary", pageBoundary);
+    console.log("streamBoundary", streamBoundary);
+
+    if (!pageBoundary) {
+      return streamBoundary;
+    }
+
+    let newBoundary = { ...streamBoundary };
+    // We do not check if there is no overlap between the streamBoundary and the pageBoundary - we assume
+    // that there *is* an overlap and even if there isn't the stream should gracefully respect the
+    // pageBoundary because that was the most recent request the user made.
+    // TODO(zomglings): If there is no overlap in boundaries, replace streamBoundary with pageBoundary.
+    // No overlap logic:
+    // if (<no overlap>) {
+    //   setStreamBoundary(pageBoundary)
+    //   return pageBoundary
+    // }
+    console.log("start_time");
+    console.log(
+      "pageBoundary.start_time <= newBoundary.start_time",
+      pageBoundary.start_time <= newBoundary.start_time
+    );
+
+    if (
+      !newBoundary.start_time ||
+      (pageBoundary.start_time &&
+        pageBoundary.start_time <= newBoundary.start_time) ||
+      ((pageBoundary.start_time > streamBoundary.end_time ||
+        (pageBoundary.start_time == streamBoundary.end_time &&
+          !streamBoundary.include_end)) &&
+        pageBoundary.end_time > streamBoundary.end_time) ||
+      pageBoundary.end_time == 0 // meen go with server
+    ) {
+      newBoundary.start_time = pageBoundary.start_time;
+      newBoundary.include_start =
+        newBoundary.include_start || pageBoundary.include_start;
+    }
+
+    if (
+      !newBoundary.end_time ||
+      (pageBoundary.end_time &&
+        pageBoundary.end_time >= newBoundary.end_time) ||
+      ((pageBoundary.end_time < streamBoundary.start_time ||
+        (pageBoundary.end_time == streamBoundary.start_time &&
+          !streamBoundary.include_start)) &&
+        pageBoundary.start_time < streamBoundary.start_time)
+    ) {
+      newBoundary.end_time = pageBoundary.end_time;
+      newBoundary.include_end =
+        newBoundary.include_end || pageBoundary.include_end;
+    }
+    newBoundary.next_event_time = pageBoundary.next_event_time;
+    newBoundary.previous_event_time = pageBoundary.previous_event_time;
+
+    // console.log(
+    //   "pageBoundary.next_event_time < newBoundary.next_event_time && pageBoundary.end_time <= streamBoundary.start_tim",
+    //   pageBoundary.next_event_time < newBoundary.next_event_time &&
+    //     pageBoundary.end_time <= streamBoundary.start_tim
+    // );
+    // if (
+    //   !newBoundary.next_event_time ||
+    //   pageBoundary.next_event_time == 0 ||
+    //   (pageBoundary.next_event_time &&
+    //     pageBoundary.next_event_time > newBoundary.next_event_time) ||
+    //   (pageBoundary.next_event_time < newBoundary.next_event_time &&
+    //     pageBoundary.end_time <= streamBoundary.start_time)
+    // ) {
+    //   newBoundary.next_event_time = pageBoundary.next_event_time;
+    // }
+
+    // if (
+    //   !newBoundary.previous_event_time ||
+    //   pageBoundary.previous_event_time == 0 ||
+    //   (pageBoundary.previous_event_time &&
+    //     pageBoundary.previous_event_time < newBoundary.previous_event_time) ||
+    //   (pageBoundary.previous_event_time > newBoundary.previous_event_time &&
+    //     pageBoundary.start_time >= streamBoundary.end_time) ||
+    //   pageBoundary.end_time == 0
+    // ) {
+    //   newBoundary.previous_event_time = pageBoundary.previous_event_time;
+    // }
+
+    setStreamBoundary(newBoundary);
+    return newBoundary;
+  };
 
   const { EntriesPages, isLoading, refetch } = useStream({
     refreshRate: 1500,
     searchQuery: ui.searchTerm,
-    start_time,
-    end_time,
-    include_start,
-    include_end,
+    start_time: streamBoundary.start_time,
+    end_time: streamBoundary.end_time,
+    include_start: streamBoundary.include_start,
+    include_end: streamBoundary.include_end,
     enabled: isStreamOn,
+    updateStreamBoundaryWith: updateStreamBoundaryWith,
+    streamBoundary: streamBoundary,
+    setStreamBoundary: setStreamBoundary,
+
     isContent: false,
   });
 
-  const handleScroll = ({ currentTarget }) => {
-    if (
-      currentTarget.scrollTop + currentTarget.clientHeight >=
-      0.5 * currentTarget.scrollHeight
-    ) {
-      if (!isLoading && hasPreviousPage) {
-        fetchPreviousPage();
-      }
-    }
-  };
+  // const handleScroll = ({ currentTarget }) => {
+  //   if (
+  //     currentTarget.scrollTop + currentTarget.clientHeight >=
+  //     0.5 * currentTarget.scrollHeight
+  //   ) {
+  //     if (!isLoading && hasPreviousPage) {
+  //       fetchPreviousPage();
+  //     }
+  //   }
+  // };
 
   const setFilterProps = useCallback(
     (filterIdx, props) => {
@@ -137,8 +221,8 @@ const EntriesNavigation = () => {
   }, [subscriptionsCache, newFilterState, setFilterProps]);
 
   const entriesPagesData = EntriesPages
-    ? EntriesPages.pages.map((page) => {
-        return page.data;
+    ? EntriesPages.data.map((page) => {
+        return page;
       })
     : [""];
 
@@ -445,8 +529,36 @@ const EntriesNavigation = () => {
               overflowY="scroll"
               direction="column"
               w="100%"
-              onScroll={(e) => handleScroll(e)}
+              //onScroll={(e) => handleScroll(e)}
             >
+              {streamBoundary.next_event_time &&
+              streamBoundary.end_time != 0 &&
+              !isLoading ? (
+                <Center>
+                  <Button
+                    onClick={() => {
+                      console.log("*********************");
+                      console.log("*********************");
+                      console.log("*********************");
+                      console.log("***       UP      ***");
+                      console.log("*********************");
+                      console.log("*********************");
+                      updateStreamBoundaryWith({
+                        start_time: streamBoundary.end_time,
+                        end_time: streamBoundary.next_event_time,
+                        include_start: false,
+                        include_end: true,
+                      });
+                    }}
+                    variant="outline"
+                    colorScheme="suggested"
+                  >
+                    Load latest transaction
+                  </Button>
+                </Center>
+              ) : (
+                "" // some strange behaivior without else condition return 0 wich can see on frontend page
+              )}
               {entries.map((entry, idx) => (
                 <StreamEntry
                   key={`entry-list-${idx}`}
@@ -457,18 +569,43 @@ const EntriesNavigation = () => {
                   filterConstants={{ DIRECTIONS, CONDITION, FILTER_TYPES }}
                 />
               ))}
-              {hasPreviousPage && !isFetchingMore && (
+              {streamBoundary.previous_event_time && !isLoading && (
                 <Center>
                   <Button
-                    onClick={() => fetchPreviousPage()}
+                    onClick={() => {
+                      console.log("updateStreamBoundaryWith");
+                      console.log("streamBoundary", streamBoundary);
+                      console.log(
+                        "streamBoundary.previous_event_time",
+                        streamBoundary.previous_event_time
+                      );
+                      console.log(
+                        "streamBoundary.start_time",
+                        streamBoundary.start_time
+                      );
+                      console.log("*********************");
+                      console.log("*********************");
+                      console.log("*********************");
+                      console.log("***      DOWN     ***");
+                      console.log("*********************");
+                      console.log("*********************");
+                      updateStreamBoundaryWith({
+                        start_time: streamBoundary.previous_event_time,
+                        end_time: streamBoundary.start_time,
+                        include_start: false,
+                        include_end: true,
+                      });
+
+                      //fetchPreviousPage();
+                    }}
                     variant="outline"
                     colorScheme="suggested"
                   >
-                    Load more entries
+                    Go to previous transaction
                   </Button>
                 </Center>
               )}
-              {hasPreviousPage && isFetchingMore && (
+              {streamBoundary.previous_event_time && isLoading && (
                 <Center>
                   <Spinner
                     hidden={!isFetchingMore}
