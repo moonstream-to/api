@@ -2,11 +2,11 @@
 The Moonstream subscriptions HTTP API
 """
 import logging
-from typing import Dict, List
+from typing import Dict
 
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
-from fastapi import Body, FastAPI, HTTPException, Request, Form
+from fastapi import FastAPI, HTTPException, Request, Form
 from fastapi.middleware.cors import CORSMiddleware
 
 from .. import data
@@ -71,11 +71,10 @@ async def add_subscription_handler(
 
     token = request.state.token
 
-    params = {"type": "subscription_type"}
-
-    # request availble subscriptions
+    # request availble subscription types
+    params = {"type": "subscription_type", "active": True}
     try:
-        subscription_resources: BugoutResources = bc.list_resources(
+        available_subscription_types: BugoutResources = bc.list_resources(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN, params=params
         )
     except BugoutResponseException as e:
@@ -84,18 +83,19 @@ async def add_subscription_handler(
         raise HTTPException(status_code=500)
 
     # allowed subscriptions
-    subscription_ids_list = [
-        resource.resource_data["id"] for resource in subscription_resources.resources
+    available_subscription_type_ids = [
+        resource.resource_data["id"]
+        for resource in available_subscription_types.resources
     ]
 
-    if subscription_data.subscription_type_id not in subscription_ids_list:
+    if subscription_data.subscription_type_id not in available_subscription_type_ids:
         raise HTTPException(
             status_code=403, detail="Subscription type is not avilable."
         )
 
     user = request.state.user
 
-    # chek if that contract not already setted up
+    # check if that contract not already setted up
 
     # TODO(andrey, kompotkot): I think you should add a "type": "subscription" in the resource_data.
     # This is related to TODO I created in /streams route handler.
