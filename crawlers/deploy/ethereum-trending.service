@@ -1,0 +1,11 @@
+[Unit]
+Description=Load trending Ethereum addresses to the database
+After=network.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/moonstream/crawlers
+EnvironmentFile=/home/ubuntu/mooncrawl-secrets/app.env
+ExecStart=/usr/bin/bash -c '/home/ubuntu/mooncrawl-env/bin/python -m mooncrawl.ethcrawler trending -s $(date -u -d '-2 hours' +%Y%m%d-%H%MT%z) -e $(date -u +%Y%m%d-%H%MT%z)'

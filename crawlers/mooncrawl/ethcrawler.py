@@ -4,6 +4,7 @@ Moonstream crawlers CLI.
 import argparse
 from enum import Enum
 import json
+import os
 import sys
 import time
 from typing import Iterator, List
@@ -177,7 +178,10 @@ def ethcrawler_trending_handler(args: argparse.Namespace) -> None:
         include_end=args.include_end,
     )
     results = trending(date_range)
-    if args.humbug:
+    humbug_token = args.humbug
+    if humbug_token is None:
+        humbug_token = os.environ.get("MOONSTREAM_HUMBUG_TOKEN")
+    if humbug_token:
         opening_bracket = "[" if args.include_start else "("
         closing_bracket = "]" if args.include_end else ")"
         title = f"Ethereum trending addresses: {opening_bracket}{args.start}, {args.end}{closing_bracket}"
@@ -358,7 +362,11 @@ def main() -> None:
     parser_ethcrawler_trending.add_argument(
         "--humbug",
         default=None,
-        help="If you would like to write this data to a Moonstream journal, please provide a Humbug token for that here.",
+        help=(
+            "If you would like to write this data to a Moonstream journal, please provide a Humbug "
+            "token for that here. (This argument overrides any value set in the "
+            "MOONSTREAM_HUMBUG_TOKEN environment variable)"
+        ),
     )
     parser_ethcrawler_trending.add_argument(
         "-o",
