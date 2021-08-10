@@ -86,13 +86,9 @@ const EntriesNavigation = () => {
     include_end: true,
     next_event_time: null,
     previous_event_time: null,
-    update: false,
   });
 
   const updateStreamBoundaryWith = (pageBoundary) => {
-    console.log("pageBoundary", pageBoundary);
-    console.log("streamBoundary", streamBoundary);
-
     if (!pageBoundary) {
       return streamBoundary;
     }
@@ -134,7 +130,7 @@ const EntriesNavigation = () => {
 
     if (
       !newBoundary.next_event_time ||
-      pageBoundary.next_event_time == 0 ||
+      !pageBoundary.next_event_time ||
       (pageBoundary.next_event_time &&
         pageBoundary.next_event_time > newBoundary.next_event_time)
     ) {
@@ -143,18 +139,17 @@ const EntriesNavigation = () => {
 
     if (
       !newBoundary.previous_event_time ||
-      pageBoundary.previous_event_time == 0 ||
+      !pageBoundary.previous_event_time ||
       (pageBoundary.previous_event_time &&
         pageBoundary.previous_event_time < newBoundary.previous_event_time)
     ) {
       newBoundary.previous_event_time = pageBoundary.previous_event_time;
     }
-    newBoundary.update = pageBoundary.update;
     setStreamBoundary(newBoundary);
     return newBoundary;
   };
 
-  const { EntriesPages, isLoading, refetch } = useStream({
+  const { EntriesPages, isLoading, refetch, isFetching, remove } = useStream({
     refreshRate: 1500,
     searchQuery: ui.searchTerm,
     start_time: streamBoundary.start_time,
@@ -165,7 +160,6 @@ const EntriesNavigation = () => {
     updateStreamBoundaryWith: updateStreamBoundaryWith,
     streamBoundary: streamBoundary,
     setStreamBoundary: setStreamBoundary,
-
     isContent: false,
   });
 
@@ -181,9 +175,7 @@ const EntriesNavigation = () => {
   // };
 
   useEffect(() => {
-    if (EntriesPages && !isLoading && streamBoundary.update) {
-      console.log("streamBoundary.update", streamBoundary.update);
-      streamBoundary.update = false;
+    if (!streamBoundary.start_time && !streamBoundary.end_time) {
       refetch();
     }
   }, [streamBoundary]);
@@ -225,8 +217,6 @@ const EntriesNavigation = () => {
     const newArray = oldArray.filter(function (ele) {
       return ele != oldArray[idx];
     });
-    console.log(newFilterState);
-    console.log(newArray);
     setNewFilterState(newArray);
   };
 
@@ -306,7 +296,6 @@ const EntriesNavigation = () => {
                   Source:
                 </Text>
                 {newFilterState.map((filter, idx) => {
-                  console.log("197", newFilterState);
                   if (filter.type === FILTER_TYPES.DISABLED) return "";
                   return (
                     <Flex
@@ -520,34 +509,42 @@ const EntriesNavigation = () => {
               //onScroll={(e) => handleScroll(e)}
             >
               <Stack direction="row" justifyContent="space-between">
-                <Button
-                  onClick={() => {
-                    setStreamBoundary({
-                      start_time: null,
-                      end_time: null,
-                      include_start: false,
-                      include_end: true,
-                      next_event_time: null,
-                      previous_event_time: null,
-                      update: true,
-                    });
-                  }}
-                  variant="outline"
-                  colorScheme="suggested"
-                >
-                  Refresh to newest
-                </Button>
+                {!isFetching ? (
+                  <Button
+                    onClick={() => {
+                      remove();
+                      setStreamBoundary({
+                        start_time: null,
+                        end_time: null,
+                        include_start: false,
+                        include_end: true,
+                        next_event_time: null,
+                        previous_event_time: null,
+                      });
+                    }}
+                    variant="outline"
+                    colorScheme="suggested"
+                  >
+                    Refresh to newest
+                  </Button>
+                ) : (
+                  <Button
+                    isLoading
+                    loadingText="Loading"
+                    variant="outline"
+                    colorScheme="suggested"
+                  ></Button>
+                )}
 
                 {streamBoundary.next_event_time &&
                 streamBoundary.end_time != 0 &&
-                !isLoading ? (
+                !isFetching ? (
                   <Button
                     onClick={() => {
                       updateStreamBoundaryWith({
                         end_time: streamBoundary.next_event_time + 5 * 60,
                         include_start: false,
                         include_end: true,
-                        update: true,
                       });
                     }}
                     variant="outline"
@@ -569,18 +566,16 @@ const EntriesNavigation = () => {
                   filterConstants={{ DIRECTIONS, CONDITION, FILTER_TYPES }}
                 />
               ))}
-              {streamBoundary.previous_event_time && !isLoading && (
+              {streamBoundary.previous_event_time || isFetching ? (
                 <Center>
                   <Button
                     onClick={() => {
+                      remove();
                       updateStreamBoundaryWith({
                         start_time: streamBoundary.previous_event_time - 5 * 60,
                         include_start: false,
                         include_end: true,
-                        update: true,
                       });
-
-                      //fetchPreviousPage();
                     }}
                     variant="outline"
                     colorScheme="suggested"
@@ -588,6 +583,8 @@ const EntriesNavigation = () => {
                     Go to previous transaction
                   </Button>
                 </Center>
+              ) : (
+                ""
               )}
               {streamBoundary.previous_event_time && isLoading && (
                 <Center>

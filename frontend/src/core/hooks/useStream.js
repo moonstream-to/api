@@ -36,12 +36,13 @@ const useJournalEntries = ({
       };
     };
 
-  const { data, isLoading, refetch } = useQuery(
-    ["stream", searchQuery],
+  const { data, isLoading, refetch, isFetching, remove } = useQuery(
+    ["stream", searchQuery, start_time, end_time],
     getStream(searchQuery, start_time, end_time, include_start, include_end),
     {
       //refetchInterval: refreshRate,
       ...queryCacheProps,
+      keepPreviousData: true,
       onSuccess: (response) => {
         // response is object which return condition in getStream
         // TODO(andrey): Response should send page parameters inside "boundary" object (can be null).
@@ -55,6 +56,8 @@ const useJournalEntries = ({
     EntriesPages: data,
     isLoading,
     refetch,
+    isFetching,
+    remove,
   };
 };
 export default useJournalEntries;

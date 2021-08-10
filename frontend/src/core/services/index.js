@@ -10,7 +10,6 @@ import * as InvitesService from "./invites.service";
 import * as SubscriptionsService from "./subscriptions.service";
 import * as StreamService from "./stream.service";
 import * as TxInfoService from "./txinfo.service";
-console.log("StreamService", StreamService);
 export {
   SearchService,
   AuthService,
