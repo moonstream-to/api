@@ -12,7 +12,7 @@ from moonstreamdb import db
 from sqlalchemy.orm import Session
 
 
-from .. import actions
+from ..stream_processors import ethereum_transaction
 from .. import data
 from ..middleware import BroodAuthMiddleware
 from ..settings import (
@@ -96,7 +96,7 @@ async def search_transactions(
 
     if address_to_subscriptions:
         print("address_to_subscriptions")
-        response = await actions.get_transaction_in_blocks(
+        response = await ethereum_transaction.get_transaction_in_blocks(
             db_session=db_session,
             query=q,
             user_subscriptions_resources_by_address=address_to_subscriptions,

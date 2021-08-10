@@ -1,21 +1,17 @@
-from datetime import datetime
 import logging
 
+from typing import Dict, Any, List
 
-from typing import Dict, Any, List, Optional, Union
-
-from sqlalchemy.engine.base import Transaction
 from moonstreamdb.models import (
     EthereumBlock,
     EthereumTransaction,
-    EthereumPendingTransaction,
 )
 from sqlalchemy import or_, and_, text
 from sqlalchemy.orm import Session
 
-from . import data
+from .. import data
 
-from .settings import DEFAULT_STREAM_TIMEINTERVAL
+from ..settings import DEFAULT_STREAM_TIMEINTERVAL
 
 
 logger = logging.getLogger(__name__)
