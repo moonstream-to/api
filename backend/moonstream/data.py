@@ -2,7 +2,7 @@
 Pydantic schemas for the Moonstream HTTP API
 """
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 from sqlalchemy.sql.operators import notendswith_op
 
@@ -25,8 +25,8 @@ class SubscriptionTypesListResponce(BaseModel):
 class SubscriptionResourceData(BaseModel):
     id: str
     address: str
-    color: str
-    label: str
+    color: Optional[str]
+    label: Optional[str]
     user_id: str
     subscription_type_id: str
 
@@ -54,21 +54,9 @@ class VersionResponse(BaseModel):
     version: str
 
 
-class SubscriptionRequest(BaseModel):
-    """
-    Schema for data retrieving from frontend about subscription.
-    """
-
-    blockchain: str
-
-
-class SubscriptionResponse(BaseModel):
-    """
-    User subscription storing in Bugout resources.
-    """
-
-    user_id: str
-    blockchain: str
+class SubscriptionUpdate(BaseModel):
+    update: Dict[str, Any]
+    drop_keys: List[str] = Field(default_factory=list)
 
 
 class SubscriptionsListResponse(BaseModel):
