@@ -2,6 +2,7 @@
 Moonstream crawlers CLI.
 """
 import argparse
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 import json
 import os
@@ -185,7 +186,7 @@ def ethcrawler_trending_handler(args: argparse.Namespace) -> None:
         opening_bracket = "[" if args.include_start else "("
         closing_bracket = "]" if args.include_end else ")"
         title = f"Ethereum trending addresses: {opening_bracket}{args.start}, {args.end}{closing_bracket}"
-        publish_json("ethereum_trending", args.humbug, title, results)
+        publish_json("ethereum_trending", humbug_token, title, results)
     with args.outfile as ofp:
         json.dump(results, ofp)
 
@@ -194,6 +195,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Moonstream crawlers CLI")
     parser.set_defaults(func=lambda _: parser.print_help())
     subcommands = parser.add_subparsers(description="Crawlers commands")
+
+    time_now = datetime.now(timezone.utc)
 
     # Ethereum blocks parser
     parser_ethcrawler_blocks = subcommands.add_parser(
@@ -339,8 +342,8 @@ def main() -> None:
         "-s",
         "--start",
         type=dateutil.parser.parse,
-        required=True,
-        help="Start time for window to calculate trending addresses in",
+        default=(time_now - timedelta(hours=1, minutes=0)).isoformat(),
+        help=f"Start time for window to calculate trending addresses in (default: {(time_now - timedelta(hours=1,minutes=0)).isoformat()})",
     )
     parser_ethcrawler_trending.add_argument(
         "--include-start",
@@ -351,8 +354,8 @@ def main() -> None:
         "-e",
         "--end",
         type=dateutil.parser.parse,
-        required=True,
-        help="End time for window to calculate trending addresses in",
+        default=time_now.isoformat(),
+        help=f"End time for window to calculate trending addresses in (default: {time_now.isoformat()})",
     )
     parser_ethcrawler_trending.add_argument(
         "--include-end",
