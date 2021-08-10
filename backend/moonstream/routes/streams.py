@@ -62,11 +62,13 @@ async def search_transactions(
     include_end: bool = Query(False),
     db_session: Session = Depends(db.yield_db_session),
 ):
-
     # get user subscriptions
     token = request.state.token
     params = {"user_id": str(request.state.user.id)}
     try:
+        # TODO(andrey, kompotkot): This query should filter resources of type "subscription". We may
+        # create other resources for users. When we do, I think this code will break.
+        # See how we apply this filter for "type": "subscription_type" in the /subscriptions route.
         user_subscriptions_resources: BugoutResources = bc.list_resources(
             token=token, params=params
         )

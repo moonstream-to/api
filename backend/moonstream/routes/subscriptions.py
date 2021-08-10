@@ -97,6 +97,9 @@ async def add_subscription_handler(
 
     # chek if that contract not already setted up
 
+    # TODO(andrey, kompotkot): I think you should add a "type": "subscription" in the resource_data.
+    # This is related to TODO I created in /streams route handler.
+    # TODO(andrey, kompotkot): Is "user_id" required to store in the resource if we resolve user through their token?
     resource_data = {"user_id": str(user.id)}
     resource_data.update(subscription_data)
 
