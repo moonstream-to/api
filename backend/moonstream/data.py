@@ -1,11 +1,7 @@
 """
 Pydantic schemas for the Moonstream HTTP API
 """
-from enum import Enum
 from typing import List, Optional
-
-from sqlalchemy.sql.operators import notendswith_op
-
 
 from pydantic import BaseModel, Field
 
