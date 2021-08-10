@@ -8,6 +8,7 @@ from moonstreamdb.db import yield_db_session_ctx
 import sys
 import time
 from typing import Any, List, Optional, Tuple, Dict
+from .version import MOONCRAWL_VERSION
 import requests
 
 
@@ -37,7 +38,7 @@ def push_to_bucket(contract_data: Dict[str, Any], contract_file: str):
         Bucket=bucket,
         Key=result_key,
         ContentType="application/json",
-        Metadata={"smart_contract": "source"},
+        Metadata={"source": "etherscan", "crawler_version": ""},
     )
 
 
@@ -62,8 +63,14 @@ def crawl_step(db_session: Session, contract_address: str, crawl_url: str):
         return None
     page = response.json()
     result = page["result"][0]
-    push_to_bucket(result, f"sources/{contract_address}.json")
-    # print(json.dumps(page["result"][0]))
+    # datetime, version
+    contract_info = {
+        "data": result,
+        "version": MOONCRAWL_VERSION,
+        "datetime": time.time(),
+    }
+    # push_to_bucket(result, f"sources/{contract_address}.json")
+    print(json.dumps(page["result"][0]))
 
 
 def crawl(
@@ -84,7 +91,7 @@ def crawl(
 
 def load_smart_contracts() -> List[Tuple[str, str]]:
     smart_contracts: List[Tuple[str, str]] = []
-    with open("moonstreamcrawlers/data/verified-contractaddress.csv") as csv_file:
+    with open("mooncrawl/data/verified-contractaddress.csv") as csv_file:
         csv_reader = csv.DictReader(csv_file)
         for row in csv_reader:
             smart_contracts.append((row["Txhash"], row["ContractAddress"]))
