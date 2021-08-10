@@ -2,14 +2,11 @@
 The Moonstream subscriptions HTTP API
 """
 import logging
-from typing import Any, cast, Dict, List, Optional, Set, Union
-from pydantic.utils import to_camel
-
-from datetime import datetime, timedelta
+from typing import Dict, Optional
 
 from bugout.data import BugoutResources
 from bugout.exceptions import BugoutResponseException
-from fastapi import FastAPI, HTTPException, Request, Form, Query, Depends
+from fastapi import FastAPI, HTTPException, Request, Query, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from moonstreamdb import db
 from sqlalchemy.orm import Session
@@ -19,7 +16,6 @@ from .. import actions
 from .. import data
 from ..middleware import BroodAuthMiddleware
 from ..settings import (
-    MOONSTREAM_APPLICATION_ID,
     DOCS_TARGET_PATH,
     ORIGINS,
     DOCS_PATHS,
@@ -60,15 +56,14 @@ app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
 async def search_transactions(
     request: Request,
     q: str = Query(""),
-    start_time: Optional[int] = Query(0),  # Optional[int] = Query(0),  #
-    end_time: Optional[int] = Query(0),  # Optional[int] = Query(0),  #
+    start_time: Optional[int] = Query(0),
+    end_time: Optional[int] = Query(0),
     include_start: bool = Query(False),
     include_end: bool = Query(False),
     db_session: Session = Depends(db.yield_db_session),
 ):
 
     # get user subscriptions
-
     token = request.state.token
     params = {"user_id": str(request.state.user.id)}
     try:
@@ -87,8 +82,6 @@ async def search_transactions(
         for resource in user_subscriptions_resources.resources
     }
 
-    # transactions: List[Any] = []
-
     boundaries = data.PageBoundary(
         start_time=start_time,
         end_time=end_time,
@@ -97,7 +90,6 @@ async def search_transactions(
         include_start=include_start,
         include_end=include_end,
     )
-    print(boundaries)
 
     if address_to_subscriptions:
         print("address_to_subscriptions")
@@ -107,8 +99,6 @@ async def search_transactions(
             user_subscriptions_resources_by_address=address_to_subscriptions,
             boundaries=boundaries,
         )
-        print(response.boundaries)
-
         return response
     else:
         return data.EthereumTransactionResponse(stream=[], boundaries=boundaries)

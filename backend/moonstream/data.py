@@ -127,13 +127,29 @@ class EthereumTransactionItem(BaseModel):
     subscription_type_id: Optional[str] = None
 
 
-class PageBoundary(BaseModel):
+class StreamBoundary(BaseModel):
+    """
+    StreamBoundary represents a window of time through which an API caller can view a stream.
+
+    This data structure is foundational to our stream rendering, and is used throughout the code
+    base.
+    """
+
     start_time: int
     end_time: int
-    next_event_time: Optional[int] = None
-    previous_event_time: Optional[int] = None
     include_start: bool = False
     include_end: bool = False
+
+
+class PageBoundary(StreamBoundary):
+    """
+    A PageBoundary adds information about previous and subsequent events to a StreamBoundary.
+
+    This additional information helps callers manage their views into a stream.
+    """
+
+    next_event_time: Optional[int] = None
+    previous_event_time: Optional[int] = None
 
 
 class EthereumTransactionResponse(BaseModel):
