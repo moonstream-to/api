@@ -17,22 +17,31 @@ fileConfig(config.config_file_name)
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from moonstreamdb.models import Base as ExplorationBase
+from moonstreamdb.models import Base as MoonstreamBase
 
-target_metadata = ExplorationBase.metadata
+target_metadata = MoonstreamBase.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
-from moonstreamdb.models import EthereumBlock, EthereumTransaction, EthereumPendingTransaction, EthereumSmartContract, ESDEventSignature, ESDFunctionSignature
+from moonstreamdb.models import (
+    EthereumBlock,
+    EthereumTransaction,
+    EthereumPendingTransaction,
+    EthereumAddress,
+    EthereumLabel,
+    ESDEventSignature,
+    ESDFunctionSignature,
+)
 
 
 def include_symbol(tablename, schema):
     return tablename in {
         EthereumBlock.__tablename__,
         EthereumTransaction.__tablename__,
-        EthereumSmartContract.__tablename__,
+        EthereumAddress.__tablename__,
+        EthereumLabel.__tablename__,
         EthereumPendingTransaction.__tablename__,
         ESDEventSignature.__tablename__,
         ESDFunctionSignature.__tablename__,

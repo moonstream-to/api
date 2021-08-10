@@ -1,15 +1,20 @@
 from concurrent.futures import Future, ProcessPoolExecutor, wait
-from typing import List, Optional, Tuple, Union
+from dataclasses import dataclass
+from datetime import datetime
+from os import close
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from sqlalchemy import desc
+from sqlalchemy import desc, Column
+from sqlalchemy import func
+from sqlalchemy.orm import Session, Query
 from web3 import Web3, IPCProvider, HTTPProvider
 from web3.types import BlockData
 
 from .settings import MOONSTREAM_IPC_PATH, MOONSTREAM_CRAWL_WORKERS
-from moonstreamdb.db import yield_db_session_ctx
+from moonstreamdb.db import yield_db_session, yield_db_session_ctx
 from moonstreamdb.models import (
     EthereumBlock,
-    EthereumSmartContract,
+    EthereumAddress,
     EthereumTransaction,
 )
 
@@ -18,6 +23,14 @@ class EthereumBlockCrawlError(Exception):
     """
     Raised when there is a problem crawling Ethereum blocks.
     """
+
+
+@dataclass
+class DateRange:
+    start_time: datetime
+    end_time: datetime
+    include_start: bool
+    include_end: bool
 
 
 def connect(web3_uri: Optional[str] = MOONSTREAM_IPC_PATH):
@@ -227,7 +240,7 @@ def process_contract_deployments() -> List[Tuple[str, str]]:
         limit = 10
         transactions_remaining = True
         existing_contract_transaction_hashes = db_session.query(
-            EthereumSmartContract.transaction_hash
+            EthereumAddress.transaction_hash
         )
 
         while transactions_remaining:
@@ -251,7 +264,7 @@ def process_contract_deployments() -> List[Tuple[str, str]]:
                     if contract_address is not None:
                         results.append((deployment.hash, contract_address))
                         db_session.add(
-                            EthereumSmartContract(
+                            EthereumAddress(
                                 transaction_hash=deployment.hash,
                                 address=contract_address,
                             )
@@ -261,5 +274,99 @@ def process_contract_deployments() -> List[Tuple[str, str]]:
                 transactions_remaining = False
 
             current_offset += limit
+
+    return results
+
+
+def trending(
+    date_range: DateRange, db_session: Optional[Session] = None
+) -> Dict[str, Any]:
+    close_db_session = False
+    if db_session is None:
+        close_db_session = True
+        db_session = next(yield_db_session())
+
+    start_timestamp = int(date_range.start_time.timestamp())
+    end_timestamp = int(date_range.end_time.timestamp())
+
+    def make_query(
+        identifying_column: Column,
+        statistic_column: Column,
+        aggregate_func: Callable,
+        aggregate_label: str,
+    ) -> Query:
+        query = db_session.query(
+            identifying_column, aggregate_func(statistic_column).label(aggregate_label)
+        ).join(
+            EthereumBlock,
+            EthereumTransaction.block_number == EthereumBlock.block_number,
+        )
+        if date_range.include_start:
+            query = query.filter(EthereumBlock.timestamp >= start_timestamp)
+        else:
+            query = query.filter(EthereumBlock.timestamp > start_timestamp)
+
+        if date_range.include_end:
+            query = query.filter(EthereumBlock.timestamp <= end_timestamp)
+        else:
+            query = query.filter(EthereumBlock.timestamp < end_timestamp)
+
+        query = (
+            query.group_by(identifying_column).order_by(desc(aggregate_label)).limit(10)
+        )
+
+        return query
+
+    results: Dict[str, Any] = {}
+
+    try:
+        transactions_out_query = make_query(
+            EthereumTransaction.from_address,
+            EthereumTransaction.hash,
+            func.count,
+            "transactions_out",
+        )
+        transactions_out = transactions_out_query.all()
+        results["transactions_out"] = [
+            {"address": row[0], "statistic": row[1]} for row in transactions_out
+        ]
+
+        transactions_in_query = make_query(
+            EthereumTransaction.to_address,
+            EthereumTransaction.hash,
+            func.count,
+            "transactions_in",
+        )
+        transactions_in = transactions_in_query.all()
+        results["transactions_in"] = [
+            {"address": row[0], "statistic": row[1]} for row in transactions_in
+        ]
+
+        value_out_query = make_query(
+            EthereumTransaction.from_address,
+            EthereumTransaction.value,
+            func.sum,
+            "value_out",
+        )
+        value_out = value_out_query.all()
+        results["value_out"] = [
+            {"address": row[0], "statistic": int(row[1])} for row in value_out
+        ]
+
+        value_in_query = make_query(
+            EthereumTransaction.to_address,
+            EthereumTransaction.value,
+            func.sum,
+            "value_in",
+        )
+        value_in = value_in_query.all()
+        results["value_in"] = [
+            {"address": row[0], "statistic": int(row[1])} for row in value_in
+        ]
+
+        pass
+    finally:
+        if close_db_session:
+            db_session.close()
 
     return results

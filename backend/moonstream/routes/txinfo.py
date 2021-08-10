@@ -14,7 +14,7 @@ from fastapi import (
 )
 from fastapi.middleware.cors import CORSMiddleware
 from moonstreamdb.db import yield_db_session
-from moonstreamdb.models import EthereumSmartContract
+from moonstreamdb.models import EthereumAddress
 from sqlalchemy.orm import Session
 
 from ..abi_decoder import decode_abi
@@ -79,8 +79,8 @@ async def txinfo_ethereum_blockchain_handler(
             response.errors.append("Could not decode ABI from the given input")
 
     smart_contract = (
-        db_session.query(EthereumSmartContract)
-        .filter(EthereumSmartContract.transaction_hash == txinfo_request.tx.hash)
+        db_session.query(EthereumAddress)
+        .filter(EthereumAddress.transaction_hash == txinfo_request.tx.hash)
         .one_or_none()
     )
 
