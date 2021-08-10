@@ -79,6 +79,7 @@ async def search_transactions(
     except Exception as e:
         raise HTTPException(status_code=500)
 
+    # TODO(andrey, kompotkot): Pagination over resources!!
     address_to_subscriptions = {
         resource.resource_data["address"]: resource.resource_data
         for resource in user_subscriptions_resources.resources
