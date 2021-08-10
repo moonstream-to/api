@@ -66,10 +66,9 @@ export const modifySubscription =
     const data = new FormData();
     color && data.append("color", color);
     label && data.append("label", label);
-    data.append("id", id);
     return http({
-      method: "POST",
-      url: `${API}/subscription/${id}`,
+      method: "PUT",
+      url: `${API}/subscriptions/${id}`,
       data,
     });
   };
