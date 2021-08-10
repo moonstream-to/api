@@ -80,6 +80,7 @@ async def search_transactions(
         raise HTTPException(status_code=500)
 
     # TODO(andrey, kompotkot): Pagination over resources!!
+    # Issue: https://github.com/bugout-dev/brood/issues/14
     address_to_subscriptions = {
         resource.resource_data["address"]: resource.resource_data
         for resource in user_subscriptions_resources.resources
@@ -95,7 +96,6 @@ async def search_transactions(
     )
 
     if address_to_subscriptions:
-        print("address_to_subscriptions")
         response = await ethereum_transaction.get_transaction_in_blocks(
             db_session=db_session,
             query=q,
