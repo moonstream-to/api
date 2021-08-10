@@ -23,6 +23,7 @@ from .ethereum import (
 )
 from .publish import publish_json
 from .settings import MOONSTREAM_CRAWL_WORKERS
+from .version import MOONCRAWL_VERSION
 
 
 class ProcessingOrder(Enum):
@@ -186,7 +187,13 @@ def ethcrawler_trending_handler(args: argparse.Namespace) -> None:
         opening_bracket = "[" if args.include_start else "("
         closing_bracket = "]" if args.include_end else ")"
         title = f"Ethereum trending addresses: {opening_bracket}{args.start}, {args.end}{closing_bracket}"
-        publish_json("ethereum_trending", humbug_token, title, results)
+        publish_json(
+            "ethereum_trending",
+            humbug_token,
+            title,
+            results,
+            tags=[f"crawler_version:{MOONCRAWL_VERSION}"],
+        )
     with args.outfile as ofp:
         json.dump(results, ofp)
 

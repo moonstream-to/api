@@ -317,7 +317,14 @@ def trending(
 
         return query
 
-    results: Dict[str, Any] = {}
+    results: Dict[str, Any] = {
+        "date_range": {
+            "start_time": date_range.start_time.isoformat(),
+            "end_time": date_range.end_time.isoformat(),
+            "include_start": date_range.include_start,
+            "include_end": date_range.include_end,
+        }
+    }
 
     try:
         transactions_out_query = make_query(
