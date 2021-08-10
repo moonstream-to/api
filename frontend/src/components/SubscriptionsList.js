@@ -7,6 +7,7 @@ import {
   Tr,
   Thead,
   Tbody,
+  Tooltip,
   Editable,
   EditableInput,
   Image,
@@ -52,8 +53,8 @@ const SubscriptionsList = () => {
         <Tbody>
           {subscriptionsCache.data.subscriptions.map((subscription) => {
             let iconLink;
-            switch (subscription.subscription_type) {
-              case "ethereum_blockchain":
+            switch (subscription.subscription_type_id) {
+              case "1":
                 iconLink =
                   "https://ethereum.org/static/c48a5f760c34dfadcf05a208dab137cc/31987/eth-diamond-rainbow.png";
                 break;
@@ -73,9 +74,11 @@ const SubscriptionsList = () => {
                 console.error("no icon found for this pool");
             }
             return (
-              <Tr key={`token-row-${subscription.address}`}>
+              <Tr key={`token-row-${subscription.id}`}>
                 <Td>
-                  <Image h="32px" src={iconLink} alt="pool icon" />
+                  <Tooltip label="Ethereum blockchain" fontSize="md">
+                    <Image h="32px" src={iconLink} alt="pool icon" />
+                  </Tooltip>
                 </Td>
                 <Td py={0}>
                   <Editable

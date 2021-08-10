@@ -589,7 +589,7 @@ const EntriesNavigation = () => {
               {streamBoundary.previous_event_time && isLoading && (
                 <Center>
                   <Spinner
-                    hidden={!isFetchingMore}
+                    //hidden={!isFetchingMore}
                     ref={loadMoreButtonRef}
                     my={8}
                     size="lg"
