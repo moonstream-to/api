@@ -128,7 +128,7 @@ async def get_transaction_in_blocks(
 
     if boundaries.start_time:
         ethereum_transactions = ethereum_transactions.filter(
-            include_or_not_grater(
+            include_or_not_greater(
                 EthereumBlock.timestamp,
                 boundaries.include_start,
                 boundaries.start_time,
@@ -204,7 +204,7 @@ async def get_transaction_in_blocks(
     return data.EthereumTransactionResponse(stream=response, boundaries=boundaries)
 
 
-def include_or_not_grater(value1, include, value2):
+def include_or_not_greater(value1, include, value2):
     if include:
         return value1 >= value2
     else:
