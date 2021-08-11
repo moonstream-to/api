@@ -102,6 +102,7 @@ class EthereumTransactionItem(BaseModel):
     color: Optional[str]
     from_label: Optional[str] = None
     to_label: Optional[str] = None
+    block_number: Optional[int] = None
     gas: int
     gasPrice: int
     value: int
@@ -114,8 +115,18 @@ class EthereumTransactionItem(BaseModel):
     subscription_type_id: Optional[str] = None
 
 
+class PageBoundary(BaseModel):
+    start_time: int
+    end_time: int
+    next_event_time: Optional[int] = None
+    previous_event_time: Optional[int] = None
+    include_start: bool = False
+    include_end: bool = False
+
+
 class EthereumTransactionResponse(BaseModel):
     stream: List[EthereumTransactionItem]
+    boundaries: Optional[PageBoundary]
 
 
 class TxinfoEthereumBlockchainRequest(BaseModel):

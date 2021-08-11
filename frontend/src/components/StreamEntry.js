@@ -42,7 +42,6 @@ const StreamEntry = ({ entry }) => {
   };
 
   const [showFullView] = useMediaQuery(["(min-width: 420px)"]);
-  console.log(entry);
 
   return (
     <Flex

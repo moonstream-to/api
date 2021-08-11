@@ -30,6 +30,7 @@ import {
   Tag,
   TagLabel,
   TagCloseButton,
+  Stack,
   Spacer,
   useBoolean,
 } from "@chakra-ui/react";
@@ -78,25 +79,106 @@ const EntriesNavigation = () => {
 
   const loadMoreButtonRef = useRef(null);
 
-  const { fetchMore, isFetchingMore, canFetchMore, EntriesPages, isLoading } =
-    useStream({
-      pageSize,
-      refreshRate: 1500,
-      searchQuery: ui.searchTerm,
-      enabled: isStreamOn,
-      isContent: false,
-    });
+  const [streamBoundary, setStreamBoundary] = useState({
+    start_time: null,
+    end_time: null,
+    include_start: false,
+    include_end: true,
+    next_event_time: null,
+    previous_event_time: null,
+  });
 
-  const handleScroll = ({ currentTarget }) => {
-    if (
-      currentTarget.scrollTop + currentTarget.clientHeight >=
-      0.5 * currentTarget.scrollHeight
-    ) {
-      if (!isFetchingMore && canFetchMore) {
-        fetchMore();
-      }
+  const updateStreamBoundaryWith = (pageBoundary) => {
+    if (!pageBoundary) {
+      return streamBoundary;
     }
+
+    let newBoundary = { ...streamBoundary };
+    // We do not check if there is no overlap between the streamBoundary and the pageBoundary - we assume
+    // that there *is* an overlap and even if there isn't the stream should gracefully respect the
+    // pageBoundary because that was the most recent request the user made.
+    // TODO(zomglings): If there is no overlap in boundaries, replace streamBoundary with pageBoundary.
+    // No overlap logic:
+    // if (<no overlap>) {
+    //   setStreamBoundary(pageBoundary)
+    //   return pageBoundary
+    // }
+
+    if (
+      !newBoundary.start_time ||
+      (pageBoundary.start_time &&
+        pageBoundary.start_time <= newBoundary.start_time)
+    ) {
+      newBoundary.start_time = pageBoundary.start_time;
+      newBoundary.include_start =
+        newBoundary.include_start || pageBoundary.include_start;
+    }
+    newBoundary.include_start =
+      newBoundary.include_start || pageBoundary.include_start;
+
+    if (
+      !newBoundary.end_time ||
+      (pageBoundary.end_time && pageBoundary.end_time >= newBoundary.end_time)
+    ) {
+      newBoundary.end_time = pageBoundary.end_time;
+      newBoundary.include_end =
+        newBoundary.include_end || pageBoundary.include_end;
+    }
+
+    newBoundary.include_end =
+      newBoundary.include_end || pageBoundary.include_end;
+
+    if (
+      !newBoundary.next_event_time ||
+      !pageBoundary.next_event_time ||
+      (pageBoundary.next_event_time &&
+        pageBoundary.next_event_time > newBoundary.next_event_time)
+    ) {
+      newBoundary.next_event_time = pageBoundary.next_event_time;
+    }
+
+    if (
+      !newBoundary.previous_event_time ||
+      !pageBoundary.previous_event_time ||
+      (pageBoundary.previous_event_time &&
+        pageBoundary.previous_event_time < newBoundary.previous_event_time)
+    ) {
+      newBoundary.previous_event_time = pageBoundary.previous_event_time;
+    }
+    setStreamBoundary(newBoundary);
+    return newBoundary;
   };
+
+  const { EntriesPages, isLoading, refetch, isFetching, remove } = useStream({
+    refreshRate: 1500,
+    searchQuery: ui.searchTerm,
+    start_time: streamBoundary.start_time,
+    end_time: streamBoundary.end_time,
+    include_start: streamBoundary.include_start,
+    include_end: streamBoundary.include_end,
+    enabled: isStreamOn,
+    updateStreamBoundaryWith: updateStreamBoundaryWith,
+    streamBoundary: streamBoundary,
+    setStreamBoundary: setStreamBoundary,
+    isContent: false,
+  });
+
+  // const handleScroll = ({ currentTarget }) => {
+  //   if (
+  //     currentTarget.scrollTop + currentTarget.clientHeight >=
+  //     0.5 * currentTarget.scrollHeight
+  //   ) {
+  //     if (!isLoading && hasPreviousPage) {
+  //       fetchPreviousPage();
+  //     }
+  //   }
+  // };
+
+  useEffect(() => {
+    if (!streamBoundary.start_time && !streamBoundary.end_time) {
+      refetch();
+    }
+  }, [streamBoundary]);
 
   const setFilterProps = useCallback(
     (filterIdx, props) => {
@@ -119,8 +201,8 @@ const EntriesNavigation = () => {
   }, [subscriptionsCache, newFilterState, setFilterProps]);
 
   const entriesPagesData = EntriesPages
-    ? EntriesPages.pages.map((page) => {
-        return page.data;
+    ? EntriesPages.data.map((page) => {
+        return page;
       })
     : [""];
 
@@ -135,8 +217,6 @@ const EntriesNavigation = () => {
     const newArray = oldArray.filter(function (ele) {
       return ele != oldArray[idx];
     });
-    console.log(newFilterState);
-    console.log(newArray);
     setNewFilterState(newArray);
   };
 
@@ -216,7 +296,6 @@ const EntriesNavigation = () => {
                   Source:
                 </Text>
                 {newFilterState.map((filter, idx) => {
-                  console.log("197", newFilterState);
                   if (filter.type === FILTER_TYPES.DISABLED) return "";
                   return (
                     <Flex
@@ -427,8 +506,56 @@ const EntriesNavigation = () => {
               overflowY="scroll"
               direction="column"
               w="100%"
-              onScroll={(e) => handleScroll(e)}
+              //onScroll={(e) => handleScroll(e)}
             >
+              <Stack direction="row" justifyContent="space-between">
+                {!isFetching ? (
+                  <Button
+                    onClick={() => {
+                      remove();
+                      setStreamBoundary({
+                        start_time: null,
+                        end_time: null,
+                        include_start: false,
+                        include_end: true,
+                        next_event_time: null,
+                        previous_event_time: null,
+                      });
+                    }}
+                    variant="outline"
+                    colorScheme="suggested"
+                  >
+                    Refresh to newest
+                  </Button>
+                ) : (
+                  <Button
+                    isLoading
+                    loadingText="Loading"
+                    variant="outline"
+                    colorScheme="suggested"
+                  ></Button>
+                )}
+
+                {streamBoundary.next_event_time &&
+                streamBoundary.end_time != 0 &&
+                !isFetching ? (
+                  <Button
+                    onClick={() => {
+                      updateStreamBoundaryWith({
+                        end_time: streamBoundary.next_event_time + 5 * 60,
+                        include_start: false,
+                        include_end: true,
+                      });
+                    }}
+                    variant="outline"
+                    colorScheme="suggested"
+                  >
+                    Load latest transaction
+                  </Button>
+                ) : (
+                  "" // some strange behaivior without else condition return 0 wich can see on frontend page
+                )}
+              </Stack>
               {entries.map((entry, idx) => (
                 <StreamEntry
                   key={`entry-list-${idx}`}
@@ -439,21 +566,30 @@ const EntriesNavigation = () => {
                   filterConstants={{ DIRECTIONS, CONDITION, FILTER_TYPES }}
                 />
               ))}
-              {canFetchMore && !isFetchingMore && (
+              {streamBoundary.previous_event_time || isFetching ? (
                 <Center>
                   <Button
-                    onClick={() => fetchMore()}
+                    onClick={() => {
+                      remove();
+                      updateStreamBoundaryWith({
+                        start_time: streamBoundary.previous_event_time - 5 * 60,
+                        include_start: false,
+                        include_end: true,
+                      });
+                    }}
                     variant="outline"
                     colorScheme="suggested"
                   >
-                    Load more entries
+                    Go to previous transaction
                   </Button>
                 </Center>
+              ) : (
+                ""
               )}
-              {canFetchMore && isFetchingMore && (
+              {streamBoundary.previous_event_time && isLoading && (
                 <Center>
                   <Spinner
-                    hidden={!isFetchingMore}
+                    //hidden={!isFetchingMore}
                     ref={loadMoreButtonRef}
                     my={8}
                     size="lg"
