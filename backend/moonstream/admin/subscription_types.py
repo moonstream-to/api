@@ -285,7 +285,7 @@ def delete_subscription_type(id: str) -> Optional[BugoutResource]:
     None. If multiple resources existed with the given Moonstream ID, raises a ConflictingSubscriptionTypesError
     and does not delete anything!
     """
-    # COnflictingSubscriptionTypesError raised here if there are multiple resources with the given id.
+    # ConflictingSubscriptionTypesError raised here if there are multiple resources with the given id.
     resource = get_subscription_type(id)
     if resource is None:
         return None
