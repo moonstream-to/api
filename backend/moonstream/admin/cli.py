@@ -6,7 +6,7 @@ import argparse
 from bugout.data import BugoutResources
 from bugout.exceptions import BugoutResponseException
 
-from .settings import (
+from ..settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_APPLICATION_ID,
     bugout_client as bc,
