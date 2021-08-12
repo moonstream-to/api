@@ -2,13 +2,14 @@
 The Moonstream subscriptions HTTP API
 """
 import logging
-from typing import Dict
+from typing import Dict, List
 
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
 from fastapi import FastAPI, HTTPException, Request, Form
 from fastapi.middleware.cors import CORSMiddleware
 
+from ..admin import subscription_types
 from .. import data
 from ..middleware import BroodAuthMiddleware
 from ..settings import (
@@ -183,27 +184,25 @@ async def get_subscriptions_handler(request: Request) -> data.SubscriptionsListR
 
 
 @app.get(
-    "/types", tags=["subscriptions"], response_model=data.SubscriptionTypesListResponce
+    "/types", tags=["subscriptions"], response_model=data.SubscriptionTypesListResponse
 )
 async def get_available_subscriptions_type(
     request: Request,
-) -> data.SubscriptionTypesListResponce:
+) -> data.SubscriptionTypesListResponse:
 
     """
     Get available's subscriptions types.
     """
-    params = {"type": "subscription_type"}
+    results: List[data.SubscriptionTypeResourceData] = []
     try:
-        resources: BugoutResources = bc.list_resources(
-            token=MOONSTREAM_ADMIN_ACCESS_TOKEN, params=params
-        )
-    except BugoutResponseException as e:
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
-    except Exception as e:
-        raise HTTPException(status_code=500)
-    return data.SubscriptionTypesListResponce(
-        subscriptions=[
-            data.SubscriptionTypeResourceData.validate(resource.resource_data)
-            for resource in resources.resources
+        response = subscription_types.list_subscription_types()
+        results = [
+            data.SubscriptionTypeResourceData.validate(resource.resource_data).dict()
+            for resource in response.resources
         ]
-    )
+    except Exception as e:
+        logger.error("Error reading subscription types from Brood API:")
+        logger.error(e)
+        raise HTTPException(status_code=500)
+
+    return data.SubscriptionTypesListResponse(subscription_types=results)

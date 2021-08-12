@@ -15,7 +15,7 @@ class SubscriptionTypeResourceData(BaseModel):
     active: bool = False
 
 
-class SubscriptionTypesListResponce(BaseModel):
+class SubscriptionTypesListResponse(BaseModel):
     subscription_types: List[SubscriptionTypeResourceData] = Field(default_factory=list)
 
 
