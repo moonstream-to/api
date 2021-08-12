@@ -10,12 +10,13 @@ class SubscriptionTypeResourceData(BaseModel):
     id: str
     name: str
     description: str
-    subscription_plan_id: Optional[str] = None
+    stripe_product_id: Optional[str] = None
+    stripe_price_id: Optional[str] = None
     active: bool = False
 
 
 class SubscriptionTypesListResponce(BaseModel):
-    subscriptions: List[SubscriptionTypeResourceData] = Field(default_factory=list)
+    subscription_types: List[SubscriptionTypeResourceData] = Field(default_factory=list)
 
 
 class SubscriptionResourceData(BaseModel):
