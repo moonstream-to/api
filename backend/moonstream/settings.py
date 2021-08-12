@@ -7,6 +7,8 @@ BUGOUT_BROOD_URL = os.environ.get("BUGOUT_BROOD_URL", "https://auth.bugout.dev")
 BUGOUT_SPIRE_URL = os.environ.get("BUGOUT_SPIRE_URL", "https://spire.bugout.dev")
 bugout_client = Bugout(brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIRE_URL)
 
+BUGOUT_REQUEST_TIMEOUT_SECONDS = 5
+
 # Default value is "" instead of None so that mypy understands that MOONSTREAM_APPLICATION_ID is a string
 MOONSTREAM_APPLICATION_ID = os.environ.get("MOONSTREAM_APPLICATION_ID", "")
 if MOONSTREAM_APPLICATION_ID == "":

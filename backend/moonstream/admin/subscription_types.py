@@ -12,6 +12,7 @@ from ..settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_APPLICATION_ID,
     bugout_client as bc,
+    BUGOUT_REQUEST_TIMEOUT_SECONDS,
 )
 
 
@@ -62,7 +63,9 @@ def add_subscription_type(
     params = {"type": BUGOUT_RESOURCE_TYPE, "id": id}
 
     response: BugoutResources = bc.list_resources(
-        token=MOONSTREAM_ADMIN_ACCESS_TOKEN, params=params
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        params=params,
+        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
     )
     if response.resources:
         raise ConflictingSubscriptionTypesError(
@@ -108,7 +111,9 @@ def list_subscription_types() -> List[Dict[str, Any]]:
     Lists all subscription types registered as Brood resources for this Moonstream application.
     """
     response = bc.list_resources(
-        token=MOONSTREAM_ADMIN_ACCESS_TOKEN, params={"type": BUGOUT_RESOURCE_TYPE}
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        params={"type": BUGOUT_RESOURCE_TYPE},
+        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
     )
     resources = response.resources
     return [resource.resource_data for resource in resources]
@@ -138,6 +143,7 @@ def get_subscription_type(id: str) -> Optional[BugoutResource]:
     response = bc.list_resources(
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
         params={"type": BUGOUT_RESOURCE_TYPE, "id": id},
+        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
     )
     resources = response.resources
 
@@ -204,14 +210,23 @@ def update_subscription_type(
     if active is not None:
         updated_resource_data["active"] = active
 
-    bc.delete_resource(
-        token=MOONSTREAM_ADMIN_ACCESS_TOKEN, resource_id=brood_resource_id
-    )
     new_resource = bc.create_resource(
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
         application_id=MOONSTREAM_APPLICATION_ID,
         resource_data=updated_resource_data,
+        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
     )
+
+    try:
+        bc.delete_resource(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            resource_id=brood_resource_id,
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+        )
+    except Exception as e:
+        raise ConflictingSubscriptionTypesError(
+            f"Unable to delete old subscription type with ID: {id}. Error:\n{repr(e)}"
+        )
 
     return new_resource.resource_data
 
@@ -229,3 +244,37 @@ def cli_update_subscription_type(args: argparse.Namespace) -> None:
         args.active,
     )
     print(json.dumps(result))
+
+
+def delete_subscription_type(id: str) -> Optional[BugoutResource]:
+    """
+    Deletes the subscription type resource with the given ID.
+
+    Args:
+    - id: Moonstream ID of the subscription type you would like to delete. Examples - "ethereum_blockchain",
+      "ethereum_whalewatch", etc.
+
+    Returns: The BugoutResource that was deleted. If no such resource existed in the first place, returns
+    None. If multiple resources existed with the given Moonstream ID, raises a ConflictingSubscriptionTypesError
+    and does not delete anything!
+    """
+    # COnflictingSubscriptionTypesError raised here if there are multiple resources with the given id.
+    resource = get_subscription_type(id)
+    if resource is None:
+        return None
+
+    resource = bc.delete_resource(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        resource_id=resource.id,
+        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+    )
+
+    return resource
+
+
+def cli_delete_subscription_type(args: argparse.Namespace) -> None:
+    """
+    Handler for "mnstr subtypes delete".
+    """
+    result = delete_subscription_type(args.id)
+    print(result.json())

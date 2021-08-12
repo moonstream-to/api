@@ -140,6 +140,19 @@ def main() -> None:
         func=subscription_types.cli_update_subscription_type
     )
 
+    parser_subscription_types_delete = subcommands_subscription_types.add_parser(
+        "delete", description="Delete a subscription type by its ID"
+    )
+    parser_subscription_types_delete.add_argument(
+        "-i",
+        "--id",
+        required=True,
+        help="ID of the subscription type you would like to delete.",
+    )
+    parser_subscription_types_delete.set_defaults(
+        func=subscription_types.cli_delete_subscription_type
+    )
+
     args = parser.parse_args()
     args.func(args)
 
