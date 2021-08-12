@@ -186,12 +186,9 @@ async def get_subscriptions_handler(request: Request) -> data.SubscriptionsListR
 @app.get(
     "/types", tags=["subscriptions"], response_model=data.SubscriptionTypesListResponse
 )
-async def get_available_subscriptions_type(
-    request: Request,
-) -> data.SubscriptionTypesListResponse:
-
+async def list_subscription_types() -> data.SubscriptionTypesListResponse:
     """
-    Get available's subscriptions types.
+    Get availables subscription types.
     """
     results: List[data.SubscriptionTypeResourceData] = []
     try:
