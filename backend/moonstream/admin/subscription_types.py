@@ -347,5 +347,8 @@ def ensure_canonical_subscription_types() -> BugoutResources:
 
 
 def cli_ensure_canonical_subscription_types(args: argparse.Namespace) -> None:
+    """
+    Handler for "mnstr subtypes ensure-canonical
+    """
     resources = ensure_canonical_subscription_types()
     print(resources.json())

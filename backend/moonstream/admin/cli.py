@@ -5,6 +5,11 @@ import argparse
 from typing import Optional
 
 from . import subscription_types
+from ..settings import (
+    BUGOUT_BROOD_URL,
+    BUGOUT_SPIRE_URL,
+    MOONSTREAM_APPLICATION_ID,
+)
 
 
 def parse_boolean_arg(raw_arg: Optional[str]) -> Optional[bool]:
@@ -18,7 +23,23 @@ def parse_boolean_arg(raw_arg: Optional[str]) -> Optional[bool]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Moonstream Admin CLI")
+    cli_description = f"""Moonstream Admin CLI
+
+Please make sure that the following environment variables are set in your environment and exported to
+subprocesses:
+1. MOONSTREAM_APPLICATION_ID
+2. MOONSTREAM_ADMIN_ACCESS_TOKEN
+
+Current Moonstream application ID: {MOONSTREAM_APPLICATION_ID}
+
+This CLI is configured to work with the following API URLs:
+- Brood: {BUGOUT_BROOD_URL} (override by setting BUGOUT_BROOD_URL environment variable)
+- Spire: {BUGOUT_SPIRE_URL} (override by setting BUGOUT_SPIRE_URL environment variable)
+"""
+    parser = argparse.ArgumentParser(
+        description=cli_description,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.set_defaults(func=lambda _: parser.print_help())
     subcommands = parser.add_subparsers(description="Moonstream commands")
 
@@ -154,7 +175,7 @@ def main() -> None:
     )
 
     parser_subscription_types_canonicalize = subcommands_subscription_types.add_parser(
-        "canonicalize",
+        "ensure-canonical",
         description="Ensure that the connected Brood API contains resources for each of the canonical subscription types",
     )
     parser_subscription_types_canonicalize.set_defaults(
