@@ -70,7 +70,7 @@ def main() -> None:
         help="Set this flag to mark the subscription as active",
     )
     parser_subscription_types_create.set_defaults(
-        func=subscription_types.cli_add_subscription_type
+        func=subscription_types.cli_create_subscription_type
     )
 
     parser_subscription_types_list = subcommands_subscription_types.add_parser(
@@ -151,6 +151,14 @@ def main() -> None:
     )
     parser_subscription_types_delete.set_defaults(
         func=subscription_types.cli_delete_subscription_type
+    )
+
+    parser_subscription_types_canonicalize = subcommands_subscription_types.add_parser(
+        "canonicalize",
+        description="Ensure that the connected Brood API contains resources for each of the canonical subscription types",
+    )
+    parser_subscription_types_canonicalize.set_defaults(
+        func=subscription_types.cli_ensure_canonical_subscription_types
     )
 
     args = parser.parse_args()
