@@ -97,6 +97,11 @@ This CLI is configured to work with the following API URLs:
     parser_subscription_types_list = subcommands_subscription_types.add_parser(
         "list", description="List subscription types"
     )
+    parser_subscription_types_list.add_argument(
+        "--active",
+        action="store_true",
+        help="Set this flag to only list active subscription types",
+    )
     parser_subscription_types_list.set_defaults(
         func=subscription_types.cli_list_subscription_types
     )

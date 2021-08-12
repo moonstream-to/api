@@ -134,23 +134,37 @@ def cli_create_subscription_type(args: argparse.Namespace) -> None:
     print(result.json())
 
 
-def list_subscription_types() -> BugoutResources:
+def list_subscription_types(active_only: bool = False) -> BugoutResources:
     """
     Lists all subscription types registered as Brood resources for this Moonstream application.
+
+    Args:
+    - active_only: Set this to true if you only want to list active subscription types. By default,
+      all subscription types are listed, be they active or inactive.
     """
     response = bc.list_resources(
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
         params={"type": BUGOUT_RESOURCE_TYPE},
         timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
     )
-    return response
+
+    # TODO(kompotkot): Currently, we cannot filter using non-string fields in Brood resources. This means
+    # that we have to implement the active_only filter in this API instead of just setting a query parameter
+    # in the Brood API call. This should be fixed.
+    if not active_only:
+        return response
+
+    active_resources = [
+        resource for resource in response.resources if resource.resource_data["active"]
+    ]
+    return BugoutResources(resources=active_resources)
 
 
 def cli_list_subscription_types(args: argparse.Namespace) -> None:
     """
     Handler for "mnstr subtypes list".
     """
-    results = list_subscription_types()
+    results = list_subscription_types(args.active)
     print(results.json())
 
 
