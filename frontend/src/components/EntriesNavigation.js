@@ -80,8 +80,8 @@ const EntriesNavigation = () => {
   const loadMoreButtonRef = useRef(null);
 
   const [streamBoundary, setStreamBoundary] = useState({
-    start_time: null,
-    end_time: null,
+    start_time: 0,
+    end_time: 0,
     include_start: false,
     include_end: true,
     next_event_time: null,
@@ -192,7 +192,7 @@ const EntriesNavigation = () => {
   useEffect(() => {
     if (
       subscriptionsCache.data?.subscriptions[0]?.id &&
-      newFilterState[0].value === null
+      newFilterState[0]?.value === null
     ) {
       setFilterProps(0, {
         value: subscriptionsCache?.data?.subscriptions[0]?.address,
@@ -514,8 +514,8 @@ const EntriesNavigation = () => {
                     onClick={() => {
                       remove();
                       setStreamBoundary({
-                        start_time: null,
-                        end_time: null,
+                        start_time: 0,
+                        end_time: 0,
                         include_start: false,
                         include_end: true,
                         next_event_time: null,
@@ -556,17 +556,19 @@ const EntriesNavigation = () => {
                   "" // some strange behaivior without else condition return 0 wich can see on frontend page
                 )}
               </Stack>
-              {entries.map((entry, idx) => (
-                <StreamEntry
-                  key={`entry-list-${idx}`}
-                  entry={entry}
-                  disableDelete={!canDelete}
-                  disableCopy={!canCreate}
-                  filterCallback={handleFilterStateCallback}
-                  filterConstants={{ DIRECTIONS, CONDITION, FILTER_TYPES }}
-                />
-              ))}
-              {streamBoundary.previous_event_time || isFetching ? (
+              {entries
+                ?.sort((a, b) => b.timestamp - a.timestamp)
+                .map((entry, idx) => (
+                  <StreamEntry
+                    key={`entry-list-${idx}`}
+                    entry={entry}
+                    disableDelete={!canDelete}
+                    disableCopy={!canCreate}
+                    filterCallback={handleFilterStateCallback}
+                    filterConstants={{ DIRECTIONS, CONDITION, FILTER_TYPES }}
+                  />
+                ))}
+              {streamBoundary.previous_event_time && !isFetching ? (
                 <Center>
                   <Button
                     onClick={() => {

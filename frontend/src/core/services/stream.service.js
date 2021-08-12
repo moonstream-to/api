@@ -15,9 +15,9 @@ export const getStream = ({
     url: `${API}/streams/`,
     params: {
       q: searchTerm,
-      start_time: start_time,
-      end_time: end_time,
-      include_start: include_start,
-      include_end: include_end,
+      start_time: encodeURIComponent(start_time),
+      end_time: encodeURIComponent(end_time),
+      include_start: encodeURIComponent(include_start),
+      include_end: encodeURIComponent(include_end),
     },
   });

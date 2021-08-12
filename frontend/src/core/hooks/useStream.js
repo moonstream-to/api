@@ -43,6 +43,7 @@ const useJournalEntries = ({
       //refetchInterval: refreshRate,
       ...queryCacheProps,
       keepPreviousData: true,
+      retry: 3,
       onSuccess: (response) => {
         // response is object which return condition in getStream
         // TODO(andrey): Response should send page parameters inside "boundary" object (can be null).
