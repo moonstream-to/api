@@ -80,8 +80,8 @@ const EntriesNavigation = () => {
   const loadMoreButtonRef = useRef(null);
 
   const [streamBoundary, setStreamBoundary] = useState({
-    start_time: 0,
-    end_time: 0,
+    start_time: null,
+    end_time: null,
     include_start: false,
     include_end: true,
     next_event_time: null,
@@ -173,12 +173,6 @@ const EntriesNavigation = () => {
   //     }
   //   }
   // };
-
-  useEffect(() => {
-    if (!streamBoundary.start_time && !streamBoundary.end_time) {
-      refetch();
-    }
-  }, [streamBoundary]);
 
   const setFilterProps = useCallback(
     (filterIdx, props) => {
@@ -514,8 +508,8 @@ const EntriesNavigation = () => {
                     onClick={() => {
                       remove();
                       setStreamBoundary({
-                        start_time: 0,
-                        end_time: 0,
+                        start_time: null,
+                        end_time: null,
                         include_start: false,
                         include_end: true,
                         next_event_time: null,
@@ -557,7 +551,7 @@ const EntriesNavigation = () => {
                 )}
               </Stack>
               {entries
-                ?.sort((a, b) => b.timestamp - a.timestamp)
+                ?.sort((a, b) => b.timestamp - a.timestamp) // TODO(Andrey) improve that for bi chunks of data sorting can take time
                 .map((entry, idx) => (
                   <StreamEntry
                     key={`entry-list-${idx}`}
@@ -586,9 +580,20 @@ const EntriesNavigation = () => {
                   </Button>
                 </Center>
               ) : (
-                ""
+                <Center>
+                  {!isFetching ? (
+                    "Тransactions not found. You can subscribe to more addresses in Subscriptions menu."
+                  ) : (
+                    <Button
+                      isLoading
+                      loadingText="Loading"
+                      variant="outline"
+                      colorScheme="suggested"
+                    ></Button>
+                  )}
+                </Center>
               )}
-              {streamBoundary.previous_event_time && isLoading && (
+              {streamBoundary.previous_event_time && isLoading ? (
                 <Center>
                   <Spinner
                     //hidden={!isFetchingMore}
@@ -600,6 +605,8 @@ const EntriesNavigation = () => {
                     speed="1.5s"
                   />
                 </Center>
+              ) : (
+                ""
               )}
             </Flex>
           </Flex>

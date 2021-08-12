@@ -9,15 +9,32 @@ export const getStream = ({
   end_time,
   include_start,
   include_end,
-}) =>
-  http({
+}) => {
+  let params = {};
+
+  if (searchTerm) {
+    params.q = encodeURIComponent(searchTerm);
+  }
+
+  if (start_time) {
+    params.start_time = encodeURIComponent(start_time);
+  }
+
+  if (end_time) {
+    params.end_time = encodeURIComponent(end_time);
+  }
+
+  if (include_start) {
+    params.include_start = encodeURIComponent(true);
+  }
+
+  if (include_end) {
+    params.include_end = encodeURIComponent(true);
+  }
+
+  return http({
     method: "GET",
     url: `${API}/streams/`,
-    params: {
-      q: searchTerm,
-      start_time: encodeURIComponent(start_time),
-      end_time: encodeURIComponent(end_time),
-      include_start: encodeURIComponent(include_start),
-      include_end: encodeURIComponent(include_end),
-    },
+    params: params,
   });
+};
