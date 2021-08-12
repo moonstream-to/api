@@ -87,8 +87,6 @@ async def search_transactions(
         for resource in user_subscriptions_resources.resources
     }
 
-    # transactions: List[Any] = []
-
     boundaries = data.PageBoundary(
         start_time=start_time,
         end_time=end_time,
@@ -97,17 +95,14 @@ async def search_transactions(
         include_start=include_start,
         include_end=include_end,
     )
-    print(boundaries)
 
     if address_to_subscriptions:
-        print("address_to_subscriptions")
         response = await actions.get_transaction_in_blocks(
             db_session=db_session,
             query=q,
             user_subscriptions_resources_by_address=address_to_subscriptions,
             boundaries=boundaries,
         )
-        print(response.boundaries)
 
         return response
     else:
