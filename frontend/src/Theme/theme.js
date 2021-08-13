@@ -8,6 +8,8 @@ import NumberInput from "./NumberInput";
 import Badge from "./Badge";
 import Checkbox from "./Checkbox";
 import Table from "./Table";
+import Tooltip from "./Tooltip";
+import Spinner from "./Spinner";
 import { createBreakpoints } from "@chakra-ui/theme-tools";
 
 const breakpointsCustom = createBreakpoints({
@@ -53,6 +55,8 @@ const theme = extendTheme({
     Badge,
     Checkbox,
     Table,
+    Tooltip,
+    Spinner,
   },
 
   fonts: {
