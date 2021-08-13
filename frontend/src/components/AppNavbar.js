@@ -127,7 +127,12 @@ const AppNavbar = () => {
         >
           <Flex w="100%" justifyContent="space-evenly">
             {!isSearchBarActive && (
-              <Tooltip hasArrow label="menu" isOpen={ui.showPopOvers}>
+              <Tooltip
+                hasArrow
+                label="menu"
+                isOpen={ui.showPopOvers}
+                variant="onboarding"
+              >
                 <IconButton
                   variant="link"
                   justifyContent="space-evenly"
@@ -146,7 +151,12 @@ const AppNavbar = () => {
                 />
               </Tooltip>
             )}
-            <Tooltip hasArrow label="stream view" isOpen={ui.showPopOvers}>
+            <Tooltip
+              hasArrow
+              label="stream view"
+              isOpen={ui.showPopOvers}
+              variant="onboarding"
+            >
               <chakra.span alignSelf="center">
                 <RouterLink href="/stream" passHref>
                   <IconButton
@@ -165,25 +175,29 @@ const AppNavbar = () => {
             </Tooltip>
 
             {!isSearchBarActive && (
-
-              <Tooltip hasArrow label="Go back" isOpen={ui.showPopOvers}>
+              <Tooltip
+                hasArrow
+                label="Go back"
+                isOpen={ui.showPopOvers}
+                variant="onboarding"
+              >
                 <IconButton
-                m={0}
-                variant="link"
-                justifyContent="space-evenly"
-                alignContent="center"
-                h="32px"
-                size={iconSize}
-                colorScheme="gray"
-                aria-label="App navigation"
-                icon={<ArrowLeftIcon />}
-                onClick={() => {
-                  router.nextRouter.pathname === "/stream" &&
-                  ui.isEntryDetailView
-                    ? ui.setEntryDetailView(false)
-                    : router.nextRouter.back();
-                }}
-              />
+                  m={0}
+                  variant="link"
+                  justifyContent="space-evenly"
+                  alignContent="center"
+                  h="32px"
+                  size={iconSize}
+                  colorScheme="gray"
+                  aria-label="App navigation"
+                  icon={<ArrowLeftIcon />}
+                  onClick={() => {
+                    router.nextRouter.pathname === "/stream" &&
+                    ui.isEntryDetailView
+                      ? ui.setEntryDetailView(false)
+                      : router.nextRouter.back();
+                  }}
+                />
               </Tooltip>
             )}
             {!isSearchBarActive && (
@@ -191,6 +205,7 @@ const AppNavbar = () => {
                 hasArrow
                 label="homepage"
                 isOpen={ui.showPopOvers}
+                variant="onboarding"
                 // shouldWrapChildren
               >
                 <Link href="/" alignSelf="center">
@@ -211,25 +226,26 @@ const AppNavbar = () => {
                 hasArrow
                 label="Go forward"
                 isOpen={ui.showPopOvers}
+                variant="onboarding"
                 // shouldWrapChildren
               >
                 <IconButton
-                m={0}
-                variant="link"
-                justifyContent="space-evenly"
-                alignContent="center"
-                h="32px"
-                size={iconSize}
-                colorScheme="gray"
-                aria-label="App navigation"
-                icon={<ArrowRightIcon />}
-                onClick={() => {
-                  router.nextRouter.pathname === "/stream" &&
-                  !ui.isEntryDetailView
-                    ? ui.setEntryDetailView(true)
-                    : history.forward();
-                }}
-              />
+                  m={0}
+                  variant="link"
+                  justifyContent="space-evenly"
+                  alignContent="center"
+                  h="32px"
+                  size={iconSize}
+                  colorScheme="gray"
+                  aria-label="App navigation"
+                  icon={<ArrowRightIcon />}
+                  onClick={() => {
+                    router.nextRouter.pathname === "/stream" &&
+                    !ui.isEntryDetailView
+                      ? ui.setEntryDetailView(true)
+                      : history.forward();
+                  }}
+                />
               </Tooltip>
             )}
             {!isSearchBarActive && <SupportPopover />}
@@ -239,6 +255,7 @@ const AppNavbar = () => {
                 hasArrow
                 label="Account menu"
                 isOpen={ui.showPopOvers}
+                variant="onboarding"
                 shouldWrapChildren
               >
                 <AccountIconButton

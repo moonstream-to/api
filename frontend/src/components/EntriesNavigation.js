@@ -455,13 +455,21 @@ const EntriesNavigation = () => {
               })}
             </Flex>
             <Spacer />
-            <IconButton
-              mr={4}
-              onClick={onOpen}
-              colorScheme="primary"
-              variant="ghost"
-              icon={<FaFilter />}
-            />
+            <Tooltip
+              hasArrow
+              label="Tap to apply filters"
+              isOpen={ui.showPopOvers}
+              variant="onboarding"
+              // shouldWrapChildren
+            >
+              <IconButton
+                mr={4}
+                onClick={onOpen}
+                colorScheme="primary"
+                variant="ghost"
+                icon={<FaFilter />}
+              />
+            </Tooltip>
           </Flex>
 
           <Flex
@@ -484,6 +492,7 @@ const EntriesNavigation = () => {
                     hasArrow
                     label="Tap to get newest entry"
                     isOpen={ui.showPopOvers}
+                    variant="onboarding"
                     placement="right"
                   >
                     <Button
@@ -520,6 +529,7 @@ const EntriesNavigation = () => {
                     hasArrow
                     label="Loads latest transaction in your subscriptions"
                     isOpen={ui.showPopOvers}
+                    variant="onboarding"
                   >
                     <Button
                       onClick={() => {
@@ -541,6 +551,7 @@ const EntriesNavigation = () => {
               </Stack>
               {entries.map((entry, idx) => (
                 <StreamEntry
+                  isToolTipEntry={!!idx === 0}
                   key={`entry-list-${idx}`}
                   entry={entry}
                   disableDelete={!canDelete}

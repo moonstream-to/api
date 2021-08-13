@@ -40,6 +40,7 @@ const Sidebar = () => {
                   hasArrow
                   label="Access app menu here"
                   isOpen={ui.showPopOvers}
+                  variant="onboarding"
                 >
                   <HamburgerIcon />
                 </Tooltip>
@@ -49,6 +50,7 @@ const Sidebar = () => {
                   hasArrow
                   label="Expand sidebar"
                   isOpen={ui.showPopOvers}
+                  variant="onboarding"
                 >
                   <ArrowRightIcon />
                 </Tooltip>
@@ -58,6 +60,7 @@ const Sidebar = () => {
                   hasArrow
                   label="Collapse sidebar"
                   isOpen={ui.showPopOvers}
+                  variant="onboarding"
                 >
                   <ArrowLeftIcon />
                 </Tooltip>
@@ -73,7 +76,8 @@ const Sidebar = () => {
             shouldWrapChildren
             hasArrow
             label="go to homepage"
-            // isOpen={ui.showPopOvers}
+            variant="onboarding"
+            // isOpen={ui.showPopOvers} variant="onboarding"
             isDisabled
           >
             <Image
@@ -95,6 +99,7 @@ const Sidebar = () => {
               // shouldWrapChildren
               hasArrow
               label="Live stream of addresses you subscribed to"
+              variant="onboarding"
               isOpen={
                 ui.showPopOvers &&
                 ((ui.sidebarToggled && ui.isMobileView) || !ui.isMobileView)
@@ -107,6 +112,7 @@ const Sidebar = () => {
           </Menu>
           <Menu iconShape="square">
             <Tooltip
+              variant="onboarding"
               // shouldWrapChildren
               hasArrow
               label="Analytical mode to build your monitors"
@@ -122,6 +128,7 @@ const Sidebar = () => {
           </Menu>
           <Menu iconShape="square">
             <Tooltip
+              variant="onboarding"
               // shouldWrapChildren
               hasArrow
               label="Set up subscriptions here to get data in to moonstream!"

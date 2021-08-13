@@ -18,7 +18,7 @@ import UIContext from "../core/providers/UIProvider/context";
 import { useToast } from "../core/hooks";
 import { useSubscriptions } from "../core/hooks";
 
-const StreamEntry = ({ entry }) => {
+const StreamEntry = ({ entry, isToolTipEntry }) => {
   const { subscriptionsCache } = useSubscriptions();
   const ui = useContext(UIContext);
   const [copyString, setCopyString] = useState(false);
@@ -322,18 +322,25 @@ const StreamEntry = ({ entry }) => {
           </Stack>
         )}
         <Flex>
-          <IconButton
-            m={0}
-            onClick={() => ui.setCurrentTransaction(entry)}
-            h="full"
-            // minH="24px"
-            borderLeftRadius={0}
-            variant="solid"
-            px={0}
-            minW="24px"
-            colorScheme="secondary"
-            icon={<ArrowRightIcon w="24px" />}
-          />
+          <Tooltip
+            hasArrow
+            label="See details of the entry"
+            isOpen={ui.showPopOvers}
+            variant="onboarding"
+          >
+            <IconButton
+              m={0}
+              onClick={() => ui.setCurrentTransaction(entry)}
+              h="full"
+              // minH="24px"
+              borderLeftRadius={0}
+              variant="solid"
+              px={0}
+              minW="24px"
+              colorScheme="secondary"
+              icon={<ArrowRightIcon w="24px" />}
+            />
+          </Tooltip>
         </Flex>
       </Stack>
     </Flex>
