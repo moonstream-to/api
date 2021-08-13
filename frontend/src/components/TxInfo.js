@@ -10,7 +10,9 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@chakra-ui/react";
-const toEth = (wei) => { return wei / Math.pow(10, 18) }
+const toEth = (wei) => {
+  return wei / Math.pow(10, 18);
+};
 const TxABI = (props) => {
   const byteCode = props.byteCode;
   const abi = props.abi;

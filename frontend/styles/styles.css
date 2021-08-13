@@ -46,6 +46,7 @@
 }
 .Resizer.disabled:hover {
   border-color: transparent;
+  cursor: inherit;
 }
 
 .triangle {
@@ -156,7 +157,7 @@
   word-break: break-word;
 }
 
-.mde-preview  * {
+.mde-preview * {
   word-break: break-word;
 }
 
@@ -181,11 +182,9 @@
   padding: 0.5rem;
 }
 
-
 code {
   white-space: pre-line !important;
 }
-
 
 .fade-in-section {
   opacity: 0;
@@ -195,7 +194,6 @@ code {
   will-change: opacity, visibility;
 }
 .fade-in-section.is-visible {
-
   opacity: 1;
   transform: none;
   visibility: visible;

@@ -32,7 +32,6 @@ import {
   TagCloseButton,
   Stack,
   Spacer,
-  useBoolean,
 } from "@chakra-ui/react";
 import { useSubscriptions } from "../core/hooks";
 import StreamEntry from "./StreamEntry";
@@ -40,9 +39,7 @@ import UIContext from "../core/providers/UIProvider/context";
 import { FaFilter } from "react-icons/fa";
 import useStream from "../core/hooks/useStream";
 import { ImCancelCircle } from "react-icons/im";
-import { IoStopCircleOutline, IoPlayCircleOutline } from "react-icons/io5";
 
-const pageSize = 25;
 const FILTER_TYPES = {
   ADDRESS: 0,
   GAS: 1,
@@ -64,7 +61,6 @@ const CONDITION = {
 
 const EntriesNavigation = () => {
   const ui = useContext(UIContext);
-  const [isStreamOn, setStreamState] = useBoolean(true);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { subscriptionsCache } = useSubscriptions();
   const [newFilterState, setNewFilterState] = useState([
@@ -150,29 +146,22 @@ const EntriesNavigation = () => {
   };
 
   const { EntriesPages, isLoading, refetch, isFetching, remove } = useStream({
-    refreshRate: 1500,
     searchQuery: ui.searchTerm,
     start_time: streamBoundary.start_time,
     end_time: streamBoundary.end_time,
     include_start: streamBoundary.include_start,
     include_end: streamBoundary.include_end,
-    enabled: isStreamOn,
     updateStreamBoundaryWith: updateStreamBoundaryWith,
     streamBoundary: streamBoundary,
     setStreamBoundary: setStreamBoundary,
     isContent: false,
   });
 
-  // const handleScroll = ({ currentTarget }) => {
-  //   if (
-  //     currentTarget.scrollTop + currentTarget.clientHeight >=
-  //     0.5 * currentTarget.scrollHeight
-  //   ) {
-  //     if (!isLoading && hasPreviousPage) {
-  //       fetchPreviousPage();
-  //     }
-  //   }
-  // };
+  useEffect(() => {
+    if (!streamBoundary.start_time && !streamBoundary.end_time) {
+      refetch();
+    }
+  }, [streamBoundary, refetch]);
 
   const setFilterProps = useCallback(
     (filterIdx, props) => {
@@ -436,20 +425,6 @@ const EntriesNavigation = () => {
           </Drawer>
           <Flex h="3rem" w="100%" bgColor="gray.100" alignItems="center">
             <Flex maxW="90%">
-              <Flex direction="column">
-                <IconButton
-                  size="sm"
-                  onClick={() => setStreamState.toggle()}
-                  icon={
-                    isStreamOn ? (
-                      <IoStopCircleOutline size="32px" />
-                    ) : (
-                      <IoPlayCircleOutline size="32px" />
-                    )
-                  }
-                  colorScheme={isStreamOn ? "unsafe" : "suggested"}
-                />
-              </Flex>
               {filterState.map((filter, idx) => {
                 if (filter.type === FILTER_TYPES.DISABLED) return "";
                 return (

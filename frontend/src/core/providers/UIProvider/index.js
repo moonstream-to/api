@@ -30,8 +30,6 @@ const UIProvider = ({ children }) => {
   const { modal, toggleModal } = useContext(ModalContext);
   const [searchTerm, setSearchTerm] = useQuery("q", "", true, false);
 
-  const [entryId, setEntryId] = useState();
-
   const [searchBarActive, setSearchBarActive] = useState(false);
 
   // ****** Session state *****
@@ -136,22 +134,30 @@ const UIProvider = ({ children }) => {
 
   // *********** Entries layout states **********************
 
+  //
+  // const [entryId, setEntryId] = useState();
+  // Current transaction to show in sideview
+  const [currentTransaction, _setCurrentTransaction] = useState(undefined);
+  const [isEntryDetailView, setEntryDetailView] = useState(false);
+
+  const setCurrentTransaction = (tx) => {
+    _setCurrentTransaction(tx);
+    setEntryDetailView(!!tx);
+  };
+
   /**
    * States that entries list box should be expanded
    * Default true in mobile mode and false in desktop mode
    */
   const [entriesViewMode, setEntriesViewMode] = useState(
-    router.params?.entryId ? "entry" : "list"
+    isMobileView ? "list" : "split"
   );
 
   useEffect(() => {
-    setEntriesViewMode(router.params?.entryId ? "entry" : "list");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router.params?.id]);
-
-  // *********** TX stream state **********************
-
-  const [currentTransaction, setCurrentTransaction] = useState(undefined);
+    setEntriesViewMode(
+      isMobileView ? (isEntryDetailView ? "entry" : "list") : "split"
+    );
+  }, [isEntryDetailView, isMobileView]);
 
   // ********************************************************
 
@@ -175,14 +181,13 @@ const UIProvider = ({ children }) => {
         isLoggedIn,
         isAppReady,
         entriesViewMode,
-        setEntriesViewMode,
+        setEntryDetailView,
         modal,
         toggleModal,
-        entryId,
-        setEntryId,
         sessionId,
         currentTransaction,
         setCurrentTransaction,
+        isEntryDetailView,
       }}
     >
       {children}
