@@ -22,7 +22,6 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         name="Ethereum transactions",
         description="Transactions that have been mined into the Ethereum blockchain",
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/ethereum/eth-diamond-purple.png",
-        fields={"address": "str"},
         stripe_product_id=None,
         stripe_price_id=None,
         active=True,
@@ -33,7 +32,6 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         description="Ethereum accounts that have experienced a lot of recent activity",
         # Icon taken from: https://www.maxpixel.net/Whale-Cetacean-Wildlife-Symbol-Ocean-Sea-Black-99310
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/whalewatch.png",
-        fields={},
         stripe_product_id=None,
         stripe_price_id=None,
         active=True,
@@ -43,7 +41,6 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         name="Ethereum transaction pool",
         description="Transactions that have been submitted into the Ethereum transaction pool but not necessarily mined yet",
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/ethereum/eth-diamond-rainbow.png",
-        fields={"address": "str"},
         stripe_product_id=None,
         stripe_price_id=None,
         active=False,
@@ -77,7 +74,6 @@ def create_subscription_type(
     name: str,
     description: str,
     icon_url: str,
-    fields: Dict[str, str],
     stripe_product_id: Optional[str] = None,
     stripe_price_id: Optional[str] = None,
     active: bool = False,
@@ -91,6 +87,7 @@ def create_subscription_type(
     - name: Human-friendly name for the subscription type, which can be displayed to users.
     - description: Detailed description of the subscription type for users who would like more
       information.
+    - icon_url: URL to the icon for this subscription type
     - stripe_product_id: Optional product ID from Stripe account dashboard.
     - stripe_price_id: Optional price ID from Stripe account dashboard.
     - active: Set to True if you would like the subscription type to immediately be available for
@@ -115,7 +112,6 @@ def create_subscription_type(
         "name": name,
         "description": description,
         "icon_url": icon_url,
-        "fields": fields,
         "stripe_product_id": stripe_product_id,
         "stripe_price_id": stripe_price_id,
         "active": active,
@@ -130,24 +126,6 @@ def create_subscription_type(
     return resource
 
 
-def parse_fields_from_str(raw_fields: str) -> Dict[str, str]:
-    """
-    Accepts a specification of fields in the form <field_1_name>:<field_1_type>,...,<field_n_name>:<field_n_type>
-    and returns a dictionary of the form:
-    {
-        "<field_1_name>": "<field_1_type>",
-        ...,
-        "<field_n_name>": "<field_n_type>"
-    }
-    """
-    fields: Dict[str, str] = {}
-    raw_field_items = raw_fields.split(",")
-    for raw_field in raw_field_items:
-        components = raw_field.split(":")
-        fields[":".join(components[:-1])] = components[-1]
-    return fields
-
-
 def cli_create_subscription_type(args: argparse.Namespace) -> None:
     """
     Handler for "mnstr subtypes create".
@@ -157,7 +135,6 @@ def cli_create_subscription_type(args: argparse.Namespace) -> None:
         args.name,
         args.description,
         args.icon,
-        args.fields,
         args.stripe_product_id,
         args.stripe_price_id,
         args.active,
@@ -244,7 +221,6 @@ def update_subscription_type(
     name: Optional[str] = None,
     description: Optional[str] = None,
     icon_url: Optional[str] = None,
-    fields: Optional[Dict[str, str]] = None,
     stripe_product_id: Optional[str] = None,
     stripe_price_id: Optional[str] = None,
     active: Optional[bool] = None,
@@ -258,6 +234,7 @@ def update_subscription_type(
     - name: Human-friendly name for the subscription type, which can be displayed to users.
     - description: Detailed description of the subscription type for users who would like more
       information.
+    - icon_url: URL to the icon for this subscription type
     - stripe_product_id: Optional product ID from Stripe account dashboard.
     - stripe_price_id: Optional price ID from Stripe account dashboard.
     - active: Set to True if you would like the subscription type to immediately be available for
@@ -279,8 +256,6 @@ def update_subscription_type(
         updated_resource_data["description"] = description
     if icon_url is not None:
         updated_resource_data["icon_url"] = icon_url
-    if fields is not None:
-        updated_resource_data["fields"] = fields
     if stripe_product_id is not None:
         updated_resource_data["stripe_product_id"] = stripe_product_id
     if stripe_price_id is not None:
@@ -321,7 +296,6 @@ def cli_update_subscription_type(args: argparse.Namespace) -> None:
         args.name,
         args.description,
         args.icon,
-        args.fields,
         args.stripe_product_id,
         args.stripe_price_id,
         args.active,
@@ -392,7 +366,6 @@ def ensure_canonical_subscription_types() -> BugoutResources:
                 canonical_subscription_type.name,
                 canonical_subscription_type.description,
                 canonical_subscription_type.icon_url,
-                canonical_subscription_type.fields,
                 canonical_subscription_type.stripe_product_id,
                 canonical_subscription_type.stripe_price_id,
                 canonical_subscription_type.active,

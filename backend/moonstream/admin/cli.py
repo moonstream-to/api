@@ -77,13 +77,6 @@ This CLI is configured to work with the following API URLs:
         help="URL to the icon representing this subscription type",
     )
     parser_subscription_types_create.add_argument(
-        "-f",
-        "--fields",
-        type=subscription_types.parse_fields_from_str,
-        required=True,
-        help="Fields that a subscription of this type must have. Format: <field_1_name>:<field_1_type>,...,<field_n_name>:<field_n_type>. Types should come from: str, number, bool",
-    )
-    parser_subscription_types_create.add_argument(
         "--stripe-product-id",
         required=False,
         default=None,
@@ -157,13 +150,6 @@ This CLI is configured to work with the following API URLs:
         "--icon",
         required=True,
         help="URL to the icon representing this subscription type",
-    )
-    parser_subscription_types_update.add_argument(
-        "-f",
-        "--fields",
-        type=subscription_types.parse_fields_from_str,
-        required=True,
-        help="Fields that a subscription of this type must have. Format: <field_1_name>:<field_1_type>,...,<field_n_name>:<field_n_type>. Types should come from: str, number, bool",
     )
     parser_subscription_types_update.add_argument(
         "--stripe-product-id",
