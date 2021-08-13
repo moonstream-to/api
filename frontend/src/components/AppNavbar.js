@@ -2,7 +2,6 @@ import React, { useState, useContext, useEffect } from "react";
 import RouterLink from "next/link";
 import {
   Flex,
-  Button,
   Image,
   Text,
   IconButton,
@@ -16,7 +15,6 @@ import {
   PopoverCloseButton,
   useBreakpointValue,
   Spacer,
-  Fade,
 } from "@chakra-ui/react";
 import {
   HamburgerIcon,
@@ -95,36 +93,6 @@ const AppNavbar = () => {
       {!ui.isMobileView && (
         <>
           <Flex width="100%" px={2}>
-            <Fade in={ui.entriesViewMode === "entry"}>
-              <Button
-                m={0}
-                alignSelf="center"
-                variant="outline"
-                justifyContent="space-evenly"
-                alignContent="center"
-                h="32px"
-                size="sm"
-                colorScheme="gray"
-                aria-label="App navigation"
-                leftIcon={<ArrowLeftIcon />}
-                onClick={() => {
-                  router.push(
-                    {
-                      pathname: "/stream",
-                      query: router.query,
-                    },
-                    undefined,
-                    { shallow: false }
-                  );
-                  // router.params?.entryId && ui.entriesViewMode === "entry"
-                  // ?
-                  ui.setEntriesViewMode("list");
-                  //   : router.nextRouter.back();
-                }}
-              >
-                Back to stream
-              </Button>
-            </Fade>
             <Spacer />
             <Flex placeSelf="flex-end">
               <SupportPopover />
@@ -185,8 +153,9 @@ const AppNavbar = () => {
                 aria-label="App navigation"
                 icon={<ArrowLeftIcon />}
                 onClick={() => {
-                  router.params?.entryId && ui.entriesViewMode === "entry"
-                    ? ui.setEntriesViewMode("list")
+                  router.nextRouter.pathname === "/stream" &&
+                  ui.isEntryDetailView
+                    ? ui.setEntryDetailView(false)
                     : router.nextRouter.back();
                 }}
               />
@@ -216,8 +185,9 @@ const AppNavbar = () => {
                 aria-label="App navigation"
                 icon={<ArrowRightIcon />}
                 onClick={() => {
-                  router.params?.entryId && ui.entriesViewMode === "list"
-                    ? ui.setEntriesViewMode("entry")
+                  router.nextRouter.pathname === "/stream" &&
+                  !ui.isEntryDetailView
+                    ? ui.setEntryDetailView(true)
                     : history.forward();
                 }}
               />

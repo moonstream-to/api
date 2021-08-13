@@ -3,14 +3,12 @@ import { useQuery } from "react-query";
 import { queryCacheProps } from "./hookCommon";
 
 const useJournalEntries = ({
-  refreshRate,
   searchQuery,
   start_time,
   end_time,
   include_start,
   include_end,
   updateStreamBoundaryWith,
-  enabled,
 }) => {
   // set our get method
   const getStream =
@@ -47,8 +45,7 @@ const useJournalEntries = ({
         // response is object which return condition in getStream
         // TODO(andrey): Response should send page parameters inside "boundary" object (can be null).
         updateStreamBoundaryWith(response.boundaries);
-      },
-      enabled: !!enabled,
+      }
     }
   );
 

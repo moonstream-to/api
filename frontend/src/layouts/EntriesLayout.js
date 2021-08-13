@@ -20,6 +20,7 @@ const EntriesLayout = (props) => {
     <>
       <Flex id="Entries" flexGrow={1} maxW="100%">
         <SplitPane
+          allowResize={false}
           split="vertical"
           defaultSize={defaultWidth}
           primary="first"
@@ -29,7 +30,11 @@ const EntriesLayout = (props) => {
               ? { transition: "1s", width: "100%" }
               : ui.entriesViewMode === "entry"
               ? { transition: "1s", width: "0%" }
-              : { overflowX: "hidden", height: "100%" }
+              : {
+                  overflowX: "hidden",
+                  height: "100%",
+                  width: ui.isMobileView ? "100%" : "55%",
+                }
           }
           pane2Style={
             ui.entriesViewMode === "entry"
