@@ -80,6 +80,8 @@ async def get_transaction_in_blocks(
         .filter(filters)
     )
 
+    ethereum_transactions = ethereum_transactions_in_subscriptions
+
     # If not start_time and end_time not present
     # Get latest transaction
     if boundaries.end_time == 0:
@@ -88,10 +90,11 @@ async def get_transaction_in_blocks(
                 text("timestamp desc")
             ).limit(1)
         ).one_or_none()
-        boundaries.end_time = ethereum_transaction_start_point[-1]
-        boundaries.start_time = (
-            ethereum_transaction_start_point[-1] - DEFAULT_STREAM_TIMEINTERVAL
-        )
+        if ethereum_transaction_start_point:
+            boundaries.end_time = ethereum_transaction_start_point[-1]
+            boundaries.start_time = (
+                ethereum_transaction_start_point[-1] - DEFAULT_STREAM_TIMEINTERVAL
+            )
 
     if boundaries.start_time != 0 and boundaries.end_time != 0:
         if boundaries.start_time > boundaries.end_time:
@@ -101,7 +104,7 @@ async def get_transaction_in_blocks(
             )
 
     if boundaries.end_time:
-        ethereum_transactions = ethereum_transactions_in_subscriptions.filter(
+        ethereum_transactions = ethereum_transactions.filter(
             include_or_not_lower(
                 EthereumBlock.timestamp, boundaries.include_end, boundaries.end_time
             )

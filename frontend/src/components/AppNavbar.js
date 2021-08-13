@@ -2,9 +2,7 @@ import React, { useState, useContext, useEffect } from "react";
 import RouterLink from "next/link";
 import {
   Flex,
-  Button,
   Image,
-  ButtonGroup,
   Text,
   IconButton,
   Link,
@@ -17,7 +15,6 @@ import {
   PopoverCloseButton,
   useBreakpointValue,
   Spacer,
-  Fade,
 } from "@chakra-ui/react";
 import {
   HamburgerIcon,
@@ -96,66 +93,8 @@ const AppNavbar = () => {
       {!ui.isMobileView && (
         <>
           <Flex width="100%" px={2}>
-            <Fade in={ui.entriesViewMode === "entry"}>
-              <Button
-                m={0}
-                alignSelf="center"
-                variant="outline"
-                justifyContent="space-evenly"
-                alignContent="center"
-                h="32px"
-                size="sm"
-                colorScheme="gray"
-                aria-label="App navigation"
-                leftIcon={<ArrowLeftIcon />}
-                onClick={() => {
-                  router.push(
-                    {
-                      pathname: "/stream",
-                      query: router.query,
-                    },
-                    undefined,
-                    { shallow: false }
-                  );
-                  // router.params?.entryId && ui.entriesViewMode === "entry"
-                  // ?
-                  ui.setEntriesViewMode("list");
-                  //   : router.nextRouter.back();
-                }}
-              >
-                Back to stream
-              </Button>
-            </Fade>
             <Spacer />
             <Flex placeSelf="flex-end">
-              <ButtonGroup
-                alignSelf="center"
-                // position="relative"
-                left={
-                  isSearchBarActive
-                    ? "100%"
-                    : ["64px", "30%", "50%", "55%", null, "60%"]
-                }
-                // hidden={ui.searchBarActive}
-                display={isSearchBarActive ? "hidden" : "block"}
-                variant="link"
-                colorScheme="secondary"
-                spacing={4}
-                px={2}
-                zIndex={ui.searchBarActive ? -10 : 0}
-                size={["xs", "xs", "xs", "lg", null, "lg"]}
-              >
-                <RouterLink href="/pricing" passHref>
-                  <Button color="white" fontWeight="400">
-                    Pricing
-                  </Button>
-                </RouterLink>
-                <RouterLink href="/product" passHref>
-                  <Button color="white" fontWeight="400">
-                    Product
-                  </Button>
-                </RouterLink>
-              </ButtonGroup>
               <SupportPopover />
               <AccountIconButton
                 colorScheme="primary"
@@ -214,8 +153,9 @@ const AppNavbar = () => {
                 aria-label="App navigation"
                 icon={<ArrowLeftIcon />}
                 onClick={() => {
-                  router.params?.entryId && ui.entriesViewMode === "entry"
-                    ? ui.setEntriesViewMode("list")
+                  router.nextRouter.pathname === "/stream" &&
+                  ui.isEntryDetailView
+                    ? ui.setEntryDetailView(false)
                     : router.nextRouter.back();
                 }}
               />
@@ -245,8 +185,9 @@ const AppNavbar = () => {
                 aria-label="App navigation"
                 icon={<ArrowRightIcon />}
                 onClick={() => {
-                  router.params?.entryId && ui.entriesViewMode === "list"
-                    ? ui.setEntriesViewMode("entry")
+                  router.nextRouter.pathname === "/stream" &&
+                  !ui.isEntryDetailView
+                    ? ui.setEntryDetailView(true)
                     : history.forward();
                 }}
               />
@@ -256,7 +197,6 @@ const AppNavbar = () => {
             {!isSearchBarActive && (
               <AccountIconButton
                 variant="link"
-                mx={0}
                 justifyContent="space-evenly"
                 alignContent="center"
                 h="32px"

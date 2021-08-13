@@ -7,6 +7,7 @@ import {
   Tr,
   Thead,
   Tbody,
+  Tooltip,
   Editable,
   EditableInput,
   Image,
@@ -17,13 +18,17 @@ import moment from "moment";
 import CopyButton from "./CopyButton";
 import { useSubscriptions } from "../core/hooks";
 import ConfirmationRequest from "./ConfirmationRequest";
+import ColorSelector from "./ColorSelector";
 
 const SubscriptionsList = () => {
-  const { subscriptionsCache, changeNote, deleteSubscription } =
+  const { subscriptionsCache, updateSubscription, deleteSubscription } =
     useSubscriptions();
 
-  const updateCallback = ({ id, note }) => {
-    changeNote.mutate({ id, note });
+  const updateCallback = ({ id, label, color }) => {
+    const data = { id: id };
+    label && (data.label = label);
+    color && (data.color = color);
+    updateSubscription.mutate(data);
   };
 
   if (subscriptionsCache.data) {
@@ -45,6 +50,7 @@ const SubscriptionsList = () => {
             <Th>Token</Th>
             <Th>Label</Th>
             <Th>Address</Th>
+            <Th>Color</Th>
             <Th>Date Created</Th>
             <Th>Actions</Th>
           </Tr>
@@ -52,8 +58,8 @@ const SubscriptionsList = () => {
         <Tbody>
           {subscriptionsCache.data.subscriptions.map((subscription) => {
             let iconLink;
-            switch (subscription.subscription_type) {
-              case "ethereum_blockchain":
+            switch (subscription.subscription_type_id) {
+              case "0":
                 iconLink =
                   "https://ethereum.org/static/c48a5f760c34dfadcf05a208dab137cc/31987/eth-diamond-rainbow.png";
                 break;
@@ -73,9 +79,11 @@ const SubscriptionsList = () => {
                 console.error("no icon found for this pool");
             }
             return (
-              <Tr key={`token-row-${subscription.address}`}>
+              <Tr key={`token-row-${subscription.id}`}>
                 <Td>
-                  <Image h="32px" src={iconLink} alt="pool icon" />
+                  <Tooltip label="Ethereum blockchain" fontSize="md">
+                    <Image h="32px" src={iconLink} alt="pool icon" />
+                  </Tooltip>
                 </Td>
                 <Td py={0}>
                   <Editable
@@ -98,6 +106,15 @@ const SubscriptionsList = () => {
                 </Td>
                 <Td mr={4} p={0}>
                   <CopyButton>{subscription.address}</CopyButton>
+                </Td>
+                <Td>
+                  <ColorSelector
+                    // subscriptionId={subscription.id}
+                    initialColor={subscription.color}
+                    callback={(color) =>
+                      updateCallback({ id: subscription.id, color: color })
+                    }
+                  />
                 </Td>
                 <Td py={0}>{moment(subscription.created_at).format("L")}</Td>
 

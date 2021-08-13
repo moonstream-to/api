@@ -10,7 +10,9 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@chakra-ui/react";
-
+const toEth = (wei) => {
+  return wei / Math.pow(10, 18);
+};
 const TxABI = (props) => {
   const byteCode = props.byteCode;
   const abi = props.abi;
@@ -58,17 +60,18 @@ const TxInfo = (props) => {
       <StatGroup>
         <Stat>
           <StatLabel>Value</StatLabel>
-          <StatNumber>{transaction.tx.value}</StatNumber>
-          <StatHelpText>amount of ETH to transfer in WEI</StatHelpText>
+          <StatNumber>{toEth(transaction.tx.value)} eth</StatNumber>
+          <StatHelpText>amount of ETH to transfer</StatHelpText>
         </Stat>
         <Stat>
-          <StatLabel>Gas</StatLabel>
+          <StatLabel>Gas limit</StatLabel>
           <StatNumber>{transaction.tx.gas}</StatNumber>
-          <StatHelpText>gas limit for transaction</StatHelpText>
+          <StatHelpText>Maximum amount of gas </StatHelpText>
+          <StatHelpText>provided for the transaction</StatHelpText>
         </Stat>
         <Stat>
           <StatLabel>Gas price</StatLabel>
-          <StatNumber>{transaction.tx.gasPrice}</StatNumber>
+          <StatNumber>{toEth(transaction.tx.gasPrice)} eth</StatNumber>
           <StatHelpText>the fee the sender pays per unit of gas</StatHelpText>
         </Stat>
       </StatGroup>

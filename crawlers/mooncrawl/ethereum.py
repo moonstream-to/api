@@ -1,17 +1,36 @@
 from concurrent.futures import Future, ProcessPoolExecutor, wait
-from typing import List, Optional, Tuple, Union
+from dataclasses import dataclass
+from datetime import datetime
+from os import close
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from sqlalchemy import desc
+from sqlalchemy import desc, Column
+from sqlalchemy import func
+from sqlalchemy.orm import Session, Query
 from web3 import Web3, IPCProvider, HTTPProvider
 from web3.types import BlockData
 
 from .settings import MOONSTREAM_IPC_PATH, MOONSTREAM_CRAWL_WORKERS
-from moonstreamdb.db import yield_db_session_ctx
+from moonstreamdb.db import yield_db_session, yield_db_session_ctx
 from moonstreamdb.models import (
     EthereumBlock,
-    EthereumSmartContract,
+    EthereumAddress,
     EthereumTransaction,
 )
+
+
+class EthereumBlockCrawlError(Exception):
+    """
+    Raised when there is a problem crawling Ethereum blocks.
+    """
+
+
+@dataclass
+class DateRange:
+    start_time: datetime
+    end_time: datetime
+    include_start: bool
+    include_end: bool
 
 
 def connect(web3_uri: Optional[str] = MOONSTREAM_IPC_PATH):
@@ -71,24 +90,29 @@ def add_block_transactions(db_session, block: BlockData) -> None:
         db_session.add(tx_obj)
 
 
-def get_latest_blocks(with_transactions: bool = False) -> Tuple[Optional[int], int]:
+def get_latest_blocks(confirmations: int = 0) -> Tuple[Optional[int], int]:
+    """
+    Retrieve the latest block from the connected node (connection is created by the connect() method).
+
+    If confirmations > 0, and the latest block on the node has block number N, this returns the block
+    with block_number (N - confirmations)
+    """
     web3_client = connect()
-    block_latest: BlockData = web3_client.eth.get_block(
-        "latest", full_transactions=with_transactions
-    )
+    latest_block_number: int = web3_client.eth.block_number
+    if confirmations > 0:
+        latest_block_number -= confirmations
+
     with yield_db_session_ctx() as db_session:
-        block_number_latest_exist_row = (
+        latest_stored_block_row = (
             db_session.query(EthereumBlock.block_number)
             .order_by(EthereumBlock.block_number.desc())
             .first()
         )
-        block_number_latest_exist = (
-            None
-            if block_number_latest_exist_row is None
-            else block_number_latest_exist_row[0]
+        latest_stored_block_number = (
+            None if latest_stored_block_row is None else latest_stored_block_row[0]
         )
 
-    return block_number_latest_exist, block_latest.number
+    return latest_stored_block_number, latest_block_number
 
 
 def crawl_blocks(
@@ -98,20 +122,31 @@ def crawl_blocks(
     Open database and geth sessions and fetch block data from blockchain.
     """
     web3_client = connect()
-    for block_number in blocks_numbers:
-        with yield_db_session_ctx() as db_session:
-            block: BlockData = web3_client.eth.get_block(
-                block_number, full_transactions=with_transactions
-            )
-            add_block(db_session, block)
+    with yield_db_session_ctx() as db_session:
+        for block_number in blocks_numbers:
+            try:
+                block: BlockData = web3_client.eth.get_block(
+                    block_number, full_transactions=with_transactions
+                )
+                add_block(db_session, block)
 
-            if with_transactions:
-                add_block_transactions(db_session, block)
+                if with_transactions:
+                    add_block_transactions(db_session, block)
 
-            db_session.commit()
+                db_session.commit()
+            except Exception as err:
+                db_session.rollback()
+                message = f"Error adding block (number={block_number}) to database:\n{repr(err)}"
+                raise EthereumBlockCrawlError(message)
+            except:
+                db_session.rollback()
+                print(
+                    f"Interrupted while adding block (number={block_number}) to database."
+                )
+                raise
 
             if verbose:
-                print(f"Added {block_number} block")
+                print(f"Added block: {block_number}")
 
 
 def check_missing_blocks(blocks_numbers: List[int]) -> List[int]:
@@ -143,6 +178,15 @@ def crawl_blocks_executor(
 ) -> None:
     """
     Execute crawler in processes.
+
+    Args:
+    block_numbers_list - List of block numbers to add to database.
+    with_transactions - If True, also adds transactions from those blocks to the ethereum_transactions table.
+    verbose - Print logs to stdout?
+    num_processes - Number of processes to use to feed blocks into database.
+
+    Returns nothing, but if there was an error processing the given blocks it raises an EthereumBlocksCrawlError.
+    The error message is a list of all the things that went wrong in the crawl.
     """
     errors: List[Exception] = []
 
@@ -173,12 +217,10 @@ def crawl_blocks_executor(
                 results.append(result)
 
         wait(results)
-        # TODO(kompotkot): Return list of errors and colors responsible for
-        # handling errors
         if len(errors) > 0:
-            print("Errors:")
-            for error in errors:
-                print(f"- {error}")
+            error_messages = "\n".join([f"- {error}" for error in errors])
+            message = f"Error processing blocks in list:\n{error_messages}"
+            raise EthereumBlockCrawlError(message)
 
 
 def process_contract_deployments() -> List[Tuple[str, str]]:
@@ -198,7 +240,7 @@ def process_contract_deployments() -> List[Tuple[str, str]]:
         limit = 10
         transactions_remaining = True
         existing_contract_transaction_hashes = db_session.query(
-            EthereumSmartContract.transaction_hash
+            EthereumAddress.transaction_hash
         )
 
         while transactions_remaining:
@@ -222,7 +264,7 @@ def process_contract_deployments() -> List[Tuple[str, str]]:
                     if contract_address is not None:
                         results.append((deployment.hash, contract_address))
                         db_session.add(
-                            EthereumSmartContract(
+                            EthereumAddress(
                                 transaction_hash=deployment.hash,
                                 address=contract_address,
                             )
@@ -232,5 +274,106 @@ def process_contract_deployments() -> List[Tuple[str, str]]:
                 transactions_remaining = False
 
             current_offset += limit
+
+    return results
+
+
+def trending(
+    date_range: DateRange, db_session: Optional[Session] = None
+) -> Dict[str, Any]:
+    close_db_session = False
+    if db_session is None:
+        close_db_session = True
+        db_session = next(yield_db_session())
+
+    start_timestamp = int(date_range.start_time.timestamp())
+    end_timestamp = int(date_range.end_time.timestamp())
+
+    def make_query(
+        identifying_column: Column,
+        statistic_column: Column,
+        aggregate_func: Callable,
+        aggregate_label: str,
+    ) -> Query:
+        query = db_session.query(
+            identifying_column, aggregate_func(statistic_column).label(aggregate_label)
+        ).join(
+            EthereumBlock,
+            EthereumTransaction.block_number == EthereumBlock.block_number,
+        )
+        if date_range.include_start:
+            query = query.filter(EthereumBlock.timestamp >= start_timestamp)
+        else:
+            query = query.filter(EthereumBlock.timestamp > start_timestamp)
+
+        if date_range.include_end:
+            query = query.filter(EthereumBlock.timestamp <= end_timestamp)
+        else:
+            query = query.filter(EthereumBlock.timestamp < end_timestamp)
+
+        query = (
+            query.group_by(identifying_column).order_by(desc(aggregate_label)).limit(10)
+        )
+
+        return query
+
+    results: Dict[str, Any] = {
+        "date_range": {
+            "start_time": date_range.start_time.isoformat(),
+            "end_time": date_range.end_time.isoformat(),
+            "include_start": date_range.include_start,
+            "include_end": date_range.include_end,
+        }
+    }
+
+    try:
+        transactions_out_query = make_query(
+            EthereumTransaction.from_address,
+            EthereumTransaction.hash,
+            func.count,
+            "transactions_out",
+        )
+        transactions_out = transactions_out_query.all()
+        results["transactions_out"] = [
+            {"address": row[0], "statistic": row[1]} for row in transactions_out
+        ]
+
+        transactions_in_query = make_query(
+            EthereumTransaction.to_address,
+            EthereumTransaction.hash,
+            func.count,
+            "transactions_in",
+        )
+        transactions_in = transactions_in_query.all()
+        results["transactions_in"] = [
+            {"address": row[0], "statistic": row[1]} for row in transactions_in
+        ]
+
+        value_out_query = make_query(
+            EthereumTransaction.from_address,
+            EthereumTransaction.value,
+            func.sum,
+            "value_out",
+        )
+        value_out = value_out_query.all()
+        results["value_out"] = [
+            {"address": row[0], "statistic": int(row[1])} for row in value_out
+        ]
+
+        value_in_query = make_query(
+            EthereumTransaction.to_address,
+            EthereumTransaction.value,
+            func.sum,
+            "value_in",
+        )
+        value_in = value_in_query.all()
+        results["value_in"] = [
+            {"address": row[0], "statistic": int(row[1])} for row in value_in
+        ]
+
+        pass
+    finally:
+        if close_db_session:
+            db_session.close()
 
     return results

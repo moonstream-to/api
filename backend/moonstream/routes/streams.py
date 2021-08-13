@@ -58,8 +58,8 @@ async def search_transactions(
     q: str = Query(""),
     start_time: Optional[int] = Query(0),
     end_time: Optional[int] = Query(0),
-    include_start: bool = Query(False),
-    include_end: bool = Query(False),
+    include_start: Optional[bool] = Query(False),
+    include_end: Optional[bool] = Query(False),
     db_session: Session = Depends(db.yield_db_session),
 ):
     # get user subscriptions

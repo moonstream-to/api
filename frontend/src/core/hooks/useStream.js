@@ -3,14 +3,12 @@ import { useQuery } from "react-query";
 import { queryCacheProps } from "./hookCommon";
 
 const useJournalEntries = ({
-  refreshRate,
   searchQuery,
   start_time,
   end_time,
   include_start,
   include_end,
   updateStreamBoundaryWith,
-  enabled,
 }) => {
   // set our get method
   const getStream =
@@ -36,18 +34,19 @@ const useJournalEntries = ({
       };
     };
 
-  const { data, isLoading, refetch } = useQuery(
-    ["stream", searchQuery],
+  const { data, isLoading, refetch, isFetching, remove } = useQuery(
+    ["stream", searchQuery, start_time, end_time],
     getStream(searchQuery, start_time, end_time, include_start, include_end),
     {
       //refetchInterval: refreshRate,
       ...queryCacheProps,
+      keepPreviousData: true,
+      retry: 3,
       onSuccess: (response) => {
         // response is object which return condition in getStream
         // TODO(andrey): Response should send page parameters inside "boundary" object (can be null).
         updateStreamBoundaryWith(response.boundaries);
       },
-      enabled: !!enabled,
     }
   );
 
@@ -55,6 +54,8 @@ const useJournalEntries = ({
     EntriesPages: data,
     isLoading,
     refetch,
+    isFetching,
+    remove,
   };
 };
 export default useJournalEntries;

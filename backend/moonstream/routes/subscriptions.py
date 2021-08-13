@@ -2,7 +2,7 @@
 The Moonstream subscriptions HTTP API
 """
 import logging
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
@@ -180,6 +180,54 @@ async def get_subscriptions_handler(request: Request) -> data.SubscriptionsListR
             )
             for resource in resources.resources
         ]
+    )
+
+
+@app.put(
+    "/{subscription_id}",
+    tags=["subscriptions"],
+    response_model=data.SubscriptionResourceData,
+)
+async def update_subscriptions_handler(
+    request: Request,
+    subscription_id: str,
+    color: Optional[str] = Form(None),
+    label: Optional[str] = Form(None),
+) -> data.SubscriptionResourceData:
+    """
+    Get user's subscriptions.
+    """
+
+    token = request.state.token
+
+    update = {}
+
+    if color:
+        update["color"] = color
+
+    if label:
+        update["label"] = label
+
+    try:
+        resource: BugoutResource = bc.update_resource(
+            token=token,
+            resource_id=subscription_id,
+            resource_data=data.SubscriptionUpdate(
+                update=update,
+            ).dict(),
+        )
+    except BugoutResponseException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        raise HTTPException(status_code=500)
+
+    return data.SubscriptionResourceData(
+        id=str(resource.id),
+        user_id=resource.resource_data["user_id"],
+        address=resource.resource_data["address"],
+        color=resource.resource_data["color"],
+        label=resource.resource_data["label"],
+        subscription_type_id=resource.resource_data["subscription_type_id"],
     )
 
 

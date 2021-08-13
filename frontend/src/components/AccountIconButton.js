@@ -30,7 +30,6 @@ const AccountIconButton = (props) => {
         zIndex="dropdown"
         width={["100vw", "100vw", "18rem", "20rem", "22rem", "24rem"]}
         borderRadius={0}
-        m={0}
       >
         <MenuGroup>
           <RouterLink href="/account/security" passHref>

@@ -1,14 +1,14 @@
 from setuptools import find_packages, setup
 
-from moonstreamcrawlers.version import MOONSTREAMCRAWLERS_VERSION
+from mooncrawl.version import MOONCRAWL_VERSION
 
 long_description = ""
 with open("README.md") as ifp:
     long_description = ifp.read()
 
 setup(
-    name="moonstreamcrawlers",
-    version=MOONSTREAMCRAWLERS_VERSION,
+    name="mooncrawl",
+    version=MOONCRAWL_VERSION,
     author="Bugout.dev",
     author_email="engineers@bugout.dev",
     license="Apache License 2.0",
@@ -30,16 +30,21 @@ setup(
     ],
     python_requires=">=3.6",
     packages=find_packages(),
-    package_data={"moonstreamcrawlers": ["py.typed"]},
+    package_data={"mooncrawl": ["py.typed"]},
     zip_safe=False,
     install_requires=[
-        "moonstreamdb @ git+https://git@github.com/bugout-dev/moonstream.git@ec3278e192119d1e8a273cfaab6cb53890d2e8e9#egg=moonstreamdb&subdirectory=db",
+        "moonstreamdb @ git+https://git@github.com/bugout-dev/moonstream.git@39d2b8e36a49958a9ae085ec2cc1be3fc732b9d0#egg=moonstreamdb&subdirectory=db",
+        "python-dateutil",
         "requests",
         "tqdm",
         "web3",
     ],
     extras_require={"dev": ["black", "mypy", "types-requests"]},
     entry_points={
-        "console_scripts": ["moonstreamcrawlers=moonstreamcrawlers.cli:main"]
+        "console_scripts": [
+            "ethcrawler=mooncrawl.ethcrawler:main",
+            "esd=mooncrawl.esd:main",
+            "identity=mooncrawl.identity:main",
+        ]
     },
 )
