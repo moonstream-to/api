@@ -250,7 +250,10 @@ def update_subscription_type(
         updated_resource_data["stripe_price_id"] = stripe_price_id
     if active is not None:
         updated_resource_data["active"] = active
-
+    
+    # TODO(zomglings): This was written with an outdated bugout-python client.
+    # New client has an update_resource method which is what we should be using
+    # here.
     new_resource = bc.create_resource(
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
         application_id=MOONSTREAM_APPLICATION_ID,
