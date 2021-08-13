@@ -1,10 +1,16 @@
-import React from "react";
+import React, { useEffect } from "react";
 import HubspotForm from "react-hubspot-form";
 import { getLayout } from "../src/layouts/AppLayout";
 import { Spinner, Flex, Heading } from "@chakra-ui/react";
 import Scrollable from "../src/components/Scrollable";
 
 const Analytics = () => {
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      document.title = `Analytics: Page under construction`;
+    }
+  }, []);
+
   return (
     <Scrollable>
       <Flex
