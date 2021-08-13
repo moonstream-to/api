@@ -1,4 +1,4 @@
-import { Flex, Spinner } from "@chakra-ui/react";
+import { Flex, Spinner, Center } from "@chakra-ui/react";
 import React, { Suspense, useContext, useState, useEffect } from "react";
 const Sidebar = React.lazy(() => import("../components/Sidebar"));
 const Navbar = React.lazy(() => import("../components/Navbar"));
@@ -40,7 +40,11 @@ const RootLayout = (props) => {
           <Navbar />
         </Suspense>
         {!showSpinner && props.children}
-        {showSpinner && <Spinner />}
+        {showSpinner && (
+          <Center>
+            <Spinner />
+          </Center>
+        )}
       </Flex>
     </Flex>
   );
