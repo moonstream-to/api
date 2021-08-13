@@ -12,7 +12,7 @@ import {
   Input,
   InputRightElement,
 } from "@chakra-ui/react";
-import { Icon } from "../../src/Theme";
+import Icon from "../../src/components/CustomIcon";
 import useSignUp from "../../src/core/hooks/useSignUp";
 import useUser from "../../src/core/hooks/useSignUp";
 import useRouter from "../../src/core/hooks/useSignUp";
