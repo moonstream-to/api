@@ -59,7 +59,7 @@ const SubscriptionsList = () => {
           {subscriptionsCache.data.subscriptions.map((subscription) => {
             let iconLink;
             switch (subscription.subscription_type_id) {
-              case "1":
+              case "0":
                 iconLink =
                   "https://ethereum.org/static/c48a5f760c34dfadcf05a208dab137cc/31987/eth-diamond-rainbow.png";
                 break;
