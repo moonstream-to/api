@@ -32,6 +32,7 @@ import {
   TagCloseButton,
   Stack,
   Spacer,
+  Tooltip,
 } from "@chakra-ui/react";
 import { useSubscriptions } from "../core/hooks";
 import StreamEntry from "./StreamEntry";
@@ -479,23 +480,30 @@ const EntriesNavigation = () => {
             >
               <Stack direction="row" justifyContent="space-between">
                 {!isFetching ? (
-                  <Button
-                    onClick={() => {
-                      remove();
-                      setStreamBoundary({
-                        start_time: null,
-                        end_time: null,
-                        include_start: false,
-                        include_end: true,
-                        next_event_time: null,
-                        previous_event_time: null,
-                      });
-                    }}
-                    variant="outline"
-                    colorScheme="suggested"
+                  <Tooltip
+                    hasArrow
+                    label="Tap to get newest entry"
+                    isOpen={ui.showPopOvers}
+                    placement="right"
                   >
-                    Refresh to newest
-                  </Button>
+                    <Button
+                      onClick={() => {
+                        remove();
+                        setStreamBoundary({
+                          start_time: null,
+                          end_time: null,
+                          include_start: false,
+                          include_end: true,
+                          next_event_time: null,
+                          previous_event_time: null,
+                        });
+                      }}
+                      variant="outline"
+                      colorScheme="suggested"
+                    >
+                      Refresh to newest
+                    </Button>
+                  </Tooltip>
                 ) : (
                   <Button
                     isLoading
@@ -508,19 +516,25 @@ const EntriesNavigation = () => {
                 {streamBoundary.next_event_time &&
                 streamBoundary.end_time != 0 &&
                 !isFetching ? (
-                  <Button
-                    onClick={() => {
-                      updateStreamBoundaryWith({
-                        end_time: streamBoundary.next_event_time + 5 * 60,
-                        include_start: false,
-                        include_end: true,
-                      });
-                    }}
-                    variant="outline"
-                    colorScheme="suggested"
+                  <Tooltip
+                    hasArrow
+                    label="Loads latest transaction in your subscriptions"
+                    isOpen={ui.showPopOvers}
                   >
-                    Load latest transaction
-                  </Button>
+                    <Button
+                      onClick={() => {
+                        updateStreamBoundaryWith({
+                          end_time: streamBoundary.next_event_time + 5 * 60,
+                          include_start: false,
+                          include_end: true,
+                        });
+                      }}
+                      variant="outline"
+                      colorScheme="suggested"
+                    >
+                      Load latest transaction
+                    </Button>
+                  </Tooltip>
                 ) : (
                   "" // some strange behaivior without else condition return 0 wich can see on frontend page
                 )}

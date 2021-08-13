@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from "react";
-import { useBreakpointValue } from "@chakra-ui/react";
+import { useBoolean, useBreakpointValue } from "@chakra-ui/react";
 import { useStorage, useQuery, useRouter } from "../../hooks";
 import UIContext from "./context";
 import UserContext from "../UserProvider/context";
@@ -159,8 +159,11 @@ const UIProvider = ({ children }) => {
     );
   }, [isEntryDetailView, isMobileView]);
 
-  // ********************************************************
+  // *********** onboarding UI **********************
 
+  const [showPopOvers, setShowPopOvers] = useBoolean(false);
+
+  // **********************************************
   return (
     <UIContext.Provider
       value={{
@@ -188,6 +191,8 @@ const UIProvider = ({ children }) => {
         currentTransaction,
         setCurrentTransaction,
         isEntryDetailView,
+        showPopOvers,
+        setShowPopOvers,
       }}
     >
       {children}

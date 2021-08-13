@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useRef } from "react";
 import RouterLink from "next/link";
 import {
   Flex,
@@ -15,6 +15,9 @@ import {
   PopoverCloseButton,
   useBreakpointValue,
   Spacer,
+  useOutsideClick,
+  Tooltip,
+  chakra,
 } from "@chakra-ui/react";
 import {
   HamburgerIcon,
@@ -45,11 +48,18 @@ const AppNavbar = () => {
     "2xl": "lg",
   });
 
+  const ref = useRef();
+  useOutsideClick({
+    ref: ref,
+    handler: () => ui.setShowPopOvers.off(),
+  });
+
   const SupportPopover = () => {
     return (
-      <Popover usePortal>
+      <Popover usePortal isOpen={false}>
         <PopoverTrigger>
           <IconButton
+            ref={ref}
             colorScheme="primary"
             variant="link"
             h="32px"
@@ -58,6 +68,7 @@ const AppNavbar = () => {
             outlineColor="transparent"
             // colorScheme="blue"
             aria-label="Request support"
+            onClick={() => ui.setShowPopOvers.toggle()}
             icon={<QuestionOutlineIcon />}
           />
         </PopoverTrigger>
@@ -108,41 +119,55 @@ const AppNavbar = () => {
         </>
       )}
       {ui.isMobileView && (
-        <Flex direction="row" w="100%" justifyContent="center">
+        <Flex
+          direction="row"
+          w="100%"
+          justifyContent="center"
+          justifyItems="center"
+        >
           <Flex w="100%" justifyContent="space-evenly">
             {!isSearchBarActive && (
-              <IconButton
-                variant="link"
-                justifyContent="space-evenly"
-                alignContent="center"
-                h="32px"
-                m={0}
-                size={iconSize}
-                colorScheme="gray"
-                aria-label="App navigation"
-                icon={<HamburgerIcon />}
-                onClick={() => {
-                  ui.isMobileView
-                    ? ui.setSidebarToggled(ui.sidebarToggled ? false : true)
-                    : ui.setSidebarVisible(ui.sidebarVisible ? false : true);
-                }}
-              />
+              <Tooltip hasArrow label="menu" isOpen={ui.showPopOvers}>
+                <IconButton
+                  variant="link"
+                  justifyContent="space-evenly"
+                  alignContent="center"
+                  h="32px"
+                  m={0}
+                  size={iconSize}
+                  colorScheme="gray"
+                  aria-label="App navigation"
+                  icon={<HamburgerIcon />}
+                  onClick={() => {
+                    ui.isMobileView
+                      ? ui.setSidebarToggled(ui.sidebarToggled ? false : true)
+                      : ui.setSidebarVisible(ui.sidebarVisible ? false : true);
+                  }}
+                />
+              </Tooltip>
             )}
-            <RouterLink href="/stream" passHref>
-              <IconButton
-                m={0}
-                variant="link"
-                justifyContent="space-evenly"
-                alignContent="center"
-                h="32px"
-                size={iconSize}
-                colorScheme="gray"
-                aria-label="go to ticker"
-                icon={<MdTimeline />}
-              />
-            </RouterLink>
+            <Tooltip hasArrow label="stream view" isOpen={ui.showPopOvers}>
+              <chakra.span alignSelf="center">
+                <RouterLink href="/stream" passHref>
+                  <IconButton
+                    m={0}
+                    variant="link"
+                    justifyContent="space-evenly"
+                    alignContent="center"
+                    h="32px"
+                    size={iconSize}
+                    colorScheme="gray"
+                    aria-label="go to ticker"
+                    icon={<MdTimeline />}
+                  />
+                </RouterLink>
+              </chakra.span>
+            </Tooltip>
+
             {!isSearchBarActive && (
-              <IconButton
+
+              <Tooltip hasArrow label="Go back" isOpen={ui.showPopOvers}>
+                <IconButton
                 m={0}
                 variant="link"
                 justifyContent="space-evenly"
@@ -159,22 +184,36 @@ const AppNavbar = () => {
                     : router.nextRouter.back();
                 }}
               />
+              </Tooltip>
             )}
             {!isSearchBarActive && (
-              <Link href="/" alignSelf="center">
-                <Image
-                  alignSelf="center"
-                  // as={Link}
-                  // to="/"
-                  h="2.5rem"
-                  minW="2.5rem"
-                  src="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/White+logo.svg"
-                  alt="Go to app root"
-                />
-              </Link>
+              <Tooltip
+                hasArrow
+                label="homepage"
+                isOpen={ui.showPopOvers}
+                // shouldWrapChildren
+              >
+                <Link href="/" alignSelf="center">
+                  <Image
+                    alignSelf="center"
+                    // as={Link}
+                    // to="/"
+                    h="2.5rem"
+                    minW="2.5rem"
+                    src="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/White+logo.svg"
+                    alt="Go to app root"
+                  />
+                </Link>
+              </Tooltip>
             )}
             {!isSearchBarActive && (
-              <IconButton
+              <Tooltip
+                hasArrow
+                label="Go forward"
+                isOpen={ui.showPopOvers}
+                // shouldWrapChildren
+              >
+                <IconButton
                 m={0}
                 variant="link"
                 justifyContent="space-evenly"
@@ -191,18 +230,26 @@ const AppNavbar = () => {
                     : history.forward();
                 }}
               />
+              </Tooltip>
             )}
             {!isSearchBarActive && <SupportPopover />}
 
             {!isSearchBarActive && (
-              <AccountIconButton
-                variant="link"
-                justifyContent="space-evenly"
-                alignContent="center"
-                h="32px"
-                size={iconSize}
-                colorScheme="primary"
-              />
+              <Tooltip
+                hasArrow
+                label="Account menu"
+                isOpen={ui.showPopOvers}
+                shouldWrapChildren
+              >
+                <AccountIconButton
+                  variant="link"
+                  justifyContent="space-evenly"
+                  alignContent="center"
+                  h="32px"
+                  size={iconSize}
+                  colorScheme="primary"
+                />
+              </Tooltip>
             )}
           </Flex>
         </Flex>

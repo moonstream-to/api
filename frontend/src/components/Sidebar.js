@@ -8,7 +8,7 @@ import {
 } from "react-pro-sidebar";
 import { useContext } from "react";
 import RouterLink from "next/link";
-import { Flex, Image, IconButton } from "@chakra-ui/react";
+import { Flex, Image, IconButton, Tooltip } from "@chakra-ui/react";
 import UIContext from "../core/providers/UIProvider/context";
 import React from "react";
 import { HamburgerIcon, ArrowLeftIcon, ArrowRightIcon } from "@chakra-ui/icons";
@@ -35,11 +35,32 @@ const Sidebar = () => {
             aria-label="App navigation"
             icon={
               ui.isMobileView ? (
-                <HamburgerIcon />
+                <Tooltip
+                  shouldWrapChildren
+                  hasArrow
+                  label="Access app menu here"
+                  isOpen={ui.showPopOvers}
+                >
+                  <HamburgerIcon />
+                </Tooltip>
               ) : ui.sidebarCollapsed ? (
-                <ArrowRightIcon />
+                <Tooltip
+                  shouldWrapChildren
+                  hasArrow
+                  label="Expand sidebar"
+                  isOpen={ui.showPopOvers}
+                >
+                  <ArrowRightIcon />
+                </Tooltip>
               ) : (
-                <ArrowLeftIcon />
+                <Tooltip
+                  shouldWrapChildren
+                  hasArrow
+                  label="Collapse sidebar"
+                  isOpen={ui.showPopOvers}
+                >
+                  <ArrowLeftIcon />
+                </Tooltip>
               )
             }
             onClick={() => {
@@ -48,36 +69,71 @@ const Sidebar = () => {
                 : ui.setSidebarCollapsed(!ui.sidebarCollapsed);
             }}
           />
-          <Image
-            // as={Link}
-            // to="/"
-            w="150px"
-            py="0.75rem"
-            pl={5}
-            src="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/White+logo.svg"
-            alt="bugout.dev"
-          />
+          <Tooltip
+            shouldWrapChildren
+            hasArrow
+            label="go to homepage"
+            // isOpen={ui.showPopOvers}
+            isDisabled
+          >
+            <Image
+              // as={Link}
+              // to="/"
+              w="150px"
+              py="0.75rem"
+              pl={5}
+              src="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/White+logo.svg"
+              alt="moonstream.to"
+            />
+          </Tooltip>
         </Flex>
       </SidebarHeader>
       {ui.isLoggedIn && (
         <SidebarContent>
           <Menu iconShape="square">
-            <MenuItem icon={<MdTimeline />}>
-              {" "}
-              <RouterLink href="/stream">Stream</RouterLink>
-            </MenuItem>
+            <Tooltip
+              // shouldWrapChildren
+              hasArrow
+              label="Live stream of addresses you subscribed to"
+              isOpen={
+                ui.showPopOvers &&
+                ((ui.sidebarToggled && ui.isMobileView) || !ui.isMobileView)
+              }
+            >
+              <MenuItem icon={<MdTimeline />}>
+                <RouterLink href="/stream">Stream</RouterLink>
+              </MenuItem>
+            </Tooltip>
           </Menu>
           <Menu iconShape="square">
-            <MenuItem icon={<ImStatsBars />}>
-              {" "}
-              <RouterLink href="/analytics">Analytics </RouterLink>
-            </MenuItem>
+            <Tooltip
+              // shouldWrapChildren
+              hasArrow
+              label="Analytical mode to build your monitors"
+              isOpen={
+                ui.showPopOvers &&
+                ((ui.sidebarToggled && ui.isMobileView) || !ui.isMobileView)
+              }
+            >
+              <MenuItem icon={<ImStatsBars />}>
+                <RouterLink href="/analytics">Analytics</RouterLink>
+              </MenuItem>
+            </Tooltip>
           </Menu>
           <Menu iconShape="square">
-            <MenuItem icon={<MdSettings />}>
-              {" "}
-              <RouterLink href="/subscriptions">Subscriptions </RouterLink>
-            </MenuItem>
+            <Tooltip
+              // shouldWrapChildren
+              hasArrow
+              label="Set up subscriptions here to get data in to moonstream!"
+              isOpen={
+                ui.showPopOvers &&
+                ((ui.sidebarToggled && ui.isMobileView) || !ui.isMobileView)
+              }
+            >
+              <MenuItem icon={<MdSettings />}>
+                <RouterLink href="/subscriptions">Subscriptions</RouterLink>
+              </MenuItem>
+            </Tooltip>
           </Menu>
         </SidebarContent>
       )}
