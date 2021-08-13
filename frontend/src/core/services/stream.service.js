@@ -10,31 +10,25 @@ export const getStream = ({
   include_start,
   include_end,
 }) => {
-  let params = {};
-
-  if (searchTerm) {
-    params.q = encodeURIComponent(searchTerm);
+  let params = {
+    q: searchTerm,
+  };
+  if (start_time || start_time === 0) {
+    params.start_time = start_time;
   }
-
-  if (start_time) {
-    params.start_time = encodeURIComponent(start_time);
+  if (end_time || end_time === 0) {
+    params.end_time = end_time;
   }
-
-  if (end_time) {
-    params.end_time = encodeURIComponent(end_time);
-  }
-
   if (include_start) {
-    params.include_start = encodeURIComponent(true);
+    params.include_start = include_start;
   }
-
   if (include_end) {
-    params.include_end = encodeURIComponent(true);
+    params.include_end = include_end;
   }
 
   return http({
     method: "GET",
     url: `${API}/streams/`,
-    params: params,
+    params,
   });
 };
