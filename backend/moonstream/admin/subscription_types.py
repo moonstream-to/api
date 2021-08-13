@@ -6,6 +6,7 @@ import json
 from typing import Dict, List, Optional
 
 from bugout.data import BugoutResources, BugoutResource
+from sqlalchemy.sql.expression import update
 
 from ..data import SubscriptionTypeResourceData
 from ..settings import (
@@ -15,12 +16,13 @@ from ..settings import (
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
 )
 
-
 CANONICAL_SUBSCRIPTION_TYPES = {
     "ethereum_blockchain": SubscriptionTypeResourceData(
         id="ethereum_blockchain",
         name="Ethereum transactions",
         description="Transactions that have been mined into the Ethereum blockchain",
+        icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/ethereum/eth-diamond-purple.png",
+        fields={"address": "str"},
         stripe_product_id=None,
         stripe_price_id=None,
         active=True,
@@ -29,6 +31,9 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         id="ethereum_whalewatch",
         name="Ethereum whale watch",
         description="Ethereum accounts that have experienced a lot of recent activity",
+        # Icon taken from: https://www.maxpixel.net/Whale-Cetacean-Wildlife-Symbol-Ocean-Sea-Black-99310
+        icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/whalewatch.png",
+        fields={},
         stripe_product_id=None,
         stripe_price_id=None,
         active=True,
@@ -37,6 +42,8 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         id="ethereum_txpool",
         name="Ethereum transaction pool",
         description="Transactions that have been submitted into the Ethereum transaction pool but not necessarily mined yet",
+        icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/ethereum/eth-diamond-rainbow.png",
+        fields={"address": "str"},
         stripe_product_id=None,
         stripe_price_id=None,
         active=False,
@@ -69,6 +76,8 @@ def create_subscription_type(
     id: str,
     name: str,
     description: str,
+    icon_url: str,
+    fields: Dict[str, str],
     stripe_product_id: Optional[str] = None,
     stripe_price_id: Optional[str] = None,
     active: bool = False,
@@ -105,6 +114,8 @@ def create_subscription_type(
         "id": id,
         "name": name,
         "description": description,
+        "icon_url": icon_url,
+        "fields": fields,
         "stripe_product_id": stripe_product_id,
         "stripe_price_id": stripe_price_id,
         "active": active,
@@ -119,6 +130,24 @@ def create_subscription_type(
     return resource
 
 
+def parse_fields_from_str(raw_fields: str) -> Dict[str, str]:
+    """
+    Accepts a specification of fields in the form <field_1_name>:<field_1_type>,...,<field_n_name>:<field_n_type>
+    and returns a dictionary of the form:
+    {
+        "<field_1_name>": "<field_1_type>",
+        ...,
+        "<field_n_name>": "<field_n_type>"
+    }
+    """
+    fields: Dict[str, str] = {}
+    raw_field_items = raw_fields.split(",")
+    for raw_field in raw_field_items:
+        components = raw_field.split(":")
+        fields[":".join(components[:-1])] = components[-1]
+    return fields
+
+
 def cli_create_subscription_type(args: argparse.Namespace) -> None:
     """
     Handler for "mnstr subtypes create".
@@ -127,6 +156,8 @@ def cli_create_subscription_type(args: argparse.Namespace) -> None:
         args.id,
         args.name,
         args.description,
+        args.icon,
+        args.fields,
         args.stripe_product_id,
         args.stripe_price_id,
         args.active,
@@ -212,6 +243,8 @@ def update_subscription_type(
     id: str,
     name: Optional[str] = None,
     description: Optional[str] = None,
+    icon_url: Optional[str] = None,
+    fields: Optional[Dict[str, str]] = None,
     stripe_product_id: Optional[str] = None,
     stripe_price_id: Optional[str] = None,
     active: Optional[bool] = None,
@@ -244,13 +277,17 @@ def update_subscription_type(
         updated_resource_data["name"] = name
     if description is not None:
         updated_resource_data["description"] = description
+    if icon_url is not None:
+        updated_resource_data["icon_url"] = icon_url
+    if fields is not None:
+        updated_resource_data["fields"] = fields
     if stripe_product_id is not None:
         updated_resource_data["stripe_product_id"] = stripe_product_id
     if stripe_price_id is not None:
         updated_resource_data["stripe_price_id"] = stripe_price_id
     if active is not None:
         updated_resource_data["active"] = active
-    
+
     # TODO(zomglings): This was written with an outdated bugout-python client.
     # New client has an update_resource method which is what we should be using
     # here.
@@ -283,6 +320,8 @@ def cli_update_subscription_type(args: argparse.Namespace) -> None:
         args.id,
         args.name,
         args.description,
+        args.icon,
+        args.fields,
         args.stripe_product_id,
         args.stripe_price_id,
         args.active,
@@ -352,6 +391,8 @@ def ensure_canonical_subscription_types() -> BugoutResources:
                 id,
                 canonical_subscription_type.name,
                 canonical_subscription_type.description,
+                canonical_subscription_type.icon_url,
+                canonical_subscription_type.fields,
                 canonical_subscription_type.stripe_product_id,
                 canonical_subscription_type.stripe_price_id,
                 canonical_subscription_type.active,

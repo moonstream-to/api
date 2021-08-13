@@ -23,14 +23,12 @@ async def get_transaction_in_blocks(
     user_subscriptions_resources_by_address: Dict[str, Any],
     boundaries: data.PageBoundary,
 ) -> data.EthereumTransactionResponse:
-
     """
     Request transactions from database based on addresses from user subscriptions
     and selected boundaries.
 
     streams  empty for user without subscriptions
     Return last available transaction if boundaries is empty
-
     """
 
     subscriptions_addresses = list(user_subscriptions_resources_by_address.keys())
