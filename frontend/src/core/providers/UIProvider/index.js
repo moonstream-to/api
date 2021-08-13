@@ -28,7 +28,7 @@ const UIProvider = ({ children }) => {
   });
 
   const { modal, toggleModal } = useContext(ModalContext);
-  const [searchTerm, setSearchTerm] = useQuery("q", " ", true, false);
+  const [searchTerm, setSearchTerm] = useQuery("q", "", true, false);
 
   const [searchBarActive, setSearchBarActive] = useState(false);
 

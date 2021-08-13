@@ -175,7 +175,7 @@ const EntriesNavigation = () => {
   useEffect(() => {
     if (
       subscriptionsCache.data?.subscriptions[0]?.id &&
-      newFilterState[0].value === null
+      newFilterState[0]?.value === null
     ) {
       setFilterProps(0, {
         value: subscriptionsCache?.data?.subscriptions[0]?.address,
@@ -525,17 +525,19 @@ const EntriesNavigation = () => {
                   "" // some strange behaivior without else condition return 0 wich can see on frontend page
                 )}
               </Stack>
-              {entries.map((entry, idx) => (
-                <StreamEntry
-                  key={`entry-list-${idx}`}
-                  entry={entry}
-                  disableDelete={!canDelete}
-                  disableCopy={!canCreate}
-                  filterCallback={handleFilterStateCallback}
-                  filterConstants={{ DIRECTIONS, CONDITION, FILTER_TYPES }}
-                />
-              ))}
-              {streamBoundary.previous_event_time || isFetching ? (
+              {entries
+                ?.sort((a, b) => b.timestamp - a.timestamp) // TODO(Andrey) improve that for bi chunks of data sorting can take time
+                .map((entry, idx) => (
+                  <StreamEntry
+                    key={`entry-list-${idx}`}
+                    entry={entry}
+                    disableDelete={!canDelete}
+                    disableCopy={!canCreate}
+                    filterCallback={handleFilterStateCallback}
+                    filterConstants={{ DIRECTIONS, CONDITION, FILTER_TYPES }}
+                  />
+                ))}
+              {streamBoundary.previous_event_time && !isFetching ? (
                 <Center>
                   <Button
                     onClick={() => {
@@ -553,9 +555,20 @@ const EntriesNavigation = () => {
                   </Button>
                 </Center>
               ) : (
-                ""
+                <Center>
+                  {!isFetching ? (
+                    "Тransactions not found. You can subscribe to more addresses in Subscriptions menu."
+                  ) : (
+                    <Button
+                      isLoading
+                      loadingText="Loading"
+                      variant="outline"
+                      colorScheme="suggested"
+                    ></Button>
+                  )}
+                </Center>
               )}
-              {streamBoundary.previous_event_time && isLoading && (
+              {streamBoundary.previous_event_time && isLoading ? (
                 <Center>
                   <Spinner
                     //hidden={!isFetchingMore}
@@ -567,6 +580,8 @@ const EntriesNavigation = () => {
                     speed="1.5s"
                   />
                 </Center>
+              ) : (
+                ""
               )}
             </Flex>
           </Flex>

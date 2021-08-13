@@ -335,7 +335,7 @@ const Homepage = () => {
                 </SimpleGrid>
                 <Center>
                   <Heading pt="160px" pb="60px">
-                    Moonstream is ment for you if
+                    Moonstream is meant for you if
                   </Heading>
                 </Center>
                 <Flex
