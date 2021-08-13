@@ -62,7 +62,6 @@ const Subscriptions = () => {
         <Center>
           <Spinner
             hidden={false}
-            // ref={loadMoreButtonRef}
             my={8}
             size="lg"
             color="primary.500"
