@@ -14,7 +14,6 @@ import {
 } from "@chakra-ui/react";
 import moment from "moment";
 import { ArrowRightIcon } from "@chakra-ui/icons";
-import { useRouter } from "../core/hooks";
 import UIContext from "../core/providers/UIProvider/context";
 import { useToast } from "../core/hooks";
 import { useSubscriptions } from "../core/hooks";
@@ -22,7 +21,6 @@ import { useSubscriptions } from "../core/hooks";
 const StreamEntry = ({ entry }) => {
   const { subscriptionsCache } = useSubscriptions();
   const ui = useContext(UIContext);
-  const router = useRouter();
   const [copyString, setCopyString] = useState(false);
   const { onCopy, hasCopied } = useClipboard(copyString, 1);
   const toast = useToast();
@@ -35,9 +33,6 @@ const StreamEntry = ({ entry }) => {
       onCopy();
     }
   }, [copyString, onCopy, hasCopied, toast]);
-  const handleViewClicked = (entryId) => {
-    ui.setCurrentTransaction(entry);
-  };
 
   const [showFullView] = useMediaQuery(["(min-width: 420px)"]);
   if (subscriptionsCache.isLoading) return <Spinner />;
@@ -324,13 +319,12 @@ const StreamEntry = ({ entry }) => {
                 </Flex>
               )}
             </Flex>
-
           </Stack>
         )}
         <Flex>
           <IconButton
             m={0}
-            onClick={() => handleViewClicked(entry)}
+            onClick={() => ui.setCurrentTransaction(entry)}
             h="full"
             // minH="24px"
             borderLeftRadius={0}

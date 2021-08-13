@@ -45,7 +45,7 @@ const useJournalEntries = ({
         // response is object which return condition in getStream
         // TODO(andrey): Response should send page parameters inside "boundary" object (can be null).
         updateStreamBoundaryWith(response.boundaries);
-      }
+      },
     }
   );
 

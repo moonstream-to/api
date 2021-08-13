@@ -157,7 +157,6 @@ const EntriesNavigation = () => {
     isContent: false,
   });
 
-
   useEffect(() => {
     if (!streamBoundary.start_time && !streamBoundary.end_time) {
       refetch();
