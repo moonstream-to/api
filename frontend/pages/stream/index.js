@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { getLayout } from "../../src/layouts/EntriesLayout";
 import StreamEntryDetails from "../../src/components/SteamEntryDetails";
 import UIContext from "../../src/core/providers/UIProvider/context";
@@ -13,7 +13,16 @@ import {
 const Entry = () => {
   const ui = useContext(UIContext);
 
-  // return "";
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (ui.currentTransaction) {
+        document.title = `Stream details: ${ui.currentTransaction.hash}`;
+      } else {
+        document.title = `Stream`;
+      }
+    }
+  }, [ui.currentTransaction]);
+
   if (ui.currentTransaction) {
     return <StreamEntryDetails />;
   } else
