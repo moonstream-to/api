@@ -235,7 +235,7 @@ async def list_subscription_types() -> data.SubscriptionTypesListResponse:
     try:
         response = subscription_types.list_subscription_types()
         results = [
-            data.SubscriptionTypeResourceData.validate(resource.resource_data).dict()
+            data.SubscriptionTypeResourceData.validate(resource.resource_data)
             for resource in response.resources
         ]
     except Exception as e:

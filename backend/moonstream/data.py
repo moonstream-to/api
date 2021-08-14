@@ -11,10 +11,6 @@ class SubscriptionTypeResourceData(BaseModel):
     name: str
     description: str
     icon_url: str
-    # fields is expected to be of the form:
-    # {"<field_name>": "<field_type>"}
-    # Here, <field_type> can be one of: str, number, bool.
-    fields: Dict[str, str] = Field(default_factory=dict)
     stripe_product_id: Optional[str] = None
     stripe_price_id: Optional[str] = None
     active: bool = False

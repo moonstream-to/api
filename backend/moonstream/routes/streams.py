@@ -12,7 +12,7 @@ from moonstreamdb import db
 from sqlalchemy.orm import Session
 
 
-from ..stream_processors import ethereum_blockchain
+from ..providers import ethereum_blockchain
 from .. import data
 from ..middleware import BroodAuthMiddleware
 from ..settings import (
