@@ -121,8 +121,8 @@ class StreamBoundary(BaseModel):
     base.
     """
 
-    start_time: int
-    end_time: int
+    start_time: int = 0
+    end_time: Optional[int] = None
     include_start: bool = False
     include_end: bool = False
 
@@ -141,6 +141,12 @@ class PageBoundary(StreamBoundary):
 class EthereumTransactionResponse(BaseModel):
     stream: List[EthereumTransactionItem]
     boundaries: Optional[PageBoundary]
+
+
+class Event(BaseModel):
+    event_type: str
+    event_timestamp: int  # Seconds since epoch
+    event_data: Dict[str, Any] = Field(default_factory=dict)
 
 
 class TxinfoEthereumBlockchainRequest(BaseModel):
