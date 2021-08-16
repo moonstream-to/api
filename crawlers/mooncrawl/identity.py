@@ -79,6 +79,7 @@ def identities_cmc_add_handler(args: argparse.Namespace) -> None:
                             label_data={
                                 "name": coin["name"],
                                 "symbol": coin["symbol"],
+                                "coinmarketcap_url": f'https://coinmarketcap.com/currencies/{coin["slug"]}',
                             },
                         )
                         db_session.add(eth_token_label)
