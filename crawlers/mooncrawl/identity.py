@@ -74,12 +74,11 @@ def identities_cmc_add_handler(args: argparse.Namespace) -> None:
                         )
                         db_session.add(eth_token)
                         eth_token_label = EthereumLabel(
-                            label="token",
+                            label="coinmarketcap_token",
                             address_id=eth_token_id,
                             label_data={
                                 "name": coin["name"],
                                 "symbol": coin["symbol"],
-                                "source": "coinmarketcap",
                             },
                         )
                         db_session.add(eth_token_label)
