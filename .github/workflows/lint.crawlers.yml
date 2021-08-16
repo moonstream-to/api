@@ -1,7 +1,9 @@
 name: Lint Moonstream crawlers
 
 on:
-  push:
+  pull_request:
+    branches:
+      - "main"
     paths:
       - "crawlers/**"
 
