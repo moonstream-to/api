@@ -1,7 +1,9 @@
 name: Lint Moonstream db
 
 on:
-  push:
+  pull_request:
+    branches:
+      - "main"
     paths:
       - "db/**"
 
