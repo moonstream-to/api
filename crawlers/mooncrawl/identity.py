@@ -1,12 +1,12 @@
 import argparse
-import json
 import os
 import time
 
 import requests
+from sqlalchemy import text
 
 from moonstreamdb.db import yield_db_session_ctx
-from moonstreamdb.models import EthereumAddress
+from moonstreamdb.models import EthereumAddress, EthereumLabel
 
 COINMARKETCAP_API_KEY = os.environ.get("COINMARKETCAP_API_KEY")
 if COINMARKETCAP_API_KEY is None:
@@ -18,7 +18,7 @@ CRAWL_ORIGINS = {
 }
 
 
-def identities_cmc_handler(args: argparse.Namespace) -> None:
+def identities_cmc_add_handler(args: argparse.Namespace) -> None:
     """
     Parse metadata for Ethereum tokens.
     """
@@ -37,7 +37,11 @@ def identities_cmc_handler(args: argparse.Namespace) -> None:
     limit_n = 5000
 
     while True:
-        params = {"start": start_n, "limit": limit_n}
+        params = {
+            "start": start_n,
+            "limit": limit_n,
+            "listing_status": args.listing_status,
+        }
         try:
             r = requests.get(url=url, headers=headers, params=params)
             r.raise_for_status()
@@ -50,20 +54,36 @@ def identities_cmc_handler(args: argparse.Namespace) -> None:
             break
 
         with yield_db_session_ctx() as db_session:
-            for crypto in response["data"]:
-                if crypto["platform"] is not None:
+            latest_address = (
+                db_session.query(EthereumAddress.id)
+                .order_by(text("id desc"))
+                .limit(1)
+                .one()
+            )[0]
+            for coin in response["data"]:
+                if coin["platform"] is not None:
                     if (
-                        crypto["platform"]["id"] == 1027
-                        and crypto["platform"]["token_address"] is not None
+                        coin["platform"]["id"] == 1027
+                        and coin["platform"]["token_address"] is not None
                     ):
-
+                        latest_address += 1
+                        eth_token_id = latest_address
                         eth_token = EthereumAddress(
-                            address=crypto["platform"]["token_address"],
-                            name=crypto["name"],
-                            symbol=crypto["symbol"],
+                            id=eth_token_id,
+                            address=coin["platform"]["token_address"],
                         )
                         db_session.add(eth_token)
-                        print(f"Added {crypto['name']} token")
+                        eth_token_label = EthereumLabel(
+                            label="token",
+                            address_id=eth_token_id,
+                            label_data={
+                                "name": coin["name"],
+                                "symbol": coin["symbol"],
+                                "source": "coinmarketcap",
+                            },
+                        )
+                        db_session.add(eth_token_label)
+                        print(f"Added {coin['name']} token")
 
             db_session.commit()
         start_n += limit_n
@@ -79,21 +99,31 @@ def main():
 
     parser_cmc = subcommands.add_parser("cmc", description="Coinmarketcap commands")
     parser_cmc.set_defaults(func=lambda _: parser_cmc.print_help())
-    subcommands_parser_cmc = parser_cmc.add_subparsers(
-        description="Ethereum blocks commands"
-    )
     parser_cmc.add_argument(
         "-s",
         "--sandbox",
         action="store_true",
         help="Target to sandbox API",
     )
-    parser_cmc.set_defaults(func=identities_cmc_handler)
 
-    parser_label_cloud = subcommands.add_parser(
-        "label_cloud", description="Etherscan label cloud commands"
+    subcommands_parser_cmc = parser_cmc.add_subparsers(
+        description="Ethereum blocks commands"
     )
-    parser_label_cloud.set_defaults(func=identities_get_handler)
+    parser_cmc_add = subcommands_parser_cmc.add_parser(
+        "add", description="Add additional information about Ethereum addresses"
+    )
+    parser_cmc_add.add_argument(
+        "-s",
+        "--listing_status",
+        default="active,inactive,untracked",
+        help="Listing status of coin, by default all of them: active,inactive,untracked",
+    )
+    parser_cmc_add.set_defaults(func=identities_cmc_add_handler)
+
+    # parser_label_cloud = subcommands.add_parser(
+    #     "label_cloud", description="Etherscan label cloud commands"
+    # )
+    # parser_label_cloud.set_defaults(func=identities_get_handler)
 
     args = parser.parse_args()
     args.func(args)
