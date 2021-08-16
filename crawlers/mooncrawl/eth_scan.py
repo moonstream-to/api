@@ -1,12 +1,14 @@
 import argparse
 import boto3
 import csv
+import codecs
 import json
 import os
 from sqlalchemy.orm import Session
 from moonstreamdb.db import yield_db_session_ctx
 import sys
 import time
+from datetime import datetime
 from typing import Any, List, Optional, Tuple, Dict
 from .version import MOONCRAWL_VERSION
 import requests
@@ -23,14 +25,10 @@ bucket = os.environ.get("AWS_S3_SMARTCONTRACT_BUCKET")
 if bucket is None:
     raise ValueError("AWS_S3_SMARTCONTRACT_BUCKET must be set")
 
-contracts_prefix = os.environ.get(
-    "AWS_S3_SMARTCONTRACT_BUCKET_CONTRACT_PREFIX", ""
-).rstrip("/")
-
 
 def push_to_bucket(contract_data: Dict[str, Any], contract_file: str):
     result_bytes = json.dumps(contract_data).encode("utf-8")
-    result_key = f"{contracts_prefix}/v1/{contract_file}"
+    result_key = f"/v1/{contract_file}"
 
     s3 = boto3.client("s3")
     s3.put_object(
@@ -63,21 +61,18 @@ def crawl_step(db_session: Session, contract_address: str, crawl_url: str):
         return None
     page = response.json()
     result = page["result"][0]
-    # datetime, version
     contract_info = {
         "data": result,
-        "version": MOONCRAWL_VERSION,
-        "datetime": time.time(),
+        "crawl_version": MOONCRAWL_VERSION,
+        "crawled_at": f"{datetime.now()}",
     }
-    # push_to_bucket(result, f"sources/{contract_address}.json")
-    print(json.dumps(page["result"][0]))
+    push_to_bucket(contract_info, f"etherscan/{contract_address}.json")
 
 
 def crawl(
     smart_contracts: List[Tuple[str, str]],
     interval: float,
     start_step=0,
-    nodb: bool = False,
 ):
     with yield_db_session_ctx() as db_session:
         for i in range(start_step, len(smart_contracts)):
@@ -91,10 +86,10 @@ def crawl(
 
 def load_smart_contracts() -> List[Tuple[str, str]]:
     smart_contracts: List[Tuple[str, str]] = []
-    with open("mooncrawl/data/verified-contractaddress.csv") as csv_file:
-        csv_reader = csv.DictReader(csv_file)
-        for row in csv_reader:
-            smart_contracts.append((row["Txhash"], row["ContractAddress"]))
+    s3 = boto3.client("s3")
+    data = s3.get_object(Bucket=bucket, Key="util/verified-contractaddress.csv")
+    for row in csv.DictReader(codecs.getreader("utf-8")(data["Body"])):
+        smart_contracts.append((row["Txhash"], row["ContractAddress"]))
     return smart_contracts
 
 
@@ -117,18 +112,12 @@ def main():
         default=0,
         help="Number of smart contract to skip for crawling from smart contracts .csv file",
     )
-    parser.add_argument(
-        "--nodb",
-        action="store_true",
-        help="Store contract address and txhash in csv instead of database",
-    )
 
     args = parser.parse_args()
     crawl(
         load_smart_contracts,
         interval=args.interval,
         start_step=args.skip,
-        nodb=args.nodb,
     )
 
 
