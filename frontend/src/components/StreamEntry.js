@@ -9,16 +9,18 @@ import {
   Heading,
   Image,
   useMediaQuery,
+  Spacer,
+  Spinner,
 } from "@chakra-ui/react";
 import moment from "moment";
 import { ArrowRightIcon } from "@chakra-ui/icons";
-import { useRouter } from "../core/hooks";
 import UIContext from "../core/providers/UIProvider/context";
 import { useToast } from "../core/hooks";
+import { useSubscriptions } from "../core/hooks";
 
 const StreamEntry = ({ entry }) => {
+  const { subscriptionsCache } = useSubscriptions();
   const ui = useContext(UIContext);
-  const router = useRouter();
   const [copyString, setCopyString] = useState(false);
   const { onCopy, hasCopied } = useClipboard(copyString, 1);
   const toast = useToast();
@@ -31,18 +33,19 @@ const StreamEntry = ({ entry }) => {
       onCopy();
     }
   }, [copyString, onCopy, hasCopied, toast]);
-  const handleViewClicked = (entryId) => {
-    ui.setEntryId(entryId);
-    ui.setEntriesViewMode("entry");
-    ui.setCurrentTransaction(entry);
-    router.push({
-      pathname: `/stream/${entry.hash}`,
-      query: router.query,
-    });
-  };
 
   const [showFullView] = useMediaQuery(["(min-width: 420px)"]);
-  console.log(entry);
+  if (subscriptionsCache.isLoading) return <Spinner />;
+
+  const from_color =
+    subscriptionsCache.data.subscriptions.find((obj) => {
+      return obj.address === entry.from_address;
+    })?.color ?? "gray.500";
+
+  const to_color =
+    subscriptionsCache.data.subscriptions.find((obj) => {
+      return obj.address === entry.to_address;
+    })?.color ?? "gray.500";
 
   return (
     <Flex
@@ -54,7 +57,6 @@ const StreamEntry = ({ entry }) => {
       bgColor="gray.100"
       borderColor="white.300"
       transition="0.1s"
-      _hover={{ bg: "secondary.200" }}
       flexBasis="50px"
       direction="row"
       justifySelf="center"
@@ -81,9 +83,11 @@ const StreamEntry = ({ entry }) => {
             borderLeftRadius="md"
             borderColor="gray.600"
             spacing={0}
-            h="fit-content"
-            minH="fit-content"
+            h="auto"
+            // h="fit-content"
+            // minH="fit-content"
             overflowX="hidden"
+            overflowY="visible"
           >
             <Stack
               className="title"
@@ -94,7 +98,7 @@ const StreamEntry = ({ entry }) => {
               textAlign="center"
               spacing={0}
               alignItems="center"
-              bgColor="brand.300"
+              bgColor="gray.300"
             >
               <Image
                 boxSize="16px"
@@ -102,7 +106,17 @@ const StreamEntry = ({ entry }) => {
                   "https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg"
                 }
               />
-              <Heading size="xs">Ethereum blockhain</Heading>
+              <Heading px={1} size="xs">
+                Hash
+              </Heading>
+              <Spacer />
+              <Text
+                isTruncated
+                onClick={() => setCopyString(entry.hash)}
+                pr={12}
+              >
+                {entry.hash}
+              </Text>
             </Stack>
             <Stack
               className="CardAddressesRow"
@@ -130,7 +144,7 @@ const StreamEntry = ({ entry }) => {
                 spacing={0}
               >
                 <Text
-                  bgColor="secondary.500"
+                  bgColor="gray.600"
                   h="100%"
                   fontSize="sm"
                   py="2px"
@@ -144,7 +158,7 @@ const StreamEntry = ({ entry }) => {
                     mx={0}
                     py="2px"
                     fontSize="sm"
-                    bgColor="secondary.200"
+                    bgColor={from_color}
                     isTruncated
                     w="calc(100%)"
                     h="100%"
@@ -167,9 +181,8 @@ const StreamEntry = ({ entry }) => {
                 spacing={0}
               >
                 <Text
-                  bgColor="primary.500"
+                  bgColor="gray.600"
                   h="100%"
-                  color="white"
                   py={1}
                   px={2}
                   w={showFullView ? null : "120px"}
@@ -178,7 +191,7 @@ const StreamEntry = ({ entry }) => {
                 </Text>
                 <Tooltip label={entry.to_address} aria-label="From:">
                   <Text
-                    bgColor="primary.200"
+                    bgColor={to_color}
                     isTruncated
                     w="calc(100%)"
                     h="100%"
@@ -189,31 +202,8 @@ const StreamEntry = ({ entry }) => {
                 </Tooltip>
               </Stack>
             </Stack>
-            <Stack
-              className="ValuesRow"
-              direction={showFullView ? "row" : "column"}
-              alignItems={showFullView ? "center" : "flex-start"}
-              placeContent="space-evenly"
-              // h="1rem"
-              w="100%"
-              // h="1.6rem"
-              minH="2rem"
-              textAlign="center"
-              spacing={0}
-              bgColor="primimary.50"
-            >
-              <Stack
-                direction="row"
-                fontSize="sm"
-                fontWeight="600"
-                borderColor="gray.1200"
-                borderRightWidth={showFullView ? "1px" : "0px"}
-                placeContent="center"
-                spacing={0}
-                flexBasis="10px"
-                flexGrow={1}
-                w="100%"
-              >
+            <Flex flexWrap="wrap" w="100%">
+              <Flex minH="2rem" minW="fit-content" flexGrow={1}>
                 <Text
                   h="100%"
                   fontSize="sm"
@@ -237,19 +227,8 @@ const StreamEntry = ({ entry }) => {
                     {entry.gasPrice}
                   </Text>
                 </Tooltip>
-              </Stack>
-              <Stack
-                direction="row"
-                fontSize="sm"
-                fontWeight="600"
-                borderColor="gray.1200"
-                borderRightWidth={showFullView ? "1px" : "0px"}
-                placeContent="center"
-                spacing={0}
-                flexBasis="10px"
-                flexGrow={1}
-                w="100%"
-              >
+              </Flex>
+              <Flex h="2rem" minW="fit-content" flexGrow={1}>
                 <Text
                   w={showFullView ? null : "120px"}
                   h="100%"
@@ -272,21 +251,8 @@ const StreamEntry = ({ entry }) => {
                     {entry.gas}
                   </Text>
                 </Tooltip>
-              </Stack>
-              <Stack
-                direction="row"
-                fontSize="sm"
-                fontWeight="600"
-                borderColor="gray.1200"
-                borderRightWidth={
-                  entry.timestamp ? (showFullView ? "1px" : "0px") : "0px"
-                }
-                placeContent="center"
-                spacing={0}
-                flexBasis="10px"
-                flexGrow={1}
-                w="100%"
-              >
+              </Flex>
+              <Flex h="2rem" minW="fit-content" flexGrow={1}>
                 <Text
                   w={showFullView ? null : "120px"}
                   h="100%"
@@ -309,38 +275,63 @@ const StreamEntry = ({ entry }) => {
                     {entry.value}
                   </Text>
                 </Tooltip>
-              </Stack>
-              {entry.timestamp && (
-                <Stack
-                  direction="row"
+              </Flex>
+
+              <Flex h="2rem" minW="fit-content" flexGrow={1}>
+                <Text
+                  w={showFullView ? null : "120px"}
+                  h="100%"
                   fontSize="sm"
-                  fontWeight="600"
-                  placeContent="center"
-                  spacing={0}
-                  flexBasis="10px"
-                  flexGrow={1}
+                  py="2px"
+                  px={2}
+                  textAlign="justify"
                 >
-                  <Text mx={0} py="2px" fontSize="sm" w="calc(100%)" h="100%">
+                  Nonce:
+                </Text>
+                <Tooltip label={entry.value} aria-label="Value:">
+                  <Text
+                    mx={0}
+                    py="2px"
+                    fontSize="sm"
+                    w="calc(100%)"
+                    h="100%"
+                    onClick={() => setCopyString(entry.value)}
+                  >
+                    {entry.nonce}
+                  </Text>
+                </Tooltip>
+              </Flex>
+              {entry.timestamp && (
+                <Flex h="auto" minW="fit-content">
+                  <Text
+                    px={1}
+                    mx={0}
+                    py="2px"
+                    fontSize="sm"
+                    w="calc(100%)"
+                    h="100%"
+                    borderColor="gray.700"
+                  >
                     {moment(entry.timestamp * 1000).format(
                       "DD MMM, YYYY, HH:mm:ss"
                     )}{" "}
                   </Text>
-                </Stack>
+                </Flex>
               )}
-            </Stack>
+            </Flex>
           </Stack>
         )}
         <Flex>
           <IconButton
             m={0}
-            onClick={() => handleViewClicked(entry)}
+            onClick={() => ui.setCurrentTransaction(entry)}
             h="full"
             // minH="24px"
             borderLeftRadius={0}
             variant="solid"
             px={0}
             minW="24px"
-            colorScheme="suggested"
+            colorScheme="secondary"
             icon={<ArrowRightIcon w="24px" />}
           />
         </Flex>

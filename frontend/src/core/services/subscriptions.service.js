@@ -3,18 +3,6 @@ import { http } from "../utils";
 
 const API = process.env.NEXT_PUBLIC_MOONSTREAM_API_URL;
 
-export const getStream = ({ searchTerm, limit, offset, isContent }) =>
-  http({
-    method: "GET",
-    url: `${API}/streams/`,
-    params: {
-      q: searchTerm,
-      limit: encodeURIComponent(limit),
-      offset: encodeURIComponent(offset),
-      content: encodeURIComponent(isContent),
-    },
-  });
-
 export const getTypes = () =>
   http({
     method: "GET",
@@ -66,10 +54,9 @@ export const modifySubscription =
     const data = new FormData();
     color && data.append("color", color);
     label && data.append("label", label);
-    data.append("id", id);
     return http({
-      method: "POST",
-      url: `${API}/subscription/${id}`,
+      method: "PUT",
+      url: `${API}/subscriptions/${id}`,
       data,
     });
   };

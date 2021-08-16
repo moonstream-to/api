@@ -1,68 +1,61 @@
-import { useInfiniteQuery } from "react-query";
+import { StreamService } from "../services";
+import { useQuery } from "react-query";
 import { queryCacheProps } from "./hookCommon";
-import { SubscriptionsService } from "../services";
 
 const useJournalEntries = ({
-  refreshRate,
-  isContent,
-  pageSize,
   searchQuery,
-  enabled,
+  start_time,
+  end_time,
+  include_start,
+  include_end,
+  updateStreamBoundaryWith,
 }) => {
-  const limit = pageSize ? pageSize : 25;
-
+  // set our get method
   const getStream =
-    (searchTerm) =>
-    async ({ pageParam = 0 }) => {
-      if (!pageParam) {
-        pageParam = 0;
-      }
-
-      const response = await SubscriptionsService.getStream({
-        searchTerm,
-        isContent,
-        limit,
-        offset: pageParam,
+    (searchTerm, start_time, end_time, include_start, include_end) =>
+    async () => {
+      // Request with params to streams
+      const response = await StreamService.getStream({
+        searchTerm: searchTerm,
+        start_time: start_time,
+        end_time: end_time,
+        include_start: include_start,
+        include_end: include_end,
       });
-      const newEntryList = response.data.stream.map((entry) => ({
-        ...entry,
+
+      // new events from stream
+      const newEventsList = response.data.stream.map((event) => ({
+        ...event,
       }));
+
       return {
-        data: [...newEntryList],
-        pageParams: {
-          pageParam: pageParam + 1,
-          next_offset: response.data.next_offset,
-          total_results: response.data.total_results,
-          offset: response.data.offset,
-        },
+        data: [...newEventsList],
+        boundaries: { ...response.data.boundaries, update: false },
       };
     };
 
-  const {
-    data: EntriesPages,
-    isFetchingMore,
-    isLoading,
-    canFetchMore,
-    fetchMore,
-    refetch,
-  } = useInfiniteQuery(["stream", { searchQuery }], getStream(searchQuery), {
-    refetchInterval: refreshRate,
-    ...queryCacheProps,
-    getNextPageParam: (lastGroup) => {
-      return lastGroup.next_offset === null ? false : lastGroup.next_offset;
-    },
-    onSuccess: () => {},
-    enabled: !!enabled,
-  });
+  const { data, isLoading, refetch, isFetching, remove } = useQuery(
+    ["stream", searchQuery, start_time, end_time],
+    getStream(searchQuery, start_time, end_time, include_start, include_end),
+    {
+      //refetchInterval: refreshRate,
+      ...queryCacheProps,
+      keepPreviousData: true,
+      retry: 3,
+      onSuccess: (response) => {
+        // response is object which return condition in getStream
+        // TODO(andrey): Response should send page parameters inside "boundary" object (can be null).
+        updateStreamBoundaryWith(response.boundaries);
+      },
+    }
+  );
 
   return {
-    EntriesPages,
-    fetchMore,
-    isFetchingMore,
-    canFetchMore,
-    refetch,
+    EntriesPages: data,
     isLoading,
+    refetch,
+    isFetching,
+    remove,
   };
 };
-
 export default useJournalEntries;

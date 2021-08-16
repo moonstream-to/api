@@ -59,6 +59,12 @@ const Security = () => {
   };
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      document.title = `Change password`;
+    }
+  }, []);
+
+  useEffect(() => {
     if (data) router.push("/");
   }, [data, router]);
 
