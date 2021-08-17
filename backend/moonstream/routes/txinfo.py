@@ -6,7 +6,7 @@ transactions, etc.) with side information and return objects that are better sui
 end users.
 """
 import logging
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 from fastapi import FastAPI, Depends, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -92,8 +92,8 @@ async def txinfo_ethereum_blockchain_handler(
 )
 async def addresses_labels_handler(
     addresses: Optional[str] = Query(None),
-    start: Optional[int] = Query(0),
-    limit: Optional[int] = Query(100),
+    start: int = Query(0),
+    limit: int = Query(100),
     db_session: Session = Depends(yield_db_session),
 ) -> data.AddressListLabelsResponse:
     """
@@ -105,11 +105,15 @@ async def addresses_labels_handler(
             status_code=406, detail="The limit cannot exceed 100 addresses"
         )
     try:
-        addresses = actions.get_address_labels(
-            db_session=db_session, start=start, limit=limit, addresses=addresses
+        addresses_list: Optional[List[str]] = None
+        if addresses is not None:
+            addresses_list = addresses.split(",")
+
+        address_labels = actions.get_address_labels(
+            db_session=db_session, start=start, limit=limit, addresses=addresses_list
         )
     except Exception as err:
         logger.error(f"Unable to get info about Ethereum addresses {err}")
         raise HTTPException(status_code=500)
 
-    return addresses
+    return address_labels

@@ -287,14 +287,13 @@ def parse_search_query_to_sqlalchemy_filters(q: str, allowed_addresses: List[str
 
 def get_address_labels(
     db_session: Session, start: int, limit: int, addresses: Optional[List[str]] = None
-) -> List[EthereumAddress]:
+) -> data.AddressListLabelsResponse:
     """
     Attach labels to addresses.
     """
     query = db_session.query(EthereumAddress)
     if addresses is not None:
-        addresses_list = addresses.split(",")
-        query = query.filter(EthereumAddress.address.in_(addresses_list))
+        query = query.filter(EthereumAddress.address.in_(addresses))
 
     addresses_obj = query.order_by(EthereumAddress.id).slice(start, start + limit).all()
 
