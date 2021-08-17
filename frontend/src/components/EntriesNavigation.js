@@ -33,7 +33,6 @@ import {
   Stack,
   Spacer,
 } from "@chakra-ui/react";
-import { useQueryClient } from "react-query";
 import { useSubscriptions } from "../core/hooks";
 import StreamEntry from "./StreamEntry";
 import UIContext from "../core/providers/UIProvider/context";
