@@ -33,6 +33,7 @@ import {
   Stack,
   Spacer,
 } from "@chakra-ui/react";
+import { useQueryClient } from "react-query";
 import { useSubscriptions } from "../core/hooks";
 import StreamEntry from "./StreamEntry";
 import UIContext from "../core/providers/UIProvider/context";
@@ -109,9 +110,6 @@ const EntriesNavigation = () => {
       newBoundary.include_start =
         newBoundary.include_start || pageBoundary.include_start;
     }
-    newBoundary.include_start =
-      newBoundary.include_start || pageBoundary.include_start;
-
     if (
       !newBoundary.end_time ||
       (pageBoundary.end_time && pageBoundary.end_time >= newBoundary.end_time)
@@ -121,14 +119,10 @@ const EntriesNavigation = () => {
         newBoundary.include_end || pageBoundary.include_end;
     }
 
-    newBoundary.include_end =
-      newBoundary.include_end || pageBoundary.include_end;
-
     if (
       !newBoundary.next_event_time ||
       !pageBoundary.next_event_time ||
-      (pageBoundary.next_event_time &&
-        pageBoundary.next_event_time > newBoundary.next_event_time)
+      pageBoundary.next_event_time > newBoundary.next_event_time
     ) {
       newBoundary.next_event_time = pageBoundary.next_event_time;
     }
@@ -136,8 +130,7 @@ const EntriesNavigation = () => {
     if (
       !newBoundary.previous_event_time ||
       !pageBoundary.previous_event_time ||
-      (pageBoundary.previous_event_time &&
-        pageBoundary.previous_event_time < newBoundary.previous_event_time)
+      pageBoundary.previous_event_time < newBoundary.previous_event_time
     ) {
       newBoundary.previous_event_time = pageBoundary.previous_event_time;
     }
@@ -184,12 +177,12 @@ const EntriesNavigation = () => {
   }, [subscriptionsCache, newFilterState, setFilterProps]);
 
   const entriesPagesData = EntriesPages
-    ? EntriesPages.data.map((page) => {
+    ? EntriesPages.map((page) => {
         return page;
       })
     : [""];
 
-  const entries = entriesPagesData.flat();
+  const entries = entriesPagesData?.flat();
   const canCreate = false;
 
   const canDelete = false;
@@ -504,26 +497,6 @@ const EntriesNavigation = () => {
                     colorScheme="suggested"
                   ></Button>
                 )}
-
-                {streamBoundary.next_event_time &&
-                streamBoundary.end_time != 0 &&
-                !isFetching ? (
-                  <Button
-                    onClick={() => {
-                      updateStreamBoundaryWith({
-                        end_time: streamBoundary.next_event_time + 5 * 60,
-                        include_start: false,
-                        include_end: true,
-                      });
-                    }}
-                    variant="outline"
-                    colorScheme="suggested"
-                  >
-                    Load latest transaction
-                  </Button>
-                ) : (
-                  "" // some strange behaivior without else condition return 0 wich can see on frontend page
-                )}
               </Stack>
               {entries
                 ?.sort((a, b) => b.timestamp - a.timestamp) // TODO(Andrey) improve that for bi chunks of data sorting can take time
@@ -541,8 +514,8 @@ const EntriesNavigation = () => {
                 <Center>
                   <Button
                     onClick={() => {
-                      remove();
                       updateStreamBoundaryWith({
+                        end_time: streamBoundary.start_time,
                         start_time: streamBoundary.previous_event_time - 5 * 60,
                         include_start: false,
                         include_end: true,

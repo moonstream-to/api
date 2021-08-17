@@ -1,5 +1,5 @@
 import { StreamService } from "../services";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import { queryCacheProps } from "./hookCommon";
 
 const useJournalEntries = ({
@@ -11,6 +11,9 @@ const useJournalEntries = ({
   updateStreamBoundaryWith,
 }) => {
   // set our get method
+
+  const queryClient = new useQueryClient();
+
   const getStream =
     (searchTerm, start_time, end_time, include_start, include_end) =>
     async () => {
@@ -50,8 +53,21 @@ const useJournalEntries = ({
     }
   );
 
+  let streamQueries = queryClient.getQueriesData("stream", {
+    exact: false,
+  });
+
+  const streamData = [];
+  if (streamQueries) {
+    streamQueries.map((query) => {
+      query[1]?.data && streamData.push(...query[1]?.data);
+    });
+  }
+
   return {
-    EntriesPages: data,
+    EntriesPages: Array.from(new Set(streamData.map(JSON.stringify))).map(
+      JSON.parse
+    ),
     isLoading,
     refetch,
     isFetching,

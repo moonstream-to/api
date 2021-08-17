@@ -12,7 +12,7 @@ from moonstreamdb.models import (
     EthereumAddress,
     EthereumLabel,
 )
-from sqlalchemy import or_, and_, text
+from sqlalchemy import or_, and_, text, union
 from sqlalchemy.orm import Session
 
 from . import data
@@ -124,12 +124,12 @@ async def get_transaction_in_blocks(
             .limit(1)
         )
 
-        next_transaction = next_transaction.one_or_none()
+        # next_transaction = next_transaction.one_or_none()
 
-        if next_transaction:
-            boundaries.next_event_time = next_transaction[-1]
-        else:
-            boundaries.next_event_time = None
+        # if next_transaction:
+        #     boundaries.next_event_time = next_transaction[-1]
+        # else:
+        #     boundaries.next_event_time = None
 
     if boundaries.start_time:
         ethereum_transactions = ethereum_transactions.filter(
@@ -146,15 +146,29 @@ async def get_transaction_in_blocks(
             )
             .order_by(text("timestamp desc"))
             .limit(1)
-        ).one_or_none()
+        )
 
-        if previous_transaction:
-            boundaries.previous_event_time = previous_transaction[-1]
-        else:
-            boundaries.previous_event_time = None
+    all_queries = [next_transaction, ethereum_transactions, previous_transaction]
+    golden_set = union(*all_queries).alias()
 
+    get_transaction = (
+        db_session.query(
+            golden_set.c.ethereum_transactions_hash,
+            golden_set.c.ethereum_transactions_block_number,
+            golden_set.c.ethereum_transactions_from_address,
+            golden_set.c.ethereum_transactions_to_address,
+            golden_set.c.ethereum_transactions_gas,
+            golden_set.c.ethereum_transactions_gas_price,
+            golden_set.c.ethereum_transactions_input,
+            golden_set.c.ethereum_transactions_nonce,
+            golden_set.c.ethereum_transactions_value,
+            golden_set.c.timestamp.label("timestamp"),
+        )
+        .select_from(golden_set)
+        .order_by(text("timestamp desc"))
+    )
     response = []
-    for (
+    for index, (
         hash,
         block_number,
         from_address,
@@ -165,8 +179,15 @@ async def get_transaction_in_blocks(
         nonce,
         value,
         timestamp,
-    ) in ethereum_transactions:
+    ) in enumerate(get_transaction):
 
+        if index == 0:
+            if timestamp > boundaries.end_time and boundaries.include_end:
+                boundaries.next_event_time = timestamp
+                continue
+            elif timestamp == boundaries.end_time and not boundaries.include_end:
+                boundaries.next_event_time = timestamp
+                continue
         # Apply subscription data to each transaction
         subscription_type_id = None
         from_label = None
@@ -205,6 +226,14 @@ async def get_transaction_in_blocks(
                 subscription_type_id=subscription_type_id,
             )
         )
+
+    if timestamp < boundaries.start_time and boundaries.start_time:
+        boundaries.previous_event_time = timestamp
+        response.pop()
+
+    elif timestamp == boundaries.end_time and not boundaries.start_time:
+        boundaries.previous_event_time = timestamp
+        response.pop()
 
     return data.EthereumTransactionResponse(stream=response, boundaries=boundaries)
 
