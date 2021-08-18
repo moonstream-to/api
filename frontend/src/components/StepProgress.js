@@ -10,7 +10,6 @@ const StepProgress = ({
   buttonTitles,
 }) => {
   const ui = useContext(UIContext);
-  console.log("currentStep", currentStep, numSteps);
   return (
     <Box w="100%" h="auto" pos="relative">
       <ButtonGroup
@@ -24,7 +23,6 @@ const StepProgress = ({
       >
         {_.times(numSteps, (i) => {
           const setActive = i === parseInt(currentStep) ? true : false;
-          console.log("setActive", setActive, i, parseInt(currentStep));
           return (
             <Button
               key={`${i}-progress-steps`}
@@ -51,8 +49,8 @@ const StepProgress = ({
         transform="translateY(-50%)"
         h={2}
         w="full"
-        hasStripe
-        isAnimated
+        // hasStripe
+        // isAnimated
         max={numSteps - 1}
         min={0}
         value={currentStep}

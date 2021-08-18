@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useRef } from "react";
 import { getLayout } from "../src/layouts/AppLayout";
 import UIContext from "../src/core/providers/UIProvider/context";
 import {
@@ -15,6 +15,9 @@ import {
   Fade,
   chakra,
   useBoolean,
+  Flex,
+  IconButton,
+  Tooltip,
 } from "@chakra-ui/react";
 import StepProgress from "../src/components/StepProgress";
 import { ArrowLeftIcon, ArrowRightIcon } from "@chakra-ui/icons";
@@ -25,10 +28,11 @@ import StreamEntry from "../src/components/StreamEntry";
 import SubscriptionsList from "../src/components/SubscriptionsList";
 import { useSubscriptions } from "../src/core/hooks";
 import router from "next/router";
+import { FaFilter } from "react-icons/fa";
 
 const Welcome = () => {
+  console.count("render welcome!");
   const { subscriptionsCache } = useSubscriptions();
-  console.log("StepProgress page!");
   const ui = useContext(UIContext);
   const { mixpanel, isLoaded, MIXPANEL_PROPS } = useContext(AnalyticsContext);
   const [profile, setProfile] = React.useState();
@@ -41,7 +45,6 @@ const Welcome = () => {
   }, []);
 
   const progressButtonCallback = (index) => {
-    console.log("progress button callback!", index);
     ui.setOnboardingStep(index);
   };
 
@@ -57,20 +60,20 @@ const Welcome = () => {
     setShowSubscriptionForm.off();
   };
 
+  const scrollRef = useRef();
   const handleNextClick = () => {
     if (ui.onboardingStep < ui.onboardingSteps.length - 1) {
       ui.setOnboardingStep(ui.onboardingStep + 1);
+      scrollRef?.current?.scrollIntoView();
     } else {
       ui.setisOnboardingComplete(true);
       router.push("/stream");
     }
   };
 
-  console.log("onboarding step:", ui.onboardingStep);
-
   return (
     <Scrollable>
-      <Stack px="7%" pt={4} w="100%" spacing={4}>
+      <Stack px="7%" pt={4} w="100%" spacing={4} ref={scrollRef}>
         <StepProgress
           numSteps={ui.onboardingSteps.length}
           currentStep={ui.onboardingStep}
@@ -362,8 +365,8 @@ const Welcome = () => {
                       also determines sequence of transaction!{" "}
                     </ListItem>
                     <ListItem>
-                      Gas Price - this is how much ether (gwei) is being paid
-                      per gas unit
+                      Gas Price - this is how much ether is being paid per gas
+                      unit
                     </ListItem>
                     <ListItem>
                       Gas - Ammount of gas this event consumes
@@ -372,10 +375,30 @@ const Welcome = () => {
                 </chakra.span>
               </Stack>
               <Stack
-                pb={24}
+                pb={ui.isMobileView ? 24 : 8}
                 w={ui.isMobileView ? "100%" : "calc(100% - 300px)"}
                 alignSelf="center"
               >
+                <Flex h="3rem" w="100%" bgColor="gray.100" alignItems="center">
+                  <Flex maxW="90%"></Flex>
+                  <Spacer />
+                  <Tooltip
+                    variant="onboarding"
+                    placement={ui.isMobileView ? "bottom" : "right"}
+                    label="Filtering menu"
+                    isOpen={true}
+                    maxW="150px"
+                    hasArrow
+                  >
+                    <IconButton
+                      mr={4}
+                      // onClick={onOpen}
+                      colorScheme="primary"
+                      variant="ghost"
+                      icon={<FaFilter />}
+                    />
+                  </Tooltip>
+                </Flex>
                 <StreamEntry
                   mt={20}
                   entry={{
@@ -386,14 +409,29 @@ const Welcome = () => {
                   showOnboardingTooltips={true}
                 />
               </Stack>
+              <Stack
+                px={12}
+                // mt={24}
+                bgColor="gray.50"
+                borderRadius="xl"
+                boxShadow="xl"
+                py={4}
+                my={2}
+              >
+                <Heading as="h4" size="md">
+                  Applying filters
+                </Heading>
+                <chakra.span fontWeight="semibold" pl={2}>
+                  You can apply various filters by clicking filter menu button
+                  <br />
+                  {`Right now you can use it to select address from and to, we are adding more complex queries soon, stay tuna! `}
+                  <br />
+                </chakra.span>
+              </Stack>
             </Stack>
           </Fade>
         )}
-        {ui.onboardingStep === 3 && (
-          <Fade in>
-            <Stack>Subscriptions onboarding</Stack>
-          </Fade>
-        )}
+
         <ButtonGroup>
           <Button
             colorScheme="secondary"
@@ -401,7 +439,10 @@ const Welcome = () => {
             variant="outline"
             hidden={ui.onboardingStep === 0}
             disabled={ui.onboardingStep === 0}
-            onClick={() => ui.setOnboardingStep(ui.onboardingStep - 1)}
+            onClick={() => {
+              ui.setOnboardingStep(ui.onboardingStep - 1);
+              scrollRef?.current?.scrollIntoView();
+            }}
           >
             Previous
           </Button>

@@ -64,7 +64,6 @@ const _NewSubscription = ({ isFreeOption, onClose, setIsLoading }) => {
     setColor(color.hex);
   };
 
-  console.log("check errors:", errors);
   if (!errors) return "";
 
   return (

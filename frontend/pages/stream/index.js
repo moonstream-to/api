@@ -11,6 +11,7 @@ import {
   ListItem,
 } from "@chakra-ui/react";
 const Entry = () => {
+  console.count("render stream!");
   const ui = useContext(UIContext);
 
   useEffect(() => {

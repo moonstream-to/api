@@ -20,7 +20,6 @@ import { useToast } from "../core/hooks";
 import { useSubscriptions } from "../core/hooks";
 
 const StreamEntry = ({ entry, showOnboardingTooltips, className }) => {
-  console.log("stream entry:", entry);
   const { subscriptionsCache } = useSubscriptions();
   const ui = useContext(UIContext);
   const [copyString, setCopyString] = useState(false);
