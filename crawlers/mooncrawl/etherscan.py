@@ -137,7 +137,7 @@ def crawl(
 ):
     for i in range(start_step, len(smart_contracts)):
         contract = smart_contracts[i]
-        print(f"Crawling {i+1}/{len(smart_contracts)} : {contract.address}")
+        print(f"Crawling {i}/{len(smart_contracts)} : {contract.address}")
         query_url = (
             BASE_API_URL
             + f"&address={contract.address}&apikey={MOONSTREAM_ETHERSCAN_TOKEN}"
