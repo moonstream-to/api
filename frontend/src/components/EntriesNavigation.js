@@ -529,6 +529,7 @@ const EntriesNavigation = () => {
                 ?.sort((a, b) => b.timestamp - a.timestamp) // TODO(Andrey) improve that for bi chunks of data sorting can take time
                 .map((entry, idx) => (
                   <StreamEntry
+                    showOnboardingTooltips={false}
                     key={`entry-list-${idx}`}
                     entry={entry}
                     disableDelete={!canDelete}

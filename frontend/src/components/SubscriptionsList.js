@@ -1,5 +1,5 @@
 import React from "react";
-import { Skeleton, IconButton } from "@chakra-ui/react";
+import { Skeleton, IconButton, Container } from "@chakra-ui/react";
 import {
   Table,
   Th,
@@ -12,6 +12,7 @@ import {
   EditableInput,
   Image,
   EditablePreview,
+  Button,
 } from "@chakra-ui/react";
 import { DeleteIcon } from "@chakra-ui/icons";
 import moment from "moment";
@@ -20,7 +21,7 @@ import { useSubscriptions } from "../core/hooks";
 import ConfirmationRequest from "./ConfirmationRequest";
 import ColorSelector from "./ColorSelector";
 
-const SubscriptionsList = () => {
+const SubscriptionsList = ({ emptyCTA }) => {
   const { subscriptionsCache, updateSubscription, deleteSubscription } =
     useSubscriptions();
 
@@ -31,7 +32,10 @@ const SubscriptionsList = () => {
     updateSubscription.mutate(data);
   };
 
-  if (subscriptionsCache.data) {
+  if (
+    subscriptionsCache.data &&
+    subscriptionsCache.data.subscriptions.length > 0
+  ) {
     return (
       <Table
         borderColor="gray.200"
@@ -137,6 +141,16 @@ const SubscriptionsList = () => {
           })}
         </Tbody>
       </Table>
+    );
+  } else if (
+    subscriptionsCache.data &&
+    subscriptionsCache.data.subscriptions.length === 0
+  ) {
+    return (
+      <Container>
+        {` You don't have any subscriptions at the moment.`}
+        {emptyCTA && <Button variant="suggested">Create one</Button>}
+      </Container>
     );
   } else if (subscriptionsCache.isLoading) {
     return <Skeleton />;
