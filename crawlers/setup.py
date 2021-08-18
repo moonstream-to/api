@@ -46,7 +46,7 @@ setup(
             "ethcrawler=mooncrawl.ethcrawler:main",
             "esd=mooncrawl.esd:main",
             "identity=mooncrawl.identity:main",
-            "eth_scan=mooncrawl.eth_scan:main",
+            "etherscan=mooncrawl.etherscan:main",
         ]
     },
 )

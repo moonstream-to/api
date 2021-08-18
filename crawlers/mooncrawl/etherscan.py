@@ -16,10 +16,11 @@ from .version import MOONCRAWL_VERSION
 from moonstreamdb.models import EthereumAddress, EthereumLabel
 import requests
 
+from .settings import MOONSTREAM_ETHERSCAN_TOKEN
 
-ETH_SCAN_TOKEN = os.environ.get("MOONSTREAM_ETHERSCAN_TOKEN")
-if ETH_SCAN_TOKEN is None:
-    raise ValueError("MOONSTREAM_ETHERSCAN_TOKEN environment variable must be set")
+if MOONSTREAM_ETHERSCAN_TOKEN is None:
+    raise Exception("MOONSTREAM_ETHERSCAN_TOKEN environment variable must be set")
+
 
 BASE_API_URL = "https://api.etherscan.io/api?module=contract&action=getsourcecode"
 
@@ -47,7 +48,7 @@ def push_to_bucket(contract_data: Dict[str, Any], contract_file: str):
         Bucket=bucket,
         Key=result_key,
         ContentType="application/json",
-        Metadata={"source": "etherscan", "crawler_version": ""},
+        Metadata={"source": "etherscan", "crawler_version": MOONCRAWL_VERSION},
     )
 
 
@@ -73,8 +74,11 @@ def get_address_id(db_session: Session, contract_address: str) -> int:
         id=id,
         address=contract_address,
     )
-    db_session.add(smart_contract)
-    db_session.commit()
+    try:
+        db_session.add(smart_contract)
+        db_session.commit()
+    except:
+        db_session.rollback()
     return id
 
 
@@ -104,7 +108,7 @@ def crawl_step(db_session: Session, contract: VerifiedSmartContract, crawl_url: 
         "crawl_version": MOONCRAWL_VERSION,
         "crawled_at": f"{datetime.now()}",
     }
-    object_key = f"/v1/etherscan/{contract.address}.json"
+    object_key = f"/etherscan/v1/{contract.address}.json"
     push_to_bucket(contract_info, object_key)
 
     eth_address_id = get_address_id(db_session, contract.address)
@@ -113,31 +117,33 @@ def crawl_step(db_session: Session, contract: VerifiedSmartContract, crawl_url: 
         label=ETHERSCAN_SMARTCONTRACTS_LABEL_NAME,
         address_id=eth_address_id,
         label_data={
-            "key": object_key,
+            "object_uri": f"s3://{bucket}/{object_key}",
             "name": contract.name,
             "tx_hash": contract.tx_hash,
         },
     )
-
-    db_session.add(eth_label)
-    db_session.commit()
+    try:
+        db_session.add(eth_label)
+        db_session.commit()
+    except:
+        db_session.rollback()
 
 
 def crawl(
+    db_session: Session,
     smart_contracts: List[VerifiedSmartContract],
     interval: float,
     start_step=0,
 ):
-    with yield_db_session_ctx() as db_session:
-        for i in range(start_step, len(smart_contracts)):
-            contract = smart_contracts[i]
-            print(f"Crawling {i+1}/{len(smart_contracts)} : {contract.address}")
-            querry_url = (
-                BASE_API_URL + f"&address={contract.address}&apikey={ETH_SCAN_TOKEN}"
-            )
-            crawl_step(db_session, contract, querry_url)
-            time.sleep(interval)
-        pass
+    for i in range(start_step, len(smart_contracts)):
+        contract = smart_contracts[i]
+        print(f"Crawling {i+1}/{len(smart_contracts)} : {contract.address}")
+        querry_url = (
+            BASE_API_URL
+            + f"&address={contract.address}&apikey={MOONSTREAM_ETHERSCAN_TOKEN}"
+        )
+        crawl_step(db_session, contract, querry_url)
+        time.sleep(interval)
 
 
 def load_smart_contracts() -> List[VerifiedSmartContract]:
@@ -173,11 +179,13 @@ def main():
     )
 
     args = parser.parse_args()
-    crawl(
-        load_smart_contracts(),
-        interval=args.interval,
-        start_step=args.offset,
-    )
+    with yield_db_session_ctx() as db_session:
+        crawl(
+            db_session,
+            load_smart_contracts(),
+            interval=args.interval,
+            start_step=args.offset,
+        )
 
 
 if __name__ == "__main__":
