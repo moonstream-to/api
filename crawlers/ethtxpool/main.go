@@ -39,6 +39,7 @@ func main() {
 	if err != nil {
 		panic(fmt.Sprintf("Could not connect to geth: %s", err.Error()))
 	}
+	defer gethClient.Close()
 
 	reporter, err := humbugClientFromEnv()
 	if err != nil {
