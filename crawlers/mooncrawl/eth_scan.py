@@ -10,8 +10,8 @@ import sys
 import time
 from datetime import datetime
 from typing import Any, List, Optional, Tuple, Dict
-
-from sqlalchemy.sql.expression import label
+from dataclasses import dataclass
+from sqlalchemy.sql.expression import label, text
 from .version import MOONCRAWL_VERSION
 from moonstreamdb.models import EthereumAddress, EthereumLabel
 import requests
@@ -30,6 +30,13 @@ if bucket is None:
     raise ValueError("AWS_S3_SMARTCONTRACT_BUCKET must be set")
 
 
+@dataclass
+class VerifiedSmartContract:
+    name: str
+    address: str
+    tx_hash: str
+
+
 def push_to_bucket(contract_data: Dict[str, Any], contract_file: str):
     result_bytes = json.dumps(contract_data).encode("utf-8")
     result_key = contract_file
@@ -44,7 +51,34 @@ def push_to_bucket(contract_data: Dict[str, Any], contract_file: str):
     )
 
 
-def crawl_step(db_session: Session, contract_address: str, crawl_url: str):
+def get_address_id(db_session: Session, contract_address: str) -> int:
+    """
+    Searches for given address in EthereumAddress table,
+    If doesn't find one, creates new.
+    Returns id of address
+    """
+    query = db_session.query(EthereumAddress.id).filter(
+        EthereumAddress.address == contract_address
+    )
+    id = query.one_or_none()
+    if id is not None:
+        return id[0]
+
+    latest_address_id = (
+        db_session.query(EthereumAddress.id).order_by(text("id desc")).limit(1).one()
+    )[0]
+
+    id = latest_address_id + 1
+    smart_contract = EthereumAddress(
+        id=id,
+        address=contract_address,
+    )
+    db_session.add(smart_contract)
+    db_session.commit()
+    return id
+
+
+def crawl_step(db_session: Session, contract: VerifiedSmartContract, crawl_url: str):
     attempt = 0
     current_interval = 2
     success = False
@@ -70,40 +104,54 @@ def crawl_step(db_session: Session, contract_address: str, crawl_url: str):
         "crawl_version": MOONCRAWL_VERSION,
         "crawled_at": f"{datetime.now()}",
     }
-    object_key = f"/v1/etherscan/{contract_address}.json"
+    object_key = f"/v1/etherscan/{contract.address}.json"
     push_to_bucket(contract_info, object_key)
 
-    # TODO
-    eth_token_id = 0
-    # make it const
+    eth_address_id = get_address_id(db_session, contract.address)
+
     eth_label = EthereumLabel(
         label=ETHERSCAN_SMARTCONTRACTS_LABEL_NAME,
-        address_id=eth_token_id,
-        labeldata={"key": object_key},
+        address_id=eth_address_id,
+        label_data={
+            "key": object_key,
+            "name": contract.name,
+            "tx_hash": contract.tx_hash,
+        },
     )
+
+    db_session.add(eth_label)
+    db_session.commit()
 
 
 def crawl(
-    smart_contracts: List[Tuple[str, str]],
+    smart_contracts: List[VerifiedSmartContract],
     interval: float,
     start_step=0,
 ):
     with yield_db_session_ctx() as db_session:
         for i in range(start_step, len(smart_contracts)):
-            _, address = smart_contracts[i]
-            print(address)
-            querry_url = BASE_API_URL + f"&address={address}&apikey={ETH_SCAN_TOKEN}"
-            crawl_step(db_session, address, querry_url)
+            contract = smart_contracts[i]
+            print(f"Crawling {i+1}/{len(smart_contracts)} : {contract.address}")
+            querry_url = (
+                BASE_API_URL + f"&address={contract.address}&apikey={ETH_SCAN_TOKEN}"
+            )
+            crawl_step(db_session, contract, querry_url)
             time.sleep(interval)
         pass
 
 
-def load_smart_contracts() -> List[Tuple[str, str]]:
-    smart_contracts: List[Tuple[str, str]] = []
+def load_smart_contracts() -> List[VerifiedSmartContract]:
+    smart_contracts: List[VerifiedSmartContract] = []
     s3 = boto3.client("s3")
     data = s3.get_object(Bucket=bucket, Key="util/verified-contractaddress.csv")
     for row in csv.DictReader(codecs.getreader("utf-8")(data["Body"])):
-        smart_contracts.append((row["Txhash"], row["ContractAddress"]))
+        smart_contracts.append(
+            VerifiedSmartContract(
+                tx_hash=row["Txhash"],
+                address=row["ContractAddress"],
+                name=row["ContractName"],
+            )
+        )
     return smart_contracts
 
 
