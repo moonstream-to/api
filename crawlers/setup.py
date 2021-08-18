@@ -38,6 +38,7 @@ setup(
         "requests",
         "tqdm",
         "web3",
+        "boto3",
     ],
     extras_require={"dev": ["black", "mypy", "types-requests"]},
     entry_points={
@@ -45,6 +46,7 @@ setup(
             "ethcrawler=mooncrawl.ethcrawler:main",
             "esd=mooncrawl.esd:main",
             "identity=mooncrawl.identity:main",
+            "etherscan=mooncrawl.etherscan:main",
         ]
     },
 )
