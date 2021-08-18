@@ -163,7 +163,7 @@ def load_smart_contracts() -> List[VerifiedSmartContract]:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Crawls smart contract sources from ethersan.io"
+        description="Crawls smart contract sources from etherscan.io"
     )
     parser.add_argument(
         "--interval",
