@@ -23,9 +23,9 @@ func humbugClientFromEnv() (*humbug.HumbugReporter, error) {
 }
 
 type PendingTransaction struct {
-	From        string            `json:"from"`
-	Nonce       uint64            `json:"nonce"`
-	Transaction types.Transaction `json:"transaction"`
+	From        string      `json:"from"`
+	Nonce       uint64      `json:"nonce"`
+	Transaction interface{} `json:"transaction"`
 }
 
 var ReportTitle string = "Ethereum: Pending transaction"
@@ -50,7 +50,7 @@ func main() {
 	pendingTransactions := result["pending"]
 	for fromAddress, transactionsByNonce := range pendingTransactions {
 		for nonce, transaction := range transactionsByNonce {
-			pendingTx := PendingTransaction{From: fromAddress, Nonce: nonce, Transaction: *transaction}
+			pendingTx := PendingTransaction{From: fromAddress, Nonce: nonce, Transaction: transaction}
 			contents, jsonErr := json.Marshal(pendingTx)
 			if jsonErr != nil {
 				fmt.Fprintf(os.Stderr, "Error marshalling pending transaction to JSON:\n%v\n", pendingTx)
