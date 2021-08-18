@@ -17,9 +17,9 @@ from moonstreamdb.models import EthereumAddress, EthereumLabel
 import requests
 
 
-ETH_SCAN_TOKEN = os.environ.get("ETH_SCAN_TOKEN")
+ETH_SCAN_TOKEN = os.environ.get("MOONSTREAM_ETHERSCAN_TOKEN")
 if ETH_SCAN_TOKEN is None:
-    raise ValueError("ETH_SCAN_TOKEN environment variable must be set")
+    raise ValueError("MOONSTREAM_ETHERSCAN_TOKEN environment variable must be set")
 
 BASE_API_URL = "https://api.etherscan.io/api?module=contract&action=getsourcecode"
 
