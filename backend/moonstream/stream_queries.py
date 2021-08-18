@@ -29,8 +29,9 @@ def parse_query_string(q: str) -> StreamQuery:
     Args:
     1. q - Query string. It is parsed as follows:
         a. Query string is tokenized (by splitting on whitespace).
-        b. Tokens of the form "type:<subscription_type>" populate the subscription_types field of the resulting StreamQuery
-        c. Tokens of the form "sub:<subscription_type>:<address> populate the subscriptions field of the resulting StreamQuery
+        b. Tokens of the form "type:<subscription_type>" populate the subscription_types field of the resulting StreamQuery.
+        c. Tokens of the form "sub:<subscription_type>:<filter> populate the subscriptions field of the resulting StreamQuery.
+           This "<filter>" should be a valid filter for the event provider corresponding to the given subscription type.
 
     Returns: Parsed StreamQuery object.
     """
@@ -43,11 +44,13 @@ def parse_query_string(q: str) -> StreamQuery:
             subscription_types.append(token[len(SUBSCRIPTION_TYPE_PREFIX) :])
         elif token.startswith(SUBSCRIPTION_PREFIX):
             contents = token[len(SUBSCRIPTION_PREFIX) :]
-            components = tuple(contents.split(SUBSCRIPTION_SEPARATOR))
-            if len(components) == 2:
-                subscriptions.append(cast(Tuple[str, str], components))
-            else:
+            components = contents.split(SUBSCRIPTION_SEPARATOR)
+            if len(components) < 2:
                 logger.error(f"Invalid subscription token: {token}")
+            else:
+                subscriptions.append(
+                    (components[0], SUBSCRIPTION_SEPARATOR.join(components[1:]))
+                )
         else:
             logger.error(f"Invalid token: {token}")
 

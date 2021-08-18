@@ -1,4 +1,4 @@
-from dataclasses import dataclass, Field
+from dataclasses import dataclass, field
 import logging
 from typing import cast, Dict, Any, List, Optional, Tuple
 
@@ -13,8 +13,8 @@ from sqlalchemy import or_, and_, text
 from sqlalchemy.orm import Session, Query
 
 from .. import data
-
 from ..settings import DEFAULT_STREAM_TIMEINTERVAL
+from ..stream_queries import StreamQuery
 
 
 logger = logging.getLogger(__name__)
@@ -52,8 +52,8 @@ class Filters:
     or a to address.
     """
 
-    from_addresses: List[str] = Field(default_factory=list)
-    to_addresses: List[str] = Field(default_factory=list)
+    from_addresses: List[str] = field(default_factory=list)
+    to_addresses: List[str] = field(default_factory=list)
 
 
 def default_filters(subscriptions: List[BugoutResource]) -> List[str]:
