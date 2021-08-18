@@ -203,6 +203,17 @@ const UIProvider = ({ children }) => {
   }, [isLoggedIn, isOnboardingComplete]);
 
   useEffect(() => {
+    if (
+      onboardingSteps.findIndex(
+        (event) => onboardingState[event.step] === 0
+      ) === -1
+    ) {
+      setisOnboardingComplete(true);
+    }
+    //eslint-disable-next-line
+  }, [onboardingState]);
+
+  useEffect(() => {
     if (router.nextRouter.pathname === "/welcome") {
       const newOnboardingState = {
         ...onboardingState,
