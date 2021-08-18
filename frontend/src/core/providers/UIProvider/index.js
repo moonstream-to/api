@@ -17,15 +17,7 @@ const UIProvider = ({ children }) => {
     xl: false,
     "2xl": false,
   });
-
-  const currentBreakpoint = useBreakpointValue({
-    base: 0,
-    sm: 1,
-    md: 2,
-    lg: 3,
-    xl: 4,
-    "2xl": 5,
-  });
+  // const isMobileView = true;
 
   const { modal, toggleModal } = useContext(ModalContext);
   const [searchTerm, setSearchTerm] = useQuery("q", "", true, false);
@@ -121,7 +113,7 @@ const UIProvider = ({ children }) => {
   //Sidebar is visible at at breakpoint value less then 2
   //Sidebar is visible always in appView
   useEffect(() => {
-    if (currentBreakpoint < 2) {
+    if (isMobileView) {
       setSidebarVisible(true);
       setSidebarCollapsed(false);
     } else {
@@ -132,7 +124,7 @@ const UIProvider = ({ children }) => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentBreakpoint, isAppView]);
+  }, [isMobileView, isAppView]);
 
   // *********** Entries layout states **********************
 
@@ -192,7 +184,6 @@ const UIProvider = ({ children }) => {
     const step = onboardingSteps.findIndex(
       (event) => onboardingState[event.step] === 0
     );
-    console.log("setting initial onboarding steps.", onboardingState, step);
     if (step === -1 && isOnboardingComplete) return onboardingSteps.length - 1;
     else if (step === -1 && !isOnboardingComplete) return 0;
     else return step;
