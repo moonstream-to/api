@@ -10,6 +10,7 @@ import {
   UnorderedList,
   ListItem,
 } from "@chakra-ui/react";
+import RouteButton from "../../src/components/RouteButton";
 const Entry = () => {
   console.count("render stream!");
   const ui = useContext(UIContext);
@@ -50,6 +51,14 @@ const Entry = () => {
                 subscription screen
               </ListItem>
             </UnorderedList>
+            <RouteButton
+              variant="solid"
+              size="md"
+              colorScheme="suggested"
+              href="/welcome"
+            >
+              Learn how to use moonstream
+            </RouteButton>
           </Stack>
         </>
       </Box>
