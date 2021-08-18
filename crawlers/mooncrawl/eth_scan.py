@@ -10,7 +10,10 @@ import sys
 import time
 from datetime import datetime
 from typing import Any, List, Optional, Tuple, Dict
+
+from sqlalchemy.sql.expression import label
 from .version import MOONCRAWL_VERSION
+from moonstreamdb.models import EthereumAddress, EthereumLabel
 import requests
 
 
@@ -20,6 +23,7 @@ if ETH_SCAN_TOKEN is None:
 
 BASE_API_URL = "https://api.etherscan.io/api?module=contract&action=getsourcecode"
 
+ETHERSCAN_SMARTCONTRACTS_LABEL_NAME = "etherscan_smartcontract"
 
 bucket = os.environ.get("AWS_S3_SMARTCONTRACT_BUCKET")
 if bucket is None:
@@ -28,7 +32,7 @@ if bucket is None:
 
 def push_to_bucket(contract_data: Dict[str, Any], contract_file: str):
     result_bytes = json.dumps(contract_data).encode("utf-8")
-    result_key = f"/v1/{contract_file}"
+    result_key = contract_file
 
     s3 = boto3.client("s3")
     s3.put_object(
@@ -66,7 +70,17 @@ def crawl_step(db_session: Session, contract_address: str, crawl_url: str):
         "crawl_version": MOONCRAWL_VERSION,
         "crawled_at": f"{datetime.now()}",
     }
-    push_to_bucket(contract_info, f"etherscan/{contract_address}.json")
+    object_key = f"/v1/etherscan/{contract_address}.json"
+    push_to_bucket(contract_info, object_key)
+
+    # TODO
+    eth_token_id = 0
+    # make it const
+    eth_label = EthereumLabel(
+        label=ETHERSCAN_SMARTCONTRACTS_LABEL_NAME,
+        address_id=eth_token_id,
+        labeldata={"key": object_key},
+    )
 
 
 def crawl(
@@ -93,9 +107,6 @@ def load_smart_contracts() -> List[Tuple[str, str]]:
     return smart_contracts
 
 
-crawl(load_smart_contracts(), 0.2)
-
-
 def main():
     parser = argparse.ArgumentParser(
         description="Crawls smart contract sources from ethersan.io"
@@ -107,7 +118,7 @@ def main():
         help="Number of seconds to wait between requests to the etherscan.io (default: 0.2)",
     )
     parser.add_argument(
-        "--skip",
+        "--offset",
         type=int,
         default=0,
         help="Number of smart contract to skip for crawling from smart contracts .csv file",
@@ -115,9 +126,9 @@ def main():
 
     args = parser.parse_args()
     crawl(
-        load_smart_contracts,
+        load_smart_contracts(),
         interval=args.interval,
-        start_step=args.skip,
+        start_step=args.offset,
     )
 
 
