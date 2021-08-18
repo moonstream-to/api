@@ -14,6 +14,7 @@ import React from "react";
 import { HamburgerIcon, ArrowLeftIcon, ArrowRightIcon } from "@chakra-ui/icons";
 import { MdTimeline, MdSettings } from "react-icons/md";
 import { ImStatsBars } from "react-icons/im";
+import { HiAcademicCap } from "react-icons/hi";
 
 const Sidebar = () => {
   const ui = useContext(UIContext);
@@ -79,6 +80,13 @@ const Sidebar = () => {
               <RouterLink href="/subscriptions">Subscriptions </RouterLink>
             </MenuItem>
           </Menu>
+          {ui.isMobileView && (
+            <Menu iconShape="square">
+              <MenuItem icon={<HiAcademicCap />}>
+                <RouterLink href="/welcome">Learn how to</RouterLink>
+              </MenuItem>
+            </Menu>
+          )}
         </SidebarContent>
       )}
       {!ui.isLoggedIn && (
