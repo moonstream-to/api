@@ -11,6 +11,7 @@ import {
   useMediaQuery,
   Spacer,
   Spinner,
+  chakra,
 } from "@chakra-ui/react";
 import moment from "moment";
 import { ArrowRightIcon } from "@chakra-ui/icons";
@@ -18,7 +19,7 @@ import UIContext from "../core/providers/UIProvider/context";
 import { useToast } from "../core/hooks";
 import { useSubscriptions } from "../core/hooks";
 
-const StreamEntry = ({ entry }) => {
+const StreamEntry = ({ entry, showOnboardingTooltips, className }) => {
   const { subscriptionsCache } = useSubscriptions();
   const ui = useContext(UIContext);
   const [copyString, setCopyString] = useState(false);
@@ -49,6 +50,7 @@ const StreamEntry = ({ entry }) => {
 
   return (
     <Flex
+      className={className}
       p={0}
       m={1}
       mr={2}
@@ -89,35 +91,44 @@ const StreamEntry = ({ entry }) => {
             overflowX="hidden"
             overflowY="visible"
           >
-            <Stack
-              className="title"
-              direction="row"
-              w="100%"
-              h="1.6rem"
-              minH="1.6rem"
-              textAlign="center"
-              spacing={0}
-              alignItems="center"
-              bgColor="gray.300"
+            <Tooltip
+              hasArrow
+              isOpen={showOnboardingTooltips}
+              // shouldWrapChildren
+              label="Top of card describes type of event. Ethereum blockchain in this case. It as unique hash shown here"
+              variant="onboarding"
+              placement="top"
             >
-              <Image
-                boxSize="16px"
-                src={
-                  "https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg"
-                }
-              />
-              <Heading px={1} size="xs">
-                Hash
-              </Heading>
-              <Spacer />
-              <Text
-                isTruncated
-                onClick={() => setCopyString(entry.hash)}
-                pr={12}
+              <Stack
+                className="title"
+                direction="row"
+                w="100%"
+                h="1.6rem"
+                minH="1.6rem"
+                textAlign="center"
+                spacing={0}
+                alignItems="center"
+                bgColor="gray.300"
               >
-                {entry.hash}
-              </Text>
-            </Stack>
+                <Image
+                  boxSize="16px"
+                  src={
+                    "https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg"
+                  }
+                />
+                <Heading px={1} size="xs">
+                  Hash
+                </Heading>
+                <Spacer />
+                <Text
+                  isTruncated
+                  onClick={() => setCopyString(entry.hash)}
+                  pr={12}
+                >
+                  {entry.hash}
+                </Text>
+              </Stack>
+            </Tooltip>
             <Stack
               className="CardAddressesRow"
               direction={showFullView ? "row" : "column"}
@@ -143,16 +154,25 @@ const StreamEntry = ({ entry }) => {
                 placeContent="center"
                 spacing={0}
               >
-                <Text
-                  bgColor="gray.600"
-                  h="100%"
-                  fontSize="sm"
-                  py="2px"
-                  px={2}
-                  w={showFullView ? null : "120px"}
+                <Tooltip
+                  hasArrow
+                  isOpen={showOnboardingTooltips && !ui.isMobileView}
+                  label="From and to addresses, clicking names will copy address to clipboard!"
+                  variant="onboarding"
+                  placement={ui.isMobileView ? "bottom" : "left"}
+                  maxW="150px"
                 >
-                  From:
-                </Text>
+                  <Text
+                    bgColor="gray.600"
+                    h="100%"
+                    fontSize="sm"
+                    py="2px"
+                    px={2}
+                    w={showFullView ? null : "120px"}
+                  >
+                    From:
+                  </Text>
+                </Tooltip>
                 <Tooltip label={entry.from_address} aria-label="From:">
                   <Text
                     mx={0}
@@ -168,6 +188,7 @@ const StreamEntry = ({ entry }) => {
                   </Text>
                 </Tooltip>
               </Stack>
+
               <Stack
                 overflow="hidden"
                 textOverflow="ellipsis"
@@ -322,22 +343,33 @@ const StreamEntry = ({ entry }) => {
           </Stack>
         )}
         <Flex>
-          <IconButton
-            m={0}
-            onClick={() => ui.setCurrentTransaction(entry)}
-            h="full"
-            // minH="24px"
-            borderLeftRadius={0}
-            variant="solid"
-            px={0}
-            minW="24px"
-            colorScheme="secondary"
-            icon={<ArrowRightIcon w="24px" />}
-          />
+          <Tooltip
+            hasArrow
+            isOpen={showOnboardingTooltips}
+            placement={ui.isMobileView ? "bottom" : "right"}
+            label="Clicking side arrow will bring up detailed view"
+            variant="onboarding"
+            maxW="150px"
+          >
+            <IconButton
+              m={0}
+              onClick={() => ui.setCurrentTransaction(entry)}
+              h="full"
+              // minH="24px"
+              borderLeftRadius={0}
+              variant="solid"
+              px={0}
+              minW="24px"
+              colorScheme="secondary"
+              icon={<ArrowRightIcon w="24px" />}
+            />
+          </Tooltip>
         </Flex>
       </Stack>
     </Flex>
   );
 };
 
-export default StreamEntry;
+const StreamChakraEntry = chakra(StreamEntry);
+
+export default StreamChakraEntry;

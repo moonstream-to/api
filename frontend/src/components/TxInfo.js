@@ -16,7 +16,6 @@ const toEth = (wei) => {
 const TxABI = (props) => {
   const byteCode = props.byteCode;
   const abi = props.abi;
-  console.log(abi.functions);
   return (
     <VStack spacing={3}>
       <br />

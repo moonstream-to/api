@@ -15,6 +15,7 @@ import {
   PopoverCloseButton,
   useBreakpointValue,
   Spacer,
+  ButtonGroup,
 } from "@chakra-ui/react";
 import {
   HamburgerIcon,
@@ -26,6 +27,7 @@ import { MdTimeline } from "react-icons/md";
 import useRouter from "../core/hooks/useRouter";
 import UIContext from "../core/providers/UIProvider/context";
 import AccountIconButton from "./AccountIconButton";
+import RouteButton from "./RouteButton";
 
 const AppNavbar = () => {
   const ui = useContext(UIContext);
@@ -95,6 +97,14 @@ const AppNavbar = () => {
           <Flex width="100%" px={2}>
             <Spacer />
             <Flex placeSelf="flex-end">
+              <ButtonGroup spacing={4}>
+                {/* <RouteButton variant="link" href="/docs">
+                  Docs
+                </RouteButton> */}
+                <RouteButton variant="link" href="/welcome">
+                  Learn how to
+                </RouteButton>
+              </ButtonGroup>
               <SupportPopover />
               <AccountIconButton
                 colorScheme="primary"

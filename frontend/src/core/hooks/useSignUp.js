@@ -1,9 +1,11 @@
-import { useEffect } from "react";
+import { useContext } from "react";
 import { useMutation } from "react-query";
 import { AuthService } from "../services";
 import { useUser, useToast, useInviteAccept, useRouter, useAnalytics } from ".";
+import UIContext from "../providers/UIProvider/context";
 
 const useSignUp = (source) => {
+  const ui = useContext(UIContext);
   const router = useRouter();
   const { getUser } = useUser();
   const toast = useToast();
@@ -30,27 +32,15 @@ const useSignUp = (source) => {
           { full_url: router.nextRouter.asPath, code: source }
         );
       }
+      getUser();
+      ui.setisOnboardingComplete(false);
+      ui.setOnboardingState({ welcome: 0, subscriptions: 0, stream: 0 });
+      router.push("/welcome", undefined, { shallow: false });
     },
     onError: (error) => {
       toast(error, "error");
     },
   });
-
-  useEffect(() => {
-    if (!data) {
-      return;
-    }
-
-    getUser();
-
-    const requested_pricing = window.sessionStorage.getItem(
-      "requested_pricing_plan"
-    );
-    const redirectURL = requested_pricing ? "/subscriptions" : "/stream";
-
-    router.push(redirectURL);
-    window.sessionStorage.clear("requested_pricing");
-  }, [data, getUser, router]);
 
   return {
     signUp,

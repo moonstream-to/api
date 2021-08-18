@@ -1,13 +1,38 @@
-const Spinner = {
-  baseStyle: {
-    color: "primary.400",
-    thickness: "4px",
-    speed: "1.5s",
-    my: 8,
+const baseStyle = {
+  color: "primary.400",
+  thickness: "4px",
+  speed: "1.5s",
+  my: 8,
+};
+const variants = {
+  basic: { thickness: "4px", speed: "1.5s" },
+};
+
+const sizes = {
+  xs: {
+    "--spinner-size": "0.75rem",
   },
-  variants: {
-    basic: { thickness: "4px", speed: "1.5s" },
+  sm: {
+    "--spinner-size": "1rem",
+  },
+  md: {
+    "--spinner-size": "1.5rem",
+  },
+  lg: {
+    "--spinner-size": "2rem",
+  },
+  xl: {
+    "--spinner-size": "3rem",
   },
 };
 
-export default Spinner;
+const defaultProps = {
+  size: "md",
+};
+
+export default {
+  baseStyle,
+  sizes,
+  defaultProps,
+  variants,
+};
