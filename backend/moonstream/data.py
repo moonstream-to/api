@@ -127,26 +127,15 @@ class StreamBoundary(BaseModel):
     include_end: bool = False
 
 
-class PageBoundary(StreamBoundary):
-    """
-    A PageBoundary adds information about previous and subsequent events to a StreamBoundary.
-
-    This additional information helps callers manage their views into a stream.
-    """
-
-    next_event_time: Optional[int] = None
-    previous_event_time: Optional[int] = None
-
-
-class EthereumTransactionResponse(BaseModel):
-    stream: List[EthereumTransactionItem]
-    boundaries: Optional[PageBoundary]
-
-
 class Event(BaseModel):
     event_type: str
     event_timestamp: int  # Seconds since epoch
     event_data: Dict[str, Any] = Field(default_factory=dict)
+
+
+class GetEventsResponse(BaseModel):
+    stream_boundary: StreamBoundary
+    events: List[Event] = Field(default_factory=list)
 
 
 class TxinfoEthereumBlockchainRequest(BaseModel):

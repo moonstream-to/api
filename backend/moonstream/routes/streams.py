@@ -10,6 +10,7 @@ from fastapi import FastAPI, HTTPException, Request, Query, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from moonstreamdb import db
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.functions import user
 
 
 from .. import data
@@ -17,11 +18,14 @@ from ..middleware import BroodAuthMiddleware
 from ..providers import ethereum_blockchain
 from ..settings import (
     DOCS_TARGET_PATH,
+    MOONSTREAM_ADMIN_ACCESS_TOKEN,
+    MOONSTREAM_DATA_JOURNAL_ID,
     ORIGINS,
     DOCS_PATHS,
     bugout_client as bc,
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
 )
+from .. import stream_queries
 from .subscriptions import BUGOUT_RESOURCE_TYPE_SUBSCRIPTION
 from ..version import MOONSTREAM_VERSION
 
@@ -66,10 +70,10 @@ def get_user_subscriptions(token: str) -> Dict[str, List[Dict[str, Any]]]:
         timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
     )
 
-    # TODO(kompotkot, zomglings): PAGINATION!!!
+    # TODO(andrey, kompotkot, zomglings): PAGINATION!!!
     user_subscriptions: Dict[str, List[Dict[str, Any]]] = {}
     for subscription in response.resources:
-        subscription_type = subscription.get("subscription_type_id")
+        subscription_type = subscription.resource_data.get("subscription_type_id")
         if subscription_type is None:
             continue
         if user_subscriptions.get(subscription_type) is None:
@@ -79,56 +83,51 @@ def get_user_subscriptions(token: str) -> Dict[str, List[Dict[str, Any]]]:
     return user_subscriptions
 
 
-@app.get("/", tags=["streams"])
+EVENT_PROVIDERS: Dict[str, Any] = {ethereum_blockchain.event_type: ethereum_blockchain}
+
+
+@app.get("/", tags=["streams"], response_model=data.GetEventsResponse)
 async def search_transactions(
     request: Request,
     q: str = Query(""),
-    start_time: Optional[int] = Query(0),
-    end_time: Optional[int] = Query(0),
-    include_start: Optional[bool] = Query(False),
-    include_end: Optional[bool] = Query(False),
+    start_time: int = Query(0),
+    end_time: Optional[int] = Query(None),
+    include_start: bool = Query(False),
+    include_end: bool = Query(False),
     db_session: Session = Depends(db.yield_db_session),
-):
-    # get user subscriptions
-    token = request.state.token
-    params = {"user_id": str(request.state.user.id)}
-    try:
-        # TODO(andrey, kompotkot): This query should filter resources of type "subscription". We may
-        # create other resources for users. When we do, I think this code will break.
-        # See how we apply this filter for "type": "subscription_type" in the /subscriptions route.
-        user_subscriptions_resources: BugoutResources = bc.list_resources(
-            token=token, params=params
-        )
-    except BugoutResponseException as e:
-        if e.detail == "Resources not found":
-            return data.EthereumTransactionResponse(stream=[])
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
-    except Exception as e:
-        raise HTTPException(status_code=500)
-
-    # TODO(andrey, kompotkot): Pagination over resources!!
-    # Issue: https://github.com/bugout-dev/brood/issues/14
-    address_to_subscriptions = {
-        resource.resource_data["address"]: resource.resource_data
-        for resource in user_subscriptions_resources.resources
-    }
-
-    boundaries = data.PageBoundary(
+) -> data.GetEventsResponse:
+    stream_boundary = data.StreamBoundary(
         start_time=start_time,
         end_time=end_time,
-        next_event_time=0,
-        previous_event_time=0,
         include_start=include_start,
         include_end=include_end,
     )
 
-    if address_to_subscriptions:
-        response = await ethereum_blockchain.get_transaction_in_blocks(
-            db_session=db_session,
-            query=q,
-            user_subscriptions_resources_by_address=address_to_subscriptions,
-            boundaries=boundaries,
+    user_subscriptions = get_user_subscriptions(request.state.token)
+    query = stream_queries.StreamQuery(
+        subscription_types=[subtype for subtype in EVENT_PROVIDERS], subscriptions=[]
+    )
+    if q.strip() != "":
+        query = stream_queries.parse_query_string(q)
+
+    results = {
+        event_type: provider.get_events(
+            db_session,
+            bc,
+            MOONSTREAM_DATA_JOURNAL_ID,
+            MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            stream_boundary,
+            query,
+            user_subscriptions,
         )
-        return response
-    else:
-        return data.EthereumTransactionResponse(stream=[], boundaries=boundaries)
+        for event_type, provider in EVENT_PROVIDERS.items()
+    }
+    events = [
+        event
+        for _, event_list in results.values()
+        if event_list is not None
+        for event in event_list
+    ]
+    events.sort(key=lambda event: event.event_timestamp, reverse=True)
+    response = data.GetEventsResponse(stream_boundary=stream_boundary, events=events)
+    return response
