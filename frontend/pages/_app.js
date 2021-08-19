@@ -39,7 +39,6 @@ export default function CachingApp({ Component, pageProps }) {
     router.events.on("routeChangeComplete", handleStop);
     router.events.on("routeChangeError", handleStop);
 
-    console.log("_app", router.asPath);
     return () => {
       router.events.off("routeChangeStart", handleStart);
       router.events.off("routeChangeComplete", handleStop);
@@ -48,8 +47,6 @@ export default function CachingApp({ Component, pageProps }) {
   }, [router]);
   const getLayout =
     Component.getLayout || ((page) => <DefaultLayout>{page}</DefaultLayout>);
-
-  console.log("_app loaded", router.asPath);
 
   return (
     <>

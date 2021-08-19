@@ -204,7 +204,6 @@ const EntriesNavigation = () => {
   };
 
   const dropFilterArrayItem = (idx) => {
-    console.log("dropFilterArrayItem", idx, filterState);
     const oldArray = [...filterState];
     const newArray = oldArray.filter(function (ele) {
       return ele != oldArray[idx];
@@ -242,7 +241,6 @@ const EntriesNavigation = () => {
   };
 
   const handleFilterStateCallback = (props) => {
-    console.log("handleFilterStateCallback", props);
     const currentFilterState = [...filterState];
     currentFilterState.push({ ...props });
 
@@ -529,6 +527,7 @@ const EntriesNavigation = () => {
                 ?.sort((a, b) => b.timestamp - a.timestamp) // TODO(Andrey) improve that for bi chunks of data sorting can take time
                 .map((entry, idx) => (
                   <StreamEntry
+                    showOnboardingTooltips={false}
                     key={`entry-list-${idx}`}
                     entry={entry}
                     disableDelete={!canDelete}

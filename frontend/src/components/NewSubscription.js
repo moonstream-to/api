@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSubscriptions } from "../core/hooks";
 import {
   Input,
@@ -8,23 +8,24 @@ import {
   useRadioGroup,
   FormControl,
   FormErrorMessage,
-  ModalBody,
-  ModalCloseButton,
-  ModalHeader,
   Button,
-  ModalFooter,
   Spinner,
   IconButton,
+  ButtonGroup,
+  Spacer,
+  Flex,
 } from "@chakra-ui/react";
 import RadioCard from "./RadioCard";
-import { useForm } from "react-hook-form";
-import { GithubPicker } from "react-color";
+// import { useForm } from "react-hook-form";
+import { CirclePicker } from "react-color";
 import { BiRefresh } from "react-icons/bi";
 import { makeColor } from "../core/utils/makeColor";
-const NewSubscription = ({ isFreeOption, onClose }) => {
+import { useForm } from "react-hook-form";
+const _NewSubscription = ({ isFreeOption, onClose, setIsLoading }) => {
   const [color, setColor] = useState(makeColor());
-  const { typesCache, createSubscription } = useSubscriptions();
   const { handleSubmit, errors, register } = useForm({});
+  const { typesCache, createSubscription } = useSubscriptions();
+  // const { handleSubmit, errors, register } = useForm({});
   const [radioState, setRadioState] = useState("ethereum_blockchain");
   let { getRootProps, getRadioProps } = useRadioGroup({
     name: "type",
@@ -35,95 +36,104 @@ const NewSubscription = ({ isFreeOption, onClose }) => {
   const group = getRootProps();
 
   useEffect(() => {
+    if (setIsLoading) {
+      setIsLoading(createSubscription.isLoading);
+    }
+  }, [createSubscription.isLoading, setIsLoading]);
+
+  useEffect(() => {
     if (createSubscription.isSuccess) {
       onClose();
     }
   }, [createSubscription.isSuccess, onClose]);
 
-  if (typesCache.isLoading) return <Spinner />;
+  const createSubscriptionWrapper = useCallback(
+    (props) => {
+      createSubscription.mutate({
+        ...props,
+        color: color,
+        type: isFreeOption ? 0 : radioState,
+      });
+    },
+    [createSubscription, isFreeOption, color, radioState]
+  );
 
-  const createSubscriptionWrap = (props) => {
-    createSubscription.mutate({
-      ...props,
-      color: color,
-      type: isFreeOption ? "free" : radioState,
-    });
-  };
+  if (typesCache.isLoading) return <Spinner />;
 
   const handleChangeColorComplete = (color) => {
     setColor(color.hex);
   };
 
-  return (
-    <form onSubmit={handleSubmit(createSubscriptionWrap)}>
-      <ModalHeader>Subscribe to a new address</ModalHeader>
-      <ModalCloseButton />
-      <ModalBody>
-        <FormControl isInvalid={errors.label}>
-          <Input
-            my={2}
-            type="text"
-            autoComplete="off"
-            placeholder="Enter label"
-            name="label"
-            ref={register({ required: "label is required!" })}
-          ></Input>
-          <FormErrorMessage color="unsafe.400" pl="1">
-            {errors.label && errors.label.message}
-          </FormErrorMessage>
-        </FormControl>
-        <FormControl isInvalid={errors.address}>
-          <Input
-            type="text"
-            autoComplete="off"
-            my={2}
-            placeholder="Enter address"
-            name="address"
-            ref={register({ required: "address is required!" })}
-          ></Input>
-          <FormErrorMessage color="unsafe.400" pl="1">
-            {errors.address && errors.address.message}
-          </FormErrorMessage>
-        </FormControl>
-        <Stack my={16} direction="column">
-          <Text fontWeight="600">
-            {isFreeOption
-              ? `Free subscription is only availible Ethereum blockchain source`
-              : `On which source?`}
-          </Text>
+  if (!errors) return "";
 
-          <FormControl isInvalid={errors.subscription_type}>
-            <HStack {...group} alignItems="stretch">
-              {typesCache.data.subscriptions.map((type) => {
-                const radio = getRadioProps({
-                  value: type.id,
-                  isDisabled:
-                    !type.active ||
-                    (isFreeOption &&
-                      type.subscription_type !== "ethereum_blockchain"),
-                });
-                return (
-                  <RadioCard key={`subscription_type_${type.id}`} {...radio}>
-                    {type.name}
-                  </RadioCard>
-                );
-              })}
-            </HStack>
-            <Input
-              type="hidden"
-              placeholder="subscription_type"
-              name="subscription_type"
-              ref={register({ required: "select type" })}
-              value={radioState}
-              onChange={() => null}
-            ></Input>
-            <FormErrorMessage color="unsafe.400" pl="1">
-              {errors.subscription_type && errors.subscription_type.message}
-            </FormErrorMessage>
-          </FormControl>
-        </Stack>
-        <FormControl isInvalid={errors.color}>
-          <Stack direction="row" pb={2}>
+  return (
+    <form onSubmit={handleSubmit(createSubscriptionWrapper)}>
+      <FormControl isInvalid={errors?.label}>
+        <Input
+          my={2}
+          type="text"
+          autoComplete="off"
+          placeholder="Meaningful name of your subscription"
+          name="label"
+          ref={register({ required: "label is required!" })}
+        ></Input>
+        <FormErrorMessage color="unsafe.400" pl="1">
+          {errors?.label && errors?.label.message}
+        </FormErrorMessage>
+      </FormControl>
+      <FormControl isInvalid={errors?.address}>
+        <Input
+          type="text"
+          autoComplete="off"
+          my={2}
+          placeholder="Address to subscribe to"
+          name="address"
+          ref={register({ required: "address is required!" })}
+        ></Input>
+        <FormErrorMessage color="unsafe.400" pl="1">
+          {errors?.address && errors?.address.message}
+        </FormErrorMessage>
+      </FormControl>
+      <Stack my={4} direction="column">
+        {/* <Text fontWeight="600">
+          {isFreeOption
+            ? `Right now you can subscribe only to ethereum blockchain`
+            : `On which source?`}
+        </Text> */}
+
+        <FormControl isInvalid={errors?.subscription_type}>
+          <HStack {...group} alignItems="stretch">
+            {typesCache.data.subscriptions.map((type) => {
+              const radio = getRadioProps({
+                value: type.id,
+                isDisabled:
+                  !type.active ||
+                  (isFreeOption &&
+                    type.subscription_type !== "ethereum_blockchain"),
+              });
+              return (
+                <RadioCard key={`subscription_type_${type.id}`} {...radio}>
+                  {type.name}
+                </RadioCard>
+              );
+            })}
+          </HStack>
+          <Input
+            type="hidden"
+            placeholder="subscription_type"
+            name="subscription_type"
+            ref={register({ required: "select type" })}
+            value={radioState}
+            onChange={() => null}
+          ></Input>
+          <FormErrorMessage color="unsafe.400" pl="1">
+            {errors?.subscription_type && errors?.subscription_type.message}
+          </FormErrorMessage>
+        </FormControl>
+      </Stack>
+      <FormControl isInvalid={errors?.color}>
+        <Flex direction="row" pb={2} flexWrap="wrap">
+          <Stack pt={2} direction="row" h="min-content">
             <Text fontWeight="600" alignSelf="center">
               Label color
             </Text>{" "}
@@ -147,18 +157,21 @@ const NewSubscription = ({ isFreeOption, onClose }) => {
               w="200px"
             ></Input>
           </Stack>
+          <Flex p={2}>
+            <CirclePicker
+              onChangeComplete={handleChangeColorComplete}
+              circleSpacing={1}
+              circleSize={24}
+            />
+          </Flex>
+        </Flex>
 
-          <GithubPicker
-            // color={this.state.background}
-            onChangeComplete={handleChangeColorComplete}
-          />
+        <FormErrorMessage color="unsafe.400" pl="1">
+          {errors?.color && errors?.color.message}
+        </FormErrorMessage>
+      </FormControl>
 
-          <FormErrorMessage color="unsafe.400" pl="1">
-            {errors.color && errors.color.message}
-          </FormErrorMessage>
-        </FormControl>
-      </ModalBody>
-      <ModalFooter>
+      <ButtonGroup direction="row" justifyContent="space-evenly">
         <Button
           type="submit"
           colorScheme="suggested"
@@ -166,12 +179,13 @@ const NewSubscription = ({ isFreeOption, onClose }) => {
         >
           Confirm
         </Button>
+        <Spacer />
         <Button colorScheme="gray" onClick={onClose}>
           Cancel
         </Button>
-      </ModalFooter>
+      </ButtonGroup>
     </form>
   );
 };
 
-export default NewSubscription;
+export default _NewSubscription;
