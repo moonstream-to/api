@@ -1,13 +1,16 @@
+import { useState, useEffect } from "react";
+import { useQuery } from "react-query";
 import { SubscriptionsService } from "../services";
 import { useMutation } from "react-query";
 import { useToast } from ".";
 import { queryCacheProps } from "./hookCommon";
 import useStripe from "./useStripe";
-import { useQuery } from "react-query";
 
 const useSubscriptions = () => {
   const toast = useToast();
   const stripe = useStripe();
+
+  const [subscriptionTypeIcons, setSubscriptionTypeIcons] = useState({});
 
   const getSubscriptions = async () => {
     const response = await SubscriptionsService.getSubscriptions();
@@ -23,7 +26,11 @@ const useSubscriptions = () => {
 
   const getSubscriptionTypes = async () => {
     const response = await SubscriptionsService.getTypes();
-    return response.data;
+    let result = [];
+    if (response.data.subscription_types) {
+      result = response.data.subscription_types;
+    }
+    return result;
   };
 
   const typesCache = useQuery(["subscription_types"], getSubscriptionTypes, {
@@ -32,6 +39,17 @@ const useSubscriptions = () => {
       toast(error, "error");
     },
   });
+
+  useEffect(() => {
+    let icons = {};
+    if (typesCache.data) {
+      typesCache.data.forEach(
+        (subscriptionType) =>
+          (icons[subscriptionType.id] = subscriptionType.icon_url)
+      );
+      setSubscriptionTypeIcons(icons);
+    }
+  }, [typesCache.data]);
 
   const createSubscription = useMutation(
     SubscriptionsService.createSubscription(),
@@ -76,6 +94,7 @@ const useSubscriptions = () => {
     typesCache,
     updateSubscription,
     deleteSubscription,
+    subscriptionTypeIcons,
   };
 };
 

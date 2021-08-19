@@ -103,13 +103,12 @@ const _NewSubscription = ({ isFreeOption, onClose, setIsLoading }) => {
 
         <FormControl isInvalid={errors?.subscription_type}>
           <HStack {...group} alignItems="stretch">
-            {typesCache.data.subscriptions.map((type) => {
+            {typesCache.data.map((type) => {
               const radio = getRadioProps({
                 value: type.id,
                 isDisabled:
                   !type.active ||
-                  (isFreeOption &&
-                    type.subscription_type !== "ethereum_blockchain"),
+                  (isFreeOption && type.id !== "ethereum_blockchain"),
               });
               return (
                 <RadioCard key={`subscription_type_${type.id}`} {...radio}>
