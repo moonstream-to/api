@@ -1,5 +1,7 @@
 import argparse
+from logging import warn
 import boto3
+from bs4 import BeautifulSoup
 import csv
 import codecs
 import json
@@ -82,7 +84,9 @@ def get_address_id(db_session: Session, contract_address: str) -> int:
     return id
 
 
-def crawl_step(db_session: Session, contract: VerifiedSmartContract, crawl_url: str):
+def crawl_smart_contracts_step(
+    db_session: Session, contract: VerifiedSmartContract, crawl_url: str
+):
     attempt = 0
     current_interval = 2
     success = False
@@ -129,7 +133,7 @@ def crawl_step(db_session: Session, contract: VerifiedSmartContract, crawl_url: 
         db_session.rollback()
 
 
-def crawl(
+def crawl_smart_contracts(
     db_session: Session,
     smart_contracts: List[VerifiedSmartContract],
     interval: float,
@@ -142,7 +146,7 @@ def crawl(
             BASE_API_URL
             + f"&address={contract.address}&apikey={MOONSTREAM_ETHERSCAN_TOKEN}"
         )
-        crawl_step(db_session, contract, query_url)
+        crawl_smart_contracts_step(db_session, contract, query_url)
         time.sleep(interval)
 
 
@@ -161,10 +165,67 @@ def load_smart_contracts() -> List[VerifiedSmartContract]:
     return smart_contracts
 
 
+# TODO(yhtiyar):
+# Add exponential backoff in requests
+def crawl_tokens(db_session: Session, interval=0.3):
+    BASE_TOKEN_URL = "https://etherscan.io/tokens-nft?ps=100"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0",
+    }
+    curr_page = 1
+    curr_token_number = 1
+    while True:
+        url = f"{BASE_TOKEN_URL}&p={curr_page}"
+        print(f"Crawling:{url}")
+        time.sleep(interval)
+        page = requests.get(url, headers=headers)
+        soup = BeautifulSoup(page.content, "html.parser")
+        tokens = []
+        for token_div in soup.find_all("div", {"class": "token-wrap"}):
+            try:
+                token_name = token_div.a.text
+                token_address = token_div.a.get("title")
+                if token_address is None:
+                    # If there is no title in div.a, then in etherscan
+                    # the name of token not known, and adress is inside token.div.a.text
+                    token_address = token_name
+                    token_name = None
+                tokens.append((token_address, token_name))
+            except:
+                print(f"Failed to parse token from:{curr_token_number}\n{token_div}")
+            curr_token_number += 1
+        print(tokens)
+        curr_page += 1
+        if len(tokens) == 0:
+            print(f"Failed to find any tokens in:{url}")
+            print(f"Raw html:\n{soup}")
+            break
+
+    # Writing labels to db
+    for token_address, token_name in tokens:
+        address_id = get_address_id(db_session, token_address)
+        eth_label = EthereumLabel(
+            label="etherscan_nft",
+            address_id=address_id,
+            label_data={
+                "name": token_name,
+                "etherscan_url": f"https://etherscan.io/token/{token_address}",
+            },
+        )
+        try:
+            db_session.add(eth_label)
+            db_session.commit()
+        except:
+            print(f"Failed addind {token_address} label to db")
+            db_session.rollback()
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Crawls smart contract sources from etherscan.io"
     )
+    # subcommands = parser.add_subparsers(description="Crawlers commands")
+
     parser.add_argument(
         "--interval",
         type=float,
@@ -180,12 +241,13 @@ def main():
 
     args = parser.parse_args()
     with yield_db_session_ctx() as db_session:
-        crawl(
-            db_session,
-            load_smart_contracts(),
-            interval=args.interval,
-            start_step=args.offset,
-        )
+        crawl_tokens(db_session)
+        # crawl_smart_contracts(
+        #     db_session,
+        #     load_smart_contracts(),
+        #     interval=args.interval,
+        #     start_step=args.offset,
+        # )
 
 
 if __name__ == "__main__":

@@ -39,6 +39,7 @@ setup(
         "tqdm",
         "web3",
         "boto3",
+        "bs4",
     ],
     extras_require={"dev": ["black", "mypy", "types-requests"]},
     entry_points={
