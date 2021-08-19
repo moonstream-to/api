@@ -8,13 +8,13 @@ export const PRESIGNED_URL_TYPE = {
 };
 
 export const DEFAULT_METATAGS = {
-  title: "Bugout: Measure the success of your dev tool",
+  title: "Moonstream.to: All your crypto data in one stream",
   description:
-    "Get usage metrics and crash reports. Improve your users' experience",
+    "From the Ethereum transaction pool to Elon Musk’s latest tweets get all the crypto data you care about in one stream.",
   keywords:
-    "bugout, bugout-dev, bugout.dev, usage-metrics, analytics, dev-tool ,knowledge, docs, journal, entry, find-anything",
-  url: "https://bugout.dev",
-  image: "https://s3.amazonaws.com/static.simiotics.com/landing/aviator-2.svg",
+    "blockchain, crypto, data, trading, smart contracts, ethereum, solana, transactions, defi, finance, decentralized",
+  url: "https://www.moonstream.to",
+  image: `https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/crypto+traders.png`,
 };
 
 export const PRESERVE_QUERY_ACROSS_JOURNALS = false;
