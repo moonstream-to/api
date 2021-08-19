@@ -15,7 +15,7 @@ import {
   ModalOverlay,
   ModalContent,
 } from "@chakra-ui/react";
-import NewSubscription from "../src/components/NewSubscription";
+import NewSubscription from "../src/components/NewModalSubscripton";
 import { AiOutlinePlusCircle } from "react-icons/ai";
 
 const Subscriptions = () => {

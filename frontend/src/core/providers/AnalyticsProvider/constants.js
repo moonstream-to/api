@@ -5,6 +5,7 @@ export const MIXPANEL_PROPS = {
   PRICING_PLAN: "Pricing Plan",
   TOGGLE_LEFT_SIDEBAR: "Toggle left sidebar",
   BUTTON_NAME: "Button",
+  USER_SPECIALITY: "user speciality",
 };
 
 export const MIXPANEL_EVENTS = {

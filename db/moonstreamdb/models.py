@@ -113,7 +113,7 @@ class EthereumAddress(Base):  # type: ignore
         nullable=True,
         index=True,
     )
-    address = Column(VARCHAR(256), nullable=False, index=True)
+    address = Column(VARCHAR(256), nullable=False, unique=True, index=True)
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )

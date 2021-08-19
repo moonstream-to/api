@@ -17,15 +17,7 @@ const UIProvider = ({ children }) => {
     xl: false,
     "2xl": false,
   });
-
-  const currentBreakpoint = useBreakpointValue({
-    base: 0,
-    sm: 1,
-    md: 2,
-    lg: 3,
-    xl: 4,
-    "2xl": 5,
-  });
+  // const isMobileView = true;
 
   const { modal, toggleModal } = useContext(ModalContext);
   const [searchTerm, setSearchTerm] = useQuery("q", "", true, false);
@@ -44,7 +36,8 @@ const UIProvider = ({ children }) => {
     router.nextRouter.asPath.includes("/stream") ||
       router.nextRouter.asPath.includes("/account") ||
       router.nextRouter.asPath.includes("/subscriptions") ||
-      router.nextRouter.asPath.includes("/analytics")
+      router.nextRouter.asPath.includes("/analytics") ||
+      router.nextRouter.asPath.includes("/welcome")
   );
 
   useEffect(() => {
@@ -81,7 +74,8 @@ const UIProvider = ({ children }) => {
       router.nextRouter.asPath.includes("/stream") ||
         router.nextRouter.asPath.includes("/account") ||
         router.nextRouter.asPath.includes("/subscriptions") ||
-        router.nextRouter.asPath.includes("/analytics")
+        router.nextRouter.asPath.includes("/analytics") ||
+        router.nextRouter.asPath.includes("/welcome")
     );
   }, [router.nextRouter.asPath, user]);
 
@@ -119,7 +113,7 @@ const UIProvider = ({ children }) => {
   //Sidebar is visible at at breakpoint value less then 2
   //Sidebar is visible always in appView
   useEffect(() => {
-    if (currentBreakpoint < 2) {
+    if (isMobileView) {
       setSidebarVisible(true);
       setSidebarCollapsed(false);
     } else {
@@ -130,7 +124,7 @@ const UIProvider = ({ children }) => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentBreakpoint, isAppView]);
+  }, [isMobileView, isAppView]);
 
   // *********** Entries layout states **********************
 
@@ -158,6 +152,81 @@ const UIProvider = ({ children }) => {
       isMobileView ? (isEntryDetailView ? "entry" : "list") : "split"
     );
   }, [isEntryDetailView, isMobileView]);
+
+  // *********** Onboarding state **********************
+
+  const onboardingSteps = [
+    {
+      step: "welcome",
+      description: "Basics of how Moonstream works",
+    },
+    {
+      step: "subscriptions",
+      description: "Learn how to subscribe to blockchain events",
+    },
+    {
+      step: "stream",
+      description: "Learn how to use your Moonstream to analyze blah blah blah",
+    },
+  ];
+
+  const [onboardingState, setOnboardingState] = useStorage(
+    window.localStorage,
+    "onboardingState",
+    {
+      welcome: 0,
+      subscriptions: 0,
+      stream: 0,
+    }
+  );
+
+  const [onboardingStep, setOnboardingStep] = useState(() => {
+    const step = onboardingSteps.findIndex(
+      (event) => onboardingState[event.step] === 0
+    );
+    if (step === -1 && isOnboardingComplete) return onboardingSteps.length - 1;
+    else if (step === -1 && !isOnboardingComplete) return 0;
+    else return step;
+  });
+
+  const [isOnboardingComplete, setisOnboardingComplete] = useStorage(
+    window.localStorage,
+    "isOnboardingComplete",
+    isLoggedIn ? true : false
+  );
+
+  useEffect(() => {
+    if (isLoggedIn && !isOnboardingComplete) {
+      router.replace("/welcome");
+    }
+    // eslint-disable-next-line
+  }, [isLoggedIn, isOnboardingComplete]);
+
+  useEffect(() => {
+    if (
+      onboardingSteps.findIndex(
+        (event) => onboardingState[event.step] === 0
+      ) === -1
+    ) {
+      setisOnboardingComplete(true);
+    }
+    //eslint-disable-next-line
+  }, [onboardingState]);
+
+  useEffect(() => {
+    if (router.nextRouter.pathname === "/welcome") {
+      const newOnboardingState = {
+        ...onboardingState,
+        [`${onboardingSteps[onboardingStep].step}`]:
+          onboardingState[onboardingSteps[onboardingStep].step] + 1,
+      };
+
+      setOnboardingState(newOnboardingState);
+    }
+    // eslint-disable-next-line
+  }, [onboardingStep, router.nextRouter.pathname]);
+
+  // const ONBOARDING_STEP_NUM = steps.length;
 
   // ********************************************************
 
@@ -188,6 +257,12 @@ const UIProvider = ({ children }) => {
         currentTransaction,
         setCurrentTransaction,
         isEntryDetailView,
+        onboardingStep,
+        setOnboardingStep,
+        isOnboardingComplete,
+        setisOnboardingComplete,
+        onboardingSteps,
+        setOnboardingState,
       }}
     >
       {children}

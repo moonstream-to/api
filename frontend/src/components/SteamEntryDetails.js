@@ -36,17 +36,16 @@ const SteamEntryDetails = () => {
       >
         <HStack id="EntryHeader" width="100%" m={0}>
           <Heading
-            overflow="hidden"
             width={entry?.context_url ? "calc(100% - 28px)" : "100%"}
             minH="36px"
             style={{ marginLeft: "0" }}
             m={0}
             p={0}
             fontWeight="600"
-            fontSize="1.5rem"
+            fontSize="md"
             textAlign="left"
           >
-            {entry && entry.tx.hash}
+            {entry && `Hash: ${entry.tx.hash}`}
           </Heading>
         </HStack>
       </Skeleton>

@@ -13,6 +13,7 @@ import { HamburgerIcon } from "@chakra-ui/icons";
 import useModals from "../core/hooks/useModals";
 import UIContext from "../core/providers/UIProvider/context";
 import ChakraAccountIconButton from "./AccountIconButton";
+import RouteButton from "./RouteButton";
 
 const LandingNavbar = () => {
   const ui = useContext(UIContext);
@@ -52,6 +53,17 @@ const LandingNavbar = () => {
               spacing={4}
               pr={16}
             >
+              {ui.isLoggedIn && (
+                <ButtonGroup spacing={4}>
+                  {/* <RouteButton variant="link" href="/docs">
+                  Docs
+                </RouteButton> */}
+                  <RouteButton variant="link" href="/welcome">
+                    Learn how to
+                  </RouteButton>
+                </ButtonGroup>
+              )}
+
               {ui.isLoggedIn && (
                 <RouterLink href="/stream" passHref>
                   <Button

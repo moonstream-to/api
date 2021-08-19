@@ -16,7 +16,6 @@ const toEth = (wei) => {
 const TxABI = (props) => {
   const byteCode = props.byteCode;
   const abi = props.abi;
-  console.log(abi.functions);
   return (
     <VStack spacing={3}>
       <br />
@@ -58,25 +57,29 @@ const TxInfo = (props) => {
   return (
     <Box boxShadow="xs" p="6" rounded="md">
       <StatGroup>
-        <Stat>
+        <Stat px={2}>
           <StatLabel>Value</StatLabel>
-          <StatNumber>{toEth(transaction.tx.value)} eth</StatNumber>
+          <StatNumber fontSize="md">
+            {toEth(transaction.tx.value)} eth
+          </StatNumber>
           <StatHelpText>amount of ETH to transfer</StatHelpText>
         </Stat>
         <Stat>
           <StatLabel>Gas limit</StatLabel>
-          <StatNumber>{transaction.tx.gas}</StatNumber>
+          <StatNumber fontSize="md">{transaction.tx.gas}</StatNumber>
           <StatHelpText>Maximum amount of gas </StatHelpText>
           <StatHelpText>provided for the transaction</StatHelpText>
         </Stat>
         <Stat>
           <StatLabel>Gas price</StatLabel>
-          <StatNumber>{toEth(transaction.tx.gasPrice)} eth</StatNumber>
+          <StatNumber fontSize="md">
+            {toEth(transaction.tx.gasPrice)} eth
+          </StatNumber>
           <StatHelpText>the fee the sender pays per unit of gas</StatHelpText>
         </Stat>
       </StatGroup>
 
-      <Table variant="simple">
+      <Table variant="simple" size="sm">
         <Tbody>
           {Object.keys(transaction.tx)
             .filter(dont_display)
@@ -85,7 +88,7 @@ const TxInfo = (props) => {
                 transaction.tx[key] != undefined && (
                   <Tr key={key}>
                     <Td>{key}</Td>
-                    <Td>{transaction.tx[key]}</Td>
+                    <Td wordBreak="break-all">{transaction.tx[key]}</Td>
                   </Tr>
                 )
             )}
