@@ -12,10 +12,12 @@ import {
   Button,
   Center,
   useBreakpointValue,
+  Spacer,
 } from "@chakra-ui/react";
-// import Xarrow, { useXarrow } from "react-xarrows";
 import React, { useContext } from "react";
 import UIContext from "../core/providers/UIProvider/context";
+import { FaGithubSquare } from "react-icons/fa";
+import RouteButton from "../components/RouteButton";
 
 const Feature = ({ text, icon, iconBg, bullets }) => {
   return (
@@ -67,14 +69,15 @@ const SplitWithImage = ({
   mirror,
   elementName,
   cta,
+  socialButton,
 }) => {
   const buttonSize = useBreakpointValue({
     base: "md",
     sm: "md",
     md: "md",
     lg: "lg",
-    xl: "xl",
-    "2xl": "xl",
+    xl: "lg",
+    "2xl": "lg",
   });
 
   const ui = useContext(UIContext);
@@ -109,20 +112,25 @@ const SplitWithImage = ({
           </Flex>
         )}
         <Stack spacing={4} justifyContent="center">
-          <Text
-            id={`MoonBadge ${elementName}`}
-            // id={`MoonBadge${elementName}`}
-            textTransform={"uppercase"}
-            color={useColorModeValue(`${colorScheme}.50`, `${colorScheme}.900`)}
-            fontWeight={600}
-            fontSize={"sm"}
-            bg={useColorModeValue(`${colorScheme}.900`, `${colorScheme}.50`)}
-            p={2}
-            alignSelf={mirror && !ui.isMobileView ? "flex-end" : "flex-start"}
-            rounded={"md"}
-          >
-            {badge}
-          </Text>
+          <Stack direction="row">
+            <Text
+              id={`MoonBadge ${elementName}`}
+              // id={`MoonBadge${elementName}`}
+              textTransform={"uppercase"}
+              color={useColorModeValue(
+                `${colorScheme}.50`,
+                `${colorScheme}.900`
+              )}
+              fontWeight={600}
+              fontSize={"sm"}
+              bg={useColorModeValue(`${colorScheme}.900`, `${colorScheme}.50`)}
+              p={2}
+              alignSelf={mirror && !ui.isMobileView ? "flex-end" : "flex-start"}
+              rounded={"md"}
+            >
+              {badge}
+            </Text>
+          </Stack>
           <Heading>{title}</Heading>
           <Text color={`primary.500`} fontSize={"lg"}>
             {body}
@@ -150,16 +158,33 @@ const SplitWithImage = ({
             })}
             <Container>
               <Center>
-                <Button
-                  colorScheme={colorScheme}
-                  variant="outline"
-                  mt={[0, 0, null, 16]}
-                  fontSize={["xs", "sm", "lg", null, "lg"]}
-                  size={buttonSize}
-                  onClick={cta.onClick}
-                >
-                  {cta.label}
-                </Button>
+                <Flex w="100%" flexWrap="wrap">
+                  <Button
+                    colorScheme={colorScheme}
+                    variant="outline"
+                    mt={[0, 0, null, 16]}
+                    fontSize={["xs", "sm", "lg", null, "lg"]}
+                    size={buttonSize}
+                    onClick={cta.onClick}
+                  >
+                    {cta.label}
+                  </Button>
+                  <Spacer />
+                  {socialButton && (
+                    <RouteButton
+                      isExternal
+                      href={socialButton.url}
+                      mt={[0, 0, null, 16]}
+                      fontSize={["xs", "sm", "lg", null, "lg"]}
+                      size={buttonSize}
+                      variant="outline"
+                      colorScheme="primary"
+                      leftIcon={<FaGithubSquare />}
+                    >
+                      Check out our github
+                    </RouteButton>
+                  )}
+                </Flex>
               </Center>
             </Container>
           </Stack>
