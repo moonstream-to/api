@@ -2,7 +2,7 @@
 The Moonstream subscriptions HTTP API
 """
 import logging
-from typing import Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from bugout.data import BugoutResources
 from bugout.exceptions import BugoutResponseException
@@ -12,15 +12,17 @@ from moonstreamdb import db
 from sqlalchemy.orm import Session
 
 
-from ..providers import ethereum_blockchain
 from .. import data
 from ..middleware import BroodAuthMiddleware
+from ..providers import ethereum_blockchain
 from ..settings import (
     DOCS_TARGET_PATH,
     ORIGINS,
     DOCS_PATHS,
     bugout_client as bc,
+    BUGOUT_REQUEST_TIMEOUT_SECONDS,
 )
+from .subscriptions import BUGOUT_RESOURCE_TYPE_SUBSCRIPTION
 from ..version import MOONSTREAM_VERSION
 
 logger = logging.getLogger(__name__)
@@ -50,6 +52,31 @@ app.add_middleware(
 whitelist_paths: Dict[str, str] = {}
 whitelist_paths.update(DOCS_PATHS)
 app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
+
+
+def get_user_subscriptions(token: str) -> Dict[str, List[Dict[str, Any]]]:
+    """
+    Returns the given user's subscriptions grouped by subscription type.
+    """
+    response = bc.list_resources(
+        token=token,
+        params={
+            "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
+        },
+        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+    )
+
+    # TODO(kompotkot, zomglings): PAGINATION!!!
+    user_subscriptions: Dict[str, List[Dict[str, Any]]] = {}
+    for subscription in response.resources:
+        subscription_type = subscription.get("subscription_type_id")
+        if subscription_type is None:
+            continue
+        if user_subscriptions.get(subscription_type) is None:
+            user_subscriptions[subscription_type] = []
+        user_subscriptions[subscription_type].append(subscription)
+
+    return user_subscriptions
 
 
 @app.get("/", tags=["streams"])
