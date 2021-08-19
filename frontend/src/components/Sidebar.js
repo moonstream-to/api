@@ -83,7 +83,9 @@ const Sidebar = () => {
           {ui.isMobileView && (
             <Menu iconShape="square">
               <MenuItem icon={<HiAcademicCap />}>
-                <RouterLink href="/welcome">Learn how to</RouterLink>
+                <RouterLink href="/welcome">
+                  Learn how to use Moonstream
+                </RouterLink>
               </MenuItem>
             </Menu>
           )}

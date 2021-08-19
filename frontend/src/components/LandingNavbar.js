@@ -59,7 +59,7 @@ const LandingNavbar = () => {
                   Docs
                 </RouteButton> */}
                   <RouteButton variant="link" href="/welcome">
-                    Learn how to
+                    Learn how to use Moonstream
                   </RouteButton>
                 </ButtonGroup>
               )}
