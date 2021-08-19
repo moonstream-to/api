@@ -160,3 +160,17 @@ class TxinfoEthereumBlockchainResponse(BaseModel):
     smart_contract_address: Optional[str] = None
     abi: Optional[ContractABI] = None
     errors: List[str] = Field(default_factory=list)
+
+
+class AddressLabelResponse(BaseModel):
+    label: str
+    label_data: Optional[Dict[str, Any]] = None
+
+
+class AddressLabelsResponse(BaseModel):
+    address: str
+    labels: List[AddressLabelResponse] = Field(default_factory=list)
+
+
+class AddressListLabelsResponse(BaseModel):
+    addresses: List[AddressLabelsResponse] = Field(default_factory=list)

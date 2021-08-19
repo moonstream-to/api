@@ -1,7 +1,9 @@
 name: Lint Moonstream backend
 
 on:
-  push:
+  pull_request:
+    branches:
+      - "main"
     paths:
       - "backend/**"
 

@@ -6,33 +6,26 @@ transactions, etc.) with side information and return objects that are better sui
 end users.
 """
 import logging
-from typing import Any, Dict
+from typing import Dict, Optional
 
-from fastapi import (
-    FastAPI,
-    Depends,
-)
+from fastapi import FastAPI, Depends, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from moonstreamdb.db import yield_db_session
 from moonstreamdb.models import EthereumAddress
 from sqlalchemy.orm import Session
 
 from ..abi_decoder import decode_abi
-from ..data import TxinfoEthereumBlockchainRequest, TxinfoEthereumBlockchainResponse
+from .. import actions
+from .. import data
 from ..middleware import BroodAuthMiddleware
-from ..settings import (
-    DOCS_TARGET_PATH,
-    ORIGINS,
-    DOCS_PATHS,
-    bugout_client as bc,
-)
+from ..settings import DOCS_TARGET_PATH, ORIGINS, DOCS_PATHS
 from ..version import MOONSTREAM_VERSION
 
 logger = logging.getLogger(__name__)
 
 tags_metadata = [
-    {"name": "users", "description": "Operations with users."},
-    {"name": "tokens", "description": "Operations with user tokens."},
+    {"name": "txinfo", "description": "Ethereum transactions info."},
+    {"name": "address info", "description": "Addresses public information."},
 ]
 
 app = FastAPI(
@@ -63,13 +56,13 @@ app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
 @app.post(
     "/ethereum_blockchain",
     tags=["txinfo"],
-    response_model=TxinfoEthereumBlockchainResponse,
+    response_model=data.TxinfoEthereumBlockchainResponse,
 )
 async def txinfo_ethereum_blockchain_handler(
-    txinfo_request: TxinfoEthereumBlockchainRequest,
+    txinfo_request: data.TxinfoEthereumBlockchainRequest,
     db_session: Session = Depends(yield_db_session),
-) -> TxinfoEthereumBlockchainResponse:
-    response = TxinfoEthereumBlockchainResponse(tx=txinfo_request.tx)
+) -> data.TxinfoEthereumBlockchainResponse:
+    response = data.TxinfoEthereumBlockchainResponse(tx=txinfo_request.tx)
     if txinfo_request.tx.input is not None:
         try:
             response.abi = decode_abi(txinfo_request.tx.input, db_session)
@@ -92,3 +85,31 @@ async def txinfo_ethereum_blockchain_handler(
             response.is_smart_contract_call = True
 
     return response
+
+
+@app.get(
+    "/addresses", tags=["address info"], response_model=data.AddressListLabelsResponse
+)
+async def addresses_labels_handler(
+    addresses: Optional[str] = Query(None),
+    start: Optional[int] = Query(0),
+    limit: Optional[int] = Query(100),
+    db_session: Session = Depends(yield_db_session),
+) -> data.AddressListLabelsResponse:
+    """
+    Fetch labels with additional public information
+    about known addresses.
+    """
+    if limit > 100:
+        raise HTTPException(
+            status_code=406, detail="The limit cannot exceed 100 addresses"
+        )
+    try:
+        addresses = actions.get_address_labels(
+            db_session=db_session, start=start, limit=limit, addresses=addresses
+        )
+    except Exception as err:
+        logger.error(f"Unable to get info about Ethereum addresses {err}")
+        raise HTTPException(status_code=500)
+
+    return addresses

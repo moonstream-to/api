@@ -1,9 +1,6 @@
 name: Build Moonstream frontend
 
 on:
-  push:
-    paths:
-      - "frontend/**"
   pull_request:
     branches:
       - "main"
