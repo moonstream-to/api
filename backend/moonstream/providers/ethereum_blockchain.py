@@ -19,6 +19,7 @@ from ..stream_queries import StreamQuery
 
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.WARN)
 
 
 event_type = "ethereum_blockchain"
@@ -74,7 +75,7 @@ def default_filters(subscriptions: List[BugoutResource]) -> List[str]:
 
 
 def parse_filters(
-    query: StreamQuery, user_subscriptions: Dict[str, List[Dict[str, Any]]]
+    query: StreamQuery, user_subscriptions: Dict[str, List[BugoutResource]]
 ) -> Optional[Filters]:
     """
     Passes raw filter strings into a Filters object which is used to construct a database query
@@ -223,7 +224,7 @@ def get_events(
     data_access_token: str,
     stream_boundary: data.StreamBoundary,
     query: StreamQuery,
-    user_subscriptions: Dict[str, List[Dict[str, Any]]],
+    user_subscriptions: Dict[str, List[BugoutResource]],
 ) -> Optional[Tuple[data.StreamBoundary, List[data.Event]]]:
     """
     Returns ethereum_blockchain events for the given addresses in the time period represented
@@ -231,6 +232,7 @@ def get_events(
 
     If the query does not require any data from this provider, returns None.
     """
+    logger.warn("WHAT THE HELL PARAKEET")
     parsed_filters = parse_filters(query, user_subscriptions)
     if parsed_filters is None:
         return None
@@ -259,7 +261,7 @@ def latest_events(
     data_access_token: str,
     query: StreamQuery,
     num_events: int,
-    user_subscriptions: Dict[str, List[Dict[str, Any]]],
+    user_subscriptions: Dict[str, List[BugoutResource]],
 ) -> Optional[List[data.Event]]:
     """
     Returns the num_events latest events from the current provider, subject to the constraints imposed
@@ -291,7 +293,7 @@ def next_event(
     data_access_token: str,
     stream_boundary: data.StreamBoundary,
     query: StreamQuery,
-    user_subscriptions: Dict[str, List[Dict[str, Any]]],
+    user_subscriptions: Dict[str, List[BugoutResource]],
 ) -> Optional[data.Event]:
     """
     Returns the earliest event occuring after the given stream boundary corresponding to the given
@@ -331,7 +333,7 @@ def previous_event(
     data_access_token: str,
     stream_boundary: data.StreamBoundary,
     query: StreamQuery,
-    user_subscriptions: Dict[str, List[Dict[str, Any]]],
+    user_subscriptions: Dict[str, List[BugoutResource]],
 ) -> Optional[data.Event]:
     """
     Returns the latest event occuring before the given stream boundary corresponding to the given
