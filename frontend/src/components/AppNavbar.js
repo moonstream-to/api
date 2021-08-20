@@ -28,6 +28,7 @@ import useRouter from "../core/hooks/useRouter";
 import UIContext from "../core/providers/UIProvider/context";
 import AccountIconButton from "./AccountIconButton";
 import RouteButton from "./RouteButton";
+import { USER_NAV_PATHES, ALL_NAV_PATHES } from "../core/constants";
 
 const AppNavbar = () => {
   const ui = useContext(UIContext);
@@ -97,13 +98,37 @@ const AppNavbar = () => {
           <Flex width="100%" px={2}>
             <Spacer />
             <Flex placeSelf="flex-end">
-              <ButtonGroup spacing={4}>
-                {/* <RouteButton variant="link" href="/docs">
-                  Docs
-                </RouteButton> */}
-                <RouteButton variant="link" href="/welcome">
-                  Learn how to
-                </RouteButton>
+              <ButtonGroup spacing={4} colorScheme="secondary">
+                {ALL_NAV_PATHES.map((item, idx) => (
+                  <RouteButton
+                    key={`${idx}-${item.title}-landing-all-links`}
+                    variant="link"
+                    href={item.path}
+                    color="white"
+                    isActive={!!(router.nextRouter.pathname === item.path)}
+                  >
+                    {item.title}
+                  </RouteButton>
+                ))}
+                {USER_NAV_PATHES.map((item, idx) => {
+                  console.log(
+                    "item.path:",
+                    item.path,
+                    "pathname:",
+                    router.nextRouter.pathname
+                  );
+                  return (
+                    <RouteButton
+                      key={`${idx}-${item.title}-navlink`}
+                      variant="link"
+                      href={item.path}
+                      color="white"
+                      isActive={!!(router.nextRouter.pathname === item.path)}
+                    >
+                      {item.title}
+                    </RouteButton>
+                  );
+                })}
               </ButtonGroup>
               <SupportPopover />
               <AccountIconButton
