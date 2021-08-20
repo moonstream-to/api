@@ -13,12 +13,6 @@ import {
 import { DEFAULT_METATAGS } from "../../src/components/constants";
 import UIContext from "../../src/core/providers/UIProvider/context";
 
-export async function getStaticProps() {
-  return {
-    props: { metaTags: { ...DEFAULT_METATAGS } },
-  };
-}
-
 const AWS_PATH =
   "https://s3.amazonaws.com/static.simiotics.com/moonstream/assets";
 
@@ -253,4 +247,21 @@ const Product = () => {
     </Flex>
   );
 };
+
+export async function getStaticProps() {
+  const assetPreload = Object.keys(assets).map((key) => {
+    return {
+      rel: "preload",
+      href: assets[key],
+      as: "image",
+    };
+  });
+  const preconnects = [{ rel: "preconnect", href: "https://s3.amazonaws.com" }];
+
+  const preloads = assetPreload.concat(preconnects);
+
+  return {
+    props: { metaTags: { ...DEFAULT_METATAGS }, preloads },
+  };
+}
 export default Product;
