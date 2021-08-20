@@ -107,6 +107,8 @@ const Product = () => {
     };
   }, []);
 
+  const margin = "22%";
+
   return (
     <Flex
       bgPos="bottom"
@@ -118,27 +120,11 @@ const Product = () => {
       direction="column"
       alignItems="center"
     >
-      <Stack
-        // bgColor="gray.50"
-        // borderRadius="xl"
-        // boxShadow="xl"
-        mx="22%"
-        my={12}
-        maxW="1700px"
-
-      >
-        <Heading
-          as="h2"
-          size="md"
-          w="100%"
-          // bgColor="gray.200"
-          px={12}
-          py={2}
-          borderTopRadius="xl"
-        >
+      <Stack mx={margin} my={12} maxW="1700px">
+        <Heading as="h2" size="md" w="100%" px={12} py={2} borderTopRadius="xl">
           Vision
         </Heading>
-        <chakra.span pl={2} px={12} py={2} >
+        <chakra.span pl={2} px={12} py={2}>
           <Text mb={2}>
             Our goal is to provide a live view of the transactions taking place
             on <b>every</b> public blockchain.
@@ -166,24 +152,8 @@ const Product = () => {
           </Text>
         </chakra.span>
       </Stack>
-      <Stack
-        // bgColor="gray.50"
-        // borderRadius="xl"
-        // boxShadow="xl"
-        mx="22%"
-        mb={12}
-        maxW="1700px"
-        bgTra
-      >
-        <Heading
-          as="h2"
-          size="md"
-          w="100%"
-          // bgColor="gray.200"
-          px={12}
-          py={2}
-          borderTopRadius="xl"
-        >
+      <Stack mx={margin} mb={12} maxW="1700px" bgTra>
+        <Heading as="h2" size="md" w="100%" px={12} py={2} borderTopRadius="xl">
           Product
         </Heading>
         <chakra.span pl={2} px={12} py={2}>
