@@ -109,7 +109,7 @@ const Product = () => {
     };
   }, []);
 
-  const margin = ui.isMobileView ? "7%" : "22%";
+  const margin = ui.isMobileView ? "7%" : "25%";
 
   return (
     <Flex
