@@ -32,7 +32,7 @@ from bugout.app import Bugout
 from bugout.data import BugoutResource
 from sqlalchemy.orm import Session
 
-from . import ethereum_blockchain
+from . import bugout, ethereum_blockchain
 from .. import data
 from ..stream_queries import StreamQuery
 from moonstream import stream_queries
@@ -40,7 +40,10 @@ from moonstream import stream_queries
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARN)
 
-event_providers: Dict[str, Any] = {ethereum_blockchain.event_type: ethereum_blockchain}
+event_providers: Dict[str, Any] = {
+    ethereum_blockchain.event_type: ethereum_blockchain,
+    bugout.whalewatch_provider.event_type: bugout.whalewatch_provider,
+}
 
 
 def get_events(

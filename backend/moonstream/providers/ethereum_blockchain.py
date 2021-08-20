@@ -133,6 +133,7 @@ def parse_filters(
 
     if not requires_ethereum_blockchain_data:
         return None
+
     return parsed_filters
 
 
@@ -232,7 +233,6 @@ def get_events(
 
     If the query does not require any data from this provider, returns None.
     """
-    logger.warn("WHAT THE HELL PARAKEET")
     parsed_filters = parse_filters(query, user_subscriptions)
     if parsed_filters is None:
         return None

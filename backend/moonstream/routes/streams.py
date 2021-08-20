@@ -164,7 +164,7 @@ async def latest_events_handler(
         query,
         1,
         user_subscriptions,
-        result_timeout=600.0,
+        result_timeout=6.0,
         raise_on_error=True,
         sort_events=True,
     )
@@ -212,7 +212,7 @@ async def next_event_handler(
         stream_boundary,
         query,
         user_subscriptions,
-        result_timeout=600.0,
+        result_timeout=6.0,
         raise_on_error=True,
     )
 
@@ -260,7 +260,7 @@ async def previous_event_handler(
         stream_boundary,
         query,
         user_subscriptions,
-        result_timeout=600.0,
+        result_timeout=6.0,
         raise_on_error=True,
     )
 
