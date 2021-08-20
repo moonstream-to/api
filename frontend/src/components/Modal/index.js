@@ -15,7 +15,7 @@ const Modal = ({ children, onClose }) => (
         sx={{ filter: "grayscale: 50%" }}
         fill="primary.800"
         src={
-          "https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/White+logo.svg"
+          "https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/logo-black.svg"
         }
       />
       <Flex cursor="pointer" onClick={onClose} css={styles.close}>
