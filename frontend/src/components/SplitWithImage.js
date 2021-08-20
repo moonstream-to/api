@@ -10,12 +10,12 @@ import {
   Icon,
   useColorModeValue,
   Button,
-  Center,
   useBreakpointValue,
 } from "@chakra-ui/react";
-// import Xarrow, { useXarrow } from "react-xarrows";
 import React, { useContext } from "react";
 import UIContext from "../core/providers/UIProvider/context";
+import { FaGithubSquare } from "react-icons/fa";
+import RouteButton from "../components/RouteButton";
 
 const Feature = ({ text, icon, iconBg, bullets }) => {
   return (
@@ -67,15 +67,19 @@ const SplitWithImage = ({
   mirror,
   elementName,
   cta,
+  socialButton,
 }) => {
-  const buttonSize = useBreakpointValue({
-    base: "md",
-    sm: "md",
-    md: "md",
-    lg: "lg",
-    xl: "xl",
-    "2xl": "xl",
+  var buttonSize = useBreakpointValue({
+    base: { single: "sm", double: "xs" },
+    sm: { single: "md", double: "sm" },
+    md: { single: "md", double: "sm" },
+    lg: { single: "lg", double: "lg" },
+    xl: { single: "lg", double: "lg" },
+    "2xl": { single: "lg", double: "lg" },
   });
+
+  //idk why but sometimes buttonSize gets undefined
+  if (!buttonSize) buttonSize = "lg";
 
   const ui = useContext(UIContext);
 
@@ -109,20 +113,25 @@ const SplitWithImage = ({
           </Flex>
         )}
         <Stack spacing={4} justifyContent="center">
-          <Text
-            id={`MoonBadge ${elementName}`}
-            // id={`MoonBadge${elementName}`}
-            textTransform={"uppercase"}
-            color={useColorModeValue(`${colorScheme}.50`, `${colorScheme}.900`)}
-            fontWeight={600}
-            fontSize={"sm"}
-            bg={useColorModeValue(`${colorScheme}.900`, `${colorScheme}.50`)}
-            p={2}
-            alignSelf={mirror && !ui.isMobileView ? "flex-end" : "flex-start"}
-            rounded={"md"}
-          >
-            {badge}
-          </Text>
+          <Stack direction="row">
+            <Text
+              id={`MoonBadge ${elementName}`}
+              // id={`MoonBadge${elementName}`}
+              textTransform={"uppercase"}
+              color={useColorModeValue(
+                `${colorScheme}.50`,
+                `${colorScheme}.900`
+              )}
+              fontWeight={600}
+              fontSize={"sm"}
+              bg={useColorModeValue(`${colorScheme}.900`, `${colorScheme}.50`)}
+              p={2}
+              alignSelf={mirror && !ui.isMobileView ? "flex-end" : "flex-start"}
+              rounded={"md"}
+            >
+              {badge}
+            </Text>
+          </Stack>
           <Heading>{title}</Heading>
           <Text color={`primary.500`} fontSize={"lg"}>
             {body}
@@ -148,20 +157,40 @@ const SplitWithImage = ({
                 />
               );
             })}
-            <Container>
-              <Center>
-                <Button
-                  colorScheme={colorScheme}
-                  variant="outline"
+
+            <Flex
+              w="100%"
+              flexWrap="nowrap"
+              display={["column", "column", null, "row"]}
+            >
+              <Button
+                colorScheme={colorScheme}
+                w={["100%", "100%", "fit-content", null]}
+                maxW={["250px", null, "fit-content"]}
+                variant="outline"
+                mt={[0, 0, null, 16]}
+                size={socialButton ? buttonSize.double : buttonSize.single}
+                onClick={cta.onClick}
+              >
+                {cta.label}
+              </Button>
+
+              {socialButton && (
+                <RouteButton
+                  isExternal
+                  w={["100%", "100%", "fit-content", null]}
+                  maxW={["250px", null, "fit-content"]}
+                  href={socialButton.url}
                   mt={[0, 0, null, 16]}
-                  fontSize={["xs", "sm", "lg", null, "lg"]}
-                  size={buttonSize}
-                  onClick={cta.onClick}
+                  size={socialButton ? buttonSize.double : buttonSize.single}
+                  variant="outline"
+                  colorScheme="primary"
+                  leftIcon={<FaGithubSquare />}
                 >
-                  {cta.label}
-                </Button>
-              </Center>
-            </Container>
+                  git clone moonstream
+                </RouteButton>
+              )}
+            </Flex>
           </Stack>
         </Stack>
         {(!mirror || ui.isMobileView) && (
@@ -171,7 +200,6 @@ const SplitWithImage = ({
               alt={"feature image"}
               src={imgURL}
               objectFit={"contain"}
-              // boxSize={ui.isMobileView ? "lg" : null}
             />
           </Flex>
         )}
