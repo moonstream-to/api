@@ -10,7 +10,7 @@ import {
   UnorderedList,
   ListItem,
 } from "@chakra-ui/react";
-import { DEFAULT_METATAGS } from "../../src/components/constants";
+import { DEFAULT_METATAGS } from "../../src/core/constants";
 import UIContext from "../../src/core/providers/UIProvider/context";
 
 export async function getStaticProps() {
