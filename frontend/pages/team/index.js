@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useLayoutEffect } from "react";
+import React, { useEffect, useState, useLayoutEffect, useContext } from "react";
 import {
   Heading,
   Text,
@@ -11,6 +11,7 @@ import {
   ListItem,
 } from "@chakra-ui/react";
 import { DEFAULT_METATAGS } from "../../src/components/constants";
+import UIContext from "../../src/core/providers/UIProvider/context";
 
 export async function getStaticProps() {
   return {
@@ -29,6 +30,7 @@ const assets = {
 };
 
 const Product = () => {
+  const ui = useContext(UIContext);
   const [background, setBackground] = useState("background720");
   const [backgroundLoaded720, setBackgroundLoaded720] = useState(false);
   const [backgroundLoaded1920, setBackgroundLoaded1920] = useState(false);
@@ -107,7 +109,7 @@ const Product = () => {
     };
   }, []);
 
-  const margin = "22%";
+  const margin = ui.isMobileView ? "3%" : "22%";
 
   return (
     <Flex
@@ -118,7 +120,6 @@ const Product = () => {
       minH="100vh"
       direction="column"
       alignItems="center"
-      px="7%"
       w="100%"
     >
       <Stack mx={margin} my={6} maxW="1700px">
