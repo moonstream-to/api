@@ -169,7 +169,6 @@ const SplitWithImage = ({
                 maxW={["250px", null, "fit-content"]}
                 variant="outline"
                 mt={[0, 0, null, 16]}
-                // fontSize={["xs", "sm", "lg", null, "lg"]}
                 size={socialButton ? buttonSize.double : buttonSize.single}
                 onClick={cta.onClick}
               >
@@ -183,7 +182,6 @@ const SplitWithImage = ({
                   maxW={["250px", null, "fit-content"]}
                   href={socialButton.url}
                   mt={[0, 0, null, 16]}
-                  // fontSize={["xs", "sm", "lg", null, "lg"]}
                   size={socialButton ? buttonSize.double : buttonSize.single}
                   variant="outline"
                   colorScheme="primary"
@@ -202,7 +200,6 @@ const SplitWithImage = ({
               alt={"feature image"}
               src={imgURL}
               objectFit={"contain"}
-              // boxSize={ui.isMobileView ? "lg" : null}
             />
           </Flex>
         )}
