@@ -10,9 +10,7 @@ import {
   Icon,
   useColorModeValue,
   Button,
-  Center,
   useBreakpointValue,
-  Spacer,
 } from "@chakra-ui/react";
 import React, { useContext } from "react";
 import UIContext from "../core/providers/UIProvider/context";
@@ -71,14 +69,17 @@ const SplitWithImage = ({
   cta,
   socialButton,
 }) => {
-  const buttonSize = useBreakpointValue({
-    base: "md",
-    sm: "md",
-    md: "md",
-    lg: "lg",
-    xl: "lg",
-    "2xl": "lg",
+  var buttonSize = useBreakpointValue({
+    base: { single: "sm", double: "xs" },
+    sm: { single: "md", double: "sm" },
+    md: { single: "md", double: "sm" },
+    lg: { single: "lg", double: "lg" },
+    xl: { single: "lg", double: "lg" },
+    "2xl": { single: "lg", double: "lg" },
   });
+
+  //idk why but sometimes buttonSize gets undefined
+  if (!buttonSize) buttonSize = "lg";
 
   const ui = useContext(UIContext);
 
@@ -156,37 +157,42 @@ const SplitWithImage = ({
                 />
               );
             })}
-            <Container>
-              <Center>
-                <Flex w="100%" flexWrap="wrap">
-                  <Button
-                    colorScheme={colorScheme}
-                    variant="outline"
-                    mt={[0, 0, null, 16]}
-                    fontSize={["xs", "sm", "lg", null, "lg"]}
-                    size={buttonSize}
-                    onClick={cta.onClick}
-                  >
-                    {cta.label}
-                  </Button>
-                  <Spacer />
-                  {socialButton && (
-                    <RouteButton
-                      isExternal
-                      href={socialButton.url}
-                      mt={[0, 0, null, 16]}
-                      fontSize={["xs", "sm", "lg", null, "lg"]}
-                      size={buttonSize}
-                      variant="outline"
-                      colorScheme="primary"
-                      leftIcon={<FaGithubSquare />}
-                    >
-                      Check out our github
-                    </RouteButton>
-                  )}
-                </Flex>
-              </Center>
-            </Container>
+
+            <Flex
+              w="100%"
+              flexWrap="nowrap"
+              display={["column", "column", null, "row"]}
+            >
+              <Button
+                colorScheme={colorScheme}
+                w={["100%", "100%", "fit-content", null]}
+                maxW={["250px", null, "fit-content"]}
+                variant="outline"
+                mt={[0, 0, null, 16]}
+                // fontSize={["xs", "sm", "lg", null, "lg"]}
+                size={socialButton ? buttonSize.double : buttonSize.single}
+                onClick={cta.onClick}
+              >
+                {cta.label}
+              </Button>
+
+              {socialButton && (
+                <RouteButton
+                  isExternal
+                  w={["100%", "100%", "fit-content", null]}
+                  maxW={["250px", null, "fit-content"]}
+                  href={socialButton.url}
+                  mt={[0, 0, null, 16]}
+                  // fontSize={["xs", "sm", "lg", null, "lg"]}
+                  size={socialButton ? buttonSize.double : buttonSize.single}
+                  variant="outline"
+                  colorScheme="primary"
+                  leftIcon={<FaGithubSquare />}
+                >
+                  git clone moonstream
+                </RouteButton>
+              )}
+            </Flex>
           </Stack>
         </Stack>
         {(!mirror || ui.isMobileView) && (

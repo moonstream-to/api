@@ -303,7 +303,7 @@ const Homepage = () => {
                   >
                     {` We believe in financial inclusion. Proprietary technologies
                     are not financially inclusive. That's why all our software
-                    is`}
+                    is `}
                     <chakra.span
                       display="inline-block"
                       textColor="secondary.900"
@@ -316,6 +316,7 @@ const Homepage = () => {
                 <Heading
                   {...HEADING_PROPS}
                   textAlign="center"
+                  mt={16}
                   pb={[12, 12, 12, null, 48]}
                 >
                   Data you can add to your stream:
