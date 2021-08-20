@@ -3,6 +3,7 @@ package main
 import (
 	// "encoding/json"
 	// "encoding/hex"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -11,6 +12,7 @@ import (
 	humbug "github.com/bugout-dev/humbug/go/pkg"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+
 	// "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/google/uuid"
@@ -27,7 +29,7 @@ func humbugClientFromEnv() (*humbug.HumbugReporter, error) {
 	return reporter, err
 }
 
-type txJSON struct {
+type Transaction struct {
 	Type hexutil.Uint64 `json:"type"`
 
 	// Common transaction fields:
@@ -52,9 +54,9 @@ type txJSON struct {
 }
 
 type PendingTransaction struct {
-	From        string  `json:"from"`
-	Nonce       uint64  `json:"nonce"`
-	Transaction *txJSON `json:"transaction"`
+	From        string       `json:"from"`
+	Nonce       uint64       `json:"nonce"`
+	Transaction *Transaction `json:"transaction"`
 }
 
 type PendingTransactions struct {
@@ -64,74 +66,77 @@ type PendingTransactions struct {
 var ReportTitle string = "Ethereum: Pending transaction"
 
 // Fetch list of transactions form Ethereum TxPool
-// func TxPoolCall(gethClient *rpc.Client) (pendingTxsNew []PendingTransaction) {
-func TxPoolCall(gethClient *rpc.Client) {
-	pendingTxsOld := make([]PendingTransaction, 0, 6000) 	// List of transactions from previous iteration
-	pendingTxsNew := make([]PendingTransaction, 0, 6000) 	// Empty list for new incoming transactions
+func PollTxpoolContent(gethClient *rpc.Client, interval int) {
+	currentTransactions := make(map[common.Hash]bool)
 
-	var result map[string]map[string]map[uint64]*txJSON
+	// Structure of the map:
+	// {pending | queued} -> "from" address -> nonce -> Transaction
+	var result map[string]map[string]map[uint64]*Transaction
 
 	for {
+		fmt.Println("Checking pending transactions in node:")
 		gethClient.Call(&result, "txpool_content")
 		pendingTransactions := result["pending"]
 
+		cacheSize := 0
+		for transactionHash, _ := range currentTransactions {
+			currentTransactions[transactionHash] = false
+			cacheSize++
+		}
+		fmt.Printf("\tSize of pending transactions cache at the beginning: %d\n", cacheSize)
+
+		addedTransactions := 0
 		// Iterate over fetched result
 		for fromAddress, transactionsByNonce := range pendingTransactions {
 			for nonce, transaction := range transactionsByNonce {
 				pendingTx := PendingTransaction{From: fromAddress, Nonce: nonce, Transaction: transaction}
 
-				pendingTxsNew = append(pendingTxsNew, pendingTx) // Add to list of new incoming transactions
-
-				// Check if transaction in old list of transactions,
-				// then remove from it
-				for oldTxInd, oldTx := range pendingTxsOld {
-					if pendingTx.Transaction.Hash == oldTx.Transaction.Hash {
-						pendingTxsOld[oldTxInd] = pendingTxsOld[len(pendingTxsOld)-1]
-						// pendingTxsOld[len(pendingTxsOld)-1] = ""   // Erase last element (write zero value) TODO: not sure I should do it
-						pendingTxsOld = pendingTxsOld[:len(pendingTxsOld)-1]
-					} else {
-						// send to humbug
+				transactionHash := transaction.Hash
+				_, transactionProcessed := currentTransactions[transactionHash]
+				if !transactionProcessed {
+					_, jsonErr := json.Marshal(pendingTx)
+					if jsonErr != nil {
+						fmt.Fprintf(os.Stderr, "Error marshalling pending transaction to JSON:\n%v\n", pendingTx)
+						continue
 					}
-				}
 
-				// _, jsonErr := json.Marshal(pendingTx)
-				// if jsonErr != nil {
-				// 	fmt.Fprintf(os.Stderr, "Error marshalling pending transaction to JSON:\n%v\n", pendingTx)
-				// 	continue
-				// }
-				// fmt.Println(transactionHash)
-				// // report := humbug.Report{
-				// // 	Title:   ReportTitle,
-				// // 	Content: string(contents),
-				// // 	Tags:    []string{"lol"},
-				// // }
-				// // reporter.Publish(report)
+					// TODO(kompotkot, zomglings): Humbug API (on Spire) support bulk publication of reports. We should modify
+					// Humbug go client to use the bulk publish endpoint. Currently, if we have to publish all transactions
+					// pending in txpool, we *will* get rate limited. We may want to consider adding a publisher to the
+					// Humbug go client that can listen on a channel and will handle rate limiting, bulk publication etc. itself
+					// (without user having to worry about it).
+
+					// report := humbug.Report{
+					// 	Title:   ReportTitle,
+					// 	Content: string(contents),
+					// 	Tags:    []string{"lol"},
+					// }
+					// reporter.Publish(report)
+					addedTransactions++
+				}
+				currentTransactions[transactionHash] = true
 			}
 		}
-		// - For loop through pendingTxsOld to mark in humbug as old
+		fmt.Printf("\tAdded transactions: %d\n", addedTransactions)
 
-		// - Clean old slice
-		pendingTxsOld = pendingTxsOld[:0]
-
-		fmt.Println("New:", len(pendingTxsNew))
-		// - Copy new slice to old
-		copy(pendingTxsOld, pendingTxsNew)
-
-		fmt.Println("New:", len(pendingTxsNew))
-		// - Clean new slice
-		pendingTxsNew = pendingTxsNew[:0]
-
-		fmt.Println("New:", len(pendingTxsNew))
-		fmt.Println("Old:", len(pendingTxsOld))
-		time.Sleep(3 * time.Second)
+		droppedTransactions := 0
+		for transactionHash, justProcessed := range currentTransactions {
+			if !justProcessed {
+				delete(currentTransactions, transactionHash)
+				droppedTransactions++
+			}
+		}
+		fmt.Printf("\tDropped transactions: %d\n", droppedTransactions)
+		fmt.Printf("Sleeping for %d seconds\n", interval)
+		time.Sleep(time.Duration(interval) * time.Second)
 	}
-
-	// return
 }
 
 func main() {
 	var gethConnectionString string
+	var intervalSeconds int
 	flag.StringVar(&gethConnectionString, "geth", "", "Geth IPC path/RPC url/Websockets URL")
+	flag.IntVar(&intervalSeconds, "interval", 1, "Number of seconds to wait between RPC calls to query the transaction pool (default: 1)")
 	flag.Parse()
 
 	// Set connection with Ethereum blockchain via geth
@@ -146,60 +151,5 @@ func main() {
 	// 	panic(fmt.Sprintf("Invalid Humbug configuration: %s", err.Error()))
 	// }
 
-	// TODO(kompotkot, zomglings): We should cache pending transactions in memory and only publish reports
-	// for new transactions. When this process starts up, it should pull the most recent (within last 5 minutes -- tunable)
-	// reported pending transactions from the Humbug journal (will require a read token) and load them
-	// into the cache.
-
-	// TODO(kompotkot, zomglings): Humbug API (on Spire) support bulk publication of reports. We should modify
-	// Humbug go client to use the bulk publish endpoint. Currently, if we have to publish all transactions
-	// pending in txpool, we *will* get rate limited. We may want to consider adding a publisher to the
-	// Humbug go client that can listen on a channel and will handle rate limiting, bulk publication etc. itself
-	// (without user having to worry about it).
-
-	// TODO(kompotkot, zomglings): Right now, we are only working with "pending" transactions. Ethereum
-	// TXPool data structure also has "queued" transactions. What is the difference between "pending" and
-	// "queued" and should we be reporting "queued" transaction as well?
-
-	// pendingHashList := []common.Hash
-	// updatedPendingHashList := []common.Hash
-
-	// var result map[string]map[string]map[uint64]*txJSON
-
-	// gethClient.Call(&result, "txpool_content")
-	// pendingTransactions := result["pending"]
-
-	// for fromAddress, transactionsByNonce := range pendingTransactions {
-	// 	for nonce, transaction := range transactionsByNonce {
-	// 		pendingTx := PendingTransaction{From: fromAddress, Nonce: nonce, Transaction: transaction}
-	// 		// pendingTransactionsRes := append(pendingTransactionsRes, pendingTx)
-	// 		fmt.Println(pendingTx.Transaction.GasPrice)
-
-	// 		contents, jsonErr := json.Marshal(pendingTx)
-	// 		if jsonErr != nil {
-	// 			fmt.Fprintf(os.Stderr, "Error marshalling pending transaction to JSON:\n%v\n", pendingTx)
-	// 			continue
-	// 		}
-	// 		fmt.Println(string(contents))
-	// 		// // report := humbug.Report{
-	// 		// // 	Title:   ReportTitle,
-	// 		// // 	Content: string(contents),
-	// 		// // 	Tags:    []string{"lol"},
-	// 		// // }
-	// 		// // reporter.Publish(report)
-	// 	}
-	// 	break
-	// }
-
-	TxPoolCall(gethClient)
-	// pendingTransactions := TxPoolCall(gethClient)
-	// fmt.Println(len(pendingTransactions))
-
-	// transactionHash := transaction.Hash
-	// for h := range pendingHashList{
-	// 	if h == transactionHash {
-	// 		updatedPendingHashList
-	// 	}
-	// }
-
+	PollTxpoolContent(gethClient, intervalSeconds)
 }
