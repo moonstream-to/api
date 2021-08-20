@@ -4,3 +4,31 @@ export const BUGOUT_ENDPOINTS = {
   Usage: "usage",
   Web: "parasite",
 };
+
+export const DEFAULT_METATAGS = {
+  title: "Moonstream.to: All your crypto data in one stream",
+  description:
+    "From the Ethereum transaction pool to Elon Musk’s latest tweets get all the crypto data you care about in one stream.",
+  keywords:
+    "blockchain, crypto, data, trading, smart contracts, ethereum, solana, transactions, defi, finance, decentralized",
+  url: "https://www.moonstream.to",
+  image: `https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/crypto+traders.png`,
+};
+
+export const ALL_NAV_PATHES = [
+  {
+    title: "Product",
+    path: "/product",
+  },
+  {
+    title: "Team",
+    path: "/team",
+  },
+];
+
+export const USER_NAV_PATHES = [
+  {
+    title: "Learn how to",
+    path: "/welcome",
+  },
+];

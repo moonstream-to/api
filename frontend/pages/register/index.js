@@ -16,7 +16,7 @@ import Icon from "../../src/components/CustomIcon";
 import useSignUp from "../../src/core/hooks/useSignUp";
 import useUser from "../../src/core/hooks/useSignUp";
 import useRouter from "../../src/core/hooks/useSignUp";
-import { DEFAULT_METATAGS } from "../../src/components/constants";
+import { DEFAULT_METATAGS } from "../../src/core/constants";
 
 export async function getStaticProps() {
   return {
