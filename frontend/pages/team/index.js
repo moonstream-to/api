@@ -121,23 +121,8 @@ const Product = () => {
       px="7%"
       w="100%"
     >
-      <Stack
-        // bgColor="gray.50"
-        // borderRadius="xl"
-        // boxShadow="xl"
-        mx={margin}
-        my={6}
-        maxW="1700px"
-      >
-        <Heading
-          as="h2"
-          size="md"
-          w="100%"
-          //   bgColor="gray.200"
-          px={12}
-          py={2}
-          borderTopRadius="xl"
-        >
+      <Stack mx={margin} my={6} maxW="1700px">
+        <Heading as="h2" size="md" w="100%" px={12} py={2} borderTopRadius="xl">
           Meet The Moonstream Team
         </Heading>
         <chakra.span pl={2} px={12} py={2}>
@@ -158,14 +143,7 @@ const Product = () => {
           </Text>
         </chakra.span>
       </Stack>
-      <Stack
-        // bgColor="gray.50"
-        // borderRadius="xl"
-        // boxShadow="xl"
-        mx={margin}
-        my={6}
-        maxW="1700px"
-      >
+      <Stack mx={margin} my={6} maxW="1700px">
         <Heading
           as="h2"
           size="md"
@@ -248,15 +226,7 @@ const Product = () => {
         </chakra.span>
       </Stack>
       <Stack mx={margin} mb={12} maxW="1700px">
-        <Heading
-          as="h2"
-          size="md"
-          w="100%"
-        //   bgColor="gray.200"
-          px={12}
-          py={2}
-          borderTopRadius="xl"
-        >
+        <Heading as="h2" size="md" w="100%" px={12} py={2} borderTopRadius="xl">
           Our marketing and growth team
         </Heading>
         <chakra.span pl={2} px={12} py={2}>
@@ -283,85 +253,3 @@ const Product = () => {
   );
 };
 export default Product;
-
-{
-  /* <Stack mx={margin} w="100%" mb={12} maxW="1700px">
-          <Heading
-            as="h2"
-            size="md"
-            w="100%"
-            bgColor="gray.200"
-            px={12}
-            py={2}
-            borderTopRadius="xl"
-          >
-            Our engineering team
-          </Heading>
-          <chakra.span pl={2} px={12} py={2}>
-            <UnorderedList w="75%" pl={4}>
-              <ListItem>
-                <b>Zomglings,</b> Founder. Number theorist. Loves playing chess
-                while programming. Fan of GO, backgammon, and video games.
-              </ListItem>
-              <ListItem>
-                <b>Kompotkot,</b>Keeper of Secrets. Likes information security
-                since childhood, loves mountains and goes hiking from time to
-                time. Had a close call with a wild bear in a forest once.
-              </ListItem>
-              <ListItem>
-                <b>Wizarikus.</b>Wizard. Loves mountains, bicycling, and hiking.
-                A practicing Python wizard. Also likes to cook and play the
-                guitar in between data witchcraft.
-              </ListItem>
-              <ListItem>
-                <b>Peersky.</b>
-                {`Spectral hopper. Perceives the world as a
-                spectrum interacting with and within the observer's mind. Loves
-                to shift in time domain to spend some of it doing fire
-                performances, surfing, and connecting with nature.`}
-              </ListItem>
-              <ListItem>
-                <b>Yhtyyar.</b>
-                {`Wunderkind. Interested in Math, NLP. Loves
-                programming language parsing and Algorithms & Data structures.
-                Implementing his own dialect of LISP programming language for
-                scientific calculations.`}
-              </ListItem>
-            </UnorderedList>
-          </chakra.span>
-        </Stack> */
-}
-{
-  /* <Stack mx={margin} w="100%" mb={12} maxW="1700px">
-          <Heading
-            as="h2"
-            size="md"
-            w="100%"
-            bgColor="gray.200"
-            px={12}
-            py={2}
-            borderTopRadius="xl"
-          >
-            Our marketing and growth team
-          </Heading>
-          <chakra.span pl={2} px={12} py={2}>
-            <UnorderedList w="75%" pl={4}>
-              <ListItem>
-                <b>Pahita.</b> Dreamer. An alien who pretends to be a human. So
-                far so good. Loves ecstatic dance, being alone in nature and
-                dreaming.
-              </ListItem>
-              <ListItem>
-                <b>In_technicolor,</b>Mediator. Loves stand-up comedy and crying
-                at nights. Volunteered at a horse farm once. Portrait artist,
-                puts the pain in painting.
-              </ListItem>
-              <ListItem>
-                <b>Nanaland.</b>Progress and Enthusiasm. Traveled to the North
-                Korean border at the age of 19. Half German. Counseling
-                psychologist who switched to tech marketing and sales.
-              </ListItem>
-            </UnorderedList>
-          </chakra.span>
-        </Stack> */
-}
