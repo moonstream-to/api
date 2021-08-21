@@ -2,6 +2,7 @@
 The Moonstream HTTP API
 """
 import logging
+import time
 
 from fastapi import FastAPI, Form
 from fastapi.middleware.cors import CORSMiddleware
@@ -37,6 +38,11 @@ async def ping_handler() -> data.PingResponse:
 @app.get("/version", response_model=data.VersionResponse)
 async def version_handler() -> data.VersionResponse:
     return data.VersionResponse(version=MOONSTREAM_VERSION)
+
+
+@app.get("/now", tags=["time"])
+async def now_handler() -> int:
+    return data.NowResponse(epoch_time=int(time.time()))
 
 
 app.mount("/subscriptions", subscriptions_api)

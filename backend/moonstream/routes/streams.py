@@ -2,7 +2,6 @@
 The Moonstream subscriptions HTTP API
 """
 import logging
-import time
 from typing import Dict, List, Optional
 
 from bugout.data import BugoutResource
@@ -86,11 +85,6 @@ def get_user_subscriptions(token: str) -> Dict[str, List[BugoutResource]]:
         user_subscriptions[subscription_type].append(subscription)
 
     return user_subscriptions
-
-
-@app.get("/now", tags=["streams"])
-async def now_handler() -> int:
-    return int(time.time())
 
 
 @app.get("/", tags=["streams"], response_model=data.GetEventsResponse)

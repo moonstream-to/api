@@ -52,6 +52,14 @@ class VersionResponse(BaseModel):
     version: str
 
 
+class NowResponse(BaseModel):
+    """
+    Schema for responses on /now endpoint
+    """
+
+    epoch_time: int
+
+
 class SubscriptionUpdate(BaseModel):
     update: Dict[str, Any]
     drop_keys: List[str] = Field(default_factory=list)
