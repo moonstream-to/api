@@ -15,6 +15,7 @@ from sqlalchemy.sql.functions import user
 
 from .. import data
 from ..settings import DEFAULT_STREAM_TIMEINTERVAL
+from ..stream_boundaries import validate_stream_boundary
 from ..stream_queries import StreamQuery
 
 
@@ -45,6 +46,20 @@ def validate_subscription(
     if errors:
         return False, errors
     return True, errors
+
+
+def stream_boundary_validator(stream_boundary: data.StreamBoundary) -> None:
+    """
+    Stream boundary validator for the ethereum_blockchain event provider.
+
+    Checks that stream boundaries do not exceed periods of greater than 2 hours.
+
+    Raises an error for invalid stream boundaries, else returns None.
+    """
+    valid_period_seconds = 2 * 60 * 60
+    validate_stream_boundary(
+        stream_boundary, valid_period_seconds, raise_when_invalid=True
+    )
 
 
 @dataclass
@@ -233,6 +248,8 @@ def get_events(
 
     If the query does not require any data from this provider, returns None.
     """
+    stream_boundary_validator(stream_boundary)
+
     parsed_filters = parse_filters(query, user_subscriptions)
     if parsed_filters is None:
         return None

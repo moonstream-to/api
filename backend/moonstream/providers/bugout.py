@@ -85,8 +85,11 @@ class BugoutEventProvider:
 
         If None is returned, signals that no data should be returned from the provider at all.
         """
+        is_query_constrained = query.subscription_types or query.subscriptions
         relevant_subscriptions = user_subscriptions.get(self.event_type)
-        if not relevant_subscriptions:
+        if (
+            is_query_constrained and self.event_type not in query.subscription_types
+        ) or not relevant_subscriptions:
             return None
         return []
 
@@ -216,7 +219,7 @@ class BugoutEventProvider:
         )
         if not search_results.results:
             return None
-        return search_results.results[0]
+        return self.entry_event(search_results.results[0])
 
     def previous_event(
         self,
@@ -258,7 +261,7 @@ class BugoutEventProvider:
         )
         if not search_results.results:
             return None
-        return search_results.results[0]
+        return self.entry_event(search_results.results[0])
 
 
 whalewatch_provider = BugoutEventProvider(
