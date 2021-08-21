@@ -129,8 +129,7 @@ async def stream_handler(
         stream_boundary,
         query,
         user_subscriptions,
-        # 10 minute timeout on per-provider results
-        result_timeout=600.0,
+        result_timeout=10.0,
         raise_on_error=True,
     )
     response = data.GetEventsResponse(stream_boundary=stream_boundary, events=events)
