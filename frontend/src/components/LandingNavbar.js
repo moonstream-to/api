@@ -14,6 +14,8 @@ import useModals from "../core/hooks/useModals";
 import UIContext from "../core/providers/UIProvider/context";
 import ChakraAccountIconButton from "./AccountIconButton";
 import RouteButton from "./RouteButton";
+import { ALL_NAV_PATHES } from "../core/constants";
+import router from "next/router";
 
 const LandingNavbar = () => {
   const ui = useContext(UIContext);
@@ -53,16 +55,17 @@ const LandingNavbar = () => {
               spacing={4}
               pr={16}
             >
-              {ui.isLoggedIn && (
-                <ButtonGroup spacing={4}>
-                  {/* <RouteButton variant="link" href="/docs">
-                  Docs
-                </RouteButton> */}
-                  <RouteButton variant="link" href="/welcome">
-                    Learn how to use Moonstream
-                  </RouteButton>
-                </ButtonGroup>
-              )}
+              {ALL_NAV_PATHES.map((item, idx) => (
+                <RouteButton
+                  key={`${idx}-${item.title}-landing-all-links`}
+                  variant="link"
+                  href={item.path}
+                  color="white"
+                  isActive={!!(router.pathname === item.path)}
+                >
+                  {item.title}
+                </RouteButton>
+              ))}
 
               {ui.isLoggedIn && (
                 <RouterLink href="/stream" passHref>
