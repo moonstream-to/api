@@ -42,7 +42,7 @@ async def version_handler() -> data.VersionResponse:
 
 @app.get("/now", tags=["time"])
 async def now_handler() -> int:
-    return data.NowResponse(epoch_time=int(time.time()))
+    return data.NowResponse(epoch_time=time.time())
 
 
 app.mount("/subscriptions", subscriptions_api)

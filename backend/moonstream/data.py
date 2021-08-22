@@ -57,7 +57,7 @@ class NowResponse(BaseModel):
     Schema for responses on /now endpoint
     """
 
-    epoch_time: int
+    epoch_time: float
 
 
 class SubscriptionUpdate(BaseModel):
