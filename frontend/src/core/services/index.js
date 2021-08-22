@@ -1,4 +1,3 @@
-import * as SearchService from "./search.service";
 import * as AuthService from "./auth.service";
 import * as JournalService from "./journal.service";
 import * as EntryService from "./entry.service";
@@ -11,7 +10,6 @@ import * as SubscriptionsService from "./subscriptions.service";
 import * as StreamService from "./stream.service";
 import * as TxInfoService from "./txinfo.service";
 export {
-  SearchService,
   AuthService,
   JournalService,
   EntryService,

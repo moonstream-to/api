@@ -24,6 +24,8 @@ const EthereumMempoolCard_ = ({ entry, showOnboardingTooltips, className }) => {
   const { onCopy, hasCopied } = useClipboard(copyString, 1);
   const toast = useToast();
 
+  console.log("GREEN RAIN:", subscriptionsCache.data);
+
   useEffect(() => {
     if (hasCopied && copyString) {
       toast("Copied to clipboard", "success");
@@ -38,13 +40,23 @@ const EthereumMempoolCard_ = ({ entry, showOnboardingTooltips, className }) => {
 
   const from_color =
     subscriptionsCache.data.subscriptions.find((obj) => {
-      return obj.address === entry.from_address;
+      return obj.address === entry.event_data.from;
     })?.color ?? "gray.500";
+
+  const from_label =
+    subscriptionsCache.data.subscriptions.find((obj) => {
+      return obj.address === entry.event_data.from;
+    })?.label ?? entry.event_data.from;
 
   const to_color =
     subscriptionsCache.data.subscriptions.find((obj) => {
-      return obj.address === entry.to_address;
+      return obj.address === entry.event_data.to;
     })?.color ?? "gray.500";
+
+  const to_label =
+    subscriptionsCache.data.subscriptions.find((obj) => {
+      return obj.address === entry.event_data.to;
+    })?.label ?? entry.event_data.to;
 
   return (
     <Stack className={className}>
@@ -76,8 +88,12 @@ const EthereumMempoolCard_ = ({ entry, showOnboardingTooltips, className }) => {
             Hash
           </Heading>
           <Spacer />
-          <Text isTruncated onClick={() => setCopyString(entry.hash)} pr={12}>
-            {entry.hash}
+          <Text
+            isTruncated
+            onClick={() => setCopyString(entry.event_data.hash)}
+            pr={12}
+          >
+            {entry.event_data.hash}
           </Text>
         </Stack>
       </Tooltip>
@@ -125,7 +141,7 @@ const EthereumMempoolCard_ = ({ entry, showOnboardingTooltips, className }) => {
               From:
             </Text>
           </Tooltip>
-          <Tooltip label={entry.from_address} aria-label="From:">
+          <Tooltip label={entry.event_data.from} aria-label="From:">
             <Text
               mx={0}
               py="2px"
@@ -134,9 +150,9 @@ const EthereumMempoolCard_ = ({ entry, showOnboardingTooltips, className }) => {
               isTruncated
               w="calc(100%)"
               h="100%"
-              onClick={() => setCopyString(entry.from_address)}
+              onClick={() => setCopyString(entry.event_data.from)}
             >
-              {entry.from_label ?? entry.from_address}
+              {from_label}
             </Text>
           </Tooltip>
         </Stack>
@@ -162,15 +178,15 @@ const EthereumMempoolCard_ = ({ entry, showOnboardingTooltips, className }) => {
           >
             To:
           </Text>
-          <Tooltip label={entry.to_address} aria-label="From:">
+          <Tooltip label={entry.event_data.to} aria-label="From:">
             <Text
               bgColor={to_color}
               isTruncated
               w="calc(100%)"
               h="100%"
-              onClick={() => setCopyString(entry.to_address)}
+              onClick={() => setCopyString(entry.event_data.to)}
             >
-              {entry.to_label ?? entry.to_address}
+              {to_label}
             </Text>
           </Tooltip>
         </Stack>
@@ -188,16 +204,16 @@ const EthereumMempoolCard_ = ({ entry, showOnboardingTooltips, className }) => {
           >
             Gas Price:
           </Text>
-          <Tooltip label={entry.gasPrice} aria-label="Gas Price:">
+          <Tooltip label={entry.event_data.gasPrice} aria-label="Gas Price:">
             <Text
               mx={0}
               py="2px"
               fontSize="sm"
               w="calc(100%)"
               h="100%"
-              onClick={() => setCopyString(entry.gasPrice)}
+              onClick={() => setCopyString(entry.event_data.gasPrice)}
             >
-              {entry.gasPrice}
+              {entry.event_data.gasPrice}
             </Text>
           </Tooltip>
         </Flex>
@@ -212,16 +228,16 @@ const EthereumMempoolCard_ = ({ entry, showOnboardingTooltips, className }) => {
           >
             Gas:
           </Text>
-          <Tooltip label={entry.gas} aria-label="Gas:">
+          <Tooltip label={entry.event_data.gas} aria-label="Gas:">
             <Text
               mx={0}
               py="2px"
               fontSize="sm"
               w="calc(100%)"
               h="100%"
-              onClick={() => setCopyString(entry.gas)}
+              onClick={() => setCopyString(entry.event_data.gas)}
             >
-              {entry.gas}
+              {entry.event_data.gas}
             </Text>
           </Tooltip>
         </Flex>
@@ -236,16 +252,16 @@ const EthereumMempoolCard_ = ({ entry, showOnboardingTooltips, className }) => {
           >
             Value:
           </Text>
-          <Tooltip label={entry.value} aria-label="Value:">
+          <Tooltip label={entry.event_data.value} aria-label="Value:">
             <Text
               mx={0}
               py="2px"
               fontSize="sm"
               w="calc(100%)"
               h="100%"
-              onClick={() => setCopyString(entry.value)}
+              onClick={() => setCopyString(entry.event_data.value)}
             >
-              {entry.value}
+              {entry.event_data.value}
             </Text>
           </Tooltip>
         </Flex>
@@ -261,20 +277,20 @@ const EthereumMempoolCard_ = ({ entry, showOnboardingTooltips, className }) => {
           >
             Nonce:
           </Text>
-          <Tooltip label={entry.value} aria-label="Value:">
+          <Tooltip label={entry.event_data.value} aria-label="Value:">
             <Text
               mx={0}
               py="2px"
               fontSize="sm"
               w="calc(100%)"
               h="100%"
-              onClick={() => setCopyString(entry.value)}
+              onClick={() => setCopyString(entry.event_data.value)}
             >
-              {entry.nonce}
+              {entry.event_data.nonce}
             </Text>
           </Tooltip>
         </Flex>
-        {entry.timestamp && (
+        {entry.event_timestamp && (
           <Flex h="auto" minW="fit-content">
             <Text
               px={1}
@@ -285,7 +301,9 @@ const EthereumMempoolCard_ = ({ entry, showOnboardingTooltips, className }) => {
               h="100%"
               borderColor="gray.700"
             >
-              {moment(entry.timestamp * 1000).format("DD MMM, YYYY, HH:mm:ss")}{" "}
+              {moment(entry.event_timestamp * 1000).format(
+                "DD MMM, YYYY, HH:mm:ss"
+              )}{" "}
             </Text>
           </Flex>
         )}
