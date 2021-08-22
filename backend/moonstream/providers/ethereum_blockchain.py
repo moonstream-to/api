@@ -263,6 +263,12 @@ def get_events(
 
     ethereum_transactions = ethereum_transactions.order_by(text("timestamp desc"))
 
+    # TODO(zomglings): Catch the operational error denoting that the statement timed out here
+    # and wrap it in an error that tells the API to return the appropriate 400 response. Currently,
+    # when the statement times out, the API returns a 500 status code to the client, which doesn't
+    # do anything to help them get data from teh backend.
+    # The error message on the API side when the statement times out:
+    # > sqlalchemy.exc.OperationalError: (psycopg2.errors.QueryCanceled) canceling statement due to statement timeout
     events: List[data.Event] = [
         ethereum_transaction_event(row) for row in ethereum_transactions
     ]

@@ -38,11 +38,10 @@ export const clientServerOffsetMillis = async () => {
   return clientTime - serverTime;
 };
 
-// Returns a stream boundary representing the past 10 minutes.
+// Returns a stream boundary representing the past 5 minutes.
 export const defaultStreamBoundary = async () => {
   const endTime = await serverTimeNow();
-  // 1 hour ago (in milliseconds)
-  const startTimeMillis = endTime - 60 * 60 * 1000;
+  const startTimeMillis = endTime - 5 * 60 * 1000;
   const streamBoundary = {
     start_time: Math.floor(startTimeMillis / 1000),
     end_time: Math.floor(endTime / 1000),
