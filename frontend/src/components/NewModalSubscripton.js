@@ -147,9 +147,7 @@ const NewSubscription = ({ isFreeOption, onClose }) => {
             ></Input>
           </Stack>
 
-          <GithubPicker
-            onChangeComplete={handleChangeColorComplete}
-          />
+          <GithubPicker onChangeComplete={handleChangeColorComplete} />
 
           <FormErrorMessage color="unsafe.400" pl="1">
             {errors.color && errors.color.message}
