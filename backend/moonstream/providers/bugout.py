@@ -4,7 +4,6 @@ Event providers powered by Bugout journals.
 from datetime import datetime
 import json
 import logging
-import time
 from typing import Dict, List, Optional, Tuple
 
 from bugout.app import Bugout
@@ -202,12 +201,11 @@ class BugoutEventProvider:
             raise BugoutEventProviderError(
                 "Cannot return next event for a stream boundary which is current."
             )
+        end_time = datetime.fromtimestamp(stream_boundary.end_time).isoformat()
         operator = ">="
         if stream_boundary.include_end:
             operator = ">"
-        additional_constraints.append(
-            f"created_at:{operator}{stream_boundary.end_time}"
-        )
+        additional_constraints.append(f"created_at:{operator}{end_time}")
 
         final_query = " ".join(self.query + additional_constraints)
         search_results = bugout_client.search(
@@ -244,12 +242,11 @@ class BugoutEventProvider:
             raise BugoutEventProviderError(
                 "Cannot return previous event for a stream boundary starting at the beginning of time."
             )
+        start_time = datetime.fromtimestamp(stream_boundary.start_time).isoformat()
         operator = "<="
         if stream_boundary.include_start:
             operator = "<"
-        additional_constraints.append(
-            f"created_at:{operator}{stream_boundary.start_time}"
-        )
+        additional_constraints.append(f"created_at:{operator}{start_time}")
 
         final_query = " ".join(self.query + additional_constraints)
         search_results = bugout_client.search(
