@@ -7,7 +7,10 @@ import { defaultStreamBoundary } from "../services/servertime.service.js";
 
 const useStream = (q) => {
   const [streamQuery, setStreamQuery] = useState(q || "");
+  const [events, setEvents] = useState([]);
   const [streamBoundary, setStreamBoundary] = useState({});
+  const [olderEvent, setOlderEvent] = useState(null);
+  const [newerEvent, setNewerEvent] = useState(null);
 
   const isStreamBoundaryEmpty = () => {
     return !streamBoundary.start_time && !streamBoundary.end_time;
@@ -63,16 +66,19 @@ const useStream = (q) => {
     return newBoundary;
   };
 
-  const getEvents = () => async () => {
+  const getEvents = async (customStreamBoundary) => {
+    let requestStreamBoundary = customStreamBoundary;
+    if (!requestStreamBoundary) {
+      requestStreamBoundary = streamBoundary;
+    }
     const response = await StreamService.getEvents({
-      streamQuery,
-      ...streamBoundary,
+      q: streamQuery,
+      ...requestStreamBoundary,
     });
     return response.data;
   };
 
   const {
-    data: events,
     isLoading: eventsIsLoading,
     refetch: eventsRefetch,
     isFetching: eventsIsFetching,
@@ -90,12 +96,71 @@ const useStream = (q) => {
       keepPreviousData: true,
       retry: 2,
       onSuccess: (newEvents) => {
-        if (newEvents) {
+        if (newEvents && newEvents.stream_boundary && newEvents.events) {
+          setEvents([...newEvents.events]);
           updateStreamBoundaryWith(newEvents.stream_boundary);
         }
       },
     }
   );
+
+  const { refetch: loadOlderEvents, isFetching: loadOlderEventsIsFetching } =
+    useQuery(
+      ["stream-events", streamQuery],
+      () => {
+        if (olderEvent) {
+          const newStreamBoundary = {
+            // 5 minutes before the previous event
+            start_time: olderEvent.event_timestamp - 5 * 60,
+            include_start: true,
+            end_time: streamBoundary.start_time,
+            include_end: !streamBoundary.include_start,
+          };
+          return getEvents(newStreamBoundary);
+        }
+      },
+      {
+        ...queryCacheProps,
+        enabled: false,
+        keepPreviousData: true,
+        retry: 2,
+        onSuccess: (newEvents) => {
+          if (newEvents && newEvents.stream_boundary && newEvents.events) {
+            setEvents([...newEvents.events, ...events]);
+            updateStreamBoundaryWith(newEvents.stream_boundary);
+          }
+        },
+      }
+    );
+
+  const { refetch: loadNewerEvents, isFetching: loadNewerEventsIsFetching } =
+    useQuery(
+      ["stream-events", streamQuery],
+      () => {
+        if (newerEvent) {
+          const newStreamBoundary = {
+            start_time: streamBoundary.end_time,
+            include_start: !streamBoundary.include_end,
+            // 5 minutes after the next event
+            end_time: newerEvent.event_timestamp + 5 * 60,
+            include_end: true,
+          };
+          return getEvents(newStreamBoundary);
+        }
+      },
+      {
+        ...queryCacheProps,
+        enabled: false,
+        keepPreviousData: true,
+        retry: 2,
+        onSuccess: (newEvents) => {
+          if (newEvents && newEvents.stream_boundary && newEvents.events) {
+            setEvents([...events, ...newEvents.events]);
+            updateStreamBoundaryWith(newEvents.stream_boundary);
+          }
+        },
+      }
+    );
 
   const getLatestEvents = async () => {
     const response = await StreamService.latestEvents({ q: streamQuery });
@@ -128,6 +193,7 @@ const useStream = (q) => {
       q: streamQuery,
       ...streamBoundary,
     });
+    setNewerEvent({ ...response.data });
     return response.data;
   };
 
@@ -157,6 +223,7 @@ const useStream = (q) => {
       q: streamQuery,
       ...streamBoundary,
     });
+    setOlderEvent({ ...response.data });
     return response.data;
   };
 
@@ -206,6 +273,10 @@ const useStream = (q) => {
     previousEventRefetch,
     previousEventIsFetching,
     previousEventRemove,
+    loadOlderEvents,
+    loadOlderEventsIsFetching,
+    loadNewerEvents,
+    loadNewerEventsIsFetching,
   };
 };
 export default useStream;

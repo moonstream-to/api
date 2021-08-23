@@ -39,6 +39,7 @@ import UIContext from "../core/providers/UIProvider/context";
 import { FaFilter } from "react-icons/fa";
 import useStream from "../core/hooks/useStream";
 import { ImCancelCircle } from "react-icons/im";
+import { previousEvent } from "../core/services/stream.service";
 
 const FILTER_TYPES = {
   ADDRESS: 0,
@@ -63,6 +64,7 @@ const EntriesNavigation = () => {
   const ui = useContext(UIContext);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { subscriptionsCache } = useSubscriptions();
+  const [initialized, setInitialized] = useState(false);
   const [entries, setEntries] = useState([]);
   const [newFilterState, setNewFilterState] = useState([
     {
@@ -81,37 +83,30 @@ const EntriesNavigation = () => {
     eventsIsLoading,
     eventsRefetch,
     eventsIsFetching,
-    eventsRemove,
-    latestEvents,
-    latestEventsIsLoading,
     latestEventsRefetch,
-    latestEventsIsFetching,
-    nextEvent,
     nextEventRefetch,
-    previousEvent,
     previousEventRefetch,
     streamBoundary,
     setDefaultBoundary,
+    loadOlderEvents,
+    loadNewerEvents,
   } = useStream(ui.searchTerm.q);
 
   useEffect(() => {
     if (!streamBoundary.start_time && !streamBoundary.end_time) {
       setDefaultBoundary();
-    } else {
+    } else if (!initialized) {
       eventsRefetch();
       latestEventsRefetch();
       nextEventRefetch();
       previousEventRefetch();
+      setInitialized(true);
     }
-  }, [streamBoundary]);
+  }, [streamBoundary, initialized]);
 
   useEffect(() => {
     if (events) {
-      events.then((data) => {
-        if (data && data.events) {
-          setEntries(data.events);
-        }
-      });
+      setEntries(events);
     }
   }, [events]);
 
@@ -424,20 +419,13 @@ const EntriesNavigation = () => {
                 {!eventsIsFetching ? (
                   <Button
                     onClick={() => {
-                      eventsRemove();
-                      setStreamBoundary({
-                        start_time: null,
-                        end_time: null,
-                        include_start: false,
-                        include_end: true,
-                        next_event_time: null,
-                        previous_event_time: null,
-                      });
+                      loadNewerEvents();
+                      nextEventRefetch();
                     }}
                     variant="outline"
                     colorScheme="suggested"
                   >
-                    Refresh to newest
+                    Load newer events
                   </Button>
                 ) : (
                   <Button
@@ -479,21 +467,17 @@ const EntriesNavigation = () => {
                   filterConstants={{ DIRECTIONS, CONDITION, FILTER_TYPES }}
                 />
               ))}
-              {streamBoundary.previous_event_time && !eventsIsFetching ? (
+              {previousEvent && !eventsIsFetching ? (
                 <Center>
                   <Button
                     onClick={() => {
-                      eventsRemove();
-                      updateStreamBoundaryWith({
-                        start_time: streamBoundary.previous_event_time - 5 * 60,
-                        include_start: false,
-                        include_end: true,
-                      });
+                      loadOlderEvents();
+                      previousEventRefetch();
                     }}
                     variant="outline"
                     colorScheme="suggested"
                   >
-                    Go to previous transaction
+                    Load older events
                   </Button>
                 </Center>
               ) : (
