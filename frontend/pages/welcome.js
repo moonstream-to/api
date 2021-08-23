@@ -402,6 +402,7 @@ const Welcome = () => {
                 <StreamEntry
                   mt={20}
                   entry={{
+                    event_type: "ethereum_blockchain",
                     from_address: "this is address from",
                     to_address: "this is to address",
                     hash: "this is hash",
