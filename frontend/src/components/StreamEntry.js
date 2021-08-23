@@ -34,7 +34,7 @@ const StreamEntry_ = ({ entry, showOnboardingTooltips, className }) => {
         h="100%"
         spacing={0}
       >
-        {entry.subscription_type_id === "0" && (
+        {entry.subscription_type_id === "1" && (
           <EthereumMempoolCard entry={entry} />
         )}
 
