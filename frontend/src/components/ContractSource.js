@@ -6,7 +6,7 @@ import {
 import { Table, Thead, Tbody, Tr, Th, Td } from "@chakra-ui/react";
 
 const ContractSource = ({ source_info }) => {
-
+    console.log(source_info);
     return (
         <VStack spacing={3}>
             <Table>
@@ -23,7 +23,7 @@ const ContractSource = ({ source_info }) => {
                     </Tr>
                 </Tbody>
             </Table>
-            <Code colorScheme="blackAlpha" w="110%">{source_info.source_code}</Code>
+            <Code colorScheme="blackAlpha" w="110%" >{source_info.source_code}</Code>
         </VStack>)
 }
 
