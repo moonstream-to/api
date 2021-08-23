@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 
 from . import data
 
-from .settings import DEFAULT_STREAM_TIMEINTERVAL
+from .settings import DEFAULT_STREAM_TIMEINTERVAL, ETHERSCAN_SMARTCONTRACTS_BUCKET
 import boto3
 import json
 
@@ -279,20 +279,22 @@ def get_source_code(
 
     for label in labels:
         if label.label == "etherscan_smartcontract":
-            name = label.label_data["name"]
-            uri = label.label_data["object_uri"]
-            key = uri.split("s3://etherscan-smart-contracts/")[1]
+            object_uri = label.label_data["object_uri"]
+            key = object_uri.split("s3://etherscan-smart-contracts/")[1]
             s3 = boto3.client("s3")
-            bucket = "etherscan-smart-contracts"
-            raw_obj = s3.get_object(Bucket=bucket, Key=key)
-            obj_data = json.loads(raw_obj["Body"].read().decode("utf-8"))["data"]
-            contract_source_info = data.EthereumSmartContractSourceInfo(
-                name=obj_data["ContractName"],
-                source_code=obj_data["SourceCode"],
-                compiler_version=obj_data["CompilerVersion"],
-                abi=obj_data["ABI"],
-            )
-            return contract_source_info
+            bucket = ETHERSCAN_SMARTCONTRACTS_BUCKET
+            try:
+                raw_obj = s3.get_object(Bucket=bucket, Key=key)
+                obj_data = json.loads(raw_obj["Body"].read().decode("utf-8"))["data"]
+                contract_source_info = data.EthereumSmartContractSourceInfo(
+                    name=obj_data["ContractName"],
+                    source_code=obj_data["SourceCode"],
+                    compiler_version=obj_data["CompilerVersion"],
+                    abi=obj_data["ABI"],
+                )
+                return contract_source_info
+            except:
+                logger.error(f"Failed to load smart contract {contract_address}")
     return None
 
 

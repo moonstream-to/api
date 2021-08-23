@@ -8,6 +8,8 @@ end users.
 import logging
 from typing import Dict, Optional
 
+from sqlalchemy.sql.expression import true
+
 from fastapi import FastAPI, Depends, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from moonstreamdb.db import yield_db_session
@@ -71,26 +73,22 @@ async def txinfo_ethereum_blockchain_handler(
             logger.error(err)
             response.errors.append("Could not decode ABI from the given input")
 
-    # Checking if it is contract deployment:
-    smart_contract = (
-        db_session.query(EthereumAddress)
-        .filter(EthereumAddress.transaction_hash == txinfo_request.tx.hash)
-        .one_or_none()
-    )
-    is_contract_deployment = smart_contract is not None
-
-    if txinfo_request.tx.to_address:
+    # transaction is contract deployment:
+    if txinfo_request.tx.to_address is None:
+        response.is_smart_contract_deployment = True
+        smart_contract = (
+            db_session.query(EthereumAddress)
+            .filter(EthereumAddress.transaction_hash == txinfo_request.tx.hash)
+            .one_or_none()
+        )
+        if smart_contract is not None:
+            response.is_smart_contract_deployment = True
+    else:
         response.smart_contract_info = actions.get_source_code(
             db_session, txinfo_request.tx.to_address
         )
-
-    if smart_contract is not None:
-        response.smart_contract_address = smart_contract.address
-        if txinfo_request.tx.to_address is None:
-            response.is_smart_contract_deployment = True
-        elif txinfo_request.tx.to_address == smart_contract.address:
-            response.is_smart_contract_call = True
-
+        response.smart_contract_address = txinfo_request.tx.to_address
+        response.is_smart_contract_call = True
     return response
 
 

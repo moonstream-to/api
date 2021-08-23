@@ -41,3 +41,6 @@ for path in MOONSTREAM_OPENAPI_LIST:
     DOCS_PATHS[f"/{path}/{DOCS_TARGET_PATH}/openapi.json"] = "GET"
 
 DEFAULT_STREAM_TIMEINTERVAL = 5 * 60
+
+# S3 Bucket
+ETHERSCAN_SMARTCONTRACTS_BUCKET = "etherscan-smart-contracts"
