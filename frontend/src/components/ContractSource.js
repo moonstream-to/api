@@ -23,7 +23,7 @@ const ContractSource = ({ source_info }) => {
                     </Tr>
                 </Tbody>
             </Table>
-            <Code>{source_info.source_code}</Code>
+            <Code colorScheme="blackAlpha" w="110%">{source_info.source_code}</Code>
         </VStack>)
 }
 
