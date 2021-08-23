@@ -9,7 +9,8 @@ from typing import Dict, List, Optional, Tuple
 from bugout.app import Bugout
 from bugout.data import BugoutResource, BugoutSearchResult
 from bugout.journal import SearchOrder
-from dateutil.parser import parse
+from dateutil.parser import isoparse
+from dateutil.tz import UTC
 from sqlalchemy.orm import Session
 
 from .. import data
@@ -71,7 +72,9 @@ class BugoutEventProvider:
         event_data = {}
         if entry.content is not None:
             event_data = json.loads(entry.content)
-        created_at = int(parse(entry.created_at).timestamp())
+        created_at_dt = isoparse(entry.created_at)
+        created_at_dt = created_at_dt.replace(tzinfo=UTC)
+        created_at = int(created_at_dt.timestamp())
         return data.Event(
             event_type=self.event_type,
             event_timestamp=created_at,
@@ -114,18 +117,20 @@ class BugoutEventProvider:
 
         time_constraints: List[str] = []
         if stream_boundary.start_time > 0:
+            start_time = datetime.utcfromtimestamp(
+                stream_boundary.start_time
+            ).isoformat()
             operator = ">"
             if stream_boundary.include_start:
                 operator = ">="
-            time_constraints.append(
-                f"created_at:{operator}{stream_boundary.start_time}"
-            )
+            time_constraints.append(f"created_at:{operator}{start_time}")
 
         if stream_boundary.end_time is not None:
+            end_time = datetime.utcfromtimestamp(stream_boundary.end_time).isoformat()
             operator = "<"
             if stream_boundary.include_end:
                 operator = "<="
-            time_constraints.append(f"created_at:{operator}{stream_boundary.end_time}")
+            time_constraints.append(f"created_at:{operator}{end_time}")
 
         final_query = " ".join(self.query + time_constraints + additional_constraints)
         events: List[data.Event] = []
@@ -201,7 +206,7 @@ class BugoutEventProvider:
             raise BugoutEventProviderError(
                 "Cannot return next event for a stream boundary which is current."
             )
-        end_time = datetime.fromtimestamp(stream_boundary.end_time).isoformat()
+        end_time = datetime.utcfromtimestamp(stream_boundary.end_time).isoformat()
         operator = ">="
         if stream_boundary.include_end:
             operator = ">"
@@ -242,7 +247,7 @@ class BugoutEventProvider:
             raise BugoutEventProviderError(
                 "Cannot return previous event for a stream boundary starting at the beginning of time."
             )
-        start_time = datetime.fromtimestamp(stream_boundary.start_time).isoformat()
+        start_time = datetime.utcfromtimestamp(stream_boundary.start_time).isoformat()
         operator = "<="
         if stream_boundary.include_start:
             operator = "<"
