@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
 import {
-  Flex,
   Text,
   Stack,
   Tooltip,
@@ -12,7 +11,6 @@ import {
   Spinner,
   chakra,
 } from "@chakra-ui/react";
-import moment from "moment";
 import UIContext from "../../core/providers/UIProvider/context";
 import { useToast } from "../../core/hooks";
 import { useSubscriptions } from "../../core/hooks";
@@ -118,6 +116,7 @@ const EthereumWhalewatchCard_ = ({
             textAlign="center"
             spacing={0}
             alignItems="center"
+            key={`${whaleType}-${entry.event_data.date_range.start_time}-${entry.event_data.date_range.end_time}`}
           >
             <Stack
               overflow="hidden"

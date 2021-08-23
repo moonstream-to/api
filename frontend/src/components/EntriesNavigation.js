@@ -444,26 +444,6 @@ const EntriesNavigation = () => {
                     colorScheme="suggested"
                   ></Button>
                 )}
-
-                {streamBoundary.next_event_time &&
-                streamBoundary.end_time != 0 &&
-                !eventsIsFetching ? (
-                  <Button
-                    onClick={() => {
-                      updateStreamBoundaryWith({
-                        end_time: streamBoundary.next_event_time + 5 * 60,
-                        include_start: false,
-                        include_end: true,
-                      });
-                    }}
-                    variant="outline"
-                    colorScheme="suggested"
-                  >
-                    Load latest transaction
-                  </Button>
-                ) : (
-                  "" // some strange behaivior without else condition return 0 wich can see on frontend page
-                )}
               </Stack>
               {entries.map((entry, idx) => (
                 <StreamEntry
