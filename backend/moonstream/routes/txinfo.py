@@ -71,11 +71,18 @@ async def txinfo_ethereum_blockchain_handler(
             logger.error(err)
             response.errors.append("Could not decode ABI from the given input")
 
+    # Checking if it is contract deployment:
     smart_contract = (
         db_session.query(EthereumAddress)
         .filter(EthereumAddress.transaction_hash == txinfo_request.tx.hash)
         .one_or_none()
     )
+    is_contract_deployment = smart_contract is not None
+
+    if txinfo_request.tx.to_address:
+        response.smart_contract_info = actions.get_source_code(
+            db_session, txinfo_request.tx.to_address
+        )
 
     if smart_contract is not None:
         response.smart_contract_address = smart_contract.address

@@ -18,7 +18,8 @@ from sqlalchemy.orm import Session
 from . import data
 
 from .settings import DEFAULT_STREAM_TIMEINTERVAL
-
+import boto3
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -261,6 +262,38 @@ def parse_search_query_to_sqlalchemy_filters(q: str, allowed_addresses: List[str
             )
 
     return constructed_filters
+
+
+def get_source_code(
+    db_session: Session, contract_address: str
+) -> Optional[data.EthereumSmartContractSourceInfo]:
+    query = db_session.query(EthereumAddress.id).filter(
+        EthereumAddress.address == contract_address
+    )
+    id = query.one_or_none()
+    if id is None:
+        return None
+    labels = (
+        db_session.query(EthereumLabel).filter(EthereumLabel.address_id == id[0]).all()
+    )
+
+    for label in labels:
+        if label.label == "etherscan_smartcontract":
+            name = label.label_data["name"]
+            uri = label.label_data["object_uri"]
+            key = uri.split("s3://etherscan-smart-contracts/")[1]
+            s3 = boto3.client("s3")
+            bucket = "etherscan-smart-contracts"
+            raw_obj = s3.get_object(Bucket=bucket, Key=key)
+            obj_data = json.loads(raw_obj["Body"].read().decode("utf-8"))["data"]
+            contract_source_info = data.EthereumSmartContractSourceInfo(
+                name=obj_data["ContractName"],
+                source_code=obj_data["SourceCode"],
+                compiler_version=obj_data["CompilerVersion"],
+                abi=obj_data["ABI"],
+            )
+            return contract_source_info
+    return None
 
 
 def get_address_labels(
