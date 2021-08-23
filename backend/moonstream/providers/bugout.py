@@ -1,6 +1,7 @@
 """
 Event providers powered by Bugout journals.
 """
+from datetime import datetime
 import json
 import logging
 import time
@@ -9,6 +10,7 @@ from typing import Dict, List, Optional, Tuple
 from bugout.app import Bugout
 from bugout.data import BugoutResource, BugoutSearchResult
 from bugout.journal import SearchOrder
+from dateutil.parser import parse
 from sqlalchemy.orm import Session
 
 from .. import data
@@ -70,7 +72,7 @@ class BugoutEventProvider:
         event_data = {}
         if entry.content is not None:
             event_data = json.loads(entry.content)
-        created_at = int(time.time())
+        created_at = int(parse(entry.created_at).timestamp())
         return data.Event(
             event_type=self.event_type,
             event_timestamp=created_at,
