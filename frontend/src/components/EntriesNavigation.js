@@ -102,7 +102,16 @@ const EntriesNavigation = () => {
       previousEventRefetch();
       setInitialized(true);
     }
-  }, [streamBoundary, initialized]);
+  }, [
+    streamBoundary,
+    initialized,
+    setInitialized,
+    setDefaultBoundary,
+    eventsRefetch,
+    latestEventsRefetch,
+    nextEventRefetch,
+    previousEventRefetch,
+  ]);
 
   useEffect(() => {
     if (events) {

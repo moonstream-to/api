@@ -3,6 +3,7 @@ import { Flex, IconButton, Stack, Tooltip, chakra } from "@chakra-ui/react";
 import { ArrowRightIcon } from "@chakra-ui/icons";
 import UIContext from "../core/providers/UIProvider/context";
 import EthereumMempoolCard from "./stream-cards/EthereumMempool";
+import EthereumWhalewatchCard from "./stream-cards/EthereumWhalewatch";
 
 const StreamEntry_ = ({ entry, showOnboardingTooltips, className }) => {
   const ui = useContext(UIContext);
@@ -38,13 +39,10 @@ const StreamEntry_ = ({ entry, showOnboardingTooltips, className }) => {
           <EthereumMempoolCard entry={entry} />
         )}
 
-        {/* ToDo: Add another types of cards in here
-
-        {entryType === "<name>" && (
-          <Card entry={entry} />
+        {entry.event_type === "ethereum_whalewatch" && (
+          <EthereumWhalewatchCard entry={entry} />
         )}
 
-        */}
         <Flex>
           <Tooltip
             hasArrow
