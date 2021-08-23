@@ -24,8 +24,6 @@ const EthereumMempoolCard_ = ({ entry, showOnboardingTooltips, className }) => {
   const { onCopy, hasCopied } = useClipboard(copyString, 1);
   const toast = useToast();
 
-  console.log("GREEN RAIN:", subscriptionsCache.data);
-
   useEffect(() => {
     if (hasCopied && copyString) {
       toast("Copied to clipboard", "success");
