@@ -10,7 +10,7 @@ from moonstreamdb.models import (
 from sqlalchemy.orm import Session
 
 from . import data
-from .settings import DEFAULT_STREAM_TIMEINTERVAL, ETHERSCAN_SMARTCONTRACTS_BUCKET
+from .settings import ETHERSCAN_SMARTCONTRACTS_BUCKET
 
 logger = logging.getLogger(__name__)
 

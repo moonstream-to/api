@@ -35,7 +35,6 @@ from sqlalchemy.orm import Session
 from . import bugout, ethereum_blockchain
 from .. import data
 from ..stream_queries import StreamQuery
-from moonstream import stream_queries
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARN)
