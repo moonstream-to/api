@@ -161,8 +161,16 @@ const Product = () => {
           ></Box>
         </SimpleGrid>
       </Stack>
-      <Stack mx={margin} my={6} maxW="1700px" w="100%">
-        <Heading as="h2" size="md" w="100%" px={12} py={2} borderTopRadius="xl">
+      <Stack mx={margin} mb={6} mt={0} maxW="1700px" w="100%">
+        <Heading
+          as="h2"
+          size="md"
+          w="100%"
+          px={12}
+          pb={2}
+          pt={0}
+          borderTopRadius="xl"
+        >
           Values that we share within our team:
         </Heading>
         <chakra.span pl={2} px={12} py={2}>
