@@ -15,6 +15,7 @@ import { HamburgerIcon, ArrowLeftIcon, ArrowRightIcon } from "@chakra-ui/icons";
 import { MdTimeline, MdSettings } from "react-icons/md";
 import { ImStatsBars } from "react-icons/im";
 import { HiAcademicCap } from "react-icons/hi";
+import { WHITE_LOGO_W_TEXT_URL } from "../core/constants";
 
 const Sidebar = () => {
   const ui = useContext(UIContext);
@@ -50,12 +51,12 @@ const Sidebar = () => {
             }}
           />
           <Image
-            // as={Link}
-            // to="/"
-            w="150px"
+            // h="full"
+            // maxH="100%"
+            maxW="120px"
             py="0.75rem"
             pl={5}
-            src="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/White+logo.svg"
+            src={WHITE_LOGO_W_TEXT_URL}
             alt="bugout.dev"
           />
         </Flex>

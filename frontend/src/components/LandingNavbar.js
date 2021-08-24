@@ -14,7 +14,7 @@ import useModals from "../core/hooks/useModals";
 import UIContext from "../core/providers/UIProvider/context";
 import ChakraAccountIconButton from "./AccountIconButton";
 import RouteButton from "./RouteButton";
-import { ALL_NAV_PATHES } from "../core/constants";
+import { ALL_NAV_PATHES, WHITE_LOGO_W_TEXT_URL } from "../core/constants";
 import router from "next/router";
 
 const LandingNavbar = () => {
@@ -34,12 +34,17 @@ const LandingNavbar = () => {
             />
           </>
         )}
-        <Flex ml={ui.isMobileView ? 2 : 8} justifySelf="flex-start">
+        <Flex
+          pl={ui.isMobileView ? 2 : 8}
+          justifySelf="flex-start"
+          h="full"
+          py={1}
+        >
           <RouterLink href="/" passHref>
-            <Link>
+            <Link h="full">
               <Image
-                w="200px"
-                src="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/White+logo.svg"
+                h="full"
+                src={WHITE_LOGO_W_TEXT_URL}
                 alt="Moonstream logo"
               />
             </Link>
