@@ -73,7 +73,7 @@ const _NewSubscription = ({ isFreeOption, onClose, setIsLoading }) => {
           my={2}
           type="text"
           autoComplete="off"
-          placeholder="Meaningful name of your subscription"
+          placeholder="Name of subscription (you can change it later)"
           name="label"
           ref={register({ required: "label is required!" })}
         ></Input>

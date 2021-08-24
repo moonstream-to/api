@@ -9,6 +9,8 @@ import {
   useMediaQuery,
   UnorderedList,
   ListItem,
+  Box,
+  SimpleGrid,
 } from "@chakra-ui/react";
 import { DEFAULT_METATAGS } from "../../src/core/constants";
 import UIContext from "../../src/core/providers/UIProvider/context";
@@ -21,6 +23,7 @@ const assets = {
   background1920: `${AWS_PATH}/blog-background-720x405.png`,
   background2880: `${AWS_PATH}/blog-background-720x405.png`,
   background3840: `${AWS_PATH}/blog-background-720x405.png`,
+  team: `${AWS_PATH}/Team-page-illustration.png`,
 };
 
 const Product = () => {
@@ -116,36 +119,56 @@ const Product = () => {
       alignItems="center"
       w="100%"
     >
-      <Stack mx={margin} my={6} maxW="1700px">
-        <Heading as="h2" size="md" w="100%" px={12} py={2} borderTopRadius="xl">
-          Meet The Moonstream Team
-        </Heading>
-        <chakra.span pl={2} px={12} py={2}>
-          <Text mb={2}>
-            We are a distributed team of nerds with very strong expertise in
-            math, software engineering, machine learning, and cryptography.
-            Members of our team worked at Google, at OpenAI and other great
-            companies.
-          </Text>
-          <Text mb={2}>
-            We believe that the crypto world opens opportunities for financial
-            inclusion. Meaning that people from all walks of life and financial
-            situations can have a new source of income. We are passionate about
-            developing technology that helps people become active participants
-            in this field and take advantage of this opportunity. We’re striving
-            to debunk harmful stereotypes and make the crypto field more
-            inclusive.
-          </Text>
-        </chakra.span>
+      <Stack mx={margin} mt={6} maxW="1700px" w="100%">
+        <SimpleGrid
+          px={12}
+          alignItems="start"
+          columns={{ base: 1, md: 2 }}
+          // mb={24}
+          spacingY={{ base: 10, md: 32 }}
+          spacingX={{ base: 10, md: 24 }}
+        >
+          <Box>
+            <Heading as="h2" size="md" w="100%" py={2} borderTopRadius="xl">
+              Meet The Moonstream Team
+            </Heading>
+            <chakra.span pl={2} py={2}>
+              <Text mb={2}>
+                We are a distributed team of nerds with very strong expertise in
+                math, software engineering, machine learning, and cryptography.
+                Members of our team worked at Google, at OpenAI and other great
+                companies.
+              </Text>
+              <Text mb={2}>
+                We believe that the crypto world opens opportunities for
+                financial inclusion. Meaning that people from all walks of life
+                and financial situations can have a new source of income. We are
+                passionate about developing technology that helps people become
+                active participants in this field and take advantage of this
+                opportunity. We’re striving to debunk harmful stereotypes and
+                make the crypto field more inclusive.
+              </Text>
+            </chakra.span>
+          </Box>
+          <Box
+            w="full"
+            h="full"
+            py={48}
+            backgroundImage={`url(${assets[`team`]})`}
+            backgroundSize="cover"
+            bgPos="bottom"
+            bgColor="transparent"
+          ></Box>
+        </SimpleGrid>
       </Stack>
-      <Stack mx={margin} my={6} maxW="1700px">
+      <Stack mx={margin} mb={6} mt={0} maxW="1700px" w="100%">
         <Heading
           as="h2"
           size="md"
           w="100%"
-          //   bgColor="gray.200"
           px={12}
-          py={2}
+          pb={2}
+          pt={0}
           borderTopRadius="xl"
         >
           Values that we share within our team:
@@ -153,7 +176,10 @@ const Product = () => {
         <chakra.span pl={2} px={12} py={2}>
           <UnorderedList w="75%" pl={4}>
             <ListItem>
-              <b> Be bold</b>
+              <b>Be bold</b>
+            </ListItem>
+            <ListItem>
+              <b>Be curious</b>
             </ListItem>
             <ListItem>
               <b>Don’t be an ass</b>
@@ -175,43 +201,35 @@ const Product = () => {
           </Text>
         </chakra.span>
       </Stack>
-      <Stack mx={margin} mb={12} maxW="1700px">
-        <Heading
-          as="h2"
-          size="md"
-          w="100%"
-          // bgColor="gray.200"
-          px={12}
-          py={2}
-          borderTopRadius="xl"
-        >
+      <Stack mx={margin} mb={12} maxW="1700px" w="100%">
+        <Heading as="h2" size="md" w="100%" px={12} py={2} borderTopRadius="xl">
           Our engineering team
         </Heading>
         <chakra.span pl={2} px={12} py={2}>
           <UnorderedList w="75%" pl={4} spacing={2}>
             <ListItem>
-              <b>zomglings,</b> Founder. Number theorist. Loves playing chess
-              while programming. Fan of GO, backgammon, and video games.
+              <b>zomglings{". "}</b> Founder. Number theorist. Loves playing
+              chess while programming. Fan of GO, backgammon, and video games.
             </ListItem>
             <ListItem>
-              <b>kompotkot -</b>Keeper of Secrets. Likes information security
-              since childhood, loves mountains and goes hiking from time to
-              time. Had a close call with a wild bear in a forest once.
+              <b>kompotkot{". "}</b>Keeper of Secrets. Likes information
+              security since childhood, loves mountains and goes hiking from
+              time to time. Had a close call with a wild bear in a forest once.
             </ListItem>
             <ListItem>
-              <b>wizarikus -</b>Wizard. Loves mountains, bicycling, and hiking.
-              A practicing Python wizard. Also likes to cook and play the guitar
-              in between data witchcraft.
+              <b>wizarikus{". "}</b>Wizard. Loves mountains, bicycling, and
+              hiking. A practicing Python wizard. Also likes to cook and play
+              the guitar in between data witchcraft.
             </ListItem>
             <ListItem>
-              <b>peersky -</b>
+              <b>peersky{". "}</b>
               {`Spectral hopper. Perceives the world as a
                 spectrum interacting with and within the observer's mind. Loves
                 to shift in time domain to spend some of it doing fire
                 performances, surfing, and connecting with nature.`}
             </ListItem>
             <ListItem>
-              <b>yhtyyar -</b>
+              <b>yhtyyar{". "}</b>
               {`Wunderkind. Interested in Math, NLP. Loves
                 programming language parsing and Algorithms & Data structures.
                 Implementing his own dialect of LISP programming language for
@@ -220,25 +238,25 @@ const Product = () => {
           </UnorderedList>
         </chakra.span>
       </Stack>
-      <Stack mx={margin} mb={12} maxW="1700px">
+      <Stack mx={margin} mb={12} maxW="1700px" w="100%">
         <Heading as="h2" size="md" w="100%" px={12} py={2} borderTopRadius="xl">
           Our marketing and growth team
         </Heading>
         <chakra.span pl={2} px={12} py={2}>
           <UnorderedList w="75%" pl={4}>
             <ListItem>
-              <b>Pahita.</b> Dreamer. An alien who pretends to be a human. So
-              far so good. Loves ecstatic dance, being alone in nature and
+              <b>Pahita{". "}</b> Dreamer. An alien who pretends to be a human.
+              So far so good. Loves ecstatic dance, being alone in nature and
               dreaming.
             </ListItem>
             <ListItem>
-              <b>In_technicolor,</b>Mediator. Loves stand-up comedy and crying
-              at nights. Volunteered at a horse farm once. Portrait artist, puts
-              the pain in painting.
+              <b>In_technicolor{". "}</b>Mediator. Loves stand-up comedy and
+              crying at nights. Volunteered at a horse farm once. Portrait
+              artist, puts the pain in painting.
             </ListItem>
             <ListItem>
-              <b>Nanaland.</b>Progress and Enthusiasm. Traveled to the North
-              Korean border at the age of 19. Half German. Counseling
+              <b>Nanaland{". "}</b>Progress and Enthusiasm. Traveled to the
+              North Korean border at the age of 19. Half German. Counseling
               psychologist who switched to tech marketing and sales.
             </ListItem>
           </UnorderedList>

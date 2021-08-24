@@ -128,7 +128,6 @@ const NewSubscription = ({ isFreeOption, onClose }) => {
             </Text>{" "}
             <IconButton
               size="md"
-              // colorScheme="primary"
               color={"white.100"}
               _hover={{ bgColor: { color } }}
               bgColor={color}
@@ -147,10 +146,7 @@ const NewSubscription = ({ isFreeOption, onClose }) => {
             ></Input>
           </Stack>
 
-          <GithubPicker
-            // color={this.state.background}
-            onChangeComplete={handleChangeColorComplete}
-          />
+          <GithubPicker onChangeComplete={handleChangeColorComplete} />
 
           <FormErrorMessage color="unsafe.400" pl="1">
             {errors.color && errors.color.message}
