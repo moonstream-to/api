@@ -168,7 +168,10 @@ const Product = () => {
         <chakra.span pl={2} px={12} py={2}>
           <UnorderedList w="75%" pl={4}>
             <ListItem>
-              <b> Be bold</b>
+              <b>Be bold</b>
+            </ListItem>
+            <ListItem>
+              <b>Be curious</b>
             </ListItem>
             <ListItem>
               <b>Don’t be an ass</b>
@@ -197,28 +200,28 @@ const Product = () => {
         <chakra.span pl={2} px={12} py={2}>
           <UnorderedList w="75%" pl={4} spacing={2}>
             <ListItem>
-              <b>zomglings,</b> Founder. Number theorist. Loves playing chess
-              while programming. Fan of GO, backgammon, and video games.
+              <b>zomglings{". "}</b> Founder. Number theorist. Loves playing
+              chess while programming. Fan of GO, backgammon, and video games.
             </ListItem>
             <ListItem>
-              <b>kompotkot -</b>Keeper of Secrets. Likes information security
-              since childhood, loves mountains and goes hiking from time to
-              time. Had a close call with a wild bear in a forest once.
+              <b>kompotkot{". "}</b>Keeper of Secrets. Likes information
+              security since childhood, loves mountains and goes hiking from
+              time to time. Had a close call with a wild bear in a forest once.
             </ListItem>
             <ListItem>
-              <b>wizarikus -</b>Wizard. Loves mountains, bicycling, and hiking.
-              A practicing Python wizard. Also likes to cook and play the guitar
-              in between data witchcraft.
+              <b>wizarikus{". "}</b>Wizard. Loves mountains, bicycling, and
+              hiking. A practicing Python wizard. Also likes to cook and play
+              the guitar in between data witchcraft.
             </ListItem>
             <ListItem>
-              <b>peersky -</b>
+              <b>peersky{". "}</b>
               {`Spectral hopper. Perceives the world as a
                 spectrum interacting with and within the observer's mind. Loves
                 to shift in time domain to spend some of it doing fire
                 performances, surfing, and connecting with nature.`}
             </ListItem>
             <ListItem>
-              <b>yhtyyar -</b>
+              <b>yhtyyar{". "}</b>
               {`Wunderkind. Interested in Math, NLP. Loves
                 programming language parsing and Algorithms & Data structures.
                 Implementing his own dialect of LISP programming language for
@@ -234,18 +237,18 @@ const Product = () => {
         <chakra.span pl={2} px={12} py={2}>
           <UnorderedList w="75%" pl={4}>
             <ListItem>
-              <b>Pahita.</b> Dreamer. An alien who pretends to be a human. So
-              far so good. Loves ecstatic dance, being alone in nature and
+              <b>Pahita{". "}</b> Dreamer. An alien who pretends to be a human.
+              So far so good. Loves ecstatic dance, being alone in nature and
               dreaming.
             </ListItem>
             <ListItem>
-              <b>In_technicolor,</b>Mediator. Loves stand-up comedy and crying
-              at nights. Volunteered at a horse farm once. Portrait artist, puts
-              the pain in painting.
+              <b>In_technicolor{". "}</b>Mediator. Loves stand-up comedy and
+              crying at nights. Volunteered at a horse farm once. Portrait
+              artist, puts the pain in painting.
             </ListItem>
             <ListItem>
-              <b>Nanaland.</b>Progress and Enthusiasm. Traveled to the North
-              Korean border at the age of 19. Half German. Counseling
+              <b>Nanaland{". "}</b>Progress and Enthusiasm. Traveled to the
+              North Korean border at the age of 19. Half German. Counseling
               psychologist who switched to tech marketing and sales.
             </ListItem>
           </UnorderedList>
