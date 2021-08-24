@@ -1,14 +1,11 @@
-from datetime import datetime
+import json
 import logging
+from typing import Dict, Any, List, Optional
 
-
-from typing import Dict, Any, List, Optional, Union
-
-from sqlalchemy.engine.base import Transaction
+import boto3  # type: ignore
 from moonstreamdb.models import (
     EthereumBlock,
     EthereumTransaction,
-    EthereumPendingTransaction,
     EthereumAddress,
     EthereumLabel,
 )
@@ -16,10 +13,7 @@ from sqlalchemy import or_, and_, text
 from sqlalchemy.orm import Session
 
 from . import data
-
 from .settings import DEFAULT_STREAM_TIMEINTERVAL, ETHERSCAN_SMARTCONTRACTS_BUCKET
-import boto3
-import json
 
 logger = logging.getLogger(__name__)
 
@@ -299,8 +293,8 @@ def get_source_code(
 
 
 def get_address_labels(
-    db_session: Session, start: int, limit: int, addresses: Optional[List[str]] = None
-) -> List[EthereumAddress]:
+    db_session: Session, start: int, limit: int, addresses: Optional[str] = None
+) -> data.AddressListLabelsResponse:
     """
     Attach labels to addresses.
     """

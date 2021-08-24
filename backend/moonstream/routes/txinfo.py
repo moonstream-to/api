@@ -97,8 +97,8 @@ async def txinfo_ethereum_blockchain_handler(
 )
 async def addresses_labels_handler(
     addresses: Optional[str] = Query(None),
-    start: Optional[int] = Query(0),
-    limit: Optional[int] = Query(100),
+    start: int = Query(0),
+    limit: int = Query(100),
     db_session: Session = Depends(yield_db_session),
 ) -> data.AddressListLabelsResponse:
     """
@@ -110,11 +110,11 @@ async def addresses_labels_handler(
             status_code=406, detail="The limit cannot exceed 100 addresses"
         )
     try:
-        addresses = actions.get_address_labels(
+        addresses_response = actions.get_address_labels(
             db_session=db_session, start=start, limit=limit, addresses=addresses
         )
     except Exception as err:
         logger.error(f"Unable to get info about Ethereum addresses {err}")
         raise HTTPException(status_code=500)
 
-    return addresses
+    return addresses_response
