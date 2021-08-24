@@ -178,7 +178,7 @@ const Product = () => {
             <Link
               textColor="primary.500"
               isExternal
-              href="https://github.com/bugout-dev/moonstream"
+              href="https://github.com/bugout-dev/moonstream/milestones"
             >
               the Moonstream milestones
             </Link>
