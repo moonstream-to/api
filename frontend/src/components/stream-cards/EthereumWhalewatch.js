@@ -52,8 +52,6 @@ const EthereumWhalewatchCard_ = ({
     valueIn: entry?.event_data?.value_in[0] || {},
   };
 
-  console.log("PURPLE RAIN:", whales);
-
   Object.values(whales).forEach((whaleInfo) => {
     whaleInfo.color =
       subscriptionsCache.data.subscriptions.find((obj) => {
@@ -68,8 +66,8 @@ const EthereumWhalewatchCard_ = ({
   const rowLabels = {
     transactionsOut: "Number of transactions sent",
     transactionsIn: "Number of transactions received",
-    valueOut: "ETH sent",
-    valueIn: "ETH received",
+    valueOut: "WEI sent",
+    valueIn: "WEI received",
   };
 
   return (
@@ -103,9 +101,6 @@ const EthereumWhalewatchCard_ = ({
         </Stack>
       </Tooltip>
       {Object.keys(whales).map((whaleType) => {
-        {
-          console.log("PURPLE RAIN: whaleType:", whaleType);
-        }
         return (
           <Stack
             className={whaleType}
@@ -113,7 +108,6 @@ const EthereumWhalewatchCard_ = ({
             w="100%"
             h={showFullView ? "1.6rem" : "3.2rem"}
             minH="1.6rem"
-            textAlign="center"
             spacing={0}
             alignItems="center"
             key={`${whaleType}-${entry.event_data.date_range.start_time}-${entry.event_data.date_range.end_time}`}
@@ -125,8 +119,7 @@ const EthereumWhalewatchCard_ = ({
               direction="row"
               fontSize="sm"
               fontWeight="600"
-              minw="min-content"
-              w={showFullView ? "calc(80%)" : "calc(100%)"}
+              w={showFullView ? "calc(30%)" : "calc(100%)"}
               h="100%"
               borderColor="gray.1200"
               borderRightWidth={showFullView ? "1px" : "0px"}
@@ -136,38 +129,23 @@ const EthereumWhalewatchCard_ = ({
               <Tooltip
                 hasArrow
                 isOpen={showOnboardingTooltips && !ui.isMobileView}
-                label={`The address with the most: ${rowLabels[whaleType]}`}
+                label={`This row represents the following statistic: ${rowLabels[whaleType]}`}
+                aria-label={`This row represents the following statistic: ${rowLabels[whaleType]}`}
                 variant="onboarding"
                 placement={ui.isMobileView ? "bottom" : "left"}
                 maxW="150px"
               >
                 <Text
-                  bgColor="gray.600"
                   h="100%"
                   fontSize="sm"
                   py="2px"
                   px={2}
                   w={showFullView ? null : "120px"}
                 >
-                  Address:
-                </Text>
-              </Tooltip>
-              <Tooltip label={whales[whaleType].address} aria-label="address">
-                <Text
-                  mx={0}
-                  py="2px"
-                  fontSize="sm"
-                  bgColor={whales[whaleType].color}
-                  isTruncated
-                  w="calc(100%)"
-                  h="100%"
-                  onClick={() => setCopyString(whales[whaleType].address)}
-                >
-                  {whales[whaleType].label}
+                  {rowLabels[whaleType]}
                 </Text>
               </Tooltip>
             </Stack>
-
             <Stack
               overflow="hidden"
               textOverflow="ellipsis"
@@ -176,29 +154,23 @@ const EthereumWhalewatchCard_ = ({
               fontSize="sm"
               fontWeight="600"
               minw="min-content"
-              w={showFullView ? "calc(20%)" : "calc(100%)"}
+              w={showFullView ? "calc(70%)" : "calc(100%)"}
               h="100%"
               spacing={0}
+              textAlign="left"
             >
               <Text
-                bgColor="gray.600"
+                mx={0}
+                py="2px"
+                fontSize="sm"
+                bgColor={whales[whaleType].color}
+                isTruncated
+                w="calc(100%)"
                 h="100%"
-                py={1}
-                px={2}
-                w={showFullView ? null : "120px"}
+                onClick={() => setCopyString(whales[whaleType].address)}
               >
-                To:
+                {whales[whaleType].label} -- {whales[whaleType].statistic}
               </Text>
-              <Tooltip label={rowLabels[whaleType]} aria-label="statistic">
-                <Text
-                  bgColor={whales[whaleType].color}
-                  isTruncated
-                  w="calc(100%)"
-                  h="100%"
-                >
-                  {whales[whaleType].statistic}
-                </Text>
-              </Tooltip>
             </Stack>
           </Stack>
         );
