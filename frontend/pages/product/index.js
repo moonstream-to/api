@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useLayoutEffect, useContext } from "react";
+import React, { useEffect, useState, useLayoutEffect } from "react";
 import {
   Heading,
   Text,
@@ -9,10 +9,9 @@ import {
   useMediaQuery,
   UnorderedList,
   ListItem,
+  useBreakpointValue,
 } from "@chakra-ui/react";
 import { DEFAULT_METATAGS } from "../../src/core/constants";
-import UIContext from "../../src/core/providers/UIProvider/context";
-
 export async function getStaticProps() {
   return {
     props: { metaTags: { ...DEFAULT_METATAGS } },
@@ -23,14 +22,13 @@ const AWS_PATH =
   "https://s3.amazonaws.com/static.simiotics.com/moonstream/assets";
 
 const assets = {
-  background720: `${AWS_PATH}/blog-background-720x405.png`,
-  background1920: `${AWS_PATH}/blog-background-720x405.png`,
-  background2880: `${AWS_PATH}/blog-background-720x405.png`,
-  background3840: `${AWS_PATH}/blog-background-720x405.png`,
+  background720: `${AWS_PATH}/product-background-720x405.png`,
+  background1920: `${AWS_PATH}/product-background-720x405.png`,
+  background2880: `${AWS_PATH}/product-background-720x405.png`,
+  background3840: `${AWS_PATH}/product-background-720x405.png`,
 };
 
 const Product = () => {
-  const ui = useContext(UIContext);
   const [background, setBackground] = useState("background720");
   const [backgroundLoaded720, setBackgroundLoaded720] = useState(false);
   const [backgroundLoaded1920, setBackgroundLoaded1920] = useState(false);
@@ -50,10 +48,10 @@ const Product = () => {
   ]);
 
   useEffect(() => {
-    assets["background720"] = `${AWS_PATH}/blog-background-720x405.png`;
-    assets["background1920"] = `${AWS_PATH}/blog-background-1920x1080.png`;
-    assets["background2880"] = `${AWS_PATH}/blog-background-2880x1620.png`;
-    assets["background3840"] = `${AWS_PATH}/blog-background-3840x2160.png`;
+    assets["background720"] = `${AWS_PATH}/product-background-720x405.png`;
+    assets["background1920"] = `${AWS_PATH}/product-background-1920x1080.png`;
+    assets["background2880"] = `${AWS_PATH}/product-background-2880x1620.png`;
+    assets["background3840"] = `${AWS_PATH}/product-background-3840x2160.png`;
   }, []);
 
   useLayoutEffect(() => {
@@ -79,7 +77,7 @@ const Product = () => {
 
   useLayoutEffect(() => {
     const imageLoader720 = new Image();
-    imageLoader720.src = `${AWS_PATH}/blog-background-720x405.png`;
+    imageLoader720.src = `${AWS_PATH}/product-background-720x405.png`;
     imageLoader720.onload = () => {
       setBackgroundLoaded720(true);
     };
@@ -87,7 +85,7 @@ const Product = () => {
 
   useLayoutEffect(() => {
     const imageLoader1920 = new Image();
-    imageLoader1920.src = `${AWS_PATH}/blog-background-1920x1080.png`;
+    imageLoader1920.src = `${AWS_PATH}/product-background-1920x1080.png`;
     imageLoader1920.onload = () => {
       setBackgroundLoaded1920(true);
     };
@@ -95,7 +93,7 @@ const Product = () => {
 
   useLayoutEffect(() => {
     const imageLoader2880 = new Image();
-    imageLoader2880.src = `${AWS_PATH}/blog-background-2880x1620.png`;
+    imageLoader2880.src = `${AWS_PATH}/product-background-2880x1620.png`;
     imageLoader2880.onload = () => {
       setBackgroundLoaded2880(true);
     };
@@ -103,13 +101,20 @@ const Product = () => {
 
   useLayoutEffect(() => {
     const imageLoader3840 = new Image();
-    imageLoader3840.src = `${AWS_PATH}/blog-background-3840x2160.png`;
+    imageLoader3840.src = `${AWS_PATH}/product-background-3840x2160.png`;
     imageLoader3840.onload = () => {
       setBackgroundLoaded3840(true);
     };
   }, []);
 
-  const margin = ui.isMobileView ? "7%" : "25%";
+  const margin = useBreakpointValue({
+    base: "1%",
+    sm: "2%",
+    md: "3%",
+    lg: "15%",
+    xl: "20%",
+    "2xl": "25%",
+  });
 
   return (
     <Flex
@@ -121,36 +126,63 @@ const Product = () => {
       minH="100vh"
       direction="column"
       alignItems="center"
+      pb={24}
     >
       <Stack mx={margin} my={12} maxW="1700px">
         <Heading as="h2" size="md" w="100%" px={12} py={2} borderTopRadius="xl">
-          Vision
+          {`Why you'll love moonstream`}
         </Heading>
         <chakra.span pl={2} px={12} py={2}>
           <Text mb={2}>
-            Our goal is to provide a live view of the transactions taking place
-            on <b>every</b> public blockchain.
+            We strive for financial inclusion. With cryptocurrencies becoming
+            mainstream, now is the time for anyone with a computer and access to
+            the Internet to utilize this opportunity to make passive income.
+            We’re here to make it easier.
           </Text>
           <Text mb={2}>
-            We aim to go far beyond raw transaction information, enriching our
-            view with context from centralized exchanges, the news, social
-            media, and smart contract analysis.
+            Right now our source of data is Ethereum blockchain. Our goal is to
+            provide a live view of the transactions taking place on every public
+            blockchain - from the activity of specific accounts or smart
+            contracts to updates about general market movements.
           </Text>
           <Text mb={2}>
-            Data is only as good as the decisions it informs. We are building
-            Moonstream to be much more than a database. We are building
-            Moonstream to be an execution engine, where anyone can set up
-            triggers based on Moonstream events. Triggers can submit
-            transactions to any blockchain or they can call external APIs via
-            webhooks.
+            This information comes from the blockchains themselves, from their
+            mempools/transaction pools, and from centralized exchanges, social
+            media, and the news. This forms a stream of information tailored to
+            your specific needs.
           </Text>
           <Text mb={2}>
-            Moonstream will be accessible to humans through our dashboard and
-            notification system.
+            We’re giving you a macro view of the crypto market with direct
+            access from Moonstream dashboards to execute transactions. You can
+            also set up programs which execute (on- or off-chain) when your
+            stream meets certain conditions.
           </Text>
           <Text mb={2}>
-            Moonstream will be accessible to software through our API and
-            webhooks.
+            Moonstream is accessible through dashboard, API and webhooks.
+          </Text>
+          <Text mb={2}>
+            Moonstream’s financial inclusion goes beyond providing access to
+            data. All of our work is open source as we do not believe that
+            proprietary technologies are financially inclusive.
+          </Text>
+          <Text mb={2}>
+            You can read{" "}
+            <Link
+              textColor="primary.500"
+              isExternal
+              href="https://github.com/bugout-dev/moonstream"
+            >
+              our code on GitHub.
+            </Link>{" "}
+            and keep track of our progress using{" "}
+            <Link
+              textColor="primary.500"
+              isExternal
+              href="https://github.com/bugout-dev/moonstream/milestones"
+            >
+              the Moonstream milestones
+            </Link>
+            .
           </Text>
         </chakra.span>
       </Stack>
@@ -174,9 +206,9 @@ const Product = () => {
             Moonstream users can subscribe to events from any blockchain - from
             the activity of specific accounts or smart contracts to updates
             about general market movements. This information comes from the
-            blockchains themselves, from their mempools/transaction pools, and
-            from centralized exchanges, social media, and the news. This forms a
-            stream of information tailored to their specific needs.
+            blockchains themselves, from their <b>mempools/transaction</b>{" "}
+            pools, and from centralized exchanges, social media, and the news.
+            This forms a stream of information tailored to their specific needs.
           </Text>
           <Text mb={2}>
             They can use this information to execute transactions directly from
