@@ -39,12 +39,13 @@ import UIContext from "../core/providers/UIProvider/context";
 import { FaFilter } from "react-icons/fa";
 import useStream from "../core/hooks/useStream";
 import { ImCancelCircle } from "react-icons/im";
+import { previousEvent } from "../core/services/stream.service";
 
 const FILTER_TYPES = {
   ADDRESS: 0,
   GAS: 1,
   GAS_PRICE: 2,
-  AMMOUNT: 3,
+  AMOUNT: 3,
   HASH: 4,
   DISABLED: 99,
 };
@@ -63,6 +64,8 @@ const EntriesNavigation = () => {
   const ui = useContext(UIContext);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { subscriptionsCache } = useSubscriptions();
+  const [initialized, setInitialized] = useState(false);
+  const [entries, setEntries] = useState([]);
   const [newFilterState, setNewFilterState] = useState([
     {
       type: FILTER_TYPES.ADDRESS,
@@ -75,93 +78,46 @@ const EntriesNavigation = () => {
 
   const loadMoreButtonRef = useRef(null);
 
-  const [streamBoundary, setStreamBoundary] = useState({
-    start_time: null,
-    end_time: null,
-    include_start: false,
-    include_end: true,
-    next_event_time: null,
-    previous_event_time: null,
-  });
-
-  const updateStreamBoundaryWith = (pageBoundary) => {
-    if (!pageBoundary) {
-      return streamBoundary;
-    }
-
-    let newBoundary = { ...streamBoundary };
-    // We do not check if there is no overlap between the streamBoundary and the pageBoundary - we assume
-    // that there *is* an overlap and even if there isn't the stream should gracefully respect the
-    // pageBoundary because that was the most recent request the user made.
-    // TODO(zomglings): If there is no overlap in boundaries, replace streamBoundary with pageBoundary.
-    // No overlap logic:
-    // if (<no overlap>) {
-    //   setStreamBoundary(pageBoundary)
-    //   return pageBoundary
-    // }
-
-    if (
-      !newBoundary.start_time ||
-      (pageBoundary.start_time &&
-        pageBoundary.start_time <= newBoundary.start_time)
-    ) {
-      newBoundary.start_time = pageBoundary.start_time;
-      newBoundary.include_start =
-        newBoundary.include_start || pageBoundary.include_start;
-    }
-    newBoundary.include_start =
-      newBoundary.include_start || pageBoundary.include_start;
-
-    if (
-      !newBoundary.end_time ||
-      (pageBoundary.end_time && pageBoundary.end_time >= newBoundary.end_time)
-    ) {
-      newBoundary.end_time = pageBoundary.end_time;
-      newBoundary.include_end =
-        newBoundary.include_end || pageBoundary.include_end;
-    }
-
-    newBoundary.include_end =
-      newBoundary.include_end || pageBoundary.include_end;
-
-    if (
-      !newBoundary.next_event_time ||
-      !pageBoundary.next_event_time ||
-      (pageBoundary.next_event_time &&
-        pageBoundary.next_event_time > newBoundary.next_event_time)
-    ) {
-      newBoundary.next_event_time = pageBoundary.next_event_time;
-    }
-
-    if (
-      !newBoundary.previous_event_time ||
-      !pageBoundary.previous_event_time ||
-      (pageBoundary.previous_event_time &&
-        pageBoundary.previous_event_time < newBoundary.previous_event_time)
-    ) {
-      newBoundary.previous_event_time = pageBoundary.previous_event_time;
-    }
-    setStreamBoundary(newBoundary);
-    return newBoundary;
-  };
-
-  const { EntriesPages, isLoading, refetch, isFetching, remove } = useStream({
-    searchQuery: ui.searchTerm,
-    start_time: streamBoundary.start_time,
-    end_time: streamBoundary.end_time,
-    include_start: streamBoundary.include_start,
-    include_end: streamBoundary.include_end,
-    updateStreamBoundaryWith: updateStreamBoundaryWith,
-    streamBoundary: streamBoundary,
-    setStreamBoundary: setStreamBoundary,
-    isContent: false,
-  });
+  const {
+    events,
+    eventsIsLoading,
+    eventsRefetch,
+    eventsIsFetching,
+    latestEventsRefetch,
+    nextEventRefetch,
+    previousEventRefetch,
+    streamBoundary,
+    setDefaultBoundary,
+    loadOlderEvents,
+    loadNewerEvents,
+  } = useStream(ui.searchTerm.q);
 
   useEffect(() => {
     if (!streamBoundary.start_time && !streamBoundary.end_time) {
-      refetch();
+      setDefaultBoundary();
+    } else if (!initialized) {
+      eventsRefetch();
+      latestEventsRefetch();
+      nextEventRefetch();
+      previousEventRefetch();
+      setInitialized(true);
     }
-  }, [streamBoundary, refetch]);
+  }, [
+    streamBoundary,
+    initialized,
+    setInitialized,
+    setDefaultBoundary,
+    eventsRefetch,
+    latestEventsRefetch,
+    nextEventRefetch,
+    previousEventRefetch,
+  ]);
+
+  useEffect(() => {
+    if (events) {
+      setEntries(events);
+    }
+  }, [events]);
 
   const setFilterProps = useCallback(
     (filterIdx, props) => {
@@ -183,13 +139,6 @@ const EntriesNavigation = () => {
     }
   }, [subscriptionsCache, newFilterState, setFilterProps]);
 
-  const entriesPagesData = EntriesPages
-    ? EntriesPages.data.map((page) => {
-        return page;
-      })
-    : [""];
-
-  const entries = entriesPagesData.flat();
   const canCreate = false;
 
   const canDelete = false;
@@ -265,7 +214,7 @@ const EntriesNavigation = () => {
       direction="column"
       flexGrow={1}
     >
-      {entries && !isLoading ? (
+      {entries && !eventsIsLoading ? (
         <>
           <Drawer onClose={onClose} isOpen={isOpen} size="lg">
             <DrawerOverlay />
@@ -476,23 +425,16 @@ const EntriesNavigation = () => {
               //onScroll={(e) => handleScroll(e)}
             >
               <Stack direction="row" justifyContent="space-between">
-                {!isFetching ? (
+                {!eventsIsFetching ? (
                   <Button
                     onClick={() => {
-                      remove();
-                      setStreamBoundary({
-                        start_time: null,
-                        end_time: null,
-                        include_start: false,
-                        include_end: true,
-                        next_event_time: null,
-                        previous_event_time: null,
-                      });
+                      loadNewerEvents();
+                      nextEventRefetch();
                     }}
                     variant="outline"
                     colorScheme="suggested"
                   >
-                    Refresh to newest
+                    Load newer events
                   </Button>
                 ) : (
                   <Button
@@ -502,60 +444,34 @@ const EntriesNavigation = () => {
                     colorScheme="suggested"
                   ></Button>
                 )}
-
-                {streamBoundary.next_event_time &&
-                streamBoundary.end_time != 0 &&
-                !isFetching ? (
-                  <Button
-                    onClick={() => {
-                      updateStreamBoundaryWith({
-                        end_time: streamBoundary.next_event_time + 5 * 60,
-                        include_start: false,
-                        include_end: true,
-                      });
-                    }}
-                    variant="outline"
-                    colorScheme="suggested"
-                  >
-                    Load latest transaction
-                  </Button>
-                ) : (
-                  "" // some strange behaivior without else condition return 0 wich can see on frontend page
-                )}
               </Stack>
-              {entries
-                ?.sort((a, b) => b.timestamp - a.timestamp) // TODO(Andrey) improve that for bi chunks of data sorting can take time
-                .map((entry, idx) => (
-                  <StreamEntry
-                    showOnboardingTooltips={false}
-                    key={`entry-list-${idx}`}
-                    entry={entry}
-                    disableDelete={!canDelete}
-                    disableCopy={!canCreate}
-                    filterCallback={handleFilterStateCallback}
-                    filterConstants={{ DIRECTIONS, CONDITION, FILTER_TYPES }}
-                  />
-                ))}
-              {streamBoundary.previous_event_time && !isFetching ? (
+              {entries.map((entry, idx) => (
+                <StreamEntry
+                  showOnboardingTooltips={false}
+                  key={`entry-list-${idx}`}
+                  entry={entry}
+                  disableDelete={!canDelete}
+                  disableCopy={!canCreate}
+                  filterCallback={handleFilterStateCallback}
+                  filterConstants={{ DIRECTIONS, CONDITION, FILTER_TYPES }}
+                />
+              ))}
+              {previousEvent && !eventsIsFetching ? (
                 <Center>
                   <Button
                     onClick={() => {
-                      remove();
-                      updateStreamBoundaryWith({
-                        start_time: streamBoundary.previous_event_time - 5 * 60,
-                        include_start: false,
-                        include_end: true,
-                      });
+                      loadOlderEvents();
+                      previousEventRefetch();
                     }}
                     variant="outline"
                     colorScheme="suggested"
                   >
-                    Go to previous transaction
+                    Load older events
                   </Button>
                 </Center>
               ) : (
                 <Center>
-                  {!isFetching ? (
+                  {!eventsIsFetching ? (
                     "Тransactions not found. You can subscribe to more addresses in Subscriptions menu."
                   ) : (
                     <Button
@@ -567,7 +483,7 @@ const EntriesNavigation = () => {
                   )}
                 </Center>
               )}
-              {streamBoundary.previous_event_time && isLoading ? (
+              {streamBoundary.previous_event_time && eventsIsLoading ? (
                 <Center>
                   <Spinner
                     //hidden={!isFetchingMore}

@@ -11,21 +11,18 @@ import {
   ListItem,
   useBreakpointValue,
 } from "@chakra-ui/react";
-import { DEFAULT_METATAGS } from "../../src/core/constants";
+import { DEFAULT_METATAGS, AWS_ASSETS_PATH } from "../../src/core/constants";
 export async function getStaticProps() {
   return {
     props: { metaTags: { ...DEFAULT_METATAGS } },
   };
 }
 
-const AWS_PATH =
-  "https://s3.amazonaws.com/static.simiotics.com/moonstream/assets";
-
 const assets = {
-  background720: `${AWS_PATH}/product-background-720x405.png`,
-  background1920: `${AWS_PATH}/product-background-720x405.png`,
-  background2880: `${AWS_PATH}/product-background-720x405.png`,
-  background3840: `${AWS_PATH}/product-background-720x405.png`,
+  background720: `${AWS_ASSETS_PATH}/product-background-720x405.png`,
+  background1920: `${AWS_ASSETS_PATH}/product-background-720x405.png`,
+  background2880: `${AWS_ASSETS_PATH}/product-background-720x405.png`,
+  background3840: `${AWS_ASSETS_PATH}/product-background-720x405.png`,
 };
 
 const Product = () => {
@@ -48,10 +45,18 @@ const Product = () => {
   ]);
 
   useEffect(() => {
-    assets["background720"] = `${AWS_PATH}/product-background-720x405.png`;
-    assets["background1920"] = `${AWS_PATH}/product-background-1920x1080.png`;
-    assets["background2880"] = `${AWS_PATH}/product-background-2880x1620.png`;
-    assets["background3840"] = `${AWS_PATH}/product-background-3840x2160.png`;
+    assets[
+      "background720"
+    ] = `${AWS_ASSETS_PATH}/product-background-720x405.png`;
+    assets[
+      "background1920"
+    ] = `${AWS_ASSETS_PATH}/product-background-1920x1080.png`;
+    assets[
+      "background2880"
+    ] = `${AWS_ASSETS_PATH}/product-background-2880x1620.png`;
+    assets[
+      "background3840"
+    ] = `${AWS_ASSETS_PATH}/product-background-3840x2160.png`;
   }, []);
 
   useLayoutEffect(() => {
@@ -77,7 +82,7 @@ const Product = () => {
 
   useLayoutEffect(() => {
     const imageLoader720 = new Image();
-    imageLoader720.src = `${AWS_PATH}/product-background-720x405.png`;
+    imageLoader720.src = `${AWS_ASSETS_PATH}/product-background-720x405.png`;
     imageLoader720.onload = () => {
       setBackgroundLoaded720(true);
     };
@@ -85,7 +90,7 @@ const Product = () => {
 
   useLayoutEffect(() => {
     const imageLoader1920 = new Image();
-    imageLoader1920.src = `${AWS_PATH}/product-background-1920x1080.png`;
+    imageLoader1920.src = `${AWS_ASSETS_PATH}/product-background-1920x1080.png`;
     imageLoader1920.onload = () => {
       setBackgroundLoaded1920(true);
     };
@@ -93,7 +98,7 @@ const Product = () => {
 
   useLayoutEffect(() => {
     const imageLoader2880 = new Image();
-    imageLoader2880.src = `${AWS_PATH}/product-background-2880x1620.png`;
+    imageLoader2880.src = `${AWS_ASSETS_PATH}/product-background-2880x1620.png`;
     imageLoader2880.onload = () => {
       setBackgroundLoaded2880(true);
     };
@@ -101,7 +106,7 @@ const Product = () => {
 
   useLayoutEffect(() => {
     const imageLoader3840 = new Image();
-    imageLoader3840.src = `${AWS_PATH}/product-background-3840x2160.png`;
+    imageLoader3840.src = `${AWS_ASSETS_PATH}/product-background-3840x2160.png`;
     imageLoader3840.onload = () => {
       setBackgroundLoaded3840(true);
     };

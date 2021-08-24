@@ -6,9 +6,12 @@ import { useToast } from ".";
 
 const useForgotPassword = () => {
   const toast = useToast();
-  const [forgotPassword, { isLoading, error, data }] = useMutation(
-    AuthService.forgotPassword
-  );
+  const {
+    mutate: forgotPassword,
+    isLoading,
+    error,
+    data,
+  } = useMutation(AuthService.forgotPassword);
   useAuthResultHandler(
     data,
     error,
