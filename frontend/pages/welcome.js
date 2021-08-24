@@ -442,9 +442,11 @@ const Welcome = () => {
                   mt={20}
                   entry={{
                     event_type: "ethereum_blockchain",
-                    from_address: "this is address from",
-                    to_address: "this is to address",
-                    hash: "this is hash",
+                    event_data: {
+                      from: "this is address from",
+                      to: "this is to address",
+                      hash: "this is hash",
+                    },
                   }}
                   showOnboardingTooltips={true}
                 />
