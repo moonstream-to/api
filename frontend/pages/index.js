@@ -29,6 +29,7 @@ import useModals from "../src/core/hooks/useModals";
 import useRouter from "../src/core/hooks/useRouter";
 import { MIXPANEL_PROPS } from "../src/core/providers/AnalyticsProvider/constants";
 import UIContext from "../src/core/providers/UIProvider/context";
+import { AWS_ASSETS_PATH } from "../src/core/constants";
 const SplitWithImage = dynamic(
   () => import("../src/components/SplitWithImage"),
   {
@@ -80,21 +81,19 @@ const HEADING_PROPS = {
   fontWeight: "700",
   fontSize: ["4xl", "5xl", "4xl", "5xl", "6xl", "7xl"],
 };
-const AWS_PATH =
-  "https://s3.amazonaws.com/static.simiotics.com/moonstream/assets";
 
 const assets = {
-  background720: `${AWS_PATH}/background720.png`,
-  background1920: `${AWS_PATH}/background720.png`,
-  background2880: `${AWS_PATH}/background720.png`,
-  background3840: `${AWS_PATH}/background720.png`,
-  minedTransactions: `${AWS_PATH}/Ethereum+mined+transactions.png`,
-  pendingTransactions: `${AWS_PATH}/Ethereum+pending+transactions.png`,
-  priceInformation: `${AWS_PATH}/Price+information.png`,
-  socialMediaPosts: `${AWS_PATH}/Social+media+posts.png`,
-  algorithmicFunds: `${AWS_PATH}/algorithmic+funds.png`,
-  cryptoTraders: `${AWS_PATH}/crypto+traders.png`,
-  smartDevelopers: `${AWS_PATH}/smart+contract+developers.png`,
+  background720: `${AWS_ASSETS_PATH}/background720.png`,
+  background1920: `${AWS_ASSETS_PATH}/background720.png`,
+  background2880: `${AWS_ASSETS_PATH}/background720.png`,
+  background3840: `${AWS_ASSETS_PATH}/background720.png`,
+  minedTransactions: `${AWS_ASSETS_PATH}/Ethereum+mined+transactions.png`,
+  pendingTransactions: `${AWS_ASSETS_PATH}/Ethereum+pending+transactions.png`,
+  priceInformation: `${AWS_ASSETS_PATH}/Price+information.png`,
+  socialMediaPosts: `${AWS_ASSETS_PATH}/Social+media+posts.png`,
+  algorithmicFunds: `${AWS_ASSETS_PATH}/algorithmic+funds.png`,
+  cryptoTraders: `${AWS_ASSETS_PATH}/crypto+traders.png`,
+  smartDevelopers: `${AWS_ASSETS_PATH}/smart+contract+developers.png`,
 };
 const Homepage = () => {
   const ui = useContext(UIContext);
@@ -121,10 +120,10 @@ const Homepage = () => {
   ]);
 
   useEffect(() => {
-    assets["background720"] = `${AWS_PATH}/background720.png`;
-    assets["background1920"] = `${AWS_PATH}/background1920.png`;
-    assets["background2880"] = `${AWS_PATH}/background2880.png`;
-    assets["background3840"] = `${AWS_PATH}/background3840.png`;
+    assets["background720"] = `${AWS_ASSETS_PATH}/background720.png`;
+    assets["background1920"] = `${AWS_ASSETS_PATH}/background1920.png`;
+    assets["background2880"] = `${AWS_ASSETS_PATH}/background2880.png`;
+    assets["background3840"] = `${AWS_ASSETS_PATH}/background3840.png`;
   }, []);
 
   useLayoutEffect(() => {
@@ -167,7 +166,7 @@ const Homepage = () => {
 
   useLayoutEffect(() => {
     const imageLoader720 = new Image();
-    imageLoader720.src = `${AWS_PATH}/background720.png`;
+    imageLoader720.src = `${AWS_ASSETS_PATH}/background720.png`;
     imageLoader720.onload = () => {
       setBackgroundLoaded720(true);
     };
@@ -175,7 +174,7 @@ const Homepage = () => {
 
   useLayoutEffect(() => {
     const imageLoader1920 = new Image();
-    imageLoader1920.src = `${AWS_PATH}/background1920.png`;
+    imageLoader1920.src = `${AWS_ASSETS_PATH}/background1920.png`;
     imageLoader1920.onload = () => {
       setBackgroundLoaded1920(true);
     };
@@ -183,7 +182,7 @@ const Homepage = () => {
 
   useLayoutEffect(() => {
     const imageLoader2880 = new Image();
-    imageLoader2880.src = `${AWS_PATH}/background2880.png`;
+    imageLoader2880.src = `${AWS_ASSETS_PATH}/background2880.png`;
     imageLoader2880.onload = () => {
       setBackgroundLoaded2880(true);
     };
@@ -191,7 +190,7 @@ const Homepage = () => {
 
   useLayoutEffect(() => {
     const imageLoader3840 = new Image();
-    imageLoader3840.src = `${AWS_PATH}/background3840.png`;
+    imageLoader3840.src = `${AWS_ASSETS_PATH}/background3840.png`;
     imageLoader3840.onload = () => {
       setBackgroundLoaded3840(true);
     };
@@ -595,7 +594,7 @@ export async function getStaticProps() {
     keywords:
       "blockchain, crypto, data, trading, smart contracts, ethereum, solana, transactions, defi, finance, decentralized",
     url: "https://www.moonstream.to",
-    image: `${AWS_PATH}/crypto+traders.png`,
+    image: `${AWS_ASSETS_PATH}/crypto+traders.png`,
   };
 
   const assetPreload = Object.keys(assets).map((key) => {
