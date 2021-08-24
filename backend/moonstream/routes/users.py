@@ -153,7 +153,9 @@ async def login_handler(
             application_id=MOONSTREAM_APPLICATION_ID,
         )
     except BugoutResponseException as e:
-        raise HTTPException(status_code=e.status_code)
+        raise HTTPException(
+            status_code=e.status_code, detail=f"Error from Brood API: {e.detail}"
+        )
     except Exception as e:
         raise HTTPException(status_code=500)
     return token

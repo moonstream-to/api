@@ -6,16 +6,16 @@ from typing import Dict, List, Optional
 
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
-from fastapi import Body, FastAPI, HTTPException, Request, Form
+from fastapi import FastAPI, HTTPException, Request, Form
 from fastapi.middleware.cors import CORSMiddleware
 
+from ..admin import subscription_types
 from .. import data
 from ..middleware import BroodAuthMiddleware
 from ..settings import (
     DOCS_TARGET_PATH,
     DOCS_PATHS,
     MOONSTREAM_APPLICATION_ID,
-    MOONSTREAM_ADMIN_ACCESS_TOKEN,
     ORIGINS,
     bugout_client as bc,
 )
@@ -51,6 +51,9 @@ whitelist_paths.update({"/subscriptions/types": "GET"})
 app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
 
 
+BUGOUT_RESOURCE_TYPE_SUBSCRIPTION = "subscription"
+
+
 @app.post("/", tags=["subscriptions"], response_model=data.SubscriptionResourceData)
 async def add_subscription_handler(
     request: Request,  # subscription_data: data.CreateSubscriptionRequest = Body(...)
@@ -62,43 +65,33 @@ async def add_subscription_handler(
     """
     Add subscription to blockchain stream data for user.
     """
-    subscription_data = data.CreateSubscriptionRequest(
-        address=address,
-        color=color,
-        label=label,
-        subscription_type_id=subscription_type_id,
-    )
-
     token = request.state.token
 
-    params = {"type": "subscription_type"}
-
-    # request availble subscriptions
-    try:
-        subscription_resources: BugoutResources = bc.list_resources(
-            token=MOONSTREAM_ADMIN_ACCESS_TOKEN, params=params
-        )
-    except BugoutResponseException as e:
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
-    except Exception as e:
-        raise HTTPException(status_code=500)
-
-    # allowed subscriptions
-    subscription_ids_list = [
-        resource.resource_data["id"] for resource in subscription_resources.resources
+    active_subscription_types_response = subscription_types.list_subscription_types(
+        active_only=True
+    )
+    available_subscription_type_ids = [
+        subscription_type.resource_data.get("id")
+        for subscription_type in active_subscription_types_response.resources
+        if subscription_type.resource_data.get("id") is not None
     ]
 
-    if subscription_data.subscription_type_id not in subscription_ids_list:
+    if subscription_type_id not in available_subscription_type_ids:
         raise HTTPException(
-            status_code=403, detail="Subscription type is not avilable."
+            status_code=404,
+            detail=f"Invalid subscription type: {subscription_type_id}.",
         )
 
     user = request.state.user
 
-    # chek if that contract not already setted up
-
-    resource_data = {"user_id": str(user.id)}
-    resource_data.update(subscription_data)
+    resource_data = {
+        "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
+        "user_id": str(user.id),
+        "subscription_type_id": subscription_type_id,
+        "address": address,
+        "color": color,
+        "label": label,
+    }
 
     try:
         resource: BugoutResource = bc.create_resource(
@@ -106,9 +99,9 @@ async def add_subscription_handler(
             application_id=MOONSTREAM_APPLICATION_ID,
             resource_data=resource_data,
         )
-    except BugoutResponseException as e:
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
+        logger.error("Error creating subscription resource:")
+        logger.error(e)
         raise HTTPException(status_code=500)
 
     return data.SubscriptionResourceData(
@@ -155,14 +148,17 @@ async def get_subscriptions_handler(request: Request) -> data.SubscriptionsListR
     Get user's subscriptions.
     """
     token = request.state.token
-    params = {"user_id": str(request.state.user.id)}
+    params = {
+        "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
+        "user_id": str(request.state.user.id),
+    }
     try:
         resources: BugoutResources = bc.list_resources(token=token, params=params)
-    except BugoutResponseException as e:
-        if e.detail == "Resources not found":
-            return data.SubscriptionsListResponse(subscriptions=[])
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
+        logger.error(
+            f"Error listing subscriptions for user ({request.user.id}) with token ({request.state.token})"
+        )
+        logger.error(e)
         raise HTTPException(status_code=500)
 
     return data.SubscriptionsListResponse(
@@ -229,27 +225,22 @@ async def update_subscriptions_handler(
 
 
 @app.get(
-    "/types", tags=["subscriptions"], response_model=data.SubscriptionTypesListResponce
+    "/types", tags=["subscriptions"], response_model=data.SubscriptionTypesListResponse
 )
-async def get_available_subscriptions_type(
-    request: Request,
-) -> data.SubscriptionTypesListResponce:
-
+async def list_subscription_types() -> data.SubscriptionTypesListResponse:
     """
-    Get available's subscriptions types.
+    Get availables subscription types.
     """
-    params = {"type": "subscription_type"}
+    results: List[data.SubscriptionTypeResourceData] = []
     try:
-        resources: BugoutResources = bc.list_resources(
-            token=MOONSTREAM_ADMIN_ACCESS_TOKEN, params=params
-        )
-    except BugoutResponseException as e:
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
-    except Exception as e:
-        raise HTTPException(status_code=500)
-    return data.SubscriptionTypesListResponce(
-        subscriptions=[
+        response = subscription_types.list_subscription_types()
+        results = [
             data.SubscriptionTypeResourceData.validate(resource.resource_data)
-            for resource in resources.resources
+            for resource in response.resources
         ]
-    )
+    except Exception as e:
+        logger.error("Error reading subscription types from Brood API:")
+        logger.error(e)
+        raise HTTPException(status_code=500)
+
+    return data.SubscriptionTypesListResponse(subscription_types=results)

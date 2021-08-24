@@ -10,7 +10,7 @@ setup(
     name="moonstream",
     version=MOONSTREAM_VERSION,
     packages=find_packages(),
-    install_requires=["boto3", "bugout >= 0.1.16", "fastapi", "uvicorn"],
+    install_requires=["boto3", "bugout >= 0.1.17", "fastapi", "python-dateutil", "uvicorn", "types-python-dateutil"],
     extras_require={
         "dev": ["black", "mypy"],
         "distribute": ["setuptools", "twine", "wheel"],
@@ -29,4 +29,5 @@ setup(
         "Topic :: Software Development :: Libraries",
     ],
     url="https://github.com/bugout-dev/moonstream",
+    entry_points={"console_scripts": ["mnstr=moonstream.admin.cli:main"]},
 )
