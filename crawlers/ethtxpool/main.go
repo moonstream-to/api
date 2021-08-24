@@ -13,8 +13,7 @@ import (
 	"os"
 	"time"
 
-	humbug "ethtxpool/humbug"
-	// humbug "github.com/bugout-dev/humbug/go/pkg"
+	humbug "github.com/bugout-dev/humbug/go/pkg"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 
@@ -67,8 +66,28 @@ type PendingTransactions struct {
 	Transactions PendingTransaction `json:"transactions"`
 }
 
+// Split list of reports on nested lists
+func generateChunks(xs []humbug.Report, chunkSize int) [][]humbug.Report {
+	if len(xs) == 0 {
+		return nil
+	}
+	divided := make([][]humbug.Report, (len(xs)+chunkSize-1)/chunkSize)
+	prev := 0
+	i := 0
+	till := len(xs) - chunkSize
+	for prev < till {
+		next := prev + chunkSize
+		divided[i] = xs[prev:next]
+		prev = next
+		i++
+	}
+	divided[i] = xs[prev:]
+	return divided
+}
+
 // Fetch list of transactions form Ethereum TxPool
-func PollTxpoolContent(gethClient *rpc.Client, interval int, longIntervalSeconds int, reporter *humbug.HumbugReporter) {
+func PollTxpoolContent(gethClient *rpc.Client, interval int, reporter *humbug.HumbugReporter) {
+	initPoll := true
 	currentTransactions := make(map[common.Hash]bool)
 
 	// Structure of the map:
@@ -82,7 +101,7 @@ func PollTxpoolContent(gethClient *rpc.Client, interval int, longIntervalSeconds
 
 		// Mark all transactions from previous iteration as false
 		cacheSize := 0
-		for transactionHash, _ := range currentTransactions {
+		for transactionHash := range currentTransactions {
 			currentTransactions[transactionHash] = false
 			cacheSize++
 		}
@@ -131,27 +150,32 @@ func PollTxpoolContent(gethClient *rpc.Client, interval int, longIntervalSeconds
 				currentTransactions[transactionHash] = true
 			}
 		}
-		reporter.PublishBulk(reports)
-		fmt.Printf("\tPublished transactions: %d\n", addedTransactionsCounter)
 
-		// Clean the slice out of disappeared transactions
-		droppedTransactionsCounter := 0
-		for transactionHash, justProcessed := range currentTransactions {
-			if !justProcessed {
-				delete(currentTransactions, transactionHash)
-				// TODO(kompotkot): Add humbug andpoint to modify entry tags as
-				// "processed" transaction
-				droppedTransactionsCounter++
+		if !initPoll {
+			reportChunks := generateChunks(reports, 500)
+			for _, chunk := range reportChunks {
+				fmt.Printf("\tPublishing chunk with: %d/%d reports\n", len(chunk), addedTransactionsCounter)
+				reporter.PublishBulk(chunk)
+				time.Sleep(time.Duration(interval) * time.Second)
 			}
-		}
-		fmt.Printf("\tDropped transactions: %d\n", droppedTransactionsCounter)
 
-		if addedTransactionsCounter >= 2500 {
-			fmt.Printf("Sleeping for %d seconds\n", longIntervalSeconds)
-			time.Sleep(time.Duration(longIntervalSeconds) * time.Second)
-		} else {
+			// Clean the slice out of disappeared transactions
+			droppedTransactionsCounter := 0
+			for transactionHash, justProcessed := range currentTransactions {
+				if !justProcessed {
+					delete(currentTransactions, transactionHash)
+					// TODO(kompotkot): Add humbug andpoint to modify entry tags as
+					// "processed" transaction
+					droppedTransactionsCounter++
+				}
+			}
+			fmt.Printf("\tDropped transactions: %d\n", droppedTransactionsCounter)
+
 			fmt.Printf("Sleeping for %d seconds\n", interval)
 			time.Sleep(time.Duration(interval) * time.Second)
+		} else {
+			fmt.Printf("Initial start of crawler, too many transactions: %d, passing them...\n", addedTransactionsCounter)
+			initPoll = false
 		}
 	}
 }
@@ -159,9 +183,7 @@ func PollTxpoolContent(gethClient *rpc.Client, interval int, longIntervalSeconds
 func main() {
 	var gethConnectionString string
 	var intervalSeconds int
-	var longIntervalSeconds int
 	flag.StringVar(&gethConnectionString, "geth", "", "Geth IPC path/RPC url/Websockets URL")
-	flag.IntVar(&longIntervalSeconds, "long_interval", 10, "Number of seconds to wait between RPC calls if number of processed transactions greater then 2500 (default: 10)")
 	flag.IntVar(&intervalSeconds, "interval", 1, "Number of seconds to wait between RPC calls to query the transaction pool (default: 1)")
 	flag.Parse()
 
@@ -177,5 +199,5 @@ func main() {
 		panic(fmt.Sprintf("Invalid Humbug configuration: %s", err.Error()))
 	}
 
-	PollTxpoolContent(gethClient, intervalSeconds, longIntervalSeconds, reporter)
+	PollTxpoolContent(gethClient, intervalSeconds, reporter)
 }
