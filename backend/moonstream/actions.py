@@ -16,6 +16,7 @@ from . import data
 from .settings import DEFAULT_STREAM_TIMEINTERVAL, ETHERSCAN_SMARTCONTRACTS_BUCKET
 
 logger = logging.getLogger(__name__)
+ETHERSCAN_SMARTCONTRACT_LABEL_NAME = "etherscan_smartcontract"
 
 
 async def get_transaction_in_blocks(
@@ -258,7 +259,7 @@ def parse_search_query_to_sqlalchemy_filters(q: str, allowed_addresses: List[str
     return constructed_filters
 
 
-def get_source_code(
+def get_contract_source_info(
     db_session: Session, contract_address: str
 ) -> Optional[data.EthereumSmartContractSourceInfo]:
     query = db_session.query(EthereumAddress.id).filter(
@@ -272,7 +273,7 @@ def get_source_code(
     )
 
     for label in labels:
-        if label.label == "etherscan_smartcontract":
+        if label.label == ETHERSCAN_SMARTCONTRACT_LABEL_NAME:
             object_uri = label.label_data["object_uri"]
             key = object_uri.split("s3://etherscan-smart-contracts/")[1]
             s3 = boto3.client("s3")
@@ -288,7 +289,7 @@ def get_source_code(
                 )
                 return contract_source_info
             except:
-                logger.error(f"Failed to load smart contract {contract_address}")
+                logger.error(f"Failed to load smart contract {object_uri}")
     return None
 
 
