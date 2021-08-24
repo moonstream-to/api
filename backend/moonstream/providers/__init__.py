@@ -42,6 +42,7 @@ logger.setLevel(logging.WARN)
 event_providers: Dict[str, Any] = {
     ethereum_blockchain.event_type: ethereum_blockchain,
     bugout.whalewatch_provider.event_type: bugout.whalewatch_provider,
+    bugout.ethereum_txpool_provider.event_type: bugout.ethereum_txpool_provider,
 }
 
 

@@ -271,3 +271,7 @@ class BugoutEventProvider:
 whalewatch_provider = BugoutEventProvider(
     event_type="ethereum_whalewatch", tags=["crawl_type:ethereum_trending"]
 )
+
+ethereum_txpool_provider = BugoutEventProvider(
+    event_type="ethereum_txpool", tags=["client:ethereum-txpool-crawler"]
+)
