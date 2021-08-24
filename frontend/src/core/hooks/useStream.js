@@ -23,7 +23,10 @@ const useStream = (q) => {
     setStreamBoundary(defaultBoundary);
   };
 
-  const updateStreamBoundaryWith = (extensionBoundary) => {
+  const updateStreamBoundaryWith = (
+    extensionBoundary,
+    { ignoreStart, ignoreEnd }
+  ) => {
     if (!extensionBoundary) {
       return streamBoundary;
     }
@@ -38,31 +41,34 @@ const useStream = (q) => {
     //   setStreamBoundary(pageBoundary)
     //   return pageBoundary
     // }
-
-    if (
-      !newBoundary.start_time ||
-      (extensionBoundary.start_time &&
-        extensionBoundary.start_time <= newBoundary.start_time)
-    ) {
-      newBoundary.start_time = extensionBoundary.start_time;
+    if (!ignoreStart) {
+      if (
+        !newBoundary.start_time ||
+        (extensionBoundary.start_time &&
+          extensionBoundary.start_time <= newBoundary.start_time)
+      ) {
+        newBoundary.start_time = extensionBoundary.start_time;
+        newBoundary.include_start =
+          newBoundary.include_start || extensionBoundary.include_start;
+      }
       newBoundary.include_start =
         newBoundary.include_start || extensionBoundary.include_start;
     }
-    newBoundary.include_start =
-      newBoundary.include_start || extensionBoundary.include_start;
 
-    if (
-      !newBoundary.end_time ||
-      (extensionBoundary.end_time &&
-        extensionBoundary.end_time >= newBoundary.end_time)
-    ) {
-      newBoundary.end_time = extensionBoundary.end_time;
+    if (!ignoreEnd) {
+      if (
+        !newBoundary.end_time ||
+        (extensionBoundary.end_time &&
+          extensionBoundary.end_time >= newBoundary.end_time)
+      ) {
+        newBoundary.end_time = extensionBoundary.end_time;
+        newBoundary.include_end =
+          newBoundary.include_end || extensionBoundary.include_end;
+      }
+
       newBoundary.include_end =
         newBoundary.include_end || extensionBoundary.include_end;
     }
-
-    newBoundary.include_end =
-      newBoundary.include_end || extensionBoundary.include_end;
 
     setStreamBoundary(newBoundary);
     return newBoundary;
@@ -95,12 +101,11 @@ const useStream = (q) => {
     },
     {
       ...queryCacheProps,
-      keepPreviousData: true,
       retry: 2,
       onSuccess: (newEvents) => {
         if (newEvents && newEvents.stream_boundary && newEvents.events) {
           setEvents([...newEvents.events]);
-          updateStreamBoundaryWith(newEvents.stream_boundary);
+          updateStreamBoundaryWith(newEvents.stream_boundary, {});
         }
       },
     }
@@ -115,8 +120,10 @@ const useStream = (q) => {
             // 5 minutes before the previous event
             start_time: olderEvent.event_timestamp - 5 * 60,
             include_start: true,
-            end_time: streamBoundary.start_time,
-            include_end: !streamBoundary.include_start,
+            // TODO(zomglings): This is a workaround to what seems to be a filter bug on `created_at:<=...` filters
+            // on Bugout journals. Please look into it.
+            end_time: olderEvent.event_timestamp + 1,
+            include_end: false,
           };
           return getEvents(newStreamBoundary);
         }
@@ -124,12 +131,13 @@ const useStream = (q) => {
       {
         ...queryCacheProps,
         enabled: false,
-        keepPreviousData: true,
         retry: 2,
         onSuccess: (newEvents) => {
           if (newEvents && newEvents.stream_boundary && newEvents.events) {
             setEvents([...newEvents.events, ...events]);
-            updateStreamBoundaryWith(newEvents.stream_boundary);
+            updateStreamBoundaryWith(newEvents.stream_boundary, {
+              ignoreEnd: true,
+            });
           }
         },
       }
@@ -141,8 +149,10 @@ const useStream = (q) => {
       () => {
         if (newerEvent) {
           const newStreamBoundary = {
-            start_time: streamBoundary.end_time,
-            include_start: !streamBoundary.include_end,
+            // TODO(zomglings): This is a workaround to what seems to be a filter bug on `created_at:>=...` filters
+            // on Bugout journals. Please look into it.
+            start_time: newerEvent.event_timestamp - 1,
+            include_start: false,
             // 5 minutes after the next event
             end_time: newerEvent.event_timestamp + 5 * 60,
             include_end: true,
@@ -153,12 +163,13 @@ const useStream = (q) => {
       {
         ...queryCacheProps,
         enabled: false,
-        keepPreviousData: true,
         retry: 2,
         onSuccess: (newEvents) => {
           if (newEvents && newEvents.stream_boundary && newEvents.events) {
             setEvents([...events, ...newEvents.events]);
-            updateStreamBoundaryWith(newEvents.stream_boundary);
+            updateStreamBoundaryWith(newEvents.stream_boundary, {
+              ignoreStart: true,
+            });
           }
         },
       }
