@@ -44,9 +44,11 @@ def connect(web3_uri: Optional[str] = MOONSTREAM_IPC_PATH):
     return web3_client
 
 
-def add_block(db_session, block: BlockData) -> None:
+def add_block(db_session, block: Any) -> None:
     """
     Add block if doesn't presented in database.
+
+    block: web3.types.BlockData
     """
     block_obj = EthereumBlock(
         block_number=block.number,
@@ -70,9 +72,11 @@ def add_block(db_session, block: BlockData) -> None:
     db_session.add(block_obj)
 
 
-def add_block_transactions(db_session, block: BlockData) -> None:
+def add_block_transactions(db_session, block: Any) -> None:
     """
     Add block transactions.
+
+    block: web3.types.BlockData
     """
     for tx in block.transactions:
         tx_obj = EthereumTransaction(
@@ -188,7 +192,7 @@ def crawl_blocks_executor(
     Returns nothing, but if there was an error processing the given blocks it raises an EthereumBlocksCrawlError.
     The error message is a list of all the things that went wrong in the crawl.
     """
-    errors: List[Exception] = []
+    errors: List[BaseException] = []
 
     def record_error(f: Future) -> None:
         error = f.exception()
@@ -196,7 +200,7 @@ def crawl_blocks_executor(
             errors.append(error)
 
     worker_indices = range(MOONSTREAM_CRAWL_WORKERS)
-    worker_job_lists = [[] for _ in worker_indices]
+    worker_job_lists: List[List[Any]] = [[] for _ in worker_indices]
     for i, block_number in enumerate(block_numbers_list):
         worker_job_lists[i % MOONSTREAM_CRAWL_WORKERS].append(block_number)
 
@@ -290,6 +294,7 @@ def trending(
     end_timestamp = int(date_range.end_time.timestamp())
 
     def make_query(
+        db_session: Session,
         identifying_column: Column,
         statistic_column: Column,
         aggregate_func: Callable,
@@ -328,6 +333,7 @@ def trending(
 
     try:
         transactions_out_query = make_query(
+            db_session,
             EthereumTransaction.from_address,
             EthereumTransaction.hash,
             func.count,
@@ -339,6 +345,7 @@ def trending(
         ]
 
         transactions_in_query = make_query(
+            db_session,
             EthereumTransaction.to_address,
             EthereumTransaction.hash,
             func.count,
@@ -350,6 +357,7 @@ def trending(
         ]
 
         value_out_query = make_query(
+            db_session,
             EthereumTransaction.from_address,
             EthereumTransaction.value,
             func.sum,
@@ -361,6 +369,7 @@ def trending(
         ]
 
         value_in_query = make_query(
+            db_session,
             EthereumTransaction.to_address,
             EthereumTransaction.value,
             func.sum,
