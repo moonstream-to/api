@@ -1,6 +1,7 @@
 import React from "react";
-import { Flex, Text, Link } from "@chakra-ui/react";
+import { Flex, Text, Link, Heading } from "@chakra-ui/react";
 import CustomIcon from "../components/CustomIcon";
+import RouterLink from "next/link";
 
 const ICONS = [
   {
@@ -20,6 +21,11 @@ const SITEMAP_FLEX_PROPS = {
   fontWeight: "600",
   direction: "column",
   mr: 12,
+};
+
+const LINKS_SIZES = {
+  fontWeight: "300",
+  fontSize: "lg",
 };
 
 const Footer = () => (
@@ -42,31 +48,28 @@ const Footer = () => (
       maxW="40rem"
     >
       <Flex {...SITEMAP_FLEX_PROPS}>
-        {/* <Heading pb={8} size="md">
+        <Heading pb={8} size="md">
           About
-        </Heading> */}
-        {/* <RouterLink passHref href="/team">
+        </Heading>{" "}
+        <RouterLink passHref href="/team">
           <Link {...LINKS_SIZES}>Team</Link>
-        </RouterLink> */}
-        {/* <RouterLink passHref href="/events">
-          <Link {...LINKS_SIZES}>Events</Link>
         </RouterLink>
-        <RouterLink passHref href="http://blog.bugout.dev">
-          <Link {...LINKS_SIZES}>Blog</Link>
-        </RouterLink> */}
+        <RouterLink passHref href="/product">
+          <Link {...LINKS_SIZES}>Product</Link>
+        </RouterLink>
       </Flex>
+
       <Flex {...SITEMAP_FLEX_PROPS}>
-        {/* <Heading pb={8} size="md">
-          Legal
+        <Heading pb={8} size="md">
+          News
         </Heading>
-        <RouterLink href="/tos" passHref>
-          <Link {...LINKS_SIZES}>Terms of service</Link>
-        </RouterLink> */}
+        <RouterLink passHref href="http://blog.moonstream.to">
+          <Link {...LINKS_SIZES}>Blog</Link>
+        </RouterLink>
         {/* <RouterLink passHref href="/privacy-policy">
           <Link {...LINKS_SIZES}>Privacy policy</Link>
         </RouterLink> */}
       </Flex>
-
       {/* <Flex {...SITEMAP_FLEX_PROPS}>
         <Heading pb={8} size="md">
           Product
@@ -94,7 +97,7 @@ const Footer = () => (
         fontSize="xl"
         fontWeight="500"
       >
-        Stay in touch{` `}
+        All the crypto data you care about{` `}
         <span role="img" aria-label="heart">
           💙
         </span>
