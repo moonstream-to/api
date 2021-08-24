@@ -84,11 +84,13 @@ async def txinfo_ethereum_blockchain_handler(
         if smart_contract is not None:
             response.is_smart_contract_deployment = True
     else:
-        response.smart_contract_info = actions.get_source_code(
+        source_info = actions.get_contract_source_info(
             db_session, txinfo_request.tx.to_address
         )
-        response.smart_contract_address = txinfo_request.tx.to_address
-        response.is_smart_contract_call = True
+        if source_info is not None:
+            response.smart_contract_info = source_info
+            response.smart_contract_address = txinfo_request.tx.to_address
+            response.is_smart_contract_call = True
     return response
 
 
