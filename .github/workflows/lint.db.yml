@@ -19,9 +19,9 @@ jobs:
       - name: Install test requirements
         working-directory: ./db
         run: pip install -e .[dev]
-      # - name: Mypy type check
-      #   working-directory: ./db
-      #   run: mypy moonstreamdb/
+      - name: Mypy type check
+        working-directory: ./db
+        run: mypy moonstreamdb/
       - name: Black syntax check
         working-directory: ./db
         run: black --check moonstreamdb/
