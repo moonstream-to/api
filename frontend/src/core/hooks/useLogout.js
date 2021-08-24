@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useContext } from "react";
+import { useCallback, useContext } from "react";
 import { useMutation, useQueryClient } from "react-query";
 import { useUser, useRouter, useAnalytics } from ".";
 import UIContext from "../providers/UIProvider/context";
@@ -8,7 +8,7 @@ const useLogout = () => {
   const { setLoggingOut } = useContext(UIContext);
   const router = useRouter();
   const analytics = useAnalytics();
-  const { mutate: revoke, data } = useMutation(AuthService.revoke, {
+  const { mutate: revoke } = useMutation(AuthService.revoke, {
     onSuccess: () => {
       if (analytics.isLoaded) {
         analytics.mixpanel.track(
@@ -16,6 +16,10 @@ const useLogout = () => {
           {}
         );
       }
+      localStorage.removeItem("MOONSTREAM_ACCESS_TOKEN");
+      cache.clear();
+      setUser(null);
+      router.push("/");
     },
   });
   const { setUser } = useUser();
@@ -23,20 +27,8 @@ const useLogout = () => {
 
   const logout = useCallback(() => {
     setLoggingOut(true);
-    router.replace("/");
     revoke();
-    setUser(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [revoke, setUser, router]);
-
-  useEffect(() => {
-    if (!data) {
-      return;
-    }
-
-    localStorage.removeItem("MOONSTREAM_ACCESS_TOKEN");
-    cache.clear();
-  }, [data, cache]);
+  }, [revoke, setLoggingOut]);
 
   return {
     logout,
