@@ -246,19 +246,19 @@ const Product = () => {
           Our marketing and growth team
         </Heading>
         <chakra.span pl={2} px={12} py={2}>
-          <UnorderedList w="75%" pl={4}>
+          <UnorderedList w="75%" pl={4} spacing={2}>
             <ListItem>
-              <b>Pahita{". "}</b> Dreamer. An alien who pretends to be a human.
+              <b>pahita{". "}</b> Dreamer. An alien who pretends to be a human.
               So far so good. Loves ecstatic dance, being alone in nature and
               dreaming.
             </ListItem>
             <ListItem>
-              <b>In_technicolor{". "}</b>Mediator. Loves stand-up comedy and
+              <b>in_technicolor{". "}</b>Mediator. Loves stand-up comedy and
               crying at nights. Volunteered at a horse farm once. Portrait
               artist, puts the pain in painting.
             </ListItem>
             <ListItem>
-              <b>Nanaland{". "}</b>Progress and Enthusiasm. Traveled to the
+              <b>nanaland{". "}</b>Progress and Enthusiasm. Traveled to the
               North Korean border at the age of 19. Half German. Counseling
               psychologist who switched to tech marketing and sales.
             </ListItem>
