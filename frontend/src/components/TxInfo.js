@@ -9,6 +9,7 @@ import {
   Box,
   VStack,
 } from "@chakra-ui/react";
+import ContractSource from './ContractSource'
 import { Table, Thead, Tbody, Tr, Th, Td } from "@chakra-ui/react";
 const toEth = (wei) => {
   return wei / Math.pow(10, 18);
@@ -94,10 +95,13 @@ const TxInfo = (props) => {
             )}
         </Tbody>
       </Table>
-      {transaction.tx.input && transaction.tx.input !== "0x" && (
-        <TxABI byteCode={transaction.tx.input} abi={transaction.abi} />
-      )}
-    </Box>
+      {transaction.smart_contract_info && <ContractSource source_info={transaction.smart_contract_info} />}
+      {
+        transaction.tx.input && transaction.tx.input !== "0x" && (
+          <TxABI byteCode={transaction.tx.input} abi={transaction.abi} />
+        )
+      }
+    </Box >
   );
 };
 export default TxInfo;

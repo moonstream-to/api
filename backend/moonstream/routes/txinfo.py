@@ -8,6 +8,8 @@ end users.
 import logging
 from typing import Dict, Optional
 
+from sqlalchemy.sql.expression import true
+
 from fastapi import FastAPI, Depends, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from moonstreamdb.db import yield_db_session
@@ -71,19 +73,22 @@ async def txinfo_ethereum_blockchain_handler(
             logger.error(err)
             response.errors.append("Could not decode ABI from the given input")
 
-    smart_contract = (
-        db_session.query(EthereumAddress)
-        .filter(EthereumAddress.transaction_hash == txinfo_request.tx.hash)
-        .one_or_none()
-    )
-
-    if smart_contract is not None:
-        response.smart_contract_address = smart_contract.address
-        if txinfo_request.tx.to_address is None:
+    # transaction is contract deployment:
+    if txinfo_request.tx.to_address is None:
+        response.is_smart_contract_deployment = True
+        smart_contract = (
+            db_session.query(EthereumAddress)
+            .filter(EthereumAddress.transaction_hash == txinfo_request.tx.hash)
+            .one_or_none()
+        )
+        if smart_contract is not None:
             response.is_smart_contract_deployment = True
-        elif txinfo_request.tx.to_address == smart_contract.address:
-            response.is_smart_contract_call = True
-
+    else:
+        response.smart_contract_info = actions.get_source_code(
+            db_session, txinfo_request.tx.to_address
+        )
+        response.smart_contract_address = txinfo_request.tx.to_address
+        response.is_smart_contract_call = True
     return response
 
 
@@ -92,8 +97,8 @@ async def txinfo_ethereum_blockchain_handler(
 )
 async def addresses_labels_handler(
     addresses: Optional[str] = Query(None),
-    start: Optional[int] = Query(0),
-    limit: Optional[int] = Query(100),
+    start: int = Query(0),
+    limit: int = Query(100),
     db_session: Session = Depends(yield_db_session),
 ) -> data.AddressListLabelsResponse:
     """
@@ -105,11 +110,11 @@ async def addresses_labels_handler(
             status_code=406, detail="The limit cannot exceed 100 addresses"
         )
     try:
-        addresses = actions.get_address_labels(
+        addresses_response = actions.get_address_labels(
             db_session=db_session, start=start, limit=limit, addresses=addresses
         )
     except Exception as err:
         logger.error(f"Unable to get info about Ethereum addresses {err}")
         raise HTTPException(status_code=500)
 
-    return addresses
+    return addresses_response

@@ -40,7 +40,9 @@ setup(
         "web3",
         "boto3",
     ],
-    extras_require={"dev": ["black", "mypy", "types-requests"]},
+    extras_require={
+        "dev": ["black", "mypy", "types-requests", "types-python-dateutil"]
+    },
     entry_points={
         "console_scripts": [
             "ethcrawler=mooncrawl.ethcrawler:main",

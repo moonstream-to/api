@@ -19,6 +19,7 @@ import {
   SimpleGrid,
   useMediaQuery,
   Grid,
+  Text,
   GridItem,
 } from "@chakra-ui/react";
 import dynamic from "next/dynamic";
@@ -28,7 +29,6 @@ import useModals from "../src/core/hooks/useModals";
 import useRouter from "../src/core/hooks/useRouter";
 import { MIXPANEL_PROPS } from "../src/core/providers/AnalyticsProvider/constants";
 import UIContext from "../src/core/providers/UIProvider/context";
-
 const SplitWithImage = dynamic(
   () => import("../src/components/SplitWithImage"),
   {
@@ -244,17 +244,21 @@ const Homepage = () => {
                         textAlign="center"
                         alignItems="center"
                         spacing={6}
-                        maxW="1620px"
+                        maxW={["1620px", null, null, null, "1620px", "2222px"]}
                         px="7%"
                         h="100%"
                         pt={["10vh", null, "20vh"]}
                       >
-                        <Heading size="2xl" fontWeight="semibold" color="white">
+                        <Heading
+                          fontSize={["lg", "4xl", "5xl", "5xl", "5xl", "6xl"]}
+                          fontWeight="semibold"
+                          color="white"
+                        >
                           All the crypto data you care about in a single stream
                         </Heading>
                         <chakra.span
                           my={12}
-                          fontSize={["lg", null, "xl"]}
+                          fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
                           display="inline-block"
                           color="primary.200"
                         >
@@ -263,7 +267,7 @@ const Homepage = () => {
                           pool to Elon Musk’s latest tweets.
                         </chakra.span>
                         <chakra.span
-                          fontSize={["lg", null, "xl"]}
+                          fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
                           display="inline-block"
                           color="primary.300"
                         >
@@ -279,18 +283,44 @@ const Homepage = () => {
               <GridItem
                 px="7%"
                 colSpan="12"
-                pt={["20px", "20px", "100px", null, "120px"]}
+                // pt={["20px", "20px", "100px", null, "120px"]}
+                pt={0}
                 pb={["20px", "56px", null, "184px"]}
                 minH="100vh"
               >
+                <chakra.span
+                  // {...HEADING_PROPS}
+                  textAlign="center"
+                  fontWeight="600"
+                  fontSize="lg"
+                  w="100%"
+                  h="fit-content"
+                >
+                  <Text
+                    mb={18}
+                    // mb={[12, 12, 12, null, 48]}
+                    fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
+                  >
+                    {` We believe in financial inclusion. Proprietary technologies
+                    are not financially inclusive. That's why all our software
+                    is `}
+                    <chakra.span
+                      display="inline-block"
+                      textColor="secondary.900"
+                    >
+                      <i>open source</i>
+                    </chakra.span>
+                  </Text>
+                </chakra.span>
+
                 <Heading
                   {...HEADING_PROPS}
                   textAlign="center"
+                  mt={16}
                   pb={[12, 12, 12, null, 48]}
                 >
                   Data you can add to your stream:
                 </Heading>
-
                 <SimpleGrid columns={[1, 2, 2, 4, null, 4]}>
                   <Stack spacing={1} px={1} alignItems="center">
                     <ChakraImage
@@ -484,6 +514,16 @@ const Homepage = () => {
                         [`${MIXPANEL_PROPS.BUTTON_CLICKED}`]: `Early access CTA: developer`,
                       });
                       toggleModal("hubspot-developer");
+                    },
+                  }}
+                  socialButton={{
+                    url: "https://github.com/bugout-dev/moonstream/",
+                    network: "github",
+                    label: "See our github",
+                    onClick: () => {
+                      track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                        [`${MIXPANEL_PROPS.BUTTON_CLICKED}`]: `Github link in landing page`,
+                      });
                     },
                   }}
                   elementName={"element3"}

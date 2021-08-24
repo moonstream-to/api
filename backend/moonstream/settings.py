@@ -16,8 +16,8 @@ MOONSTREAM_DATA_JOURNAL_ID = os.environ.get("MOONSTREAM_DATA_JOURNAL_ID")
 if MOONSTREAM_DATA_JOURNAL_ID is None:
     raise ValueError("MOONSTREAM_DATA_JOURNAL_ID environment variable must be set")
 
-MOONSTREAM_ADMIN_ACCESS_TOKEN = os.environ.get("MOONSTREAM_ADMIN_ACCESS_TOKEN")
-if MOONSTREAM_ADMIN_ACCESS_TOKEN is None:
+MOONSTREAM_ADMIN_ACCESS_TOKEN = os.environ.get("MOONSTREAM_ADMIN_ACCESS_TOKEN", "")
+if MOONSTREAM_ADMIN_ACCESS_TOKEN == "":
     raise ValueError("MOONSTREAM_ADMIN_ACCESS_TOKEN environment variable must be set")
 
 # Origin
@@ -41,3 +41,6 @@ for path in MOONSTREAM_OPENAPI_LIST:
     DOCS_PATHS[f"/{path}/{DOCS_TARGET_PATH}/openapi.json"] = "GET"
 
 DEFAULT_STREAM_TIMEINTERVAL = 5 * 60
+
+# S3 Bucket
+ETHERSCAN_SMARTCONTRACTS_BUCKET = "etherscan-smart-contracts"
