@@ -9,6 +9,8 @@ import {
   useMediaQuery,
   UnorderedList,
   ListItem,
+  Box,
+  SimpleGrid,
 } from "@chakra-ui/react";
 import { DEFAULT_METATAGS } from "../../src/core/constants";
 import UIContext from "../../src/core/providers/UIProvider/context";
@@ -21,6 +23,7 @@ const assets = {
   background1920: `${AWS_PATH}/blog-background-720x405.png`,
   background2880: `${AWS_PATH}/blog-background-720x405.png`,
   background3840: `${AWS_PATH}/blog-background-720x405.png`,
+  team: `${AWS_PATH}/Team-page-illustration.png`,
 };
 
 const Product = () => {
@@ -116,38 +119,50 @@ const Product = () => {
       alignItems="center"
       w="100%"
     >
-      <Stack mx={margin} my={6} maxW="1700px">
-        <Heading as="h2" size="md" w="100%" px={12} py={2} borderTopRadius="xl">
-          Meet The Moonstream Team
-        </Heading>
-        <chakra.span pl={2} px={12} py={2}>
-          <Text mb={2}>
-            We are a distributed team of nerds with very strong expertise in
-            math, software engineering, machine learning, and cryptography.
-            Members of our team worked at Google, at OpenAI and other great
-            companies.
-          </Text>
-          <Text mb={2}>
-            We believe that the crypto world opens opportunities for financial
-            inclusion. Meaning that people from all walks of life and financial
-            situations can have a new source of income. We are passionate about
-            developing technology that helps people become active participants
-            in this field and take advantage of this opportunity. We’re striving
-            to debunk harmful stereotypes and make the crypto field more
-            inclusive.
-          </Text>
-        </chakra.span>
-      </Stack>
-      <Stack mx={margin} my={6} maxW="1700px">
-        <Heading
-          as="h2"
-          size="md"
-          w="100%"
-          //   bgColor="gray.200"
+      <Stack mx={margin} mt={6} maxW="1700px" w="100%">
+        <SimpleGrid
           px={12}
-          py={2}
-          borderTopRadius="xl"
+          alignItems="start"
+          columns={{ base: 1, md: 2 }}
+          // mb={24}
+          spacingY={{ base: 10, md: 32 }}
+          spacingX={{ base: 10, md: 24 }}
         >
+          <Box>
+            <Heading as="h2" size="md" w="100%" py={2} borderTopRadius="xl">
+              Meet The Moonstream Team
+            </Heading>
+            <chakra.span pl={2} py={2}>
+              <Text mb={2}>
+                We are a distributed team of nerds with very strong expertise in
+                math, software engineering, machine learning, and cryptography.
+                Members of our team worked at Google, at OpenAI and other great
+                companies.
+              </Text>
+              <Text mb={2}>
+                We believe that the crypto world opens opportunities for
+                financial inclusion. Meaning that people from all walks of life
+                and financial situations can have a new source of income. We are
+                passionate about developing technology that helps people become
+                active participants in this field and take advantage of this
+                opportunity. We’re striving to debunk harmful stereotypes and
+                make the crypto field more inclusive.
+              </Text>
+            </chakra.span>
+          </Box>
+          <Box
+            w="full"
+            h="full"
+            py={48}
+            backgroundImage={`url(${assets[`team`]})`}
+            backgroundSize="cover"
+            bgPos="bottom"
+            bgColor="transparent"
+          ></Box>
+        </SimpleGrid>
+      </Stack>
+      <Stack mx={margin} my={6} maxW="1700px" w="100%">
+        <Heading as="h2" size="md" w="100%" px={12} py={2} borderTopRadius="xl">
           Values that we share within our team:
         </Heading>
         <chakra.span pl={2} px={12} py={2}>
@@ -175,16 +190,8 @@ const Product = () => {
           </Text>
         </chakra.span>
       </Stack>
-      <Stack mx={margin} mb={12} maxW="1700px">
-        <Heading
-          as="h2"
-          size="md"
-          w="100%"
-          // bgColor="gray.200"
-          px={12}
-          py={2}
-          borderTopRadius="xl"
-        >
+      <Stack mx={margin} mb={12} maxW="1700px" w="100%">
+        <Heading as="h2" size="md" w="100%" px={12} py={2} borderTopRadius="xl">
           Our engineering team
         </Heading>
         <chakra.span pl={2} px={12} py={2}>
@@ -220,7 +227,7 @@ const Product = () => {
           </UnorderedList>
         </chakra.span>
       </Stack>
-      <Stack mx={margin} mb={12} maxW="1700px">
+      <Stack mx={margin} mb={12} maxW="1700px" w="100%">
         <Heading as="h2" size="md" w="100%" px={12} py={2} borderTopRadius="xl">
           Our marketing and growth team
         </Heading>
