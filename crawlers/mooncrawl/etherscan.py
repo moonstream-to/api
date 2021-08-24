@@ -1,21 +1,22 @@
 import argparse
-import boto3
+import sys
+import time
+from datetime import datetime
+from typing import Any, List, Optional, Dict
+from dataclasses import dataclass
 import csv
 import codecs
 import json
 import os
-from sqlalchemy.orm import Session
+
+import boto3  # type: ignore
 from moonstreamdb.db import yield_db_session_ctx
-import sys
-import time
-from datetime import datetime
-from typing import Any, List, Optional, Tuple, Dict
-from dataclasses import dataclass
-from sqlalchemy.sql.expression import label, text
-from .version import MOONCRAWL_VERSION
 from moonstreamdb.models import EthereumAddress, EthereumLabel
 import requests
+from sqlalchemy.orm import Session
+from sqlalchemy.sql.expression import text
 
+from .version import MOONCRAWL_VERSION
 from .settings import MOONSTREAM_ETHERSCAN_TOKEN
 
 if MOONSTREAM_ETHERSCAN_TOKEN is None:
