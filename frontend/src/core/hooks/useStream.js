@@ -6,9 +6,7 @@ import { queryCacheProps } from "./hookCommon";
 import { defaultStreamBoundary } from "../services/servertime.service.js";
 
 const useStream = (q) => {
-  const [streamQuery, setStreamQuery] = useState(
-    q || "type:ethereum_whalewatch"
-  );
+  const [streamQuery, setStreamQuery] = useState(q || "");
   const [events, setEvents] = useState([]);
   const [streamBoundary, setStreamBoundary] = useState({});
   const [olderEvent, setOlderEvent] = useState(null);
