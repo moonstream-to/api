@@ -18,6 +18,11 @@ import {
   Flex,
   IconButton,
   Tooltip,
+  Accordion,
+  AccordionItem,
+  AccordionButton,
+  AccordionPanel,
+  AccordionIcon,
 } from "@chakra-ui/react";
 import StepProgress from "../src/components/StepProgress";
 import { ArrowLeftIcon, ArrowRightIcon } from "@chakra-ui/icons";
@@ -31,7 +36,6 @@ import router from "next/router";
 import { FaFilter } from "react-icons/fa";
 
 const Welcome = () => {
-  console.count("render welcome!");
   const { subscriptionsCache } = useSubscriptions();
   const ui = useContext(UIContext);
   const { mixpanel, isLoaded, MIXPANEL_PROPS } = useContext(AnalyticsContext);
@@ -99,22 +103,19 @@ const Welcome = () => {
                 py={4}
               >
                 <Heading as="h4" size="md">
-                  Greetings traveller!
+                  Greetings traveler!
                 </Heading>
                 <Text fontWeight="semibold" pl={2}>
-                  {" "}
                   We are very excited to see you onboard!
                 </Text>
 
                 <Text fontWeight="semibold" pl={2}>
                   Moonstream is a product which helps anyone participate in
-                  decentralized finance. From the most sophisticated flash
-                  arbitrageurs to people looking for yield from currency that
-                  would otherwise lie dormant in their exchange accounts.
+                  decentralized finance.
                 </Text>
                 <Text fontWeight="semibold" pl={2}>
-                  Moonstream is ment to give you critical insights needed to
-                  succeed in your crypto quest!
+                  Moonstream is meant to give you critical insights you’ll need
+                  to succeed in your crypto quest!
                 </Text>
               </Stack>
               <Stack
@@ -125,38 +126,54 @@ const Welcome = () => {
                 boxShadow="xl"
                 py={4}
               >
-                <Heading as="h4" size="md">
-                  How does Moonstream work?
-                </Heading>
-                <chakra.span fontWeight="semibold" pl={2}>
-                  <Text fontWeight="bold" display="inline">
-                    We run nodes
-                  </Text>{" "}
-                  - Now get most precise and accurate data you can just query
-                  our database. You {`don't`} need to maintain your node, and
-                  still have data that miners have access to!
-                </chakra.span>
-                <chakra.span fontWeight="semibold" pl={2}>
-                  <Text fontWeight="bold" display="inline">
-                    We crawl data
-                  </Text>{" "}
-                  We analyze millions of transactions, data, smart contract code
-                  to link all them together
-                </chakra.span>
+                <Accordion allowToggle>
+                  <AccordionItem borderWidth={0}>
+                    <h2>
+                      <AccordionButton borderWidth={0}>
+                        <Heading as="h4" size="md">
+                          How does Moonstream work?
+                        </Heading>
+                        <AccordionIcon />
+                      </AccordionButton>
+                    </h2>
+                    <AccordionPanel pb={4} borderWidth={0}>
+                      <Stack direction="column">
+                        <chakra.span fontWeight="semibold" pl={2}>
+                          <Text fontWeight="bold" display="inline">
+                            We run nodes
+                          </Text>{" "}
+                          - Get precise and accurate data by querying our
+                          database. You’re getting the same data miners have
+                          access to and you don’t have to maintain your own
+                          node.
+                        </chakra.span>
+                        <chakra.span fontWeight="semibold" pl={2}>
+                          <Text fontWeight="bold" display="inline">
+                            We crawl data
+                          </Text>{" "}
+                          - We analyze millions of transactions, data, and smart
+                          contract code to link them together.
+                        </chakra.span>
 
-                <chakra.span fontWeight="semibold" pl={2}>
-                  <Text fontWeight="bold" display="inline">
-                    We provide data
-                  </Text>{" "}
-                  We allow you to fetch data trough the website or trough API
-                </chakra.span>
+                        <chakra.span fontWeight="semibold" pl={2}>
+                          <Text fontWeight="bold" display="inline">
+                            We provide data
+                          </Text>
+                          - You can fetch data through our front end or through
+                          API.
+                        </chakra.span>
 
-                <chakra.span fontWeight="semibold" pl={2}>
-                  <Text fontWeight="bold" display="inline">
-                    We analyze data
-                  </Text>{" "}
-                  We find most interesting stuff and show it to you!
-                </chakra.span>
+                        <chakra.span fontWeight="semibold" pl={2}>
+                          <Text fontWeight="bold" display="inline">
+                            We analyze data
+                          </Text>
+                          - We find the most interesting information and
+                          highlight it
+                        </chakra.span>
+                      </Stack>
+                    </AccordionPanel>
+                  </AccordionItem>
+                </Accordion>
               </Stack>
               <Stack
                 px={12}
@@ -166,55 +183,71 @@ const Welcome = () => {
                 boxShadow="xl"
                 py={4}
               >
-                <Heading as="h4" size="md">
-                  UI 101?
-                </Heading>
-                <Text fontWeight="semibold" pl={2}>
-                  On the left side corner there is sidebar that you can use to
-                  navigate across the website. There are following views you can
-                  navigate to:
-                </Text>
-                <chakra.span fontWeight="semibold" pl={2}>
-                  <Text fontWeight="bold" display="inline">
-                    Subscriptions
-                  </Text>{" "}
-                  - Use this screen to set up addresses you would like to
-                  monitor to.{" "}
-                  <i>
-                    NB: Without setting up subscriptions moonstream will have
-                    quite empty feel!{" "}
-                  </i>{" "}
-                  No worries, we will help you to set up your subscriptions in
-                  the next steps!
-                </chakra.span>
-                <chakra.span fontWeight="semibold" pl={2}>
-                  <Text fontWeight="bold" display="inline">
-                    Stream
-                  </Text>{" "}
-                  This view is somewhat similar to a bank statement where you
-                  can define time range and see what happened in that time over
-                  your subscriptions. In next steps we will show how you can
-                  apply filters to it!
-                </chakra.span>
+                <Accordion allowToggle>
+                  <AccordionItem borderWidth={0}>
+                    <h2>
+                      <AccordionButton borderWidth={0}>
+                        <Heading as="h4" size="md">
+                          UI navigation basics
+                        </Heading>
+                        <AccordionIcon />
+                      </AccordionButton>
+                    </h2>
+                    <AccordionPanel pb={4} borderWidth={0}>
+                      <Stack dir="column">
+                        <Text fontWeight="semibold" pl={2}>
+                          Use the sidebar on the left for navigation:
+                        </Text>
+                        <chakra.span fontWeight="semibold" pl={2}>
+                          <Text fontWeight="bold" display="inline">
+                            Subscriptions
+                          </Text>
+                          Set up addresses you would like to monitor.{" "}
+                          <i>
+                            NB: Without any subscriptions, Moonstream will feel
+                            quite empty!
+                          </i>{" "}
+                          No worries, we will help you set up your
+                          subscriptions.
+                          <i>
+                            NB: Without setting up subscriptions moonstream will
+                            have quite empty feel!{" "}
+                          </i>{" "}
+                          No worries, we will help you to set up your
+                          subscriptions in the next steps!
+                        </chakra.span>
+                        <chakra.span fontWeight="semibold" pl={2}>
+                          <Text fontWeight="bold" display="inline">
+                            Stream
+                          </Text>{" "}
+                          This view is similar to a bank statement. You can
+                          define a date range and see what happened with your
+                          subscriptions during that time. You can also apply
+                          filters to it.
+                        </chakra.span>
 
-                <chakra.span fontWeight="semibold" pl={2}>
-                  <Text fontWeight="bold" display="inline">
-                    Stream Entry
-                  </Text>{" "}
-                  You can see detailed view of stream cards with very specific
-                  and essential data, like methods called in smart contracts
-                  etc!!
-                </chakra.span>
+                        <chakra.span fontWeight="semibold" pl={2}>
+                          <Text fontWeight="bold" display="inline">
+                            Stream Entry
+                          </Text>{" "}
+                          - See a detailed view of stream cards with specific
+                          and essential data, like methods called in smart
+                          contracts etc
+                        </chakra.span>
 
-                <chakra.span fontWeight="semibold" pl={2}>
-                  <Text fontWeight="bold" display="inline">
-                    Analytics
-                  </Text>{" "}
-                  This section is under construction yet. Soon you will be able
-                  to create your dashboard with data of your interest. We will
-                  really appretiate if you visit that section, and fill up form
-                  describing what analytical tools you would love to see there!
-                </chakra.span>
+                        <chakra.span fontWeight="semibold" pl={2}>
+                          <Text fontWeight="bold" display="inline">
+                            Analytics
+                          </Text>{" "}
+                          - This section is under construction. Soon you will be
+                          able to create dashboards there. Right now you can
+                          fill out a form to tell us what analytical tools you’d
+                          want to see. We’d really appreciate that :)
+                        </chakra.span>
+                      </Stack>
+                    </AccordionPanel>
+                  </AccordionItem>
+                </Accordion>
               </Stack>
 
               <Stack
@@ -226,25 +259,32 @@ const Welcome = () => {
                 py={4}
               >
                 <Heading as="h4" size="md">
-                  Tell us more about your needs?
+                  Tell us more about your needs
                 </Heading>
                 <Text fontWeight="semibold" pl={2}>
-                  In order to fetch best possible experience, we would like to
-                  know some details about you
+                  In order to create the best possible experience, we would love
+                  to find out some more about you.
                 </Text>
                 <Text fontWeight="semibold" pl={2}>
-                  Please tell us what profile describes you best?{" "}
+                  Please tell us what profile describes you best.{" "}
                   <i>
                     This is purely analytical data, you can change it anytime
-                    later
+                    later.
                   </i>
                 </Text>
                 <RadioGroup
+                  position="relative"
                   onChange={setProfile}
                   value={profile}
-                  fontWeight="bold"
+                  // fontWeight="bold"
+                  colorScheme="secondary"
+                  // py={0}
+                  // my={0}
                 >
-                  <Stack direction="row" justifyContent="space-evenly">
+                  <Stack
+                    direction={["column", "row", null]}
+                    justifyContent="space-evenly"
+                  >
                     <Radio value="trader">I am trading crypto currency</Radio>
                     <Radio value="fund">I represent investment fund</Radio>
                     <Radio value="developer">I am developer</Radio>
@@ -270,24 +310,26 @@ const Welcome = () => {
                   Subscriptions
                 </Heading>
                 <chakra.span fontWeight="semibold" pl={2}>
-                  Subscriptions is essential tool of Moonstream. We gather data
-                  for you based on addresses you have subscribed for.
+                  Subscriptions are an essential tool of Moonstream. We gather
+                  data for you based on addresses you have subscribed to.
                   <br />
-                  Subscribe to any addres which you are interested in and they
-                  will become part of your stream!
+                  Subscribe to any address you are interested in and it will
+                  become part of your stream.
+                  <br />
+                  Name of subscription (you can change it later).
                   <UnorderedList>
                     <ListItem>
-                      Color - you can define color to easily identify this
+                      Color - you can set colors to easily identify a
                       subscription in your stream
                     </ListItem>
-                    <ListItem>Address - thing you subscribe to</ListItem>
+                    <ListItem>Address - the address you subscribe to</ListItem>
                     <ListItem>
-                      Label - Its good idea to use human readible name that
-                      represents address
+                      Label - we recommend using a human-readable name that
+                      represents the subscription
                     </ListItem>
                     <ListItem>
-                      Source - In Alpha we support only Ethereum blockchain,
-                      more sources are coming soon!
+                      Source - In Alpha we’re only supporting Ethereum
+                      blockchain, but more sources are coming soon!
                     </ListItem>
                   </UnorderedList>
                 </chakra.span>
@@ -342,35 +384,32 @@ const Welcome = () => {
                 <chakra.span fontWeight="semibold" pl={2}>
                   We are almost done!
                   <br />
-                  {`Stream is where you can read data you've subscribed for. Here
-                  you have different cards for different subscription types.`}
+                  {`Stream is where you can read data you've subscribed to. There are different cards for different subscription types.`}
                   <br />
-                  If card has some extra details - there will be orange button
-                  on right hand side inviting you to see more!
+                  If the card has some extra details, there will be an orange
+                  button on the right hand side inviting you to see more!
                   <br />
-                  Below is typical card for ethereum blockchain event. Useful
-                  information right on the card:
+                  Below is a typical card for an Ethereum blockchain event.
+                  Useful information right on the card:
                   <UnorderedList py={2}>
-                    <ListItem>Hash - unique ID of the event </ListItem>
+                    <ListItem>Hash - Unique ID of the event</ListItem>
                     <ListItem>
-                      From - sender address. If it is one of your subscription
-                      addresses - will appear in color and with label{" "}
+                      From - Sender address. If it is one of your subscription
+                      addresses, it will appear in color with a label
                     </ListItem>
                     <ListItem>
-                      To - receiver address. If it is one of your subscription
-                      addresses - will appear in color and with label{" "}
+                      To - Receiver address. If it is one of your subscription
+                      addresses, it will appear in color with a label
                     </ListItem>
                     <ListItem>
-                      Nonce - Counter how many transactions address has sent. It
-                      also determines sequence of transaction!{" "}
+                      Nonce - Counter how many transaction addresses have been
+                      sent. It also determines the sequence of transactions!
                     </ListItem>
                     <ListItem>
-                      Gas Price - this is how much ether is being paid per gas
+                      Gas Price - This is how much ether is being paid per gas
                       unit
                     </ListItem>
-                    <ListItem>
-                      Gas - Ammount of gas this event consumes
-                    </ListItem>
+                    <ListItem>Gas - Amount of gas this event consumes</ListItem>
                   </UnorderedList>
                 </chakra.span>
               </Stack>
@@ -402,6 +441,7 @@ const Welcome = () => {
                 <StreamEntry
                   mt={20}
                   entry={{
+                    event_type: "ethereum_blockchain",
                     from_address: "this is address from",
                     to_address: "this is to address",
                     hash: "this is hash",
@@ -422,9 +462,10 @@ const Welcome = () => {
                   Applying filters
                 </Heading>
                 <chakra.span fontWeight="semibold" pl={2}>
-                  You can apply various filters by clicking filter menu button
+                  You can apply various filters by clicking the filter menu
+                  button.
                   <br />
-                  {`Right now you can use it to select address from and to, we are adding more complex queries soon, stay tuna! `}
+                  {`Right now you can use it to select addresses from and to, and we are adding more complex queries soon — stay tuned!`}
                   <br />
                 </chakra.span>
               </Stack>
@@ -444,20 +485,30 @@ const Welcome = () => {
               scrollRef?.current?.scrollIntoView();
             }}
           >
-            Previous
+            Go back
           </Button>
           <Spacer />
           <Button
-            colorScheme="secondary"
-            variant="solid"
-            rightIcon={<ArrowRightIcon />}
-            // hidden={!(ui.onboardingStep < ui.onboardingSteps.length - 1)}
-            // disabled={!(ui.onboardingStep < ui.onboardingSteps.length - 1)}
+            colorScheme={
+              ui.onboardingStep < ui.onboardingSteps.length - 1
+                ? `secondary`
+                : `suggested`
+            }
+            variant={
+              ui.onboardingStep < ui.onboardingSteps.length - 1
+                ? `solid`
+                : `outline`
+            }
+            rightIcon={
+              ui.onboardingStep < ui.onboardingSteps.length - 1 && (
+                <ArrowRightIcon />
+              )
+            }
             onClick={() => handleNextClick()}
           >
             {ui.onboardingStep < ui.onboardingSteps.length - 1
               ? `Next`
-              : `Finish `}
+              : `Finish and move to stream`}
           </Button>
         </ButtonGroup>
       </Stack>
