@@ -3,7 +3,7 @@ import logging
 
 
 from typing import Dict, Any, List, Optional, Union
-
+from enum import Enum
 from sqlalchemy.engine.base import Transaction
 from moonstreamdb.models import (
     EthereumBlock,
@@ -263,6 +263,52 @@ def parse_search_query_to_sqlalchemy_filters(q: str, allowed_addresses: List[str
             )
 
     return constructed_filters
+
+
+class AdressType:
+    TOKEN = 0
+    SMART_CONTRACT = 1
+    NFT = 2
+    EXCHANGE = 3
+
+
+class LabelNames(Enum):
+    ETHERSCAN_SMARTCONTRACT = "etherscan_smartcontract"
+    COINMARKETCAP_TOKEN = "coinmarketcap_token"
+    EXCHANGE = "EXCANGE"
+
+
+def get_ethereum_address_info(
+    db_session: Session, address: str
+) -> Optional[data.EthereumAddressInfo]:
+    query = db_session.query(EthereumAddress.id).filter(
+        EthereumAddress.address == address
+    )
+    id = query.one_or_none()
+    if id is None:
+        return None
+    labels = (
+        db_session.query(EthereumLabel).filter(EthereumLabel.address_id == id[0]).all()
+    )
+    address_info = data.EthereumAddressInfo(address=address)
+    for label in labels:
+        if label.label == LabelNames.ETHERSCAN_SMARTCONTRACT:
+            address_info.address_type = AdressType.SMART_CONTRACT
+            address_info.details.name = label.label_data["name"]
+            address_info.details.external_URL = (
+                f"https://etherscan.io/address/{address}"
+            )
+        elif label.label == LabelNames.COINMARKETCAP_TOKEN:
+            address_info.address_type = AdressType.TOKEN
+            address_info.details.name = label.label_data["name"]
+            address_info.details.symbol = label.label_data["symbol"]
+            address_info.details.external_URL = label.label_data["coinmarketcap_url"]
+        elif label.label == LabelNames.EXCHANGE:
+            address_info.address_type = AdressType.EXCHANGE
+            address_info.details.name = label.label_data["name"]
+            address_info.details.symbol = label.label_data["label"]
+
+    return address_info
 
 
 def get_contract_source_info(

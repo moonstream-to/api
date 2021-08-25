@@ -10,7 +10,7 @@ from typing import Dict, Optional
 
 from sqlalchemy.sql.expression import true
 
-from fastapi import FastAPI, Depends, HTTPException, Query
+from fastapi import FastAPI, Depends, HTTPException, Query, Form
 from fastapi.middleware.cors import CORSMiddleware
 from moonstreamdb.db import yield_db_session
 from moonstreamdb.models import EthereumAddress
@@ -91,6 +91,18 @@ async def txinfo_ethereum_blockchain_handler(
             response.smart_contract_info = source_info
             response.smart_contract_address = txinfo_request.tx.to_address
             response.is_smart_contract_call = True
+    return response
+
+
+@app.get(
+    "/ethereum_blockchain/address_info",
+    tags=["address info"],
+    response_model=data.EthereumAddressInfo,
+)
+async def address_info_handler(
+    address: str = Form(...), db_session: Session = Depends(yield_db_session)
+) -> Optional[data.EthereumAddressInfo]:
+    response = actions.get_ethereum_address_info(db_session, address)
     return response
 
 
