@@ -2,7 +2,8 @@ import React, { useContext } from "react";
 import { Flex, IconButton, Stack, Tooltip, chakra } from "@chakra-ui/react";
 import { ArrowRightIcon } from "@chakra-ui/icons";
 import UIContext from "../core/providers/UIProvider/context";
-import EthereumMempoolCard from "./stream-cards/EthereumMempool";
+import EthereumBlockchainCard from "./stream-cards/EthereumBlockchain";
+import EthereumTXPoolCard from "./stream-cards/EthereumTXPool";
 import EthereumWhalewatchCard from "./stream-cards/EthereumWhalewatch";
 
 const StreamEntry_ = ({ entry, showOnboardingTooltips, className }) => {
@@ -36,7 +37,7 @@ const StreamEntry_ = ({ entry, showOnboardingTooltips, className }) => {
         spacing={0}
       >
         {entry.event_type === "ethereum_blockchain" && (
-          <EthereumMempoolCard
+          <EthereumBlockchainCard
             entry={entry}
             showOnboardingTooltips={showOnboardingTooltips}
           />
@@ -44,6 +45,13 @@ const StreamEntry_ = ({ entry, showOnboardingTooltips, className }) => {
 
         {entry.event_type === "ethereum_whalewatch" && (
           <EthereumWhalewatchCard
+            entry={entry}
+            showOnboardingTooltips={showOnboardingTooltips}
+          />
+        )}
+
+        {entry.event_type === "ethereum_txpool" && (
+          <EthereumTXPoolCard
             entry={entry}
             showOnboardingTooltips={showOnboardingTooltips}
           />

@@ -43,7 +43,7 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/ethereum/eth-diamond-rainbow.png",
         stripe_product_id=None,
         stripe_price_id=None,
-        active=False,
+        active=True,
     ),
 }
 
