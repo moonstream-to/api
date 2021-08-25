@@ -10,16 +10,28 @@ import {
   Spacer,
   Spinner,
   chakra,
+  SimpleGrid,
+  Box,
+  Modal,
+  ModalContent,
+  ModalOverlay,
+  IconButton,
+  useDisclosure,
 } from "@chakra-ui/react";
 import UIContext from "../../core/providers/UIProvider/context";
 import { useToast } from "../../core/hooks";
 import { useSubscriptions } from "../../core/hooks";
+import moment from "moment";
+import { AiOutlineMonitor } from "react-icons/ai";
+import NewSubscription from "../NewModalSubscripton";
 
 const EthereumWhalewatchCard_ = ({
   entry,
   showOnboardingTooltips,
   className,
 }) => {
+  const [newSubscriptionWhaleType, setNewSubscriptionWhaleType] = useState();
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const { subscriptionsCache, subscriptionTypeIcons } = useSubscriptions();
   const ui = useContext(UIContext);
   const [copyString, setCopyString] = useState(false);
@@ -64,14 +76,35 @@ const EthereumWhalewatchCard_ = ({
   });
 
   const rowLabels = {
-    transactionsOut: "Number of transactions sent",
-    transactionsIn: "Number of transactions received",
+    transactionsOut: "transactions sent",
+    transactionsIn: "transactions received",
     valueOut: "WEI sent",
     valueIn: "WEI received",
   };
 
+  const subscribeClicked = (whaleType) => {
+    setNewSubscriptionWhaleType(whaleType);
+    onOpen();
+  };
   return (
     <Stack className={className}>
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        size="2xl"
+        scrollBehavior="outside"
+      >
+        <ModalOverlay />
+
+        <ModalContent>
+          <NewSubscription
+            isFreeOption={false}
+            onClose={onClose}
+            initialAddress={whales[newSubscriptionWhaleType]?.address}
+            initialType="ethereum_blockchain"
+          />
+        </ModalContent>
+      </Modal>
       <Tooltip
         hasArrow
         isOpen={showOnboardingTooltips}
@@ -91,90 +124,131 @@ const EthereumWhalewatchCard_ = ({
           bgColor="gray.300"
         >
           {icon ? <Image boxSize="16px" src={icon} /> : ""}
-          <Heading px={1} size="xs">
+          <Heading px={1} size="xs" isTruncated>
             Ethereum whale watch
           </Heading>
           <Spacer />
           <Text isTruncated pr={12}>
-            {`${entry.event_data.date_range.start_time} to ${entry.event_data.date_range.end_time}`}
+            {`${moment(entry.event_data.date_range.start_time).format(
+              "ll [from] LT"
+            )} to ${moment(entry.event_data.date_range.end_time).format(
+              moment(entry.event_data.date_range.start_time).format("l") ===
+                moment(entry.event_data.date_range.end_time).format("l")
+                ? "LT"
+                : "lll"
+            )}`}
           </Text>
         </Stack>
       </Tooltip>
-      {Object.keys(whales).map((whaleType) => {
-        return (
-          <Stack
-            className={whaleType}
-            direction={showFullView ? "row" : "column"}
-            w="100%"
-            h={showFullView ? "1.6rem" : "3.2rem"}
-            minH="1.6rem"
-            spacing={0}
-            alignItems="center"
-            key={`${whaleType}-${entry.event_data.date_range.start_time}-${entry.event_data.date_range.end_time}`}
-          >
-            <Stack
-              overflow="hidden"
-              textOverflow="ellipsis"
-              whiteSpace="nowrap"
-              direction="row"
-              fontSize="sm"
-              fontWeight="600"
-              w={showFullView ? "calc(30%)" : "calc(100%)"}
-              h="100%"
-              borderColor="gray.1200"
-              borderRightWidth={showFullView ? "1px" : "0px"}
-              placeContent="center"
-              spacing={0}
-            >
-              <Tooltip
-                hasArrow
-                isOpen={showOnboardingTooltips && !ui.isMobileView}
-                label={`This row represents the following statistic: ${rowLabels[whaleType]}`}
-                aria-label={`This row represents the following statistic: ${rowLabels[whaleType]}`}
-                variant="onboarding"
-                placement={ui.isMobileView ? "bottom" : "left"}
-                maxW="150px"
-              >
+      <SimpleGrid columns={9} w="100%" minWidth="min-content">
+        <Text
+          gridColumn="1 / 3"
+          h="100%"
+          w="100%"
+          fontSize="sm"
+          py="2px"
+          px={2}
+          fontWeight="600"
+          // w={showFullView ? null : "120px"}
+          justifyContent="flex-start"
+          columnS
+        >
+          Whale
+        </Text>
+        <Text
+          gridColumn="3 / 7"
+          h="100%"
+          w="100%"
+          fontSize="sm"
+          py="2px"
+          px={2}
+          fontWeight="600"
+          // w={showFullView ? null : "120px"}
+          justifyContent="flex-start"
+        >
+          Address
+        </Text>
+        <Text
+          gridColumn="7 / 9"
+          h="100%"
+          w="100%"
+          fontSize="sm"
+          py="2px"
+          px={2}
+          fontWeight="600"
+          // w={showFullView ? null : "120px"}
+          justifyContent="flex-start"
+        >
+          Value
+        </Text>
+        {Object.keys(whales).map((whaleType) => {
+          return (
+            <>
+              <Box gridColumn="1 / 3">
                 <Text
                   h="100%"
+                  w="100%"
                   fontSize="sm"
                   py="2px"
                   px={2}
-                  w={showFullView ? null : "120px"}
+                  // w={showFullView ? null : "120px"}
+                  justifyContent="flex-start"
                 >
                   {rowLabels[whaleType]}
                 </Text>
-              </Tooltip>
-            </Stack>
-            <Stack
-              overflow="hidden"
-              textOverflow="ellipsis"
-              whiteSpace="nowrap"
-              direction="row"
-              fontSize="sm"
-              fontWeight="600"
-              minw="min-content"
-              w={showFullView ? "calc(70%)" : "calc(100%)"}
-              h="100%"
-              spacing={0}
-              textAlign="left"
-            >
-              <Text
+              </Box>
+              <Stack
+                gridColumn="3 / 7"
                 mx={0}
                 py="2px"
                 fontSize="sm"
                 bgColor={whales[whaleType].color}
+                // w="calc(100%)"
+                h="100%"
+                direction="row"
+              >
+                <Box
+                  onClick={() => setCopyString(whales[whaleType].address)}
+                  isTruncated
+                >
+                  {whales[whaleType].label}
+                </Box>
+                <Spacer />
+                {whales[whaleType].label === whales[whaleType].address && (
+                  <Tooltip
+                    label="subscribe to this address"
+                    variant="onboarding"
+                  >
+                    <Box boxSize="min-content">
+                      <IconButton
+                        onClick={() => subscribeClicked(whaleType)}
+                        colorScheme="secondary"
+                        variant="outline"
+                        m={0}
+                        boxSize="24px"
+                        icon={<AiOutlineMonitor />}
+                      />
+                    </Box>
+                  </Tooltip>
+                )}
+              </Stack>
+              <Box
+                gridColumn="7 / 10"
+                mx={0}
+                py="2px"
+                fontSize="sm"
                 isTruncated
                 w="calc(100%)"
                 h="100%"
-                onClick={() => setCopyString(whales[whaleType].address)}
+                textAlign="left"
+                pl={2}
               >
-                {whales[whaleType].label} -- {whales[whaleType].statistic}
-              </Text>
-            </Stack>
-          </Stack>
-        );
-      })}
+                {whales[whaleType].statistic}
+              </Box>
+            </>
+          );
+        })}
+      </SimpleGrid>
     </Stack>
   );
 };
