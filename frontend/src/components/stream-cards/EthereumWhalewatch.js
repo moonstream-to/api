@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Text,
   Stack,
@@ -6,7 +6,6 @@ import {
   useClipboard,
   Heading,
   Image,
-  useMediaQuery,
   Spacer,
   Spinner,
   chakra,
@@ -18,7 +17,6 @@ import {
   IconButton,
   useDisclosure,
 } from "@chakra-ui/react";
-import UIContext from "../../core/providers/UIProvider/context";
 import { useToast } from "../../core/hooks";
 import { useSubscriptions } from "../../core/hooks";
 import moment from "moment";
@@ -33,7 +31,6 @@ const EthereumWhalewatchCard_ = ({
   const [newSubscriptionWhaleType, setNewSubscriptionWhaleType] = useState();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { subscriptionsCache, subscriptionTypeIcons } = useSubscriptions();
-  const ui = useContext(UIContext);
   const [copyString, setCopyString] = useState(false);
   const [icon, setIcon] = useState(null);
   const { onCopy, hasCopied } = useClipboard(copyString, 1);
@@ -53,8 +50,6 @@ const EthereumWhalewatchCard_ = ({
       setIcon(subscriptionTypeIcons.ethereum_whalewatch);
     }
   }, [subscriptionTypeIcons, setIcon]);
-
-  const [showFullView] = useMediaQuery(["(min-width: 420px)"]);
   if (subscriptionsCache.isLoading) return <Spinner />;
 
   const whales = {

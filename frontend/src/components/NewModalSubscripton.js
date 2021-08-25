@@ -73,8 +73,6 @@ const NewSubscription = ({
             autoComplete="off"
             placeholder="Enter label"
             name="label"
-            defaultValue={initialAddress ?? ""}
-            isReadOnly={!!initialAddress}
             ref={register({ required: "label is required!" })}
           ></Input>
           <FormErrorMessage color="unsafe.400" pl="1">
@@ -87,6 +85,8 @@ const NewSubscription = ({
             autoComplete="off"
             my={2}
             placeholder="Enter address"
+            defaultValue={initialAddress ?? undefined}
+            isReadOnly={!!initialAddress}
             name="address"
             ref={register({ required: "address is required!" })}
           ></Input>
