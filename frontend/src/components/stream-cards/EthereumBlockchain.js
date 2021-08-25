@@ -17,7 +17,11 @@ import UIContext from "../../core/providers/UIProvider/context";
 import { useToast } from "../../core/hooks";
 import { useSubscriptions } from "../../core/hooks";
 
-const EthereumMempoolCard_ = ({ entry, showOnboardingTooltips, className }) => {
+const EthereumBlockchainCard_ = ({
+  entry,
+  showOnboardingTooltips,
+  className,
+}) => {
   const { subscriptionsCache } = useSubscriptions();
   const ui = useContext(UIContext);
   const [copyString, setCopyString] = useState(false);
@@ -310,7 +314,7 @@ const EthereumMempoolCard_ = ({ entry, showOnboardingTooltips, className }) => {
   );
 };
 
-const EthereumMempoolCard = chakra(EthereumMempoolCard_, {
+const EthereumBlockchainCard = chakra(EthereumBlockchainCard_, {
   baseStyle: {
     my: 0,
     direction: "column",
@@ -326,4 +330,4 @@ const EthereumMempoolCard = chakra(EthereumMempoolCard_, {
   },
 });
 
-export default EthereumMempoolCard;
+export default EthereumBlockchainCard;
