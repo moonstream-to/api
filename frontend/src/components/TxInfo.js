@@ -74,7 +74,7 @@ const TxInfo = (props) => {
         <Stat>
           <StatLabel>Gas price</StatLabel>
           <StatNumber fontSize="md">
-            {toEth(transaction.tx.gasPrice)} eth
+            {toEth(transaction.tx.gas_price)} eth
           </StatNumber>
           <StatHelpText>the fee the sender pays per unit of gas</StatHelpText>
         </Stat>
