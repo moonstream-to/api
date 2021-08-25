@@ -88,10 +88,10 @@ class ContractABI(BaseModel):
 
 class EthereumTransaction(BaseModel):
     gas: int
-    gasPrice: int
+    gas_price: int
     value: int
-    from_address: str
-    to_address: Optional[str]
+    from_address: str = Field(alias="from")
+    to_address: Optional[str] = Field(alias="to")
     hash: Optional[str] = None
     block_hash: Optional[str] = Field(default=None, alias="blockHash")
     block_number: Optional[int] = Field(default=None, alias="blockNumber")
