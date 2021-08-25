@@ -148,7 +148,8 @@ This CLI is configured to work with the following API URLs:
     )
     parser_subscription_types_update.add_argument(
         "--icon",
-        required=True,
+        required=False,
+        default=None,
         help="URL to the icon representing this subscription type",
     )
     parser_subscription_types_update.add_argument(
