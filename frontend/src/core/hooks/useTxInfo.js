@@ -3,19 +3,46 @@ import { TxInfoService } from "../services";
 import { queryCacheProps } from "./hookCommon";
 import { useToast } from ".";
 
-const useTxInfo = (transaction) => {
+const useTxInfo = (wrappedEvent) => {
   const toast = useToast();
+
+  let event = {};
+  if (wrappedEvent?.tx) {
+    event = wrappedEvent.tx;
+  }
+
+  console.log("TXINFO: wrappedEvent:", wrappedEvent);
+  console.log("TXINFO: event:", event);
+
+  let transaction = null;
+  if (event.event_type === "ethereum_blockchain") {
+    transaction = event.event_data;
+  } else if (event.event_type === "ethereum_txpool") {
+    transaction = {
+      from: event.event_data.from,
+      nonce: event.event_data.nonce,
+      ...event.event_data.transaction,
+    };
+  }
+
+  console.log("TXINFO: transaction:", transaction);
+
   const getTxInfo = async () => {
-    const response = await TxInfoService.getTxInfo(transaction);
+    const response = await TxInfoService.getTxInfo({ tx: { ...transaction } });
+    console.log("TXINFO: response:", response);
     return response.data;
   };
   const { data, isLoading, isFetchedAfterMount, refetch, isError, error } =
-    useQuery(["txinfo", transaction.tx && transaction.tx.hash], getTxInfo, {
-      ...queryCacheProps,
-      enabled: !!transaction.tx,
-      onError: (error) => toast(error, "error"),
-    });
-  const isFetching = !!transaction.tx;
+    useQuery(
+      ["txinfo", transaction ? transaction.hash : "unknown"],
+      getTxInfo,
+      {
+        ...queryCacheProps,
+        enabled: !!transaction,
+        onError: (error) => toast(error, "error"),
+      }
+    );
+  const isFetching = !!transaction;
   return {
     data,
     isFetchedAfterMount,
