@@ -349,7 +349,7 @@ const Welcome = () => {
                   <Heading pt={12}>{`Let's add new subscription!`}</Heading>
 
                   <NewSubscription
-                    isFreeOption={true}
+                    isFreeOption={false}
                     onClose={SubscriptonCreatedCallback}
                   />
                 </>
