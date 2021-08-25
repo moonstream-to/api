@@ -146,12 +146,11 @@ const EthereumWhalewatchCard_ = ({
           fontWeight="600"
           // w={showFullView ? null : "120px"}
           justifyContent="flex-start"
-          columnS
         >
           Whale
         </Text>
         <Text
-          gridColumn="3 / 7"
+          gridColumn="3 / 8"
           h="100%"
           w="100%"
           fontSize="sm"
@@ -164,7 +163,7 @@ const EthereumWhalewatchCard_ = ({
           Address
         </Text>
         <Text
-          gridColumn="7 / 9"
+          gridColumn="8 / 10"
           h="100%"
           w="100%"
           fontSize="sm"
@@ -186,19 +185,18 @@ const EthereumWhalewatchCard_ = ({
                   fontSize="sm"
                   py="2px"
                   px={2}
-                  // w={showFullView ? null : "120px"}
                   justifyContent="flex-start"
+                  isTruncated
                 >
                   {rowLabels[whaleType]}
                 </Text>
               </Box>
               <Stack
-                gridColumn="3 / 7"
+                gridColumn="3 / 8"
                 mx={0}
                 py="2px"
                 fontSize="sm"
                 bgColor={whales[whaleType].color}
-                // w="calc(100%)"
                 h="100%"
                 direction="row"
               >
@@ -228,7 +226,7 @@ const EthereumWhalewatchCard_ = ({
                 )}
               </Stack>
               <Box
-                gridColumn="7 / 10"
+                gridColumn="8 / 10"
                 mx={0}
                 py="2px"
                 fontSize="sm"
