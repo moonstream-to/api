@@ -273,5 +273,5 @@ whalewatch_provider = BugoutEventProvider(
 )
 
 ethereum_txpool_provider = BugoutEventProvider(
-    event_type="ethereum_txpool", tags=["client:ethereum-txpool-crawler"]
+    event_type="ethereum_txpool", tags=["client:ethereum-txpool-crawler-0"]
 )
