@@ -3,6 +3,7 @@ import { Flex, IconButton, Stack, Tooltip, chakra } from "@chakra-ui/react";
 import { ArrowRightIcon } from "@chakra-ui/icons";
 import UIContext from "../core/providers/UIProvider/context";
 import EthereumBlockchainCard from "./stream-cards/EthereumBlockchain";
+import EthereumTXPoolCard from "./stream-cards/EthereumTXPool";
 import EthereumWhalewatchCard from "./stream-cards/EthereumWhalewatch";
 
 const StreamEntry_ = ({ entry, showOnboardingTooltips, className }) => {
@@ -41,6 +42,10 @@ const StreamEntry_ = ({ entry, showOnboardingTooltips, className }) => {
 
         {entry.event_type === "ethereum_whalewatch" && (
           <EthereumWhalewatchCard entry={entry} />
+        )}
+
+        {entry.event_type === "ethereum_txpool" && (
+          <EthereumTXPoolCard entry={entry} />
         )}
 
         <Flex>
