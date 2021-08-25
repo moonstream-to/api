@@ -21,11 +21,18 @@ import { useForm } from "react-hook-form";
 import { GithubPicker } from "react-color";
 import { BiRefresh } from "react-icons/bi";
 import { makeColor } from "../core/utils/makeColor";
-const NewSubscription = ({ isFreeOption, onClose }) => {
+const NewSubscription = ({
+  isFreeOption,
+  onClose,
+  initialAddress,
+  initialType,
+}) => {
   const [color, setColor] = useState(makeColor());
   const { typesCache, createSubscription } = useSubscriptions();
   const { handleSubmit, errors, register } = useForm({});
-  const [radioState, setRadioState] = useState("ethereum_blockchain");
+  const [radioState, setRadioState] = useState(
+    initialType ?? "ethereum_blockchain"
+  );
   let { getRootProps, getRadioProps } = useRadioGroup({
     name: "type",
     defaultValue: radioState,
@@ -78,6 +85,8 @@ const NewSubscription = ({ isFreeOption, onClose }) => {
             autoComplete="off"
             my={2}
             placeholder="Enter address"
+            defaultValue={initialAddress ?? undefined}
+            isReadOnly={!!initialAddress}
             name="address"
             ref={register({ required: "address is required!" })}
           ></Input>
@@ -98,6 +107,7 @@ const NewSubscription = ({ isFreeOption, onClose }) => {
                 const radio = getRadioProps({
                   value: type.id,
                   isDisabled:
+                    (initialAddress && initialType) ||
                     !type.active ||
                     (isFreeOption && type.id !== "ethereum_blockchain"),
                 });

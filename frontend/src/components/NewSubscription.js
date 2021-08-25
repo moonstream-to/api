@@ -21,12 +21,20 @@ import { CirclePicker } from "react-color";
 import { BiRefresh } from "react-icons/bi";
 import { makeColor } from "../core/utils/makeColor";
 import { useForm } from "react-hook-form";
-const _NewSubscription = ({ isFreeOption, onClose, setIsLoading }) => {
+const _NewSubscription = ({
+  isFreeOption,
+  onClose,
+  setIsLoading,
+  initialAddress,
+  initialType,
+}) => {
   const [color, setColor] = useState(makeColor());
   const { handleSubmit, errors, register } = useForm({});
   const { typesCache, createSubscription } = useSubscriptions();
   // const { handleSubmit, errors, register } = useForm({});
-  const [radioState, setRadioState] = useState("ethereum_blockchain");
+  const [radioState, setRadioState] = useState(
+    initialType ?? "ethereum_blockchain"
+  );
   let { getRootProps, getRadioProps } = useRadioGroup({
     name: "type",
     defaultValue: radioState,
@@ -52,7 +60,7 @@ const _NewSubscription = ({ isFreeOption, onClose, setIsLoading }) => {
       createSubscription.mutate({
         ...props,
         color: color,
-        type: isFreeOption ? 0 : radioState,
+        type: isFreeOption ? "ethereum_blockchain" : radioState,
       });
     },
     [createSubscription, isFreeOption, color, radioState]
@@ -107,6 +115,7 @@ const _NewSubscription = ({ isFreeOption, onClose, setIsLoading }) => {
               const radio = getRadioProps({
                 value: type.id,
                 isDisabled:
+                  (initialAddress && initialType) ||
                   !type.active ||
                   (isFreeOption && type.id !== "ethereum_blockchain"),
               });
