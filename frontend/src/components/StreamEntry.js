@@ -37,15 +37,24 @@ const StreamEntry_ = ({ entry, showOnboardingTooltips, className }) => {
         spacing={0}
       >
         {entry.event_type === "ethereum_blockchain" && (
-          <EthereumBlockchainCard entry={entry} />
+          <EthereumBlockchainCard
+            entry={entry}
+            showOnboardingTooltips={showOnboardingTooltips}
+          />
         )}
 
         {entry.event_type === "ethereum_whalewatch" && (
-          <EthereumWhalewatchCard entry={entry} />
+          <EthereumWhalewatchCard
+            entry={entry}
+            showOnboardingTooltips={showOnboardingTooltips}
+          />
         )}
 
         {entry.event_type === "ethereum_txpool" && (
-          <EthereumTXPoolCard entry={entry} />
+          <EthereumTXPoolCard
+            entry={entry}
+            showOnboardingTooltips={showOnboardingTooltips}
+          />
         )}
 
         <Flex>
