@@ -1,13 +1,13 @@
 import React, { Fragment, useContext } from "react";
 import RouterLink from "next/link";
 import {
-  Flex,
   Button,
   Image,
   ButtonGroup,
   Spacer,
   Link,
   IconButton,
+  Flex,
 } from "@chakra-ui/react";
 import { HamburgerIcon } from "@chakra-ui/icons";
 import useModals from "../core/hooks/useModals";
@@ -22,107 +22,107 @@ const LandingNavbar = () => {
   const { toggleModal } = useModals();
   return (
     <>
-      <>
-        {ui.isMobileView && (
-          <>
-            <IconButton
-              alignSelf="flex-start"
-              colorScheme="primary"
-              variant="solid"
-              onClick={() => ui.setSidebarToggled(!ui.sidebarToggled)}
-              icon={<HamburgerIcon />}
-            />
-          </>
-        )}
-        <Flex
-          pl={ui.isMobileView ? 2 : 8}
-          justifySelf="flex-start"
-          h="full"
-          py={1}
-        >
-          <RouterLink href="/" passHref>
-            <Link h="full">
-              <Image
-                h="full"
-                src={WHITE_LOGO_W_TEXT_URL}
-                alt="Moonstream logo"
-              />
-            </Link>
-          </RouterLink>
-        </Flex>
+      {ui.isMobileView && (
+        <>
+          <IconButton
+            alignSelf="flex-start"
+            colorScheme="primary"
+            variant="solid"
+            onClick={() => ui.setSidebarToggled(!ui.sidebarToggled)}
+            icon={<HamburgerIcon />}
+          />
+        </>
+      )}
+      <Flex
+        pl={ui.isMobileView ? 2 : 8}
+        justifySelf="flex-start"
+        h="100%"
+        py={1}
+        flexBasis="200px"
+        flexGrow={1}
+        flexShirnk={1}
+        id="Logo Container"
+      >
+        <RouterLink href="/" passHref>
+          <Link
+            as={Image}
+            w="auto"
+            h="full"
+            justifyContent="left"
+            src={WHITE_LOGO_W_TEXT_URL}
+            alt="Moonstream logo"
+          />
+        </RouterLink>
+      </Flex>
 
-        {!ui.isMobileView && (
-          <>
-            <Spacer />
-            <ButtonGroup
-              variant="link"
-              colorScheme="secondary"
-              spacing={4}
-              pr={16}
-            >
-              {ALL_NAV_PATHES.map((item, idx) => (
-                <RouteButton
-                  key={`${idx}-${item.title}-landing-all-links`}
-                  variant="link"
-                  href={item.path}
-                  color="white"
-                  isActive={!!(router.pathname === item.path)}
-                >
-                  {item.title}
-                </RouteButton>
-              ))}
+      {!ui.isMobileView && (
+        <>
+          <Spacer />
+          <ButtonGroup
+            variant="link"
+            colorScheme="secondary"
+            spacing={4}
+            pr={16}
+          >
+            {ALL_NAV_PATHES.map((item, idx) => (
+              <RouteButton
+                key={`${idx}-${item.title}-landing-all-links`}
+                variant="link"
+                href={item.path}
+                color="white"
+                isActive={!!(router.pathname === item.path)}
+              >
+                {item.title}
+              </RouteButton>
+            ))}
 
-              {ui.isLoggedIn && (
-                <RouterLink href="/stream" passHref>
-                  <Button
-                    as={Link}
-                    colorScheme="secondary"
-                    variant="outline"
-                    size="sm"
-                    fontWeight="400"
-                    borderRadius="2xl"
-                  >
-                    App
-                  </Button>
-                </RouterLink>
-              )}
-              {!ui.isLoggedIn && (
+            {ui.isLoggedIn && (
+              <RouterLink href="/stream" passHref>
                 <Button
-                  colorScheme="whiteAlpha"
+                  as={Link}
+                  colorScheme="secondary"
                   variant="outline"
-                  onClick={() => toggleModal("register")}
                   size="sm"
                   fontWeight="400"
                   borderRadius="2xl"
                 >
-                  Get started
+                  App
                 </Button>
-              )}
-              {!ui.isLoggedIn && (
-                <Button
-                  color="white"
-                  onClick={() => toggleModal("login")}
-                  fontWeight="400"
-                >
-                  Log in
-                </Button>
-              )}
-              {ui.isLoggedIn && (
-                <ChakraAccountIconButton
-                  variant="link"
-                  colorScheme="secondary"
-                />
-              )}
-            </ButtonGroup>
-          </>
-        )}
-        {ui.isLoggedIn && ui.isMobileView && (
-          <>
-            <Spacer />
-            <ChakraAccountIconButton variant="link" colorScheme="secondary" />
-          </>
-        )}
-      </>
+              </RouterLink>
+            )}
+            {!ui.isLoggedIn && (
+              <Button
+                colorScheme="whiteAlpha"
+                variant="outline"
+                onClick={() => toggleModal("register")}
+                size="sm"
+                fontWeight="400"
+                borderRadius="2xl"
+              >
+                Get started
+              </Button>
+            )}
+            {!ui.isLoggedIn && (
+              <Button
+                color="white"
+                onClick={() => toggleModal("login")}
+                fontWeight="400"
+              >
+                Log in
+              </Button>
+            )}
+            {ui.isLoggedIn && (
+              <ChakraAccountIconButton variant="link" colorScheme="secondary" />
+            )}
+          </ButtonGroup>
+        </>
+      )}
+      {ui.isLoggedIn && ui.isMobileView && (
+        <>
+          <Spacer />
+          <ChakraAccountIconButton variant="link" colorScheme="secondary" />
+        </>
+      )}
     </>
   );
 };
