@@ -91,10 +91,24 @@ class BugoutEventProvider:
         """
         is_query_constrained = query.subscription_types or query.subscriptions
         relevant_subscriptions = user_subscriptions.get(self.event_type)
+
         if (
             is_query_constrained and self.event_type not in query.subscription_types
         ) or not relevant_subscriptions:
             return None
+
+        if self.event_type == "ethereum_txpool":
+            addresses = [
+                subscription.resource_data["address"]
+                for subscription in relevant_subscriptions
+            ]
+            subscriptions_filters = []
+            for adress in addresses:
+                subscriptions_filters.extend(
+                    [f"?#from_address:{adress}", f"?#to_address:{adress}"]
+                )
+
+            return subscriptions_filters
         return []
 
     def get_events(
