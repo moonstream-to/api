@@ -19,16 +19,11 @@ const Navbar = () => {
       boxShadow={["sm", "md"]}
       alignItems="center"
       id="Navbar"
-      minH={["3rem", "3rem", "3rem", "3rem", "3rem", "3rem"]}
-      // overflow="initial"
+      minH="3rem"
+      maxH="3rem"
       bgColor="primary.1200"
-      // flexWrap="wrap"
-      direction={["row", "row", "row", null, "row"]}
-      // zIndex={100}
+      direction="row"
       w="100%"
-      minW="100%"
-      m={0}
-      p={0}
       overflow="hidden"
     >
       <Suspense fallback={""}>
