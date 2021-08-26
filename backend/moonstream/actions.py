@@ -51,10 +51,12 @@ def get_contract_source_info(
 
 
 class AdressType:
-    TOKEN = 0
-    SMART_CONTRACT = 1
-    NFT = 2
-    EXCHANGE = 3
+    UNKNOW = 0
+    REGULAR = 1
+    TOKEN = 2
+    SMART_CONTRACT = 3
+    NFT = 4
+    EXCHANGE = 5
 
 
 class LabelNames:
@@ -63,6 +65,8 @@ class LabelNames:
     EXCHANGE = "excange"
 
 
+# TODO(yhtiyar):
+# What to do if there is address is both token and smart contract?
 def get_ethereum_address_info(
     db_session: Session, address: str
 ) -> Optional[data.EthereumAddressInfo]:
