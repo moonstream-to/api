@@ -21,11 +21,18 @@ import { useForm } from "react-hook-form";
 import { GithubPicker } from "react-color";
 import { BiRefresh } from "react-icons/bi";
 import { makeColor } from "../core/utils/makeColor";
-const NewSubscription = ({ isFreeOption, onClose }) => {
+const NewSubscription = ({
+  isFreeOption,
+  onClose,
+  initialAddress,
+  initialType,
+}) => {
   const [color, setColor] = useState(makeColor());
   const { typesCache, createSubscription } = useSubscriptions();
   const { handleSubmit, errors, register } = useForm({});
-  const [radioState, setRadioState] = useState("ethereum_blockchain");
+  const [radioState, setRadioState] = useState(
+    initialType ?? "ethereum_blockchain"
+  );
   let { getRootProps, getRadioProps } = useRadioGroup({
     name: "type",
     defaultValue: radioState,
@@ -78,6 +85,8 @@ const NewSubscription = ({ isFreeOption, onClose }) => {
             autoComplete="off"
             my={2}
             placeholder="Enter address"
+            defaultValue={initialAddress ?? undefined}
+            isReadOnly={!!initialAddress}
             name="address"
             ref={register({ required: "address is required!" })}
           ></Input>
@@ -94,13 +103,13 @@ const NewSubscription = ({ isFreeOption, onClose }) => {
 
           <FormControl isInvalid={errors.subscription_type}>
             <HStack {...group} alignItems="stretch">
-              {typesCache.data.subscriptions.map((type) => {
+              {typesCache.data.map((type) => {
                 const radio = getRadioProps({
                   value: type.id,
                   isDisabled:
+                    (initialAddress && initialType) ||
                     !type.active ||
-                    (isFreeOption &&
-                      type.subscription_type !== "ethereum_blockchain"),
+                    (isFreeOption && type.id !== "ethereum_blockchain"),
                 });
                 return (
                   <RadioCard key={`subscription_type_${type.id}`} {...radio}>
@@ -129,7 +138,6 @@ const NewSubscription = ({ isFreeOption, onClose }) => {
             </Text>{" "}
             <IconButton
               size="md"
-              // colorScheme="primary"
               color={"white.100"}
               _hover={{ bgColor: { color } }}
               bgColor={color}
@@ -148,10 +156,7 @@ const NewSubscription = ({ isFreeOption, onClose }) => {
             ></Input>
           </Stack>
 
-          <GithubPicker
-            // color={this.state.background}
-            onChangeComplete={handleChangeColorComplete}
-          />
+          <GithubPicker onChangeComplete={handleChangeColorComplete} />
 
           <FormErrorMessage color="unsafe.400" pl="1">
             {errors.color && errors.color.message}

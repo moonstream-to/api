@@ -21,7 +21,7 @@ const CopyButton = (props) => {
       <Popover placement="bottom-start">
         {({ isOpen, onClose }) => {
           if (isOpen) {
-            setInterval(() => onClose(), 1000);
+            setTimeout(() => onClose(), 1000);
           }
           return (
             <Fragment>

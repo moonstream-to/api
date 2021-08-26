@@ -2,7 +2,9 @@ import React, { useContext } from "react";
 import { Flex, IconButton, Stack, Tooltip, chakra } from "@chakra-ui/react";
 import { ArrowRightIcon } from "@chakra-ui/icons";
 import UIContext from "../core/providers/UIProvider/context";
-import EthereumMempoolCard from "./stream-cards/EthereumMempool";
+import EthereumBlockchainCard from "./stream-cards/EthereumBlockchain";
+import EthereumTXPoolCard from "./stream-cards/EthereumTXPool";
+import EthereumWhalewatchCard from "./stream-cards/EthereumWhalewatch";
 
 const StreamEntry_ = ({ entry, showOnboardingTooltips, className }) => {
   const ui = useContext(UIContext);
@@ -34,17 +36,27 @@ const StreamEntry_ = ({ entry, showOnboardingTooltips, className }) => {
         h="100%"
         spacing={0}
       >
-        {entry.subscription_type_id === "0" && (
-          <EthereumMempoolCard entry={entry} />
+        {entry.event_type === "ethereum_blockchain" && (
+          <EthereumBlockchainCard
+            entry={entry}
+            showOnboardingTooltips={showOnboardingTooltips}
+          />
         )}
 
-        {/* ToDo: Add another types of cards in here
-
-        {entryType === "<name>" && (
-          <Card entry={entry} />
+        {entry.event_type === "ethereum_whalewatch" && (
+          <EthereumWhalewatchCard
+            entry={entry}
+            showOnboardingTooltips={showOnboardingTooltips}
+          />
         )}
 
-        */}
+        {entry.event_type === "ethereum_txpool" && (
+          <EthereumTXPoolCard
+            entry={entry}
+            showOnboardingTooltips={showOnboardingTooltips}
+          />
+        )}
+
         <Flex>
           <Tooltip
             hasArrow
@@ -55,6 +67,9 @@ const StreamEntry_ = ({ entry, showOnboardingTooltips, className }) => {
             maxW="150px"
           >
             <IconButton
+              isDisabled={
+                entry.event_type === "ethereum_whalewatch" ? true : false
+              }
               m={0}
               onClick={() => ui.setCurrentTransaction(entry)}
               h="full"
