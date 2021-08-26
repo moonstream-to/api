@@ -22,8 +22,12 @@ import ConfirmationRequest from "./ConfirmationRequest";
 import ColorSelector from "./ColorSelector";
 
 const SubscriptionsList = ({ emptyCTA }) => {
-  const { subscriptionsCache, updateSubscription, deleteSubscription } =
-    useSubscriptions();
+  const {
+    subscriptionsCache,
+    updateSubscription,
+    deleteSubscription,
+    subscriptionTypeIcons,
+  } = useSubscriptions();
 
   const updateCallback = ({ id, label, color }) => {
     const data = { id: id };
@@ -61,27 +65,8 @@ const SubscriptionsList = ({ emptyCTA }) => {
         </Thead>
         <Tbody>
           {subscriptionsCache.data.subscriptions.map((subscription) => {
-            let iconLink;
-            switch (subscription.subscription_type_id) {
-              case "0":
-                iconLink =
-                  "https://ethereum.org/static/c48a5f760c34dfadcf05a208dab137cc/31987/eth-diamond-rainbow.png";
-                break;
-              case `ethereum_txpool`:
-                iconLink =
-                  "https://ethereum.org/static/a183661dd70e0e5c70689a0ec95ef0ba/31987/eth-diamond-purple.png";
-                break;
-              case `algorand_blockchain`:
-                iconLink =
-                  "https://www.algorand.com/assets/media-kit/logos/logo-marks/png/algorand_logo_mark_black.png";
-                break;
-              case `algorand_txpool`:
-                iconLink =
-                  "https://www.algorand.com/assets/media-kit/logos/logo-marks/png/algorand_logo_mark_white.png";
-                break;
-              default:
-                console.error("no icon found for this pool");
-            }
+            const iconLink =
+              subscriptionTypeIcons[subscription.subscription_type_id];
             return (
               <Tr key={`token-row-${subscription.id}`}>
                 <Td>

@@ -1,4 +1,4 @@
-export const BUGOUT_API_URL = process.env.NEXT_PUBLIC_SIMIOTICS_SEARCH_URL;
+export const MOONSTREAM_API_URL = process.env.NEXT_PUBLIC_MOONSTREAM_API_URL;
 
 export const BUGOUT_ENDPOINTS = {
   Usage: "usage",
@@ -28,7 +28,10 @@ export const ALL_NAV_PATHES = [
 
 export const USER_NAV_PATHES = [
   {
-    title: "Learn how to",
+    title: "Learn how to use Moonstream",
     path: "/welcome",
   },
 ];
+
+export const AWS_ASSETS_PATH = `https://s3.amazonaws.com/static.simiotics.com/moonstream/assets`;
+export const WHITE_LOGO_W_TEXT_URL = `https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/moon-logo%2Btext-white.svg`;

@@ -1,11 +1,7 @@
 """
 Pydantic schemas for the Moonstream HTTP API
 """
-from enum import Enum
 from typing import List, Optional, Dict, Any
-
-from sqlalchemy.sql.operators import notendswith_op
-
 
 from pydantic import BaseModel, Field
 
@@ -14,12 +10,14 @@ class SubscriptionTypeResourceData(BaseModel):
     id: str
     name: str
     description: str
-    subscription_plan_id: Optional[str] = None
+    icon_url: str
+    stripe_product_id: Optional[str] = None
+    stripe_price_id: Optional[str] = None
     active: bool = False
 
 
-class SubscriptionTypesListResponce(BaseModel):
-    subscriptions: List[SubscriptionTypeResourceData] = Field(default_factory=list)
+class SubscriptionTypesListResponse(BaseModel):
+    subscription_types: List[SubscriptionTypeResourceData] = Field(default_factory=list)
 
 
 class SubscriptionResourceData(BaseModel):
@@ -54,6 +52,14 @@ class VersionResponse(BaseModel):
     version: str
 
 
+class NowResponse(BaseModel):
+    """
+    Schema for responses on /now endpoint
+    """
+
+    epoch_time: float
+
+
 class SubscriptionUpdate(BaseModel):
     update: Dict[str, Any]
     drop_keys: List[str] = Field(default_factory=list)
@@ -82,10 +88,10 @@ class ContractABI(BaseModel):
 
 class EthereumTransaction(BaseModel):
     gas: int
-    gasPrice: int
+    gas_price: int
     value: int
-    from_address: str
-    to_address: Optional[str]
+    from_address: str = Field(alias="from")
+    to_address: Optional[str] = Field(alias="to")
     hash: Optional[str] = None
     block_hash: Optional[str] = Field(default=None, alias="blockHash")
     block_number: Optional[int] = Field(default=None, alias="blockNumber")
@@ -115,18 +121,29 @@ class EthereumTransactionItem(BaseModel):
     subscription_type_id: Optional[str] = None
 
 
-class PageBoundary(BaseModel):
-    start_time: int
-    end_time: int
-    next_event_time: Optional[int] = None
-    previous_event_time: Optional[int] = None
+class StreamBoundary(BaseModel):
+    """
+    StreamBoundary represents a window of time through which an API caller can view a stream.
+
+    This data structure is foundational to our stream rendering, and is used throughout the code
+    base.
+    """
+
+    start_time: int = 0
+    end_time: Optional[int] = None
     include_start: bool = False
     include_end: bool = False
 
 
-class EthereumTransactionResponse(BaseModel):
-    stream: List[EthereumTransactionItem]
-    boundaries: Optional[PageBoundary]
+class Event(BaseModel):
+    event_type: str
+    event_timestamp: int  # Seconds since epoch
+    event_data: Dict[str, Any] = Field(default_factory=dict)
+
+
+class GetEventsResponse(BaseModel):
+    stream_boundary: StreamBoundary
+    events: List[Event] = Field(default_factory=list)
 
 
 class TxinfoEthereumBlockchainRequest(BaseModel):

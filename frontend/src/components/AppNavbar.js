@@ -28,7 +28,11 @@ import useRouter from "../core/hooks/useRouter";
 import UIContext from "../core/providers/UIProvider/context";
 import AccountIconButton from "./AccountIconButton";
 import RouteButton from "./RouteButton";
-import { USER_NAV_PATHES, ALL_NAV_PATHES } from "../core/constants";
+import {
+  USER_NAV_PATHES,
+  ALL_NAV_PATHES,
+  WHITE_LOGO_W_TEXT_URL,
+} from "../core/constants";
 
 const AppNavbar = () => {
   const ui = useContext(UIContext);
@@ -203,7 +207,7 @@ const AppNavbar = () => {
                   // to="/"
                   h="2.5rem"
                   minW="2.5rem"
-                  src="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/White+logo.svg"
+                  src={WHITE_LOGO_W_TEXT_URL}
                   alt="Go to app root"
                 />
               </Link>

@@ -17,15 +17,15 @@ const Entry = () => {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      if (ui.currentTransaction) {
+      if (ui?.currentTransaction) {
         document.title = `Stream details: ${ui.currentTransaction.hash}`;
       } else {
         document.title = `Stream`;
       }
     }
-  }, [ui.currentTransaction]);
+  }, [ui?.currentTransaction]);
 
-  if (ui.currentTransaction) {
+  if (ui?.currentTransaction) {
     return <StreamEntryDetails />;
   } else
     return (
