@@ -7,8 +7,6 @@ import {
   Stack,
   chakra,
   useMediaQuery,
-  UnorderedList,
-  ListItem,
   useBreakpointValue,
 } from "@chakra-ui/react";
 import { DEFAULT_METATAGS, AWS_ASSETS_PATH } from "../../src/core/constants";
@@ -135,7 +133,7 @@ const Product = () => {
     >
       <Stack mx={margin} my={12} maxW="1700px">
         <Heading as="h2" size="md" w="100%" px={12} py={2} borderTopRadius="xl">
-          {`Why you'll love moonstream`}
+          {`Why you'll love Moonstream`}
         </Heading>
         <chakra.span pl={2} px={12} py={2}>
           <Text mb={2}>
@@ -188,82 +186,6 @@ const Product = () => {
               the Moonstream milestones
             </Link>
             .
-          </Text>
-        </chakra.span>
-      </Stack>
-      <Stack mx={margin} mb={12} maxW="1700px" bgTra>
-        <Heading as="h2" size="md" w="100%" px={12} py={2} borderTopRadius="xl">
-          Product
-        </Heading>
-        <chakra.span pl={2} px={12} py={2}>
-          <Text mb={2}>
-            Moonstream is a product which helps anyone participate in
-            decentralized finance. From the most sophisticated flash
-            arbitrageurs to people looking for yield from currency that would
-            otherwise lie dormant in their exchange accounts.
-          </Text>
-          <Text mb={2}>
-            We aim to go far beyond raw transaction information, enriching our
-            view with context from centralized exchanges, the news, social
-            media, and smart contract analysis.
-          </Text>
-          <Text mb={2}>
-            Moonstream users can subscribe to events from any blockchain - from
-            the activity of specific accounts or smart contracts to updates
-            about general market movements. This information comes from the
-            blockchains themselves, from their <b>mempools/transaction</b>{" "}
-            pools, and from centralized exchanges, social media, and the news.
-            This forms a stream of information tailored to their specific needs.
-          </Text>
-          <Text mb={2}>
-            They can use this information to execute transactions directly from
-            the Moonstream frontend or they can set up programs which execute
-            (on- or off-chain) when their stream meets certain conditions.
-          </Text>
-          <Text mb={2}>
-            Moonstream will be accessible to software through our API and
-            webhooks.
-          </Text>
-          <chakra.span>
-            <Text>Moonstream customers are:</Text>
-            <UnorderedList w="75%" pl={4}>
-              <ListItem>
-                <b>Development teams deploying decentralized applications -</b>
-                They use Moonstream to analyze how users are calling their
-                dapps, and set up alerts for suspicious activity.{" "}
-              </ListItem>
-              <ListItem>
-                <b>Algorithmic funds - </b> They use Moonstream to execute
-                transactions directly on-chain under prespecified conditions.
-              </ListItem>
-              <ListItem>
-                <b>Crypto traders -</b> They use Moonstream to evaluate trading
-                strategies based on data from centralized exchanges, the
-                blockchain, and the transaction pool.
-              </ListItem>
-            </UnorderedList>
-          </chakra.span>
-          <Text my={2}>
-            Moonstream’s financial inclusion goes beyond providing access to
-            data. We also help validators and stakers on proof of stake chains
-            earn rewards in excess of the validation rewards. We pay validators
-            to send mempool/transaction pool data back to Moonstream, and they
-            divide these payments between themselves and their stakers. This
-            helps validators attract more stake on proof of stake blockchains
-            like Algorand, Solana, and post-merge Ethereum. It also ensures that
-            Moonstream users have access to the freshest and most geographically
-            diverse transaction pool data on the market.
-          </Text>
-          <Text mb={2}>
-            All of our work is open source as we do not believe that proprietary
-            technologies are financially inclusive.{" "}
-            <Link
-              textColor="primary.500"
-              isExternal
-              href="https://github.com/bugout-dev/moonstream"
-            >
-              You can read our code on GitHub.
-            </Link>
           </Text>
         </chakra.span>
       </Stack>
