@@ -272,10 +272,10 @@ class AdressType:
     EXCHANGE = 3
 
 
-class LabelNames(Enum):
+class LabelNames:
     ETHERSCAN_SMARTCONTRACT = "etherscan_smartcontract"
     COINMARKETCAP_TOKEN = "coinmarketcap_token"
-    EXCHANGE = "EXCANGE"
+    EXCHANGE = "excange"
 
 
 def get_ethereum_address_info(
@@ -307,6 +307,8 @@ def get_ethereum_address_info(
             address_info.address_type = AdressType.EXCHANGE
             address_info.details.name = label.label_data["name"]
             address_info.details.symbol = label.label_data["label"]
+        else:
+            print(f"unknown label {label.label}")
 
     return address_info
 
