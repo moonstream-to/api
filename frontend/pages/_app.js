@@ -21,6 +21,7 @@ const DefaultLayout = dynamic(() => import("../src/layouts"), {
 });
 import { useRouter } from "next/router";
 import NProgress from "nprogress";
+import { WHITE_LOGO_W_TEXT_URL } from "../src/core/constants";
 
 export default function CachingApp({ Component, pageProps }) {
   const [queryClient] = useState(new QueryClient());
@@ -48,6 +49,11 @@ export default function CachingApp({ Component, pageProps }) {
   const getLayout =
     Component.getLayout || ((page) => <DefaultLayout>{page}</DefaultLayout>);
 
+  const headLinks = [
+    { rel: "preload", as: "image", href: WHITE_LOGO_W_TEXT_URL },
+  ];
+  pageProps.preloads && headLinks.push(...pageProps.preloads);
+  console.log(headLinks);
   return (
     <>
       <style global jsx>{`
@@ -62,7 +68,7 @@ export default function CachingApp({ Component, pageProps }) {
         }
       `}</style>
       {pageProps.metaTags && <HeadSEO {...pageProps.metaTags} />}
-      {pageProps.preloads && <HeadLinks links={pageProps.preloads} />}
+      <HeadLinks links={headLinks} />
       <QueryClientProvider client={queryClient}>
         <AppContext>{getLayout(<Component {...pageProps} />)}</AppContext>
       </QueryClientProvider>
