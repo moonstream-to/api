@@ -53,7 +53,6 @@ export default function CachingApp({ Component, pageProps }) {
     { rel: "preload", as: "image", href: WHITE_LOGO_W_TEXT_URL },
   ];
   pageProps.preloads && headLinks.push(...pageProps.preloads);
-  console.log(headLinks);
   return (
     <>
       <style global jsx>{`
