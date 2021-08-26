@@ -155,7 +155,6 @@ const Product = () => {
           </Box>
           <Box
             w="full"
-            h="full"
             py={48}
             backgroundImage={`url(${assets[`team`]})`}
             backgroundSize="cover"
