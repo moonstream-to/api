@@ -1,5 +1,6 @@
 import logging
 from typing import Dict, List, Optional
+from sqlalchemy.orm.query import Query
 
 from sqlalchemy.sql.expression import true
 
@@ -49,7 +50,8 @@ app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
     response_model=data.EthereumAddressInfo,
 )
 async def addressinfo_handler(
-    address: str = Form(...), db_session: Session = Depends(yield_db_session)
+    address: str,
+    db_session: Session = Depends(yield_db_session),
 ) -> Optional[data.EthereumAddressInfo]:
     response = actions.get_ethereum_address_info(db_session, address)
     return response

@@ -1,13 +1,14 @@
 import json
 import logging
 from typing import Dict, Any, List, Optional
-
+from enum import Enum
 import boto3  # type: ignore
 from moonstreamdb.models import (
     EthereumAddress,
     EthereumLabel,
 )
-from sqlalchemy.orm import Session
+from sqlalchemy import text
+from sqlalchemy.orm import Session, query, query_expression
 
 from . import data
 from .settings import ETHERSCAN_SMARTCONTRACTS_BUCKET
@@ -50,54 +51,67 @@ def get_contract_source_info(
     return None
 
 
-class AdressType:
-    UNKNOWN = 0
-    REGULAR = 1
-    TOKEN = 2
-    SMART_CONTRACT = 3
-    NFT = 4
-    EXCHANGE = 5
+class AddressType(Enum):
+    UNKNOWN = "unknown"
+    REGULAR = "regular"
+    TOKEN = "token"
+    SMART_CONTRACT = "smart_contract"
+    NFT = "nft"
+    EXCHANGE = "exchange"
 
 
-class LabelNames:
+class LabelNames(Enum):
     ETHERSCAN_SMARTCONTRACT = "etherscan_smartcontract"
     COINMARKETCAP_TOKEN = "coinmarketcap_token"
-    EXCHANGE = "excange"
 
 
-# TODO(yhtiyar):
-# What to do if there is address is both token and smart contract?
 def get_ethereum_address_info(
     db_session: Session, address: str
 ) -> Optional[data.EthereumAddressInfo]:
+
+    address_info = data.EthereumAddressInfo(
+        address=address, address_type=AddressType.UNKNOWN.value
+    )
+
     query = db_session.query(EthereumAddress.id).filter(
         EthereumAddress.address == address
     )
     id = query.one_or_none()
     if id is None:
         return None
-    labels = (
-        db_session.query(EthereumLabel).filter(EthereumLabel.address_id == id[0]).all()
+
+    # Checking for token:
+    coinmarketcap_label: Optional[EthereumLabel] = (
+        db_session.query(EthereumLabel)
+        .filter(EthereumLabel.address_id == id[0])
+        .filter(EthereumLabel.label == LabelNames.COINMARKETCAP_TOKEN.value)
+        .order_by(text("created_at desc"))
+        .limit(1)
+        .one_or_none()
     )
-    address_info = data.EthereumAddressInfo(address=address)
-    for label in labels:
-        if label.label == LabelNames.ETHERSCAN_SMARTCONTRACT:
-            address_info.address_type = AdressType.SMART_CONTRACT
-            address_info.details.name = label.label_data["name"]
-            address_info.details.external_URL = (
-                f"https://etherscan.io/address/{address}"
-            )
-        elif label.label == LabelNames.COINMARKETCAP_TOKEN:
-            address_info.address_type = AdressType.TOKEN
-            address_info.details.name = label.label_data["name"]
-            address_info.details.symbol = label.label_data["symbol"]
-            address_info.details.external_URL = label.label_data["coinmarketcap_url"]
-        elif label.label == LabelNames.EXCHANGE:
-            address_info.address_type = AdressType.EXCHANGE
-            address_info.details.name = label.label_data["name"]
-            address_info.details.symbol = label.label_data["label"]
-        else:
-            print(f"unknown label {label.label}")
+    if coinmarketcap_label is not None:
+        address_info.address_type = AddressType.TOKEN.value
+        address_info.details.name = coinmarketcap_label.label_data["name"]
+        address_info.details.symbol = coinmarketcap_label.label_data["symbol"]
+        address_info.details.external_url = [
+            coinmarketcap_label.label_data["coinmarketcap_url"]
+        ]
+        return address_info
+
+    # Checking for smart contract
+    etherscan_label: Optional[EthereumLabel] = (
+        db_session.query(EthereumLabel)
+        .filter(EthereumLabel.address_id == id[0])
+        .filter(EthereumLabel.label == LabelNames.ETHERSCAN_SMARTCONTRACT.value)
+        .order_by(text("created_at desc"))
+        .limit(1)
+        .one_or_none()
+    )
+    if etherscan_label is not None:
+        address_info.address_type = AddressType.SMART_CONTRACT.value
+        address_info.details.name = etherscan_label.label_data["name"]
+        address_info.details.external_url = [f"https://etherscan.io/address/{address}"]
+        return address_info
 
     return address_info
 

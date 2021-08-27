@@ -160,12 +160,12 @@ class EthereumSmartContractSourceInfo(BaseModel):
 class EthereumAddressDetails(BaseModel):
     name: Optional[str]
     symbol: Optional[str]
-    external_URL: Optional[str]
+    external_url: List[str] = []
 
 
 class EthereumAddressInfo(BaseModel):
     address: str
-    address_type: Optional[int]
+    address_type: str
     details: EthereumAddressDetails = EthereumAddressDetails()
 
 
