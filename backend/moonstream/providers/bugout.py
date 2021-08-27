@@ -269,7 +269,7 @@ class BugoutEventProvider:
         return self.entry_event(search_results.results[0])
 
 
-class BugoutMemPoolProvider(BugoutEventProvider):
+class EthereumTXPoolProvider(BugoutEventProvider):
     def __init__(
         self,
         event_type: str,
@@ -309,6 +309,6 @@ whalewatch_provider = BugoutEventProvider(
 )
 
 
-ethereum_txpool_provider = BugoutMemPoolProvider(
+ethereum_txpool_provider = EthereumTXPoolProvider(
     event_type="ethereum_txpool", tags=["client:ethereum-txpool-crawler-0"]
 )
