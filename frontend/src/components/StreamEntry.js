@@ -67,6 +67,9 @@ const StreamEntry_ = ({ entry, showOnboardingTooltips, className }) => {
             maxW="150px"
           >
             <IconButton
+              isDisabled={
+                entry.event_type === "ethereum_whalewatch" ? true : false
+              }
               m={0}
               onClick={() => ui.setCurrentTransaction(entry)}
               h="full"
