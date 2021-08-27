@@ -138,7 +138,7 @@ func PollTxpoolContent(gethClient *rpc.Client, interval int, reporter *humbug.Hu
 						fmt.Sprintf("max_priority_fee_per_gas:%d", pendingTx.Transaction.MaxPriorityFeePerGas.ToInt()),
 						fmt.Sprintf("max_fee_per_gas:%d", pendingTx.Transaction.MaxFeePerGas.ToInt()),
 						fmt.Sprintf("gas:%d", pendingTx.Transaction.Gas),
-						fmt.Sprint("crawl_type:ethereum_txpool"),
+						"crawl_type:ethereum_txpool",
 					}
 					report := humbug.Report{
 						Title:   ReportTitle,
