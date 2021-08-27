@@ -51,7 +51,7 @@ def get_contract_source_info(
 
 
 class AdressType:
-    UNKNOW = 0
+    UNKNOWN = 0
     REGULAR = 1
     TOKEN = 2
     SMART_CONTRACT = 3

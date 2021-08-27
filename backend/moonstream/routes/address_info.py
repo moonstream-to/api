@@ -44,7 +44,7 @@ app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
 
 
 @app.get(
-    "/ethereum_blockchain/",
+    "/ethereum_blockchain",
     tags=["addressinfo"],
     response_model=data.EthereumAddressInfo,
 )
