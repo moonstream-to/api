@@ -157,16 +157,21 @@ class EthereumSmartContractSourceInfo(BaseModel):
     compiler_version: str
 
 
-class EthereumAddressDetails(BaseModel):
+class EthereumTokenDetails(BaseModel):
     name: Optional[str]
     symbol: Optional[str]
     external_url: List[str] = []
 
 
+class EthereumSmartContractDetails(BaseModel):
+    name: Optional[str]
+    external_url: List[str] = []
+
+
 class EthereumAddressInfo(BaseModel):
     address: str
-    address_type: str
-    details: EthereumAddressDetails = EthereumAddressDetails()
+    token: Optional[EthereumTokenDetails]
+    smart_contract: Optional[EthereumSmartContractDetails]
 
 
 class TxinfoEthereumBlockchainResponse(BaseModel):
