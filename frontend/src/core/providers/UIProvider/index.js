@@ -272,6 +272,7 @@ const UIProvider = ({ children }) => {
         setisOnboardingComplete,
         onboardingSteps,
         setOnboardingState,
+        isLoggingOut,
       }}
     >
       {children}

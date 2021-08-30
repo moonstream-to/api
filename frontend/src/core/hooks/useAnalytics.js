@@ -1,25 +1,33 @@
 import AnalyticsContext from "../providers/AnalyticsProvider/context";
 import { useContext } from "react";
-import { useState, useEffect, useCallback } from "react";
-const useAnalytics = () => {
-  const { mixpanel, isLoaded, MIXPANEL_EVENTS, MIXPANEL_PROPS } =
-    useContext(AnalyticsContext);
-  const [trackProps, setTrackProps] = useState({
-    event: null,
-    props: null,
-    queued: false,
-  });
+import { useState, useEffect } from "react";
+import {
+  MIXPANEL_PROPS,
+  MIXPANEL_EVENTS,
+} from "../providers/AnalyticsProvider/constants";
 
-  const track = useCallback((e, props) => {
-    setTrackProps({ event: e, props: props, queued: true });
-  }, []);
+const useAnalytics = () => {
+  const { mixpanel, isLoaded } = useContext(AnalyticsContext);
+  const [eventsQueue, setEventsQueue] = useState([]);
+
+  const track = (e, props) => {
+    setEventsQueue((trackingQueue) => [
+      ...trackingQueue,
+      {
+        event: e,
+        props: props,
+      },
+    ]);
+  };
 
   useEffect(() => {
-    if (isLoaded && trackProps.queued === true) {
-      mixpanel.track(trackProps.event, trackProps.props);
-      setTrackProps({ event: null, props: null, queued: false });
+    if (isLoaded && eventsQueue.length > 0 && mixpanel) {
+      const newTrackingQueue = [...eventsQueue];
+      const newTrackEvent = newTrackingQueue.pop();
+      mixpanel.track(newTrackEvent.event, newTrackEvent.props);
+      setEventsQueue(newTrackingQueue);
     }
-  }, [isLoaded, mixpanel, trackProps]);
+  }, [isLoaded, mixpanel, eventsQueue]);
 
   const withTracking = (fn, event, props) => {
     track(event, props);

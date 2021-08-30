@@ -82,6 +82,8 @@ const AnalyticsProvider = ({ children }) => {
       });
     };
     window.addEventListener("beforeunload", closeListener);
+    //cleanup function fires on useEffect unmount
+    //https://reactjs.org/docs/hooks-effect.html
     return () => {
       window.removeEventListener("beforeunload", closeListener);
     };
@@ -125,6 +127,24 @@ const AnalyticsProvider = ({ children }) => {
       }
     }
   }, [user, isMixpanelReady, clientID]);
+
+  useEffect(() => {
+    if (isMixpanelReady && user) {
+      mixpanel.people.set_once({
+        [`${MIXPANEL_EVENTS.FIRST_LOGIN_DATE}`]: new Date().toISOString(),
+      });
+      mixpanel.people.set({
+        [`${MIXPANEL_EVENTS.LAST_LOGIN_DATE}`]: new Date().toISOString(),
+      });
+      mixpanel.track(`${MIXPANEL_EVENTS.USER_LOGS_IN}`, {});
+    }
+  }, [user, isMixpanelReady]);
+
+  useEffect(() => {
+    if (isMixpanelReady && ui.isLoggingOut) {
+      mixpanel.track(`${MIXPANEL_EVENTS.USER_LOGS_OUT}`, {});
+    }
+  }, [ui.isLoggingOut, isMixpanelReady]);
 
   return (
     <AnalyticsContext.Provider
