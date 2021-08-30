@@ -181,10 +181,19 @@ const UIProvider = ({ children }) => {
   );
 
   const [onboardingStep, setOnboardingStep] = useState(() => {
-    const step = onboardingSteps.findIndex(
-      (event) => onboardingState[event.step] === 0
+    //First find onboarding step that was viewed once (resume where left)
+    // If none - find step that was never viewed
+    // if none - set onboarding to zero
+    let step = onboardingSteps.findIndex(
+      (event) => onboardingState[event.step] === 1
     );
-    if (step === -1 && isOnboardingComplete) return onboardingSteps.length - 1;
+    step =
+      step === -1
+        ? onboardingSteps.findIndex(
+            (event) => onboardingState[event.step] === 0
+          )
+        : step;
+    if (step === -1 && isOnboardingComplete) return 0;
     else if (step === -1 && !isOnboardingComplete) return 0;
     else return step;
   });
