@@ -1,66 +1,116 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import mixpanel from "mixpanel-browser";
 import AnalyticsContext from "./context";
 import { useClientID, useUser, useRouter } from "../../hooks";
 import { MIXPANEL_EVENTS, MIXPANEL_PROPS } from "./constants";
+import UIContext from "../UIProvider/context";
 
 const AnalyticsProvider = ({ children }) => {
   const clientID = useClientID();
   const analytics = process.env.NEXT_PUBLIC_MIXPANEL_TOKEN;
   const { user } = useUser();
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isMixpanelReady, setIsLoaded] = useState(false);
   const router = useRouter();
+
+  const ui = useContext(UIContext);
+  useEffect(() => {
+    if (ui.isOnboardingComplete && isMixpanelReady && user) {
+      mixpanel.people.set(MIXPANEL_EVENTS.ONBOARDING_COMPLETED, true);
+    }
+  }, [ui.isOnboardingComplete, isMixpanelReady, user]);
+
+  useEffect(() => {
+    if (ui.onboardingStep && isMixpanelReady) {
+      mixpanel.people.set(MIXPANEL_EVENTS.ONBOARDING_STEPS, ui.onboardingStep);
+    }
+  }, [ui.onboardingStep, isMixpanelReady]);
 
   useEffect(() => {
     let durationSeconds = 0;
 
     const intervalId =
-      isLoaded &&
+      isMixpanelReady &&
       setInterval(() => {
-        durationSeconds = durationSeconds + 1;
+        durationSeconds = durationSeconds + 30;
         mixpanel.track(
-          MIXPANEL_EVENTS.LEFT_PAGE,
+          MIXPANEL_EVENTS.BEACON,
           {
             duration_seconds: durationSeconds,
             url: router.nextRouter.pathname,
-            query: router.query,
-            pathParams: router.params,
           },
           { transport: "sendBeacon" }
         );
       }, 30000);
 
     return () => clearInterval(intervalId);
-    // eslint-disable-next-line
-  }, [isLoaded]);
+  }, [isMixpanelReady, router.nextRouter.pathname]);
+
+  const [previousPathname, setPreviousPathname] = useState(false);
 
   useEffect(() => {
-    isLoaded &&
+    if (isMixpanelReady) {
+      if (!previousPathname) {
+        mixpanel.time_event(MIXPANEL_EVENTS.PAGEVIEW_DURATION);
+        setPreviousPathname(router.nextRouter.pathname);
+      }
+      if (previousPathname && previousPathname !== router.nextRouter.pathname) {
+        mixpanel.track(MIXPANEL_EVENTS.PAGEVIEW_DURATION, {
+          url: previousPathname,
+          isBeforeUnload: false,
+        });
+        setPreviousPathname(false);
+      }
+    }
+  }, [router.nextRouter.pathname, previousPathname, isMixpanelReady]);
+
+  useEffect(() => {
+    if (isMixpanelReady && ui.sessionId && router.nextRouter.pathname) {
       mixpanel.track(MIXPANEL_EVENTS.PAGEVIEW, {
         url: router.nextRouter.pathname,
-        query: router.query,
-        pathParams: router.params,
+        sessionID: ui.sessionId,
       });
-  }, [router.nextRouter.pathname, router.query, router.params, isLoaded]);
+
+      mixpanel.people.set(MIXPANEL_EVENTS.PAGES_VISITED, {
+        [`${router.nextRouter.pathname}`]: true,
+      });
+    }
+    const urlForUnmount = router.nextRouter.pathname;
+    const closeListener = () => {
+      mixpanel.track(MIXPANEL_EVENTS.PAGEVIEW_DURATION, {
+        url: urlForUnmount,
+        isBeforeUnload: true,
+      });
+    };
+    window.addEventListener("beforeunload", closeListener);
+    return () => {
+      window.removeEventListener("beforeunload", closeListener);
+    };
+  }, [router.nextRouter.pathname, isMixpanelReady, ui.sessionId]);
 
   useEffect(() => {
-    try {
-      mixpanel.init(analytics, {
-        api_host: "https://api.mixpanel.com",
-        loaded: () => {
-          setIsLoaded(true);
-          mixpanel.identify(clientID);
-        },
-      });
-    } catch (error) {
-      console.warn("loading mixpanel failed:", error);
+    isMixpanelReady && mixpanel.register("sessionId", ui.sessionId);
+  }, [ui.sessionId, isMixpanelReady]);
+
+  useEffect(() => {
+    if (clientID) {
+      try {
+        mixpanel.init(analytics, {
+          api_host: "https://api.mixpanel.com",
+          loaded: () => {
+            setIsLoaded(true);
+            mixpanel.identify(clientID);
+          },
+        });
+      } catch (error) {
+        console.warn("loading mixpanel failed:", error);
+      }
     }
   }, [analytics, clientID]);
 
   useEffect(() => {
     if (user) {
       try {
-        if (isLoaded) {
+        if (isMixpanelReady) {
           mixpanel.people.set({
             [`${MIXPANEL_EVENTS.LAST_VISITED}`]: new Date().toISOString(),
           });
@@ -74,11 +124,11 @@ const AnalyticsProvider = ({ children }) => {
         console.error("could not set up people in mixpanel:", err);
       }
     }
-  }, [user, isLoaded, clientID]);
+  }, [user, isMixpanelReady, clientID]);
 
   return (
     <AnalyticsContext.Provider
-      value={{ mixpanel, isLoaded, MIXPANEL_EVENTS, MIXPANEL_PROPS }}
+      value={{ mixpanel, isMixpanelReady, MIXPANEL_EVENTS, MIXPANEL_PROPS }}
     >
       {children}
     </AnalyticsContext.Provider>
