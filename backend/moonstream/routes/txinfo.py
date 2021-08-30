@@ -10,7 +10,7 @@ from typing import Dict, Optional
 
 from sqlalchemy.sql.expression import true
 
-from fastapi import FastAPI, Depends, HTTPException, Query
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from moonstreamdb.db import yield_db_session
 from moonstreamdb.models import EthereumAddress
@@ -27,7 +27,6 @@ logger = logging.getLogger(__name__)
 
 tags_metadata = [
     {"name": "txinfo", "description": "Ethereum transactions info."},
-    {"name": "address info", "description": "Addresses public information."},
 ]
 
 app = FastAPI(
@@ -92,31 +91,3 @@ async def txinfo_ethereum_blockchain_handler(
             response.smart_contract_address = txinfo_request.tx.to_address
             response.is_smart_contract_call = True
     return response
-
-
-@app.get(
-    "/addresses", tags=["address info"], response_model=data.AddressListLabelsResponse
-)
-async def addresses_labels_handler(
-    addresses: Optional[str] = Query(None),
-    start: int = Query(0),
-    limit: int = Query(100),
-    db_session: Session = Depends(yield_db_session),
-) -> data.AddressListLabelsResponse:
-    """
-    Fetch labels with additional public information
-    about known addresses.
-    """
-    if limit > 100:
-        raise HTTPException(
-            status_code=406, detail="The limit cannot exceed 100 addresses"
-        )
-    try:
-        addresses_response = actions.get_address_labels(
-            db_session=db_session, start=start, limit=limit, addresses=addresses
-        )
-    except Exception as err:
-        logger.error(f"Unable to get info about Ethereum addresses {err}")
-        raise HTTPException(status_code=500)
-
-    return addresses_response

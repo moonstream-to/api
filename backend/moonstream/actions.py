@@ -51,15 +51,6 @@ def get_contract_source_info(
     return None
 
 
-class AddressType(Enum):
-    UNKNOWN = "unknown"
-    REGULAR = "regular"
-    TOKEN = "token"
-    SMART_CONTRACT = "smart_contract"
-    NFT = "nft"
-    EXCHANGE = "exchange"
-
-
 class LabelNames(Enum):
     ETHERSCAN_SMARTCONTRACT = "etherscan_smartcontract"
     COINMARKETCAP_TOKEN = "coinmarketcap_token"
@@ -68,11 +59,6 @@ class LabelNames(Enum):
 def get_ethereum_address_info(
     db_session: Session, address: str
 ) -> Optional[data.EthereumAddressInfo]:
-
-    address_info = data.EthereumAddressInfo(
-        address=address, address_type=AddressType.UNKNOWN.value
-    )
-
     query = db_session.query(EthereumAddress.id).filter(
         EthereumAddress.address == address
     )
@@ -80,6 +66,9 @@ def get_ethereum_address_info(
     if id is None:
         return None
 
+    address_info = data.EthereumAddressInfo(address=address)
+    etherscan_address_url = f"https://etherscan.io/address/{address}"
+    blockchain_com_url = f"https://www.blockchain.com/eth/address/{address}"
     # Checking for token:
     coinmarketcap_label: Optional[EthereumLabel] = (
         db_session.query(EthereumLabel)
@@ -90,13 +79,15 @@ def get_ethereum_address_info(
         .one_or_none()
     )
     if coinmarketcap_label is not None:
-        address_info.address_type = AddressType.TOKEN.value
-        address_info.details.name = coinmarketcap_label.label_data["name"]
-        address_info.details.symbol = coinmarketcap_label.label_data["symbol"]
-        address_info.details.external_url = [
-            coinmarketcap_label.label_data["coinmarketcap_url"]
-        ]
-        return address_info
+        address_info.token = data.EthereumTokenDetails(
+            name=coinmarketcap_label.label_data["name"],
+            symbol=coinmarketcap_label.label_data["symbol"],
+            external_url=[
+                coinmarketcap_label.label_data["coinmarketcap_url"],
+                etherscan_address_url,
+                blockchain_com_url,
+            ],
+        )
 
     # Checking for smart contract
     etherscan_label: Optional[EthereumLabel] = (
@@ -108,10 +99,10 @@ def get_ethereum_address_info(
         .one_or_none()
     )
     if etherscan_label is not None:
-        address_info.address_type = AddressType.SMART_CONTRACT.value
-        address_info.details.name = etherscan_label.label_data["name"]
-        address_info.details.external_url = [f"https://etherscan.io/address/{address}"]
-        return address_info
+        address_info.smart_contract = data.EthereumSmartContractDetails(
+            name=etherscan_label.label_data["name"],
+            external_url=[etherscan_address_url, blockchain_com_url],
+        )
 
     return address_info
 
