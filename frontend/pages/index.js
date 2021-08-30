@@ -380,7 +380,7 @@ const Homepage = () => {
                       link: "/#cryptoTrader",
                       onClick: () => {
                         track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          [`${MIXPANEL_PROPS.BUTTON_CLICKED}`]: `scroll to CryptoTrader`,
+                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `scroll to CryptoTrader`,
                         });
                       },
                     }}
@@ -389,7 +389,7 @@ const Homepage = () => {
                       link: "/#algoFund",
                       onClick: () => {
                         track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          [`${MIXPANEL_PROPS.BUTTON_CLICKED}`]: `scroll to AlgoFund`,
+                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `scroll to AlgoFund`,
                         });
                       },
                     }}
@@ -398,7 +398,7 @@ const Homepage = () => {
                       link: "/#smartDeveloper",
                       onClick: () => {
                         track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          [`${MIXPANEL_PROPS.BUTTON_CLICKED}`]: `scroll to Developer`,
+                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `scroll to Developer`,
                         });
                       },
                     }}
@@ -418,7 +418,7 @@ const Homepage = () => {
                     label: "I want early access!",
                     onClick: () => {
                       track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                        [`${MIXPANEL_PROPS.BUTTON_CLICKED}`]: `Early access CTA: Crypto trader`,
+                        [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: Crypto trader`,
                       });
                       toggleModal("hubspot-trader");
                     },
@@ -465,7 +465,7 @@ const Homepage = () => {
                     label: "I want early access!",
                     onClick: () => {
                       track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                        [`${MIXPANEL_PROPS.BUTTON_CLICKED}`]: `Early access CTA: Algo fund`,
+                        [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: Algo fund`,
                       });
                       toggleModal("hubspot-fund");
                     },
@@ -510,7 +510,7 @@ const Homepage = () => {
                     label: "I want early access!",
                     onClick: () => {
                       track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                        [`${MIXPANEL_PROPS.BUTTON_CLICKED}`]: `Early access CTA: developer`,
+                        [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer`,
                       });
                       toggleModal("hubspot-developer");
                     },
@@ -521,7 +521,7 @@ const Homepage = () => {
                     label: "See our github",
                     onClick: () => {
                       track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                        [`${MIXPANEL_PROPS.BUTTON_CLICKED}`]: `Github link in landing page`,
+                        [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Github link in landing page`,
                       });
                     },
                   }}
@@ -569,7 +569,7 @@ const Homepage = () => {
                     id="test"
                     onClick={() => {
                       track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                        [`${MIXPANEL_PROPS.BUTTON_CLICKED}`]: `Join our discord`,
+                        [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Join our discord`,
                       });
                       toggleModal("hubspot");
                     }}
