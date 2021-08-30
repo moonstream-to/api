@@ -131,47 +131,54 @@ const Product = () => {
       alignItems="center"
       pb={24}
     >
-      <Stack mx={margin} my={12} maxW="1700px">
-        <Heading as="h2" size="md" w="100%" px={12} py={2} borderTopRadius="xl">
+      <Stack mx={margin} my={12} maxW="1700px" textAlign="justify">
+        <Heading
+          as="h2"
+          size="md"
+          placeSelf="center"
+          px={12}
+          py={2}
+          borderTopRadius="xl"
+        >
           {`Why you'll love Moonstream`}
         </Heading>
         <chakra.span pl={2} px={12} py={2}>
-          <Text mb={2}>
+          <Text mb={3}>
             We strive for financial inclusion. With cryptocurrencies becoming
             mainstream, now is the time for anyone with a computer and access to
             the Internet to utilize this opportunity to make passive income.
             We’re here to make it easier.
           </Text>
-          <Text mb={2}>
+          <Text mb={3}>
             Right now our source of data is Ethereum blockchain. Our goal is to
             provide a live view of the transactions taking place on every public
             blockchain - from the activity of specific accounts or smart
             contracts to updates about general market movements.
           </Text>
-          <Text mb={2}>
+          <Text mb={3}>
             This information comes from the blockchains themselves, from their
             mempools/transaction pools, and from centralized exchanges, social
             media, and the news. This forms a stream of information tailored to
             your specific needs.
           </Text>
-          <Text mb={2}>
+          <Text mb={3}>
             We’re giving you a macro view of the crypto market with direct
             access from Moonstream dashboards to execute transactions. You can
             also set up programs which execute (on- or off-chain) when your
             stream meets certain conditions.
           </Text>
-          <Text mb={2}>
+          <Text mb={3}>
             Moonstream is accessible through dashboard, API and webhooks.
           </Text>
-          <Text mb={2}>
+          <Text mb={3}>
             Moonstream’s financial inclusion goes beyond providing access to
             data. All of our work is open source as we do not believe that
             proprietary technologies are financially inclusive.
           </Text>
-          <Text mb={2}>
+          <Text mb={3}>
             You can read{" "}
             <Link
-              textColor="primary.500"
+              textColor="secondary.900"
               isExternal
               href="https://github.com/bugout-dev/moonstream"
             >
@@ -179,7 +186,7 @@ const Product = () => {
             </Link>{" "}
             and keep track of our progress using{" "}
             <Link
-              textColor="primary.500"
+              textColor="secondary.900"
               isExternal
               href="https://github.com/bugout-dev/moonstream/milestones"
             >
