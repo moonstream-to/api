@@ -10,13 +10,14 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"math/big"
 	"os"
 	"time"
 
 	humbug "github.com/bugout-dev/humbug/go/pkg"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/google/uuid"
 )
@@ -124,11 +125,6 @@ func PollTxpoolContent(gethClient *rpc.Client, interval int, reporter *humbug.Hu
 						continue
 					}
 
-					// TODO(kompotkot, zomglings): Humbug API (on Spire) support bulk publication of reports. We should modify
-					// Humbug go client to use the bulk publish endpoint. Currently, if we have to publish all transactions
-					// pending in txpool, we *will* get rate limited. We may want to consider adding a publisher to the
-					// Humbug go client that can listen on a channel and will handle rate limiting, bulk publication etc. itself
-					// (without user having to worry about it).
 					ReportTitle := "Ethereum: Pending transaction: " + transactionHash.String()
 					ReportTags := []string{
 						"hash:" + transactionHash.String(),
@@ -138,6 +134,7 @@ func PollTxpoolContent(gethClient *rpc.Client, interval int, reporter *humbug.Hu
 						fmt.Sprintf("max_priority_fee_per_gas:%d", pendingTx.Transaction.MaxPriorityFeePerGas.ToInt()),
 						fmt.Sprintf("max_fee_per_gas:%d", pendingTx.Transaction.MaxFeePerGas.ToInt()),
 						fmt.Sprintf("gas:%d", pendingTx.Transaction.Gas),
+						fmt.Sprintf("value:%d", new(big.Float).Quo(new(big.Float).SetInt(transaction.Value.ToInt()), big.NewFloat(params.Ether))),
 						"crawl_type:ethereum_txpool",
 					}
 					report := humbug.Report{
