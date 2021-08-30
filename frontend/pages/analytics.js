@@ -3,6 +3,9 @@ import HubspotForm from "react-hubspot-form";
 import { getLayout } from "../src/layouts/AppLayout";
 import { Spinner, Flex, Heading } from "@chakra-ui/react";
 import Scrollable from "../src/components/Scrollable";
+import mixpanel from "mixpanel-browser";
+import MIXPANEL_EVENTS from "../src/core/providers/AnalyticsProvider/constants";
+import { useUser } from "../src/core/hooks";
 
 const Analytics = () => {
   useEffect(() => {
@@ -10,6 +13,8 @@ const Analytics = () => {
       document.title = `Analytics: Page under construction`;
     }
   }, []);
+
+  const { user } = useUser();
 
   return (
     <Scrollable>
@@ -31,6 +36,12 @@ const Analytics = () => {
           portalId="8018701"
           formId="39bc0fbe-41c4-430a-b885-46eba66c59c2"
           loading={<Spinner colorScheme="primary" speed="1s" />}
+          onSubmit={() =>
+            mixpanel.track(MIXPANEL_EVENTS.FORM_SUBMITTED, {
+              formType: "Hubspot analytics",
+              user: user,
+            })
+          }
         />
       </Flex>
     </Scrollable>
