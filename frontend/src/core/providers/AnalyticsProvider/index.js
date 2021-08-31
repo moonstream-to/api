@@ -70,9 +70,9 @@ const AnalyticsProvider = ({ children }) => {
         sessionID: ui.sessionId,
       });
 
-      mixpanel.people.set(MIXPANEL_EVENTS.PAGES_VISITED, {
-        [`${router.nextRouter.pathname}`]: true,
-      });
+      mixpanel.people.increment([
+        `${MIXPANEL_EVENTS.TIMES_VISITED} ${router.nextRouter.pathname}`,
+      ]);
     }
     const urlForUnmount = router.nextRouter.pathname;
     const closeListener = () => {

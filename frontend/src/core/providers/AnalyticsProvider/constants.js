@@ -30,7 +30,7 @@ export const MIXPANEL_EVENTS = {
   ONBOARDING_COMPLETED: "Onbording complete",
   SESSIONS_COUNT: "Sessions Counter",
   ONBOARDING_STEPS: "Onboarding Steps",
-  PAGES_VISITED: "pages visited",
+  TIMES_VISITED: "Page visit times",
   FORM_SUBMITTED: "form submitted",
   PAGEVIEW_DURATION: "Time spent on page",
 };
