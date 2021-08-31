@@ -12,9 +12,10 @@ from sqlalchemy import (
     Text,
     VARCHAR,
     UniqueConstraint,
+    Index,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
-from sqlalchemy.sql import expression
+from sqlalchemy.sql import expression, text
 from sqlalchemy.ext.compiler import compiles
 
 """
@@ -136,7 +137,6 @@ class EthereumLabel(Base):  # type: ignore
     """
 
     __tablename__ = "ethereum_labels"
-    __table_args__ = (UniqueConstraint("label", "address_id"),)
 
     id = Column(
         UUID(as_uuid=True),
@@ -156,6 +156,7 @@ class EthereumLabel(Base):  # type: ignore
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )
+    __table_args__ = (Index("ix_label_name", text("label_data->>'name'")),)
 
 
 class EthereumPendingTransaction(Base):  # type: ignore
@@ -212,3 +213,19 @@ class ESDEventSignature(Base):  # type: ignore
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )
+
+
+class OpenSeaCrawlingState(Base):  # type: ignore
+    """
+    Model for control opeansea crawling state.
+    """
+
+    __tablename__ = "opensea_crawler_state"
+
+    id = Column(Integer, primary_key=True, unique=True, nullable=False, index=True)
+    query = Column(Text, nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True), server_default=utcnow(), nullable=False
+    )
+
+    total_count = Column(Integer, nullable=False)
