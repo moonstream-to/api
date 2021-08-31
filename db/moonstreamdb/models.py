@@ -156,7 +156,7 @@ class EthereumLabel(Base):  # type: ignore
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )
-    __table_args__ = (Index("ix_label_name", text("label_data->>'name'")),)
+    __table_args__ = (Index("ix_label_name", text("(label_data->>'name')")),)
 
 
 class EthereumPendingTransaction(Base):  # type: ignore
@@ -222,7 +222,7 @@ class OpenSeaCrawlingState(Base):  # type: ignore
 
     __tablename__ = "opensea_crawler_state"
 
-    id = Column(Integer, primary_key=True, unique=True, nullable=False, index=True)
+    id = Column(Integer, primary_key=True, unique=True, nullable=False)
     query = Column(Text, nullable=False)
     updated_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
