@@ -8,7 +8,7 @@ import UIContext from "../UIProvider/context";
 const AnalyticsProvider = ({ children }) => {
   const clientID = useClientID();
   const analytics = process.env.NEXT_PUBLIC_MIXPANEL_TOKEN;
-  const { user } = useUser();
+  const { user, isInit } = useUser();
   const [isMixpanelReady, setIsLoaded] = useState(false);
   const router = useRouter();
 
@@ -18,6 +18,12 @@ const AnalyticsProvider = ({ children }) => {
       mixpanel.people.set(MIXPANEL_EVENTS.ONBOARDING_COMPLETED, true);
     }
   }, [ui.isOnboardingComplete, isMixpanelReady, user]);
+
+  useEffect(() => {
+    if (!user && isInit && isMixpanelReady) {
+      mixpanel.time_event(MIXPANEL_EVENTS.CONVERT_TO_USER);
+    }
+  }, [user, isInit, isMixpanelReady]);
 
   useEffect(() => {
     if (ui.onboardingStep && isMixpanelReady) {
