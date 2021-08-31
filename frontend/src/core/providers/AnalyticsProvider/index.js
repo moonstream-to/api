@@ -11,26 +11,57 @@ const AnalyticsProvider = ({ children }) => {
   const { user, isInit } = useUser();
   const [isMixpanelReady, setIsLoaded] = useState(false);
   const router = useRouter();
-
   const ui = useContext(UIContext);
+
+  // ********** OBOARDING STATE **************
+  useEffect(() => {
+    if (ui.onboardingState && isMixpanelReady) {
+      mixpanel.people.set(MIXPANEL_EVENTS.ONBOARDING_STATE, {
+        state: { ...ui.onboardingState },
+      });
+    }
+  }, [ui.onboardingState, isMixpanelReady]);
+
   useEffect(() => {
     if (ui.isOnboardingComplete && isMixpanelReady && user) {
       mixpanel.people.set(MIXPANEL_EVENTS.ONBOARDING_COMPLETED, true);
     }
   }, [ui.isOnboardingComplete, isMixpanelReady, user]);
 
-  useEffect(() => {
-    if (!user && isInit && isMixpanelReady) {
-      mixpanel.time_event(MIXPANEL_EVENTS.CONVERT_TO_USER);
-    }
-  }, [user, isInit, isMixpanelReady]);
+  // ********** ONBOARDING STEP and TIMING **************
+  const [previousOnboardingStep, setPreviousOnboardingStep] = useState(false);
 
   useEffect(() => {
-    if (ui.onboardingStep && isMixpanelReady) {
-      mixpanel.people.set(MIXPANEL_EVENTS.ONBOARDING_STEPS, ui.onboardingStep);
+    if (isMixpanelReady && router.nextRouter.pathname === "/welcome") {
+      if (!previousOnboardingStep) {
+        mixpanel.time_event(MIXPANEL_EVENTS.ONBOARDING_STEP);
+        setPreviousOnboardingStep(ui.onboardingStep);
+      }
+      if (
+        previousOnboardingStep &&
+        previousOnboardingStep !== ui.onboardingStep
+      ) {
+        mixpanel.track(MIXPANEL_EVENTS.ONBOARDING_STEP, {
+          step: previousOnboardingStep,
+          isBeforeUnload: false,
+        });
+        setPreviousOnboardingStep(false);
+      }
+    } else if (previousOnboardingStep) {
+      mixpanel.track(MIXPANEL_EVENTS.ONBOARDING_STEP, {
+        step: previousOnboardingStep,
+        isBeforeUnload: false,
+      });
+      setPreviousOnboardingStep(false);
     }
-  }, [ui.onboardingStep, isMixpanelReady]);
+  }, [
+    previousOnboardingStep,
+    ui.onboardingStep,
+    isMixpanelReady,
+    router.nextRouter.pathname,
+  ]);
 
+  // ********** PING_PONG **************
   useEffect(() => {
     let durationSeconds = 0;
 
@@ -51,6 +82,8 @@ const AnalyticsProvider = ({ children }) => {
     return () => clearInterval(intervalId);
   }, [isMixpanelReady, router.nextRouter.pathname]);
 
+  // ********** TIME SPENT ON PATH**************
+
   const [previousPathname, setPreviousPathname] = useState(false);
 
   useEffect(() => {
@@ -69,6 +102,7 @@ const AnalyticsProvider = ({ children }) => {
     }
   }, [router.nextRouter.pathname, previousPathname, isMixpanelReady]);
 
+  // ********** PAGES VIEW  **************
   useEffect(() => {
     if (isMixpanelReady && ui.sessionId && router.nextRouter.pathname) {
       mixpanel.track(MIXPANEL_EVENTS.PAGEVIEW, {
@@ -95,10 +129,7 @@ const AnalyticsProvider = ({ children }) => {
     };
   }, [router.nextRouter.pathname, isMixpanelReady, ui.sessionId]);
 
-  useEffect(() => {
-    isMixpanelReady && mixpanel.register("sessionId", ui.sessionId);
-  }, [ui.sessionId, isMixpanelReady]);
-
+  // ********** SESSION STATE **************
   useEffect(() => {
     if (clientID) {
       try {
@@ -114,6 +145,12 @@ const AnalyticsProvider = ({ children }) => {
       }
     }
   }, [analytics, clientID]);
+
+  useEffect(() => {
+    isMixpanelReady && mixpanel.register("sessionId", ui.sessionId);
+  }, [ui.sessionId, isMixpanelReady]);
+
+  // ********** USER STATE **************
 
   useEffect(() => {
     if (user) {
@@ -151,6 +188,13 @@ const AnalyticsProvider = ({ children }) => {
       mixpanel.track(`${MIXPANEL_EVENTS.USER_LOGS_OUT}`, {});
     }
   }, [ui.isLoggingOut, isMixpanelReady]);
+
+  // ********** USER BOUNCE TIME **************
+  useEffect(() => {
+    if (!user && isInit && isMixpanelReady) {
+      mixpanel.time_event(MIXPANEL_EVENTS.CONVERT_TO_USER);
+    }
+  }, [user, isInit, isMixpanelReady]);
 
   return (
     <AnalyticsContext.Provider
