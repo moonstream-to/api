@@ -1,13 +1,14 @@
 import json
 import logging
 from typing import Dict, Any, List, Optional
-
+from enum import Enum
 import boto3  # type: ignore
 from moonstreamdb.models import (
     EthereumAddress,
     EthereumLabel,
 )
-from sqlalchemy.orm import Session
+from sqlalchemy import text
+from sqlalchemy.orm import Session, query, query_expression
 
 from . import data
 from .settings import ETHERSCAN_SMARTCONTRACTS_BUCKET
@@ -48,6 +49,62 @@ def get_contract_source_info(
             except:
                 logger.error(f"Failed to load smart contract {object_uri}")
     return None
+
+
+class LabelNames(Enum):
+    ETHERSCAN_SMARTCONTRACT = "etherscan_smartcontract"
+    COINMARKETCAP_TOKEN = "coinmarketcap_token"
+
+
+def get_ethereum_address_info(
+    db_session: Session, address: str
+) -> Optional[data.EthereumAddressInfo]:
+    query = db_session.query(EthereumAddress.id).filter(
+        EthereumAddress.address == address
+    )
+    id = query.one_or_none()
+    if id is None:
+        return None
+
+    address_info = data.EthereumAddressInfo(address=address)
+    etherscan_address_url = f"https://etherscan.io/address/{address}"
+    blockchain_com_url = f"https://www.blockchain.com/eth/address/{address}"
+    # Checking for token:
+    coinmarketcap_label: Optional[EthereumLabel] = (
+        db_session.query(EthereumLabel)
+        .filter(EthereumLabel.address_id == id[0])
+        .filter(EthereumLabel.label == LabelNames.COINMARKETCAP_TOKEN.value)
+        .order_by(text("created_at desc"))
+        .limit(1)
+        .one_or_none()
+    )
+    if coinmarketcap_label is not None:
+        address_info.token = data.EthereumTokenDetails(
+            name=coinmarketcap_label.label_data["name"],
+            symbol=coinmarketcap_label.label_data["symbol"],
+            external_url=[
+                coinmarketcap_label.label_data["coinmarketcap_url"],
+                etherscan_address_url,
+                blockchain_com_url,
+            ],
+        )
+
+    # Checking for smart contract
+    etherscan_label: Optional[EthereumLabel] = (
+        db_session.query(EthereumLabel)
+        .filter(EthereumLabel.address_id == id[0])
+        .filter(EthereumLabel.label == LabelNames.ETHERSCAN_SMARTCONTRACT.value)
+        .order_by(text("created_at desc"))
+        .limit(1)
+        .one_or_none()
+    )
+    if etherscan_label is not None:
+        address_info.smart_contract = data.EthereumSmartContractDetails(
+            name=etherscan_label.label_data["name"],
+            external_url=[etherscan_address_url, blockchain_com_url],
+        )
+
+    return address_info
 
 
 def get_address_labels(

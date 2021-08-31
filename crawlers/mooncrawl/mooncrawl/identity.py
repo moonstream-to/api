@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 import time
 
@@ -7,6 +8,9 @@ from sqlalchemy import text
 
 from moonstreamdb.db import yield_db_session_ctx
 from moonstreamdb.models import EthereumAddress, EthereumLabel
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 COINMARKETCAP_API_KEY = os.environ.get("COINMARKETCAP_API_KEY")
 if COINMARKETCAP_API_KEY is None:
@@ -50,45 +54,70 @@ def identities_cmc_add_handler(args: argparse.Namespace) -> None:
             raise Exception(err)
 
         if len(response["data"]) == 0:
-            print("No more data, crawling finished")
+            logger.info("No more data, crawling finished")
             break
 
         with yield_db_session_ctx() as db_session:
-            latest_address = (
+            latest_address = 1
+            latest_address_obj = (
                 db_session.query(EthereumAddress.id)
                 .order_by(text("id desc"))
                 .limit(1)
-                .one()
-            )[0]
+                .one_or_none()
+            )
+            if latest_address_obj is not None:
+                latest_address = latest_address_obj[0]
+
             for coin in response["data"]:
                 if coin["platform"] is not None:
                     if (
                         coin["platform"]["id"] == 1027
                         and coin["platform"]["token_address"] is not None
                     ):
-                        latest_address += 1
-                        eth_token_id = latest_address
-                        eth_token = EthereumAddress(
-                            id=eth_token_id,
-                            address=coin["platform"]["token_address"],
+                        token_address = coin["platform"]["token_address"]
+                        # Check if address already exists
+                        address = (
+                            db_session.query(EthereumAddress)
+                            .filter(EthereumAddress.address == token_address)
+                            .one_or_none()
                         )
-                        db_session.add(eth_token)
-                        eth_token_label = EthereumLabel(
-                            label="coinmarketcap_token",
-                            address_id=eth_token_id,
-                            label_data={
-                                "name": coin["name"],
-                                "symbol": coin["symbol"],
-                                "coinmarketcap_url": f'https://coinmarketcap.com/currencies/{coin["slug"]}',
-                            },
+                        # Add new address
+                        if address is None:
+                            latest_address += 1
+                            eth_token_id = latest_address
+                            eth_token = EthereumAddress(
+                                id=eth_token_id,
+                                address=token_address,
+                            )
+                            db_session.add(eth_token)
+                            logger.info(f"Added {coin['name']} token")
+                        else:
+                            eth_token_id = address.id
+
+                        label = (
+                            db_session.query(EthereumLabel)
+                            .filter(EthereumLabel.address_id == eth_token_id)
+                            .one_or_none()
                         )
-                        db_session.add(eth_token_label)
-                        print(f"Added {coin['name']} token")
+                        if label is None:
+                            eth_token_label = EthereumLabel(
+                                label="coinmarketcap_token",
+                                address_id=eth_token_id,
+                                label_data={
+                                    "name": coin["name"],
+                                    "symbol": coin["symbol"],
+                                    "coinmarketcap_url": f'https://coinmarketcap.com/currencies/{coin["slug"]}',
+                                },
+                            )
+                            db_session.add(eth_token_label)
+                            logger.info(f"Added label for {coin['name']} token")
 
             db_session.commit()
         start_n += limit_n
 
-        print(f"Loop ended, starting new from {start_n} to {start_n + limit_n - 1}")
+        logger.info(
+            f"Loop ended, starting new from {start_n} to {start_n + limit_n - 1}"
+        )
         time.sleep(1)
 
 
