@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from ..admin import subscription_types
 from .. import data
 from ..middleware import BroodAuthMiddleware
+from ..reporter import reporter
 from ..settings import (
     DOCS_TARGET_PATH,
     DOCS_PATHS,
@@ -100,8 +101,8 @@ async def add_subscription_handler(
             resource_data=resource_data,
         )
     except Exception as e:
-        logger.error("Error creating subscription resource:")
-        logger.error(e)
+        logger.error(f"Error creating subscription resource: {str(e)}")
+        reporter.error_report(e)
         raise HTTPException(status_code=500)
 
     return data.SubscriptionResourceData(
@@ -123,13 +124,14 @@ async def delete_subscription_handler(request: Request, subscription_id: str):
     """
     Delete subscriptions.
     """
-
     token = request.state.token
     try:
         deleted_resource = bc.delete_resource(token=token, resource_id=subscription_id)
     except BugoutResponseException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
+        logger.error(f"Error deleting subscription: {str(e)}")
+        reporter.error_report(e)
         raise HTTPException(status_code=500)
 
     return data.SubscriptionResourceData(
@@ -156,9 +158,9 @@ async def get_subscriptions_handler(request: Request) -> data.SubscriptionsListR
         resources: BugoutResources = bc.list_resources(token=token, params=params)
     except Exception as e:
         logger.error(
-            f"Error listing subscriptions for user ({request.user.id}) with token ({request.state.token})"
+            f"Error listing subscriptions for user ({request.user.id}) with token ({request.state.token}), error: {str(e)}"
         )
-        logger.error(e)
+        reporter.error_report(e)
         raise HTTPException(status_code=500)
 
     return data.SubscriptionsListResponse(
@@ -190,7 +192,6 @@ async def update_subscriptions_handler(
     """
     Get user's subscriptions.
     """
-
     token = request.state.token
 
     update = {}
@@ -212,6 +213,8 @@ async def update_subscriptions_handler(
     except BugoutResponseException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
+        logger.error(f"Error getting user subscriptions: {str(e)}")
+        reporter.error_report(e)
         raise HTTPException(status_code=500)
 
     return data.SubscriptionResourceData(
@@ -239,8 +242,8 @@ async def list_subscription_types() -> data.SubscriptionTypesListResponse:
             for resource in response.resources
         ]
     except Exception as e:
-        logger.error("Error reading subscription types from Brood API:")
-        logger.error(e)
+        logger.error(f"Error reading subscription types from Brood API: {str(e)}")
+        reporter.error_report(e)
         raise HTTPException(status_code=500)
 
     return data.SubscriptionTypesListResponse(subscription_types=results)

@@ -16,6 +16,7 @@ from fastapi import (
 from fastapi.middleware.cors import CORSMiddleware
 
 from ..middleware import BroodAuthMiddleware
+from ..reporter import reporter
 from ..settings import (
     MOONSTREAM_APPLICATION_ID,
     DOCS_TARGET_PATH,
@@ -77,6 +78,7 @@ async def create_user_handler(
     except BugoutResponseException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
+        reporter.error_report(e)
         raise HTTPException(status_code=500)
     return user
 
@@ -94,6 +96,7 @@ async def restore_password_handler(email: str = Form(...)) -> Dict[str, Any]:
     except BugoutResponseException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
+        reporter.error_report(e)
         raise HTTPException(status_code=500)
     return response
 
@@ -107,6 +110,7 @@ async def reset_password_handler(
     except BugoutResponseException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
+        reporter.error_report(e)
         raise HTTPException(status_code=500)
     return response
 
@@ -123,6 +127,7 @@ async def change_password_handler(
     except BugoutResponseException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
+        reporter.error_report(e)
         raise HTTPException(status_code=500)
     return user
 
@@ -138,6 +143,7 @@ async def delete_user_handler(
     except BugoutResponseException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
+        reporter.error_report(e)
         raise HTTPException(status_code=500)
     return user
 
@@ -157,6 +163,7 @@ async def login_handler(
             status_code=e.status_code, detail=f"Error from Brood API: {e.detail}"
         )
     except Exception as e:
+        reporter.error_report(e)
         raise HTTPException(status_code=500)
     return token
 
@@ -169,5 +176,6 @@ async def logout_handler(request: Request) -> uuid.UUID:
     except BugoutResponseException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
+        reporter.error_report(e)
         raise HTTPException(status_code=500)
     return token_id

@@ -14,12 +14,14 @@ from sqlalchemy.orm import Session
 from .. import data
 from ..middleware import BroodAuthMiddleware
 from ..providers import (
+    ReceivingEventsException,
     event_providers,
     get_events,
     latest_events,
     next_event,
     previous_event,
 )
+from ..reporter import reporter
 from ..settings import (
     DOCS_TARGET_PATH,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -121,17 +123,27 @@ async def stream_handler(
     if q.strip() != "":
         query = stream_queries.parse_query_string(q)
 
-    _, events = get_events(
-        db_session,
-        bc,
-        MOONSTREAM_DATA_JOURNAL_ID,
-        MOONSTREAM_ADMIN_ACCESS_TOKEN,
-        stream_boundary,
-        query,
-        user_subscriptions,
-        result_timeout=10.0,
-        raise_on_error=True,
-    )
+    try:
+        _, events = get_events(
+            db_session,
+            bc,
+            MOONSTREAM_DATA_JOURNAL_ID,
+            MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            stream_boundary,
+            query,
+            user_subscriptions,
+            result_timeout=10.0,
+            raise_on_error=True,
+        )
+    except ReceivingEventsException as e:
+        logger.error("Error receiving events from provider")
+        reporter.error_report(e)
+        raise HTTPException(status_code=500)
+    except Exception as e:
+        logger.error("Unable to get events")
+        reporter.error_report(e)
+        raise HTTPException(status_code=500)
+
     response = data.GetEventsResponse(stream_boundary=stream_boundary, events=events)
     return response
 
@@ -155,18 +167,28 @@ async def latest_events_handler(
     if q.strip() != "":
         query = stream_queries.parse_query_string(q)
 
-    events = latest_events(
-        db_session,
-        bc,
-        MOONSTREAM_DATA_JOURNAL_ID,
-        MOONSTREAM_ADMIN_ACCESS_TOKEN,
-        query,
-        1,
-        user_subscriptions,
-        result_timeout=6.0,
-        raise_on_error=True,
-        sort_events=True,
-    )
+    try:
+        events = latest_events(
+            db_session,
+            bc,
+            MOONSTREAM_DATA_JOURNAL_ID,
+            MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            query,
+            1,
+            user_subscriptions,
+            result_timeout=6.0,
+            raise_on_error=True,
+            sort_events=True,
+        )
+    except ReceivingEventsException as e:
+        logger.error("Error receiving events from provider")
+        reporter.error_report(e)
+        raise HTTPException(status_code=500)
+    except Exception as e:
+        logger.error("Unable to get latest events")
+        reporter.error_report(e)
+        raise HTTPException(status_code=500)
+
     return events
 
 
@@ -203,17 +225,26 @@ async def next_event_handler(
     if q.strip() != "":
         query = stream_queries.parse_query_string(q)
 
-    event = next_event(
-        db_session,
-        bc,
-        MOONSTREAM_DATA_JOURNAL_ID,
-        MOONSTREAM_ADMIN_ACCESS_TOKEN,
-        stream_boundary,
-        query,
-        user_subscriptions,
-        result_timeout=6.0,
-        raise_on_error=True,
-    )
+    try:
+        event = next_event(
+            db_session,
+            bc,
+            MOONSTREAM_DATA_JOURNAL_ID,
+            MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            stream_boundary,
+            query,
+            user_subscriptions,
+            result_timeout=6.0,
+            raise_on_error=True,
+        )
+    except ReceivingEventsException as e:
+        logger.error("Error receiving events from provider")
+        reporter.error_report(e)
+        raise HTTPException(status_code=500)
+    except Exception as e:
+        logger.error("Unable to get next events")
+        reporter.error_report(e)
+        raise HTTPException(status_code=500)
 
     return event
 
@@ -251,16 +282,25 @@ async def previous_event_handler(
     if q.strip() != "":
         query = stream_queries.parse_query_string(q)
 
-    event = previous_event(
-        db_session,
-        bc,
-        MOONSTREAM_DATA_JOURNAL_ID,
-        MOONSTREAM_ADMIN_ACCESS_TOKEN,
-        stream_boundary,
-        query,
-        user_subscriptions,
-        result_timeout=6.0,
-        raise_on_error=True,
-    )
+    try:
+        event = previous_event(
+            db_session,
+            bc,
+            MOONSTREAM_DATA_JOURNAL_ID,
+            MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            stream_boundary,
+            query,
+            user_subscriptions,
+            result_timeout=6.0,
+            raise_on_error=True,
+        )
+    except ReceivingEventsException as e:
+        logger.error("Error receiving events from provider")
+        reporter.error_report(e)
+        raise HTTPException(status_code=500)
+    except Exception as e:
+        logger.error("Unable to get previous events")
+        reporter.error_report(e)
+        raise HTTPException(status_code=500)
 
     return event

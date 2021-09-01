@@ -6,6 +6,7 @@ from bugout.exceptions import BugoutResponseException
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi import Request, Response
 
+from .reporter import reporter
 from .settings import MOONSTREAM_APPLICATION_ID, bugout_client as bc
 
 logger = logging.getLogger(__name__)
@@ -61,6 +62,7 @@ class BroodAuthMiddleware(BaseHTTPMiddleware):
             return Response(status_code=e.status_code, content=e.detail)
         except Exception as e:
             logger.error(f"Error processing Brood response: {str(e)}")
+            reporter.error_report(e)
             return Response(status_code=500, content="Internal server error")
 
         request.state.user = user

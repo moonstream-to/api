@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from .. import actions
 from .. import data
 from ..middleware import BroodAuthMiddleware
+from ..reporter import reporter
 from ..settings import DOCS_TARGET_PATH, ORIGINS, DOCS_PATHS
 from ..version import MOONSTREAM_VERSION
 
@@ -82,6 +83,7 @@ async def addresses_labels_bulk_handler(
         )
     except Exception as err:
         logger.error(f"Unable to get info about Ethereum addresses {err}")
+        reporter.error_report(err)
         raise HTTPException(status_code=500)
 
     return addresses_response
