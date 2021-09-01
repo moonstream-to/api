@@ -1,13 +1,13 @@
 from dataclasses import dataclass, asdict
-from collections import defaultdict
-from typing import Dict, List, Optional
+from typing import cast, List, Optional
+from hexbytes.main import HexBytes
+
+from eth_typing.encoding import HexStr
+from tqdm import tqdm
 from web3 import Web3
-import web3
-from web3.types import FilterParams
+from web3.types import FilterParams, LogReceipt
 from web3._utils.events import get_event_data
 
-
-w3 = Web3(Web3.HTTPProvider("http://127.0.0.1:18375"))
 
 # First abi is for old NFT's like crypto kitties
 # The erc721 standart requieres that Transfer event is indexed for all arguments
@@ -89,7 +89,7 @@ class NFT_contract:
     total_supply: str
 
 
-def get_erc721_contract_info(address: str) -> NFT_contract:
+def get_erc721_contract_info(w3: Web3, address: str) -> NFT_contract:
     contract = w3.eth.contract(
         address=w3.toChecksumAddress(address), abi=erc721_functions_abi
     )
@@ -101,7 +101,10 @@ def get_erc721_contract_info(address: str) -> NFT_contract:
     )
 
 
-transfer_event_signature = w3.sha3(text="Transfer(address,address,uint256)").hex()
+# SHA3 hash of the string "Transfer(address,address,uint256)"
+TRANSFER_EVENT_SIGNATURE = HexBytes(
+    "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+)
 
 
 @dataclass
@@ -110,7 +113,7 @@ class NFTTransferRaw:
     transfer_from: str
     transfer_to: str
     tokenId: int
-    transfer_tx: bytes
+    transfer_tx: HexBytes
 
 
 @dataclass
@@ -124,14 +127,14 @@ class NFTTransfer:
     is_mint: bool = False
 
 
-def get_value_by_tx(tx_hash):
+def get_value_by_tx(w3: Web3, tx_hash: HexBytes):
     print(f"Trying to get tx: {tx_hash.hex()}")
     tx = w3.eth.get_transaction(tx_hash)
     print("got it")
     return tx["value"]
 
 
-def decode_nft_transfer_data(log) -> Optional[NFTTransferRaw]:
+def decode_nft_transfer_data(w3: Web3, log: LogReceipt) -> Optional[NFTTransferRaw]:
     for abi in erc721_transfer_event_abis:
         try:
             transfer_data = get_event_data(w3.codec, abi, log)
@@ -149,47 +152,34 @@ def decode_nft_transfer_data(log) -> Optional[NFTTransferRaw]:
 
 
 def get_nft_transfers(
-    block_number_from: int, contract_address: Optional[str] = None
+    w3: Web3,
+    from_block: Optional[int] = None,
+    to_block: Optional[int] = None,
+    contract_address: Optional[str] = None,
 ) -> List[NFTTransfer]:
-    filter_params = FilterParams(
-        fromBlock=block_number_from, topics=[transfer_event_signature]
-    )
+    filter_params = FilterParams(topics=[cast(HexStr, TRANSFER_EVENT_SIGNATURE.hex())])
+
+    if from_block is not None:
+        filter_params["fromBlock"] = from_block
+
+    if to_block is not None:
+        filter_params["toBlock"] = to_block
 
     if contract_address is not None:
         filter_params["address"] = w3.toChecksumAddress(contract_address)
 
     logs = w3.eth.get_logs(filter_params)
     nft_transfers: List[NFTTransfer] = []
-    tx_value: Dict[bytes, List[NFTTransferRaw]] = defaultdict(list)
-    for log in logs:
-        nft_transfer = decode_nft_transfer_data(log)
+    for log in tqdm(logs):
+        nft_transfer = decode_nft_transfer_data(w3, log)
         if nft_transfer is not None:
-            tx_value[nft_transfer.transfer_tx].append(nft_transfer)
-
-    for tx_hash, transfers in tx_value.items():
-        # value = get_value_by_tx(tx_hash)
-        value = 0
-        for transfer in transfers:
             kwargs = {
-                **asdict(transfer),
-                "transfer_tx": transfer.transfer_tx.hex(),
-                "is_mint": transfer.transfer_from
+                **asdict(nft_transfer),
+                "transfer_tx": nft_transfer.transfer_tx.hex(),
+                "is_mint": nft_transfer.transfer_from
                 == "0x0000000000000000000000000000000000000000",
-                "value": value,
             }
-            parsed_transfer = NFTTransfer(**kwargs)
 
+            parsed_transfer = NFTTransfer(**kwargs)  # type: ignore
             nft_transfers.append(parsed_transfer)
     return nft_transfers
-
-
-cryptoKittiesAddress = "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d"
-transfesrs = get_nft_transfers(
-    w3.eth.block_number - 120,
-)
-
-print(transfesrs)
-print(f"Total nft transfers: {len(transfesrs)}")
-minted = list(filter(lambda transfer: transfer.is_mint == True, transfesrs))
-# print(minted)
-print(f"Minted count: {len(minted)}")

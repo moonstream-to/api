@@ -8,11 +8,13 @@ import json
 import os
 import sys
 import time
-from typing import Iterator, List
+from typing import cast, Iterator, List
 
 import dateutil.parser
+from web3 import Web3
 
 from .ethereum import (
+    connect,
     crawl_blocks_executor,
     crawl_blocks,
     check_missing_blocks,
@@ -21,14 +23,31 @@ from .ethereum import (
     DateRange,
     trending,
 )
+from .eth_nft_explorer import get_nft_transfers
 from .publish import publish_json
-from .settings import MOONSTREAM_CRAWL_WORKERS
+from .settings import MOONSTREAM_CRAWL_WORKERS, MOONSTREAM_IPC_PATH
 from .version import MOONCRAWL_VERSION
 
 
 class ProcessingOrder(Enum):
     DESCENDING = 0
     ASCENDING = 1
+
+
+def web3_client_from_cli_or_env(args: argparse.Namespace) -> Web3:
+    """
+    Returns a web3 client either by parsing "--web3" argument on the given arguments or by looking up
+    the MOONSTREAM_IPC_PATH environment variable.
+    """
+    web3_connection_string = MOONSTREAM_IPC_PATH
+    args_web3 = vars(args).get("web3")
+    if args_web3 is not None:
+        web3_connection_string = cast(str, args_web3)
+    if web3_connection_string is None:
+        raise ValueError(
+            "Could not find Web3 connection information in arguments or in MOONSTREAM_IPC_PATH environment variable"
+        )
+    return connect(web3_connection_string)
 
 
 def yield_blocks_numbers_lists(
@@ -198,6 +217,16 @@ def ethcrawler_trending_handler(args: argparse.Namespace) -> None:
         )
     with args.outfile as ofp:
         json.dump(results, ofp)
+
+
+def ethcrawler_nft_handler(args: argparse.Namespace) -> None:
+    web3_client = web3_client_from_cli_or_env(args)
+    transfers = get_nft_transfers(web3_client, args.start, args.end, args.address)
+    for transfer in transfers:
+        print(transfer)
+
+    print("Total transfers:", len(transfers))
+    print("Mints:", len([transfer for transfer in transfers if transfer.is_mint]))
 
 
 def main() -> None:
@@ -388,6 +417,38 @@ def main() -> None:
         help="Optional file to write output to. By default, prints to stdout.",
     )
     parser_ethcrawler_trending.set_defaults(func=ethcrawler_trending_handler)
+
+    parser_ethcrawler_nft = subcommands.add_parser(
+        "nft", description="Collect information about NFTs from Ethereum blockchains"
+    )
+    parser_ethcrawler_nft.add_argument(
+        "-s",
+        "--start",
+        type=int,
+        default=None,
+        help="Starting block number (inclusive if block available)",
+    )
+    parser_ethcrawler_nft.add_argument(
+        "-e",
+        "--end",
+        type=int,
+        default=None,
+        help="Ending block number (inclusive if block available)",
+    )
+    parser_ethcrawler_nft.add_argument(
+        "-a",
+        "--address",
+        type=str,
+        default=None,
+        help="(Optional) NFT contract address that you want to limit the crawl to, e.g. 0x06012c8cf97BEaD5deAe237070F9587f8E7A266d for CryptoKitties.",
+    )
+    parser_ethcrawler_nft.add_argument(
+        "--web3",
+        type=str,
+        default=None,
+        help="(Optional) Web3 connection string. If not provided, uses the value specified by MOONSTREAM_IPC_PATH environment variable.",
+    )
+    parser_ethcrawler_nft.set_defaults(func=ethcrawler_nft_handler)
 
     args = parser.parse_args()
     args.func(args)
