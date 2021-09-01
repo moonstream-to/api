@@ -1,21 +1,18 @@
 import { useToast as useChakraToast, Box } from "@chakra-ui/react";
 import React, { useCallback } from "react";
-import { useAnalytics } from ".";
+import mixpanel from "mixpanel-browser";
+import { MIXPANEL_EVENTS } from "../providers/AnalyticsProvider/constants";
 
 const useToast = () => {
   const chakraToast = useChakraToast();
-  const analytics = useAnalytics();
 
   const toast = useCallback(
     (message, type) => {
-      if (analytics.isLoaded && type === "error") {
-        analytics.mixpanel.track(
-          `${analytics.MIXPANEL_EVENTS.TOAST_ERROR_DISPLAYED}`,
-          {
-            status: message?.response?.status,
-            detail: message?.response?.data.detail,
-          }
-        );
+      if (mixpanel.get_distinct_id() && type === "error") {
+        mixpanel.track(`${MIXPANEL_EVENTS.TOAST_ERROR_DISPLAYED}`, {
+          status: message?.response?.status,
+          detail: message?.response?.data.detail,
+        });
       }
       const background = type === "error" ? "unsafe.500" : "suggested.500";
       const userMessage =
@@ -43,7 +40,7 @@ const useToast = () => {
         ),
       });
     },
-    [chakraToast, analytics]
+    [chakraToast]
   );
 
   return toast;
