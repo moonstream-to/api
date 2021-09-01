@@ -21,12 +21,8 @@ import (
 	"github.com/google/uuid"
 )
 
-// Generate humbug client to be able write data in Bugout journal.
-func humbugClientFromEnv() (*humbug.HumbugReporter, error) {
-	clientID := os.Getenv("ETHTXPOOL_HUMBUG_CLIENT_ID")
-	humbugToken := os.Getenv("ETHTXPOOL_HUMBUG_TOKEN")
-	sessionID := uuid.New().String()
-
+// Generate humbug client
+func humbugClient(sessionID string, clientID string, humbugToken string) (*humbug.HumbugReporter, error) {
 	consent := humbug.CreateHumbugConsent(humbug.True)
 	reporter, err := humbug.CreateHumbugReporter(consent, clientID, sessionID, humbugToken)
 	return reporter, err
@@ -188,6 +184,23 @@ func main() {
 	flag.IntVar(&intervalSeconds, "interval", 1, "Number of seconds to wait between RPC calls to query the transaction pool (default: 1)")
 	flag.Parse()
 
+	sessionID := uuid.New().String()
+	
+	// Humbug crash client to collect errors
+	crashReporter, err := humbugClient(sessionID, "moonstream-crawlers", os.Getenv("HUMBUG_REPORTER_CRAWLERS_TOKEN"))
+	if err != nil {
+		panic(fmt.Sprintf("Invalid Humbug Crash configuration: %s", err.Error()))
+	}
+	crashReporter.Publish(humbug.SystemReport())
+
+	defer func() {
+		message := recover()
+		if message != nil {
+			fmt.Printf("Error: %s\n", message)
+			crashReporter.Publish(humbug.PanicReport(message))
+		}
+	}()
+
 	// Set connection with Ethereum blockchain via geth
 	gethClient, err := rpc.Dial(gethConnectionString)
 	if err != nil {
@@ -195,7 +208,8 @@ func main() {
 	}
 	defer gethClient.Close()
 
-	reporter, err := humbugClientFromEnv()
+	// Humbug client to be able write data in Bugout journal
+	reporter, err := humbugClient(sessionID, os.Getenv("ETHTXPOOL_HUMBUG_CLIENT_ID"), os.Getenv("ETHTXPOOL_HUMBUG_TOKEN"))
 	if err != nil {
 		panic(fmt.Sprintf("Invalid Humbug configuration: %s", err.Error()))
 	}
