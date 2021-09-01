@@ -34,6 +34,7 @@ setup(
     zip_safe=False,
     install_requires=[
         "moonstreamdb @ git+https://git@github.com/bugout-dev/moonstream.git@39d2b8e36a49958a9ae085ec2cc1be3fc732b9d0#egg=moonstreamdb&subdirectory=db",
+        "humbug",
         "python-dateutil",
         "requests",
         "tqdm",
