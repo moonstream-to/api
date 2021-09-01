@@ -48,7 +48,7 @@ def yield_blocks_numbers_lists(
         print(
             "Wrong format provided, expected {bottom_block}-{top_block}, as ex. 105-340"
         )
-        return
+        raise Exception
 
     starting_block = max(input_start_block, input_end_block)
     ending_block = min(input_start_block, input_end_block)
