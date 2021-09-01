@@ -33,6 +33,72 @@ erc721_transfer_event_abis = [
     },
 ]
 
+erc721_functions_abi = [
+    {
+        "inputs": [{"internalType": "address", "name": "owner", "type": "address"}],
+        "name": "balanceOf",
+        "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+        "payable": False,
+        "stateMutability": "view",
+        "type": "function",
+        "constant": True,
+    },
+    {
+        "inputs": [],
+        "name": "name",
+        "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+        "stateMutability": "view",
+        "type": "function",
+        "constant": True,
+    },
+    {
+        "inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}],
+        "name": "ownerOf",
+        "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+        "payable": False,
+        "stateMutability": "view",
+        "type": "function",
+        "constant": True,
+    },
+    {
+        "inputs": [],
+        "name": "symbol",
+        "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+        "stateMutability": "view",
+        "type": "function",
+        "constant": True,
+    },
+    {
+        "inputs": [],
+        "name": "totalSupply",
+        "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+        "stateMutability": "view",
+        "type": "function",
+        "constant": True,
+    },
+]
+
+
+@dataclass
+class NFT_contract:
+    address: str
+    name: str
+    symbol: str
+    total_supply: str
+
+
+def get_erc721_contract_info(address: str) -> NFT_contract:
+    contract = w3.eth.contract(
+        address=w3.toChecksumAddress(address), abi=erc721_functions_abi
+    )
+    return NFT_contract(
+        address=address,
+        name=contract.functions.name().call(),
+        symbol=contract.functions.symbol().call(),
+        total_supply=contract.functions.totalSupply().call(),
+    )
+
+
 transfer_event_signature = w3.sha3(text="Transfer(address,address,uint256)").hex()
 
 
@@ -89,12 +155,11 @@ def get_nft_transfers(
 
 cryptoKittiesAddress = "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d"
 transfesrs = get_nft_transfers(
-    w3.eth.block_number - 1000, "0x77aa555c8a518b56a1ed57b7b4b85ee2ad479d06"
+    w3.eth.block_number - 1000, "0x2aea4add166ebf38b63d09a75de1a7b94aa24163"
 )
-
 
 print(transfesrs)
 print(f"Total nft transfers: {len(transfesrs)}")
-minted_count = len(list(filter(lambda transfer: transfer.is_mint == True, transfesrs)))
-print(f"Minted count: {minted_count}")
-# print(transfesrs[0].transfer_tx)
+minted = list(filter(lambda transfer: transfer.is_mint == True, transfesrs))
+# print(minted)
+print(f"Minted count: {len(minted)}")
