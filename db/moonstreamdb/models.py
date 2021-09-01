@@ -11,8 +11,6 @@ from sqlalchemy import (
     Numeric,
     Text,
     VARCHAR,
-    UniqueConstraint,
-    Index,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import expression, text
@@ -156,7 +154,6 @@ class EthereumLabel(Base):  # type: ignore
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )
-    __table_args__ = (Index("ix_label_name", text("(label_data->>'name')")),)
 
 
 class EthereumPendingTransaction(Base):  # type: ignore
