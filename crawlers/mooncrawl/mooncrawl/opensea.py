@@ -1,12 +1,13 @@
 import argparse
 import base64
+from datetime import datetime, timedelta
 import json
 from pprint import pprint
 import string
 import time
 from typing import Any, Collection, Dict
 
-from moonstreamdb.models import EthereumAddress, EthereumLabel
+from moonstreamdb.models import EthereumAddress, EthereumLabel, OpenSeaCrawlingState
 from moonstreamdb.db import yield_db_session_ctx
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import func
@@ -27,18 +28,24 @@ def make_request(headers: Dict[str, Any], data: Dict[str, Any]):
     API looks similar like github but looks like have different limits
     for not just hardcoded timer
     """
-
+    repeat = 0
     time.sleep(3)
 
     try:
 
         while True:
-
-            graphql_resp = session.get(
-                "https://api.opensea.io/graphql/",
-                headers=headers,
-                json=data,
-            )
+            try:
+                graphql_resp = session.get(
+                    "https://api.opensea.io/graphql/",
+                    headers=headers,
+                    json=data,
+                )
+            except Exception as err:
+                print(f"Error on get request status {graphql_resp.status_code} ")
+                repeat += 1
+                time.sleep(10)
+                if repeat >= 3:
+                    break
 
             if "Too many requests" in graphql_resp.text:
                 time.sleep(3)
@@ -50,6 +57,7 @@ def make_request(headers: Dict[str, Any], data: Dict[str, Any]):
     except Exception as err:
         print(err)
         print(graphql_resp.text)
+        json_response = {}
 
     return json_response
 
@@ -62,7 +70,7 @@ def check_if_third_requred(query: str, data: Dict[str, Any]):
 
     required = False
 
-    message = str(f"arrayconnection:{9900}")
+    message = str(f"arrayconnection:{9899}")
     message_bytes = message.encode("ascii")
     base64_bytes = base64.b64encode(message_bytes)
 
@@ -73,8 +81,10 @@ def check_if_third_requred(query: str, data: Dict[str, Any]):
     response_result = make_request(headers=headers, data=data)
 
     try:
-        len(response_result["data"]["query"]["collections"]["edges"])
-        response_result["data"]["query"]["collections"]["edges"][0]
+        print(
+            f'last coursor len {len(response_result["data"]["query"]["collections"]["edges"])}'
+        )
+        print(response_result["data"]["query"]["collections"]["edges"][0])
         required = True
     except TypeError:
         pass
@@ -177,14 +187,43 @@ def crawl_collections_query_loop(
     when it return incorrect response
     API rate limit handling on request method.
     """
+    print(f"Start query='{query}'")
 
     already_parsed = (
         db_session.query(EthereumLabel.label_data["name"])
         .filter(func.lower(EthereumLabel.label_data["name"].astext).startswith(query))
         .all()
     )
-    total_write = 0
-    start_cursour = 0
+
+    query_state = (
+        db_session.query(OpenSeaCrawlingState)
+        .filter(OpenSeaCrawlingState.query == query)
+        .one_or_none()
+    )
+
+    # Try crawl new data from old position only for somethink which older 7 days
+    if query_state is None:
+        try:
+            query_state = OpenSeaCrawlingState(query=query, total_count=0)
+            db_session.add(query_state)
+            db_session.commit()
+            db_session.refresh(query_state)
+        except Exception as err:
+            db_session.rollback()
+            print(f"Error add new {query} : {err}")
+            return
+        start_cursour = 0
+    else:
+        if query_state.updated_at.replace(tzinfo=None) > datetime.utcnow().replace(
+            tzinfo=None
+        ) - timedelta(days=7):
+            return
+        start_cursour = query_state.total_count
+
+    total_write = 0  # just for logs
+
+    array_of_collection = []
+
     while True:
 
         message = str(f"arrayconnection:{start_cursour}")
@@ -207,9 +246,9 @@ def crawl_collections_query_loop(
         except Exception as err:
             raise
 
-        for collection_types_oblect in json_response["data"]["query"]["collections"][
-            "edges"
-        ]:
+        array_of_collection = json_response["data"]["query"]["collections"]["edges"]
+
+        for collection_types_oblect in array_of_collection:
 
             if (
                 collection_types_oblect["node"]["representativeAsset"]
@@ -221,7 +260,36 @@ def crawl_collections_query_loop(
                 total_write += 1
 
     print(f"query: '{query}' write labels to database: {total_write} new labels")
-    print(f"Last cursour position: {start_cursour} ")
+    print(f"Last cursour position: {start_cursour + len(array_of_collection)}")
+    try:
+        query_state.total_count = start_cursour + len(array_of_collection)
+        query_state.updated_at = datetime.now()
+        db_session.commit()
+    except Exception as err:
+        db_session.rollback()
+        print(f"Error update {query} : {err}")
+
+
+def recurce_query_extend(
+    db_session, search_query, grapql_collections_payload, symbols_string
+):
+    """ """
+    # check need more?
+    more_required = check_if_third_requred(search_query, grapql_collections_payload)
+
+    if more_required:
+
+        for addition_letter in symbols_string:
+
+            new_search_query = search_query + addition_letter
+
+            recurce_query_extend(
+                db_session, new_search_query, grapql_collections_payload, symbols_string
+            )
+    else:
+        crawl_collections_query_loop(
+            db_session, search_query, grapql_collections_payload
+        )
 
 
 def crawl_opensea(args: argparse.Namespace):
@@ -238,7 +306,7 @@ def crawl_opensea(args: argparse.Namespace):
     with yield_db_session_ctx() as db_session:
         grapql_collections_payload = {
             "id": "CollectionFilterQuery",
-            "query": "query CollectionFilterQuery(\n  $assetOwner: IdentityInputType\n  $categories: [CollectionSlug!]\n  $chains: [ChainScalar!]\n  $collections: [CollectionSlug!]\n  $count: Int\n  $cursor: String\n  $includeHidden: Boolean\n  $query: String\n  $sortBy: CollectionSort\n) {\n  query {\n    ...CollectionFilter_data_421KmG\n  }\n}\n\nfragment CollectionFilter_data_421KmG on Query {\n  selectedCollections: collections(first: 25, collections: $collections, includeHidden: true) {\n    edges {\n      node {\n   stats {\n totalSupply\n }\n      TotalCount\n   representativeAsset {\n      assetContract {\n  name\n label\n  address\n     openseaVersion\n        id\n      }\n      id\n    }\n     imageUrl\n        name\n        slug\n        id\n      }\n    }\n  }\n  collections(after: $cursor, assetOwner: $assetOwner, chains: $chains, first: $count, includeHidden: $includeHidden, parents: $categories, query: $query, sortBy: $sortBy) {\n    edges {\n      node {\n  author {\n address\n  id\n  }\n   TotalCount\n   representativeAsset {\n      assetContract {\n   address\n  chain\n   openseaVersion\n        id\n      }\n      id\n    }\n   assetCount\n  stats {\n totalSupply\n }\n      imageUrl\n        name\n        slug\n        id\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n",
+            "query": "query CollectionFilterQuery(\n  $assetOwner: IdentityInputType\n  $categories: [CollectionSlug!]\n  $chains: [ChainScalar!]\n  $collections: [CollectionSlug!]\n  $count: Int\n  $cursor: String\n  $includeHidden: Boolean\n  $query: String\n  $sortBy: CollectionSort\n) {\n  query {\n    ...CollectionFilter_data_421KmG\n  }\n}\n\nfragment CollectionFilter_data_421KmG on Query {\n  selectedCollections: collections(first: 25, collections: $collections, includeHidden: true) {\n    edges {\n      node {\n   stats {\n totalSupply\n }\n      TotalCount\n   representativeAsset {\n      assetContract {\n  name\n label\n  address\n     openseaVersion\n        id\n      }\n      id\n    }\n     imageUrl\n        name\n        slug\n        id\n      }\n    }\n  }\n  collections(after: $cursor, assetOwner: $assetOwner, chains: $chains, first: $count, includeHidden: $includeHidden, parents: $categories, query: $query, sortBy: $sortBy) {\n    edges {\n      node {\n  author {\n address\n  id\n  }\n   TotalCount\n   representativeAsset {\n      assetContract {\n   address\n  chain\n   openseaVersion\n        id\n      }\n      id\n    }\n   assetCount\n  stats {\n totalSupply\n }\n      imageUrl\n        name\n        slug\n        id\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n  totalCount\n   }\n  }\n}\n",
             "variables": {
                 "assetOwner": None,
                 "categories": None,
@@ -248,32 +316,22 @@ def crawl_opensea(args: argparse.Namespace):
                 "cursor": "YXJyYXljb25uZWN0aW9uOjA=",
                 "includeHidden": False,
                 "query": None,
+                "sortAscending": True,
                 "sortBy": "CREATED_DATE",
             },
         }
-        alphabet_string = string.ascii_lowercase
+        symbols_string = string.ascii_lowercase + "0123456789"
 
-        for first_letter in alphabet_string:
+        for symbol in symbols_string:
 
-            for second_letter in alphabet_string:
-                search_query = first_letter + second_letter
+            search_query = symbol
 
-                third_required = check_if_third_requred(
-                    search_query, grapql_collections_payload
-                )
-
-                print(f"Third symbol required: {third_required}")
-
-                if third_required:
-                    for third_letter in alphabet_string:
-                        search_query = search_query + third_letter
-                        crawl_collections_query_loop(
-                            db_session, search_query, grapql_collections_payload
-                        )
-                else:
-                    crawl_collections_query_loop(
-                        db_session, search_query, grapql_collections_payload
-                    )
+            recurce_query_extend(
+                db_session,
+                search_query,
+                grapql_collections_payload,
+                symbols_string,
+            )
 
 
 def main():
