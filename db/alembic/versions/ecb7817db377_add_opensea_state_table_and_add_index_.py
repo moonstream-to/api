@@ -23,7 +23,7 @@ def upgrade():
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("query", sa.Text(), nullable=False),
         sa.Column(
-            "updated_at",
+            "crawled_at",
             sa.DateTime(timezone=True),
             server_default=sa.text("TIMEZONE('utc', statement_timestamp())"),
             nullable=False,
@@ -32,7 +32,10 @@ def upgrade():
         sa.PrimaryKeyConstraint("id", name=op.f("pk_opensea_crawler_state")),
         sa.UniqueConstraint("id", name=op.f("uq_opensea_crawler_state_id")),
     )
-    op.drop_constraint("uq_ethereum_labels_label", "ethereum_labels", type_="unique")
+    op.execute(
+        "ALTER TABLE ethereum_labels DROP CONSTRAINT IF EXISTS uq_ethereum_labels_label"
+    )
+
     op.execute(
         f"CREATE INDEX idx_ethereum_labels_opensea_nft_name ON ethereum_labels((label_data->>'name')) where label='opensea_nft';"
     )

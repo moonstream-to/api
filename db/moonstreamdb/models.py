@@ -221,8 +221,11 @@ class OpenSeaCrawlingState(Base):  # type: ignore
 
     id = Column(Integer, primary_key=True, unique=True, nullable=False)
     query = Column(Text, nullable=False)
-    updated_at = Column(
-        DateTime(timezone=True), server_default=utcnow(), nullable=False
+    crawled_at = Column(
+        DateTime(timezone=True),
+        server_default=utcnow(),
+        onupdate=utcnow(),
+        nullable=False,
     )
 
     total_count = Column(Integer, nullable=False)
