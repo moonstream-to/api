@@ -202,6 +202,7 @@ def crawl_collections_query_loop(
     # Try crawl new data from old position only for somethink which older 7 days
     if query_state is None:
         try:
+            query_state = OpenSeaCrawlingState(query=query, total_count=0)
             db_session.add(query_state)
             db_session.commit()
             db_session.refresh(query_state)
@@ -260,6 +261,7 @@ def crawl_collections_query_loop(
     print(f"Last cursour position: {start_cursour + len(array_of_collection)}")
     try:
         query_state.total_count = start_cursour + len(array_of_collection)
+
         query_state.updated_at = datetime.now()
         db_session.commit()
     except Exception as err:
