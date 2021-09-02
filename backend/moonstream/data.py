@@ -2,7 +2,6 @@
 Pydantic schemas for the Moonstream HTTP API
 """
 from typing import List, Optional, Dict, Any
-
 from pydantic import BaseModel, Field
 
 
@@ -196,3 +195,8 @@ class AddressLabelsResponse(BaseModel):
 
 class AddressListLabelsResponse(BaseModel):
     addresses: List[AddressLabelsResponse] = Field(default_factory=list)
+
+
+class OnboardingState(BaseModel):
+    is_complete: bool
+    steps: Dict[str, int]

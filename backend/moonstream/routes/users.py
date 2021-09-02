@@ -5,9 +5,10 @@ import logging
 from typing import Any, Dict
 import uuid
 
-from bugout.data import BugoutToken, BugoutUser
+from bugout.data import BugoutToken, BugoutUser, BugoutResource
 from bugout.exceptions import BugoutResponseException
 from fastapi import (
+    Body,
     FastAPI,
     Form,
     HTTPException,
@@ -15,6 +16,7 @@ from fastapi import (
 )
 from fastapi.middleware.cors import CORSMiddleware
 
+from .. import data
 from ..middleware import BroodAuthMiddleware
 from ..settings import (
     MOONSTREAM_APPLICATION_ID,
@@ -22,6 +24,7 @@ from ..settings import (
     ORIGINS,
     DOCS_PATHS,
     bugout_client as bc,
+    BUGOUT_REQUEST_TIMEOUT_SECONDS,
 )
 from ..version import MOONSTREAM_VERSION
 
@@ -171,3 +174,108 @@ async def logout_handler(request: Request) -> uuid.UUID:
     except Exception as e:
         raise HTTPException(status_code=500)
     return token_id
+
+
+USER_ONBOARDING_STATE = "onboarding_state"
+
+
+def create_onboarding_resource(
+    token,
+    resource_data={
+        "type": USER_ONBOARDING_STATE,
+        "steps": {
+            "welcome": 0,
+            "subscriptions": 0,
+            "stream": 0,
+        },
+        "is_complete": False,
+    },
+) -> BugoutResource:
+
+    resource = bc.create_resource(
+        token=token,
+        application_id=MOONSTREAM_APPLICATION_ID,
+        resource_data=resource_data,
+        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+    )
+    return resource
+
+
+@app.post("/onboarding", tags=["users"], response_model=data.OnboardingState)
+async def set_onboarding_state(
+    request: Request,
+    data: data.OnboardingState = Body(...),
+) -> data.OnboardingState:
+
+    token = request.state.token
+    print(data)
+    response = bc.list_resources(
+        token=token,
+        params={"type": USER_ONBOARDING_STATE},
+        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+    )
+    resource_data = {"type": USER_ONBOARDING_STATE, **data.dict()}
+    try:
+        if response.resources:
+            resource: BugoutResource = bc.update_resource(
+                token=token,
+                resource_id=str(response.resources[0].id),
+                resource_data={"update": resource_data, "drop_keys": []},
+            )
+        else:
+            resource: BugoutResource = create_onboarding_resource(
+                token=token, resource_data=resource_data
+            )
+
+    except BugoutResponseException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        raise HTTPException(status_code=500)
+    return resource.resource_data
+
+
+@app.get("/onboarding", tags=["users"], response_model=data.OnboardingState)
+async def get_onboarding_state(request: Request) -> data.OnboardingState:
+    token = request.state.token
+    response = bc.list_resources(
+        token=token,
+        params={"type": USER_ONBOARDING_STATE},
+        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+    )
+
+    try:
+        if response.resources:
+            resource: BugoutResource = response.resources[0]
+        else:
+            resource: BugoutResource = create_onboarding_resource(token=token)
+
+    except BugoutResponseException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        raise HTTPException(status_code=500)
+    return resource.resource_data
+
+
+@app.delete("/onboarding", tags=["users"], response_model=data.OnboardingState)
+async def delete_onboarding_state(request: Request) -> data.OnboardingState:
+    token = request.state.token
+    response = bc.list_resources(
+        token=token,
+        params={"type": USER_ONBOARDING_STATE},
+        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+    )
+    if not response.resources:
+        raise HTTPException(status_code=404, detail="not found")
+    try:
+        if response.resources:
+            resource: BugoutResource = bc.delete_resource(
+                token=token,
+                resource_id=response.resources[0].id,
+                timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+            )
+
+    except BugoutResponseException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        raise HTTPException(status_code=500)
+    return resource.resource_data
