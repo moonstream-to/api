@@ -70,7 +70,7 @@ const Welcome = () => {
       ui.setOnboardingStep(ui.onboardingStep + 1);
       scrollRef?.current?.scrollIntoView();
     } else {
-      ui.setisOnboardingComplete(true);
+      ui.setOnboardingComplete(true);
       router.push("/stream");
     }
   };

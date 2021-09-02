@@ -1,23 +1,18 @@
 import { http } from "../utils";
 
-const API = process.env.NEXT_PUBLIC_SIMIOTICS_JOURNALS_URL;
-const PREFERENCES_API = `${API}/preferences`;
+const API_URL = process.env.NEXT_PUBLIC_MOONSTREAM_API_URL;
+export const PREFERENCES_URL = `${API_URL}/users`;
 
-export const getDefaultJournal = () =>
+export const getOnboardingState = () =>
   http({
     method: "GET",
-    url: `${PREFERENCES_API}/default_journal`,
+    url: `${PREFERENCES_URL}/onboarding`,
   });
 
-export const setDefaultJournal = (journalId) =>
-  http({
+export const setOnboardingState = (data) => {
+  return http({
     method: "POST",
-    url: `${PREFERENCES_API}/default_journal`,
-    data: { id: journalId },
+    url: `${PREFERENCES_URL}/onboarding`,
+    data,
   });
-
-export const unsetDefaultJournal = () =>
-  http({
-    method: "DELETE",
-    url: `${PREFERENCES_API}/default_journal`,
-  });
+};

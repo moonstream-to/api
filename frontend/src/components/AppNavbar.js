@@ -115,12 +115,6 @@ const AppNavbar = () => {
                   </RouteButton>
                 ))}
                 {USER_NAV_PATHES.map((item, idx) => {
-                  console.log(
-                    "item.path:",
-                    item.path,
-                    "pathname:",
-                    router.nextRouter.pathname
-                  );
                   return (
                     <RouteButton
                       key={`${idx}-${item.title}-navlink`}
