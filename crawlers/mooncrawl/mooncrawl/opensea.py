@@ -129,14 +129,12 @@ def write_contract_to_database(
     else:
         address_id = address_id[0]
 
-    label_data = (
-        {
-            "name": name,
-            "opensea_url": f"https://opensea.io/assets/{slug}",
-            "blockchain": blockchain,
-            "imageUrl": image_url,
-        },
-    )
+    label_data = {
+        "name": name,
+        "opensea_url": f"https://opensea.io/assets/{slug}",
+        "blockchain": blockchain,
+        "imageUrl": image_url,
+    }
 
     eth_label = EthereumLabel(
         label="opensea_nft",
@@ -204,7 +202,6 @@ def crawl_collections_query_loop(
     # Try crawl new data from old position only for somethink which older 7 days
     if query_state is None:
         try:
-            query_state = OpenSeaCrawlingState(query=query, total_count=0)
             db_session.add(query_state)
             db_session.commit()
             db_session.refresh(query_state)
@@ -306,7 +303,7 @@ def crawl_opensea(args: argparse.Namespace):
     with yield_db_session_ctx() as db_session:
         grapql_collections_payload = {
             "id": "CollectionFilterQuery",
-            "query": "query CollectionFilterQuery(\n  $assetOwner: IdentityInputType\n  $categories: [CollectionSlug!]\n  $chains: [ChainScalar!]\n  $collections: [CollectionSlug!]\n  $count: Int\n  $cursor: String\n  $includeHidden: Boolean\n  $query: String\n  $sortBy: CollectionSort\n) {\n  query {\n    ...CollectionFilter_data_421KmG\n  }\n}\n\nfragment CollectionFilter_data_421KmG on Query {\n  selectedCollections: collections(first: 25, collections: $collections, includeHidden: true) {\n    edges {\n      node {\n   stats {\n totalSupply\n }\n      TotalCount\n   representativeAsset {\n      assetContract {\n  name\n label\n  address\n     openseaVersion\n        id\n      }\n      id\n    }\n     imageUrl\n        name\n        slug\n        id\n      }\n    }\n  }\n  collections(after: $cursor, assetOwner: $assetOwner, chains: $chains, first: $count, includeHidden: $includeHidden, parents: $categories, query: $query, sortBy: $sortBy) {\n    edges {\n      node {\n  author {\n address\n  id\n  }\n   TotalCount\n   representativeAsset {\n      assetContract {\n   address\n  chain\n   openseaVersion\n        id\n      }\n      id\n    }\n   assetCount\n  stats {\n totalSupply\n }\n      imageUrl\n        name\n        slug\n        id\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n  totalCount\n   }\n  }\n}\n",
+            "query": "query CollectionFilterQuery(\n  $assetOwner: IdentityInputType\n  $categories: [CollectionSlug!]\n  $chains: [ChainScalar!]\n  $collections: [CollectionSlug!]\n  $count: Int\n  $cursor: String\n  $includeHidden: Boolean\n  $query: String\n  $sortAscending: Boolean\n  $sortBy: CollectionSort\n) {\n  query {\n    ...CollectionFilter_data_421KmG\n  }\n}\n\nfragment CollectionFilter_data_421KmG on Query {\n  selectedCollections: collections(first: 25, collections: $collections, includeHidden: true) {\n    edges {\n      node {\n   stats {\n totalSupply\n }\n      TotalCount\n   representativeAsset {\n      assetContract {\n  name\n label\n  address\n     openseaVersion\n        id\n      }\n      id\n    }\n     imageUrl\n        name\n        slug\n        id\n      }\n    }\n  }\n  collections(after: $cursor, assetOwner: $assetOwner, chains: $chains, first: $count, includeHidden: $includeHidden, parents: $categories, query: $query, sortAscending: $sortAscending, sortBy: $sortBy) {\n    edges {\n      node {\n  author {\n address\n  id\n  }\n   TotalCount\n   representativeAsset {\n      assetContract {\n   address\n  chain\n   openseaVersion\n        id\n      }\n      id\n    }\n   assetCount\n  stats {\n totalSupply\n }\n      imageUrl\n        name\n        slug\n        id\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n  totalCount\n   }\n  }\n}\n",
             "variables": {
                 "assetOwner": None,
                 "categories": None,
