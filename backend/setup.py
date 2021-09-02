@@ -18,6 +18,7 @@ setup(
         "python-dateutil",
         "uvicorn",
         "types-python-dateutil",
+        "types-requests",
     ],
     extras_require={
         "dev": ["black", "mypy"],

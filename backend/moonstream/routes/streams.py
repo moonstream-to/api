@@ -5,14 +5,14 @@ import logging
 from typing import Dict, List, Optional
 
 from bugout.data import BugoutResource
-from fastapi import FastAPI, HTTPException, Request, Query, Depends
+from fastapi import FastAPI, Request, Query, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from moonstreamdb import db
 from sqlalchemy.orm import Session
 
 
 from .. import data
-from ..middleware import BroodAuthMiddleware
+from ..middleware import BroodAuthMiddleware, MoonstreamHTTPException
 from ..providers import (
     ReceivingEventsException,
     event_providers,
@@ -21,7 +21,6 @@ from ..providers import (
     next_event,
     previous_event,
 )
-from ..reporter import reporter
 from ..settings import (
     DOCS_TARGET_PATH,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -137,12 +136,10 @@ async def stream_handler(
         )
     except ReceivingEventsException as e:
         logger.error("Error receiving events from provider")
-        reporter.error_report(e)
-        raise HTTPException(status_code=500)
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
     except Exception as e:
         logger.error("Unable to get events")
-        reporter.error_report(e)
-        raise HTTPException(status_code=500)
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     response = data.GetEventsResponse(stream_boundary=stream_boundary, events=events)
     return response
@@ -182,12 +179,10 @@ async def latest_events_handler(
         )
     except ReceivingEventsException as e:
         logger.error("Error receiving events from provider")
-        reporter.error_report(e)
-        raise HTTPException(status_code=500)
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
     except Exception as e:
         logger.error("Unable to get latest events")
-        reporter.error_report(e)
-        raise HTTPException(status_code=500)
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     return events
 
@@ -239,12 +234,10 @@ async def next_event_handler(
         )
     except ReceivingEventsException as e:
         logger.error("Error receiving events from provider")
-        reporter.error_report(e)
-        raise HTTPException(status_code=500)
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
     except Exception as e:
         logger.error("Unable to get next events")
-        reporter.error_report(e)
-        raise HTTPException(status_code=500)
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     return event
 
@@ -296,11 +289,9 @@ async def previous_event_handler(
         )
     except ReceivingEventsException as e:
         logger.error("Error receiving events from provider")
-        reporter.error_report(e)
-        raise HTTPException(status_code=500)
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
     except Exception as e:
         logger.error("Unable to get previous events")
-        reporter.error_report(e)
-        raise HTTPException(status_code=500)
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     return event
