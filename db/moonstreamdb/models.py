@@ -13,7 +13,7 @@ from sqlalchemy import (
     VARCHAR,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
-from sqlalchemy.sql import expression, text
+from sqlalchemy.sql import expression
 from sqlalchemy.ext.compiler import compiles
 
 """
