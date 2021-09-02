@@ -10,23 +10,20 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"math/big"
 	"os"
 	"time"
 
 	humbug "github.com/bugout-dev/humbug/go/pkg"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/google/uuid"
 )
 
-// Generate humbug client to be able write data in Bugout journal.
-func humbugClientFromEnv() (*humbug.HumbugReporter, error) {
-	clientID := os.Getenv("ETHTXPOOL_HUMBUG_CLIENT_ID")
-	humbugToken := os.Getenv("ETHTXPOOL_HUMBUG_TOKEN")
-	sessionID := uuid.New().String()
-
+// Generate humbug client
+func humbugClient(sessionID string, clientID string, humbugToken string) (*humbug.HumbugReporter, error) {
 	consent := humbug.CreateHumbugConsent(humbug.True)
 	reporter, err := humbug.CreateHumbugReporter(consent, clientID, sessionID, humbugToken)
 	return reporter, err
@@ -124,11 +121,6 @@ func PollTxpoolContent(gethClient *rpc.Client, interval int, reporter *humbug.Hu
 						continue
 					}
 
-					// TODO(kompotkot, zomglings): Humbug API (on Spire) support bulk publication of reports. We should modify
-					// Humbug go client to use the bulk publish endpoint. Currently, if we have to publish all transactions
-					// pending in txpool, we *will* get rate limited. We may want to consider adding a publisher to the
-					// Humbug go client that can listen on a channel and will handle rate limiting, bulk publication etc. itself
-					// (without user having to worry about it).
 					ReportTitle := "Ethereum: Pending transaction: " + transactionHash.String()
 					ReportTags := []string{
 						"hash:" + transactionHash.String(),
@@ -138,6 +130,7 @@ func PollTxpoolContent(gethClient *rpc.Client, interval int, reporter *humbug.Hu
 						fmt.Sprintf("max_priority_fee_per_gas:%d", pendingTx.Transaction.MaxPriorityFeePerGas.ToInt()),
 						fmt.Sprintf("max_fee_per_gas:%d", pendingTx.Transaction.MaxFeePerGas.ToInt()),
 						fmt.Sprintf("gas:%d", pendingTx.Transaction.Gas),
+						fmt.Sprintf("value:%d", new(big.Float).Quo(new(big.Float).SetInt(transaction.Value.ToInt()), big.NewFloat(params.Ether))),
 						"crawl_type:ethereum_txpool",
 					}
 					report := humbug.Report{
@@ -188,6 +181,23 @@ func main() {
 	flag.IntVar(&intervalSeconds, "interval", 1, "Number of seconds to wait between RPC calls to query the transaction pool (default: 1)")
 	flag.Parse()
 
+	sessionID := uuid.New().String()
+	
+	// Humbug crash client to collect errors
+	crashReporter, err := humbugClient(sessionID, "moonstream-crawlers", os.Getenv("HUMBUG_REPORTER_CRAWLERS_TOKEN"))
+	if err != nil {
+		panic(fmt.Sprintf("Invalid Humbug Crash configuration: %s", err.Error()))
+	}
+	crashReporter.Publish(humbug.SystemReport())
+
+	defer func() {
+		message := recover()
+		if message != nil {
+			fmt.Printf("Error: %s\n", message)
+			crashReporter.Publish(humbug.PanicReport(message))
+		}
+	}()
+
 	// Set connection with Ethereum blockchain via geth
 	gethClient, err := rpc.Dial(gethConnectionString)
 	if err != nil {
@@ -195,7 +205,8 @@ func main() {
 	}
 	defer gethClient.Close()
 
-	reporter, err := humbugClientFromEnv()
+	// Humbug client to be able write data in Bugout journal
+	reporter, err := humbugClient(sessionID, os.Getenv("ETHTXPOOL_HUMBUG_CLIENT_ID"), os.Getenv("ETHTXPOOL_HUMBUG_TOKEN"))
 	if err != nil {
 		panic(fmt.Sprintf("Invalid Humbug configuration: %s", err.Error()))
 	}
