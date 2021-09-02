@@ -13,26 +13,6 @@ from .settings import MOONSTREAM_APPLICATION_ID, bugout_client as bc
 logger = logging.getLogger(__name__)
 
 
-class MoonstreamResponse(Response):
-    """
-    Extended Response to handle 500 Internal server errors
-    and send crash reports.
-    """
-
-    def __init__(
-        self,
-        content: Any = None,
-        status_code: int = 200,
-        headers: dict = None,
-        media_type: str = None,
-        background: BackgroundTask = None,
-        internal_error: Exception = None,
-    ):
-        super().__init__(content, status_code, headers, media_type, background)
-        if internal_error is not None:
-            reporter.error_report(internal_error)
-
-
 class MoonstreamHTTPException(HTTPException):
     """
     Extended HTTPException to handle 500 Internal server errors
@@ -101,9 +81,8 @@ class BroodAuthMiddleware(BaseHTTPMiddleware):
             return Response(status_code=e.status_code, content=e.detail)
         except Exception as e:
             logger.error(f"Error processing Brood response: {str(e)}")
-            return MoonstreamResponse(
-                status_code=500, content="Internal server error", internal_error=e
-            )
+            reporter.error_report(e)
+            return Response(status_code=500, content="Internal server error")
 
         request.state.user = user
         request.state.token = user_token
