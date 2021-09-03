@@ -49,6 +49,7 @@ setup(
             "esd=mooncrawl.esd:main",
             "identity=mooncrawl.identity:main",
             "etherscan=mooncrawl.etherscan:main",
+            "nft=mooncrawl.nft.cli:main",
         ]
     },
 )
