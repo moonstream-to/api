@@ -1,6 +1,5 @@
 from dataclasses import dataclass, asdict
 from datetime import datetime
-from mooncrawl.nft.cli import web3_client_from_cli_or_env
 from hexbytes.main import HexBytes
 from typing import Any, cast, Dict, List, Optional, Set, Tuple
 
@@ -248,6 +247,34 @@ def ensure_addresses(db_session: Session, addresses: Set[str]) -> Dict[str, int]
     return address_ids
 
 
+def label_erc721_addresses(
+    w3: Web3, db_session: Session, address_ids: List[Tuple[str, int]]
+):
+    labels: List[EthereumLabel] = []
+    for address, id in address_ids:
+        try:
+            contract_info = get_erc721_contract_info(w3, address)
+            labels.append(
+                EthereumLabel(
+                    address_id=id,
+                    label=NFT_LABEL,
+                    label_data={
+                        "name": contract_info.name,
+                        "symbol": contract_info.symbol,
+                        "totalSupply": contract_info.total_supply,
+                    },
+                )
+            )
+        except:
+            print(f"Failed to get metadata of contract {address}")
+    try:
+        db_session.bulk_save_objects(labels)
+        db_session.commit()
+    except Exception as e:
+        db_session.rollback()
+        print(f"Failed to save labels to db:\n{e}")
+
+
 def add_labels(
     w3: Web3,
     db_session: Session,
@@ -308,18 +335,23 @@ def add_labels(
             for address, address_id in updated_address_ids.items():
                 address_ids[address] = address_id
 
-            labelled_address_ids = (
-                db_session.query(EthereumLabel)
-                .filter(EthereumLabel.label == NFT_LABEL)
-                .filter(EthereumLabel.address_id.in_(address_ids.values()))
-                .all()
-            )
+            labelled_address_ids = [
+                label.address_id
+                for label in (
+                    db_session.query(EthereumLabel)
+                    .filter(EthereumLabel.label == NFT_LABEL)
+                    .filter(EthereumLabel.address_id.in_(address_ids.values()))
+                    .all()
+                )
+            ]
             unlabelled_address_ids = [
-                address_id
-                for address_id in address_ids.values()
+                (address, address_id)
+                for address, address_id in address_ids.items()
                 if address_id not in labelled_address_ids
             ]
-            # TODO(yhtyyar): Continue
+
+            # Adding 'erc721' labels
+            label_erc721_addresses(w3, db_session, unlabelled_address_ids)
 
             # Update batch at end of iteration
             pbar.update(batch_end - batch_start)
