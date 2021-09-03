@@ -39,6 +39,13 @@ from ..stream_queries import StreamQuery
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARN)
 
+
+class ReceivingEventsException(Exception):
+    """
+    Raised when error occurs during receiving events from provider.
+    """
+
+
 event_providers: Dict[str, Any] = {
     ethereum_blockchain.event_type: ethereum_blockchain,
     bugout.whalewatch_provider.event_type: bugout.whalewatch_provider,
@@ -91,7 +98,7 @@ def get_events(
                     f"Error receiving events from provider: {provider_name}:\n{repr(e)}"
                 )
             else:
-                raise e
+                raise ReceivingEventsException(e)
 
     events = [event for _, event_list in results.values() for event in event_list]
     if sort_events:
@@ -149,7 +156,7 @@ def latest_events(
                     f"Error receiving events from provider: {provider_name}:\n{repr(e)}"
                 )
             else:
-                raise e
+                raise ReceivingEventsException(e)
 
     events = [event for event_list in results.values() for event in event_list]
     if sort_events:
@@ -202,7 +209,7 @@ def next_event(
                     f"Error receiving events from provider: {provider_name}:\n{repr(e)}"
                 )
             else:
-                raise e
+                raise ReceivingEventsException(e)
 
     event: Optional[data.Event] = None
     for candidate in results.values():
@@ -258,7 +265,7 @@ def previous_event(
                     f"Error receiving events from provider: {provider_name}:\n{repr(e)}"
                 )
             else:
-                raise e
+                raise ReceivingEventsException(e)
 
     event: Optional[data.Event] = None
     for candidate in results.values():

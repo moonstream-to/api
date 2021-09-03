@@ -7,15 +7,10 @@ import uuid
 
 from bugout.data import BugoutToken, BugoutUser
 from bugout.exceptions import BugoutResponseException
-from fastapi import (
-    FastAPI,
-    Form,
-    HTTPException,
-    Request,
-)
+from fastapi import FastAPI, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 
-from ..middleware import BroodAuthMiddleware
+from ..middleware import BroodAuthMiddleware, MoonstreamHTTPException
 from ..settings import (
     MOONSTREAM_APPLICATION_ID,
     DOCS_TARGET_PATH,
@@ -75,9 +70,9 @@ async def create_user_handler(
             application_id=MOONSTREAM_APPLICATION_ID,
         )
     except BugoutResponseException as e:
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
-        raise HTTPException(status_code=500)
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
     return user
 
 
@@ -92,9 +87,9 @@ async def restore_password_handler(email: str = Form(...)) -> Dict[str, Any]:
     try:
         response = bc.restore_password(email=email)
     except BugoutResponseException as e:
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
-        raise HTTPException(status_code=500)
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
     return response
 
 
@@ -105,9 +100,9 @@ async def reset_password_handler(
     try:
         response = bc.reset_password(reset_id=reset_id, new_password=new_password)
     except BugoutResponseException as e:
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
-        raise HTTPException(status_code=500)
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
     return response
 
 
@@ -121,9 +116,9 @@ async def change_password_handler(
             token=token, current_password=current_password, new_password=new_password
         )
     except BugoutResponseException as e:
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
-        raise HTTPException(status_code=500)
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
     return user
 
 
@@ -136,9 +131,9 @@ async def delete_user_handler(
     try:
         user = bc.delete_user(token=token, user_id=user.id, password=password)
     except BugoutResponseException as e:
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
-        raise HTTPException(status_code=500)
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
     return user
 
 
@@ -153,11 +148,11 @@ async def login_handler(
             application_id=MOONSTREAM_APPLICATION_ID,
         )
     except BugoutResponseException as e:
-        raise HTTPException(
+        raise MoonstreamHTTPException(
             status_code=e.status_code, detail=f"Error from Brood API: {e.detail}"
         )
     except Exception as e:
-        raise HTTPException(status_code=500)
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
     return token
 
 
@@ -167,7 +162,7 @@ async def logout_handler(request: Request) -> uuid.UUID:
     try:
         token_id: uuid.UUID = bc.revoke_token(token=token)
     except BugoutResponseException as e:
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
-        raise HTTPException(status_code=500)
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
     return token_id

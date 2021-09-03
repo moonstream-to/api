@@ -8,6 +8,12 @@ export const MIXPANEL_PROPS = {
   USER_SPECIALITY: "user speciality",
 };
 
+export const MIXPANEL_GROUPS = {
+  DEVELOPERS: "developers",
+  TRADERS: "traders",
+  FUND: "funds",
+};
+
 export const MIXPANEL_EVENTS = {
   FIRST_LOGIN_DATE: "First login date",
   LAST_LOGIN_DATE: "Last  login date",
@@ -20,7 +26,14 @@ export const MIXPANEL_EVENTS = {
   PAGEVIEW: "Page view",
   PRICING_PLAN_CLICKED: "Pricing Plan clicked",
   BUTTON_CLICKED: "Button clicked",
-  LEFT_PAGE: "Left page",
+  BEACON: "beacon",
+  ONBOARDING_COMPLETED: "Onbording complete",
+  SESSIONS_COUNT: "Sessions Counter",
+  ONBOARDING_STEP: "Onboarding step",
+  ONBOARDING_STATE: "Onboarding state",
+  TIMES_VISITED: "Page visit times",
+  FORM_SUBMITTED: "form submitted",
+  PAGEVIEW_DURATION: "Time spent on page",
 };
 
 export default MIXPANEL_EVENTS;

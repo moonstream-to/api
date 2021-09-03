@@ -11,7 +11,6 @@ from sqlalchemy import (
     Numeric,
     Text,
     VARCHAR,
-    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import expression
@@ -136,7 +135,6 @@ class EthereumLabel(Base):  # type: ignore
     """
 
     __tablename__ = "ethereum_labels"
-    __table_args__ = (UniqueConstraint("label", "address_id"),)
 
     id = Column(
         UUID(as_uuid=True),
@@ -212,3 +210,22 @@ class ESDEventSignature(Base):  # type: ignore
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )
+
+
+class OpenSeaCrawlingState(Base):  # type: ignore
+    """
+    Model for control opeansea crawling state.
+    """
+
+    __tablename__ = "opensea_crawler_state"
+
+    id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    query = Column(Text, nullable=False)
+    crawled_at = Column(
+        DateTime(timezone=True),
+        server_default=utcnow(),
+        onupdate=utcnow(),
+        nullable=False,
+    )
+
+    total_count = Column(Integer, nullable=False)
