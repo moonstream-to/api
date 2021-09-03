@@ -4,6 +4,7 @@ Pydantic schemas for the Moonstream HTTP API
 from typing import List, Optional, Dict, Any
 
 from pydantic import BaseModel, Field
+from datetime import datetime
 
 
 class SubscriptionTypeResourceData(BaseModel):
@@ -27,6 +28,8 @@ class SubscriptionResourceData(BaseModel):
     label: Optional[str]
     user_id: str
     subscription_type_id: str
+    created_at: datetime
+    updated_at: datetime
 
 
 class CreateSubscriptionRequest(BaseModel):

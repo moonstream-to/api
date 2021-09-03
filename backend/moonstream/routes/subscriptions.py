@@ -113,6 +113,8 @@ async def add_subscription_handler(
         color=resource.resource_data["color"],
         label=resource.resource_data["label"],
         subscription_type_id=resource.resource_data["subscription_type_id"],
+        updated_at=resource.updated_at,
+        created_at=resource.created_at,
     )
 
 
@@ -141,6 +143,8 @@ async def delete_subscription_handler(request: Request, subscription_id: str):
         color=deleted_resource.resource_data["color"],
         label=deleted_resource.resource_data["label"],
         subscription_type_id=deleted_resource.resource_data["subscription_type_id"],
+        updated_at=deleted_resource.updated_at,
+        created_at=deleted_resource.created_at,
     )
 
 
@@ -174,6 +178,8 @@ async def get_subscriptions_handler(request: Request) -> data.SubscriptionsListR
                 color=resource.resource_data["color"],
                 label=resource.resource_data["label"],
                 subscription_type_id=resource.resource_data["subscription_type_id"],
+                updated_at=resource.updated_at,
+                created_at=resource.created_at,
             )
             for resource in resources.resources
         ]
@@ -225,6 +231,8 @@ async def update_subscriptions_handler(
         color=resource.resource_data["color"],
         label=resource.resource_data["label"],
         subscription_type_id=resource.resource_data["subscription_type_id"],
+        updated_at=resource.updated_at,
+        created_at=resource.created_at,
     )
 
 
