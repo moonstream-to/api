@@ -150,7 +150,12 @@ class EthereumLabel(Base):  # type: ignore
         nullable=True,
         index=True,
     )
-    transaction_hash = Column(VARCHAR(256), nullable=True, index=True)
+    transaction_hash = Column(
+        VARCHAR(256),
+        ForeignKey("ethereum_transactions.hash", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+    )
     label_data = Column(JSONB, nullable=True)
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
