@@ -5,13 +5,21 @@ from hexbytes.main import HexBytes
 from typing import Any, cast, Dict, List, Optional, Set, Tuple
 
 from eth_typing.encoding import HexStr
-from moonstreamdb.models import EthereumAddress, EthereumLabel, EthereumTransaction
+from moonstreamdb.models import (
+    EthereumAddress,
+    EthereumBlock,
+    EthereumLabel,
+    EthereumTransaction,
+)
+from sqlalchemy import and_
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 from tqdm import tqdm
 from web3 import Web3
 from web3.types import FilterParams, LogReceipt
 from web3._utils.events import get_event_data
+
+from ..ethereum import DateRange
 
 # Default length (in blocks) of an Ethereum NFT crawl.
 DEFAULT_CRAWL_LENGTH = 100
@@ -454,33 +462,58 @@ def add_labels(
 
 
 def summary(
-    w3: Web3,
-    from_block: Optional[int] = None,
-    to_block: Optional[int] = None,
-    address: Optional[str] = None,
+    db_session: Session,
+    start_time: datetime,
+    end_time: datetime,
 ) -> Dict[str, Any]:
-    start, end = get_block_bounds(w3, from_block, to_block)
-    start_block = w3.eth.get_block(start)
-    start_time = datetime.utcfromtimestamp(start_block["timestamp"]).isoformat()
-    end_block = w3.eth.get_block(end)
-    end_time = datetime.utcfromtimestamp(end_block["timestamp"]).isoformat()
+    start_timestamp = int(start_time.timestamp())
+    end_timestamp = int(end_time.timestamp())
 
-    transfers = get_nft_transfers(w3, start, end, address)
-    num_mints = sum(transfer.is_mint for transfer in transfers)
+    base_query = (
+        db_session.query(
+            EthereumLabel.label,
+            EthereumLabel.label_data,
+            EthereumLabel.address_id,
+            EthereumTransaction.hash,
+            EthereumTransaction.value,
+            EthereumBlock.block_number,
+            EthereumBlock.timestamp,
+        )
+        .join(
+            EthereumTransaction,
+            EthereumLabel.transaction_hash == EthereumTransaction.hash,
+        )
+        .join(
+            EthereumBlock,
+            EthereumTransaction.block_number == EthereumBlock.block_number,
+        )
+        .filter(
+            and_(
+                EthereumBlock.timestamp >= start_timestamp,
+                EthereumBlock.timestamp <= end_timestamp,
+            )
+        )
+        .filter(EthereumLabel.label.in_([MINT_LABEL, TRANSFER_LABEL]))
+    )
 
-    result = {
-        "date_range": {
-            "start_time": start_time,
-            "include_start": True,
-            "end_time": end_time,
-            "include_end": True,
-        },
-        "blocks": {
-            "start": start,
-            "end": end,
-        },
-        "num_transfers": len(transfers),
-        "num_mints": num_mints,
-    }
+    print(base_query.distinct(EthereumTransaction.hash).count())
 
-    return result
+    return {}
+
+
+#    result = {
+#         "date_range": {
+#             "start_time": start_time,
+#             "include_start": True,
+#             "end_time": end_time,
+#             "include_end": True,
+#         },
+#         "blocks": {
+#             "start": start,
+#             "end": end,
+#         },
+#         "num_transfers": len(transfers),
+#         "num_mints": num_mints,
+#     }
+
+#     return result

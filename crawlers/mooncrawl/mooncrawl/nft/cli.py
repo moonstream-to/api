@@ -2,11 +2,11 @@
 A command line tool to crawl information about NFTs from various sources.
 """
 import argparse
-import json
-import os
+from datetime import datetime, timedelta, timezone
 import sys
 from typing import cast
 
+import dateutil.parser
 from moonstreamdb.db import yield_db_session_ctx
 from web3 import Web3
 
@@ -40,32 +40,34 @@ def ethereum_label_handler(args: argparse.Namespace) -> None:
 
 
 def ethereum_summary_handler(args: argparse.Namespace) -> None:
-    web3_client = web3_client_from_cli_or_env(args)
-    result = ethereum_summary(web3_client, args.start, args.end, args.address)
+    with yield_db_session_ctx() as db_session:
+        result = ethereum_summary(db_session, args.start, args.end)
 
-    start_time = result.get("date_range", {}).get("start_time", "UNKNOWN")
-    start_block = result.get("blocks", {}).get("start", -1)
-    end_time = result.get("date_range", {}).get("end_time", "UNKNOWN")
-    end_block = result.get("blocks", {}).get("end", -1)
+    # start_time = result.get("date_range", {}).get("start_time", "UNKNOWN")
+    # start_block = result.get("blocks", {}).get("start", -1)
+    # end_time = result.get("date_range", {}).get("end_time", "UNKNOWN")
+    # end_block = result.get("blocks", {}).get("end", -1)
 
-    humbug_token = args.humbug
-    if humbug_token is None:
-        humbug_token = os.environ.get("MOONSTREAM_HUMBUG_TOKEN")
-    if humbug_token:
-        title = f"NFT activity on the Ethereum blockchain: {start_time} (block {start_block}) to {end_time} (block {end_block})"
-        publish_json(
-            "nft_ethereum",
-            humbug_token,
-            title,
-            result,
-            tags=[f"crawler_version:{MOONCRAWL_VERSION}"],
-            wait=False,
-        )
-    with args.outfile as ofp:
-        json.dump(result, ofp)
+    # humbug_token = args.humbug
+    # if humbug_token is None:
+    #     humbug_token = os.environ.get("MOONSTREAM_HUMBUG_TOKEN")
+    # if humbug_token:
+    #     title = f"NFT activity on the Ethereum blockchain: {start_time} (block {start_block}) to {end_time} (block {end_block})"
+    #     publish_json(
+    #         "nft_ethereum",
+    #         humbug_token,
+    #         title,
+    #         result,
+    #         tags=[f"crawler_version:{MOONCRAWL_VERSION}"],
+    #         wait=False,
+    #     )
+    # with args.outfile as ofp:
+    #     json.dump(result, ofp)
 
 
 def main() -> None:
+    time_now = datetime.now(timezone.utc)
+
     parser = argparse.ArgumentParser(description="Moonstream NFT crawlers")
     parser.set_defaults(func=lambda _: parser.print_help())
     subcommands = parser.add_subparsers(description="Subcommands")
@@ -116,29 +118,16 @@ def main() -> None:
     parser_ethereum_summary.add_argument(
         "-s",
         "--start",
-        type=int,
-        default=None,
-        help="Starting block number (inclusive if block available)",
+        type=dateutil.parser.parse,
+        default=(time_now - timedelta(hours=1, minutes=0)).isoformat(),
+        help=f"Start time for window to calculate NFT statistics (default: {(time_now - timedelta(hours=1,minutes=0)).isoformat()})",
     )
     parser_ethereum_summary.add_argument(
         "-e",
         "--end",
-        type=int,
-        default=None,
-        help="Ending block number (inclusive if block available)",
-    )
-    parser_ethereum_summary.add_argument(
-        "-a",
-        "--address",
-        type=str,
-        default=None,
-        help="(Optional) NFT contract address that you want to limit the crawl to, e.g. 0x06012c8cf97BEaD5deAe237070F9587f8E7A266d for CryptoKitties.",
-    )
-    parser_ethereum_summary.add_argument(
-        "--web3",
-        type=str,
-        default=None,
-        help="(Optional) Web3 connection string. If not provided, uses the value specified by MOONSTREAM_IPC_PATH environment variable.",
+        type=dateutil.parser.parse,
+        default=time_now.isoformat(),
+        help=f"End time for window to calculate NFT statistics (default: {time_now.isoformat()})",
     )
     parser_ethereum_summary.add_argument(
         "--humbug",
