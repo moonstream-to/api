@@ -11,6 +11,7 @@ def publish_json(
     title: str,
     content: Dict[str, Any],
     tags: Optional[List[str]] = None,
+    wait: bool = True,
 ) -> None:
     spire_api_url = os.environ.get(
         "MOONSTREAM_SPIRE_API_URL", "https://spire.bugout.dev"
@@ -26,7 +27,7 @@ def publish_json(
         "Authorization": f"Bearer {humbug_token}",
     }
     request_body = {"title": title, "content": json.dumps(content), "tags": tags}
-    query_parameters = {"sync": True}
+    query_parameters = {"sync": wait}
     response = requests.post(
         report_url, headers=headers, json=request_body, params=query_parameters
     )
