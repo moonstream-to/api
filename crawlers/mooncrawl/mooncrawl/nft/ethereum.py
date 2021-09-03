@@ -200,7 +200,7 @@ def get_nft_transfers(
 
     logs = w3.eth.get_logs(filter_params)
     nft_transfers: List[NFTTransfer] = []
-    for log in tqdm(logs):
+    for log in tqdm(logs, desc="Crawling NFT transfers from Ethereum node"):
         nft_transfer = decode_nft_transfer_data(w3, log)
         if nft_transfer is not None:
             kwargs = {
@@ -416,39 +416,41 @@ def add_labels(
 
     address_ids: Dict[str, int] = {}
 
-    with tqdm(total=len(transfers)) as pbar:
-        while batch_start < batch_end:
-            job = transfers[batch_start:batch_end]
-            contract_addresses = {transfer.contract_address for transfer in job}
-            updated_address_ids = ensure_addresses(db_session, contract_addresses)
-            for address, address_id in updated_address_ids.items():
-                address_ids[address] = address_id
+    pbar = tqdm(total=len(transfers))
+    pbar.set_description("Processing NFT transfer")
+    while batch_start < batch_end:
+        job = transfers[batch_start:batch_end]
+        contract_addresses = {transfer.contract_address for transfer in job}
+        updated_address_ids = ensure_addresses(db_session, contract_addresses)
+        for address, address_id in updated_address_ids.items():
+            address_ids[address] = address_id
 
-            labelled_address_ids = [
-                label.address_id
-                for label in (
-                    db_session.query(EthereumLabel)
-                    .filter(EthereumLabel.label == NFT_LABEL)
-                    .filter(EthereumLabel.address_id.in_(address_ids.values()))
-                    .all()
-                )
-            ]
-            unlabelled_address_ids = [
-                (address, address_id)
-                for address, address_id in address_ids.items()
-                if address_id not in labelled_address_ids
-            ]
+        labelled_address_ids = [
+            label.address_id
+            for label in (
+                db_session.query(EthereumLabel)
+                .filter(EthereumLabel.label == NFT_LABEL)
+                .filter(EthereumLabel.address_id.in_(address_ids.values()))
+                .all()
+            )
+        ]
+        unlabelled_address_ids = [
+            (address, address_id)
+            for address, address_id in address_ids.items()
+            if address_id not in labelled_address_ids
+        ]
 
-            # Add 'erc721' labels
-            label_erc721_addresses(w3, db_session, unlabelled_address_ids)
+        # Add 'erc721' labels
+        label_erc721_addresses(w3, db_session, unlabelled_address_ids)
 
-            # Add mint/transfer labels to (transaction, contract_address) pairs
-            label_transfers(db_session, job, updated_address_ids)
+        # Add mint/transfer labels to (transaction, contract_address) pairs
+        label_transfers(db_session, job, updated_address_ids)
 
-            # Update batch at end of iteration
-            pbar.update(batch_end - batch_start)
-            batch_start = batch_end
-            batch_end = min(batch_end + batch_size, len(transfers))
+        # Update batch at end of iteration
+        pbar.update(batch_end - batch_start)
+        batch_start = batch_end
+        batch_end = min(batch_end + batch_size, len(transfers))
+    pbar.close()
 
 
 def summary(
