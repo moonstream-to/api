@@ -2,16 +2,15 @@
 A command line tool to crawl information about NFTs from various sources.
 """
 import argparse
-from dataclasses import asdict
 import json
 import os
 import sys
-from typing import Any, cast, Dict, List
+from typing import cast
 
 from web3 import Web3
 
 from ..ethereum import connect
-from .ethereum import get_nft_transfers
+from .ethereum import summary as ethereum_summary
 from ..publish import publish_json
 from ..settings import MOONSTREAM_IPC_PATH
 from ..version import MOONCRAWL_VERSION
@@ -35,19 +34,7 @@ def web3_client_from_cli_or_env(args: argparse.Namespace) -> Web3:
 
 def ethereum_handler(args: argparse.Namespace) -> None:
     web3_client = web3_client_from_cli_or_env(args)
-    transfers = get_nft_transfers(web3_client, args.start, args.end, args.address)
-
-    # TODO(zomglings): Create a function which calculates statistics about ethereum NFTs in the
-    # ethereum module and call it here. Don't do this calculation here.
-    num_mints = len([transfer for transfer in transfers if transfer.is_mint])
-
-    # TODO(zomglings): Add dates as well as block numbers.
-    result = {
-        "num_transfers": len(transfers),
-        "num_mints": num_mints,
-        "initial_block": args.start,
-        "terminal_block": args.end,
-    }
+    result = ethereum_summary(web3_client, args.start, args.end, args.address)
 
     humbug_token = args.humbug
     if humbug_token is None:

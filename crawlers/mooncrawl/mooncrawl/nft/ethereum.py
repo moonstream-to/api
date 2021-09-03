@@ -1,5 +1,6 @@
 from dataclasses import dataclass, asdict
-from typing import cast, List, Optional
+from datetime import datetime
+from typing import Any, cast, Dict, List, Optional
 from hexbytes.main import HexBytes
 
 from eth_typing.encoding import HexStr
@@ -183,3 +184,42 @@ def get_nft_transfers(
             parsed_transfer = NFTTransfer(**kwargs)  # type: ignore
             nft_transfers.append(parsed_transfer)
     return nft_transfers
+
+
+def summary(
+    w3: Web3,
+    from_block: Optional[int] = None,
+    to_block: Optional[int] = None,
+    address: Optional[str] = None,
+) -> Dict[str, Any]:
+    if to_block is None:
+        to_block = w3.eth.get_block_number()
+
+    # By default, let us summarize 100 blocks worth of NFT transfers
+    if from_block is None:
+        from_block = to_block - 100
+
+    start_block = w3.eth.get_block(from_block)
+    start_time = datetime.utcfromtimestamp(start_block.timestamp).isoformat()
+    end_block = w3.eth.get_block(to_block)
+    end_time = datetime.utcfromtimestamp(end_block.timestamp).isoformat()
+
+    transfers = get_nft_transfers(w3, from_block, to_block, address)
+    num_mints = sum(transfer.is_mint for transfer in transfers)
+
+    result = {
+        "date_range": {
+            "start_time": start_time,
+            "include_start": True,
+            "end_time": end_time,
+            "include_end": True,
+        },
+        "blocks": {
+            "start": from_block,
+            "end": to_block,
+        },
+        "num_transfers": len(transfers),
+        "num_mints": num_mints,
+    }
+
+    return result
