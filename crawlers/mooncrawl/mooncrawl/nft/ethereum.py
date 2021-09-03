@@ -97,22 +97,37 @@ erc721_functions_abi = [
 
 
 @dataclass
-class NFT_contract:
+class NFTContract:
     address: str
-    name: str
-    symbol: str
-    total_supply: str
+    name: Optional[str] = None
+    symbol: Optional[str] = None
+    total_supply: Optional[str] = None
 
 
-def get_erc721_contract_info(w3: Web3, address: str) -> NFT_contract:
+def get_erc721_contract_info(w3: Web3, address: str) -> NFTContract:
     contract = w3.eth.contract(
         address=w3.toChecksumAddress(address), abi=erc721_functions_abi
     )
-    return NFT_contract(
-        address=address,
-        name=contract.functions.name().call(),
-        symbol=contract.functions.symbol().call(),
-        total_supply=contract.functions.totalSupply().call(),
+    name: Optional[str] = None
+    try:
+        name = contract.functions.name().call()
+    except:
+        logger.error(f"Could not get name for potential NFT contract: {address}")
+
+    symbol: Optional[str] = None
+    try:
+        symbol = contract.functions.symbol().call()
+    except:
+        logger.error(f"Could not get symbol for potential NFT contract: {address}")
+
+    totalSupply: Optional[str] = None
+    try:
+        totalSupply = contract.functions.totalSupply().call()
+    except:
+        logger.error(f"Could not get totalSupply for potential NFT contract: {address}")
+
+    return NFTContract(
+        address=address, name=name, symbol=symbol, total_supply=totalSupply
     )
 
 
@@ -240,6 +255,7 @@ def ensure_addresses(db_session: Session, addresses: Set[str]) -> Dict[str, int]
 
     try:
         db_session.execute(stmt)
+        db_session.commit()
     except Exception:
         db_session.rollback()
         raise
@@ -271,8 +287,9 @@ def label_erc721_addresses(
                     },
                 )
             )
-        except:
+        except Exception as e:
             logger.error(f"Failed to get metadata of contract {address}")
+            logger.error(e)
     try:
         db_session.bulk_save_objects(labels)
         db_session.commit()
@@ -281,13 +298,13 @@ def label_erc721_addresses(
         logger.error(f"Failed to save labels to db:\n{e}")
 
 
-def label_key(label: EthereumLabel) -> Tuple[str, int, str, str, str]:
+def label_key(label: EthereumLabel) -> Tuple[str, int, int, str, str]:
     return (
         label.transaction_hash,
         label.address_id,
-        label.label_data["tokenId"].astext(),
-        label.label_data["from"].astext(),
-        label.label_data["to"].astext(),
+        label.label_data["tokenId"],
+        label.label_data["from"],
+        label.label_data["to"],
     )
 
 

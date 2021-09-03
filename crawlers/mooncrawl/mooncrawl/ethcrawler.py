@@ -92,7 +92,7 @@ def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
     while True:
         bottom_block_number, top_block_number = get_latest_blocks(args.confirmations)
         if bottom_block_number is None:
-            raise ValueError("Variable bottom_block_number can't be None")
+            bottom_block_number = 0
         bottom_block_number = max(bottom_block_number + 1, starting_block)
         if bottom_block_number >= top_block_number:
             print(
