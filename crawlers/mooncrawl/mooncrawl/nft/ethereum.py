@@ -1,14 +1,25 @@
 from dataclasses import dataclass, asdict
 from datetime import datetime
-from typing import Any, cast, Dict, List, Optional
+from mooncrawl.nft.cli import web3_client_from_cli_or_env
 from hexbytes.main import HexBytes
+from typing import Any, cast, Dict, List, Optional, Set, Tuple
 
 from eth_typing.encoding import HexStr
+from moonstreamdb.models import EthereumAddress, EthereumLabel, EthereumTransaction
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.orm import Session
 from tqdm import tqdm
 from web3 import Web3
 from web3.types import FilterParams, LogReceipt
 from web3._utils.events import get_event_data
 
+
+# Default length (in blocks) of an Ethereum NFT crawl.
+DEFAULT_CRAWL_LENGTH = 100
+
+NFT_LABEL = "erc721"
+MINT_LABEL = "nft_mint"
+TRANSFER_LABEL = "nft_transfer"
 
 # First abi is for old NFT's like crypto kitties
 # The erc721 standart requieres that Transfer event is indexed for all arguments
@@ -186,25 +197,149 @@ def get_nft_transfers(
     return nft_transfers
 
 
+def get_block_bounds(
+    w3: Web3, from_block: Optional[int] = None, to_block: Optional[int] = None
+) -> Tuple[int, int]:
+    """
+    Returns starting and ending blocks for an "nft ethereum" crawl subject to the following rules:
+    1. Neither start nor end can be None.
+    2. If both from_block and to_block are None, then start = end - DEFAULT_CRAWL_LENGTH + 1
+    """
+    end = to_block
+    if end is None:
+        end = w3.eth.get_block_number()
+
+    start = from_block
+    if start is None:
+        start = end - DEFAULT_CRAWL_LENGTH + 1
+
+    return start, end
+
+
+def ensure_addresses(db_session: Session, addresses: Set[str]) -> Dict[str, int]:
+    """
+    Ensures that the given addresses are registered in the ethereum_addresses table of the given
+    moonstreamdb database connection. Returns a mapping from the addresses to the ids of their
+    corresponding row in the ethereum_addresses table.
+    """
+    if len(addresses) == 0:
+        return {}
+
+    # SQLAlchemy reference:
+    # https://docs.sqlalchemy.org/en/14/orm/persistence_techniques.html#using-postgresql-on-conflict-with-returning-to-return-upserted-orm-objects
+    stmt = (
+        insert(EthereumAddress)
+        .values([{"address": address} for address in addresses])
+        .on_conflict_do_nothing(index_elements=[EthereumAddress.address])
+    )
+
+    try:
+        db_session.execute(stmt)
+    except Exception:
+        db_session.rollback()
+        raise
+
+    rows = (
+        db_session.query(EthereumAddress)
+        .filter(EthereumAddress.address.in_(addresses))
+        .all()
+    )
+    address_ids = {address.address: address.id for address in rows}
+    return address_ids
+
+
+def add_labels(
+    w3: Web3,
+    db_session: Session,
+    from_block: Optional[int] = None,
+    to_block: Optional[int] = None,
+    address: Optional[str] = None,
+    batch_size: int = 100,
+) -> None:
+    """
+    Crawls blocks between from_block and to_block checking for NFT mints and transfers.
+
+    For each mint/transfer, if the contract address involved in the operation has not already been
+    added to the ethereum_addresses table, this method adds it and labels the address with the NFT
+    collection metadata.
+
+    It also adds mint/transfer labels to each (transaction, contract address) pair describing the
+    NFT operation they represent.
+
+    ## NFT collection metadata labels
+
+    Label has type "erc721".
+
+    Label data: {"name": "<name of contract>", "symbol": "<symbol of contract>", "totalSupply": "<totalSupply of contract>"}
+
+    ## Mint and transfer labels
+    Adds labels to the database for each transaction that involved an NFT transfer. Adds the contract
+    address in the address_id column of ethereum_labels.
+
+
+    Labels (transaction, contract address) pair as:
+    - "nft_mint" if the transaction minted a token on the NFT contract
+    - "nft_transfer" if the transaction transferred a token on the NFT contract
+
+    Label data will always be of the form: {"token_id": "<ID of token minted/transferred on NFT contract>"}
+
+    Arguments:
+    - w3: Web3 client
+    - db_session: Connection to Postgres database with moonstreamdb schema
+    - from_block and to_block: Blocks to crawl
+    - address: Optional contract address representing an NFT collection to restrict the crawl to
+    - batch_size: Number of mint/transfer transactions to label at a time (per database transaction)
+    """
+    assert batch_size > 0, f"Batch size must be positive (received {batch_size})"
+
+    start, end = get_block_bounds(w3, from_block, to_block)
+    transfers = get_nft_transfers(w3, start, end, address)
+
+    batch_start = 0
+    batch_end = batch_size
+
+    address_ids: Dict[str, int] = {}
+
+    with tqdm(total=len(transfers)) as pbar:
+        while batch_start < batch_end:
+            job = transfers[batch_start:batch_end]
+            contract_addresses = {transfer.contract_address for transfer in job}
+            updated_address_ids = ensure_addresses(db_session, contract_addresses)
+            for address, address_id in updated_address_ids.items():
+                address_ids[address] = address_id
+
+            labelled_address_ids = (
+                db_session.query(EthereumLabel)
+                .filter(EthereumLabel.label == NFT_LABEL)
+                .filter(EthereumLabel.address_id.in_(address_ids.values()))
+                .all()
+            )
+            unlabelled_address_ids = [
+                address_id
+                for address_id in address_ids.values()
+                if address_id not in labelled_address_ids
+            ]
+            # TODO(yhtyyar): Continue
+
+            # Update batch at end of iteration
+            pbar.update(batch_end - batch_start)
+            batch_start = batch_end
+            batch_end = min(batch_end + batch_size, len(transfers))
+
+
 def summary(
     w3: Web3,
     from_block: Optional[int] = None,
     to_block: Optional[int] = None,
     address: Optional[str] = None,
 ) -> Dict[str, Any]:
-    if to_block is None:
-        to_block = w3.eth.get_block_number()
-
-    # By default, let us summarize 100 blocks worth of NFT transfers
-    if from_block is None:
-        from_block = to_block - 99
-
-    start_block = w3.eth.get_block(from_block)
+    start, end = get_block_bounds(w3, from_block, to_block)
+    start_block = w3.eth.get_block(start)
     start_time = datetime.utcfromtimestamp(start_block.timestamp).isoformat()
-    end_block = w3.eth.get_block(to_block)
+    end_block = w3.eth.get_block(end)
     end_time = datetime.utcfromtimestamp(end_block.timestamp).isoformat()
 
-    transfers = get_nft_transfers(w3, from_block, to_block, address)
+    transfers = get_nft_transfers(w3, start, end, address)
     num_mints = sum(transfer.is_mint for transfer in transfers)
 
     result = {
@@ -215,8 +350,8 @@ def summary(
             "include_end": True,
         },
         "blocks": {
-            "start": from_block,
-            "end": to_block,
+            "start": start,
+            "end": end,
         },
         "num_transfers": len(transfers),
         "num_mints": num_mints,
