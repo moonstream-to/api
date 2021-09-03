@@ -1,5 +1,6 @@
 from dataclasses import dataclass, asdict
 from datetime import datetime
+import logging
 from hexbytes.main import HexBytes
 from typing import Any, cast, Dict, List, Optional, Set, Tuple
 
@@ -12,13 +13,16 @@ from web3 import Web3
 from web3.types import FilterParams, LogReceipt
 from web3._utils.events import get_event_data
 
-
 # Default length (in blocks) of an Ethereum NFT crawl.
 DEFAULT_CRAWL_LENGTH = 100
 
 NFT_LABEL = "erc721"
 MINT_LABEL = "nft_mint"
 TRANSFER_LABEL = "nft_transfer"
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 # First abi is for old NFT's like crypto kitties
 # The erc721 standart requieres that Transfer event is indexed for all arguments
@@ -220,6 +224,8 @@ def ensure_addresses(db_session: Session, addresses: Set[str]) -> Dict[str, int]
     Ensures that the given addresses are registered in the ethereum_addresses table of the given
     moonstreamdb database connection. Returns a mapping from the addresses to the ids of their
     corresponding row in the ethereum_addresses table.
+
+    Returns address_ids for *every* address, not just the new ones.
     """
     if len(addresses) == 0:
         return {}
@@ -249,7 +255,7 @@ def ensure_addresses(db_session: Session, addresses: Set[str]) -> Dict[str, int]
 
 def label_erc721_addresses(
     w3: Web3, db_session: Session, address_ids: List[Tuple[str, int]]
-):
+) -> None:
     labels: List[EthereumLabel] = []
     for address, id in address_ids:
         try:
@@ -266,13 +272,69 @@ def label_erc721_addresses(
                 )
             )
         except:
-            print(f"Failed to get metadata of contract {address}")
+            logger.error(f"Failed to get metadata of contract {address}")
     try:
         db_session.bulk_save_objects(labels)
         db_session.commit()
     except Exception as e:
         db_session.rollback()
-        print(f"Failed to save labels to db:\n{e}")
+        logger.error(f"Failed to save labels to db:\n{e}")
+
+
+def label_key(label: EthereumLabel) -> Tuple[str, int, str, str, str]:
+    return (
+        label.transaction_hash,
+        label.address_id,
+        label.label_data["tokenId"].astext(),
+        label.label_data["from"].astext(),
+        label.label_data["to"].astext(),
+    )
+
+
+def label_transfers(
+    db_session: Session, transfers: List[NFTTransfer], address_ids: Dict[str, int]
+) -> None:
+    """
+    Adds "nft_mint" or "nft_transfer" to the (transaction, address) pair represented by each of the
+    given NFTTransfer objects.
+    """
+    transaction_hashes: List[str] = []
+    labels: List[EthereumLabel] = []
+    for transfer in transfers:
+        transaction_hash = transfer.transfer_tx
+        transaction_hashes.append(transaction_hash)
+        address_id = address_ids.get(transfer.contract_address)
+        label = MINT_LABEL if transfer.is_mint else TRANSFER_LABEL
+        row = EthereumLabel(
+            address_id=address_id,
+            transaction_hash=transaction_hash,
+            label=label,
+            label_data={
+                "tokenId": transfer.tokenId,
+                "from": transfer.transfer_from,
+                "to": transfer.transfer_to,
+            },
+        )
+        labels.append(row)
+
+    existing_labels = (
+        db_session.query(EthereumLabel)
+        .filter(EthereumLabel.address_id.in_(address_ids.values()))
+        .filter(EthereumLabel.transaction_hash.in_(transaction_hashes))
+    ).all()
+    existing_label_keys = {label_key(label) for label in existing_labels}
+
+    new_labels = [
+        label for label in labels if label_key(label) not in existing_label_keys
+    ]
+
+    try:
+        db_session.bulk_save_objects(new_labels)
+        db_session.commit()
+    except Exception as e:
+        db_session.rollback()
+        logger.error("Could not write transfer/mint labels to database")
+        logger.error(e)
 
 
 def add_labels(
@@ -297,7 +359,12 @@ def add_labels(
 
     Label has type "erc721".
 
-    Label data: {"name": "<name of contract>", "symbol": "<symbol of contract>", "totalSupply": "<totalSupply of contract>"}
+    Label data:
+    {
+        "name": "<name of contract>",
+        "symbol": "<symbol of contract>",
+        "totalSupply": "<totalSupply of contract>"
+    }
 
     ## Mint and transfer labels
     Adds labels to the database for each transaction that involved an NFT transfer. Adds the contract
@@ -308,7 +375,12 @@ def add_labels(
     - "nft_mint" if the transaction minted a token on the NFT contract
     - "nft_transfer" if the transaction transferred a token on the NFT contract
 
-    Label data will always be of the form: {"token_id": "<ID of token minted/transferred on NFT contract>"}
+    Label data will always be of the form:
+    {
+        "tokenId": "<ID of token minted/transferred on NFT contract>",
+        "from": "<previous owner address>",
+        "to": "<new owner address>"
+    }
 
     Arguments:
     - w3: Web3 client
@@ -350,8 +422,11 @@ def add_labels(
                 if address_id not in labelled_address_ids
             ]
 
-            # Adding 'erc721' labels
+            # Add 'erc721' labels
             label_erc721_addresses(w3, db_session, unlabelled_address_ids)
+
+            # Add mint/transfer labels to (transaction, contract_address) pairs
+            label_transfers(db_session, job, updated_address_ids)
 
             # Update batch at end of iteration
             pbar.update(batch_end - batch_start)
@@ -367,9 +442,9 @@ def summary(
 ) -> Dict[str, Any]:
     start, end = get_block_bounds(w3, from_block, to_block)
     start_block = w3.eth.get_block(start)
-    start_time = datetime.utcfromtimestamp(start_block.timestamp).isoformat()
+    start_time = datetime.utcfromtimestamp(start_block["timestamp"]).isoformat()
     end_block = w3.eth.get_block(end)
-    end_time = datetime.utcfromtimestamp(end_block.timestamp).isoformat()
+    end_time = datetime.utcfromtimestamp(end_block["timestamp"]).isoformat()
 
     transfers = get_nft_transfers(w3, start, end, address)
     num_mints = sum(transfer.is_mint for transfer in transfers)
