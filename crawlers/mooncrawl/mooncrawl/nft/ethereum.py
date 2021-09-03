@@ -197,7 +197,7 @@ def summary(
 
     # By default, let us summarize 100 blocks worth of NFT transfers
     if from_block is None:
-        from_block = to_block - 100
+        from_block = to_block - 99
 
     start_block = w3.eth.get_block(from_block)
     start_time = datetime.utcfromtimestamp(start_block.timestamp).isoformat()

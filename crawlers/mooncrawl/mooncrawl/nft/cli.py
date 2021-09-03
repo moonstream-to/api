@@ -36,11 +36,16 @@ def ethereum_handler(args: argparse.Namespace) -> None:
     web3_client = web3_client_from_cli_or_env(args)
     result = ethereum_summary(web3_client, args.start, args.end, args.address)
 
+    start_time = result.get("date_range", {}).get("start_time", "UNKNOWN")
+    start_block = result.get("blocks", {}).get("start", -1)
+    end_time = result.get("date_range", {}).get("end_time", "UNKNOWN")
+    end_block = result.get("blocks", {}).get("end", -1)
+
     humbug_token = args.humbug
     if humbug_token is None:
         humbug_token = os.environ.get("MOONSTREAM_HUMBUG_TOKEN")
     if humbug_token:
-        title = f"NFT activity on the Ethereum blockchain: Blocks {args.start} to {args.end}"
+        title = f"NFT activity on the Ethereum blockchain: {start_time} (block {start_block}) to {end_time} (block {end_block})"
         publish_json(
             "nft_ethereum",
             humbug_token,
