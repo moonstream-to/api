@@ -35,3 +35,9 @@ export const USER_NAV_PATHES = [
 
 export const AWS_ASSETS_PATH = `https://s3.amazonaws.com/static.simiotics.com/moonstream/assets`;
 export const WHITE_LOGO_W_TEXT_URL = `https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/moon-logo%2Btext-white.svg`;
+
+export const TIME_RANGE_SECONDS = {
+  day: 86400,
+  week: 86400 * 7,
+  month: 86400 * 28,
+};
