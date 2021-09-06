@@ -558,7 +558,9 @@ def time_bounded_summary(
             "amount": f"{transfer_value}",
             "percentage": f"{transfer_value/total_value * 100}",
         },
-        "mints": num_minted,
+        "mints": {
+            "amount": num_minted,
+        },
     }
 
     return result
@@ -589,4 +591,5 @@ def summary(db_session: Session, end_time: datetime) -> Dict[str, Any]:
         "blocks": aggregate_summary("blocks"),
         "transactions": aggregate_summary("transactions"),
         "value": aggregate_summary("value"),
+        "mints": aggregate_summary("mints"),
     }
