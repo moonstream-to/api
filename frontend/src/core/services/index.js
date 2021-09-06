@@ -9,6 +9,7 @@ import * as InvitesService from "./invites.service";
 import * as SubscriptionsService from "./subscriptions.service";
 import * as StreamService from "./stream.service";
 import * as TxInfoService from "./txinfo.service";
+import * as NFTService from "./nft.service";
 export {
   AuthService,
   JournalService,
@@ -21,4 +22,5 @@ export {
   SubscriptionsService,
   StreamService,
   TxInfoService,
+  NFTService,
 };
