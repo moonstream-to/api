@@ -1,5 +1,5 @@
 from dataclasses import dataclass, asdict
-from datetime import datetime
+from datetime import datetime, time, timedelta
 import logging
 from hexbytes.main import HexBytes
 from typing import Any, cast, Dict, List, Optional, Set, Tuple
@@ -460,11 +460,14 @@ def add_labels(
     pbar.close()
 
 
-def summary(
+def time_bounded_summary(
     db_session: Session,
     start_time: datetime,
     end_time: datetime,
 ) -> Dict[str, Any]:
+    """
+    Produces a summary of Ethereum NFT activity between the given start_time and end_time (inclusive).
+    """
     start_timestamp = int(start_time.timestamp())
     end_timestamp = int(end_time.timestamp())
 
@@ -559,3 +562,31 @@ def summary(
     }
 
     return result
+
+
+def summary(db_session: Session, end_time: datetime) -> Dict[str, Any]:
+    """
+    Produces a summary of all Ethereum NFT activity:
+    1. From 1 hour before end_time to end_time
+    2. From 1 day before end_time to end_time
+    3. From 1 week before end_time to end_time
+    """
+    start_times = {
+        "hour": end_time - timedelta(hours=1),
+        "day": end_time - timedelta(days=1),
+        "week": end_time - timedelta(weeks=1),
+    }
+    summaries = {
+        period: time_bounded_summary(db_session, start_time, end_time)
+        for period, start_time in start_times.items()
+    }
+
+    def aggregate_summary(key: str) -> Dict[str, Any]:
+        return {period: summary.get(key) for period, summary in summaries.items()}
+
+    return {
+        "crawled_at": end_time.isoformat(),
+        "blocks": aggregate_summary("blocks"),
+        "transactions": aggregate_summary("transactions"),
+        "value": aggregate_summary("value"),
+    }

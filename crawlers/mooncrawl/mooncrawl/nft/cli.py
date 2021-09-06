@@ -42,7 +42,7 @@ def ethereum_label_handler(args: argparse.Namespace) -> None:
 
 def ethereum_summary_handler(args: argparse.Namespace) -> None:
     with yield_db_session_ctx() as db_session:
-        result = ethereum_summary(db_session, args.start, args.end)
+        result = ethereum_summary(db_session, args.end)
 
     # humbug_token = args.humbug
     # if humbug_token is None:
@@ -110,13 +110,6 @@ def main() -> None:
 
     parser_ethereum_summary = subparsers_ethereum.add_parser(
         "summary", description="Generate Ethereum NFT summary"
-    )
-    parser_ethereum_summary.add_argument(
-        "-s",
-        "--start",
-        type=dateutil.parser.parse,
-        default=(time_now - timedelta(hours=1, minutes=0)).isoformat(),
-        help=f"Start time for window to calculate NFT statistics (default: {(time_now - timedelta(hours=1,minutes=0)).isoformat()})",
     )
     parser_ethereum_summary.add_argument(
         "-e",
