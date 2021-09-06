@@ -159,25 +159,25 @@ class EthereumSmartContractSourceInfo(BaseModel):
 
 
 class EthereumTokenDetails(BaseModel):
-    name: Optional[str]
-    symbol: Optional[str]
+    name: Optional[str] = None
+    symbol: Optional[str] = None
     external_url: List[str] = Field(default_factory=list)
 
 
 class EthereumSmartContractDetails(BaseModel):
-    name: Optional[str]
+    name: Optional[str] = None
     external_url: List[str] = Field(default_factory=list)
 
 
 class EthereumNFTDetails(EthereumTokenDetails):
-    total_supply: Optional[int]
+    total_supply: Optional[int] = None
 
 
 class EthereumAddressInfo(BaseModel):
     address: str
-    token: Optional[EthereumTokenDetails]
-    smart_contract: Optional[EthereumSmartContractDetails]
-    nft: Optional[EthereumNFTDetails]
+    token: Optional[EthereumTokenDetails] = None
+    smart_contract: Optional[EthereumSmartContractDetails] = None
+    nft: Optional[EthereumNFTDetails] = None
 
 
 class TxinfoEthereumBlockchainResponse(BaseModel):
