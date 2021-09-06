@@ -3,6 +3,7 @@ A command line tool to crawl information about NFTs from various sources.
 """
 import argparse
 from datetime import datetime, timedelta, timezone
+import json
 import sys
 from typing import cast
 
@@ -43,11 +44,6 @@ def ethereum_summary_handler(args: argparse.Namespace) -> None:
     with yield_db_session_ctx() as db_session:
         result = ethereum_summary(db_session, args.start, args.end)
 
-    # start_time = result.get("date_range", {}).get("start_time", "UNKNOWN")
-    # start_block = result.get("blocks", {}).get("start", -1)
-    # end_time = result.get("date_range", {}).get("end_time", "UNKNOWN")
-    # end_block = result.get("blocks", {}).get("end", -1)
-
     # humbug_token = args.humbug
     # if humbug_token is None:
     #     humbug_token = os.environ.get("MOONSTREAM_HUMBUG_TOKEN")
@@ -61,8 +57,8 @@ def ethereum_summary_handler(args: argparse.Namespace) -> None:
     #         tags=[f"crawler_version:{MOONCRAWL_VERSION}"],
     #         wait=False,
     #     )
-    # with args.outfile as ofp:
-    #     json.dump(result, ofp)
+    with args.outfile as ofp:
+        json.dump(result, ofp)
 
 
 def main() -> None:

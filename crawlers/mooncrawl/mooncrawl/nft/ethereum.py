@@ -11,9 +11,9 @@ from moonstreamdb.models import (
     EthereumLabel,
     EthereumTransaction,
 )
-from sqlalchemy import and_
+from sqlalchemy import and_, func
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, Query
 from tqdm import tqdm
 from web3 import Web3
 from web3.types import FilterParams, LogReceipt
@@ -27,7 +27,6 @@ DEFAULT_CRAWL_LENGTH = 100
 NFT_LABEL = "erc721"
 MINT_LABEL = "nft_mint"
 TRANSFER_LABEL = "nft_transfer"
-
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -469,51 +468,94 @@ def summary(
     start_timestamp = int(start_time.timestamp())
     end_timestamp = int(end_time.timestamp())
 
-    base_query = (
-        db_session.query(
-            EthereumLabel.label,
-            EthereumLabel.label_data,
-            EthereumLabel.address_id,
-            EthereumTransaction.hash,
-            EthereumTransaction.value,
-            EthereumBlock.block_number,
-            EthereumBlock.timestamp,
-        )
-        .join(
-            EthereumTransaction,
-            EthereumLabel.transaction_hash == EthereumTransaction.hash,
-        )
+    time_filter = and_(
+        EthereumBlock.timestamp >= start_timestamp,
+        EthereumBlock.timestamp <= end_timestamp,
+    )
+
+    transactions_query = (
+        db_session.query(EthereumTransaction)
         .join(
             EthereumBlock,
             EthereumTransaction.block_number == EthereumBlock.block_number,
         )
-        .filter(
-            and_(
-                EthereumBlock.timestamp >= start_timestamp,
-                EthereumBlock.timestamp <= end_timestamp,
-            )
-        )
-        .filter(EthereumLabel.label.in_([MINT_LABEL, TRANSFER_LABEL]))
+        .filter(time_filter)
     )
 
-    print(base_query.distinct(EthereumTransaction.hash).count())
+    def nft_query(label: str) -> Query:
+        query = (
+            db_session.query(
+                EthereumLabel.label,
+                EthereumLabel.label_data,
+                EthereumLabel.address_id,
+                EthereumTransaction.hash,
+                EthereumTransaction.value,
+                EthereumBlock.block_number,
+                EthereumBlock.timestamp,
+            )
+            .join(
+                EthereumTransaction,
+                EthereumLabel.transaction_hash == EthereumTransaction.hash,
+            )
+            .join(
+                EthereumBlock,
+                EthereumTransaction.block_number == EthereumBlock.block_number,
+            )
+            .filter(time_filter)
+            .filter(EthereumLabel.label == label)
+        )
+        return query
 
-    return {}
+    transfer_query = nft_query(TRANSFER_LABEL)
+    mint_query = nft_query(MINT_LABEL)
 
+    blocks_result: Dict[str, int] = {}
+    min_block = (
+        db_session.query(func.min(EthereumBlock.block_number))
+        .filter(time_filter)
+        .scalar()
+    )
+    max_block = (
+        db_session.query(func.max(EthereumBlock.block_number))
+        .filter(time_filter)
+        .scalar()
+    )
+    if min_block is not None:
+        blocks_result["start"] = min_block
+    if max_block is not None:
+        blocks_result["end"] = max_block
 
-#    result = {
-#         "date_range": {
-#             "start_time": start_time,
-#             "include_start": True,
-#             "end_time": end_time,
-#             "include_end": True,
-#         },
-#         "blocks": {
-#             "start": start,
-#             "end": end,
-#         },
-#         "num_transfers": len(transfers),
-#         "num_mints": num_mints,
-#     }
+    num_transactions = transactions_query.distinct(EthereumTransaction.hash).count()
+    num_transfers = transfer_query.distinct(EthereumTransaction.hash).count()
 
-#     return result
+    total_value = db_session.query(
+        func.sum(transactions_query.subquery().c.value)
+    ).scalar()
+    transfer_value = db_session.query(
+        func.sum(transfer_query.subquery().c.value)
+    ).scalar()
+
+    num_minted = mint_query.distinct(EthereumTransaction.hash).count()
+
+    result = {
+        "date_range": {
+            "start_time": start_time.isoformat(),
+            "include_start": True,
+            "end_time": end_time.isoformat(),
+            "include_end": True,
+        },
+        "blocks": blocks_result,
+        "transactions": {
+            "total": f"{num_transactions}",
+            "amount": f"{num_transfers}",
+            "percentage": f"{num_transfers/num_transactions * 100}",
+        },
+        "value": {
+            "total": f"{total_value}",
+            "amount": f"{transfer_value}",
+            "percentage": f"{transfer_value/total_value * 100}",
+        },
+        "mints": num_minted,
+    }
+
+    return result
