@@ -1,24 +1,26 @@
 import argparse
+import codecs
+import csv
+from dataclasses import dataclass
+from datetime import datetime
+import json
+import logging
+import os
 import sys
 import time
-from datetime import datetime
 from typing import Any, List, Optional, Dict
-from dataclasses import dataclass
-import csv
-import codecs
-import json
-import os
 
 import boto3  # type: ignore
 from moonstreamdb.db import yield_db_session_ctx
 from moonstreamdb.models import EthereumAddress, EthereumLabel
 import requests
 from sqlalchemy.orm import Session
-from sqlalchemy.sql.expression import text
 
 from .version import MOONCRAWL_VERSION
 from .settings import MOONSTREAM_ETHERSCAN_TOKEN
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 if MOONSTREAM_ETHERSCAN_TOKEN is None:
     raise Exception("MOONSTREAM_ETHERSCAN_TOKEN environment variable must be set")
 
