@@ -1,7 +1,8 @@
 import json
 import logging
-from typing import Optional
+from typing import Optional, Dict, Any
 from enum import Enum
+import uuid
 
 import boto3  # type: ignore
 from moonstreamdb.models import (
@@ -14,7 +15,6 @@ from sqlalchemy.orm import Session
 from . import data
 from .reporter import reporter
 from .settings import ETHERSCAN_SMARTCONTRACTS_BUCKET
-import uuid
 from bugout.data import BugoutResource
 from .settings import (
     MOONSTREAM_APPLICATION_ID,
