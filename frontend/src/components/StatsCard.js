@@ -1,32 +1,105 @@
 import React, { useEffect, useState } from "react";
-import { Stack, Text, chakra, Box, SimpleGrid } from "@chakra-ui/react";
+import { Stack, Text, chakra, Box, SimpleGrid, Link } from "@chakra-ui/react";
 import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons";
+import useNFTs from "../core/hooks/useNFTs";
+import web3 from "web3";
 
-const StatsCard_ = ({
-  className,
-  value,
-  valueChange,
-  label,
-  netLabel,
-  dimension,
-  share,
-  shareChange,
-}) => {
-  const [isValueIncrease, setIsValueIncrease] = useState(
-    Number(valueChange) > 0 ? true : false
-  );
-  const [isShareIncrease, setIsShareIncrease] = useState(
-    Number(shareChange) > 0 ? true : false
-  );
+const TIME_PERIOD = {
+  current: 0,
+  previous: 1,
+};
+
+const isNumberNotZero = (str) => {
+  if (isNaN(Number(str) || Number(str) == 0)) {
+    return false;
+  } else {
+    return true;
+  }
+};
+
+const getEthValue = (string) => {
+  const ether = web3.utils.fromWei(string, "ether");
+  return nFormatter(ether, 3);
+};
+
+const nFormatter = (num, digits) => {
+  const lookup = [
+    { value: 1, symbol: "" },
+    { value: 1e3, symbol: "k" },
+    { value: 1e6, symbol: "M" },
+    { value: 1e9, symbol: "G" },
+    { value: 1e12, symbol: "T" },
+    { value: 1e15, symbol: "P" },
+    { value: 1e18, symbol: "E" },
+  ];
+  const rx = /\.0+$|(\.[0-9]*[1-9])0+$/;
+  var item = lookup
+    .slice()
+    .reverse()
+    .find(function (item) {
+      return num >= item.value;
+    });
+  return item
+    ? (num / item.value).toFixed(digits).replace(rx, "$1") + item.symbol
+    : "0";
+};
+
+const getChange = (a, b) => {
+  if (isNumberNotZero(a) && isNumberNotZero(b)) {
+    let retval = (Math.abs(Number(a) - Number(b)) * 100) / Number(b);
+    retval = retval > 9999 ? nFormatter(retval, 3) : retval;
+    return retval.toFixed(2);
+  } else {
+    return "-";
+  }
+};
+
+const getDiff = (a, b) => {
+  if (isNaN(a) || isNaN(b)) {
+    return "-";
+  } else {
+    return Number(a) - Number(b);
+  }
+};
+
+const getSign = (a) => {
+  if (isNaN(a)) return "-";
+  return Number(a) >= 0 ? true : false;
+};
+const StatsCard_ = ({ className, label, netLabel, labelKey, timeRange }) => {
+  const { nftCache } = useNFTs();
+
+  const [nftData, setData] = useState();
 
   useEffect(() => {
-    setIsValueIncrease(Number(valueChange) > 0 ? true : false);
-  }, [valueChange]);
+    if (nftCache.data[TIME_PERIOD.current][labelKey][timeRange]) {
+      const cacheData = nftCache.data[TIME_PERIOD.current][labelKey][timeRange];
+      const prevCacheData =
+        nftCache.data[TIME_PERIOD.previous][labelKey][timeRange];
+      const valueChange = getChange(cacheData.amount, prevCacheData.amount);
+      const share = isNaN(cacheData.percentage)
+        ? "-"
+        : Number(cacheData.percentage).toFixed(2);
+      const shareChange = getDiff(
+        cacheData.percentage,
+        prevCacheData.percentage
+      );
 
-  useEffect(() => {
-    setIsShareIncrease(Number(shareChange) > 0 ? true : false);
-  }, [shareChange]);
-
+      setData({
+        dimension: labelKey === "values" ? "Eth" : "#",
+        isValueIncrease: getSign(valueChange),
+        isShareIncrease: getSign(shareChange),
+        valueChange,
+        shareChange,
+        share,
+        value:
+          labelKey === "values"
+            ? getEthValue(cacheData.amount)
+            : nFormatter(cacheData.amount, 3),
+      });
+    }
+  }, [nftCache?.data, nftCache.isLoading, labelKey, timeRange]);
+  if (nftCache.isLoading || !nftData) return "";
 
   return (
     <Stack className={className}>
@@ -34,7 +107,6 @@ const StatsCard_ = ({
         w="full"
         borderTopRadius="inherit"
         fontWeight="600"
-        autoCapitalize
         bgColor="gray.200"
         px={4}
         textAlign="center"
@@ -57,8 +129,17 @@ const StatsCard_ = ({
           //   alignItems="center"
           h="100%"
         >
-          <Text>
-            {dimension} {value}
+          <Link
+            textDecorationLine="underline"
+            textDecorationStyle="dashed"
+            textUnderlineOffset={2}
+            boxDecorationBreak="slice"
+            textDecorationThickness="1px"
+          >
+            {nftData.value}
+          </Link>
+          <Text pl={2} display="inline-block">
+            {nftData.dimension}
           </Text>
         </Box>
         <Stack
@@ -68,16 +149,15 @@ const StatsCard_ = ({
           placeContent="center"
           alignItems="center"
         >
-          {isValueIncrease && <TriangleUpIcon color="suggested.900" />}
-          {!isValueIncrease && <TriangleDownIcon color="unsafe.900" />}
-          <Text textColor={isValueIncrease ? "suggested.900" : "unsafe.900"}>
-            {Math.abs(valueChange) > 9999
-              ? valueChange.toExponential(2)
-              : Math.round((valueChange + Number.EPSILON) * 100) / 100}
-            %
+          {nftData.isValueIncrease && <TriangleUpIcon color="suggested.900" />}
+          {!nftData.isValueIncrease && <TriangleDownIcon color="unsafe.900" />}
+          <Text
+            textColor={nftData.isValueIncrease ? "suggested.900" : "unsafe.900"}
+          >
+            {Math.abs(nftData.valueChange)}%
           </Text>
         </Stack>
-        {share && shareChange && (
+        {nftData.share !== "-" && nftData.shareChange !== "-" && (
           <>
             <Text
               w="100%"
@@ -89,19 +169,20 @@ const StatsCard_ = ({
             >
               Total share in {netLabel}
             </Text>
-            <Text>
-              {(Math.round((share + Number.EPSILON) * 100) / 100).toFixed(2)}%
-            </Text>
+            <Text>{nftData.share}%</Text>
             <Stack direction="row" placeContent="center" alignItems="center">
-              {isShareIncrease && <TriangleUpIcon color="suggested.900" />}
-              {!isShareIncrease && <TriangleDownIcon color="unsafe.900" />}
+              {nftData.isShareIncrease && (
+                <TriangleUpIcon color="suggested.900" />
+              )}
+              {!nftData.isShareIncrease && (
+                <TriangleDownIcon color="unsafe.900" />
+              )}
               <Text
-                textColor={isShareIncrease ? "suggested.900" : "unsafe.900"}
+                textColor={
+                  nftData.isShareIncrease ? "suggested.900" : "unsafe.900"
+                }
               >
-                {(
-                  Math.round((shareChange + Number.EPSILON) * 100) / 100
-                ).toFixed(2)}
-                %
+                {nftData.shareChange}%
               </Text>
             </Stack>
           </>
@@ -113,11 +194,13 @@ const StatsCard_ = ({
 
 const StatsCard = chakra(StatsCard_, {
   baseStyle: {
-    boxShadow: "md",
-    borderRadius: "lg",
-    bgColor: "gray.100",
+    borderStyle: "solid",
+    borderRightWidth: "1px",
+    borderRightColor: "gray.600",
     w: "240px",
     minW: "240px",
+    flexBasis: "240px",
+    flexGrow: 1,
   },
 });
 
