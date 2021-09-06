@@ -126,7 +126,6 @@ def get_ethereum_address_info(
             total_supply=erc721_label.label_data.get("totalSupply"),
             external_url=[etherscan_token_url, blockchain_com_url],
         )
-        breakpoint()
     return address_info
 
 
