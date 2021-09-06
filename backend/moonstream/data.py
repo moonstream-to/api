@@ -3,6 +3,8 @@ Pydantic schemas for the Moonstream HTTP API
 """
 from typing import List, Optional, Dict, Any
 
+from sqlalchemy.sql.selectable import alias
+
 from pydantic import BaseModel, Field
 
 
@@ -160,18 +162,23 @@ class EthereumSmartContractSourceInfo(BaseModel):
 class EthereumTokenDetails(BaseModel):
     name: Optional[str]
     symbol: Optional[str]
-    external_url: List[str] = []
+    external_url: List[str] = Field(default_factory=list)
 
 
 class EthereumSmartContractDetails(BaseModel):
     name: Optional[str]
-    external_url: List[str] = []
+    external_url: List[str] = Field(default_factory=list)
+
+
+class EthereumNFTDetails(EthereumTokenDetails):
+    total_supply: Optional[int] = Field(alias="totalSupply")
 
 
 class EthereumAddressInfo(BaseModel):
     address: str
     token: Optional[EthereumTokenDetails]
     smart_contract: Optional[EthereumSmartContractDetails]
+    nft: Optional[EthereumNFTDetails]
 
 
 class TxinfoEthereumBlockchainResponse(BaseModel):
