@@ -1,24 +1,26 @@
 import argparse
-import sys
-import time
-from datetime import datetime
-from typing import Any, List, Optional, Dict
-from dataclasses import dataclass
+import boto3  # type: ignore
 import csv
 import codecs
 import json
+import logging
+import sys
+import time
 import os
-
-import boto3  # type: ignore
+import requests
+from datetime import datetime
+from typing import Any, List, Optional, Dict
+from dataclasses import dataclass
 from moonstreamdb.db import yield_db_session_ctx
 from moonstreamdb.models import EthereumAddress, EthereumLabel
-import requests
 from sqlalchemy.orm import Session
-from sqlalchemy.sql.expression import text
+
 
 from .version import MOONCRAWL_VERSION
 from .settings import MOONSTREAM_ETHERSCAN_TOKEN
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 if MOONSTREAM_ETHERSCAN_TOKEN is None:
     raise Exception("MOONSTREAM_ETHERSCAN_TOKEN environment variable must be set")
 
@@ -66,21 +68,16 @@ def get_address_id(db_session: Session, contract_address: str) -> int:
     if id is not None:
         return id[0]
 
-    latest_address_id = (
-        db_session.query(EthereumAddress.id).order_by(text("id desc")).limit(1).one()
-    )[0]
-
-    id = latest_address_id + 1
     smart_contract = EthereumAddress(
-        id=id,
         address=contract_address,
     )
     try:
         db_session.add(smart_contract)
         db_session.commit()
-    except:
+        return smart_contract.id
+    except Exception as e:
         db_session.rollback()
-    return id
+        raise e
 
 
 def crawl_step(db_session: Session, contract: VerifiedSmartContract, crawl_url: str):
@@ -112,22 +109,27 @@ def crawl_step(db_session: Session, contract: VerifiedSmartContract, crawl_url: 
     object_key = f"/etherscan/v1/{contract.address}.json"
     push_to_bucket(contract_info, object_key)
 
-    eth_address_id = get_address_id(db_session, contract.address)
-
-    eth_label = EthereumLabel(
-        label=ETHERSCAN_SMARTCONTRACTS_LABEL_NAME,
-        address_id=eth_address_id,
-        label_data={
-            "object_uri": f"s3://{bucket}/{object_key}",
-            "name": contract.name,
-            "tx_hash": contract.tx_hash,
-        },
-    )
     try:
-        db_session.add(eth_label)
-        db_session.commit()
-    except:
-        db_session.rollback()
+        eth_address_id = get_address_id(db_session, contract.address)
+        eth_label = EthereumLabel(
+            label=ETHERSCAN_SMARTCONTRACTS_LABEL_NAME,
+            address_id=eth_address_id,
+            label_data={
+                "object_uri": f"s3://{bucket}/{object_key}",
+                "name": contract.name,
+                "tx_hash": contract.tx_hash,
+            },
+        )
+        try:
+            db_session.add(eth_label)
+            db_session.commit()
+        except Exception as e:
+            db_session.rollback()
+            raise e
+    except Exception as e:
+        logger.error(
+            f"Failed to add addresss label ${contract.address} to database\n{str(e)}"
+        )
 
 
 def crawl(
