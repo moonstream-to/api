@@ -37,7 +37,8 @@
     "react-xarrows": "^2.0.2",
     "showdown": "^1.9.1",
     "showdown-highlight": "^2.1.8",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "web3": "^1.5.2"
   },
   "devDependencies": {
     "@babel/core": "^7.14.3",
