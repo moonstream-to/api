@@ -1,10 +1,20 @@
 import { Flex } from "@chakra-ui/react";
 import { getLayout as getSiteLayout } from "./RootLayout";
-import React, { useContext } from "react";
+import React, { useContext, useLayoutEffect } from "react";
 import UIContext from "../core/providers/UIProvider/context";
 
 const AppLayout = ({ children }) => {
   const ui = useContext(UIContext);
+
+  useLayoutEffect(() => {
+    if (ui.isAppReady) {
+      ui.setAppView(true);
+      return () => {
+        ui.setAppView(false);
+      };
+    }
+    //eslint-disable-next-line
+  }, [ui.isAppReady]);
 
   return (
     <Flex

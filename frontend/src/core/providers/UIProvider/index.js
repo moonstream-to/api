@@ -32,13 +32,7 @@ const UIProvider = ({ children }) => {
   const [isLoggedIn, setLoggedIn] = useState(user && user.username);
   const [isLoggingOut, setLoggingOut] = useState(false);
   const [isAppReady, setAppReady] = useState(false);
-  const [isAppView, setAppView] = useState(
-    router.nextRouter.asPath.includes("/stream") ||
-      router.nextRouter.asPath.includes("/account") ||
-      router.nextRouter.asPath.includes("/subscriptions") ||
-      router.nextRouter.asPath.includes("/analytics") ||
-      router.nextRouter.asPath.includes("/welcome")
-  );
+  const [isAppView, setAppView] = useState(false);
 
   useEffect(() => {
     if (isAppView && isAppReady && !user?.username && !isLoggingOut) {
@@ -69,15 +63,6 @@ const UIProvider = ({ children }) => {
     }
   }, [user]);
 
-  useEffect(() => {
-    setAppView(
-      router.nextRouter.asPath.includes("/stream") ||
-        router.nextRouter.asPath.includes("/account") ||
-        router.nextRouter.asPath.includes("/subscriptions") ||
-        router.nextRouter.asPath.includes("/analytics") ||
-        router.nextRouter.asPath.includes("/welcome")
-    );
-  }, [router.nextRouter.asPath, user]);
 
   // *********** Sidebar states **********************
 
