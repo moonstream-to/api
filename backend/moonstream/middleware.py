@@ -1,14 +1,34 @@
 import logging
-from typing import Awaitable, Callable, Dict, Optional
+from typing import Any, Awaitable, Callable, Dict, Optional
 
 from bugout.data import BugoutUser
 from bugout.exceptions import BugoutResponseException
+from fastapi import HTTPException, Request, Response
+from starlette.background import BackgroundTask
 from starlette.middleware.base import BaseHTTPMiddleware
-from fastapi import Request, Response
 
+from .reporter import reporter
 from .settings import MOONSTREAM_APPLICATION_ID, bugout_client as bc
 
 logger = logging.getLogger(__name__)
+
+
+class MoonstreamHTTPException(HTTPException):
+    """
+    Extended HTTPException to handle 500 Internal server errors
+    and send crash reports.
+    """
+
+    def __init__(
+        self,
+        status_code: int,
+        detail: Any = None,
+        headers: Optional[Dict[str, Any]] = None,
+        internal_error: Exception = None,
+    ):
+        super().__init__(status_code, detail, headers)
+        if internal_error is not None:
+            reporter.error_report(internal_error)
 
 
 class BroodAuthMiddleware(BaseHTTPMiddleware):
@@ -61,6 +81,7 @@ class BroodAuthMiddleware(BaseHTTPMiddleware):
             return Response(status_code=e.status_code, content=e.detail)
         except Exception as e:
             logger.error(f"Error processing Brood response: {str(e)}")
+            reporter.error_report(e)
             return Response(status_code=500, content="Internal server error")
 
         request.state.user = user

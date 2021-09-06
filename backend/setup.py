@@ -10,7 +10,16 @@ setup(
     name="moonstream",
     version=MOONSTREAM_VERSION,
     packages=find_packages(),
-    install_requires=["boto3", "bugout >= 0.1.17", "fastapi", "python-dateutil", "uvicorn", "types-python-dateutil"],
+    install_requires=[
+        "boto3",
+        "bugout >= 0.1.17",
+        "fastapi",
+        "humbug>=0.2.7",
+        "python-dateutil",
+        "uvicorn",
+        "types-python-dateutil",
+        "types-requests",
+    ],
     extras_require={
         "dev": ["black", "mypy"],
         "distribute": ["setuptools", "twine", "wheel"],

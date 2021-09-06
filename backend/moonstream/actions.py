@@ -1,16 +1,18 @@
 import json
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Optional
 from enum import Enum
+
 import boto3  # type: ignore
 from moonstreamdb.models import (
     EthereumAddress,
     EthereumLabel,
 )
 from sqlalchemy import text
-from sqlalchemy.orm import Session, query, query_expression
+from sqlalchemy.orm import Session
 
 from . import data
+from .reporter import reporter
 from .settings import ETHERSCAN_SMARTCONTRACTS_BUCKET
 import uuid
 from bugout.data import BugoutResource
@@ -53,8 +55,9 @@ def get_contract_source_info(
                     abi=obj_data["ABI"],
                 )
                 return contract_source_info
-            except:
+            except Exception as e:
                 logger.error(f"Failed to load smart contract {object_uri}")
+                reporter.error_report(e)
     return None
 
 

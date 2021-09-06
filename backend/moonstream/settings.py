@@ -9,6 +9,8 @@ bugout_client = Bugout(brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIR
 
 BUGOUT_REQUEST_TIMEOUT_SECONDS = 5
 
+HUMBUG_REPORTER_BACKEND_TOKEN = os.environ.get("HUMBUG_REPORTER_BACKEND_TOKEN")
+
 # Default value is "" instead of None so that mypy understands that MOONSTREAM_APPLICATION_ID is a string
 MOONSTREAM_APPLICATION_ID = os.environ.get("MOONSTREAM_APPLICATION_ID", "")
 if MOONSTREAM_APPLICATION_ID == "":

@@ -1,5 +1,4 @@
 export { queryCacheProps as hookCommon } from "./hookCommon";
-export { default as useAnalytics } from "./useAnalytics";
 export { default as useAuthResultHandler } from "./useAuthResultHandler";
 export { default as useChangePassword } from "./useChangePassword";
 export { default as useClientID } from "./useClientID";
