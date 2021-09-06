@@ -27,6 +27,7 @@ from ..settings import (
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
 )
 from ..version import MOONSTREAM_VERSION
+from ..actions import create_onboarding_resource
 
 logger = logging.getLogger(__name__)
 
@@ -176,31 +177,6 @@ async def logout_handler(request: Request) -> uuid.UUID:
     return token_id
 
 
-USER_ONBOARDING_STATE = "onboarding_state"
-
-
-def create_onboarding_resource(
-    token,
-    resource_data={
-        "type": USER_ONBOARDING_STATE,
-        "steps": {
-            "welcome": 0,
-            "subscriptions": 0,
-            "stream": 0,
-        },
-        "is_complete": False,
-    },
-) -> BugoutResource:
-
-    resource = bc.create_resource(
-        token=token,
-        application_id=MOONSTREAM_APPLICATION_ID,
-        resource_data=resource_data,
-        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
-    )
-    return resource
-
-
 @app.post("/onboarding", tags=["users"], response_model=data.OnboardingState)
 async def set_onboarding_state(
     request: Request,
@@ -208,13 +184,13 @@ async def set_onboarding_state(
 ) -> data.OnboardingState:
 
     token = request.state.token
-    response = bc.list_resources(
-        token=token,
-        params={"type": USER_ONBOARDING_STATE},
-        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
-    )
-    resource_data = {"type": USER_ONBOARDING_STATE, **onboarding_data.dict()}
     try:
+        response = bc.list_resources(
+            token=token,
+            params={"type": data.USER_ONBOARDING_STATE},
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+        )
+        resource_data = {"type": data.USER_ONBOARDING_STATE, **onboarding_data.dict()}
         if response.resources:
             resource = bc.update_resource(
                 token=token,
@@ -250,12 +226,12 @@ async def set_onboarding_state(
 @app.get("/onboarding", tags=["users"], response_model=data.OnboardingState)
 async def get_onboarding_state(request: Request) -> data.OnboardingState:
     token = request.state.token
-    response = bc.list_resources(
-        token=token,
-        params={"type": USER_ONBOARDING_STATE},
-        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
-    )
     try:
+        response = bc.list_resources(
+            token=token,
+            params={"type": data.USER_ONBOARDING_STATE},
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+        )
 
         if response.resources:
             resource = response.resources[0]
@@ -285,14 +261,14 @@ async def get_onboarding_state(request: Request) -> data.OnboardingState:
 @app.delete("/onboarding", tags=["users"], response_model=data.OnboardingState)
 async def delete_onboarding_state(request: Request) -> data.OnboardingState:
     token = request.state.token
-    response = bc.list_resources(
-        token=token,
-        params={"type": USER_ONBOARDING_STATE},
-        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
-    )
-    if not response.resources:
-        raise HTTPException(status_code=404, detail="not found")
     try:
+        response = bc.list_resources(
+            token=token,
+            params={"type": data.USER_ONBOARDING_STATE},
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+        )
+        if not response.resources:
+            raise HTTPException(status_code=404, detail="not found")
         if response.resources:
             resource: BugoutResource = bc.delete_resource(
                 token=token,

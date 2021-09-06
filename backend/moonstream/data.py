@@ -2,7 +2,10 @@
 Pydantic schemas for the Moonstream HTTP API
 """
 from typing import List, Optional, Dict, Any
+
 from pydantic import BaseModel, Field
+
+USER_ONBOARDING_STATE = "onboarding_state"
 
 
 class SubscriptionTypeResourceData(BaseModel):
