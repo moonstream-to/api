@@ -120,13 +120,13 @@ def get_ethereum_address_info(
         .one_or_none()
     )
     if erc721_label is not None:
-        address_info.nft = data.EthereumSmartContractDetails(
+        address_info.nft = data.EthereumNFTDetails(
             name=erc721_label.label_data.get("name"),
             symbol=erc721_label.label_data.get("symbol"),
-            total_supplly=erc721_label.label_data.get("totalSupply"),
+            total_supply=erc721_label.label_data.get("totalSupply"),
             external_url=[etherscan_token_url, blockchain_com_url],
         )
-
+        breakpoint()
     return address_info
 
 

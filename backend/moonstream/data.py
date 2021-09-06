@@ -3,7 +3,6 @@ Pydantic schemas for the Moonstream HTTP API
 """
 from typing import List, Optional, Dict, Any
 
-from sqlalchemy.sql.selectable import alias
 
 from pydantic import BaseModel, Field
 
@@ -171,7 +170,7 @@ class EthereumSmartContractDetails(BaseModel):
 
 
 class EthereumNFTDetails(EthereumTokenDetails):
-    total_supply: Optional[int] = Field(alias="totalSupply")
+    total_supply: Optional[int]
 
 
 class EthereumAddressInfo(BaseModel):
