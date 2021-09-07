@@ -76,7 +76,7 @@ def create_subscription_type(
     id: str,
     name: str,
     description: str,
-    choices: List[str],
+    choices: Optional[List[str]],
     icon_url: str,
     stripe_product_id: Optional[str] = None,
     stripe_price_id: Optional[str] = None,
@@ -115,6 +115,7 @@ def create_subscription_type(
         "id": id,
         "name": name,
         "description": description,
+        "choices": choices,
         "icon_url": icon_url,
         "stripe_product_id": stripe_product_id,
         "stripe_price_id": stripe_price_id,
@@ -367,6 +368,19 @@ def ensure_canonical_subscription_types() -> BugoutResources:
         if existing_canonical_subscription_types.get(id) is None:
             canonical_subscription_type = CANONICAL_SUBSCRIPTION_TYPES[id]
             resource = create_subscription_type(
+                id,
+                canonical_subscription_type.name,
+                canonical_subscription_type.description,
+                canonical_subscription_type.choices,
+                canonical_subscription_type.icon_url,
+                canonical_subscription_type.stripe_product_id,
+                canonical_subscription_type.stripe_price_id,
+                canonical_subscription_type.active,
+            )
+            existing_canonical_subscription_types[id] = resource
+        else:
+            canonical_subscription_type = CANONICAL_SUBSCRIPTION_TYPES[id]
+            resource = update_subscription_type(
                 id,
                 canonical_subscription_type.name,
                 canonical_subscription_type.description,
