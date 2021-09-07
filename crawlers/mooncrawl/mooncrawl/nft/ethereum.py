@@ -1,5 +1,6 @@
 from dataclasses import dataclass, asdict
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta
+import json
 import logging
 from hexbytes.main import HexBytes
 from typing import Any, cast, Dict, List, Optional, Set, Tuple
@@ -11,15 +12,13 @@ from moonstreamdb.models import (
     EthereumLabel,
     EthereumTransaction,
 )
-from sqlalchemy import and_, func
+from sqlalchemy import and_, func, text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session, Query
 from tqdm import tqdm
 from web3 import Web3
 from web3.types import FilterParams, LogReceipt
 from web3._utils.events import get_event_data
-
-from ..ethereum import DateRange
 
 # Default length (in blocks) of an Ethereum NFT crawl.
 DEFAULT_CRAWL_LENGTH = 100
@@ -30,6 +29,26 @@ TRANSFER_LABEL = "nft_transfer"
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
+# Summary keys
+SUMMARY_KEY_BLOCKS = "blocks"
+SUMMARY_KEY_NUM_TRANSACTIONS = "num_transactions"
+SUMMARY_KEY_TOTAL_VALUE = "total_value"
+SUMMARY_KEY_NFT_TRANSFERS = "nft_transfers"
+SUMMARY_KEY_NFT_TRANSFER_VALUE = "nft_transfer_value"
+SUMMARY_KEY_NFT_MINTS = "nft_mints"
+SUMMARY_KEY_NFT_OWNERS = "nft_owners"
+
+SUMMARY_KEYS = [
+    SUMMARY_KEY_BLOCKS,
+    SUMMARY_KEY_NUM_TRANSACTIONS,
+    SUMMARY_KEY_TOTAL_VALUE,
+    SUMMARY_KEY_NFT_TRANSFERS,
+    SUMMARY_KEY_NFT_TRANSFER_VALUE,
+    SUMMARY_KEY_NFT_MINTS,
+    SUMMARY_KEY_NFT_OWNERS,
+]
+
 
 # First abi is for old NFT's like crypto kitties
 # The erc721 standart requieres that Transfer event is indexed for all arguments
@@ -512,6 +531,36 @@ def time_bounded_summary(
     transfer_query = nft_query(TRANSFER_LABEL)
     mint_query = nft_query(MINT_LABEL)
 
+    current_owner_query = (
+        db_session.query(
+            EthereumLabel.address_id.label("address_id"),
+            EthereumLabel.label_data["to"].astext.label("owner_address"),
+            EthereumLabel.label_data["tokenId"].astext.label("token_id"),
+            EthereumTransaction.block_number.label("block_number"),
+            EthereumTransaction.transaction_index.label("transaction_index"),
+            EthereumTransaction.value.label("transfer_value"),
+        )
+        .join(
+            EthereumTransaction,
+            EthereumLabel.transaction_hash == EthereumTransaction.hash,
+        )
+        .join(
+            EthereumBlock,
+            EthereumTransaction.block_number == EthereumBlock.block_number,
+        )
+        .filter(time_filter)
+        .filter(EthereumLabel.label == TRANSFER_LABEL)
+        .order_by(
+            # Without "owner_address" and "transfer_value" as sort keys, the final distinct query
+            # does not seem to be deterministic.
+            # Maybe relevant Stackoverflow post: https://stackoverflow.com/a/59410440
+            text(
+                "address_id, token_id, block_number desc, transaction_index desc, owner_address, transfer_value"
+            )
+        )
+        .distinct("address_id", "token_id")
+    )
+
     blocks_result: Dict[str, int] = {}
     min_block = (
         db_session.query(func.min(EthereumBlock.block_number))
@@ -540,6 +589,12 @@ def time_bounded_summary(
 
     num_minted = mint_query.distinct(EthereumTransaction.hash).count()
 
+    num_owners = (
+        db_session.query(current_owner_query.subquery())
+        .distinct(text("owner_address"))
+        .count()
+    )
+
     result = {
         "date_range": {
             "start_time": start_time.isoformat(),
@@ -547,20 +602,13 @@ def time_bounded_summary(
             "end_time": end_time.isoformat(),
             "include_end": True,
         },
-        "blocks": blocks_result,
-        "transactions": {
-            "total": f"{num_transactions}",
-            "amount": f"{num_transfers}",
-            "percentage": f"{num_transfers/num_transactions * 100}",
-        },
-        "value": {
-            "total": f"{total_value}",
-            "amount": f"{transfer_value}",
-            "percentage": f"{transfer_value/total_value * 100}",
-        },
-        "mints": {
-            "amount": num_minted,
-        },
+        SUMMARY_KEY_BLOCKS: blocks_result,
+        SUMMARY_KEY_NUM_TRANSACTIONS: f"{num_transactions}",
+        SUMMARY_KEY_TOTAL_VALUE: f"{total_value}",
+        SUMMARY_KEY_NFT_TRANSFERS: f"{num_transfers}",
+        SUMMARY_KEY_NFT_TRANSFER_VALUE: f"{transfer_value}",
+        SUMMARY_KEY_NFT_MINTS: f"{num_minted}",
+        SUMMARY_KEY_NFT_OWNERS: f"{num_owners}",
     }
 
     return result
@@ -574,7 +622,7 @@ def summary(db_session: Session, end_time: datetime) -> Dict[str, Any]:
     3. From 1 week before end_time to end_time
     """
     start_times = {
-        "hour": end_time - timedelta(hours=1),
+        "hour": end_time,
         "day": end_time - timedelta(days=1),
         "week": end_time - timedelta(weeks=1),
     }
@@ -586,10 +634,8 @@ def summary(db_session: Session, end_time: datetime) -> Dict[str, Any]:
     def aggregate_summary(key: str) -> Dict[str, Any]:
         return {period: summary.get(key) for period, summary in summaries.items()}
 
-    return {
-        "crawled_at": end_time.isoformat(),
-        "blocks": aggregate_summary("blocks"),
-        "transactions": aggregate_summary("transactions"),
-        "value": aggregate_summary("value"),
-        "mints": aggregate_summary("mints"),
+    result = {
+        summary_key: aggregate_summary(summary_key) for summary_key in SUMMARY_KEYS
     }
+    result["crawled_at"] = end_time.isoformat()
+    return result
