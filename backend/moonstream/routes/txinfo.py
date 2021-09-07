@@ -6,9 +6,7 @@ transactions, etc.) with side information and return objects that are better sui
 end users.
 """
 import logging
-from typing import Dict, Optional
-
-from sqlalchemy.sql.expression import true
+from typing import Dict
 
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
@@ -54,6 +52,7 @@ app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
 
 # TODO(zomglings): Factor out the enrichment logic into a separate action, because it may be useful
 # independently from serving API calls (e.g. data processing).
+# TODO(kompotkot): Re-organize function to be able handle each steps with exceptions.
 @app.post(
     "/ethereum_blockchain",
     tags=["txinfo"],

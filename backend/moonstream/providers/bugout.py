@@ -19,6 +19,7 @@ from ..stream_queries import StreamQuery
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARN)
+allowed_tags = ["nfts"]
 
 
 class BugoutEventProviderError(Exception):
@@ -296,9 +297,9 @@ class EthereumTXPoolProvider(BugoutEventProvider):
             for subscription in relevant_subscriptions
         ]
         subscriptions_filters = []
-        for adress in addresses:
+        for address in addresses:
             subscriptions_filters.extend(
-                [f"?#from_address:{adress}", f"?#to_address:{adress}"]
+                [f"?#from_address:{address}", f"?#to_address:{address}"]
             )
 
         return subscriptions_filters

@@ -24,12 +24,15 @@ import {
 } from "@chakra-ui/react";
 import dynamic from "next/dynamic";
 import useUser from "../src/core/hooks/useUser";
-import useAnalytics from "../src/core/hooks/useAnalytics";
 import useModals from "../src/core/hooks/useModals";
 import useRouter from "../src/core/hooks/useRouter";
-import { MIXPANEL_PROPS } from "../src/core/providers/AnalyticsProvider/constants";
+import {
+  MIXPANEL_PROPS,
+  MIXPANEL_EVENTS,
+} from "../src/core/providers/AnalyticsProvider/constants";
 import UIContext from "../src/core/providers/UIProvider/context";
 import { AWS_ASSETS_PATH } from "../src/core/constants";
+import mixpanel from "mixpanel-browser";
 const SplitWithImage = dynamic(
   () => import("../src/components/SplitWithImage"),
   {
@@ -105,7 +108,6 @@ const Homepage = () => {
 
   const router = useRouter();
   const { isInit } = useUser();
-  const { MIXPANEL_EVENTS, track } = useAnalytics();
   const { toggleModal } = useModals();
   const [
     isLargerThan720px,
@@ -379,27 +381,30 @@ const Homepage = () => {
                       label: "Crypto trader",
                       link: "/#cryptoTrader",
                       onClick: () => {
-                        track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          [`${MIXPANEL_PROPS.BUTTON_CLICKED}`]: `scroll to CryptoTrader`,
-                        });
+                        mixpanel.get_distinct_id() &&
+                          mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                            [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `scroll to CryptoTrader`,
+                          });
                       },
                     }}
                     button2={{
                       label: "Algorithmic Fund",
                       link: "/#algoFund",
                       onClick: () => {
-                        track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          [`${MIXPANEL_PROPS.BUTTON_CLICKED}`]: `scroll to AlgoFund`,
-                        });
+                        mixpanel.get_distinct_id() &&
+                          mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                            [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `scroll to AlgoFund`,
+                          });
                       },
                     }}
                     button3={{
                       label: "Developer",
                       link: "/#smartDeveloper",
                       onClick: () => {
-                        track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          [`${MIXPANEL_PROPS.BUTTON_CLICKED}`]: `scroll to Developer`,
-                        });
+                        mixpanel.get_distinct_id() &&
+                          mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                            [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `scroll to Developer`,
+                          });
                       },
                     }}
                   />
@@ -417,9 +422,10 @@ const Homepage = () => {
                   cta={{
                     label: "I want early access!",
                     onClick: () => {
-                      track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                        [`${MIXPANEL_PROPS.BUTTON_CLICKED}`]: `Early access CTA: Crypto trader`,
-                      });
+                      mixpanel.get_distinct_id() &&
+                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: Crypto trader`,
+                        });
                       toggleModal("hubspot-trader");
                     },
                   }}
@@ -464,9 +470,10 @@ const Homepage = () => {
                   cta={{
                     label: "I want early access!",
                     onClick: () => {
-                      track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                        [`${MIXPANEL_PROPS.BUTTON_CLICKED}`]: `Early access CTA: Algo fund`,
-                      });
+                      mixpanel.get_distinct_id() &&
+                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: Algo fund`,
+                        });
                       toggleModal("hubspot-fund");
                     },
                   }}
@@ -509,9 +516,10 @@ const Homepage = () => {
                   cta={{
                     label: "I want early access!",
                     onClick: () => {
-                      track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                        [`${MIXPANEL_PROPS.BUTTON_CLICKED}`]: `Early access CTA: developer`,
-                      });
+                      mixpanel.get_distinct_id() &&
+                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer`,
+                        });
                       toggleModal("hubspot-developer");
                     },
                   }}
@@ -520,9 +528,10 @@ const Homepage = () => {
                     network: "github",
                     label: "See our github",
                     onClick: () => {
-                      track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                        [`${MIXPANEL_PROPS.BUTTON_CLICKED}`]: `Github link in landing page`,
-                      });
+                      mixpanel.get_distinct_id() &&
+                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Github link in landing page`,
+                        });
                     },
                   }}
                   elementName={"element3"}
@@ -568,9 +577,10 @@ const Homepage = () => {
                     colorScheme="suggested"
                     id="test"
                     onClick={() => {
-                      track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                        [`${MIXPANEL_PROPS.BUTTON_CLICKED}`]: `Join our discord`,
-                      });
+                      mixpanel.get_distinct_id() &&
+                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Join our discord`,
+                        });
                       toggleModal("hubspot");
                     }}
                   >

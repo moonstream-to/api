@@ -35,13 +35,34 @@ const _NewSubscription = ({
   const [radioState, setRadioState] = useState(
     initialType ?? "ethereum_blockchain"
   );
+
+  const [subscriptionAdressFormatRadio, setsubscriptionAdressFormatRadio] =
+    useState("");
+
   let { getRootProps, getRadioProps } = useRadioGroup({
     name: "type",
     defaultValue: radioState,
     onChange: setRadioState,
   });
 
+  let {
+    getRootProps: getRootPropsSubscription,
+    getRadioProps: getRadioPropsSubscription,
+  } = useRadioGroup({
+    name: "subscription",
+    onChange: setsubscriptionAdressFormatRadio,
+  });
+
+  console.log(
+    useRadioGroup({
+      name: "subscription1",
+      onChange: setsubscriptionAdressFormatRadio,
+    })
+  );
+
   const group = getRootProps();
+
+  const subscriptionAddressTypeGroup = getRootPropsSubscription();
 
   useEffect(() => {
     if (setIsLoading) {
@@ -57,6 +78,13 @@ const _NewSubscription = ({
 
   const createSubscriptionWrapper = useCallback(
     (props) => {
+      if (
+        subscriptionAdressFormatRadio.startsWith("tags") &&
+        radioState != "ethereum_whalewatch"
+      ) {
+        props.address = subscriptionAdressFormatRadio.split(":")[1];
+      }
+
       createSubscription.mutate({
         ...props,
         color: color,
@@ -67,6 +95,16 @@ const _NewSubscription = ({
   );
 
   if (typesCache.isLoading) return <Spinner />;
+
+  function search(nameKey, myArray) {
+    for (var i = 0; i < myArray.length; i++) {
+      if (myArray[i].id === nameKey) {
+        return myArray[i];
+      }
+    }
+  }
+
+  console.log(radioState);
 
   const handleChangeColorComplete = (color) => {
     setColor(color.hex);
@@ -89,19 +127,6 @@ const _NewSubscription = ({
           {errors?.label && errors?.label.message}
         </FormErrorMessage>
       </FormControl>
-      <FormControl isInvalid={errors?.address}>
-        <Input
-          type="text"
-          autoComplete="off"
-          my={2}
-          placeholder="Address to subscribe to"
-          name="address"
-          ref={register({ required: "address is required!" })}
-        ></Input>
-        <FormErrorMessage color="unsafe.400" pl="1">
-          {errors?.address && errors?.address.message}
-        </FormErrorMessage>
-      </FormControl>
       <Stack my={4} direction="column">
         {/* <Text fontWeight="600">
           {isFreeOption
@@ -119,6 +144,8 @@ const _NewSubscription = ({
                   !type.active ||
                   (isFreeOption && type.id !== "ethereum_blockchain"),
               });
+              console.log(type);
+
               return (
                 <RadioCard key={`subscription_type_${type.id}`} {...radio}>
                   {type.name}
@@ -126,6 +153,46 @@ const _NewSubscription = ({
               );
             })}
           </HStack>
+          <Stack my={4} direction="column">
+            <FormControl isInvalid={errors?.subscription_type}>
+              <HStack {...subscriptionAddressTypeGroup} alignItems="stretch">
+                {search(radioState, typesCache.data).choices.map(
+                  (addition_selects) => {
+                    const radio = getRadioPropsSubscription({
+                      value: addition_selects,
+                    });
+                    console.log(radio);
+                    return (
+                      <RadioCard
+                        key={`subscription_tags_${addition_selects}`}
+                        {...radio}
+                      >
+                        {addition_selects.split(":")[1]}
+                      </RadioCard>
+                    );
+                    // }
+                  }
+                )}
+              </HStack>
+            </FormControl>
+          </Stack>
+
+          {subscriptionAdressFormatRadio.startsWith("input") &&
+            radioState != "ethereum_whalewatch" && (
+              <FormControl isInvalid={errors?.address}>
+                <Input
+                  type="text"
+                  autoComplete="off"
+                  my={2}
+                  placeholder="Address to subscribe to"
+                  name="address"
+                  ref={register({ required: "address is required!" })}
+                ></Input>
+                <FormErrorMessage color="unsafe.400" pl="1">
+                  {errors?.address && errors?.address.message}
+                </FormErrorMessage>
+              </FormControl>
+            )}
           <Input
             type="hidden"
             placeholder="subscription_type"

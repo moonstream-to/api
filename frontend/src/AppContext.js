@@ -13,13 +13,13 @@ const AppContext = (props) => {
   return (
     <UserProvider>
       <ModalProvider>
-        <AnalyticsProvider>
-          <StripeProvider>
-            <ChakraProvider theme={theme}>
-              <UIProvider>{props.children}</UIProvider>
-            </ChakraProvider>
-          </StripeProvider>
-        </AnalyticsProvider>
+        <StripeProvider>
+          <ChakraProvider theme={theme}>
+            <UIProvider>
+              <AnalyticsProvider>{props.children}</AnalyticsProvider>
+            </UIProvider>
+          </ChakraProvider>
+        </StripeProvider>
       </ModalProvider>
     </UserProvider>
   );

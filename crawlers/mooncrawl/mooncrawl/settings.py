@@ -1,5 +1,9 @@
 import os
 
+# Bugout
+HUMBUG_REPORTER_CRAWLERS_TOKEN = os.environ.get("HUMBUG_REPORTER_CRAWLERS_TOKEN")
+
+# Geth
 MOONSTREAM_IPC_PATH = os.environ.get("MOONSTREAM_IPC_PATH", None)
 
 MOONSTREAM_CRAWL_WORKERS = 4
@@ -12,5 +16,5 @@ except:
         f"Could not parse MOONSTREAM_CRAWL_WORKERS as int: {MOONSTREAM_CRAWL_WORKERS_RAW}"
     )
 
-
+# Etherscan
 MOONSTREAM_ETHERSCAN_TOKEN = os.environ.get("MOONSTREAM_ETHERSCAN_TOKEN")

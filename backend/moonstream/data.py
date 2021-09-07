@@ -10,6 +10,7 @@ class SubscriptionTypeResourceData(BaseModel):
     id: str
     name: str
     description: str
+    choices: Optional[List[str]]
     icon_url: str
     stripe_product_id: Optional[str] = None
     stripe_price_id: Optional[str] = None
@@ -22,7 +23,6 @@ class SubscriptionTypesListResponse(BaseModel):
 
 class SubscriptionResourceData(BaseModel):
     id: str
-    address: str
     color: Optional[str]
     label: Optional[str]
     user_id: str
