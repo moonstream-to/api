@@ -25,6 +25,7 @@ class SubscriptionTypesListResponse(BaseModel):
 
 class SubscriptionResourceData(BaseModel):
     id: str
+    address: str
     color: Optional[str]
     label: Optional[str]
     user_id: str
