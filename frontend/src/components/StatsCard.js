@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Stack, Text, chakra, Box, SimpleGrid, Link } from "@chakra-ui/react";
 import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons";
 import useNFTs from "../core/hooks/useNFTs";
-import { Utils } from "web3-utils";
+import { fromWei } from "web3-utils";
 
 const TIME_PERIOD = {
   current: 0,
@@ -14,7 +14,7 @@ const isNumberNonzeroAndFinite = (str) => {
 };
 
 const getEthValue = (string) => {
-  const ether = Utils.fromWei(string, "ether");
+  const ether = fromWei(string, "ether");
   return nFormatter(ether, 2);
 };
 
