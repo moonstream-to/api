@@ -20,7 +20,7 @@
     "framer-motion": "^4.1.17",
     "mixpanel-browser": "^2.41.0",
     "moment": "^2.29.1",
-    "next": "11.0.1",
+    "next": "11.1.2",
     "nprogress": "^0.2.0",
     "react": "^17.0.2",
     "react-calendly": "^2.2.1",
