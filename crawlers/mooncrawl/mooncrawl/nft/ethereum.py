@@ -37,7 +37,8 @@ SUMMARY_KEY_TOTAL_VALUE = "total_value"
 SUMMARY_KEY_NFT_TRANSFERS = "nft_transfers"
 SUMMARY_KEY_NFT_TRANSFER_VALUE = "nft_transfer_value"
 SUMMARY_KEY_NFT_MINTS = "nft_mints"
-SUMMARY_KEY_NFT_OWNERS = "nft_owners"
+SUMMARY_KEY_NFT_PURCHASERS = "nft_owners"
+SUMMARY_KEY_NFT_MINTERS = "nft_minters"
 
 SUMMARY_KEYS = [
     SUMMARY_KEY_BLOCKS,
@@ -46,7 +47,8 @@ SUMMARY_KEYS = [
     SUMMARY_KEY_NFT_TRANSFERS,
     SUMMARY_KEY_NFT_TRANSFER_VALUE,
     SUMMARY_KEY_NFT_MINTS,
-    SUMMARY_KEY_NFT_OWNERS,
+    SUMMARY_KEY_NFT_PURCHASERS,
+    SUMMARY_KEY_NFT_MINTERS,
 ]
 
 
@@ -531,35 +533,40 @@ def time_bounded_summary(
     transfer_query = nft_query(TRANSFER_LABEL)
     mint_query = nft_query(MINT_LABEL)
 
-    current_owner_query = (
-        db_session.query(
-            EthereumLabel.address_id.label("address_id"),
-            EthereumLabel.label_data["to"].astext.label("owner_address"),
-            EthereumLabel.label_data["tokenId"].astext.label("token_id"),
-            EthereumTransaction.block_number.label("block_number"),
-            EthereumTransaction.transaction_index.label("transaction_index"),
-            EthereumTransaction.value.label("transfer_value"),
-        )
-        .join(
-            EthereumTransaction,
-            EthereumLabel.transaction_hash == EthereumTransaction.hash,
-        )
-        .join(
-            EthereumBlock,
-            EthereumTransaction.block_number == EthereumBlock.block_number,
-        )
-        .filter(time_filter)
-        .filter(EthereumLabel.label == TRANSFER_LABEL)
-        .order_by(
-            # Without "owner_address" and "transfer_value" as sort keys, the final distinct query
-            # does not seem to be deterministic.
-            # Maybe relevant Stackoverflow post: https://stackoverflow.com/a/59410440
-            text(
-                "address_id, token_id, block_number desc, transaction_index desc, owner_address, transfer_value"
+    def holder_query(label: str) -> Query:
+        query = (
+            db_session.query(
+                EthereumLabel.address_id.label("address_id"),
+                EthereumLabel.label_data["to"].astext.label("owner_address"),
+                EthereumLabel.label_data["tokenId"].astext.label("token_id"),
+                EthereumTransaction.block_number.label("block_number"),
+                EthereumTransaction.transaction_index.label("transaction_index"),
+                EthereumTransaction.value.label("transfer_value"),
             )
+            .join(
+                EthereumTransaction,
+                EthereumLabel.transaction_hash == EthereumTransaction.hash,
+            )
+            .join(
+                EthereumBlock,
+                EthereumTransaction.block_number == EthereumBlock.block_number,
+            )
+            .filter(EthereumLabel.label == label)
+            .filter(time_filter)
+            .order_by(
+                # Without "transfer_value" and "owner_address" as sort keys, the final distinct query
+                # does not seem to be deterministic.
+                # Maybe relevant Stackoverflow post: https://stackoverflow.com/a/59410440
+                text(
+                    "address_id, token_id, block_number desc, transaction_index desc, transfer_value, owner_address"
+                )
+            )
+            .distinct("address_id", "token_id")
         )
-        .distinct("address_id", "token_id")
-    )
+        return query
+
+    purchaser_query = holder_query(TRANSFER_LABEL)
+    minter_query = holder_query(MINT_LABEL)
 
     blocks_result: Dict[str, int] = {}
     min_block = (
@@ -589,8 +596,14 @@ def time_bounded_summary(
 
     num_minted = mint_query.distinct(EthereumTransaction.hash).count()
 
-    num_owners = (
-        db_session.query(current_owner_query.subquery())
+    num_purchasers = (
+        db_session.query(purchaser_query.subquery())
+        .distinct(text("owner_address"))
+        .count()
+    )
+
+    num_minters = (
+        db_session.query(minter_query.subquery())
         .distinct(text("owner_address"))
         .count()
     )
@@ -608,7 +621,8 @@ def time_bounded_summary(
         SUMMARY_KEY_NFT_TRANSFERS: f"{num_transfers}",
         SUMMARY_KEY_NFT_TRANSFER_VALUE: f"{transfer_value}",
         SUMMARY_KEY_NFT_MINTS: f"{num_minted}",
-        SUMMARY_KEY_NFT_OWNERS: f"{num_owners}",
+        SUMMARY_KEY_NFT_PURCHASERS: f"{num_purchasers}",
+        SUMMARY_KEY_NFT_MINTERS: f"{num_minters}",
     }
 
     return result
@@ -622,7 +636,7 @@ def summary(db_session: Session, end_time: datetime) -> Dict[str, Any]:
     3. From 1 week before end_time to end_time
     """
     start_times = {
-        "hour": end_time,
+        "hour": end_time - timedelta(hours=1),
         "day": end_time - timedelta(days=1),
         "week": end_time - timedelta(weeks=1),
     }
