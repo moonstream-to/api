@@ -20,7 +20,7 @@ CANONICAL_SUBSCRIPTION_TYPES = {
     "ethereum_blockchain": SubscriptionTypeResourceData(
         id="ethereum_blockchain",
         name="Ethereum transactions",
-        choices=["input:Address", "tag:nfts"],
+        choices=["input:address", "tag:nfts"],
         description="Transactions that have been mined into the Ethereum blockchain",
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/ethereum/eth-diamond-purple.png",
         stripe_product_id=None,
@@ -42,7 +42,7 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         id="ethereum_txpool",
         name="Ethereum transaction pool",
         description="Transactions that have been submitted into the Ethereum transaction pool but not necessarily mined yet",
-        choices=["input:Address", "tag:nfts"],
+        choices=["input:address", "tag:nfts"],
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/ethereum/eth-diamond-rainbow.png",
         stripe_product_id=None,
         stripe_price_id=None,
@@ -274,19 +274,15 @@ def update_subscription_type(
     # TODO(zomglings): This was written with an outdated bugout-python client.
     # New client has an update_resource method which is what we should be using
     # here.
-    new_resource = bc.create_resource(
-        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-        application_id=MOONSTREAM_APPLICATION_ID,
-        resource_data=updated_resource_data,
-        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
-    )
 
     try:
-        bc.delete_resource(
+        new_resource = bc.update_resource(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             resource_id=brood_resource_id,
+            resource_data={"update": updated_resource_data},
             timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
         )
+
     except Exception as e:
         raise ConflictingSubscriptionTypesError(
             f"Unable to delete old subscription type with ID: {id}. Error:\n{repr(e)}"
