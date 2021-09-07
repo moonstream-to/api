@@ -1,0 +1,13 @@
+[Unit]
+Description=moonstreamdb-service
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/moonstream/db/server
+ExecStart=moonstreamdb
+SyslogIdentifier=moonstreamdb
+
+[Install]
+WantedBy=multi-user.target
