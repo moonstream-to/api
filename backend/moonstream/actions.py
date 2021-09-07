@@ -1,7 +1,9 @@
 import json
 import logging
-from typing import Optional
+
+from typing import Optional, Dict, Any
 from enum import Enum
+import uuid
 
 import boto3  # type: ignore
 from moonstreamdb.models import (
@@ -14,6 +16,12 @@ from sqlalchemy.orm import Session
 from . import data
 from .reporter import reporter
 from .settings import ETHERSCAN_SMARTCONTRACTS_BUCKET
+from bugout.data import BugoutResource
+from .settings import (
+    MOONSTREAM_APPLICATION_ID,
+    bugout_client as bc,
+    BUGOUT_REQUEST_TIMEOUT_SECONDS,
+)
 
 logger = logging.getLogger(__name__)
 ETHERSCAN_SMARTCONTRACT_LABEL_NAME = "etherscan_smartcontract"
@@ -144,3 +152,21 @@ def get_address_labels(
         )
 
     return addresses_response
+
+
+def create_onboarding_resource(
+    token: uuid.UUID,
+    resource_data: Dict[str, Any] = {
+        "type": data.USER_ONBOARDING_STATE,
+        "steps": {"welcome": 0, "subscriptions": 0, "stream": 0,},
+        "is_complete": False,
+    },
+) -> BugoutResource:
+
+    resource = bc.create_resource(
+        token=token,
+        application_id=MOONSTREAM_APPLICATION_ID,
+        resource_data=resource_data,
+        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+    )
+    return resource

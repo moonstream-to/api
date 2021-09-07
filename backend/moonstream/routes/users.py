@@ -5,20 +5,30 @@ import logging
 from typing import Any, Dict
 import uuid
 
-from bugout.data import BugoutToken, BugoutUser
+from bugout.data import BugoutToken, BugoutUser, BugoutResource
 from bugout.exceptions import BugoutResponseException
-from fastapi import FastAPI, Form, Request
+
+from fastapi import (
+    Body,
+    FastAPI,
+    Form,
+    Request,
+)
 from fastapi.middleware.cors import CORSMiddleware
 
+from .. import data
 from ..middleware import BroodAuthMiddleware, MoonstreamHTTPException
+
 from ..settings import (
     MOONSTREAM_APPLICATION_ID,
     DOCS_TARGET_PATH,
     ORIGINS,
     DOCS_PATHS,
     bugout_client as bc,
+    BUGOUT_REQUEST_TIMEOUT_SECONDS,
 )
 from ..version import MOONSTREAM_VERSION
+from ..actions import create_onboarding_resource
 
 logger = logging.getLogger(__name__)
 
@@ -166,3 +176,121 @@ async def logout_handler(request: Request) -> uuid.UUID:
     except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
     return token_id
+
+
+@app.post("/onboarding", tags=["users"], response_model=data.OnboardingState)
+async def set_onboarding_state(
+    request: Request, onboarding_data: data.OnboardingState = Body(...),
+) -> data.OnboardingState:
+
+    token = request.state.token
+    try:
+        response = bc.list_resources(
+            token=token,
+            params={"type": data.USER_ONBOARDING_STATE},
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+        )
+        resource_data = {"type": data.USER_ONBOARDING_STATE, **onboarding_data.dict()}
+        if response.resources:
+            resource = bc.update_resource(
+                token=token,
+                resource_id=str(response.resources[0].id),
+                resource_data={"update": resource_data, "drop_keys": []},
+            )
+        else:
+            resource = create_onboarding_resource(
+                token=token, resource_data=resource_data
+            )
+
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        raise MoonstreamHTTPException(status_code=500)
+
+    if (
+        resource.resource_data.get("is_complete") is None
+        or resource.resource_data.get("steps") is None
+    ):
+        logger.error(
+            f"Resources did not return correct onboarding object. Resource id:{resource.id}"
+        )
+        raise MoonstreamHTTPException(status_code=500)
+
+    result = data.OnboardingState(
+        is_complete=resource.resource_data.get("is_complete", False),
+        steps=resource.resource_data.get("steps", {}),
+    )
+    return result
+
+
+@app.get("/onboarding", tags=["users"], response_model=data.OnboardingState)
+async def get_onboarding_state(request: Request) -> data.OnboardingState:
+    token = request.state.token
+    try:
+        response = bc.list_resources(
+            token=token,
+            params={"type": data.USER_ONBOARDING_STATE},
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+        )
+
+        if response.resources:
+            resource = response.resources[0]
+        else:
+            resource = create_onboarding_resource(token=token)
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+
+        raise MoonstreamHTTPException(status_code=500)
+
+    if (
+        resource.resource_data.get("is_complete") is None
+        or resource.resource_data.get("steps") is None
+    ):
+        logger.error(
+            f"Resources did not return correct onboarding object. Resource id:{resource.id}"
+        )
+        raise MoonstreamHTTPException(status_code=500)
+    result = data.OnboardingState(
+        is_complete=resource.resource_data.get("is_complete", False),
+        steps=resource.resource_data.get("steps", {}),
+    )
+    return result
+
+
+@app.delete("/onboarding", tags=["users"], response_model=data.OnboardingState)
+async def delete_onboarding_state(request: Request) -> data.OnboardingState:
+    token = request.state.token
+    try:
+        response = bc.list_resources(
+            token=token,
+            params={"type": data.USER_ONBOARDING_STATE},
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+        )
+        if not response.resources:
+            raise MoonstreamHTTPException(status_code=404, detail="not found")
+        if response.resources:
+            resource: BugoutResource = bc.delete_resource(
+                token=token,
+                resource_id=response.resources[0].id,
+                timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+            )
+
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        raise MoonstreamHTTPException(status_code=500)
+
+    if (
+        resource.resource_data.get("is_complete") is None
+        or resource.resource_data.get("steps") is None
+    ):
+        logger.error(
+            f"Resources did not return correct onboarding object. Resource id:{resource.id}"
+        )
+        raise MoonstreamHTTPException(status_code=500)
+    result = data.OnboardingState(
+        is_complete=resource.resource_data.get("is_complete", False),
+        steps=resource.resource_data.get("steps", {}),
+    )
+    return result
