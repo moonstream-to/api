@@ -1,7 +1,13 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Stack, Container, chakra } from "@chakra-ui/react";
 
-const RangeSelector_ = ({ className, ranges, onChange, initialRange }) => {
+const RangeSelector_ = ({
+  className,
+  ranges,
+  onChange,
+  initialRange,
+  size,
+}) => {
   const [range, setRange] = useState(initialRange ?? ranges[0]);
   const isFirstRun = useRef(true);
 
@@ -20,11 +26,11 @@ const RangeSelector_ = ({ className, ranges, onChange, initialRange }) => {
         return (
           <Container
             key={`date-range-${className}-${idx}`}
-            size="xs"
             bgColor={isActive ? "secondary.900" : "primary.50"}
             color={!isActive ? "primary.900" : "primary.50"}
             boxShadow="sm"
             borderRadius="md"
+            fontSize={size}
             fontWeight="600"
             onClick={() => setRange(item)}
             _hover={{

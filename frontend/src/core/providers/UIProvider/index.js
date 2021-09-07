@@ -63,7 +63,6 @@ const UIProvider = ({ children }) => {
     }
   }, [user]);
 
-
   // *********** Sidebar states **********************
 
   // Whether sidebar should be visible at all or hidden

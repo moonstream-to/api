@@ -1,10 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { getLayout } from "../src/layouts/AppLayout";
 import { Spinner, Flex, Heading, Stack } from "@chakra-ui/react";
 import Scrollable from "../src/components/Scrollable";
 import useNFTs from "../src/core/hooks/useNFTs";
 import RangeSelector from "../src/components/RangeSelector";
 import StatsCard from "../src/components/StatsCard";
+import useWindowSize from "../src/core/hooks/useWindowSize";
 
 const HOUR_KEY = "Hourly";
 const DAY_KEY = "Daily";
@@ -15,17 +22,84 @@ timeMap[DAY_KEY] = "day";
 timeMap[WEEK_KEY] = "week";
 
 const Analytics = () => {
+  const windowSize = useWindowSize();
   useEffect(() => {
     if (typeof window !== "undefined") {
       document.title = `Analytics: Page under construction`;
     }
   }, []);
 
+  const [nodesReady, setNodeReady] = useState({
+    ntx: false,
+    values: false,
+    mints: false,
+  });
+
+  const nTxRef_ = useRef();
+  const valueRef_ = useRef();
+  const mintsRef_ = useRef();
+
+  const nTxRef = useCallback(
+    (node) => {
+      if (node !== null && !nodesReady.ntx) {
+        setNodeReady({ ...nodesReady, ntx: true });
+        nTxRef_.current = node;
+      }
+    },
+    [nodesReady]
+  );
+  const valueRef = useCallback(
+    (node) => {
+      if (node !== null && !nodesReady.values) {
+        setNodeReady({ ...nodesReady, values: true });
+        valueRef_.current = node;
+      }
+    },
+    [nodesReady]
+  );
+  const mintsRef = useCallback(
+    (node) => {
+      if (node !== null && !nodesReady.mints) {
+        setNodeReady({ ...nodesReady, mints: true });
+        mintsRef_.current = node;
+      }
+    },
+    [nodesReady]
+  );
+
   const [timeRange, setTimeRange] = useState(HOUR_KEY);
   const { nftCache } = useNFTs();
 
-  if (nftCache.isLoading) return <Spinner />;
+  useLayoutEffect(() => {
+    const items = [nTxRef_, valueRef_, mintsRef_];
+    console.log("useeffect fired");
+    if (nTxRef_.current) {
+      var firstItemInCurrentRow = items[0];
+      items.forEach((item) => {
+        if (item.current) {
+          if (item !== firstItemInCurrentRow) {
+            // Check if the current item is at the same
+            // height as the first item in the current row.
+            if (
+              item.current.offsetTop === firstItemInCurrentRow.current.offsetTop
+            ) {
+              item.current.style.borderLeft =
+                "3px dashed var(--chakra-colors-gray-600)";
+            } else {
+              // This item was lower, it must be
+              // the first in a new row.
+              firstItemInCurrentRow = item;
+              item.current.style.borderLeft = "0px dashed black";
+            }
+          }
+        } else {
+          firstItemInCurrentRow = item;
+        }
+      });
+    }
+  }, [nodesReady, windowSize]);
 
+  if (nftCache.isLoading) return <Spinner />;
   return (
     <Scrollable>
       <Flex
@@ -37,13 +111,14 @@ const Analytics = () => {
         alignItems="center"
         minH="100vh"
       >
-        <Heading as="h1" py={4}>
+        <Heading as="h1" py={4} fontSize={["md", "xl"]}>
           NFT market analysis
         </Heading>
         <RangeSelector
           placeSelf="flex-start"
           initialRange={timeRange}
           ranges={Object.keys(timeMap)}
+          size={["sm", "md", null]}
           onChange={(e) => setTimeRange(e)}
         />
         <Stack
@@ -53,24 +128,31 @@ const Analytics = () => {
           h="auto"
           direction="row"
           minW="240px"
-          spacing={[2, 0, null]}
+          spacing={[0, 0, null]}
           boxShadow="md"
           borderRadius="lg"
           bgColor="gray.100"
+          // divider={<StackDivider borderColor="gray.800" />}
         >
           <StatsCard
+            ref={(node) => nTxRef(node)}
+            // borderTopLeftRadius="inherit"
             labelKey="transactions"
             timeRange={timeMap[timeRange]}
             netLabel="Ethereum mainnet"
             label="Number of transactions"
           />
           <StatsCard
+            ref={(node) => valueRef(node)}
             labelKey="values"
             timeRange={timeMap[timeRange]}
             netLabel="Ethereum mainnet"
             label="Value of transactions"
           />
           <StatsCard
+            ref={(node) => mintsRef(node)}
+            // borderTopRightRadius="inherit"
+            // borderRightWidth="0"
             labelKey="mints"
             timeRange={timeMap[timeRange]}
             netLabel="Ethereum mainnet"

@@ -9,17 +9,13 @@ const TIME_PERIOD = {
   previous: 1,
 };
 
-const isNumberNotZero = (str) => {
-  if (isNaN(Number(str) || Number(str) == 0)) {
-    return false;
-  } else {
-    return true;
-  }
+const isNumberNonzeroAndFinite = (str) => {
+  return !(isNaN(Number(str)) || Number(str) === 0);
 };
 
 const getEthValue = (string) => {
   const ether = web3.utils.fromWei(string, "ether");
-  return nFormatter(ether, 3);
+  return nFormatter(ether, 2);
 };
 
 const nFormatter = (num, digits) => {
@@ -32,23 +28,22 @@ const nFormatter = (num, digits) => {
     { value: 1e15, symbol: "P" },
     { value: 1e18, symbol: "E" },
   ];
-  const rx = /\.0+$|(\.[0-9]*[1-9])0+$/;
-  var item = lookup
+
+  let item = lookup
     .slice()
     .reverse()
-    .find(function (item) {
-      return num >= item.value;
+    .find(function (element) {
+      return num >= element.value;
     });
-  return item
-    ? (num / item.value).toFixed(digits).replace(rx, "$1") + item.symbol
-    : "0";
+  return item ? (num / item.value).toFixed(digits) + item.symbol : "0";
 };
 
 const getChange = (a, b) => {
-  if (isNumberNotZero(a) && isNumberNotZero(b)) {
+  if (isNumberNonzeroAndFinite(a) && isNumberNonzeroAndFinite(b)) {
     let retval = (Math.abs(Number(a) - Number(b)) * 100) / Number(b);
-    retval = retval > 9999 ? nFormatter(retval, 3) : retval;
-    return retval.toFixed(2);
+    retval =
+      Math.abs(retval) > 9999 ? nFormatter(retval, 2) : retval.toFixed(2);
+    return retval;
   } else {
     return "-";
   }
@@ -62,11 +57,19 @@ const getDiff = (a, b) => {
   }
 };
 
-const getSign = (a) => {
+const isZeroOrPositive = (a) => {
   if (isNaN(a)) return "-";
   return Number(a) >= 0 ? true : false;
 };
-const StatsCard_ = ({ className, label, netLabel, labelKey, timeRange }) => {
+
+const StatsCard_ = ({
+  className,
+  label,
+  netLabel,
+  labelKey,
+  timeRange,
+  innerRef,
+}) => {
   const { nftCache } = useNFTs();
 
   const [nftData, setData] = useState();
@@ -87,29 +90,30 @@ const StatsCard_ = ({ className, label, netLabel, labelKey, timeRange }) => {
 
       setData({
         dimension: labelKey === "values" ? "Eth" : "#",
-        isValueIncrease: getSign(valueChange),
-        isShareIncrease: getSign(shareChange),
+        isValueIncrease: isZeroOrPositive(valueChange),
+        isShareIncrease: isZeroOrPositive(shareChange),
         valueChange,
         shareChange,
         share,
         value:
           labelKey === "values"
             ? getEthValue(cacheData.amount)
-            : nFormatter(cacheData.amount, 3),
+            : nFormatter(cacheData.amount, 2),
       });
     }
   }, [nftCache?.data, nftCache.isLoading, labelKey, timeRange]);
   if (nftCache.isLoading || !nftData) return "";
 
   return (
-    <Stack className={className}>
+    <Stack className={className} ref={innerRef}>
       <Box
+        id="nft-card-title"
         w="full"
-        borderTopRadius="inherit"
+        borderRadius="base"
         fontWeight="600"
         bgColor="gray.200"
-        px={4}
         textAlign="center"
+        fontSize={["sm", "md", null]}
       >
         {label}
       </Box>
@@ -122,12 +126,13 @@ const StatsCard_ = ({ className, label, netLabel, labelKey, timeRange }) => {
       >
         <Box
           w="100%"
-          fontSize="1.125rem"
+          fontSize={["1rem", "1.125rem", null]}
           borderStyle="dashed"
           borderRightWidth="3px"
           borderRightColor="gray.300"
           //   alignItems="center"
           h="100%"
+          id="nft-card-value"
         >
           <Link
             textDecorationLine="underline"
@@ -145,9 +150,10 @@ const StatsCard_ = ({ className, label, netLabel, labelKey, timeRange }) => {
         <Stack
           w="100%"
           direction="row"
-          fontSize="1.125rem"
+          fontSize={["1rem", "1.125rem", null]}
           placeContent="center"
           alignItems="center"
+          id="nft-card-value-change"
         >
           {nftData.isValueIncrease && <TriangleUpIcon color="suggested.900" />}
           {!nftData.isValueIncrease && <TriangleDownIcon color="unsafe.900" />}
@@ -165,12 +171,18 @@ const StatsCard_ = ({ className, label, netLabel, labelKey, timeRange }) => {
               borderTopStyle="dashed"
               borderTopColor="gray.300"
               gridColumn="span 2"
-              fontSize="0.825rem"
+              fontSize={["0.625rem", "0.825rem", null]}
+              id="nft-card-share-label"
             >
               Total share in {netLabel}
             </Text>
-            <Text>{nftData.share}%</Text>
-            <Stack direction="row" placeContent="center" alignItems="center">
+            <Text id="nft-card-share-value">{nftData.share}%</Text>
+            <Stack
+              direction="row"
+              placeContent="center"
+              alignItems="center"
+              id="nft-card-share-change"
+            >
               {nftData.isShareIncrease && (
                 <TriangleUpIcon color="suggested.900" />
               )}
@@ -195,7 +207,7 @@ const StatsCard_ = ({ className, label, netLabel, labelKey, timeRange }) => {
 const StatsCard = chakra(StatsCard_, {
   baseStyle: {
     borderStyle: "solid",
-    borderRightWidth: "1px",
+    // borderRightWidth: "1px",
     borderRightColor: "gray.600",
     w: "240px",
     minW: "240px",
@@ -204,4 +216,6 @@ const StatsCard = chakra(StatsCard_, {
   },
 });
 
-export default StatsCard;
+export default React.forwardRef((props, ref) => (
+  <StatsCard innerRef={ref} {...props} />
+));
