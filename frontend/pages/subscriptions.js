@@ -12,10 +12,13 @@ import {
   Button,
   Modal,
   useDisclosure,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
   ModalOverlay,
   ModalContent,
 } from "@chakra-ui/react";
-import NewSubscription from "../src/components/NewModalSubscripton";
+import NewSubscription from "../src/components/NewSubscription";
 import { AiOutlinePlusCircle } from "react-icons/ai";
 
 const Subscriptions = () => {
@@ -52,10 +55,15 @@ const Subscriptions = () => {
         <ModalOverlay />
 
         <ModalContent>
-          <NewSubscription
-            isFreeOption={isAddingFreeSubscription}
-            onClose={onClose}
-          />
+          <ModalHeader>Subscribe to a new address</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <NewSubscription
+              isFreeOption={isAddingFreeSubscription}
+              onClose={onClose}
+              isModal={true}
+            />
+          </ModalBody>
         </ModalContent>
       </Modal>
       {subscriptionsCache.isLoading ? (

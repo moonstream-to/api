@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, Fragment } from "react";
 import { useSubscriptions } from "../core/hooks";
 import {
   Input,
@@ -19,6 +19,7 @@ import RadioCard from "./RadioCard";
 // import { useForm } from "react-hook-form";
 import { CirclePicker } from "react-color";
 import { BiRefresh } from "react-icons/bi";
+import { GithubPicker } from "react-color";
 import { makeColor } from "../core/utils/makeColor";
 import { useForm } from "react-hook-form";
 const _NewSubscription = ({
@@ -27,6 +28,7 @@ const _NewSubscription = ({
   setIsLoading,
   initialAddress,
   initialType,
+  isModal,
 }) => {
   const [color, setColor] = useState(makeColor());
   const { handleSubmit, errors, register } = useForm({});
@@ -36,8 +38,13 @@ const _NewSubscription = ({
     initialType ?? "ethereum_blockchain"
   );
 
+  const mapper = {
+    "tag:nfts": "NFTs",
+    "input:address": "Address",
+  };
+
   const [subscriptionAdressFormatRadio, setsubscriptionAdressFormatRadio] =
-    useState("");
+    useState("input:address");
 
   let { getRootProps, getRadioProps } = useRadioGroup({
     name: "type",
@@ -50,6 +57,7 @@ const _NewSubscription = ({
     getRadioProps: getRadioPropsSubscription,
   } = useRadioGroup({
     name: "subscription",
+    defaultValue: subscriptionAdressFormatRadio,
     onChange: setsubscriptionAdressFormatRadio,
   });
 
@@ -78,11 +86,13 @@ const _NewSubscription = ({
 
   const createSubscriptionWrapper = useCallback(
     (props) => {
+      props.label = "Address";
       if (
         subscriptionAdressFormatRadio.startsWith("tags") &&
         radioState != "ethereum_whalewatch"
       ) {
-        props.address = subscriptionAdressFormatRadio.split(":")[1];
+        props.address = subscriptionAdressFormatRadio;
+        props.label = "tags: NFTs";
       }
 
       createSubscription.mutate({
@@ -104,8 +114,6 @@ const _NewSubscription = ({
     }
   }
 
-  console.log(radioState);
-
   const handleChangeColorComplete = (color) => {
     setColor(color.hex);
   };
@@ -114,26 +122,7 @@ const _NewSubscription = ({
 
   return (
     <form onSubmit={handleSubmit(createSubscriptionWrapper)}>
-      <FormControl isInvalid={errors?.label}>
-        <Input
-          my={2}
-          type="text"
-          autoComplete="off"
-          placeholder="Name of subscription (you can change it later)"
-          name="label"
-          ref={register({ required: "label is required!" })}
-        ></Input>
-        <FormErrorMessage color="unsafe.400" pl="1">
-          {errors?.label && errors?.label.message}
-        </FormErrorMessage>
-      </FormControl>
       <Stack my={4} direction="column">
-        {/* <Text fontWeight="600">
-          {isFreeOption
-            ? `Right now you can subscribe only to ethereum blockchain`
-            : `On which source?`}
-        </Text> */}
-
         <FormControl isInvalid={errors?.subscription_type}>
           <HStack {...group} alignItems="stretch">
             {typesCache.data.map((type) => {
@@ -144,7 +133,6 @@ const _NewSubscription = ({
                   !type.active ||
                   (isFreeOption && type.id !== "ethereum_blockchain"),
               });
-              console.log(type);
 
               return (
                 <RadioCard key={`subscription_type_${type.id}`} {...radio}>
@@ -158,19 +146,19 @@ const _NewSubscription = ({
               <HStack {...subscriptionAddressTypeGroup} alignItems="stretch">
                 {search(radioState, typesCache.data).choices.map(
                   (addition_selects) => {
+                    console.log(typeof addition_selects);
                     const radio = getRadioPropsSubscription({
                       value: addition_selects,
+                      isDisabled: addition_selects.startsWith("tag"),
                     });
-                    console.log(radio);
                     return (
                       <RadioCard
                         key={`subscription_tags_${addition_selects}`}
                         {...radio}
                       >
-                        {addition_selects.split(":")[1]}
+                        {mapper[addition_selects]}
                       </RadioCard>
                     );
-                    // }
                   }
                 )}
               </HStack>
@@ -207,40 +195,69 @@ const _NewSubscription = ({
         </FormControl>
       </Stack>
       <FormControl isInvalid={errors?.color}>
-        <Flex direction="row" pb={2} flexWrap="wrap">
-          <Stack pt={2} direction="row" h="min-content">
-            <Text fontWeight="600" alignSelf="center">
-              Label color
-            </Text>{" "}
-            <IconButton
-              size="md"
-              // colorScheme="primary"
-              color={"white.100"}
-              _hover={{ bgColor: { color } }}
-              bgColor={color}
-              variant="outline"
-              onClick={() => setColor(makeColor())}
-              icon={<BiRefresh />}
-            />
-            <Input
-              type="input"
-              placeholder="color"
-              name="color"
-              ref={register({ required: "color is required!" })}
-              value={color}
-              onChange={() => null}
-              w="200px"
-            ></Input>
-          </Stack>
-          <Flex p={2}>
-            <CirclePicker
-              onChangeComplete={handleChangeColorComplete}
-              circleSpacing={1}
-              circleSize={24}
-            />
+        {!isModal ? (
+          <Flex direction="row" pb={2} flexWrap="wrap">
+            <Stack pt={2} direction="row" h="min-content">
+              <Text fontWeight="600" alignSelf="center">
+                Label color
+              </Text>{" "}
+              <IconButton
+                size="md"
+                // colorScheme="primary"
+                color={"white.100"}
+                _hover={{ bgColor: { color } }}
+                bgColor={color}
+                variant="outline"
+                onClick={() => setColor(makeColor())}
+                icon={<BiRefresh />}
+              />
+              <Input
+                type="input"
+                placeholder="color"
+                name="color"
+                ref={register({ required: "color is required!" })}
+                value={color}
+                onChange={() => null}
+                w="200px"
+              ></Input>
+            </Stack>
+            <Flex p={2}>
+              <CirclePicker
+                onChangeComplete={handleChangeColorComplete}
+                circleSpacing={1}
+                circleSize={24}
+              />
+            </Flex>
           </Flex>
-        </Flex>
+        ) : (
+          <>
+            <Stack direction="row" pb={2}>
+              <Text fontWeight="600" alignSelf="center">
+                Label color
+              </Text>{" "}
+              <IconButton
+                size="md"
+                color={"white.100"}
+                _hover={{ bgColor: { color } }}
+                bgColor={color}
+                variant="outline"
+                onClick={() => setColor(makeColor())}
+                icon={<BiRefresh />}
+              />
+              <Input
+                type="input"
+                placeholder="color"
+                name="color"
+                ref={register({ required: "color is required!" })}
+                value={color}
+                onChange={() => null}
+                w="200px"
+              ></Input>
+            </Stack>
 
+            <GithubPicker onChangeComplete={handleChangeColorComplete} />
+          </>
+        )}
         <FormErrorMessage color="unsafe.400" pl="1">
           {errors?.color && errors?.color.message}
         </FormErrorMessage>
