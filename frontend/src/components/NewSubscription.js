@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, Fragment } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSubscriptions } from "../core/hooks";
 import {
   Input,
@@ -12,7 +12,6 @@ import {
   Spinner,
   IconButton,
   ButtonGroup,
-  Spacer,
   Flex,
 } from "@chakra-ui/react";
 import RadioCard from "./RadioCard";
@@ -33,7 +32,7 @@ const _NewSubscription = ({
   const [color, setColor] = useState(makeColor());
   const { handleSubmit, errors, register } = useForm({});
   const { typesCache, createSubscription } = useSubscriptions();
-  // const { handleSubmit, errors, register } = useForm({});
+
   const [radioState, setRadioState] = useState(
     initialType ?? "ethereum_blockchain"
   );
@@ -46,31 +45,19 @@ const _NewSubscription = ({
   const [subscriptionAdressFormatRadio, setsubscriptionAdressFormatRadio] =
     useState("input:address");
 
-  let { getRootProps, getRadioProps } = useRadioGroup({
+  let { getRadioProps } = useRadioGroup({
     name: "type",
     defaultValue: radioState,
     onChange: setRadioState,
   });
 
-  let {
-    getRootProps: getRootPropsSubscription,
-    getRadioProps: getRadioPropsSubscription,
-  } = useRadioGroup({
+  let { getRadioProps: getRadioPropsSubscription } = useRadioGroup({
     name: "subscription",
     defaultValue: subscriptionAdressFormatRadio,
     onChange: setsubscriptionAdressFormatRadio,
   });
 
-  console.log(
-    useRadioGroup({
-      name: "subscription1",
-      onChange: setsubscriptionAdressFormatRadio,
-    })
-  );
 
-  const group = getRootProps();
-
-  const subscriptionAddressTypeGroup = getRootPropsSubscription();
 
   useEffect(() => {
     if (setIsLoading) {
@@ -101,7 +88,13 @@ const _NewSubscription = ({
         type: isFreeOption ? "ethereum_blockchain" : radioState,
       });
     },
-    [createSubscription, isFreeOption, color, radioState]
+    [
+      createSubscription,
+      isFreeOption,
+      color,
+      radioState,
+      subscriptionAdressFormatRadio,
+    ]
   );
 
   if (typesCache.isLoading) return <Spinner />;
@@ -123,8 +116,16 @@ const _NewSubscription = ({
   return (
     <form onSubmit={handleSubmit(createSubscriptionWrapper)}>
       <Stack my={4} direction="column">
-        <FormControl isInvalid={errors?.subscription_type}>
-          <HStack {...group} alignItems="stretch">
+        <Stack spacing={1} w="100%">
+          <Text fontWeight="600">Source:</Text>
+          {/* position must be relative otherwise radio boxes add strange spacing on selection */}
+          <Stack
+            spacing={1}
+            w="100%"
+            direction="row"
+            flexWrap="wrap"
+            position="relative"
+          >
             {typesCache.data.map((type) => {
               const radio = getRadioProps({
                 value: type.id,
@@ -135,72 +136,88 @@ const _NewSubscription = ({
               });
 
               return (
-                <RadioCard key={`subscription_type_${type.id}`} {...radio}>
-                  {type.name}
+                <RadioCard
+                  px="8px"
+                  py="4px"
+                  mt="2px"
+                  w="190px"
+                  {...radio}
+                  key={`subscription_type_${type.id}`}
+                  label={type.description}
+                  iconURL={type.icon_url}
+                >
+                  {type.name.slice(9, type.name.length)}
                 </RadioCard>
               );
             })}
-          </HStack>
-          <Stack my={4} direction="column">
-            <FormControl isInvalid={errors?.subscription_type}>
-              <HStack {...subscriptionAddressTypeGroup} alignItems="stretch">
-                {search(radioState, typesCache.data).choices.map(
-                  (addition_selects) => {
-                    console.log(typeof addition_selects);
-                    const radio = getRadioPropsSubscription({
-                      value: addition_selects,
-                      isDisabled: addition_selects.startsWith("tag"),
-                    });
-                    return (
-                      <RadioCard
-                        key={`subscription_tags_${addition_selects}`}
-                        {...radio}
-                      >
-                        {mapper[addition_selects]}
-                      </RadioCard>
-                    );
-                  }
-                )}
-              </HStack>
-            </FormControl>
           </Stack>
+        </Stack>
 
+        <Flex direction="row" w="100%" flexWrap="wrap" pt={4}>
+          {/* position must be relative otherwise radio boxes add strange spacing on selection */}
+          <HStack flexGrow={0} flexBasis="140px" position="relative">
+            {search(radioState, typesCache.data).choices.length > 0 && (
+              <Text fontWeight="600">Type:</Text>
+            )}
+            {search(radioState, typesCache.data).choices.map(
+              (addition_selects) => {
+                const radio = getRadioPropsSubscription({
+                  value: addition_selects,
+                  isDisabled: addition_selects.startsWith("tag"),
+                });
+                return (
+                  <RadioCard
+                    px="4px"
+                    py="2px"
+                    key={`subscription_tags_${addition_selects}`}
+                    {...radio}
+                  >
+                    {mapper[addition_selects]}
+                  </RadioCard>
+                );
+              }
+            )}
+          </HStack>
           {subscriptionAdressFormatRadio.startsWith("input") &&
             radioState != "ethereum_whalewatch" && (
-              <FormControl isInvalid={errors?.address}>
-                <Input
-                  type="text"
-                  autoComplete="off"
-                  my={2}
-                  placeholder="Address to subscribe to"
-                  name="address"
-                  ref={register({ required: "address is required!" })}
-                ></Input>
-                <FormErrorMessage color="unsafe.400" pl="1">
-                  {errors?.address && errors?.address.message}
-                </FormErrorMessage>
-              </FormControl>
+              <Flex flexBasis="240px" flexGrow={1}>
+                <FormControl isInvalid={errors?.address}>
+                  <Input
+                    type="text"
+                    autoComplete="off"
+                    my={2}
+                    placeholder="Address to subscribe to"
+                    name="address"
+                    ref={register({ required: "address is required!" })}
+                  ></Input>
+                  <FormErrorMessage color="unsafe.400" pl="1">
+                    {errors?.address && errors?.address.message}
+                  </FormErrorMessage>
+                </FormControl>
+              </Flex>
             )}
-          <Input
-            type="hidden"
-            placeholder="subscription_type"
-            name="subscription_type"
-            ref={register({ required: "select type" })}
-            value={radioState}
-            onChange={() => null}
-          ></Input>
-          <FormErrorMessage color="unsafe.400" pl="1">
-            {errors?.subscription_type && errors?.subscription_type.message}
-          </FormErrorMessage>
-        </FormControl>
+        </Flex>
+        <Input
+          type="hidden"
+          placeholder="subscription_type"
+          name="subscription_type"
+          ref={register({ required: "select type" })}
+          value={radioState}
+          onChange={() => null}
+        ></Input>
       </Stack>
       <FormControl isInvalid={errors?.color}>
         {!isModal ? (
-          <Flex direction="row" pb={2} flexWrap="wrap">
-            <Stack pt={2} direction="row" h="min-content">
-              <Text fontWeight="600" alignSelf="center">
-                Label color
-              </Text>{" "}
+          <Flex direction="row" pb={2} flexWrap="wrap" alignItems="baseline">
+            <Text fontWeight="600" alignSelf="center">
+              Label color
+            </Text>{" "}
+            <Stack
+              // pt={2}
+              direction={["row", "row", null]}
+              h="min-content"
+              alignSelf="center"
+            >
               <IconButton
                 size="md"
                 // colorScheme="primary"
@@ -221,8 +238,9 @@ const _NewSubscription = ({
                 w="200px"
               ></Input>
             </Stack>
-            <Flex p={2}>
+            <Flex p={2} flexBasis="120px" flexGrow={1} alignSelf="center">
               <CirclePicker
+                width="100%"
                 onChangeComplete={handleChangeColorComplete}
                 circleSpacing={1}
                 circleSize={24}
@@ -263,7 +281,7 @@ const _NewSubscription = ({
         </FormErrorMessage>
       </FormControl>
 
-      <ButtonGroup direction="row" justifyContent="space-evenly">
+      <ButtonGroup direction="row" justifyContent="flex-end" w="100%">
         <Button
           type="submit"
           colorScheme="suggested"
@@ -271,7 +289,7 @@ const _NewSubscription = ({
         >
           Confirm
         </Button>
-        <Spacer />
+
         <Button colorScheme="gray" onClick={onClose}>
           Cancel
         </Button>
