@@ -8,6 +8,8 @@ APP_DB_SERVER_DIR="${APP_DIR}/db/server"
 SCRIPT_DIR="$(realpath $(dirname $0))"
 SERVICE_FILE="${SCRIPT_DIR}/moonstreamdb.service"
 
+set -eu
+
 echo
 echo
 echo "Building executable database server script with Go"
