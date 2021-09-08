@@ -2,15 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Stack, Text, chakra, Box, SimpleGrid, Link } from "@chakra-ui/react";
 import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons";
 import useNFTs from "../core/hooks/useNFTs";
-import { fromWei } from "web3-utils";
 
 const isNumberNonzeroAndFinite = (str) => {
   return !(isNaN(Number(str)) || Number(str) === 0);
-};
-
-const getEthValue = (string) => {
-  const ether = fromWei(string, "ether");
-  return nFormatter(ether, 2);
 };
 
 const nFormatter = (num, digits) => {
@@ -39,6 +33,7 @@ const getChange = (a, b) => {
     let retval = (Math.abs(Number(a) - Number(b)) * 100) / Number(b);
     retval =
       Math.abs(retval) > 9999 ? nFormatter(retval, 2) : retval.toFixed(2);
+    console.log(`change returns:`, retval);
     return retval;
   } else {
     return "-";
@@ -106,30 +101,32 @@ const StatsCard_ = ({
       totalKey &&
         console.log(
           "getting change in share",
+          labelKey,
           currentPeriod,
           currentTotalPeriod
         );
 
       const share = !totalKey
         ? "-"
-        : getChange(currentPeriod, currentTotalPeriod);
+        : Number((currentPeriod * 100) / currentTotalPeriod).toFixed(2);
       const shareChange = getDiff(
         share,
-        getChange(previousPeriod, previousTotalPeriod)
+        Number((previousPeriod * 100) / previousTotalPeriod).toFixed(2)
       );
       totalKey && console.log("share", share);
 
       setData({
-        dimension: labelKey === "values" ? "Eth" : "#",
+        dimension: labelKey === "nft_transfer_value" ? "$" : "#",
         isValueIncrease: isZeroOrPositive(valueChange),
         isShareIncrease: isZeroOrPositive(shareChange),
         valueChange,
         shareChange,
         share,
         value:
-          labelKey === "total_value"
-            ? getEthValue(currentPeriod)
-            : nFormatter(currentPeriod, 2),
+          labelKey === "nft_transfer_value"
+            ? nFormatter((currentPeriod / 1e18) * 3473.13, 2)
+            : // ? getEthValue(currentPeriod)
+              nFormatter(currentPeriod, 2),
       });
     }
   }, [nftCache?.data, nftCache.isLoading, labelKey, totalKey, timeRange]);

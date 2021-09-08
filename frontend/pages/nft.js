@@ -131,8 +131,6 @@ const Analytics = () => {
     }
   }, [nodesReady, windowSize]);
 
-  const keys = ["NFTs", "Other"];
-
   if (nftCache.isLoading) return <Spinner />;
 
   const plotMinW = "500px";
@@ -178,7 +176,7 @@ const Analytics = () => {
             totalKey="num_transactions"
             timeRange={timeMap[timeRange]}
             netLabel="Ethereum mainnet"
-            label="Number of transactions"
+            label="Number of NFT purchases"
           />
           <StatsCard
             ref={(node) => valueRef(node)}
@@ -186,21 +184,21 @@ const Analytics = () => {
             totalKey="total_value"
             timeRange={timeMap[timeRange]}
             netLabel="Ethereum mainnet"
-            label="Value of transactions"
+            label="Money spent"
           />
           <StatsCard
             ref={(node) => mintsRef(node)}
             labelKey="nft_mints"
             timeRange={timeMap[timeRange]}
             netLabel="Ethereum mainnet"
-            label="Minted NFTs"
+            label="NFTs created"
           />
           <StatsCard
             ref={(node) => uniqueNFTOwnersRef(node)}
             labelKey="nft_owners"
             timeRange={timeMap[timeRange]}
             netLabel="Ethereum mainnet"
-            label="NFTs owners"
+            label="Number of buyers"
           />
 
           <StatsCard
@@ -208,10 +206,10 @@ const Analytics = () => {
             labelKey="nft_minters"
             timeRange={timeMap[timeRange]}
             netLabel="Ethereum mainnet"
-            label="NFTs minters"
+            label="Number of creators"
           />
         </Stack>
-        <Flex w="100%" direction="row" flexWrap="wrap">
+        <Flex w="100%" direction="row" flexWrap="wrap-reverse">
           <Flex
             flexBasis={plotMinW}
             flexGrow={1}
@@ -229,53 +227,7 @@ const Analytics = () => {
               fontWeight="600"
               textAlign="center"
             >
-              NFT owners dynamic
-            </Text>
-            <NFTChart keyPosition={`nft_owners`} timeRange={timeRange} />
-          </Flex>
-          <Flex
-            flexBasis={plotMinW}
-            flexGrow={1}
-            minW={plotMinW}
-            minH="320px"
-            maxH="420px"
-            direction="column"
-            boxShadow="md"
-            m={2}
-          >
-            <Text
-              w="100%"
-              py={2}
-              bgColor="gray.50"
-              fontWeight="600"
-              textAlign="center"
-            >
-              NFT values compared to total
-            </Text>
-            <NFTChart
-              keyPosition={`nft_transfer_value`}
-              keyTotal={`total_value`}
-              timeRange={timeRange}
-            />
-          </Flex>
-          <Flex
-            flexBasis={plotMinW}
-            flexGrow={1}
-            minW={plotMinW}
-            minH="320px"
-            maxH="420px"
-            direction="column"
-            boxShadow="md"
-            m={2}
-          >
-            <Text
-              w="100%"
-              py={2}
-              bgColor="gray.50"
-              fontWeight="600"
-              textAlign="center"
-            >
-              NFT Minting activity
+              New NFTs
             </Text>
             <NFTChart keyPosition={`nft_mints`} timeRange={timeRange} />
           </Flex>
@@ -296,7 +248,7 @@ const Analytics = () => {
               fontWeight="600"
               textAlign="center"
             >
-              Unique minters number
+              NFT creators
             </Text>
             <NFTChart keyPosition={`nft_minters`} timeRange={timeRange} />
           </Flex>
@@ -317,7 +269,7 @@ const Analytics = () => {
               fontWeight="600"
               textAlign="center"
             >
-              Number of NFT owners accounts
+              NFT Buyers
             </Text>
             <NFTChart keyPosition={`nft_owners`} timeRange={timeRange} />
           </Flex>
@@ -338,7 +290,7 @@ const Analytics = () => {
               fontWeight="600"
               textAlign="center"
             >
-              NFT transactions vs all Ethereum
+              Transaction volume
             </Text>
             <NFTChart
               keyPosition={`nft_transfers`}
@@ -346,6 +298,7 @@ const Analytics = () => {
               timeRange={timeRange}
             />
           </Flex>
+
           <Flex
             flexBasis={plotMinW}
             flexGrow={1}
@@ -363,11 +316,11 @@ const Analytics = () => {
               fontWeight="600"
               textAlign="center"
             >
-              NFT transfers vs all Ethereum
+              Transaction value
             </Text>
             <NFTChart
-              keyPosition={`nft_transfers`}
-              keyTotal={`num_transactions`}
+              keyPosition={`nft_transfer_value`}
+              keyTotal={`total_value`}
               timeRange={timeRange}
             />
           </Flex>

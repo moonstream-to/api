@@ -116,21 +116,23 @@ const NFTChart = ({ timeRange, keyPosition, keyTotal }) => {
       ? getDailyData(keyPosition, keyTotal)
       : getWeeklyData(keyPosition, keyTotal);
 
-  plotData.forEach((item, index) => {
-    plotData[index].NFTs = plotData[index].NFTs / 1e18;
-    plotData[index].Other = plotData[index].Other / 1e18;
-  });
+  keyPosition === "nft_transfer_value" &&
+    plotData.forEach((item, index) => {
+      plotData[index].NFTs = plotData[index].NFTs / 1e18;
+      plotData[index].Other = plotData[index].Other / 1e18;
+    });
   if (nftCache.isLoading) return <Spinner />;
+  console.log("plotData is", plotData);
   return (
     <ResponsiveBarCanvas
-      colors={["#7a7fbc", "#fe9a67"]}
+      colors={["#fe9a67", "#7a7fbc"]}
       animate={true}
       data={plotData}
       valueScale={{
         type: "linear",
       }}
       enableLabel={false}
-      keys={keyTotal ? ["Other", "NFTs"] : ["NFTs"]}
+      keys={keyTotal ? ["NFTs", "Other"] : ["NFTs"]}
       padding={0}
       axisBottom={
         timeRange === WEEK_KEY
