@@ -73,11 +73,11 @@ const _NewSubscription = ({
     (props) => {
       props.label = "Address";
       if (
-        subscriptionAdressFormatRadio.startsWith("tags") &&
+        subscriptionAdressFormatRadio.startsWith("tag") &&
         radioState != "ethereum_whalewatch"
       ) {
         props.address = subscriptionAdressFormatRadio;
-        props.label = "tags: NFTs";
+        props.label = "Tag";
       }
 
       createSubscription.mutate({
@@ -165,7 +165,6 @@ const _NewSubscription = ({
               (addition_selects) => {
                 const radio = getRadioPropsSubscription({
                   value: addition_selects,
-                  isDisabled: addition_selects.startsWith("tag"),
                 });
                 return (
                   <RadioCard
