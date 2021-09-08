@@ -6,7 +6,7 @@ import RouterLink from "next/link";
 const ICONS = [
   {
     social: "discord",
-    link: "https://discord.gg/FetK5BxD",
+    link: "https://discord.gg/K56VNUQGvA",
   },
 
   { social: "twit", link: "https://twitter.com/moonstreamto" },

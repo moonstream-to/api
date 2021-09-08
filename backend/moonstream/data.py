@@ -5,6 +5,8 @@ from typing import List, Optional, Dict, Any
 
 from pydantic import BaseModel, Field
 
+USER_ONBOARDING_STATE = "onboarding_state"
+
 
 class SubscriptionTypeResourceData(BaseModel):
     id: str
@@ -196,3 +198,8 @@ class AddressLabelsResponse(BaseModel):
 
 class AddressListLabelsResponse(BaseModel):
     addresses: List[AddressLabelsResponse] = Field(default_factory=list)
+
+
+class OnboardingState(BaseModel):
+    is_complete: bool
+    steps: Dict[str, int]
