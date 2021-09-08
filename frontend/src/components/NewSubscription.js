@@ -57,8 +57,6 @@ const _NewSubscription = ({
     onChange: setsubscriptionAdressFormatRadio,
   });
 
-
-
   useEffect(() => {
     if (setIsLoading) {
       setIsLoading(createSubscription.isLoading);
@@ -126,30 +124,34 @@ const _NewSubscription = ({
             flexWrap="wrap"
             position="relative"
           >
-            {typesCache.data.map((type) => {
-              const radio = getRadioProps({
-                value: type.id,
-                isDisabled:
-                  (initialAddress && initialType) ||
-                  !type.active ||
-                  (isFreeOption && type.id !== "ethereum_blockchain"),
-              });
+            {typesCache.data
+              .sort((a, b) =>
+                a?.name > b?.name ? 1 : b?.name > a?.name ? -1 : 0
+              )
+              .map((type) => {
+                const radio = getRadioProps({
+                  value: type.id,
+                  isDisabled:
+                    (initialAddress && initialType) ||
+                    !type.active ||
+                    (isFreeOption && type.id !== "ethereum_blockchain"),
+                });
 
-              return (
-                <RadioCard
-                  px="8px"
-                  py="4px"
-                  mt="2px"
-                  w="190px"
-                  {...radio}
-                  key={`subscription_type_${type.id}`}
-                  label={type.description}
-                  iconURL={type.icon_url}
-                >
-                  {type.name.slice(9, type.name.length)}
-                </RadioCard>
-              );
-            })}
+                return (
+                  <RadioCard
+                    px="8px"
+                    py="4px"
+                    mt="2px"
+                    w="190px"
+                    {...radio}
+                    key={`subscription_type_${type.id}`}
+                    label={type.description}
+                    iconURL={type.icon_url}
+                  >
+                    {type.name.slice(9, type.name.length)}
+                  </RadioCard>
+                );
+              })}
           </Stack>
         </Stack>
 
