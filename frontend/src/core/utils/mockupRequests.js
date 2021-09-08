@@ -1,4 +1,5 @@
 import moment from "moment";
+import nftData from "./mockData";
 const MOCK_API = process.env.NEXT_PUBLIC_MOONSTREAM_API_URL;
 var MockAdapter = require("axios-mock-adapter");
 export const makeid = (length) => {
@@ -31,27 +32,27 @@ const randDate = () => {
   ).format("MM/DD/YYYY");
 };
 
-const generateMockNFTData = (days) => {
-  const retArr = [];
-  console.log("calculating array...");
-  for (let i = 0; i < days * 24; i++) {
-    let total_value = makenum(23);
-    let nft_transfer_value = makenum(22);
-    retArr.push({
-      num_transactions: makenum(5),
-      total_value: total_value.toString(),
-      nft_transfers: makenum(4),
-      nft_transfer_value: nft_transfer_value.toString(),
-      nft_mints: makenum(4),
-      nft_owners: makenum(4),
-      nft_minters: makenum(4),
-      crawled_at: moment.utc().subtract(i, "hours"),
-    });
-  }
-  return retArr;
-};
+// const generateMockNFTData = (days) => {
+//   const retArr = [];
+//   console.log("calculating array...");
+//   for (let i = 0; i < days * 24; i++) {
+//     let total_value = makenum(23);
+//     let nft_transfer_value = makenum(22);
+//     retArr.push({
+//       num_transactions: makenum(5),
+//       total_value: total_value.toString(),
+//       nft_transfers: makenum(4),
+//       nft_transfer_value: nft_transfer_value.toString(),
+//       nft_mints: makenum(4),
+//       nft_owners: makenum(4),
+//       nft_minters: makenum(4),
+//       crawled_at: moment.utc().subtract(i, "hours"),
+//     });
+//   }
+//   return retArr;
+// };
 
-const mockNFTData = generateMockNFTData(100);
+// const mockNFTData = generateMockNFTData(100);
 export let MockSubscriptions = [
   {
     label: "Bobs wallet",
@@ -99,7 +100,7 @@ const enableMockupRequests = (axiosInstance) => {
 
   //assume all currency units are in wei
   mock.onGet(`${MOCK_API}/nft`).reply(200, {
-    data: [...mockNFTData],
+    data: [...nftData],
   });
 
   // mock.onGet(`${MOCK_API}/subscription_types/`).reply(200, {
