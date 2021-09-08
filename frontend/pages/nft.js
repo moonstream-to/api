@@ -16,11 +16,11 @@ import NFTChart from "../src/components/NFTChart";
 
 const HOUR_KEY = "Hourly";
 const DAY_KEY = "Daily";
-const WEEK_KEY = "Weekly";
+// const WEEK_KEY = "Weekly";
 let timeMap = {};
 timeMap[HOUR_KEY] = "hour";
 timeMap[DAY_KEY] = "day";
-timeMap[WEEK_KEY] = "week";
+// timeMap[WEEK_KEY] = "week";
 
 const Analytics = () => {
   const windowSize = useWindowSize();
