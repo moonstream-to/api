@@ -38,7 +38,7 @@ const _NewSubscription = ({
   );
 
   const mapper = {
-    "tag:nfts": "NFTs",
+    "tag:erc721": "NFTs",
     "input:address": "Address",
   };
 

@@ -20,7 +20,7 @@ CANONICAL_SUBSCRIPTION_TYPES = {
     "ethereum_blockchain": SubscriptionTypeResourceData(
         id="ethereum_blockchain",
         name="Ethereum transactions",
-        choices=["input:address", "tag:nfts"],
+        choices=["input:address", "tag:erc721"],
         description="Transactions that have been mined into the Ethereum blockchain",
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/ethereum/eth-diamond-purple.png",
         stripe_product_id=None,
@@ -42,7 +42,7 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         id="ethereum_txpool",
         name="Ethereum transaction pool",
         description="Transactions that have been submitted into the Ethereum transaction pool but not necessarily mined yet",
-        choices=["input:address", "tag:nfts"],
+        choices=["input:address", "tag:erc721"],
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/ethereum/eth-diamond-rainbow.png",
         stripe_product_id=None,
         stripe_price_id=None,

@@ -22,7 +22,7 @@ import ConfirmationRequest from "./ConfirmationRequest";
 import ColorSelector from "./ColorSelector";
 
 const mapper = {
-  "tag:nfts": "NFTs",
+  "tag:erc721": "NFTs",
   "input:address": "Address",
 };
 
