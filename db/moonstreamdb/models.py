@@ -147,7 +147,13 @@ class EthereumLabel(Base):  # type: ignore
     address_id = Column(
         Integer,
         ForeignKey("ethereum_addresses.id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
+        index=True,
+    )
+    transaction_hash = Column(
+        VARCHAR(256),
+        ForeignKey("ethereum_transactions.hash", ondelete="CASCADE"),
+        nullable=True,
         index=True,
     )
     label_data = Column(JSONB, nullable=True)

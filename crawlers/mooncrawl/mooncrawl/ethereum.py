@@ -1,7 +1,6 @@
 from concurrent.futures import Future, ProcessPoolExecutor, wait
 from dataclasses import dataclass
 from datetime import datetime
-from os import close
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from sqlalchemy import desc, Column
