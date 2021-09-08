@@ -22,7 +22,7 @@ const NFTChart = ({ timeRange, keyPosition, keyTotal }) => {
         let diff =
           keyTotal && Number(block[keyTotal]) - Number(block[keyPosition]);
 
-        let date = moment(block.crawled_at).format(`HH`);
+        let date = moment(block.crawled_at).format(`HH:MM`);
         //group by days if not hour key
         if (idx < 23) {
           retval.push({
@@ -127,7 +127,7 @@ const NFTChart = ({ timeRange, keyPosition, keyTotal }) => {
     <ResponsiveBarCanvas
       colors={["#fe9a67", "#7a7fbc"]}
       animate={true}
-      data={plotData}
+      data={plotData.reverse()}
       valueScale={{
         type: "linear",
       }}
