@@ -20,7 +20,7 @@ const RangeSelector_ = ({
   }, [range, onChange]);
 
   return (
-    <Stack direction="row" className={className}>
+    <Stack direction="row" className={className} h="min-content">
       {ranges.map((item, idx) => {
         const isActive = item === range ? true : false;
         return (
@@ -37,6 +37,7 @@ const RangeSelector_ = ({
               bgColor: isActive ? "secondary.900" : "secondary.50",
             }}
             cursor="pointer"
+            py="2px"
           >
             {item}
           </Container>

@@ -6,12 +6,13 @@ import React, {
   useState,
 } from "react";
 import { getLayout } from "../src/layouts/AppLayout";
-import { Spinner, Flex, Heading, Stack } from "@chakra-ui/react";
+import { Spinner, Flex, Heading, Stack, Text, Spacer } from "@chakra-ui/react";
 import Scrollable from "../src/components/Scrollable";
 import useNFTs from "../src/core/hooks/useNFTs";
 import RangeSelector from "../src/components/RangeSelector";
 import StatsCard from "../src/components/StatsCard";
 import useWindowSize from "../src/core/hooks/useWindowSize";
+import NFTChart from "../src/components/NFTChart";
 
 const HOUR_KEY = "Hourly";
 const DAY_KEY = "Daily";
@@ -25,7 +26,7 @@ const Analytics = () => {
   const windowSize = useWindowSize();
   useEffect(() => {
     if (typeof window !== "undefined") {
-      document.title = `Analytics: Page under construction`;
+      document.title = `NFT Analytics`;
     }
   }, []);
 
@@ -33,11 +34,15 @@ const Analytics = () => {
     ntx: false,
     values: false,
     mints: false,
+    NFTOwners: false,
+    minters: false,
   });
 
   const nTxRef_ = useRef();
   const valueRef_ = useRef();
   const mintsRef_ = useRef();
+  const uniqueNFTOwnersRef_ = useRef();
+  const mintersRef_ = useRef();
 
   const nTxRef = useCallback(
     (node) => {
@@ -67,13 +72,40 @@ const Analytics = () => {
     [nodesReady]
   );
 
+  const uniqueNFTOwnersRef = useCallback(
+    (node) => {
+      if (node !== null && !nodesReady.NFTOwners) {
+        setNodeReady({ ...nodesReady, NFTOwners: true });
+        uniqueNFTOwnersRef_.current = node;
+      }
+    },
+    [nodesReady]
+  );
+
+  const mintersRef = useCallback(
+    (node) => {
+      if (node !== null && !nodesReady.minters) {
+        setNodeReady({ ...nodesReady, minters: true });
+        mintersRef_.current = node;
+      }
+    },
+    [nodesReady]
+  );
+
   const [timeRange, setTimeRange] = useState(HOUR_KEY);
   const { nftCache } = useNFTs();
 
   useLayoutEffect(() => {
-    const items = [nTxRef_, valueRef_, mintsRef_];
+    const items = [
+      nTxRef_,
+      valueRef_,
+      mintsRef_,
+      uniqueNFTOwnersRef_,
+      mintersRef_,
+    ];
     console.log("useeffect fired");
-    if (nTxRef_.current) {
+    if (items.some((item) => !!item.current)) {
+      console.log("brder fun");
       var firstItemInCurrentRow = items[0];
       items.forEach((item) => {
         if (item.current) {
@@ -99,7 +131,12 @@ const Analytics = () => {
     }
   }, [nodesReady, windowSize]);
 
+  const keys = ["NFTs", "Other"];
+
   if (nftCache.isLoading) return <Spinner />;
+
+  const plotMinW = "500px";
+
   return (
     <Scrollable>
       <Flex
@@ -111,20 +148,22 @@ const Analytics = () => {
         alignItems="center"
         minH="100vh"
       >
-        <Heading as="h1" py={4} fontSize={["md", "xl"]}>
-          NFT market analysis
-        </Heading>
-        <RangeSelector
-          placeSelf="flex-start"
-          initialRange={timeRange}
-          ranges={Object.keys(timeMap)}
-          size={["sm", "md", null]}
-          onChange={(e) => setTimeRange(e)}
-        />
+        <Stack direction="row" w="100%" placeItems="center">
+          <Heading as="h1" py={2} fontSize={["md", "xl"]}>
+            NFT market analysis
+          </Heading>
+          <Spacer />
+          <RangeSelector
+            initialRange={timeRange}
+            ranges={Object.keys(timeMap)}
+            size={["sm", "md", null]}
+            onChange={(e) => setTimeRange(e)}
+          />
+        </Stack>
         <Stack
           w="100%"
           wrap="wrap"
-          my={12}
+          my={2}
           h="auto"
           direction="row"
           minW="240px"
@@ -132,33 +171,207 @@ const Analytics = () => {
           boxShadow="md"
           borderRadius="lg"
           bgColor="gray.100"
-          // divider={<StackDivider borderColor="gray.800" />}
         >
           <StatsCard
             ref={(node) => nTxRef(node)}
-            // borderTopLeftRadius="inherit"
-            labelKey="transactions"
+            labelKey="nft_transfers"
+            totalKey="num_transactions"
             timeRange={timeMap[timeRange]}
             netLabel="Ethereum mainnet"
             label="Number of transactions"
           />
           <StatsCard
             ref={(node) => valueRef(node)}
-            labelKey="values"
+            labelKey="nft_transfer_value"
+            totalKey="total_value"
             timeRange={timeMap[timeRange]}
             netLabel="Ethereum mainnet"
             label="Value of transactions"
           />
           <StatsCard
             ref={(node) => mintsRef(node)}
-            // borderTopRightRadius="inherit"
-            // borderRightWidth="0"
-            labelKey="mints"
+            labelKey="nft_mints"
             timeRange={timeMap[timeRange]}
             netLabel="Ethereum mainnet"
             label="Minted NFTs"
           />
+          <StatsCard
+            ref={(node) => uniqueNFTOwnersRef(node)}
+            labelKey="nft_owners"
+            timeRange={timeMap[timeRange]}
+            netLabel="Ethereum mainnet"
+            label="NFTs owners"
+          />
+
+          <StatsCard
+            ref={(node) => mintersRef(node)}
+            labelKey="nft_minters"
+            timeRange={timeMap[timeRange]}
+            netLabel="Ethereum mainnet"
+            label="NFTs minters"
+          />
         </Stack>
+        <Flex w="100%" direction="row" flexWrap="wrap">
+          <Flex
+            flexBasis={plotMinW}
+            flexGrow={1}
+            minW={plotMinW}
+            minH="320px"
+            maxH="420px"
+            direction="column"
+            boxShadow="md"
+            m={2}
+          >
+            <Text
+              w="100%"
+              py={2}
+              bgColor="gray.50"
+              fontWeight="600"
+              textAlign="center"
+            >
+              NFT owners dynamic
+            </Text>
+            <NFTChart keyPosition={`nft_owners`} timeRange={timeRange} />
+          </Flex>
+          <Flex
+            flexBasis={plotMinW}
+            flexGrow={1}
+            minW={plotMinW}
+            minH="320px"
+            maxH="420px"
+            direction="column"
+            boxShadow="md"
+            m={2}
+          >
+            <Text
+              w="100%"
+              py={2}
+              bgColor="gray.50"
+              fontWeight="600"
+              textAlign="center"
+            >
+              NFT values compared to total
+            </Text>
+            <NFTChart
+              keyPosition={`nft_transfer_value`}
+              keyTotal={`total_value`}
+              timeRange={timeRange}
+            />
+          </Flex>
+          <Flex
+            flexBasis={plotMinW}
+            flexGrow={1}
+            minW={plotMinW}
+            minH="320px"
+            maxH="420px"
+            direction="column"
+            boxShadow="md"
+            m={2}
+          >
+            <Text
+              w="100%"
+              py={2}
+              bgColor="gray.50"
+              fontWeight="600"
+              textAlign="center"
+            >
+              NFT Minting activity
+            </Text>
+            <NFTChart keyPosition={`nft_mints`} timeRange={timeRange} />
+          </Flex>
+          <Flex
+            flexBasis={plotMinW}
+            flexGrow={1}
+            minW={plotMinW}
+            minH="320px"
+            maxH="420px"
+            direction="column"
+            boxShadow="md"
+            m={2}
+          >
+            <Text
+              w="100%"
+              py={2}
+              bgColor="gray.50"
+              fontWeight="600"
+              textAlign="center"
+            >
+              Unique minters number
+            </Text>
+            <NFTChart keyPosition={`nft_minters`} timeRange={timeRange} />
+          </Flex>
+          <Flex
+            flexBasis={plotMinW}
+            flexGrow={1}
+            minW={plotMinW}
+            minH="320px"
+            maxH="420px"
+            direction="column"
+            boxShadow="md"
+            m={2}
+          >
+            <Text
+              w="100%"
+              py={2}
+              bgColor="gray.50"
+              fontWeight="600"
+              textAlign="center"
+            >
+              Number of NFT owners accounts
+            </Text>
+            <NFTChart keyPosition={`nft_owners`} timeRange={timeRange} />
+          </Flex>
+          <Flex
+            flexBasis={plotMinW}
+            flexGrow={1}
+            minW={plotMinW}
+            minH="320px"
+            maxH="420px"
+            direction="column"
+            boxShadow="md"
+            m={2}
+          >
+            <Text
+              w="100%"
+              py={2}
+              bgColor="gray.50"
+              fontWeight="600"
+              textAlign="center"
+            >
+              NFT transactions vs all Ethereum
+            </Text>
+            <NFTChart
+              keyPosition={`nft_transfers`}
+              keyTotal={`num_transactions`}
+              timeRange={timeRange}
+            />
+          </Flex>
+          <Flex
+            flexBasis={plotMinW}
+            flexGrow={1}
+            minW={plotMinW}
+            minH="320px"
+            maxH="420px"
+            direction="column"
+            boxShadow="md"
+            m={2}
+          >
+            <Text
+              w="100%"
+              py={2}
+              bgColor="gray.50"
+              fontWeight="600"
+              textAlign="center"
+            >
+              NFT transfers vs all Ethereum
+            </Text>
+            <NFTChart
+              keyPosition={`nft_transfers`}
+              keyTotal={`num_transactions`}
+              timeRange={timeRange}
+            />
+          </Flex>
+        </Flex>
       </Flex>
     </Scrollable>
   );

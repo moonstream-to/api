@@ -4,11 +4,6 @@ import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons";
 import useNFTs from "../core/hooks/useNFTs";
 import { fromWei } from "web3-utils";
 
-const TIME_PERIOD = {
-  current: 0,
-  previous: 1,
-};
-
 const isNumberNonzeroAndFinite = (str) => {
   return !(isNaN(Number(str)) || Number(str) === 0);
 };
@@ -39,6 +34,7 @@ const nFormatter = (num, digits) => {
 };
 
 const getChange = (a, b) => {
+  console.log(`change:`, a, b);
   if (isNumberNonzeroAndFinite(a) && isNumberNonzeroAndFinite(b)) {
     let retval = (Math.abs(Number(a) - Number(b)) * 100) / Number(b);
     retval =
@@ -53,7 +49,7 @@ const getDiff = (a, b) => {
   if (isNaN(a) || isNaN(b)) {
     return "-";
   } else {
-    return Number(a) - Number(b);
+    return Number(Number(a) - Number(b)).toFixed(2);
   }
 };
 
@@ -67,26 +63,61 @@ const StatsCard_ = ({
   label,
   netLabel,
   labelKey,
+  totalKey,
   timeRange,
   innerRef,
 }) => {
+  console.log("stats card");
   const { nftCache } = useNFTs();
 
   const [nftData, setData] = useState();
 
   useEffect(() => {
-    if (nftCache.data[TIME_PERIOD.current][labelKey][timeRange]) {
-      const cacheData = nftCache.data[TIME_PERIOD.current][labelKey][timeRange];
-      const prevCacheData =
-        nftCache.data[TIME_PERIOD.previous][labelKey][timeRange];
-      const valueChange = getChange(cacheData.amount, prevCacheData.amount);
-      const share = isNaN(cacheData.percentage)
-        ? "-"
-        : Number(cacheData.percentage).toFixed(2);
-      const shareChange = getDiff(
-        cacheData.percentage,
-        prevCacheData.percentage
+    if (nftCache.data) {
+      const resolution =
+        timeRange === "hour" ? 1 : timeRange === "day" ? 24 : 24 * 7;
+
+      let currentPeriod = 0,
+        previousPeriod = 0,
+        currentTotalPeriod = 0,
+        previousTotalPeriod = 0;
+      for (let i = 0; i < resolution; i++) {
+        currentPeriod += Number(nftCache.data[i][labelKey]);
+        previousPeriod += Number(nftCache.data[resolution + i][labelKey]);
+        if (totalKey) {
+          currentTotalPeriod += Number(nftCache.data[i][totalKey]);
+          previousTotalPeriod += Number(
+            nftCache.data[resolution + i][totalKey]
+          );
+        }
+      }
+      console.log(
+        "card,",
+        totalKey,
+        labelKey,
+        currentPeriod,
+        currentTotalPeriod
       );
+      // percentage =
+      // const cacheData = nftCache.data[TIME_PERIOD.current][labelKey][timeRange];
+      // const prevCacheData =
+      //   nftCache.data[TIME_PERIOD.previous][labelKey][timeRange];
+      const valueChange = getChange(currentPeriod, previousPeriod);
+      totalKey &&
+        console.log(
+          "getting change in share",
+          currentPeriod,
+          currentTotalPeriod
+        );
+
+      const share = !totalKey
+        ? "-"
+        : getChange(currentPeriod, currentTotalPeriod);
+      const shareChange = getDiff(
+        share,
+        getChange(previousPeriod, previousTotalPeriod)
+      );
+      totalKey && console.log("share", share);
 
       setData({
         dimension: labelKey === "values" ? "Eth" : "#",
@@ -96,12 +127,13 @@ const StatsCard_ = ({
         shareChange,
         share,
         value:
-          labelKey === "values"
-            ? getEthValue(cacheData.amount)
-            : nFormatter(cacheData.amount, 2),
+          labelKey === "total_value"
+            ? getEthValue(currentPeriod)
+            : nFormatter(currentPeriod, 2),
       });
     }
-  }, [nftCache?.data, nftCache.isLoading, labelKey, timeRange]);
+  }, [nftCache?.data, nftCache.isLoading, labelKey, totalKey, timeRange]);
+  console.log("nftData", nftData);
   if (nftCache.isLoading || !nftData) return "";
 
   return (
