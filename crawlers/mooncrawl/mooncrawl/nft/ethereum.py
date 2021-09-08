@@ -388,7 +388,7 @@ def add_labels(
     from_block: Optional[int] = None,
     to_block: Optional[int] = None,
     contract_address: Optional[str] = None,
-    batch_size: int = 50,
+    batch_size: int = 100,
 ) -> None:
     """
     Crawls blocks between from_block and to_block checking for NFT mints and transfers.
@@ -439,12 +439,12 @@ def add_labels(
     start, end = get_block_bounds(w3, from_block, to_block)
 
     batch_start = start
-    batch_end = start + batch_size - 1
+    batch_end = min(start + batch_size - 1, end)
 
     address_ids: Dict[str, int] = {}
 
     pbar = tqdm(total=(end - start + 1))
-    pbar.set_description("Processing blocks")
+    pbar.set_description(f"Labeling blocks {start}-{end}")
     while batch_start <= batch_end:
         job = get_nft_transfers(
             w3,
@@ -598,7 +598,7 @@ def time_bounded_summary(
         func.sum(transfer_query.subquery().c.value)
     ).scalar()
 
-    num_minted = mint_query.distinct(EthereumTransaction.hash).count()
+    num_minted = mint_query.count()
 
     num_purchasers = (
         db_session.query(purchaser_query.subquery())
@@ -652,7 +652,7 @@ def summary(db_session: Session, end_time: datetime) -> Dict[str, Any]:
     def aggregate_summary(key: str) -> Dict[str, Any]:
         return {period: summary.get(key) for period, summary in summaries.items()}
 
-    result = {
+    result: Dict[str, Any] = {
         summary_key: aggregate_summary(summary_key) for summary_key in SUMMARY_KEYS
     }
     result["crawled_at"] = end_time.isoformat()
