@@ -19,7 +19,6 @@ from ..stream_queries import StreamQuery
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARN)
-allowed_tags = ["nfts"]
 
 
 class BugoutEventProviderError(Exception):
