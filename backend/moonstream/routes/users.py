@@ -180,7 +180,8 @@ async def logout_handler(request: Request) -> uuid.UUID:
 
 @app.post("/onboarding", tags=["users"], response_model=data.OnboardingState)
 async def set_onboarding_state(
-    request: Request, onboarding_data: data.OnboardingState = Body(...),
+    request: Request,
+    onboarding_data: data.OnboardingState = Body(...),
 ) -> data.OnboardingState:
 
     token = request.state.token

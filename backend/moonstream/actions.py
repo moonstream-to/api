@@ -1,6 +1,5 @@
 import json
 import logging
-
 from typing import Optional, Dict, Any
 from enum import Enum
 import uuid
@@ -158,7 +157,11 @@ def create_onboarding_resource(
     token: uuid.UUID,
     resource_data: Dict[str, Any] = {
         "type": data.USER_ONBOARDING_STATE,
-        "steps": {"welcome": 0, "subscriptions": 0, "stream": 0,},
+        "steps": {
+            "welcome": 0,
+            "subscriptions": 0,
+            "stream": 0,
+        },
         "is_complete": False,
     },
 ) -> BugoutResource:
