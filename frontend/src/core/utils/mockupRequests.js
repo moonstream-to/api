@@ -1,6 +1,4 @@
 import moment from "moment";
-import nftData from "./mockData";
-const MOCK_API = process.env.NEXT_PUBLIC_MOONSTREAM_API_URL;
 var MockAdapter = require("axios-mock-adapter");
 export const makeid = (length) => {
   var result = "";
@@ -97,11 +95,6 @@ export let MockSubscriptions = [
 ];
 const enableMockupRequests = (axiosInstance) => {
   let mock = new MockAdapter(axiosInstance, { onNoMatch: "passthrough" });
-
-  //assume all currency units are in wei
-  mock.onGet(`${MOCK_API}/nft`).reply(200, {
-    data: [...nftData],
-  });
 
   // mock.onGet(`${MOCK_API}/subscription_types/`).reply(200, {
   //   data: [
