@@ -72,6 +72,13 @@ This CLI is configured to work with the following API URLs:
         help="Detailed description of the subscription type",
     )
     parser_subscription_types_create.add_argument(
+        "-c",
+        "--choices",
+        nargs="*",
+        help="Available subscription options for from builder.",
+        required=True,
+    )
+    parser_subscription_types_create.add_argument(
         "--icon",
         required=True,
         help="URL to the icon representing this subscription type",
@@ -145,6 +152,13 @@ This CLI is configured to work with the following API URLs:
         default=None,
         type=str,
         help="Detailed description of the subscription type",
+    )
+    parser_subscription_types_update.add_argument(
+        "-c",
+        "--choices",
+        nargs="*",
+        help="Available subscription options for form builder.",
+        required=False,
     )
     parser_subscription_types_update.add_argument(
         "--icon",
