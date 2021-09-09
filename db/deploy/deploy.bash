@@ -13,7 +13,7 @@ set -eu
 echo
 echo
 echo "Building executable database server script with Go"
-/usr/local/go/bin/go build -o "${APP_DB_SERVER_DIR}/moonstreamdb" "${APP_DB_SERVER_DIR}/main.go"
+HOME=/root /usr/local/go/bin/go build -o "${APP_DB_SERVER_DIR}/moonstreamdb" "${APP_DB_SERVER_DIR}/main.go"
 
 echo
 echo
