@@ -165,6 +165,7 @@ const _NewSubscription = ({
               (addition_selects) => {
                 const radio = getRadioPropsSubscription({
                   value: addition_selects,
+                  isDisabled: addition_selects.startsWith("tag"),
                 });
                 return (
                   <RadioCard
