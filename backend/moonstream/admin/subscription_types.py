@@ -77,7 +77,7 @@ def create_subscription_type(
     name: str,
     description: str,
     icon_url: str,
-    choices: Optional[List[str]] = [],
+    choices: List[str] = [],
     stripe_product_id: Optional[str] = None,
     stripe_price_id: Optional[str] = None,
     active: bool = False,
