@@ -1,0 +1,13 @@
+[Unit]
+Description=Ethereum txpool crawler
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/moonstream/crawlers/ethtxpool
+ExecStart=/home/ubuntu/moonstream/crawlers/ethtxpool/ethtxpool
+SyslogIdentifier=ethereum-txpool
+
+[Install]
+WantedBy=multi-user.target
