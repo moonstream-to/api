@@ -78,9 +78,9 @@ const EntriesNavigation = () => {
   ]);
   const [filterState, setFilterState] = useState([]);
   const queryClient = useQueryClient();
-  console.log(queryClient);
   const loadMoreButtonRef = useRef(null);
-
+  const [streamCache, setStreamCache] = useState([]);
+  console.log(streamCache);
   const {
     events,
     eventsIsLoading,
@@ -96,7 +96,7 @@ const EntriesNavigation = () => {
     loadNewerEvents,
     cursor,
     setCursor,
-  } = useStream(ui.searchTerm.q);
+  } = useStream(ui.searchTerm.q, streamCache, setStreamCache);
 
   useEffect(() => {
     if (!streamBoundary.start_time && !streamBoundary.end_time) {
@@ -145,12 +145,18 @@ const EntriesNavigation = () => {
     }
   }, [subscriptionsCache, newFilterState, setFilterProps]);
 
-  useEffect(() => {
-    if (cursor >= events.length + 2 * PAGE_SIZE) {
-      loadOlderEvents();
-      previousEventRefetch();
-    }
-  }, [events, cursor]);
+  // useEffect(() => {
+  //   if (cursor + PAGE_SIZE >= events.length) {
+  //     console.log("Load more");
+  //     loadOlderEvents();
+  //     previousEventRefetch();
+  //   } else if (events.length == 0) {
+  //     console.log("Load more initial");
+  //     loadOlderEvents();
+  //     previousEventRefetch();
+  //   }
+  //   console.log(events.length);
+  // }, [events, cursor]);
 
   const canCreate = false;
 
@@ -473,30 +479,38 @@ const EntriesNavigation = () => {
                 <Center>
                   <Button
                     onClick={() => {
-                      if (
-                        queryClient.getQueryData("stream-events").length >
-                        cursor + 2 * PAGE_SIZE
-                      ) {
+                      setCursor(cursor + PAGE_SIZE);
+                    }}
+                    variant="outline"
+                    colorScheme="suggested"
+                  >
+                    {" "}
+                    Page++{`${cursor}/${streamCache.length}`}
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      console.log(streamCache.length > cursor + PAGE_SIZE);
+
+                      if (streamCache.length > cursor + PAGE_SIZE) {
                         setEvents(
-                          queryClient
-                            .getQueryData(["stream-events"])
-                            .slice(
-                              cursor + PAGE_SIZE - 1,
-                              cursor + 2 * PAGE_SIZE
-                            )
+                          streamCache.slice(cursor, cursor + PAGE_SIZE)
                         );
-                        setCursor(cursor + PAGE_SIZE);
+                        // console.log(
+                        //   "cursor + PAGE_SIZE - 1",
+                        //   cursor + PAGE_SIZE - 1
+                        // );
+                        // console.log("streamCache.length", streamCache.length);
+
+                        //setCursor(cursor + PAGE_SIZE);
                       } else {
-                        setEvents(
-                          queryClient
-                            .getQueryData(["stream-events"])
-                            .slice(
-                              cursor + PAGE_SIZE - 1,
-                              queryClient.getQueryData(["stream-events"]).length
-                            )
-                        );
-                        setCursor(cursor + PAGE_SIZE);
+                        loadOlderEvents();
+                        previousEventRefetch();
                       }
+                      // } else {
+                      //   setCursor(cursor + PAGE_SIZE);
+                      // loadOlderEvents();
+                      // previousEventRefetch();
+                      // }
                     }}
                     variant="outline"
                     colorScheme="suggested"

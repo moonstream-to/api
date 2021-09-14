@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { StreamService } from "../services";
 import { useQuery, useQueryClient } from "react-query";
 import { queryCacheProps } from "./hookCommon";
 import { defaultStreamBoundary } from "../services/servertime.service.js";
 import { PAGE_SIZE } from "../constants";
-const useStream = (q) => {
+const useStream = (q, streamCache, setStreamCache) => {
   const [streamQuery, setStreamQuery] = useState(q || "");
   const [events, setEvents] = useState([]);
   const [streamBoundary, setStreamBoundary] = useState({});
@@ -75,6 +75,10 @@ const useStream = (q) => {
     return newBoundary;
   };
 
+  useEffect(() => {
+    setEvents(streamCache ? streamCache.slice(cursor, cursor + PAGE_SIZE) : []);
+  }, [streamCache, cursor, PAGE_SIZE]);
+
   const getEvents = async (customStreamBoundary) => {
     let requestStreamBoundary = customStreamBoundary;
     if (!requestStreamBoundary) {
@@ -109,10 +113,16 @@ const useStream = (q) => {
       retry: 2,
       onSuccess: (newEvents) => {
         if (newEvents && newEvents.stream_boundary && newEvents.events) {
-          setCursor(0);
-
-          queryClient.setQueryData("stream-events", [...newEvents.events]);
-          setEvents(newEvents.events.slice(0, PAGE_SIZE));
+          if (cursor === null) {
+            setCursor(0);
+            console.log("newEvents.events", newEvents.events);
+            setStreamCache([...newEvents.events]);
+            if (newEvents.events.length > PAGE_SIZE) {
+              setEvents(newEvents.events.slice(0, PAGE_SIZE));
+            } else {
+              setEvents(newEvents.events.slice(0, newEvents.events.length));
+            }
+          }
 
           updateStreamBoundaryWith(newEvents.stream_boundary, {});
         }
@@ -135,7 +145,7 @@ const useStream = (q) => {
             include_start: true,
             // TODO(zomglings): This is a workaround to what seems to be a filter bug on `created_at:<=...` filters
             // on Bugout journals. Please look into it.
-            end_time: olderEvent.event_timestamp - 1,
+            end_time: olderEvent.event_timestamp + 1,
             include_end: false,
           };
           return getEvents(newStreamBoundary);
@@ -147,9 +157,36 @@ const useStream = (q) => {
         retry: 2,
         onSuccess: (newEvents) => {
           if (newEvents && newEvents.stream_boundary && newEvents.events) {
-            queryClient
-              .getQueryData("stream-events")
-              .push([...newEvents.events]);
+            console.log(" Load olders events");
+
+            let oldEventsList = streamCache;
+
+            console.log("newEvents.stream_boundary", newEvents.stream_boundary);
+            console.log("newEvents.events", newEvents.events);
+
+            setStreamCache([...oldEventsList, ...newEvents.events]);
+
+            // if (newEvents.events.length > PAGE_SIZE) {
+            //   if (streamCache.length > 0) {
+            //     setEvents([
+            //       streamCache[streamCache.length - 1],
+            //       ...newEvents.events.splice(0, PAGE_SIZE),
+            //     ]);
+            //     setCursor(cursor + PAGE_SIZE);
+            //   } else {
+            //     setEvents([...newEvents.events]);
+            //     setCursor(cursor + newEvents.events.length);
+            //   }
+            // } else if (newEvents.events.length <= PAGE_SIZE) {
+            //   setEvents(
+            //     setEvents([
+            //       streamCache[streamCache.length - 1],
+            //       ...newEvents.events.splice(0, newEvents.length),
+            //     ])
+            //   );
+            //   setCursor(cursor + newEvents.events.length);
+            // }
+
             updateStreamBoundaryWith(newEvents.stream_boundary, {
               ignoreEnd: true,
             });
@@ -170,7 +207,7 @@ const useStream = (q) => {
           const newStreamBoundary = {
             // TODO(zomglings): This is a workaround to what seems to be a filter bug on `created_at:>=...` filters
             // on Bugout journals. Please look into it.
-            start_time: newerEvent.event_timestamp + 1,
+            start_time: newerEvent.event_timestamp - 1,
             include_start: false,
             // 5 minutes after the next event
             end_time: newerEvent.event_timestamp + 5 * 60,
@@ -186,12 +223,15 @@ const useStream = (q) => {
         onSuccess: (newEvents) => {
           if (newEvents && newEvents.stream_boundary && newEvents.events) {
             //setEvents([...events, ...newEvents.events]);
-            newEvents.events.push(
-              queryClient
-                .getQueryData("stream-events")
-                .push([...newEvents.events])
-            );
-            queryClient.setQueryData("stream-events", newEvents.events);
+            let oldEventsList = streamCache;
+
+            setStreamCache([...newEvents.events, ...oldEventsList]);
+            // newEvents.events.push(
+            //   queryClient
+            //     .getQueryData("stream-events")
+            //     .push([...newEvents.events])
+            // );
+            // queryClient.setQueryData("stream-events", newEvents.events);
             updateStreamBoundaryWith(newEvents.stream_boundary, {
               ignoreStart: true,
             });
