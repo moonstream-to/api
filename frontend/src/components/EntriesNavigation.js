@@ -145,6 +145,13 @@ const EntriesNavigation = () => {
     }
   }, [subscriptionsCache, newFilterState, setFilterProps]);
 
+  useEffect(() => {
+    if (cursor >= events.length + 2 * PAGE_SIZE) {
+      loadOlderEvents();
+      previousEventRefetch();
+    }
+  }, [events, cursor]);
+
   const canCreate = false;
 
   const canDelete = false;
@@ -466,8 +473,6 @@ const EntriesNavigation = () => {
                 <Center>
                   <Button
                     onClick={() => {
-                      // need change current user view
-                      // and change cursor to cursor + page_size
                       if (
                         queryClient.getQueryData("stream-events").length >
                         cursor + 2 * PAGE_SIZE
@@ -481,24 +486,16 @@ const EntriesNavigation = () => {
                             )
                         );
                         setCursor(cursor + PAGE_SIZE);
-                      } else if (
-                        queryClient.getQueryData("stream-events").length ==
-                        cursor + 2 * PAGE_SIZE
-                      ) {
+                      } else {
                         setEvents(
                           queryClient
-                            .getQueryData("stream-events")
+                            .getQueryData(["stream-events"])
                             .slice(
                               cursor + PAGE_SIZE - 1,
-                              cursor + 2 * PAGE_SIZE
+                              queryClient.getQueryData(["stream-events"]).length
                             )
                         );
                         setCursor(cursor + PAGE_SIZE);
-                        loadOlderEvents();
-                        previousEventRefetch();
-                      } else {
-                        loadOlderEvents();
-                        previousEventRefetch();
                       }
                     }}
                     variant="outline"
