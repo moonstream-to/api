@@ -69,9 +69,7 @@ def get_user_subscriptions(token: str) -> Dict[str, List[BugoutResource]]:
     """
     response = bc.list_resources(
         token=token,
-        params={
-            "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
-        },
+        params={"type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,},
         timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
     )
 
@@ -135,6 +133,7 @@ async def stream_handler(
             raise_on_error=True,
         )
     except ReceivingEventsException as e:
+        logger.error(e)
         logger.error("Error receiving events from provider")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
     except Exception as e:
@@ -178,6 +177,7 @@ async def latest_events_handler(
             sort_events=True,
         )
     except ReceivingEventsException as e:
+        logger.error(e)
         logger.error("Error receiving events from provider")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
     except Exception as e:
@@ -206,6 +206,7 @@ async def next_event_handler(
 
     All times must be given as seconds since the Unix epoch.
     """
+    print("next")
     stream_boundary = data.StreamBoundary(
         start_time=start_time,
         end_time=end_time,
@@ -233,9 +234,11 @@ async def next_event_handler(
             raise_on_error=True,
         )
     except ReceivingEventsException as e:
+        print(e)
         logger.error("Error receiving events from provider")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
     except Exception as e:
+        logger.error(e)
         logger.error("Unable to get next events")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
@@ -261,6 +264,7 @@ async def previous_event_handler(
 
     All times must be given as seconds since the Unix epoch.
     """
+    print("previous")
     stream_boundary = data.StreamBoundary(
         start_time=start_time,
         end_time=end_time,
@@ -288,9 +292,11 @@ async def previous_event_handler(
             raise_on_error=True,
         )
     except ReceivingEventsException as e:
+        print(e)
         logger.error("Error receiving events from provider")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
     except Exception as e:
+        logger.error(e)
         logger.error("Unable to get previous events")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 

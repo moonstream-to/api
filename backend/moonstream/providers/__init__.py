@@ -242,6 +242,7 @@ def previous_event(
         max_workers=max_threads, thread_name_prefix="event_providers_"
     ) as executor:
         for provider_name, provider in event_providers.items():
+            print(provider_name, provider)
             futures[provider_name] = executor.submit(
                 provider.previous_event,
                 db_session,
@@ -252,6 +253,7 @@ def previous_event(
                 query,
                 user_subscriptions,
             )
+            print(user_subscriptions)
 
     results: Dict[str, data.Event] = {}
     for provider_name, future in futures.items():
