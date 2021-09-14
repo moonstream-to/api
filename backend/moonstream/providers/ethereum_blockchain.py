@@ -19,7 +19,7 @@ from sqlalchemy.sql.functions import user
 
 from .. import data
 from ..settings import DEFAULT_STREAM_TIMEINTERVAL
-from ..stream_boundaries import validate_stream_boundary, InvalidStreamBoundary
+from ..stream_boundaries import validate_stream_boundary
 from ..stream_queries import StreamQuery
 
 
