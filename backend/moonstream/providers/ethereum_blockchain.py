@@ -12,7 +12,6 @@ from moonstreamdb.models import (
     EthereumLabel,
 )
 from sqlalchemy import or_, and_, text
-from sqlalchemy.dialects import postgresql  # For Debug remove
 from sqlalchemy.orm import Session, Query
 from sqlalchemy.sql.functions import user
 
@@ -383,9 +382,7 @@ def next_event(
         query_ethereum_transactions(db_session, next_stream_boundary, parsed_filters)
         .order_by(text("timestamp asc"))
         .limit(1)
-    )
-
-    maybe_ethereum_transaction = maybe_ethereum_transaction.one_or_none()
+    ).one_or_none()
 
     if maybe_ethereum_transaction is None:
         return None
@@ -425,8 +422,7 @@ def previous_event(
         )
         .order_by(text("timestamp desc"))
         .limit(1)
-    )
-    maybe_ethereum_transaction = maybe_ethereum_transaction.one_or_none()
+    ).one_or_none()
     if maybe_ethereum_transaction is None:
         return None
     return ethereum_transaction_event(maybe_ethereum_transaction)
