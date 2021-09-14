@@ -234,7 +234,6 @@ async def next_event_handler(
         logger.error(f"Error receiving events from provider err: {e}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
     except Exception as e:
-        logger.error(e)
         logger.error("Unable to get next events")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
@@ -290,7 +289,6 @@ async def previous_event_handler(
         logger.error(f"Error receiving events from provider err: {e}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
     except Exception as e:
-        logger.error(e)
         logger.error("Unable to get previous events")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
