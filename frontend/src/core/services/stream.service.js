@@ -9,6 +9,8 @@ export const getEvents = ({
   end_time,
   include_start,
   include_end,
+  offset,
+  limit,
 }) => {
   let params = {};
   if (q) {

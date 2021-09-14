@@ -40,6 +40,8 @@ import { FaFilter } from "react-icons/fa";
 import useStream from "../core/hooks/useStream";
 import { ImCancelCircle } from "react-icons/im";
 import { previousEvent } from "../core/services/stream.service";
+import { useQueryClient } from "react-query";
+import { PAGE_SIZE } from "../core/constants";
 
 const FILTER_TYPES = {
   ADDRESS: 0,
@@ -75,7 +77,8 @@ const EntriesNavigation = () => {
     },
   ]);
   const [filterState, setFilterState] = useState([]);
-
+  const queryClient = useQueryClient();
+  console.log(queryClient);
   const loadMoreButtonRef = useRef(null);
 
   const {
@@ -83,6 +86,7 @@ const EntriesNavigation = () => {
     eventsIsLoading,
     eventsRefetch,
     eventsIsFetching,
+    setEvents,
     latestEventsRefetch,
     nextEventRefetch,
     previousEventRefetch,
@@ -90,6 +94,8 @@ const EntriesNavigation = () => {
     setDefaultBoundary,
     loadOlderEvents,
     loadNewerEvents,
+    cursor,
+    setCursor,
   } = useStream(ui.searchTerm.q);
 
   useEffect(() => {
@@ -460,8 +466,64 @@ const EntriesNavigation = () => {
                 <Center>
                   <Button
                     onClick={() => {
-                      loadOlderEvents();
-                      previousEventRefetch();
+                      // need change current user view
+                      // and change cursor to cursor + page_size
+                      console.log(queryClient.getQueryData("stream-events"));
+                      console.log(
+                        "queryClient.getQueryData('stream-events').lenght > cursor + 2 * PAGE_SIZE",
+                        queryClient.getQueryData("stream-events").length >
+                          cursor + 2 * PAGE_SIZE
+                      );
+                      if (
+                        queryClient.getQueryData("stream-events").length >
+                        cursor + 2 * PAGE_SIZE
+                      ) {
+                        console.log("cursor", cursor);
+                        console.log(
+                          "cursor + PAGE_SIZE - 1",
+                          cursor + PAGE_SIZE - 1
+                        );
+                        console.log(
+                          " cursor + 2 * PAGE_SIZE",
+                          cursor + 2 * PAGE_SIZE
+                        );
+                        setEvents(
+                          queryClient
+                            .getQueryData(["stream-events"])
+                            .slice(
+                              cursor + PAGE_SIZE - 1,
+                              cursor + 2 * PAGE_SIZE
+                            )
+                        );
+                        setCursor(cursor + PAGE_SIZE);
+                        console.log(
+                          "setEvents",
+                          queryClient
+                            .getQueryData(["stream-events"])
+                            .slice(
+                              cursor + PAGE_SIZE - 1,
+                              cursor + 2 * PAGE_SIZE
+                            )
+                        );
+                      } else if (
+                        queryClient.getQueryData("stream-events").length ==
+                        cursor + 2 * PAGE_SIZE
+                      ) {
+                        setEvents(
+                          queryClient
+                            .getQueryData("stream-events")
+                            .slice(
+                              cursor + PAGE_SIZE - 1,
+                              cursor + 2 * PAGE_SIZE
+                            )
+                        );
+                        setCursor(cursor + PAGE_SIZE);
+                        loadOlderEvents();
+                        previousEventRefetch();
+                      } else {
+                        loadOlderEvents();
+                        previousEventRefetch();
+                      }
                     }}
                     variant="outline"
                     colorScheme="suggested"

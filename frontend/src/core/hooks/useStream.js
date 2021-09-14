@@ -1,16 +1,19 @@
 import { useState } from "react";
 
 import { StreamService } from "../services";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import { queryCacheProps } from "./hookCommon";
 import { defaultStreamBoundary } from "../services/servertime.service.js";
-
+import { PAGE_SIZE } from "../constants";
 const useStream = (q) => {
   const [streamQuery, setStreamQuery] = useState(q || "");
   const [events, setEvents] = useState([]);
   const [streamBoundary, setStreamBoundary] = useState({});
   const [olderEvent, setOlderEvent] = useState(null);
   const [newerEvent, setNewerEvent] = useState(null);
+  const [cursor, setCursor] = useState(null);
+
+  const queryClient = useQueryClient();
 
   const isStreamBoundaryEmpty = () => {
     return !streamBoundary.start_time && !streamBoundary.end_time;
@@ -84,6 +87,10 @@ const useStream = (q) => {
     return response.data;
   };
 
+  //////////////////////////////////////////////////
+  /// Just load event by current event boundary ///
+  ////////////////////////////////////////////////
+
   const {
     isLoading: eventsIsLoading,
     refetch: eventsRefetch,
@@ -102,12 +109,20 @@ const useStream = (q) => {
       retry: 2,
       onSuccess: (newEvents) => {
         if (newEvents && newEvents.stream_boundary && newEvents.events) {
-          setEvents([...newEvents.events]);
+          setCursor(0);
+
+          queryClient.setQueryData("stream-events", [...newEvents.events]);
+          setEvents(newEvents.events.slice(0, PAGE_SIZE));
+
           updateStreamBoundaryWith(newEvents.stream_boundary, {});
         }
       },
     }
   );
+
+  ///////////////////////////
+  /// Load olders events ///
+  /////////////////////////
 
   const { refetch: loadOlderEvents, isFetching: loadOlderEventsIsFetching } =
     useQuery(
@@ -116,11 +131,11 @@ const useStream = (q) => {
         if (olderEvent) {
           const newStreamBoundary = {
             // 5 minutes before the previous event
-            start_time: olderEvent.event_timestamp - 5 * 60,
+            start_time: olderEvent.event_timestamp - 1 * 60,
             include_start: true,
             // TODO(zomglings): This is a workaround to what seems to be a filter bug on `created_at:<=...` filters
             // on Bugout journals. Please look into it.
-            end_time: olderEvent.event_timestamp + 1,
+            end_time: olderEvent.event_timestamp - 1,
             include_end: false,
           };
           return getEvents(newStreamBoundary);
@@ -132,7 +147,9 @@ const useStream = (q) => {
         retry: 2,
         onSuccess: (newEvents) => {
           if (newEvents && newEvents.stream_boundary && newEvents.events) {
-            setEvents([...newEvents.events, ...events]);
+            queryClient
+              .getQueryData("stream-events")
+              .push([...newEvents.events]);
             updateStreamBoundaryWith(newEvents.stream_boundary, {
               ignoreEnd: true,
             });
@@ -140,6 +157,10 @@ const useStream = (q) => {
         },
       }
     );
+
+  ///////////////////////////
+  /// Load newest events ///
+  /////////////////////////
 
   const { refetch: loadNewerEvents, isFetching: loadNewerEventsIsFetching } =
     useQuery(
@@ -149,7 +170,7 @@ const useStream = (q) => {
           const newStreamBoundary = {
             // TODO(zomglings): This is a workaround to what seems to be a filter bug on `created_at:>=...` filters
             // on Bugout journals. Please look into it.
-            start_time: newerEvent.event_timestamp - 1,
+            start_time: newerEvent.event_timestamp + 1,
             include_start: false,
             // 5 minutes after the next event
             end_time: newerEvent.event_timestamp + 5 * 60,
@@ -164,7 +185,13 @@ const useStream = (q) => {
         retry: 2,
         onSuccess: (newEvents) => {
           if (newEvents && newEvents.stream_boundary && newEvents.events) {
-            setEvents([...events, ...newEvents.events]);
+            //setEvents([...events, ...newEvents.events]);
+            newEvents.events.push(
+              queryClient
+                .getQueryData("stream-events")
+                .push([...newEvents.events])
+            );
+            queryClient.setQueryData("stream-events", newEvents.events);
             updateStreamBoundaryWith(newEvents.stream_boundary, {
               ignoreStart: true,
             });
@@ -177,6 +204,10 @@ const useStream = (q) => {
     const response = await StreamService.latestEvents({ q: streamQuery });
     return response.data;
   };
+
+  /////////////////////
+  /// latest event ///
+  ///////////////////
 
   const {
     data: latestEvents,
@@ -208,6 +239,10 @@ const useStream = (q) => {
     return response.data;
   };
 
+  ///////////////////////
+  /// get next event ///
+  /////////////////////
+
   const {
     data: nextEvent,
     isLoading: nextEventIsLoading,
@@ -237,6 +272,10 @@ const useStream = (q) => {
     setOlderEvent({ ...response.data });
     return response.data;
   };
+
+  ///////////////////////////
+  /// get previous event ///
+  /////////////////////////
 
   const {
     data: previousEvent,
@@ -268,6 +307,7 @@ const useStream = (q) => {
     eventsRefetch,
     eventsIsFetching,
     eventsRemove,
+    setEvents,
     setStreamQuery,
     latestEvents,
     latestEventsIsLoading,
@@ -288,6 +328,8 @@ const useStream = (q) => {
     loadOlderEventsIsFetching,
     loadNewerEvents,
     loadNewerEventsIsFetching,
+    cursor,
+    setCursor,
   };
 };
 export default useStream;
