@@ -468,25 +468,10 @@ const EntriesNavigation = () => {
                     onClick={() => {
                       // need change current user view
                       // and change cursor to cursor + page_size
-                      console.log(queryClient.getQueryData("stream-events"));
-                      console.log(
-                        "queryClient.getQueryData('stream-events').lenght > cursor + 2 * PAGE_SIZE",
-                        queryClient.getQueryData("stream-events").length >
-                          cursor + 2 * PAGE_SIZE
-                      );
                       if (
                         queryClient.getQueryData("stream-events").length >
                         cursor + 2 * PAGE_SIZE
                       ) {
-                        console.log("cursor", cursor);
-                        console.log(
-                          "cursor + PAGE_SIZE - 1",
-                          cursor + PAGE_SIZE - 1
-                        );
-                        console.log(
-                          " cursor + 2 * PAGE_SIZE",
-                          cursor + 2 * PAGE_SIZE
-                        );
                         setEvents(
                           queryClient
                             .getQueryData(["stream-events"])
@@ -496,15 +481,6 @@ const EntriesNavigation = () => {
                             )
                         );
                         setCursor(cursor + PAGE_SIZE);
-                        console.log(
-                          "setEvents",
-                          queryClient
-                            .getQueryData(["stream-events"])
-                            .slice(
-                              cursor + PAGE_SIZE - 1,
-                              cursor + 2 * PAGE_SIZE
-                            )
-                        );
                       } else if (
                         queryClient.getQueryData("stream-events").length ==
                         cursor + 2 * PAGE_SIZE
