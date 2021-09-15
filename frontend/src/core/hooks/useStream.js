@@ -209,7 +209,8 @@ const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
             let oldEventsList = streamCache;
 
             setStreamCache([...newEvents.events, ...oldEventsList]);
-            if (oldEventsList > 0) {
+
+            if (oldEventsList.length > 0) {
               setCursor(cursor + newEvents.events.length);
             }
 
@@ -256,7 +257,11 @@ const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
       q: streamQuery,
       ...streamBoundary,
     });
-    setNewerEvent({ ...response.data });
+    if (response.data) {
+      setNewerEvent({ ...response.data });
+    } else {
+      setNewerEvent(null);
+    }
     return response.data;
   };
 
