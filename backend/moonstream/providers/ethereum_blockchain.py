@@ -168,7 +168,9 @@ def parse_filters(
 
 
 def query_ethereum_transactions(
-    db_session: Session, stream_boundary: data.StreamBoundary, parsed_filters: Filters,
+    db_session: Session,
+    stream_boundary: data.StreamBoundary,
+    parsed_filters: Filters,
 ) -> Query:
     """
     Builds a database query for Ethereum transactions that occurred within the window of time that
@@ -186,7 +188,8 @@ def query_ethereum_transactions(
         EthereumTransaction.value,
         EthereumBlock.timestamp.label("timestamp"),
     ).join(
-        EthereumBlock, EthereumTransaction.block_number == EthereumBlock.block_number,
+        EthereumBlock,
+        EthereumTransaction.block_number == EthereumBlock.block_number,
     )
 
     if stream_boundary.include_start:
