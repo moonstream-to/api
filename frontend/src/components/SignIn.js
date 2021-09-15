@@ -85,7 +85,7 @@ const SignIn = ({ toggleModal }) => {
         </Button>
       </form>
       <Box height="1px" width="100%" background="#eaebf8" mb="1.875rem" />
-      <Text textAlign="center" fontSize="md" color="gray.1200">
+      {/* <Text textAlign="center" fontSize="md" color="gray.1200">
         Don`t have an account?{" "}
         <Box
           cursor="pointer"
@@ -95,7 +95,7 @@ const SignIn = ({ toggleModal }) => {
         >
           Register
         </Box>
-      </Text>
+      </Text> */}
       <Text textAlign="center" fontSize="md" color="gray.1200">
         {" "}
         <Box

@@ -27,7 +27,7 @@ const Navbar = () => {
       overflow="hidden"
     >
       <Suspense fallback={""}>
-        {modal === "register" && <SignUp toggleModal={toggleModal} />}
+        {/* {modal === "register" && <SignUp toggleModal={toggleModal} />} */}
         {modal === "login" && <SignIn toggleModal={toggleModal} />}
         {modal === "forgot" && <ForgotPassword toggleModal={toggleModal} />}
         {modal === "hubspot-trader" && (

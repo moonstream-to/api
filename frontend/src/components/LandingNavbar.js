@@ -90,7 +90,7 @@ const LandingNavbar = () => {
                 </Button>
               </RouterLink>
             )}
-            {!ui.isLoggedIn && (
+            {/* {!ui.isLoggedIn && (
               <Button
                 colorScheme="whiteAlpha"
                 variant="outline"
@@ -101,7 +101,7 @@ const LandingNavbar = () => {
               >
                 Get started
               </Button>
-            )}
+            )} */}
             {!ui.isLoggedIn && (
               <Button
                 color="white"
