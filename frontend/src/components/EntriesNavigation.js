@@ -40,7 +40,6 @@ import { FaFilter } from "react-icons/fa";
 import useStream from "../core/hooks/useStream";
 import { ImCancelCircle } from "react-icons/im";
 import { previousEvent } from "../core/services/stream.service";
-import { useQueryClient } from "react-query";
 import { PAGE_SIZE } from "../core/constants";
 
 const FILTER_TYPES = {
