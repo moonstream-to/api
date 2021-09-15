@@ -77,26 +77,27 @@ const EntriesNavigation = () => {
     },
   ]);
   const [filterState, setFilterState] = useState([]);
-  const queryClient = useQueryClient();
   const loadMoreButtonRef = useRef(null);
   const [streamCache, setStreamCache] = useState([]);
-  console.log(streamCache);
+  const [cursor, setCursor] = useState(0);
   const {
-    events,
     eventsIsLoading,
     eventsRefetch,
     eventsIsFetching,
-    setEvents,
     latestEventsRefetch,
     nextEventRefetch,
     previousEventRefetch,
     streamBoundary,
     setDefaultBoundary,
-    loadOlderEvents,
-    loadNewerEvents,
+    loadPreviousEventHandler,
+    loadNewesEventHandler,
+  } = useStream(
+    ui.searchTerm.q,
+    streamCache,
+    setStreamCache,
     cursor,
-    setCursor,
-  } = useStream(ui.searchTerm.q, streamCache, setStreamCache);
+    setCursor
+  );
 
   useEffect(() => {
     if (!streamBoundary.start_time && !streamBoundary.end_time) {
@@ -119,12 +120,6 @@ const EntriesNavigation = () => {
     previousEventRefetch,
   ]);
 
-  useEffect(() => {
-    if (events) {
-      setEntries(events);
-    }
-  }, [events]);
-
   const setFilterProps = useCallback(
     (filterIdx, props) => {
       const newFilterProps = [...newFilterState];
@@ -144,19 +139,6 @@ const EntriesNavigation = () => {
       });
     }
   }, [subscriptionsCache, newFilterState, setFilterProps]);
-
-  // useEffect(() => {
-  //   if (cursor + PAGE_SIZE >= events.length) {
-  //     console.log("Load more");
-  //     loadOlderEvents();
-  //     previousEventRefetch();
-  //   } else if (events.length == 0) {
-  //     console.log("Load more initial");
-  //     loadOlderEvents();
-  //     previousEventRefetch();
-  //   }
-  //   console.log(events.length);
-  // }, [events, cursor]);
 
   const canCreate = false;
 
@@ -233,7 +215,7 @@ const EntriesNavigation = () => {
       direction="column"
       flexGrow={1}
     >
-      {entries && !eventsIsLoading ? (
+      {streamCache && !eventsIsLoading ? (
         <>
           <Drawer onClose={onClose} isOpen={isOpen} size="lg">
             <DrawerOverlay />
@@ -447,8 +429,7 @@ const EntriesNavigation = () => {
                 {!eventsIsFetching ? (
                   <Button
                     onClick={() => {
-                      loadNewerEvents();
-                      nextEventRefetch();
+                      loadNewesEventHandler();
                     }}
                     variant="outline"
                     colorScheme="suggested"
@@ -464,53 +445,31 @@ const EntriesNavigation = () => {
                   ></Button>
                 )}
               </Stack>
-              {entries.map((entry, idx) => (
-                <StreamEntry
-                  showOnboardingTooltips={false}
-                  key={`entry-list-${idx}`}
-                  entry={entry}
-                  disableDelete={!canDelete}
-                  disableCopy={!canCreate}
-                  filterCallback={handleFilterStateCallback}
-                  filterConstants={{ DIRECTIONS, CONDITION, FILTER_TYPES }}
-                />
-              ))}
+              {streamCache
+                .slice(
+                  cursor,
+                  streamCache.length <= cursor + PAGE_SIZE
+                    ? streamCache.length
+                    : cursor + PAGE_SIZE
+                )
+                .map((entry, idx) => (
+                  <StreamEntry
+                    showOnboardingTooltips={false}
+                    key={`entry-list-${idx}`}
+                    entry={entry}
+                    disableDelete={!canDelete}
+                    disableCopy={!canCreate}
+                    filterCallback={handleFilterStateCallback}
+                    filterConstants={{ DIRECTIONS, CONDITION, FILTER_TYPES }}
+                  />
+                ))}
               {previousEvent && !eventsIsFetching ? (
                 <Center>
                   <Button
                     onClick={() => {
-                      setCursor(cursor + PAGE_SIZE);
-                    }}
-                    variant="outline"
-                    colorScheme="suggested"
-                  >
-                    {" "}
-                    Page++{`${cursor}/${streamCache.length}`}
-                  </Button>
-                  <Button
-                    onClick={() => {
                       console.log(streamCache.length > cursor + PAGE_SIZE);
 
-                      if (streamCache.length > cursor + PAGE_SIZE) {
-                        setEvents(
-                          streamCache.slice(cursor, cursor + PAGE_SIZE)
-                        );
-                        // console.log(
-                        //   "cursor + PAGE_SIZE - 1",
-                        //   cursor + PAGE_SIZE - 1
-                        // );
-                        // console.log("streamCache.length", streamCache.length);
-
-                        //setCursor(cursor + PAGE_SIZE);
-                      } else {
-                        loadOlderEvents();
-                        previousEventRefetch();
-                      }
-                      // } else {
-                      //   setCursor(cursor + PAGE_SIZE);
-                      // loadOlderEvents();
-                      // previousEventRefetch();
-                      // }
+                      loadPreviousEventHandler();
                     }}
                     variant="outline"
                     colorScheme="suggested"

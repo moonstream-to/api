@@ -5,15 +5,14 @@ import { useQuery, useQueryClient } from "react-query";
 import { queryCacheProps } from "./hookCommon";
 import { defaultStreamBoundary } from "../services/servertime.service.js";
 import { PAGE_SIZE } from "../constants";
-const useStream = (q, streamCache, setStreamCache) => {
+const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
   const [streamQuery, setStreamQuery] = useState(q || "");
   const [events, setEvents] = useState([]);
   const [streamBoundary, setStreamBoundary] = useState({});
   const [olderEvent, setOlderEvent] = useState(null);
   const [newerEvent, setNewerEvent] = useState(null);
-  const [cursor, setCursor] = useState(null);
 
-  const queryClient = useQueryClient();
+  const twentyFourHoursInMs = 1000 * 60 * 60 * 24;
 
   const isStreamBoundaryEmpty = () => {
     return !streamBoundary.start_time && !streamBoundary.end_time;
@@ -154,6 +153,10 @@ const useStream = (q, streamCache, setStreamCache) => {
       {
         ...queryCacheProps,
         enabled: false,
+        refetchOnWindowFocus: false,
+        refetchOnmount: false,
+        refetchOnReconnect: false,
+        staleTime: twentyFourHoursInMs,
         retry: 2,
         onSuccess: (newEvents) => {
           if (newEvents && newEvents.stream_boundary && newEvents.events) {
@@ -161,31 +164,7 @@ const useStream = (q, streamCache, setStreamCache) => {
 
             let oldEventsList = streamCache;
 
-            console.log("newEvents.stream_boundary", newEvents.stream_boundary);
-            console.log("newEvents.events", newEvents.events);
-
             setStreamCache([...oldEventsList, ...newEvents.events]);
-
-            // if (newEvents.events.length > PAGE_SIZE) {
-            //   if (streamCache.length > 0) {
-            //     setEvents([
-            //       streamCache[streamCache.length - 1],
-            //       ...newEvents.events.splice(0, PAGE_SIZE),
-            //     ]);
-            //     setCursor(cursor + PAGE_SIZE);
-            //   } else {
-            //     setEvents([...newEvents.events]);
-            //     setCursor(cursor + newEvents.events.length);
-            //   }
-            // } else if (newEvents.events.length <= PAGE_SIZE) {
-            //   setEvents(
-            //     setEvents([
-            //       streamCache[streamCache.length - 1],
-            //       ...newEvents.events.splice(0, newEvents.length),
-            //     ])
-            //   );
-            //   setCursor(cursor + newEvents.events.length);
-            // }
 
             updateStreamBoundaryWith(newEvents.stream_boundary, {
               ignoreEnd: true,
@@ -219,19 +198,21 @@ const useStream = (q, streamCache, setStreamCache) => {
       {
         ...queryCacheProps,
         enabled: false,
+        refetchOnWindowFocus: false,
+        refetchOnmount: false,
+        refetchOnReconnect: false,
         retry: 2,
+        staleTime: twentyFourHoursInMs,
         onSuccess: (newEvents) => {
           if (newEvents && newEvents.stream_boundary && newEvents.events) {
-            //setEvents([...events, ...newEvents.events]);
             let oldEventsList = streamCache;
 
             setStreamCache([...newEvents.events, ...oldEventsList]);
-            // newEvents.events.push(
-            //   queryClient
-            //     .getQueryData("stream-events")
-            //     .push([...newEvents.events])
-            // );
-            // queryClient.setQueryData("stream-events", newEvents.events);
+
+            if (oldEventsList.length > 0) {
+              setCursor(cursor + newEvents.events.length);
+            }
+
             updateStreamBoundaryWith(newEvents.stream_boundary, {
               ignoreStart: true,
             });
@@ -338,6 +319,26 @@ const useStream = (q, streamCache, setStreamCache) => {
     }
   );
 
+  /// handle previous events
+  const loadPreviousEventHandler = () => {
+    if (streamCache.length > cursor + PAGE_SIZE) {
+      setCursor(cursor + PAGE_SIZE);
+    } else {
+      loadOlderEvents();
+      previousEventRefetch();
+    }
+  };
+
+  /// handle newest events
+  const loadNewesEventHandler = () => {
+    if (0 < cursor - PAGE_SIZE) {
+      setCursor(cursor - PAGE_SIZE);
+    } else {
+      loadNewerEvents();
+      nextEventRefetch();
+    }
+  };
+
   return {
     streamBoundary,
     setDefaultBoundary,
@@ -369,7 +370,8 @@ const useStream = (q, streamCache, setStreamCache) => {
     loadNewerEvents,
     loadNewerEventsIsFetching,
     cursor,
-    setCursor,
+    loadPreviousEventHandler,
+    loadNewesEventHandler,
   };
 };
 export default useStream;
