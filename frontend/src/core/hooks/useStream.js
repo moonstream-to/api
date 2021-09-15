@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "react-query";
 import { queryCacheProps } from "./hookCommon";
 import { defaultStreamBoundary } from "../services/servertime.service.js";
 import { PAGE_SIZE } from "../constants";
-import { useCounter } from "@chakra-ui/counter";
+
 const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
   const [streamQuery, setStreamQuery] = useState(q || "");
   const [events, setEvents] = useState([]);
@@ -136,7 +136,7 @@ const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
 
   const { refetch: loadOlderEvents, isFetching: loadOlderEventsIsFetching } =
     useQuery(
-      ["stream-events", streamQuery],
+      "stream-events",
       () => {
         if (olderEvent) {
           const newStreamBoundary = {
@@ -181,7 +181,7 @@ const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
 
   const { refetch: loadNewerEvents, isFetching: loadNewerEventsIsFetching } =
     useQuery(
-      ["stream-events", streamQuery],
+      "stream-events",
       () => {
         if (newerEvent) {
           const newStreamBoundary = {
@@ -276,7 +276,7 @@ const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
     isFetching: nextEventIsFetching,
     remove: nextEventRemove,
   } = useQuery(
-    ["stream-next", streamQuery],
+    "stream-next",
     () => {
       if (isStreamBoundaryEmpty()) {
         return null;
@@ -310,7 +310,7 @@ const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
     isFetching: previousEventIsFetching,
     remove: previousEventRemove,
   } = useQuery(
-    ["stream-previous", streamQuery],
+    "stream-previous",
     () => {
       if (isStreamBoundaryEmpty()) {
         return null;
