@@ -75,8 +75,8 @@ const RootLayout = (props) => {
                 textColor="primary.900"
                 fontSize={["sm", "sm", "md", null]}
               >
-                First 1000 users will get a lifetime access and a cookie.
-                Request early access now at our
+                Join early on, the first 1000 users get free lifetime access to
+                Moonstream. Contact our team on
               </Text>
               <Button
                 variant="link"
