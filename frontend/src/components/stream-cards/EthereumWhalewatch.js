@@ -21,7 +21,7 @@ import { useToast } from "../../core/hooks";
 import { useSubscriptions } from "../../core/hooks";
 import moment from "moment";
 import { AiOutlineMonitor } from "react-icons/ai";
-import NewSubscription from "../NewModalSubscripton";
+import NewSubscription from "../NewSubscription";
 
 const EthereumWhalewatchCard_ = ({
   entry,

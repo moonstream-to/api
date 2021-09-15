@@ -296,9 +296,9 @@ class EthereumTXPoolProvider(BugoutEventProvider):
             for subscription in relevant_subscriptions
         ]
         subscriptions_filters = []
-        for adress in addresses:
+        for address in addresses:
             subscriptions_filters.extend(
-                [f"?#from_address:{adress}", f"?#to_address:{adress}"]
+                [f"?#from_address:{address}", f"?#to_address:{address}"]
             )
 
         return subscriptions_filters

@@ -94,7 +94,7 @@ const Sidebar = () => {
       )}
       {!ui.isLoggedIn && (
         <SidebarContent>
-          <Menu iconShape="square">
+          {/* <Menu iconShape="square">
             <MenuItem
               onClick={() => {
                 ui.toggleModal("register");
@@ -103,7 +103,7 @@ const Sidebar = () => {
             >
               Sign up
             </MenuItem>
-          </Menu>
+          </Menu> */}
           <Menu iconShape="square">
             <MenuItem
               onClick={() => {

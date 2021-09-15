@@ -20,6 +20,7 @@ CANONICAL_SUBSCRIPTION_TYPES = {
     "ethereum_blockchain": SubscriptionTypeResourceData(
         id="ethereum_blockchain",
         name="Ethereum transactions",
+        choices=["input:address", "tag:erc721"],
         description="Transactions that have been mined into the Ethereum blockchain",
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/ethereum/eth-diamond-purple.png",
         stripe_product_id=None,
@@ -30,6 +31,7 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         id="ethereum_whalewatch",
         name="Ethereum whale watch",
         description="Ethereum accounts that have experienced a lot of recent activity",
+        choices=[],
         # Icon taken from: https://www.maxpixel.net/Whale-Cetacean-Wildlife-Symbol-Ocean-Sea-Black-99310
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/whalewatch.png",
         stripe_product_id=None,
@@ -40,6 +42,7 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         id="ethereum_txpool",
         name="Ethereum transaction pool",
         description="Transactions that have been submitted into the Ethereum transaction pool but not necessarily mined yet",
+        choices=["input:address", "tag:erc721"],
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/ethereum/eth-diamond-rainbow.png",
         stripe_product_id=None,
         stripe_price_id=None,
@@ -74,6 +77,7 @@ def create_subscription_type(
     name: str,
     description: str,
     icon_url: str,
+    choices: List[str] = [],
     stripe_product_id: Optional[str] = None,
     stripe_price_id: Optional[str] = None,
     active: bool = False,
@@ -111,6 +115,7 @@ def create_subscription_type(
         "id": id,
         "name": name,
         "description": description,
+        "choices": choices,
         "icon_url": icon_url,
         "stripe_product_id": stripe_product_id,
         "stripe_price_id": stripe_price_id,
@@ -135,6 +140,7 @@ def cli_create_subscription_type(args: argparse.Namespace) -> None:
         args.name,
         args.description,
         args.icon,
+        args.choices,
         args.stripe_product_id,
         args.stripe_price_id,
         args.active,
@@ -220,6 +226,7 @@ def update_subscription_type(
     id: str,
     name: Optional[str] = None,
     description: Optional[str] = None,
+    choices: Optional[List[str]] = None,
     icon_url: Optional[str] = None,
     stripe_product_id: Optional[str] = None,
     stripe_price_id: Optional[str] = None,
@@ -254,6 +261,8 @@ def update_subscription_type(
         updated_resource_data["name"] = name
     if description is not None:
         updated_resource_data["description"] = description
+    if choices is not None:
+        updated_resource_data["choices"] = choices
     if icon_url is not None:
         updated_resource_data["icon_url"] = icon_url
     if stripe_product_id is not None:
@@ -266,19 +275,15 @@ def update_subscription_type(
     # TODO(zomglings): This was written with an outdated bugout-python client.
     # New client has an update_resource method which is what we should be using
     # here.
-    new_resource = bc.create_resource(
-        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-        application_id=MOONSTREAM_APPLICATION_ID,
-        resource_data=updated_resource_data,
-        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
-    )
 
     try:
-        bc.delete_resource(
+        new_resource = bc.update_resource(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             resource_id=brood_resource_id,
+            resource_data={"update": updated_resource_data},
             timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
         )
+
     except Exception as e:
         raise ConflictingSubscriptionTypesError(
             f"Unable to delete old subscription type with ID: {id}. Error:\n{repr(e)}"
@@ -295,6 +300,7 @@ def cli_update_subscription_type(args: argparse.Namespace) -> None:
         args.id,
         args.name,
         args.description,
+        args.choices,
         args.icon,
         args.stripe_product_id,
         args.stripe_price_id,
@@ -365,6 +371,20 @@ def ensure_canonical_subscription_types() -> BugoutResources:
                 id,
                 canonical_subscription_type.name,
                 canonical_subscription_type.description,
+                canonical_subscription_type.icon_url,
+                canonical_subscription_type.choices,
+                canonical_subscription_type.stripe_product_id,
+                canonical_subscription_type.stripe_price_id,
+                canonical_subscription_type.active,
+            )
+            existing_canonical_subscription_types[id] = resource
+        else:
+            canonical_subscription_type = CANONICAL_SUBSCRIPTION_TYPES[id]
+            resource = update_subscription_type(
+                id,
+                canonical_subscription_type.name,
+                canonical_subscription_type.description,
+                canonical_subscription_type.choices,
                 canonical_subscription_type.icon_url,
                 canonical_subscription_type.stripe_product_id,
                 canonical_subscription_type.stripe_price_id,

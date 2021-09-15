@@ -174,7 +174,8 @@ def query_ethereum_transactions(
         EthereumTransaction.value,
         EthereumBlock.timestamp.label("timestamp"),
     ).join(
-        EthereumBlock, EthereumTransaction.block_number == EthereumBlock.block_number
+        EthereumBlock,
+        EthereumTransaction.block_number == EthereumBlock.block_number,
     )
 
     if stream_boundary.include_start:

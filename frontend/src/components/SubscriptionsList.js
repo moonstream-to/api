@@ -21,6 +21,11 @@ import { useSubscriptions } from "../core/hooks";
 import ConfirmationRequest from "./ConfirmationRequest";
 import ColorSelector from "./ColorSelector";
 
+const mapper = {
+  "tag:erc721": "NFTs",
+  "input:address": "Address",
+};
+
 const SubscriptionsList = ({ emptyCTA }) => {
   const {
     subscriptionsCache,
@@ -94,7 +99,11 @@ const SubscriptionsList = ({ emptyCTA }) => {
                   </Editable>
                 </Td>
                 <Td mr={4} p={0}>
-                  <CopyButton>{subscription.address}</CopyButton>
+                  {subscription.address?.startsWith("tag") ? (
+                    <CopyButton>{mapper[subscription.address]}</CopyButton>
+                  ) : (
+                    <CopyButton>{subscription.address}</CopyButton>
+                  )}
                 </Td>
                 <Td>
                   <ColorSelector
