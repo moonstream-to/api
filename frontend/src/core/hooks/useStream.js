@@ -209,10 +209,6 @@ const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
 
             setStreamCache([...newEvents.events, ...oldEventsList]);
 
-            if (oldEventsList.length > 0) {
-              setCursor(cursor + newEvents.events.length);
-            }
-
             updateStreamBoundaryWith(newEvents.stream_boundary, {
               ignoreStart: true,
             });
@@ -369,7 +365,6 @@ const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
     loadOlderEventsIsFetching,
     loadNewerEvents,
     loadNewerEventsIsFetching,
-    cursor,
     loadPreviousEventHandler,
     loadNewesEventHandler,
   };
