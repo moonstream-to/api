@@ -1,9 +1,14 @@
-import { Flex } from "@chakra-ui/react";
-import React, { Suspense } from "react";
+import { CloseIcon } from "@chakra-ui/icons";
+import { Flex, Center, Text, Link, IconButton } from "@chakra-ui/react";
+import React, { Suspense, useContext, useState } from "react";
+import UIContext from "../core/providers/UIProvider/context";
 const Sidebar = React.lazy(() => import("../components/Sidebar"));
 const Navbar = React.lazy(() => import("../components/Navbar"));
 
 const RootLayout = (props) => {
+  const ui = useContext(UIContext);
+  const [showBanner, setShowBanner] = useState(true);
+
   return (
     <Flex
       direction="row"
@@ -25,6 +30,56 @@ const RootLayout = (props) => {
         <Suspense fallback="">
           <Navbar />
         </Suspense>
+        {!ui.isAppView && (
+          <Flex
+            w="100%"
+            h={showBanner ? ["6.5rem", "4.5rem", "3rem", null] : "0"}
+            minH={showBanner ? ["6.5rem", "4.5rem", "3rem", null] : "0"}
+            animation="linear"
+            transition="1s"
+            overflow="hidden"
+          >
+            <Flex
+              px="20px"
+              w="100%"
+              minH={["6.5rem", "4.5rem", "3rem", null]}
+              h={["6.5rem", "4.5rem", "3rem", null]}
+              placeContent="center"
+              bgColor="suggested.900"
+              boxShadow="md"
+              position="relative"
+              className="banner"
+            >
+              <Center w="calc(100% - 60px)">
+                {" "}
+                <Text
+                  fontWeight="600"
+                  textColor="primary.900"
+                  fontSize={["sm", "sm", "md", null]}
+                >
+                  Join early. Our first 1000 users get free lifetime access to
+                  blockchain analytics. Contact our team on{" "}
+                  <Link
+                    href={"https://discord.gg/V3tWaP36"}
+                    color="secondary.900"
+                  >
+                    Discord
+                  </Link>
+                </Text>
+              </Center>
+              {/* <Spacer /> */}
+              <IconButton
+                position="absolute"
+                top="0"
+                right="0"
+                icon={<CloseIcon />}
+                colorScheme="primary"
+                variant="ghost"
+                onClick={() => setShowBanner(false)}
+              />
+            </Flex>
+          </Flex>
+        )}
         {props.children}
       </Flex>
     </Flex>
