@@ -40,7 +40,6 @@ const LandingNavbar = () => {
         py={1}
         flexBasis="200px"
         flexGrow={1}
-        flexShirnk={1}
         id="Logo Container"
       >
         <RouterLink href="/" passHref>
