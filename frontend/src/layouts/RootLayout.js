@@ -4,7 +4,6 @@ import {
   Spinner,
   Center,
   Text,
-  Button,
   Link,
   IconButton,
 } from "@chakra-ui/react";
@@ -51,8 +50,8 @@ const RootLayout = (props) => {
         </Suspense>
         <Flex
           w="100%"
-          h={showBanner ? ["6rem", "3rem", null] : "0"}
-          minH={showBanner ? ["6rem", "3rem", null] : "0"}
+          h={showBanner ? ["6.5rem", "4.5rem", "3rem", null] : "0"}
+          minH={showBanner ? ["6.5rem", "4.5rem", "3rem", null] : "0"}
           animation="linear"
           transition="1s"
           overflow="hidden"
@@ -60,33 +59,30 @@ const RootLayout = (props) => {
           <Flex
             px="20px"
             w="100%"
-            minH={["6rem", "3rem", null]}
-            h={["6rem", "3rem", null]}
+            minH={["6.5rem", "4.5rem", "3rem", null]}
+            h={["6.5rem", "4.5rem", "3rem", null]}
             placeContent="center"
             bgColor="suggested.900"
             boxShadow="md"
             position="relative"
             className="banner"
           >
-            <Center>
+            <Center w="calc(100% - 60px)">
               {" "}
               <Text
                 fontWeight="600"
                 textColor="primary.900"
                 fontSize={["sm", "sm", "md", null]}
               >
-                Join early on, the first 1000 users get free lifetime access to
-                Moonstream. Contact our team on
+                Join early. Our first 1000 users get free lifetime access to
+                blockchain analytics. Contact our team on{" "}
+                <Link
+                  href={"https://discord.gg/V3tWaP36"}
+                  color="secondary.900"
+                >
+                  Discord
+                </Link>
               </Text>
-              <Button
-                variant="link"
-                colorScheme="secondary"
-                color="secondary.900"
-                as={Link}
-                href={"https://discord.gg/V3tWaP36"}
-              >
-                Discord
-              </Button>
             </Center>
             {/* <Spacer /> */}
             <IconButton
