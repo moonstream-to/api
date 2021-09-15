@@ -6,7 +6,6 @@ import { Flex } from "@chakra-ui/react";
 import UIContext from "../core/providers/UIProvider/context";
 const ForgotPassword = React.lazy(() => import("./ForgotPassword"));
 const SignIn = React.lazy(() => import("./SignIn"));
-const SignUp = React.lazy(() => import("./SignUp"));
 const LandingNavbar = React.lazy(() => import("./LandingNavbar"));
 const AppNavbar = React.lazy(() => import("./AppNavbar"));
 const HubspotForm = React.lazy(() => import("./HubspotForm"));
