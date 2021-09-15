@@ -467,16 +467,6 @@ const EntriesNavigation = () => {
                 <Center>
                   <Button
                     onClick={() => {
-                      setCursor(cursor + PAGE_SIZE);
-                    }}
-                    variant="outline"
-                    colorScheme="suggested"
-                  >
-                    {" "}
-                    Page++{`${cursor}/${streamCache.length}`}
-                  </Button>
-                  <Button
-                    onClick={() => {
                       console.log(streamCache.length > cursor + PAGE_SIZE);
 
                       loadPreviousEventHandler();

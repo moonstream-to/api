@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "react-query";
 import { queryCacheProps } from "./hookCommon";
 import { defaultStreamBoundary } from "../services/servertime.service.js";
 import { PAGE_SIZE } from "../constants";
+import { useCounter } from "@chakra-ui/counter";
 const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
   const [streamQuery, setStreamQuery] = useState(q || "");
   const [events, setEvents] = useState([]);
@@ -208,6 +209,9 @@ const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
             let oldEventsList = streamCache;
 
             setStreamCache([...newEvents.events, ...oldEventsList]);
+            if (oldEventsList > 0) {
+              setCursor(cursor + newEvents.events.length);
+            }
 
             updateStreamBoundaryWith(newEvents.stream_boundary, {
               ignoreStart: true,
