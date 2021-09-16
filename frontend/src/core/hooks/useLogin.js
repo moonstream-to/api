@@ -1,5 +1,7 @@
+import { useContext } from "react";
 import { useMutation } from "react-query";
 import { useToast, useUser, useInviteAccept } from ".";
+import UIContext from "../providers/UIProvider/context";
 import { AuthService } from "../services";
 
 const LOGIN_TYPES = {
@@ -7,6 +9,7 @@ const LOGIN_TYPES = {
   TOKEN: true,
 };
 const useLogin = (loginType) => {
+  const { setLoggingIn } = useContext(UIContext);
   const { getUser } = useUser();
   const toast = useToast();
   const { inviteAccept } = useInviteAccept();
@@ -16,6 +19,9 @@ const useLogin = (loginType) => {
     error,
     data,
   } = useMutation(AuthService.login, {
+    onMutate: () => {
+      setLoggingIn(true);
+    },
     onSuccess: (data) => {
       // Default value for loginType is LOGIN_TYPES.MANUAL
       if (!loginType) {
@@ -36,6 +42,9 @@ const useLogin = (loginType) => {
     },
     onError: (error) => {
       toast(error, "error");
+    },
+    onSettled: () => {
+      setLoggingIn(false);
     },
   });
 

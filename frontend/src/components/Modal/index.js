@@ -6,7 +6,7 @@ import CustomIcon from "../CustomIcon";
 import styles from "./styles";
 
 const Modal = ({ children, onClose }) => (
-  <Flex onClick={onClose} css={styles.modal}>
+  <Flex onClick={onClose} css={styles.modal} zIndex={100002}>
     <Flex onClick={(e) => e.stopPropagation()} css={styles.flex}>
       <Image
         color="primary.900"

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import {
   Text,
   Stack,
@@ -175,9 +175,9 @@ const EthereumWhalewatchCard_ = ({
         >
           Value
         </Text>
-        {Object.keys(whales).map((whaleType) => {
+        {Object.keys(whales).map((whaleType, idx) => {
           return (
-            <>
+            <Fragment key={`whale-whatch-${idx}`}>
               <Box gridColumn="1 / 3">
                 <Text
                   h="100%"
@@ -238,7 +238,7 @@ const EthereumWhalewatchCard_ = ({
               >
                 {whales[whaleType].statistic}
               </Box>
-            </>
+            </Fragment>
           );
         })}
       </SimpleGrid>

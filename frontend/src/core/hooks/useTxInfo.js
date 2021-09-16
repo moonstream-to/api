@@ -10,10 +10,6 @@ const useTxInfo = (wrappedEvent) => {
   if (wrappedEvent?.tx) {
     event = wrappedEvent.tx;
   }
-
-  console.log("TXINFO: wrappedEvent:", wrappedEvent);
-  console.log("TXINFO: event:", event);
-
   let transaction = null;
   if (event.event_type === "ethereum_blockchain") {
     transaction = event.event_data;
@@ -25,11 +21,8 @@ const useTxInfo = (wrappedEvent) => {
     };
   }
 
-  console.log("TXINFO: transaction:", transaction);
-
   const getTxInfo = async () => {
     const response = await TxInfoService.getTxInfo({ tx: { ...transaction } });
-    console.log("TXINFO: response:", response);
     return response.data;
   };
   const { data, isLoading, isFetchedAfterMount, refetch, isError, error } =
