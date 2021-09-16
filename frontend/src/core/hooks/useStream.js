@@ -1,11 +1,9 @@
-import { useState, useEffect } from "react";
-
+import { useState } from "react";
 import { StreamService } from "../services";
-import { useQuery, useQueryClient } from "react-query";
+import { useQuery } from "react-query";
 import { queryCacheProps } from "./hookCommon";
 import { defaultStreamBoundary } from "../services/servertime.service.js";
 import { PAGE_SIZE } from "../constants";
-import { useCounter } from "@chakra-ui/counter";
 const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
   const [streamQuery, setStreamQuery] = useState(q || "");
   const [events, setEvents] = useState([]);
@@ -33,15 +31,6 @@ const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
     }
 
     let newBoundary = { ...streamBoundary };
-    // We do not check if there is no overlap between the streamBoundary and the pageBoundary - we assume
-    // that there *is* an overlap and even if there isn't the stream should gracefully respect the
-    // pageBoundary because that was the most recent request the user made.
-    // TODO(zomglings): If there is no overlap in boundaries, replace streamBoundary with pageBoundary.
-    // No overlap logic:
-    // if (<no overlap>) {
-    //   setStreamBoundary(pageBoundary)
-    //   return pageBoundary
-    // }
     if (!ignoreStart) {
       if (
         !newBoundary.start_time ||
@@ -74,10 +63,6 @@ const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
     setStreamBoundary(newBoundary);
     return newBoundary;
   };
-
-  useEffect(() => {
-    setEvents(streamCache ? streamCache.slice(cursor, cursor + PAGE_SIZE) : []);
-  }, [streamCache, cursor, PAGE_SIZE]);
 
   const getEvents = async (customStreamBoundary) => {
     let requestStreamBoundary = customStreamBoundary;

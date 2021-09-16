@@ -1,10 +1,4 @@
-import React, {
-  useRef,
-  useEffect,
-  useContext,
-  useState,
-  useCallback,
-} from "react";
+import React, { useEffect, useContext, useState, useCallback } from "react";
 import {
   Flex,
   Spinner,
@@ -41,6 +35,7 @@ import useStream from "../core/hooks/useStream";
 import { ImCancelCircle } from "react-icons/im";
 import { previousEvent } from "../core/services/stream.service";
 import { PAGE_SIZE } from "../core/constants";
+import DataContext from "../core/providers/DataProvider/context";
 
 const FILTER_TYPES = {
   ADDRESS: 0,
@@ -62,6 +57,8 @@ const CONDITION = {
 };
 
 const EntriesNavigation = () => {
+  const { cursor, setCursor, streamCache, setStreamCache } =
+    useContext(DataContext);
   const ui = useContext(UIContext);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { subscriptionsCache } = useSubscriptions();
@@ -75,13 +72,10 @@ const EntriesNavigation = () => {
     },
   ]);
   const [filterState, setFilterState] = useState([]);
-  const loadMoreButtonRef = useRef(null);
-  const [streamCache, setStreamCache] = useState([]);
-  const [cursor, setCursor] = useState(0);
+
   const {
     eventsIsLoading,
     eventsRefetch,
-    eventsIsFetching,
     latestEventsRefetch,
     nextEventRefetch,
     previousEventRefetch,
