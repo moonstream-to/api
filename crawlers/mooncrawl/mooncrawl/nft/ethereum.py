@@ -31,6 +31,8 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 # Summary keys
+SUMMARY_KEY_ID = "summary_id"
+SUMMARY_KEY_ARGS = "args"
 SUMMARY_KEY_START_BLOCK = "start_block"
 SUMMARY_KEY_END_BLOCK = "end_block"
 SUMMARY_KEY_NUM_BLOCKS = "num_blocks"
@@ -43,6 +45,8 @@ SUMMARY_KEY_NFT_PURCHASERS = "nft_owners"
 SUMMARY_KEY_NFT_MINTERS = "nft_minters"
 
 SUMMARY_KEYS = [
+    SUMMARY_KEY_ID,
+    SUMMARY_KEY_ARGS,
     SUMMARY_KEY_START_BLOCK,
     SUMMARY_KEY_END_BLOCK,
     SUMMARY_KEY_NUM_BLOCKS,
@@ -497,6 +501,8 @@ def block_bounded_summary(
     """
     Produces a summary of Ethereum NFT activity between the given start_time and end_time (inclusive).
     """
+    summary_id = f"nft-ethereum-start-{start_block}-end-{end_block}"
+
     block_filter = and_(
         EthereumBlock.block_number >= start_block,
         EthereumBlock.block_number <= end_block,
@@ -629,6 +635,8 @@ def block_bounded_summary(
             "end_time": end_time,
             "include_end": True,
         },
+        SUMMARY_KEY_ID: summary_id,
+        SUMMARY_KEY_ARGS: {"start": start_block, "end": end_block},
         SUMMARY_KEY_START_BLOCK: first_block,
         SUMMARY_KEY_END_BLOCK: last_block,
         SUMMARY_KEY_NUM_BLOCKS: num_blocks,

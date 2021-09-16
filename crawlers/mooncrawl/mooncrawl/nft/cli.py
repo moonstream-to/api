@@ -2,15 +2,14 @@
 A command line tool to crawl information about NFTs from various sources.
 """
 import argparse
-from datetime import datetime, timedelta, timezone
-import dateutil.parser
+from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
 import json
 import logging
 import os
 import sys
 import time
-from typing import Any, Dict, cast, Optional
+from typing import Any, cast, Dict, Optional
 
 
 from moonstreamdb.db import yield_db_session_ctx
@@ -19,7 +18,13 @@ from sqlalchemy.orm.session import Session
 from web3 import Web3
 
 from ..ethereum import connect
-from .ethereum import summary as ethereum_summary, add_labels
+from .ethereum import (
+    summary as ethereum_summary,
+    add_labels,
+    SUMMARY_KEY_ARGS,
+    SUMMARY_KEY_ID,
+    SUMMARY_KEY_NUM_BLOCKS,
+)
 from ..publish import publish_json
 from ..settings import MOONSTREAM_IPC_PATH
 from ..version import MOONCRAWL_VERSION
@@ -156,17 +161,45 @@ def ethereum_label_handler(args: argparse.Namespace) -> None:
 
 
 def push_summary(result: Dict[str, Any], humbug_token: str):
-
     title = (
         f"NFT activity on the Ethereum blockchain: end time: {result['crawled_at'] })"
     )
+
+    tags = [
+        f"crawler_version:{MOONCRAWL_VERSION}",
+        f"summary_id:{result.get(SUMMARY_KEY_ID, '')}",
+    ]
+
+    # Add an "error:missing_blocks" tag for all summaries in which the number of blocks processed
+    # is not equal to the expected number of blocks.
+    args = result.get(SUMMARY_KEY_ARGS, {})
+    args_start = args.get("start")
+    args_end = args.get("end")
+    expected_num_blocks = None
+    if args_start is not None and args_end is not None:
+        expected_num_blocks = cast(int, args_end) - cast(int, args_start) + 1
+    num_blocks = result.get(SUMMARY_KEY_NUM_BLOCKS)
+    if (
+        expected_num_blocks is None
+        or num_blocks is None
+        or num_blocks != expected_num_blocks
+    ):
+        tags.append("error:missing_blocks")
+
+    # TODO(yhtyyar, zomglings): Also add checkpoints in database for nft labelling. This way, we can
+    # add an "error:stale" tag to summaries generated before nft labels were processed for the
+    # block range in the summary.
+
+    created_at = result.get("date_range", {}).get("end_time")
+
     publish_json(
         "nft_ethereum",
         humbug_token,
         title,
         result,
-        tags=[f"crawler_version:{MOONCRAWL_VERSION}"],
-        wait=False,
+        tags=tags,
+        wait=True,
+        created_at=created_at,
     )
 
 
