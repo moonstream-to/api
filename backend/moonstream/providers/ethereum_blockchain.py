@@ -14,7 +14,6 @@ from sqlalchemy.orm import Session, Query
 from sqlalchemy.sql.functions import user
 
 from .. import data
-from ..settings import DEFAULT_STREAM_TIMEINTERVAL
 from ..stream_boundaries import validate_stream_boundary
 from ..stream_queries import StreamQuery
 
@@ -24,6 +23,15 @@ logger.setLevel(logging.WARN)
 
 
 event_type = "ethereum_blockchain"
+
+description = f"""Event provider for transactions from the Ethereum blockchain.
+
+To restrict your queries to this provider, add a filter of \"type:{event_type}\" to your query (query parameter: \"q\") on the /streams endpoint."""
+
+default_time_interval_seconds: int = 5 * 60
+
+# 200 transactions per block, 4 blocks per minute.
+estimated_events_per_time_interval: float = 5 * 800
 
 
 def validate_subscription(

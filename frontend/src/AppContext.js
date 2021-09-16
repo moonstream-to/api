@@ -6,6 +6,7 @@ import {
   UserProvider,
   ModalProvider,
   UIProvider,
+  DataProvider,
 } from "./core/providers";
 import { StripeProvider } from "./core/providers/StripeProvider";
 
@@ -15,9 +16,11 @@ const AppContext = (props) => {
       <ModalProvider>
         <StripeProvider>
           <ChakraProvider theme={theme}>
-            <UIProvider>
-              <AnalyticsProvider>{props.children}</AnalyticsProvider>
-            </UIProvider>
+            <DataProvider>
+              <UIProvider>
+                <AnalyticsProvider>{props.children}</AnalyticsProvider>
+              </UIProvider>
+            </DataProvider>
           </ChakraProvider>
         </StripeProvider>
       </ModalProvider>

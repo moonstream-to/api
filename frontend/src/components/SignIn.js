@@ -13,6 +13,7 @@ import {
   InputGroup,
   Button,
   Input,
+  Link,
   InputRightElement,
 } from "@chakra-ui/react";
 import CustomIcon from "./CustomIcon";
@@ -84,18 +85,6 @@ const SignIn = ({ toggleModal }) => {
           Login
         </Button>
       </form>
-      <Box height="1px" width="100%" background="#eaebf8" mb="1.875rem" />
-      <Text textAlign="center" fontSize="md" color="gray.1200">
-        Don`t have an account?{" "}
-        <Box
-          cursor="pointer"
-          color="primary.800"
-          as="span"
-          onClick={() => toggleModal("register")}
-        >
-          Register
-        </Box>
-      </Text>
       <Text textAlign="center" fontSize="md" color="gray.1200">
         {" "}
         <Box
@@ -106,6 +95,22 @@ const SignIn = ({ toggleModal }) => {
         >
           Forgot your password?
         </Box>
+        <Box height="1px" width="100%" background="#eaebf8" mb="1.875rem" />
+      </Text>
+      <Text textAlign="center" fontSize="md" color="gray.1200">
+        {/* Don`t have an account?{" "} */}
+        We are in early access. If you would like to use Moonstream,{" "}
+        <Link href={"https://discord.gg/V3tWaP36"} color="secondary.900">
+          contact us on Discord.
+        </Link>
+        {/* <Box
+          cursor="pointer"
+          color="primary.800"
+          as="span"
+          onClick={() => toggleModal("register")}
+        >
+          Register
+        </Box> */}
       </Text>
     </Modal>
   );

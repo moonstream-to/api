@@ -35,6 +35,9 @@ class BugoutEventProvider:
     def __init__(
         self,
         event_type: str,
+        description: str,
+        default_time_interval_seconds: int,
+        estimated_events_per_time_interval: float,
         tags: Optional[List[str]] = None,
         batch_size: int = 100,
         timeout: float = 30.0,
@@ -47,6 +50,9 @@ class BugoutEventProvider:
         - timeout: Request timeout for Bugout requests
         """
         self.event_type = event_type
+        self.description = description
+        self.default_time_interval_seconds = default_time_interval_seconds
+        self.estimated_events_per_time_interval = estimated_events_per_time_interval
         self.batch_size = batch_size
         self.timeout = timeout
         if tags is None:
@@ -273,12 +279,23 @@ class EthereumTXPoolProvider(BugoutEventProvider):
     def __init__(
         self,
         event_type: str,
+        description: str,
+        default_time_interval_seconds: int,
+        estimated_events_per_time_interval: float,
         tags: Optional[List[str]] = None,
         batch_size: int = 100,
         timeout: float = 30.0,
     ):
 
-        super().__init__(event_type, tags, batch_size, timeout)
+        super().__init__(
+            event_type=event_type,
+            description=description,
+            default_time_interval_seconds=default_time_interval_seconds,
+            estimated_events_per_time_interval=estimated_events_per_time_interval,
+            tags=tags,
+            batch_size=batch_size,
+            timeout=timeout,
+        )
 
     def parse_filters(
         self, query: StreamQuery, user_subscriptions: Dict[str, List[BugoutResource]]
@@ -304,11 +321,32 @@ class EthereumTXPoolProvider(BugoutEventProvider):
         return subscriptions_filters
 
 
+whalewatch_description = """Event provider for Ethereum whale watch.
+
+Shows the top 10 addresses active on the Ethereum blockchain over the last hour in the following categories:
+1. Number of transactions sent
+2. Number of transactions received
+3. Amount (in WEI) sent
+4. Amount (in WEI) received
+
+To restrict your queries to this provider, add a filter of \"type:ethereum_whalewatch\" to your query (query parameter: \"q\") on the /streams endpoint."""
 whalewatch_provider = BugoutEventProvider(
-    event_type="ethereum_whalewatch", tags=["crawl_type:ethereum_trending"]
+    event_type="ethereum_whalewatch",
+    description=whalewatch_description,
+    default_time_interval_seconds=310,
+    estimated_events_per_time_interval=1,
+    tags=["crawl_type:ethereum_trending"],
 )
 
+ethereum_txpool_description = """Event provider for Ethereum transaction pool.
 
+Shows the latest events (from the previous hour) in the Ethereum transaction pool.
+
+To restrict your queries to this provider, add a filter of \"type:ethereum_txpool\" to your query (query parameter: \"q\") on the /streams endpoint."""
 ethereum_txpool_provider = EthereumTXPoolProvider(
-    event_type="ethereum_txpool", tags=["client:ethereum-txpool-crawler-0"]
+    event_type="ethereum_txpool",
+    description=ethereum_txpool_description,
+    default_time_interval_seconds=5,
+    estimated_events_per_time_interval=50,
+    tags=["client:ethereum-txpool-crawler-0"],
 )

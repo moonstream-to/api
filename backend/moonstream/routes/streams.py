@@ -2,7 +2,7 @@
 The Moonstream subscriptions HTTP API
 """
 import logging
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from bugout.data import BugoutResource
 from fastapi import FastAPI, Request, Query, Depends
@@ -58,8 +58,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-whitelist_paths: Dict[str, str] = {}
+whitelist_paths: Dict[str, str] = {"/streams/info": "GET"}
 whitelist_paths.update(DOCS_PATHS)
+whitelist_paths.update()
 app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
 
 
@@ -86,6 +87,19 @@ def get_user_subscriptions(token: str) -> Dict[str, List[BugoutResource]]:
         user_subscriptions[subscription_type].append(subscription)
 
     return user_subscriptions
+
+
+@app.get("/info", tags=["streams"])
+async def info_handler() -> Dict[str, Any]:
+    info = {
+        event_type: {
+            "description": provider.description,
+            "default_time_interval_seconds": provider.default_time_interval_seconds,
+            "estimated_events_per_time_interval": provider.estimated_events_per_time_interval,
+        }
+        for event_type, provider in event_providers.items()
+    }
+    return info
 
 
 @app.get("/", tags=["streams"], response_model=data.GetEventsResponse)

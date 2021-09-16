@@ -40,7 +40,6 @@ const LandingNavbar = () => {
         py={1}
         flexBasis="200px"
         flexGrow={1}
-        flexShirnk={1}
         id="Logo Container"
       >
         <RouterLink href="/" passHref>
@@ -90,7 +89,7 @@ const LandingNavbar = () => {
                 </Button>
               </RouterLink>
             )}
-            {!ui.isLoggedIn && (
+            {/* {!ui.isLoggedIn && (
               <Button
                 colorScheme="whiteAlpha"
                 variant="outline"
@@ -101,7 +100,7 @@ const LandingNavbar = () => {
               >
                 Get started
               </Button>
-            )}
+            )} */}
             {!ui.isLoggedIn && (
               <Button
                 color="white"
