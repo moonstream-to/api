@@ -11,7 +11,6 @@ export const StripeProvider = ({ children }) => {
   useEffect(() => {
     let isMounted = true;
     if (isMounted) {
-      console.log("Creating Stripe client to process payments");
       if (!stripePublishableKey) {
         console.warn(
           "Unable to process payments: Stripe publishable key not provided"

@@ -202,11 +202,6 @@ const EntriesNavigation = () => {
   };
   if (subscriptionsCache.isLoading) return "";
 
-  console.log(
-    "streamBoundary.previous_event_time",
-    streamBoundary.previous_event_time
-  );
-
   return (
     <Flex
       id="JournalNavigation"
