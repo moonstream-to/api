@@ -70,7 +70,9 @@ async def stream_handler(
         data_journal_id=MOONSTREAM_DATA_JOURNAL_ID,
         data_access_token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
         stream_boundary=stream_boundary,
-        user_subscriptions={},
+        user_subscriptions={
+            nft_summary_provider.event_type: [nft_summary_provider.event_type]
+        },
         query=StreamQuery(subscription_types=[nft_summary_provider.event_type]),
     )
 
