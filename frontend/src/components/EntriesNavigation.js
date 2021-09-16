@@ -66,7 +66,6 @@ const EntriesNavigation = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { subscriptionsCache } = useSubscriptions();
   const [initialized, setInitialized] = useState(false);
-  const [entries, setEntries] = useState([]);
   const [newFilterState, setNewFilterState] = useState([
     {
       type: FILTER_TYPES.ADDRESS,
@@ -90,6 +89,10 @@ const EntriesNavigation = () => {
     setDefaultBoundary,
     loadPreviousEventHandler,
     loadNewesEventHandler,
+    loadOlderEventsIsFetching,
+    loadNewerEventsIsFetching,
+    previousEventIsFetching,
+    nextEventIsFetching,
   } = useStream(
     ui.searchTerm.q,
     streamCache,
@@ -204,6 +207,11 @@ const EntriesNavigation = () => {
     setFilterState(currentFilterState);
   };
   if (subscriptionsCache.isLoading) return "";
+
+  console.log(
+    "streamBoundary.previous_event_time",
+    streamBoundary.previous_event_time
+  );
 
   return (
     <Flex
@@ -425,7 +433,7 @@ const EntriesNavigation = () => {
               //onScroll={(e) => handleScroll(e)}
             >
               <Stack direction="row" justifyContent="space-between">
-                {!eventsIsFetching ? (
+                {!loadNewerEventsIsFetching && !nextEventIsFetching ? (
                   <Button
                     onClick={() => {
                       loadNewesEventHandler();
@@ -462,12 +470,12 @@ const EntriesNavigation = () => {
                     filterConstants={{ DIRECTIONS, CONDITION, FILTER_TYPES }}
                   />
                 ))}
-              {previousEvent && !eventsIsFetching ? (
+              {previousEvent &&
+              !loadOlderEventsIsFetching &&
+              !previousEventIsFetching ? (
                 <Center>
                   <Button
                     onClick={() => {
-                      console.log(streamCache.length > cursor + PAGE_SIZE);
-
                       loadPreviousEventHandler();
                     }}
                     variant="outline"
@@ -478,7 +486,7 @@ const EntriesNavigation = () => {
                 </Center>
               ) : (
                 <Center>
-                  {!eventsIsFetching ? (
+                  {!previousEventIsFetching && !loadOlderEventsIsFetching ? (
                     "Тransactions not found. You can subscribe to more addresses in Subscriptions menu."
                   ) : (
                     <Button
@@ -489,21 +497,6 @@ const EntriesNavigation = () => {
                     ></Button>
                   )}
                 </Center>
-              )}
-              {streamBoundary.previous_event_time && eventsIsLoading ? (
-                <Center>
-                  <Spinner
-                    //hidden={!isFetchingMore}
-                    ref={loadMoreButtonRef}
-                    my={8}
-                    size="lg"
-                    color="primary.500"
-                    thickness="4px"
-                    speed="1.5s"
-                  />
-                </Center>
-              ) : (
-                ""
               )}
             </Flex>
           </Flex>

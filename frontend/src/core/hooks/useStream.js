@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "react-query";
 import { queryCacheProps } from "./hookCommon";
 import { defaultStreamBoundary } from "../services/servertime.service.js";
 import { PAGE_SIZE } from "../constants";
-
+import { useCounter } from "@chakra-ui/counter";
 const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
   const [streamQuery, setStreamQuery] = useState(q || "");
   const [events, setEvents] = useState([]);
@@ -101,7 +101,7 @@ const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
     isFetching: eventsIsFetching,
     remove: eventsRemove,
   } = useQuery(
-    ["stream-events", streamQuery],
+    "stream-default",
     () => {
       if (isStreamBoundaryEmpty()) {
         return null;
@@ -115,7 +115,6 @@ const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
         if (newEvents && newEvents.stream_boundary && newEvents.events) {
           if (cursor === null) {
             setCursor(0);
-            console.log("newEvents.events", newEvents.events);
             setStreamCache([...newEvents.events]);
             if (newEvents.events.length > PAGE_SIZE) {
               setEvents(newEvents.events.slice(0, PAGE_SIZE));
@@ -136,12 +135,12 @@ const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
 
   const { refetch: loadOlderEvents, isFetching: loadOlderEventsIsFetching } =
     useQuery(
-      "stream-events",
+      "stream-older-events",
       () => {
         if (olderEvent) {
           const newStreamBoundary = {
             // 5 minutes before the previous event
-            start_time: olderEvent.event_timestamp - 1 * 60,
+            start_time: olderEvent.event_timestamp - 5 * 60,
             include_start: true,
             // TODO(zomglings): This is a workaround to what seems to be a filter bug on `created_at:<=...` filters
             // on Bugout journals. Please look into it.
@@ -161,8 +160,6 @@ const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
         retry: 2,
         onSuccess: (newEvents) => {
           if (newEvents && newEvents.stream_boundary && newEvents.events) {
-            console.log(" Load olders events");
-
             let oldEventsList = streamCache;
 
             setStreamCache([...oldEventsList, ...newEvents.events]);
@@ -181,7 +178,7 @@ const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
 
   const { refetch: loadNewerEvents, isFetching: loadNewerEventsIsFetching } =
     useQuery(
-      "stream-events",
+      "stream-newest-events",
       () => {
         if (newerEvent) {
           const newStreamBoundary = {
@@ -193,6 +190,7 @@ const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
             end_time: newerEvent.event_timestamp + 5 * 60,
             include_end: true,
           };
+
           return getEvents(newStreamBoundary);
         }
       },
@@ -238,7 +236,7 @@ const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
     isFetching: latestEventsIsFetching,
     remove: latestEventsRemove,
   } = useQuery(
-    ["stream-latest", streamQuery],
+    "stream-latest",
     () => {
       if (isStreamBoundaryEmpty()) {
         return null;
@@ -328,6 +326,10 @@ const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
   const loadPreviousEventHandler = () => {
     if (streamCache.length > cursor + PAGE_SIZE) {
       setCursor(cursor + PAGE_SIZE);
+    } else if (streamCache.length == cursor + PAGE_SIZE) {
+      setCursor(cursor + PAGE_SIZE);
+      loadOlderEvents();
+      previousEventRefetch();
     } else {
       loadOlderEvents();
       previousEventRefetch();
@@ -338,6 +340,10 @@ const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
   const loadNewesEventHandler = () => {
     if (0 < cursor - PAGE_SIZE) {
       setCursor(cursor - PAGE_SIZE);
+    } else if (0 == cursor - PAGE_SIZE) {
+      setCursor(cursor - PAGE_SIZE);
+      loadNewerEvents();
+      nextEventRefetch();
     } else {
       loadNewerEvents();
       nextEventRefetch();
