@@ -350,3 +350,21 @@ ethereum_txpool_provider = EthereumTXPoolProvider(
     estimated_events_per_time_interval=50,
     tags=["client:ethereum-txpool-crawler-0"],
 )
+
+nft_summary_description = """Event provider for NFT market summaries.
+
+This provider periodically generates NFT market summaries for the last hour of market activity.
+
+Currently, it summarizes the activities on the following NFT markets:
+1. The Ethereum market
+
+This provider is currently not accessible for subscription. The data from this provider is publicly
+available at the /nft endpoint."""
+nft_summary_provider = BugoutEventProvider(
+    event_type="nft_summary",
+    description=nft_summary_description,
+    # 40 blocks per summary, 15 seconds per block + 2 seconds wiggle room.
+    default_time_interval_seconds=40 * 17,
+    estimated_events_per_time_interval=1,
+    tags=["crawl_type:nft_ethereum"],
+)
