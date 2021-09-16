@@ -1,31 +1,13 @@
 import { CloseIcon } from "@chakra-ui/icons";
-import {
-  Flex,
-  Spinner,
-  Center,
-  Text,
-  Link,
-  IconButton,
-} from "@chakra-ui/react";
-import React, { Suspense, useContext, useState, useEffect } from "react";
+import { Flex, Center, Text, Link, IconButton } from "@chakra-ui/react";
+import React, { Suspense, useContext, useState } from "react";
+import UIContext from "../core/providers/UIProvider/context";
 const Sidebar = React.lazy(() => import("../components/Sidebar"));
 const Navbar = React.lazy(() => import("../components/Navbar"));
-import UIContext from "../core/providers/UIProvider/context";
 
 const RootLayout = (props) => {
   const ui = useContext(UIContext);
-  const [showSpinner, setSpinner] = useState(true);
   const [showBanner, setShowBanner] = useState(true);
-
-  useEffect(() => {
-    if (ui.isAppView && ui.isAppReady) {
-      setSpinner(false);
-    } else if (!ui.isAppView) {
-      setSpinner(false);
-    } else {
-      setSpinner(true);
-    }
-  }, [ui, setSpinner]);
 
   return (
     <Flex
@@ -98,8 +80,7 @@ const RootLayout = (props) => {
             </Flex>
           </Flex>
         )}
-        {!showSpinner && props.children}
-        {showSpinner && <Spinner />}
+        {props.children}
       </Flex>
     </Flex>
   );

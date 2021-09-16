@@ -21,6 +21,9 @@ const useSignUp = (source) => {
     data,
     isSuccess,
   } = useMutation(AuthService.register(), {
+    onMutate: () => {
+      ui.setLoggingIn(true);
+    },
     onSuccess: (response) => {
       localStorage.setItem("MOONSTREAM_ACCESS_TOKEN", response.data.id);
       const invite_code = window.sessionStorage.getItem("invite_code");
@@ -35,12 +38,14 @@ const useSignUp = (source) => {
         });
       }
       getUser();
-      ui.setisOnboardingComplete(false);
-      ui.setOnboardingState({ welcome: 0, subscriptions: 0, stream: 0 });
+      ui.setOnboardingComplete(false);
       router.push("/welcome", undefined, { shallow: false });
     },
     onError: (error) => {
       toast(error, "error");
+    },
+    onSettled: () => {
+      ui.setLoggingIn(false);
     },
   });
 
