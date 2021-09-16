@@ -256,15 +256,18 @@ def main() -> None:
     )
 
     parser_ethereum_summary.add_argument(
-        "-humbug",
         "--humbug",
         default=None,
-        help="Humbug token, if given summary will send there",
+        help=(
+            "If you would like to write this data to a Moonstream journal, please provide a Humbug "
+            "token for that here. (This argument overrides any value set in the "
+            "MOONSTREAM_HUMBUG_TOKEN environment variable)"
+        ),
     )
     parser_ethereum_summary.set_defaults(func=ethereum_summary_handler)
 
     parser_ethereum_sync = subparsers_ethereum.add_parser(
-        "sync",
+        "synchronize",
         description="Label addresses and transactions in databse using crawled NFT transfer information, sync mode",
     )
     parser_ethereum_sync.add_argument(
