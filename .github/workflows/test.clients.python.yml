@@ -1,4 +1,4 @@
-name: Lint Moonstream Python client library
+name: Linting and tests for the Moonstream Python client library
 
 on:
   pull_request:
@@ -25,3 +25,12 @@ jobs:
       - name: Black syntax check
         working-directory: ./clients/python
         run: black --check moonstream/
+      - name: Unit tests
+        working-directory: ./clients/python
+        run: python -m unittest discover -v
+      - name: Check that versions are synchronized
+        working-directory: ./clients/python
+        run: |
+        CLIENT_VERSION=$(python -c "from moonstream.client import CLIENT_VERSION; print(CLIENT_VERSION)")
+        SETUP_PY_VERSION=$(python setup.py --version)
+        test "$CLIENT_VERSION" = "$SETUP_PY_VERSION"

@@ -13,7 +13,7 @@ logger.setLevel(log_level)
 
 
 # Keep this synchronized with the version in setup.py
-CLIENT_VERSION = "0.1.0"
+CLIENT_VERSION = "0.0.1"
 
 
 def moonstream_endpoints(url: str) -> Dict[str, str]:
