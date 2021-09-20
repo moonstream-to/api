@@ -15,6 +15,12 @@ logger.setLevel(log_level)
 # Keep this synchronized with the version in setup.py
 CLIENT_VERSION = "0.0.1"
 
+ENDPOINT_PING = "/ping"
+ENDPOINT_VERSION = "/version"
+ENDPOINT_NOW = "/now"
+ENDPOINT_TOKEN = "/users/token"
+ENDPOINTS = [ENDPOINT_PING, ENDPOINT_VERSION, ENDPOINT_NOW, ENDPOINT_TOKEN]
+
 
 def moonstream_endpoints(url: str) -> Dict[str, str]:
     """
@@ -29,9 +35,7 @@ def moonstream_endpoints(url: str) -> Dict[str, str]:
 
     normalized_url = url_with_protocol.rstrip("/")
 
-    endpoints = ["/ping", "/version", "/now", "/users/token"]
-
-    return {endpoint: f"{normalized_url}{endpoint}" for endpoint in endpoints}
+    return {endpoint: f"{normalized_url}{endpoint}" for endpoint in ENDPOINTS}
 
 
 class UnexpectedResponse(Exception):
@@ -64,7 +68,7 @@ class Moonstream:
         """
         Checks that you have a connection to the Moonstream API.
         """
-        r = self._session.get(self.api.endpoints["/ping"])
+        r = self._session.get(self.api.endpoints[ENDPOINT_PING])
         r.raise_for_status()
         return r.json()
 
@@ -72,7 +76,7 @@ class Moonstream:
         """
         Gets the Moonstream API version information from the server.
         """
-        r = self._session.get(self.api.endpoints["/version"])
+        r = self._session.get(self.api.endpoints[ENDPOINT_VERSION])
         r.raise_for_status()
         return r.json()
 
@@ -80,7 +84,7 @@ class Moonstream:
         """
         Gets the current time (as microseconds since the Unix epoch) on the server.
         """
-        r = self._session.get(self.api.endpoints["/now"])
+        r = self._session.get(self.api.endpoints[ENDPOINT_NOW])
         r.raise_for_status()
         result = r.json()
         raw_epoch_time = result.get("epoch_time")
@@ -98,13 +102,36 @@ class Moonstream:
 
         return epoch_time
 
+    def authorize(self, api_token: str) -> None:
+        if not api_token:
+            logger.warning("Setting authorization header to empty token.")
+        self._session.headers.update({"Authorization": f"Bearer {api_token}"})
+
     def login(self, username: str, password: Optional[str] = None) -> str:
         """
-        Logs into the Moonstream API and returns an API access token.
+        Authorizes this client to act as the given user when communicating with the Moonstream API.
+
+        To register an account on the production Moonstream API, go to https://moonstream.to.
 
         Arguments:
         username - Username of the user to authenticate as.
         password - Optional password for the user. If this is not provided, you will be prompted for
         the password.
         """
-        pass
+        if password is None:
+            password = input(f"Moonstream password for {username}: ")
+
+        r = self._session.post(
+            self.api.endpoints[ENDPOINT_TOKEN],
+            data={"username": username, "password": password},
+        )
+        token = r.text
+        self.authorize(token)
+        return token
+
+    def logout(self) -> None:
+        """
+        Logs the current user out of the Moonstream client.
+        """
+        self._session.delete(self.api.endpoints[ENDPOINT_TOKEN])
+        self._session.headers.pop("Authorization")

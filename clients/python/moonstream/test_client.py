@@ -71,10 +71,10 @@ class TestMoonstreamEndpoints(unittest.TestCase):
         self.assertDictEqual(
             endpoints,
             {
-                "/ping": f"{self.normalized_url}/ping",
-                "/version": f"{self.normalized_url}/version",
-                "/now": f"{self.normalized_url}/now",
-                "/users/token": f"{self.normalized_url}/users/token",
+                client.ENDPOINT_PING: f"{self.normalized_url}{client.ENDPOINT_PING}",
+                client.ENDPOINT_VERSION: f"{self.normalized_url}{client.ENDPOINT_VERSION}",
+                client.ENDPOINT_NOW: f"{self.normalized_url}{client.ENDPOINT_NOW}",
+                client.ENDPOINT_TOKEN: f"{self.normalized_url}{client.ENDPOINT_TOKEN}",
             },
         )
 
