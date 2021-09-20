@@ -1,4 +1,5 @@
 from dataclasses import FrozenInstanceError
+import os
 import unittest
 
 from . import client
@@ -59,6 +60,48 @@ class TestMoonstreamClient(unittest.TestCase):
         self.assertEqual(m.timeout, original_timeout)
         m.timeout = updated_timeout
         self.assertEqual(m.timeout, updated_timeout)
+
+
+class TestMoonstreamClientFromEnv(unittest.TestCase):
+    def setUp(self):
+        self.old_moonstream_api_url = os.environ.get("MOONSTREAM_API_URL")
+        self.old_moonstream_timeout_seconds = os.environ.get(
+            "MOONSTREAM_TIMEOUT_SECONDS"
+        )
+        self.old_moonstream_access_token = os.environ.get("MOONSTREAM_ACCESS_TOKEN")
+
+        self.moonstream_api_url = "https://custom.example.com"
+        self.moonstream_timeout_seconds = 15.333333
+        self.moonstream_access_token = "1d431ca4-af9b-4c3a-b7b9-3cc79f3b0900"
+
+        os.environ["MOONSTREAM_API_URL"] = self.moonstream_api_url
+        os.environ["MOONSTREAM_TIMEOUT_SECONDS"] = str(self.moonstream_timeout_seconds)
+        os.environ["MOONSTREAM_ACCESS_TOKEN"] = self.moonstream_access_token
+
+    def tearDown(self) -> None:
+        del os.environ["MOONSTREAM_API_URL"]
+        del os.environ["MOONSTREAM_TIMEOUT_SECONDS"]
+        del os.environ["MOONSTREAM_ACCESS_TOKEN"]
+
+        if self.old_moonstream_api_url is not None:
+            os.environ["MOONSTREAM_API_URL"] = self.old_moonstream_api_url
+        if self.old_moonstream_timeout_seconds is not None:
+            os.environ[
+                "MOONSTREAM_TIMEOUT_SECONDS"
+            ] = self.old_moonstream_timeout_seconds
+        if self.old_moonstream_access_token is not None:
+            os.environ["MOONSTREAM_ACCESS_TOKEN"] = self.old_moonstream_access_token
+
+    def test_client_from_env(self):
+        m = client.client_from_env()
+        self.assertEqual(m.api.url, self.moonstream_api_url)
+        self.assertEqual(m.timeout, self.moonstream_timeout_seconds)
+        self.assertIsNone(m.requires_authorization())
+
+        authorization_header = m._session.headers["Authorization"]
+        self.assertTrue(authorization_header.startswith("Bearer "))
+        access_token = authorization_header[len("Bearer ") :]
+        self.assertEqual(access_token, self.moonstream_access_token)
 
 
 class TestMoonstreamEndpoints(unittest.TestCase):

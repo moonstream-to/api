@@ -71,8 +71,21 @@ class Moonstream:
     """
 
     def __init__(
-        self, url: str = "https://api.moonstream.to", timeout: Optional[float] = None
+        self,
+        url: str = "https://api.moonstream.to",
+        timeout: Optional[float] = None,
     ):
+        """
+        Initializes a Moonstream API client.
+
+        Arguments:
+        url - Moonstream API URL. By default this points to the production Moonstream API at https://api.moonstream.to,
+        but you can replace it with the URL of any other Moonstream API instance.
+        timeout - Timeout (in seconds) for Moonstream API requests. Default is None, which means that
+        Moonstream API requests will never time out.
+
+        Returns: A Moonstream client.
+        """
         endpoints = moonstream_endpoints(url)
         self.api = APISpec(url=url, endpoints=endpoints)
         self.timeout = timeout
@@ -119,10 +132,10 @@ class Moonstream:
 
         return epoch_time
 
-    def authorize(self, api_token: str) -> None:
-        if not api_token:
+    def authorize(self, access_token: str) -> None:
+        if not access_token:
             logger.warning("Setting authorization header to empty token.")
-        self._session.headers.update({"Authorization": f"Bearer {api_token}"})
+        self._session.headers.update({"Authorization": f"Bearer {access_token}"})
 
     def requires_authorization(self):
         if self._session.headers.get("Authorization") is None:
@@ -249,3 +262,38 @@ class Moonstream:
         )
         r.raise_for_status()
         return r.json()
+
+
+def client_from_env() -> Moonstream:
+    """
+    Produces a Moonstream client instantiated using the following environment variables:
+    - MOONSTREAM_API_URL: Specifies the url parameter on the Moonstream client
+    - MOONSTREAM_TIMEOUT_SECONDS: Specifies the request timeout
+    - MOONSTREAM_ACCESS_TOKEN: If this environment variable is defined, the client sets this token as
+    the authorization header for all Moonstream API requests.
+    """
+    kwargs: Dict[str, Any] = {}
+
+    url = os.environ.get("MOONSTREAM_API_URL")
+    if url is not None:
+        kwargs["url"] = url
+
+    raw_timeout = os.environ.get("MOONSTREAM_TIMEOUT_SECONDS")
+    timeout: Optional[float] = None
+    if raw_timeout is not None:
+        try:
+            timeout = float(raw_timeout)
+        except:
+            raise ValueError(
+                f"Could not convert MOONSTREAM_TIMEOUT_SECONDS ({raw_timeout}) to float."
+            )
+
+    kwargs["timeout"] = timeout
+
+    moonstream_client = Moonstream(**kwargs)
+
+    access_token = os.environ.get("MOONSTREAM_ACCESS_TOKEN")
+    if access_token is not None:
+        moonstream_client.authorize(access_token)
+
+    return moonstream_client
