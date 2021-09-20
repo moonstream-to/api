@@ -6,7 +6,7 @@ with open("README.md") as ifp:
 
 setup(
     name="moonstream",
-    version="0.0.1",
+    version="0.0.2",
     packages=find_packages(),
     package_data={"moonstream": ["py.typed"]},
     install_requires=["requests", "dataclasses; python_version=='3.6'"],

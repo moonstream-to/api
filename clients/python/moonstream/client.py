@@ -13,7 +13,7 @@ logger.setLevel(log_level)
 
 
 # Keep this synchronized with the version in setup.py
-CLIENT_VERSION = "0.0.1"
+CLIENT_VERSION = "0.0.2"
 
 ENDPOINT_PING = "/ping"
 ENDPOINT_VERSION = "/version"
