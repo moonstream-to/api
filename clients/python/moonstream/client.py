@@ -19,7 +19,16 @@ ENDPOINT_PING = "/ping"
 ENDPOINT_VERSION = "/version"
 ENDPOINT_NOW = "/now"
 ENDPOINT_TOKEN = "/users/token"
-ENDPOINTS = [ENDPOINT_PING, ENDPOINT_VERSION, ENDPOINT_NOW, ENDPOINT_TOKEN]
+ENDPOINT_SUBSCRIPTIONS = "/subscriptions/"
+ENDPOINT_SUBSCRIPTION_TYPES = "/subscriptions/types"
+ENDPOINTS = [
+    ENDPOINT_PING,
+    ENDPOINT_VERSION,
+    ENDPOINT_NOW,
+    ENDPOINT_TOKEN,
+    ENDPOINT_SUBSCRIPTIONS,
+    ENDPOINT_SUBSCRIPTION_TYPES,
+]
 
 
 def moonstream_endpoints(url: str) -> Dict[str, str]:
@@ -41,6 +50,12 @@ def moonstream_endpoints(url: str) -> Dict[str, str]:
 class UnexpectedResponse(Exception):
     """
     Raised when a server response cannot be parsed into the appropriate/expected Python structure.
+    """
+
+
+class Unauthenticated(Exception):
+    """
+    Raised when a user tries to make a request that needs to be authenticated by they are not authenticated.
     """
 
 
@@ -107,6 +122,12 @@ class Moonstream:
             logger.warning("Setting authorization header to empty token.")
         self._session.headers.update({"Authorization": f"Bearer {api_token}"})
 
+    def requires_authorization(self):
+        if self._session.headers.get("Authorization") is None:
+            raise Unauthenticated(
+                'This method requires that you authenticate to the API, either by calling the "authorize" method with an API token or by calling the "login" method.'
+            )
+
     def login(self, username: str, password: Optional[str] = None) -> str:
         """
         Authorizes this client to act as the given user when communicating with the Moonstream API.
@@ -135,3 +156,94 @@ class Moonstream:
         """
         self._session.delete(self.api.endpoints[ENDPOINT_TOKEN])
         self._session.headers.pop("Authorization")
+
+    def subscription_types(self) -> Dict[str, Any]:
+        """
+        Gets the currently available subscription types on the Moonstream API.
+        """
+        r = self._session.get(self.api.endpoints[ENDPOINT_SUBSCRIPTION_TYPES])
+        r.raise_for_status()
+        return r.json()
+
+    def list_subscriptions(self) -> Dict[str, Any]:
+        """
+        Gets the currently authorized user's subscriptions from the API server.
+        """
+        self.requires_authorization()
+        r = self._session.get(self.api.endpoints[ENDPOINT_SUBSCRIPTIONS])
+        r.raise_for_status()
+        return r.json()
+
+    def create_subscription(
+        self, subscription_type: str, label: str, color: str, specifier: str = ""
+    ) -> Dict[str, Any]:
+        """
+        Creates a subscription.
+
+        Arguments:
+        subscription_type - The type of subscription you would like to create. To see the available subscription
+        types, call the "subscription_types" method on this Moonstream client. This argument must be
+        the "id" if the subscription type you want.
+        label - A label for the subscription. This will identify the subscription to you in your stream.
+        color - A hexadecimal color to associate with the subscription.
+        specifier - A specifier for the subscription, which must correspond to one of the choices in the
+        subscription type. This is optional because some subscription types do not require a specifier.
+
+        Returns: The subscription resource that was created on the backend.
+        """
+        self.requires_authorization()
+        r = self._session.post(
+            ENDPOINT_SUBSCRIPTIONS,
+            data={
+                "subscription_type_id": subscription_type,
+                "label": label,
+                "color": color,
+                "address": specifier,
+            },
+        )
+        r.raise_for_status()
+        return r.json()
+
+    def delete_subscription(self, id: str) -> Dict[str, Any]:
+        """
+        Delete a subscription by ID.
+
+        Arguments:
+        id - ID of the subscription to delete.
+
+        Returns: The subscription resource that was deleted.
+        """
+        self.requires_authorization()
+        r = self._session.delete(f"{self.api.endpoints[ENDPOINT_SUBSCRIPTIONS]}{id}")
+        r.raise_for_status()
+        return r.json()
+
+    def update_subscription(
+        self, id: str, label: Optional[str] = None, color: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Update a subscription label or color.
+
+        Arguments:
+        label - New label for subscription (optional).
+        color - New color for subscription (optional).
+
+        Returns - If neither label or color are specified, raises a ValueError. Otherwise PUTs the updated
+        information to the server and returns the updated subscription resource.
+        """
+        if label is None and color is None:
+            raise ValueError(
+                "At least one of the arguments to this method should not be None."
+            )
+        self.requires_authorization()
+        data = {}
+        if label is not None:
+            data["label"] = label
+        if color is not None:
+            data["color"] = color
+
+        r = self._session.put(
+            f"{self.api.endpoints[ENDPOINT_SUBSCRIPTIONS]}{id}", data=data
+        )
+        r.raise_for_status()
+        return r.json()

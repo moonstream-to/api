@@ -75,6 +75,8 @@ class TestMoonstreamEndpoints(unittest.TestCase):
                 client.ENDPOINT_VERSION: f"{self.normalized_url}{client.ENDPOINT_VERSION}",
                 client.ENDPOINT_NOW: f"{self.normalized_url}{client.ENDPOINT_NOW}",
                 client.ENDPOINT_TOKEN: f"{self.normalized_url}{client.ENDPOINT_TOKEN}",
+                client.ENDPOINT_SUBSCRIPTION_TYPES: f"{self.normalized_url}{client.ENDPOINT_SUBSCRIPTION_TYPES}",
+                client.ENDPOINT_SUBSCRIPTIONS: f"{self.normalized_url}{client.ENDPOINT_SUBSCRIPTIONS}",
             },
         )
 
