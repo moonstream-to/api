@@ -99,9 +99,7 @@ class TestMoonstreamClientFromEnv(unittest.TestCase):
         self.assertIsNone(m.requires_authorization())
 
         authorization_header = m._session.headers["Authorization"]
-        self.assertTrue(authorization_header.startswith("Bearer "))
-        access_token = authorization_header[len("Bearer ") :]
-        self.assertEqual(access_token, self.moonstream_access_token)
+        self.assertEqual(authorization_header, f"Bearer {self.moonstream_access_token}")
 
 
 class TestMoonstreamEndpoints(unittest.TestCase):
@@ -120,6 +118,10 @@ class TestMoonstreamEndpoints(unittest.TestCase):
                 client.ENDPOINT_TOKEN: f"{self.normalized_url}{client.ENDPOINT_TOKEN}",
                 client.ENDPOINT_SUBSCRIPTION_TYPES: f"{self.normalized_url}{client.ENDPOINT_SUBSCRIPTION_TYPES}",
                 client.ENDPOINT_SUBSCRIPTIONS: f"{self.normalized_url}{client.ENDPOINT_SUBSCRIPTIONS}",
+                client.ENDPOINT_STREAMS: f"{self.normalized_url}{client.ENDPOINT_STREAMS}",
+                client.ENDPOINT_STREAMS_LATEST: f"{self.normalized_url}{client.ENDPOINT_STREAMS_LATEST}",
+                client.ENDPOINT_STREAMS_NEXT: f"{self.normalized_url}{client.ENDPOINT_STREAMS_NEXT}",
+                client.ENDPOINT_STREAMS_PREVIOUS: f"{self.normalized_url}{client.ENDPOINT_STREAMS_PREVIOUS}",
             },
         )
 
