@@ -77,7 +77,9 @@ class Moonstream:
         self.api = APISpec(url=url, endpoints=endpoints)
         self.timeout = timeout
         self._session = requests.Session()
-        self._session.headers.update({"User-Agent": "Moonstream Python client"})
+        self._session.headers.update(
+            {"User-Agent": f"Moonstream Python client (version {CLIENT_VERSION})"}
+        )
 
     def ping(self) -> Dict[str, Any]:
         """
