@@ -12,6 +12,10 @@ if os.environ.get("DEBUG", "").lower() in ["true", "1"]:
 logger.setLevel(log_level)
 
 
+# Keep this synchronized with the version in setup.py
+CLIENT_VERSION = "0.1.0"
+
+
 def moonstream_endpoints(url: str) -> Dict[str, str]:
     """
     Creates a dictionary of Moonstream API endpoints at the given Moonstream API URL.
@@ -25,7 +29,7 @@ def moonstream_endpoints(url: str) -> Dict[str, str]:
 
     normalized_url = url_with_protocol.rstrip("/")
 
-    endpoints = ["/ping", "/version", "/now"]
+    endpoints = ["/ping", "/version", "/now", "/users/token"]
 
     return {endpoint: f"{normalized_url}{endpoint}" for endpoint in endpoints}
 
@@ -54,18 +58,28 @@ class Moonstream:
         self.api = APISpec(url=url, endpoints=endpoints)
         self.timeout = timeout
         self._session = requests.Session()
+        self._session.headers.update({"User-Agent": "Moonstream Python client"})
 
     def ping(self) -> Dict[str, Any]:
+        """
+        Checks that you have a connection to the Moonstream API.
+        """
         r = self._session.get(self.api.endpoints["/ping"])
         r.raise_for_status()
         return r.json()
 
     def version(self) -> Dict[str, Any]:
+        """
+        Gets the Moonstream API version information from the server.
+        """
         r = self._session.get(self.api.endpoints["/version"])
         r.raise_for_status()
         return r.json()
 
     def server_time(self) -> float:
+        """
+        Gets the current time (as microseconds since the Unix epoch) on the server.
+        """
         r = self._session.get(self.api.endpoints["/now"])
         r.raise_for_status()
         result = r.json()
@@ -83,3 +97,14 @@ class Moonstream:
             )
 
         return epoch_time
+
+    def login(self, username: str, password: Optional[str] = None) -> str:
+        """
+        Logs into the Moonstream API and returns an API access token.
+
+        Arguments:
+        username - Username of the user to authenticate as.
+        password - Optional password for the user. If this is not provided, you will be prompted for
+        the password.
+        """
+        pass

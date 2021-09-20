@@ -74,6 +74,7 @@ class TestMoonstreamEndpoints(unittest.TestCase):
                 "/ping": f"{self.normalized_url}/ping",
                 "/version": f"{self.normalized_url}/version",
                 "/now": f"{self.normalized_url}/now",
+                "/users/token": f"{self.normalized_url}/users/token",
             },
         )
 
