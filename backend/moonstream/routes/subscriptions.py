@@ -2,60 +2,31 @@
 The Moonstream subscriptions HTTP API
 """
 import logging
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
-from fastapi import FastAPI, Request, Form
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import APIRouter, Request, Form
 
 from ..admin import subscription_types
 from .. import data
-from ..middleware import BroodAuthMiddleware, MoonstreamHTTPException
+from ..middleware import MoonstreamHTTPException
 from ..reporter import reporter
 from ..settings import (
-    DOCS_TARGET_PATH,
-    DOCS_PATHS,
     MOONSTREAM_APPLICATION_ID,
-    ORIGINS,
     bugout_client as bc,
 )
-from ..version import MOONSTREAM_VERSION
 
 logger = logging.getLogger(__name__)
 
-tags_metadata = [
-    {"name": "subscriptions", "description": "Operations with subscriptions."},
-]
-
-app = FastAPI(
-    title=f"Moonstream subscriptions API.",
-    description="User subscriptions endpoints.",
-    version=MOONSTREAM_VERSION,
-    openapi_tags=tags_metadata,
-    openapi_url="/openapi.json",
-    docs_url=None,
-    redoc_url=f"/{DOCS_TARGET_PATH}",
+router = APIRouter(
+    prefix="/subscriptions",
 )
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-whitelist_paths: Dict[str, str] = {}
-whitelist_paths.update(DOCS_PATHS)
-whitelist_paths.update({"/subscriptions/types": "GET"})
-app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
-
 
 BUGOUT_RESOURCE_TYPE_SUBSCRIPTION = "subscription"
 
 
-@app.post("/", tags=["subscriptions"], response_model=data.SubscriptionResourceData)
+@router.post("/", tags=["subscriptions"], response_model=data.SubscriptionResourceData)
 async def add_subscription_handler(
     request: Request,  # subscription_data: data.CreateSubscriptionRequest = Body(...)
     address: str = Form(...),
@@ -118,7 +89,7 @@ async def add_subscription_handler(
     )
 
 
-@app.delete(
+@router.delete(
     "/{subscription_id}",
     tags=["subscriptions"],
     response_model=data.SubscriptionResourceData,
@@ -148,7 +119,7 @@ async def delete_subscription_handler(request: Request, subscription_id: str):
     )
 
 
-@app.get("/", tags=["subscriptions"], response_model=data.SubscriptionsListResponse)
+@router.get("/", tags=["subscriptions"], response_model=data.SubscriptionsListResponse)
 async def get_subscriptions_handler(request: Request) -> data.SubscriptionsListResponse:
     """
     Get user's subscriptions.
@@ -186,7 +157,7 @@ async def get_subscriptions_handler(request: Request) -> data.SubscriptionsListR
     )
 
 
-@app.put(
+@router.put(
     "/{subscription_id}",
     tags=["subscriptions"],
     response_model=data.SubscriptionResourceData,
@@ -236,7 +207,7 @@ async def update_subscriptions_handler(
     )
 
 
-@app.get(
+@router.get(
     "/types", tags=["subscriptions"], response_model=data.SubscriptionTypesListResponse
 )
 async def list_subscription_types() -> data.SubscriptionTypesListResponse:

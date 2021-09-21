@@ -5,14 +5,12 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from bugout.data import BugoutResource
-from fastapi import FastAPI, Request, Query, Depends
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import APIRouter, Request, Query, Depends
 from moonstreamdb import db
 from sqlalchemy.orm import Session
 
-
 from .. import data
-from ..middleware import BroodAuthMiddleware, MoonstreamHTTPException
+from ..middleware import MoonstreamHTTPException
 from ..providers import (
     ReceivingEventsException,
     event_providers,
@@ -22,46 +20,19 @@ from ..providers import (
     previous_event,
 )
 from ..settings import (
-    DOCS_TARGET_PATH,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_DATA_JOURNAL_ID,
-    ORIGINS,
-    DOCS_PATHS,
     bugout_client as bc,
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
 )
 from .. import stream_queries
 from .subscriptions import BUGOUT_RESOURCE_TYPE_SUBSCRIPTION
-from ..version import MOONSTREAM_VERSION
 
 logger = logging.getLogger(__name__)
 
-tags_metadata = [
-    {"name": "streams", "description": "Operations with data stream and filters."},
-]
-
-app = FastAPI(
-    title=f"Moonstream streams API.",
-    description="Streams endpoints.",
-    version=MOONSTREAM_VERSION,
-    openapi_tags=tags_metadata,
-    openapi_url="/openapi.json",
-    docs_url=None,
-    redoc_url=f"/{DOCS_TARGET_PATH}",
+router = APIRouter(
+    prefix="/streams",
 )
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-whitelist_paths: Dict[str, str] = {"/streams/info": "GET"}
-whitelist_paths.update(DOCS_PATHS)
-whitelist_paths.update()
-app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
 
 
 def get_user_subscriptions(token: str) -> Dict[str, List[BugoutResource]]:
@@ -89,7 +60,7 @@ def get_user_subscriptions(token: str) -> Dict[str, List[BugoutResource]]:
     return user_subscriptions
 
 
-@app.get("/info", tags=["streams"])
+@router.get("/info", tags=["streams"])
 async def info_handler() -> Dict[str, Any]:
     info = {
         event_type: {
@@ -102,7 +73,7 @@ async def info_handler() -> Dict[str, Any]:
     return info
 
 
-@app.get("/", tags=["streams"], response_model=data.GetEventsResponse)
+@router.get("/", tags=["streams"], response_model=data.GetEventsResponse)
 async def stream_handler(
     request: Request,
     q: str = Query(""),
@@ -159,7 +130,7 @@ async def stream_handler(
     return response
 
 
-@app.get("/latest", tags=["streams"])
+@router.get("/latest", tags=["streams"])
 async def latest_events_handler(
     request: Request, q=Query(""), db_session: Session = Depends(db.yield_db_session)
 ) -> List[data.Event]:
@@ -201,7 +172,7 @@ async def latest_events_handler(
     return events
 
 
-@app.get("/next", tags=["stream"])
+@router.get("/next", tags=["stream"])
 async def next_event_handler(
     request: Request,
     q: str = Query(""),
@@ -256,7 +227,7 @@ async def next_event_handler(
     return event
 
 
-@app.get("/previous", tags=["stream"])
+@router.get("/previous", tags=["stream"])
 async def previous_event_handler(
     request: Request,
     q: str = Query(""),
