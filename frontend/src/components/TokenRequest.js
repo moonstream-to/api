@@ -5,19 +5,18 @@ import {
   InputLeftElement,
   FormControl,
   FormErrorMessage,
-  HStack,
+  Stack,
   Button,
-  InputRightElement,
   Input,
+  Text,
 } from "@chakra-ui/react";
-import { CloseIcon } from "@chakra-ui/icons";
 import { useEffect, useState, useRef } from "react";
 import { Icon } from "../../src/Theme";
 
 import { useForm } from "react-hook-form";
 import { useUser, useTokens } from "../core/hooks";
 
-const TokenRequest = ({ newToken, toggle }) => {
+const TokenRequest = ({ setNewToken, onClose }) => {
   const { user } = useUser();
   const { createToken } = useTokens();
   const { handleSubmit, errors, register } = useForm();
@@ -41,10 +40,10 @@ const TokenRequest = ({ newToken, toggle }) => {
 
   useEffect(() => {
     if (createToken.data?.data) {
-      newToken(createToken.data.data);
-      toggle(null);
+      setNewToken(createToken.data.data);
+      onClose();
     }
-  }, [createToken.data, newToken, toggle]);
+  }, [createToken.data, setNewToken, onClose]);
 
   const formStyle = {
     display: "flex",
@@ -52,56 +51,78 @@ const TokenRequest = ({ newToken, toggle }) => {
     minWidth: "100px",
     flexFlow: "row wrap-reverse",
     aligntContent: "flex-end",
+    width: "100%",
   };
 
   if (!user) return ""; //loading...
 
   return (
-    <Box>
+    <Box px={1} py={4}>
       <form onSubmit={handleSubmit(createToken.mutate)} style={formStyle}>
-        <HStack>
-          <Button
-            variant="solid"
-            colorScheme="primary"
-            type="submit"
-            isLoading={createToken.isLoading}
-          >
-            Submit
-          </Button>
+        <Stack direction="column" spacing={4} w="100%">
+          <Stack direction="column" spacing={1}>
+            <Text fontSize="sm">API key label</Text>
+            <Input
+              w="100%"
+              ref={register}
+              name="token_note"
+              placeholder="My API key label"
+              type="search"
+            />
+          </Stack>
+          <Stack direction="column" spacing={1}>
+            <Text fontSize="sm">Your password</Text>
+            <FormControl isInvalid={errors.password}>
+              <InputGroup minWidth="300px">
+                <InputLeftElement onClick={togglePassword}>
+                  <Icon icon="password" />
+                </InputLeftElement>
+                <Input
+                  colorScheme="blue"
+                  variant="filled"
+                  isDisabled={createToken.isLoading}
+                  autoComplete="on"
+                  placeholder="Your Bugout password"
+                  name="password"
+                  type={showPassword}
+                  ref={(e) => {
+                    register(e, { required: "Password is required!" });
+                    PasswordRef.current = e;
+                  }}
+                />
+              </InputGroup>
+              <FormErrorMessage color="red.400" pl="1" justifyContent="Center">
+                {errors.password && errors.password.message}
+              </FormErrorMessage>
+            </FormControl>
+          </Stack>
 
-          <FormControl isInvalid={errors.password}>
-            <InputGroup minWidth="300px">
-              <InputLeftElement onClick={togglePassword}>
-                <Icon icon="password" />
-              </InputLeftElement>
-              <Input
-                colorScheme="primary"
-                variant="filled"
-                isDisabled={createToken.isLoading}
-                autoComplete="on"
-                placeholder="Your Bugout password"
-                name="password"
-                type={showPassword}
-                ref={(e) => {
-                  register(e, { required: "Password is required!" });
-                  PasswordRef.current = e;
-                }}
-              />
-              <InputRightElement onClick={() => toggle(null)}>
-                <CloseIcon />
-              </InputRightElement>
-            </InputGroup>
-            <FormErrorMessage color="unsafe.400" pl="1" justifyContent="Center">
-              {errors.password && errors.password.message}
-            </FormErrorMessage>
-          </FormControl>
           <Input
             type="hidden"
             ref={register}
             name="username"
             defaultValue={user?.username}
           />
-        </HStack>
+          <Stack pt={9} direction="row" justifyContent="flex-end" w="100%">
+            <Button
+              m={0}
+              variant="solid"
+              colorScheme="blue"
+              type="submit"
+              isLoading={createToken.isLoading}
+            >
+              Submit
+            </Button>
+            <Button
+              variant="solid"
+              colorScheme="red"
+              type="submit"
+              onClick={() => onClose()}
+            >
+              Cancel
+            </Button>
+          </Stack>
+        </Stack>
       </form>
     </Box>
   );

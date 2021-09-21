@@ -10,11 +10,18 @@ import {
   ScaleFade,
   Button,
   Heading,
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalCloseButton,
 } from "@chakra-ui/react";
 import { getLayout } from "../../src/layouts/AccountLayout";
 
 const Tokens = () => {
-  const [modal, toggleModal] = useState(null);
+  const { onOpen, onClose, isOpen } = useDisclosure();
   const [newToken, setNewToken] = useState(null);
   const [tokens, setTokens] = useState();
   const { list, update, revoke, isLoading, data } = useTokens();
@@ -51,35 +58,34 @@ const Tokens = () => {
             hidden={false}
             my={8}
             size="lg"
-            color="primary.500"
+            color="blue.500"
             thickness="4px"
             speed="1.5s"
           />
         </Center>
       ) : (
         <ScaleFade in>
+          <Modal isOpen={isOpen} onClose={onClose}>
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader>New API access token</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                <TokenRequest setNewToken={setNewToken} onClose={onClose} />
+              </ModalBody>
+            </ModalContent>
+          </Modal>
           <Heading variant="tokensScreen"> My access tokens </Heading>
           <VStack overflow="initial" maxH="unset" height="100%">
-            <Center>
-              <Box h="3rem">
-                {!modal ? (
-                  <ScaleFade in={!modal}>
-                    <Button
-                      onClick={toggleModal}
-                      colorScheme="primary"
-                      variant="solid"
-                      borderRadius="50%"
-                    >
-                      +
-                    </Button>
-                  </ScaleFade>
-                ) : (
-                  <ScaleFade in={modal} unmountOnExit>
-                    <TokenRequest toggle={toggleModal} newToken={setNewToken} />
-                  </ScaleFade>
-                )}
-              </Box>
-            </Center>
+            <Button
+              alignSelf="flex-end"
+              onClick={onOpen}
+              colorScheme="orange"
+              variant="solid"
+              size="sm"
+            >
+              Add new token
+            </Button>
             <TokensList
               data={tokens}
               revoke={revoke}
