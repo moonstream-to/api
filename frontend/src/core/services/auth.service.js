@@ -74,3 +74,28 @@ export const changePassword = ({ currentPassword, newPassword }) => {
     data,
   });
 };
+
+export const getTokenList = () => {
+  return http({
+    method: "GET",
+    url: `${AUTH_URL}/tokens`,
+  });
+};
+
+export const updateToken = ({ note, token }) => {
+  const data = new FormData();
+  data.append("token_note", note);
+  data.append("access_token", token);
+  return http({
+    method: "PUT",
+    url: `${AUTH_URL}/token`,
+    data,
+  });
+};
+
+export const revokeToken = (token) => {
+  return http({
+    method: "POST",
+    url: `${AUTH_URL}/revoke/${token}`,
+  });
+};

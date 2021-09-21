@@ -10,6 +10,7 @@ import Checkbox from "./Checkbox";
 import Table from "./Table";
 import Tooltip from "./Tooltip";
 import Spinner from "./Spinner";
+import Heading from "./Heading";
 import { createBreakpoints } from "@chakra-ui/theme-tools";
 
 const breakpointsCustom = createBreakpoints({
@@ -57,6 +58,7 @@ const theme = extendTheme({
     Table,
     Spinner,
     Tooltip,
+    Heading,
   },
 
   fonts: {
