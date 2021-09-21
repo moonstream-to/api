@@ -2,7 +2,7 @@
 The Moonstream users HTTP API
 """
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 import uuid
 
 from bugout.data import BugoutToken, BugoutUser, BugoutResource, BugoutUserTokens
@@ -149,7 +149,9 @@ async def delete_user_handler(
 
 @app.post("/token", tags=["tokens"], response_model=BugoutToken)
 async def login_handler(
-    username: str = Form(...), password: str = Form(...)
+    username: str = Form(...),
+    password: str = Form(...),
+    token_note: Optional[str] = Form(None),
 ) -> BugoutToken:
     try:
         token: BugoutToken = bc.create_token(
@@ -157,10 +159,11 @@ async def login_handler(
             password=password,
             application_id=MOONSTREAM_APPLICATION_ID,
         )
+        if token_note is not None:
+            token = bc.update_token(token.id, token_note=token_note)
+
     except BugoutResponseException as e:
-        raise MoonstreamHTTPException(
-            status_code=e.status_code, detail=f"Error from Brood API: {e.detail}"
-        )
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=f"{e.detail}")
     except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
     return token
@@ -174,9 +177,7 @@ async def tokens_handler(request: Request) -> BugoutUserTokens:
             token, timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS, active=True
         )
     except BugoutResponseException as e:
-        raise MoonstreamHTTPException(
-            status_code=e.status_code, detail=f"Error from Brood API: {e.detail}"
-        )
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=f"{e.detail}")
     except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
     return response
@@ -190,9 +191,7 @@ async def token_update_handler(
     try:
         response = bc.update_token(token, token_note=token_note)
     except BugoutResponseException as e:
-        raise MoonstreamHTTPException(
-            status_code=e.status_code, detail=f"Error from Brood API: {e.detail}"
-        )
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=f"{e.detail}")
     except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
     return response
