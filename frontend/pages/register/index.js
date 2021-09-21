@@ -53,7 +53,7 @@ const Register = () => {
             <InputGroup>
               <Input
                 variant="filled"
-                colorScheme="primary"
+                colorScheme="blue"
                 placeholder="Your username here"
                 name="username"
                 ref={register({ required: "Username is required!" })}
@@ -62,7 +62,7 @@ const Register = () => {
                 <Icon icon="name" />
               </InputRightElement>
             </InputGroup>
-            <FormErrorMessage color="unsafe.400" pl="1">
+            <FormErrorMessage color="red.400" pl="1">
               {errors.username && errors.username.message}
             </FormErrorMessage>
           </FormControl>
@@ -71,7 +71,7 @@ const Register = () => {
               {!email && (
                 <Input
                   variant="filled"
-                  colorScheme="primary"
+                  colorScheme="blue"
                   placeholder="Your email here"
                   name="email"
                   ref={register({ required: "Email is required!" })}
@@ -80,7 +80,7 @@ const Register = () => {
               {email && (
                 <Input
                   variant="filled"
-                  colorScheme="primary"
+                  colorScheme="blue"
                   placeholder="Your email here"
                   defaultValue={email}
                   isReadOnly={true}
@@ -92,7 +92,7 @@ const Register = () => {
                 <Icon icon="name" />
               </InputRightElement>
             </InputGroup>
-            <FormErrorMessage color="unsafe.400" pl="1">
+            <FormErrorMessage color="red.400" pl="1">
               {errors.email && errors.email.message}
             </FormErrorMessage>
           </FormControl>
@@ -100,7 +100,7 @@ const Register = () => {
             <InputGroup>
               <Input
                 variant="filled"
-                colorScheme="primary"
+                colorScheme="blue"
                 autoComplete="new-password"
                 placeholder="Add password"
                 name="password"
@@ -111,7 +111,7 @@ const Register = () => {
                 <Icon icon="password" />
               </InputRightElement>
             </InputGroup>
-            <FormErrorMessage color="unsafe.400" pl="1">
+            <FormErrorMessage color="red.400" pl="1">
               {errors.password && errors.password.message}
             </FormErrorMessage>
           </FormControl>
@@ -119,7 +119,7 @@ const Register = () => {
         <Button
           my={8}
           variant="solid"
-          colorScheme="primary"
+          colorScheme="blue"
           width="100%"
           type="submit"
           isLoading={isLoading}

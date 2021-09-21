@@ -45,7 +45,7 @@ const RootLayout = (props) => {
               minH={["6.5rem", "4.5rem", "3rem", null]}
               h={["6.5rem", "4.5rem", "3rem", null]}
               placeContent="center"
-              bgColor="suggested.900"
+              bgColor="green.900"
               boxShadow="md"
               position="relative"
               className="banner"
@@ -54,15 +54,12 @@ const RootLayout = (props) => {
                 {" "}
                 <Text
                   fontWeight="600"
-                  textColor="primary.900"
+                  textColor="blue.900"
                   fontSize={["sm", "sm", "md", null]}
                 >
                   Join early. Our first 1000 users get free lifetime access to
                   blockchain analytics. Contact our team on{" "}
-                  <Link
-                    href={"https://discord.gg/V3tWaP36"}
-                    color="secondary.900"
-                  >
+                  <Link href={"https://discord.gg/V3tWaP36"} color="orange.900">
                     Discord
                   </Link>
                 </Text>
@@ -73,7 +70,7 @@ const RootLayout = (props) => {
                 top="0"
                 right="0"
                 icon={<CloseIcon />}
-                colorScheme="primary"
+                colorScheme="blue"
                 variant="ghost"
                 onClick={() => setShowBanner(false)}
               />

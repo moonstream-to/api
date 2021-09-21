@@ -36,7 +36,7 @@ const RequestIntegration = ({ toggleModal, title, formId }) => {
         region="na1"
         portalId="8018701"
         formId={formId}
-        loading={<Spinner colorScheme="primary" speed="1s" />}
+        loading={<Spinner colorScheme="blue" speed="1s" />}
       />
     </Modal>
   );

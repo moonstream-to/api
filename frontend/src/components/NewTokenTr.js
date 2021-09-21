@@ -44,7 +44,7 @@ const NewTokenTr = ({ isOpen, toggleSelf, errors, register, journalName }) => {
                   }}
                 />
               </InputGroup>
-              <FormErrorMessage color="unsafe.400" pl="1">
+              <FormErrorMessage color="red.400" pl="1">
                 {errors.appName && errors.appName.message}
               </FormErrorMessage>
             </FormControl>
@@ -64,7 +64,7 @@ const NewTokenTr = ({ isOpen, toggleSelf, errors, register, journalName }) => {
                   }}
                 />
               </InputGroup>
-              <FormErrorMessage color="unsafe.400" pl="1">
+              <FormErrorMessage color="red.400" pl="1">
                 {errors.appVersion && errors.appVersion.message}
               </FormErrorMessage>
             </FormControl>

@@ -40,7 +40,7 @@ const TokenList = ({
     <form onSubmit={handleSubmit(handleTokenSubmit)}>
       <Table
         variant="simple"
-        colorScheme="primary"
+        colorScheme="blue"
         justifyContent="center"
         alignItems="baseline"
         h="auto"
@@ -72,7 +72,7 @@ const TokenList = ({
                     <IconButton
                       size="sm"
                       variant="ghost"
-                      colorScheme="primary"
+                      colorScheme="blue"
                       icon={<DeleteIcon />}
                     />
                   </ConfirmationRequest>

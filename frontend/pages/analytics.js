@@ -30,7 +30,7 @@ const Analytics = () => {
         <HubspotForm
           portalId="8018701"
           formId="39bc0fbe-41c4-430a-b885-46eba66c59c2"
-          loading={<Spinner colorScheme="primary" speed="1s" />}
+          loading={<Spinner colorScheme="blue" speed="1s" />}
         />
       </Flex>
     </Scrollable>

@@ -192,7 +192,7 @@ const _NewSubscription = ({
                     name="address"
                     ref={register({ required: "address is required!" })}
                   ></Input>
-                  <FormErrorMessage color="unsafe.400" pl="1">
+                  <FormErrorMessage color="red.400" pl="1">
                     {errors?.address && errors?.address.message}
                   </FormErrorMessage>
                 </FormControl>
@@ -222,7 +222,7 @@ const _NewSubscription = ({
             >
               <IconButton
                 size="md"
-                // colorScheme="primary"
+                // colorScheme="blue"
                 color={"white.100"}
                 _hover={{ bgColor: { color } }}
                 bgColor={color}
@@ -278,7 +278,7 @@ const _NewSubscription = ({
             <GithubPicker onChangeComplete={handleChangeColorComplete} />
           </>
         )}
-        <FormErrorMessage color="unsafe.400" pl="1">
+        <FormErrorMessage color="red.400" pl="1">
           {errors?.color && errors?.color.message}
         </FormErrorMessage>
       </FormControl>
@@ -286,7 +286,7 @@ const _NewSubscription = ({
       <ButtonGroup direction="row" justifyContent="flex-end" w="100%">
         <Button
           type="submit"
-          colorScheme="suggested"
+          colorScheme="green"
           isLoading={createSubscription.isLoading}
         >
           Confirm

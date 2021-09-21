@@ -229,7 +229,6 @@ const Homepage = () => {
                 colSpan="12"
                 pb={[1, 2, null, 8]}
                 minH="100vh"
-                // bgColor="primary.1200"
               >
                 <chakra.header boxSize="full" minH="100vh">
                   <Box
@@ -261,7 +260,7 @@ const Homepage = () => {
                           my={12}
                           fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
                           display="inline-block"
-                          color="primary.200"
+                          color="blue.200"
                         >
                           Get all the crypto data you need in a single stream.
                           From pending transactions in the Ethereum transaction
@@ -270,7 +269,7 @@ const Homepage = () => {
                         <chakra.span
                           fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
                           display="inline-block"
-                          color="primary.300"
+                          color="blue.300"
                         >
                           Access this data through the Moonstream dashboard or
                           API
@@ -305,10 +304,7 @@ const Homepage = () => {
                     {` We believe in financial inclusion. Proprietary technologies
                     are not financially inclusive. That's why all our software
                     is `}
-                    <chakra.span
-                      display="inline-block"
-                      textColor="secondary.900"
-                    >
+                    <chakra.span display="inline-block" textColor="orange.900">
                       <i>open source</i>
                     </chakra.span>
                   </Text>
@@ -430,7 +426,7 @@ const Homepage = () => {
                     },
                   }}
                   elementName={"element1"}
-                  colorScheme="suggested"
+                  colorScheme="green"
                   badge={`For crypto traders`}
                   title={``}
                   body={``}
@@ -438,21 +434,21 @@ const Homepage = () => {
                     {
                       text: `Subscribe to the defi contracts you care about`,
                       icon: FaFileContract,
-                      color: "suggested.50",
-                      bgColor: "suggested.900",
+                      color: "green.50",
+                      bgColor: "green.900",
                     },
                     {
                       text: `Make sense of how others are calling these contracts using Moonstream dashboards.
                       `,
                       icon: RiDashboardFill,
-                      color: "suggested.50",
-                      bgColor: "suggested.900",
+                      color: "green.50",
+                      bgColor: "green.900",
                     },
                     {
                       text: `Get data directly from the transaction pool through our global network of Ethereum nodes`,
                       icon: GiMeshBall,
-                      color: "suggested.50",
-                      bgColor: "suggested.900",
+                      color: "green.50",
+                      bgColor: "green.900",
                     },
                   ]}
                   imgURL={assets["cryptoTraders"]}
@@ -479,26 +475,26 @@ const Homepage = () => {
                   }}
                   elementName={"element2"}
                   mirror={true}
-                  colorScheme="secondary"
+                  colorScheme="orange"
                   badge={`For algorithmic funds`}
                   bullets={[
                     {
                       text: `Get API access to your stream`,
                       icon: AiFillApi,
-                      color: "secondary.50",
-                      bgColor: "secondary.900",
+                      color: "orange.50",
+                      bgColor: "orange.900",
                     },
                     {
                       text: `Set conditions that trigger predefined actions`,
                       icon: GiLogicGateXor,
-                      color: "secondary.50",
-                      bgColor: "secondary.900",
+                      color: "orange.50",
+                      bgColor: "orange.900",
                     },
                     {
                       text: `Execute transactions directly on Moonstream nodes`,
                       icon: BiTransfer,
-                      color: "secondary.50",
-                      bgColor: "secondary.900",
+                      color: "orange.50",
+                      bgColor: "orange.900",
                     },
                   ]}
                   imgURL={assets["algorithmicFunds"]}
@@ -535,26 +531,26 @@ const Homepage = () => {
                     },
                   }}
                   elementName={"element3"}
-                  colorScheme="primary"
+                  colorScheme="blue"
                   badge={`For smart contract developers`}
                   bullets={[
                     {
                       text: `See how people use your smart contracts`,
                       icon: IoTelescopeSharp,
-                      color: "primary.50",
-                      bgColor: "primary.900",
+                      color: "blue.50",
+                      bgColor: "blue.900",
                     },
                     {
                       text: `Set up alerts on suspicious activity`,
                       icon: GiSuspicious,
-                      color: "primary.50",
-                      bgColor: "primary.900",
+                      color: "blue.50",
+                      bgColor: "blue.900",
                     },
                     {
                       text: `Register webhooks to connect your off-chain infrastructure`,
                       icon: GiHook,
-                      color: "primary.50",
-                      bgColor: "primary.900",
+                      color: "blue.50",
+                      bgColor: "blue.900",
                     },
                   ]}
                   imgURL={assets["smartDevelopers"]}
@@ -574,7 +570,7 @@ const Homepage = () => {
                     href={"https://discord.gg/K56VNUQGvA"}
                     size="lg"
                     variant="solid"
-                    colorScheme="suggested"
+                    colorScheme="green"
                     id="test"
                     onClick={() => {
                       mixpanel.get_distinct_id() &&

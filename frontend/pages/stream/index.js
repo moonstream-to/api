@@ -54,7 +54,7 @@ const Entry = () => {
             <RouteButton
               variant="solid"
               size="md"
-              colorScheme="suggested"
+              colorScheme="green"
               href="/welcome"
             >
               Learn how to use moonstream

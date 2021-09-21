@@ -178,7 +178,7 @@ const Product = () => {
           <Text mb={3}>
             You can read{" "}
             <Link
-              textColor="secondary.900"
+              textColor="orange.900"
               isExternal
               href="https://github.com/bugout-dev/moonstream"
             >
@@ -186,7 +186,7 @@ const Product = () => {
             </Link>{" "}
             and keep track of our progress using{" "}
             <Link
-              textColor="secondary.900"
+              textColor="orange.900"
               isExternal
               href="https://github.com/bugout-dev/moonstream/milestones"
             >

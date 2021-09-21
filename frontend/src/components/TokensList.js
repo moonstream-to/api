@@ -22,7 +22,7 @@ const List = ({ data, revoke, isLoading, updateCallback }) => {
     return (
       <Table
         variant="simple"
-        colorScheme="primary"
+        colorScheme="blue"
         justifyContent="center"
         alignItems="baseline"
         h="auto"
@@ -48,7 +48,7 @@ const List = ({ data, revoke, isLoading, updateCallback }) => {
                     <Td py={0}>{moment(token.created_at).format("L")}</Td>
                     <Td py={0}>
                       <Editable
-                        colorScheme="primary"
+                        colorScheme="blue"
                         placeholder="enter note here"
                         defaultValue={token.note}
                         onSubmit={(nextValue) =>
@@ -66,7 +66,7 @@ const List = ({ data, revoke, isLoading, updateCallback }) => {
                       <IconButton
                         size="sm"
                         variant="ghost"
-                        colorScheme="primary"
+                        colorScheme="blue"
                         onClick={() => revoke(token.id)}
                         icon={<DeleteIcon />}
                       />

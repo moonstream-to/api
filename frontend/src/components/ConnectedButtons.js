@@ -48,7 +48,7 @@ const ArrowCTA = (props) => {
         ref={box1Ref}
         boxShadow="md"
         variant="solid"
-        colorScheme="suggested"
+        colorScheme="green"
         className="MoonStockSpeciality element1"
         w={["180px", "180px", "250px", null, "250px"]}
         onClick={props.button1.onClick}
@@ -65,7 +65,7 @@ const ArrowCTA = (props) => {
         ref={box2Ref}
         boxShadow="md"
         variant="solid"
-        colorScheme="secondary"
+        colorScheme="orange"
         className="MoonStockSpeciality element2"
         w={["180px", "180px", "250px", null, "250px"]}
         onClick={props.button2.onClick}
@@ -82,7 +82,7 @@ const ArrowCTA = (props) => {
         ref={box3Ref}
         boxShadow="md"
         variant="solid"
-        colorScheme="primary"
+        colorScheme="blue"
         w={["180px", "180px", "250px", null, "250px"]}
         onClick={props.button3.onClick}
       >

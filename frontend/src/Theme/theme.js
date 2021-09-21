@@ -41,7 +41,7 @@ const theme = extendTheme({
   styles: {
     global: {
       body: {
-        color: "primary.1200",
+        color: "blue.1200",
       },
     },
   },
@@ -81,19 +81,6 @@ const theme = extendTheme({
   },
 
   colors: {
-    blue: {
-      50: "#C8CEFC",
-      100: "#B3BAF9",
-      200: "#9EA6F6",
-      300: "#8A92F3",
-      400: "#757EF0",
-      500: "#606AED",
-      600: "#4B56EA",
-      700: "#3742E7",
-      800: "#222EE4",
-      900: "#0D1AE1",
-    },
-
     brand: {
       100: "#212C8A",
       200: "#111442",
@@ -102,7 +89,7 @@ const theme = extendTheme({
       500: "##F29C38",
     },
 
-    primary: {
+    blue: {
       0: "#FFFFFFFF",
       50: "#e9eaf4",
       100: "#d3d4e9",
@@ -152,7 +139,7 @@ const theme = extendTheme({
       200: "#F7F8FB",
       300: "#EAEBF7",
     },
-    unsafe: {
+    red: {
       0: "#FFFFFFFF",
       50: "#f9eaea",
       100: "#f3d6d6",
@@ -166,7 +153,7 @@ const theme = extendTheme({
       900: "#C53030",
     },
 
-    secondary: {
+    orange: {
       0: "#FFFFFFFF",
       50: "#ffeee6",
       100: "#ffddcc",
@@ -180,21 +167,7 @@ const theme = extendTheme({
       900: "#FD5602",
     },
 
-    teal: {
-      0: "#FFFFFFFF",
-      50: "#AEDFEA",
-      100: "#9ED8E5",
-      200: "#8ED2E1",
-      300: "#7ECBDD",
-      400: "#6EC5D8",
-      500: "#53B9D1",
-      600: "#4EB8D0",
-      700: "#3EB2CC",
-      800: "#33A7C1",
-      900: "#2F99B1",
-    },
-
-    suggested: {
+    green: {
       0: "#FFFFFFFF",
       50: "#e9f6dc",
       100: "#e9f6dc", //Duplicates 50!!!!

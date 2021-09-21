@@ -194,10 +194,7 @@ const Product = () => {
             We are always looking to hire new talents, regardless of their
             backgrounds. If you are interested in working with us, send us a
             message at{" "}
-            <Link
-              textColor="secondary.900"
-              href="mailto: careers@moonstream.to"
-            >
+            <Link textColor="orange.900" href="mailto: careers@moonstream.to">
               careers@moonstream.to
             </Link>
           </Text>
