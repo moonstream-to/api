@@ -126,8 +126,7 @@ def sync_labels(db_session: Session, web3_client: Web3, start: Optional[int]) ->
             logger.warning(
                 "Didn't find any nft labels in db, starting sync from 3 month before now"
             )
-            time_now = datetime.now(timezone.utc)
-            start_date = time_now - relativedelta(months=3)
+            start_date = datetime(2021, 1, 1, tzinfo=timezone.utc)
             start = (
                 db_session.query(EthereumBlock)
                 .filter(EthereumBlock.timestamp >= start_date.timestamp())
@@ -166,8 +165,7 @@ def sync_summaries(
             logger.info(
                 "There is no entry in Bugout, starting to create summaries from 3 month ago"
             )
-            time_now = datetime.now(timezone.utc)
-            start_date = time_now - relativedelta(months=3)
+            start_date = datetime(2021, 1, 1, tzinfo=timezone.utc)
             start = (
                 db_session.query(EthereumBlock)
                 .filter(EthereumBlock.timestamp >= start_date.timestamp())
