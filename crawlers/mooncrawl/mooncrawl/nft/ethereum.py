@@ -60,16 +60,16 @@ SUMMARY_KEYS = [
 ]
 
 
-# First abi is for old NFT's like crypto kitties
 # The erc721 standart requieres that Transfer event is indexed for all arguments
 # That is how we get distinguished from erc20 transfer events
+# Second abi is for old NFT's like crypto kitties
 erc721_transfer_event_abis = [
     {
         "anonymous": False,
         "inputs": [
-            {"indexed": False, "name": "from", "type": "address"},
-            {"indexed": False, "name": "to", "type": "address"},
-            {"indexed": False, "name": "tokenId", "type": "uint256"},
+            {"indexed": True, "name": "from", "type": "address"},
+            {"indexed": True, "name": "to", "type": "address"},
+            {"indexed": True, "name": "tokenId", "type": "uint256"},
         ],
         "name": "Transfer",
         "type": "event",
@@ -77,9 +77,9 @@ erc721_transfer_event_abis = [
     {
         "anonymous": False,
         "inputs": [
-            {"indexed": True, "name": "from", "type": "address"},
-            {"indexed": True, "name": "to", "type": "address"},
-            {"indexed": True, "name": "tokenId", "type": "uint256"},
+            {"indexed": False, "name": "from", "type": "address"},
+            {"indexed": False, "name": "to", "type": "address"},
+            {"indexed": False, "name": "tokenId", "type": "uint256"},
         ],
         "name": "Transfer",
         "type": "event",
@@ -137,7 +137,6 @@ class NFTContract:
     address: str
     name: Optional[str] = None
     symbol: Optional[str] = None
-    total_supply: Optional[str] = None
 
 
 def get_erc721_contract_info(w3: Web3, address: str) -> NFTContract:
@@ -156,14 +155,10 @@ def get_erc721_contract_info(w3: Web3, address: str) -> NFTContract:
     except:
         logger.error(f"Could not get symbol for potential NFT contract: {address}")
 
-    totalSupply: Optional[str] = None
-    try:
-        totalSupply = contract.functions.totalSupply().call()
-    except:
-        logger.error(f"Could not get totalSupply for potential NFT contract: {address}")
-
     return NFTContract(
-        address=address, name=name, symbol=symbol, total_supply=totalSupply
+        address=address,
+        name=name,
+        symbol=symbol,
     )
 
 
@@ -191,13 +186,6 @@ class NFTTransfer:
     transfer_tx: str
     value: Optional[int] = None
     is_mint: bool = False
-
-
-def get_value_by_tx(w3: Web3, tx_hash: HexBytes):
-    print(f"Trying to get tx: {tx_hash.hex()}")
-    tx = w3.eth.get_transaction(tx_hash)
-    print("got it")
-    return tx["value"]
 
 
 def decode_nft_transfer_data(w3: Web3, log: LogReceipt) -> Optional[NFTTransferRaw]:
@@ -319,7 +307,6 @@ def label_erc721_addresses(
                     label_data={
                         "name": contract_info.name,
                         "symbol": contract_info.symbol,
-                        "totalSupply": contract_info.total_supply,
                     },
                 )
             )
@@ -396,7 +383,7 @@ def add_labels(
     from_block: Optional[int] = None,
     to_block: Optional[int] = None,
     contract_address: Optional[str] = None,
-    batch_size: int = 100,
+    batch_size: int = 50,
 ) -> None:
     """
     Crawls blocks between from_block and to_block checking for NFT mints and transfers.
