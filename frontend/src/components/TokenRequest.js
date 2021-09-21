@@ -9,10 +9,10 @@ import {
   Button,
   InputRightElement,
   Input,
-  Icon,
 } from "@chakra-ui/react";
 import { CloseIcon } from "@chakra-ui/icons";
 import { useEffect, useState, useRef } from "react";
+import { Icon } from "../../src/Theme";
 
 import { useForm } from "react-hook-form";
 import { useUser, useTokens } from "../core/hooks";
