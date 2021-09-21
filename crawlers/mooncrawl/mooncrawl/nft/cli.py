@@ -11,7 +11,8 @@ import sys
 import time
 from typing import Any, cast, Dict, Optional
 
-
+from bugout.app import Bugout
+from bugout.journal import SearchOrder
 from moonstreamdb.db import yield_db_session_ctx
 from moonstreamdb.models import EthereumBlock, EthereumTransaction, EthereumLabel
 from sqlalchemy.orm.session import Session
@@ -26,6 +27,8 @@ from .ethereum import (
     SUMMARY_KEY_ARGS,
     SUMMARY_KEY_ID,
     SUMMARY_KEY_NUM_BLOCKS,
+    SUMMARY_KEY_START_BLOCK,
+    SUMMARY_KEY_END_BLOCK,
 )
 from ..publish import publish_json
 from ..settings import MOONSTREAM_IPC_PATH
@@ -62,8 +65,32 @@ def get_latest_block_from_db(db_session: Session):
     )
 
 
-def get_latest_summary_block() -> Optional[int]:
-    return None
+# TODO move to sync handler
+def get_latest_summary_block(
+    bugout_access_token: str, bugout_journal_id: str
+) -> Optional[int]:
+    try:
+        bugout_client = Bugout()
+        query = "#crawl_type:nft_ethereum"
+
+        events = bugout_client.search(
+            bugout_access_token,
+            bugout_journal_id,
+            query,
+            limit=1,
+            timeout=30.0,
+            order=SearchOrder.DESCENDING,
+        )
+        if not events.results:
+            logger.warning("There is no summaries in Bugout")
+            return None
+
+        last_event = events.results[0]
+        content = cast(str, last_event.content)
+        return json.loads(content)["end_block"]
+    except Exception as e:
+        logger.error(f"Failed to get summary from Bugout : {e}")
+        return None
 
 
 def get_latest_nft_labeled_block(db_session: Session) -> Optional[int]:
@@ -93,7 +120,7 @@ def get_latest_nft_labeled_block(db_session: Session) -> Optional[int]:
 def sync_labels(db_session: Session, web3_client: Web3, start: Optional[int]) -> int:
     if start is None:
         logger.info(
-            "Syncing start block is not given, getting it from latest nft label in db"
+            "Syncing label start block is not given, getting it from latest nft label in db"
         )
         start = get_latest_nft_labeled_block(db_session)
         if start is None:
@@ -126,17 +153,19 @@ def sync_summaries(
     start: Optional[int],
     end: int,
     humbug_token: str,
+    bugout_access_token: str,
+    bugout_journal_id: str,
 ) -> int:
     if start is None:
         logger.info(
-            "Syncing start time is not given, getting it from latest nft label in db"
+            "Syncing summary start block is not given, getting it from latest nft summary from Bugout"
         )
-        start = get_latest_summary_block()
+        start = get_latest_summary_block(bugout_access_token, bugout_journal_id)
         if start is not None:
             start += 1
         else:
             logger.info(
-                "There is no entry in humbug, starting to create summaries from 3 month ago"
+                "There is no entry in Bugout, starting to create summaries from 3 month ago"
             )
             time_now = datetime.now(timezone.utc)
             start_date = time_now - relativedelta(months=3)
@@ -171,21 +200,37 @@ def ethereum_sync_handler(args: argparse.Namespace) -> None:
     humbug_token = os.environ.get("MOONSTREAM_HUMBUG_TOKEN")
     if humbug_token is None:
         raise ValueError("MOONSTREAM_HUMBUG_TOKEN env variable is not set")
+    bugout_access_token = os.environ.get("MOONSTREAM_ADMIN_ACCESS_TOKEN")
+    if bugout_access_token is None:
+        raise ValueError("MOONSTREAM_ADMIN_ACCESS_TOKEN env variable is not set")
+    bugout_journal_id = os.environ.get("MOONSTREAM_DATA_JOURNAL_ID")
+    if bugout_journal_id is None:
+        raise ValueError("MOONSTREAM_DATA_JOURNAL_ID env variable is not set")
 
     with yield_db_session_ctx() as db_session:
         logger.info("Initial labeling:")
         last_labeled = sync_labels(db_session, web3_client, args.start)
         logger.info("Initial summary creation:")
         last_summary_created = sync_summaries(
-            db_session, args.start, last_labeled, humbug_token
+            db_session,
+            args.start,
+            last_labeled,
+            humbug_token,
+            bugout_access_token,
+            bugout_journal_id,
         )
         while True:
             logger.info("Syncing")
             last_labeled = sync_labels(db_session, web3_client, last_labeled + 1)
             last_summary_created = sync_summaries(
-                db_session, last_summary_created + 1, last_labeled, humbug_token
+                db_session,
+                last_summary_created + 1,
+                last_labeled,
+                humbug_token,
+                bugout_access_token,
+                bugout_journal_id,
             )
-            sleep_time = 20 * 60
+            sleep_time = 6 * 60
             logger.info(f"Going to sleep for {sleep_time}s")
             time.sleep(sleep_time)
 
@@ -198,12 +243,14 @@ def ethereum_label_handler(args: argparse.Namespace) -> None:
 
 def push_summary(result: Dict[str, Any], humbug_token: str):
     title = (
-        f"NFT activity on the Ethereum blockchain: end time: {result['crawled_at'] })"
+        f"NFT activity on the Ethereum blockchain: crawled at: {result['crawled_at'] })"
     )
 
     tags = [
         f"crawler_version:{MOONCRAWL_VERSION}",
         f"summary_id:{result.get(SUMMARY_KEY_ID, '')}",
+        f"start_block:{result.get(SUMMARY_KEY_START_BLOCK)}",
+        f"end_block:{result.get(SUMMARY_KEY_END_BLOCK)}",
     ]
 
     # Add an "error:missing_blocks" tag for all summaries in which the number of blocks processed
