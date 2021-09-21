@@ -23,7 +23,7 @@ set -eu
 echo
 echo
 echo "Building executable Ethereum transaction pool crawler script with Go"
-HOME=/root /usr/local/go/bin/go build -o "${APP_CRAWLERS_DIR}/ethtxpool" "${APP_CRAWLERS_DIR}/main.go"
+HOME=/root /usr/local/go/bin/go build -o "${APP_CRAWLERS_DIR}/ethtxpool/ethtxpool" "${APP_CRAWLERS_DIR}/ethtxpool/main.go"
 
 echo
 echo
