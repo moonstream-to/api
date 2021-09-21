@@ -65,7 +65,6 @@ def get_latest_block_from_db(db_session: Session):
     )
 
 
-# TODO move to sync handler
 def get_latest_summary_block(
     bugout_access_token: str, bugout_journal_id: str
 ) -> Optional[int]:
@@ -230,7 +229,7 @@ def ethereum_sync_handler(args: argparse.Namespace) -> None:
                 bugout_access_token,
                 bugout_journal_id,
             )
-            sleep_time = 6 * 60
+            sleep_time = 10 * 60
             logger.info(f"Going to sleep for {sleep_time}s")
             time.sleep(sleep_time)
 
