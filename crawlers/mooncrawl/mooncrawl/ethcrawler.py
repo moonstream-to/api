@@ -272,8 +272,8 @@ def main() -> None:
     parser_ethcrawler_blocks_sync.add_argument(
         "--order",
         type=processing_order,
-        default=ProcessingOrder.DESCENDING,
-        help="Order in which to process blocks (choices: desc, asc; default: desc)",
+        default=ProcessingOrder.ASCENDING,
+        help="Order in which to process blocks (choices: desc, asc; default: asc)",
     )
     parser_ethcrawler_blocks_sync.add_argument(
         "-j",
