@@ -16,7 +16,7 @@ from .routes.txinfo import router as txinfo_router
 from .routes.users import router as users_router
 
 from .middleware import BroodAuthMiddleware
-from .settings import DOCS_PATHS, DOCS_TARGET_PATH, ORIGINS
+from .settings import DOCS_TARGET_PATH, ORIGINS
 from .version import MOONSTREAM_VERSION
 
 logging.basicConfig(level=logging.INFO)
@@ -52,7 +52,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 whitelist_paths: Dict[str, str] = {}
-whitelist_paths.update(DOCS_PATHS)
 whitelist_paths.update(
     {
         "/ping": "GET",
