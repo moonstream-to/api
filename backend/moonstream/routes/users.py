@@ -158,12 +158,11 @@ async def login_handler(
             username=username,
             password=password,
             application_id=MOONSTREAM_APPLICATION_ID,
+            token_note=token_note,
         )
-        if token_note is not None:
-            token = bc.update_token(token.id, token_note=token_note)
 
     except BugoutResponseException as e:
-        raise MoonstreamHTTPException(status_code=e.status_code, detail=f"{e.detail}")
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
     return token
@@ -177,7 +176,7 @@ async def tokens_handler(request: Request) -> BugoutUserTokens:
             token, timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS, active=True
         )
     except BugoutResponseException as e:
-        raise MoonstreamHTTPException(status_code=e.status_code, detail=f"{e.detail}")
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
     return response
@@ -191,7 +190,7 @@ async def token_update_handler(
     try:
         response = bc.update_token(token, token_note=token_note)
     except BugoutResponseException as e:
-        raise MoonstreamHTTPException(status_code=e.status_code, detail=f"{e.detail}")
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
     return response
@@ -209,9 +208,7 @@ async def delete_token_by_id_handler(
             timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
         )
     except BugoutResponseException as e:
-        raise MoonstreamHTTPException(
-            status_code=e.status_code, detail=f"Error from Brood API: {e.detail}"
-        )
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
     return response
