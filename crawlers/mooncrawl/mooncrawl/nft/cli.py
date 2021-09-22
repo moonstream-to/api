@@ -72,13 +72,11 @@ def get_latest_summary_block() -> Optional[int]:
     try:
 
         bugout_client = Bugout()
-        bugout_access_token = cast(str, MOONSTREAM_ADMIN_ACCESS_TOKEN)
-        bugout_journal_id = cast(str, MOONSTREAM_DATA_JOURNAL_ID)
         query = "#crawl_type:nft_ethereum"
 
         events = bugout_client.search(
-            bugout_access_token,
-            bugout_journal_id,
+            MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            MOONSTREAM_DATA_JOURNAL_ID,
             query,
             limit=1,
             timeout=30.0,
@@ -229,7 +227,7 @@ def ethereum_label_handler(args: argparse.Namespace) -> None:
 
 def push_summary(result: Dict[str, Any], humbug_token: Optional[str] = None):
     if humbug_token is None:
-        humbug_token = cast(str, MOONSTREAM_HUMBUG_TOKEN)
+        humbug_token = MOONSTREAM_HUMBUG_TOKEN
     title = (
         f"NFT activity on the Ethereum blockchain: crawled at: {result['crawled_at'] })"
     )
