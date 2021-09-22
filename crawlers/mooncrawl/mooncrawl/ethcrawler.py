@@ -88,21 +88,36 @@ def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
     """
     Synchronize latest Ethereum blocks with database.
     """
-    starting_block: int = args.start
     while True:
-        bottom_block_number, top_block_number = get_latest_blocks(args.confirmations)
-        if bottom_block_number is None:
-            bottom_block_number = 0
-        bottom_block_number = max(bottom_block_number + 1, starting_block)
-        if bottom_block_number >= top_block_number:
+        latest_stored_block_number, latest_block_number = get_latest_blocks(
+            args.confirmations
+        )
+        if latest_stored_block_number is None:
+            latest_stored_block_number = 0
+
+        block_number_difference = latest_block_number - 1 - latest_stored_block_number
+
+        if args.start is None:
+            if block_number_difference < args.confirmations:
+                print(
+                    f"Synchronization is unnecessary for blocks {latest_stored_block_number}-{latest_block_number - 1}"
+                )
+                time.sleep(5)
+                continue
+            else:
+                bottom_block_number = latest_block_number - args.confirmations
+        else:
+            bottom_block_number = max(latest_stored_block_number + 1, args.start)
+
+        if latest_stored_block_number >= latest_block_number:
             print(
-                f"Synchronization is unnecessary for blocks {bottom_block_number}-{top_block_number - 1}"
+                f"Synchronization is unnecessary for blocks {latest_stored_block_number}-{latest_block_number - 1}"
             )
             time.sleep(5)
             continue
 
         for blocks_numbers_list in yield_blocks_numbers_lists(
-            f"{bottom_block_number}-{top_block_number}",
+            f"{bottom_block_number}-{latest_block_number}",
             order=args.order,
         ):
             print(f"Adding blocks {blocks_numbers_list[-1]}-{blocks_numbers_list[0]}")
@@ -112,7 +127,9 @@ def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
                 with_transactions=not args.notransactions,
                 num_processes=args.jobs,
             )
-        print(f"Synchronized blocks from {bottom_block_number} to {top_block_number}")
+        print(
+            f"Synchronized blocks from {latest_stored_block_number} to {latest_block_number}"
+        )
 
 
 def ethcrawler_blocks_add_handler(args: argparse.Namespace) -> None:
@@ -243,8 +260,7 @@ def main() -> None:
         "-s",
         "--start",
         type=int,
-        default=0,
-        help="(Optional) Block to start synchronization from. Default: 0",
+        help="(Optional) Block to start synchronization from. Default: None - current Ethereum block minus confirmations ",
     )
     parser_ethcrawler_blocks_sync.add_argument(
         "-c",
@@ -256,8 +272,8 @@ def main() -> None:
     parser_ethcrawler_blocks_sync.add_argument(
         "--order",
         type=processing_order,
-        default=ProcessingOrder.DESCENDING,
-        help="Order in which to process blocks (choices: desc, asc; default: desc)",
+        default=ProcessingOrder.ASCENDING,
+        help="Order in which to process blocks (choices: desc, asc; default: asc)",
     )
     parser_ethcrawler_blocks_sync.add_argument(
         "-j",
