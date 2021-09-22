@@ -29,10 +29,10 @@ const RadioCard = (props) => {
             borderColor: "gray.300",
           }}
           _checked={{
-            // bg: "secondary.900",
+            // bg: "orange.900",
 
-            color: "secondary.900",
-            borderColor: "secondary.900",
+            color: "orange.900",
+            borderColor: "orange.900",
             borderWidth: "4px",
           }}
           justifyContent="center"

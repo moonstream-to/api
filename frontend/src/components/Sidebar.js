@@ -33,7 +33,7 @@ const Sidebar = () => {
           <IconButton
             ml={4}
             justifySelf="flex-start"
-            colorScheme="primary"
+            colorScheme="blue"
             aria-label="App navigation"
             icon={
               ui.isMobileView ? (

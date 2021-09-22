@@ -133,7 +133,7 @@ const SplitWithImage = ({
             </Text>
           </Stack>
           <Heading>{title}</Heading>
-          <Text color={`primary.500`} fontSize={"lg"}>
+          <Text color={`blue.500`} fontSize={"lg"}>
             {body}
           </Text>
           <Stack
@@ -184,7 +184,7 @@ const SplitWithImage = ({
                   mt={[0, 0, null, 16]}
                   size={socialButton ? buttonSize.double : buttonSize.single}
                   variant="outline"
-                  colorScheme="primary"
+                  colorScheme="blue"
                   leftIcon={<FaGithubSquare />}
                 >
                   git clone moonstream

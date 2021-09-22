@@ -29,7 +29,7 @@ const CopyButton = (props) => {
                 <IconButton
                   onClick={onCopy}
                   icon={<BiCopy />}
-                  colorScheme="secondary"
+                  colorScheme="orange"
                   variant="ghost"
                   size="sm"
                 />

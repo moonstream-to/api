@@ -35,6 +35,9 @@ const AccountIconButton = (props) => {
           <RouterLink href="/account/security" passHref>
             <MenuItem>Security</MenuItem>
           </RouterLink>
+          <RouterLink href="/account/tokens" passHref>
+            <MenuItem>Access tokens</MenuItem>
+          </RouterLink>
         </MenuGroup>
         <MenuDivider />
         <MenuItem
