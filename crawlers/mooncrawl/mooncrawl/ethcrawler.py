@@ -5,6 +5,7 @@ import argparse
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 import json
+import logging
 import os
 import sys
 import time
@@ -22,8 +23,12 @@ from .ethereum import (
     trending,
 )
 from .publish import publish_json
-from .settings import MOONSTREAM_CRAWL_WORKERS, MOONSTREAM_IPC_PATH
+from .settings import MOONSTREAM_CRAWL_WORKERS
 from .version import MOONCRAWL_VERSION
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class ProcessingOrder(Enum):
@@ -99,7 +104,7 @@ def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
 
         if args.start is None:
             if block_number_difference < args.confirmations:
-                print(
+                logger.info(
                     f"Synchronization is unnecessary for blocks {latest_stored_block_number}-{latest_block_number - 1}"
                 )
                 time.sleep(5)
@@ -110,7 +115,7 @@ def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
             bottom_block_number = max(latest_stored_block_number + 1, args.start)
 
         if latest_stored_block_number >= latest_block_number:
-            print(
+            logger.info(
                 f"Synchronization is unnecessary for blocks {latest_stored_block_number}-{latest_block_number - 1}"
             )
             time.sleep(5)
@@ -120,14 +125,16 @@ def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
             f"{bottom_block_number}-{latest_block_number}",
             order=args.order,
         ):
-            print(f"Adding blocks {blocks_numbers_list[-1]}-{blocks_numbers_list[0]}")
+            logger.info(
+                f"Adding blocks {blocks_numbers_list[-1]}-{blocks_numbers_list[0]}"
+            )
             # TODO(kompotkot): Set num_processes argument based on number of blocks to synchronize.
             crawl_blocks_executor(
                 block_numbers_list=blocks_numbers_list,
                 with_transactions=not args.notransactions,
                 num_processes=args.jobs,
             )
-        print(
+        logger.info(
             f"Synchronized blocks from {latest_stored_block_number} to {latest_block_number}"
         )
 
