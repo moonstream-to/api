@@ -14,6 +14,8 @@ PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
 AWS_SSM_PARAMETER_PATH="${AWS_SSM_PARAMETER_PATH:-/moonstream/prod}"
 SCRIPT_DIR="$(realpath $(dirname $0))"
 PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.py"
+ETHEREUM_GETH_SERVICE="ethereum-node.service"
+ETHEREUM_SYNCHRONIZE_SERVICE="ethereum-synchronize.service"
 ETHEREUM_TRENDING_SERVICE="ethereum-trending.service"
 ETHEREUM_TRENDING_TIMER="ethereum-trending.service"
 ETHEREUM_TXPOOL_SERVICE="ethereum-txpool.service"
@@ -23,7 +25,10 @@ set -eu
 echo
 echo
 echo "Building executable Ethereum transaction pool crawler script with Go"
+EXEC_DIR=$(pwd)
+cd "${APP_CRAWLERS_DIR}/ethtxpool"
 HOME=/root /usr/local/go/bin/go build -o "${APP_CRAWLERS_DIR}/ethtxpool/ethtxpool" "${APP_CRAWLERS_DIR}/ethtxpool/main.go"
+cd "${EXEC_DIR}"
 
 echo
 echo
@@ -36,6 +41,30 @@ echo
 echo "Retrieving deployment parameters"
 mkdir -p "${SECRETS_DIR}"
 AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" "${PYTHON}" "${PARAMETERS_SCRIPT}" extract -p "${AWS_SSM_PARAMETER_PATH}" -o "${PARAMETERS_ENV_PATH}"
+
+echo
+echo
+echo "Deploy Geth service if not running already"
+if systemctl is-active --quiet "${ETHEREUM_GETH_SERVICE}"
+then
+    echo "Ethereum Geth service ${ETHEREUM_GETH_SERVICE} already running"
+else
+    echo "Replacing Ethereum Geth service definition with ${ETHEREUM_GETH_SERVICE}"
+    chmod 644 "${SCRIPT_DIR}/${ETHEREUM_GETH_SERVICE}"
+    cp "${SCRIPT_DIR}/${ETHEREUM_GETH_SERVICE}" "/etc/systemd/system/${ETHEREUM_GETH_SERVICE}"
+    systemctl daemon-reload
+    systemctl disable "${ETHEREUM_GETH_SERVICE}"
+    systemctl restart "${ETHEREUM_GETH_SERVICE}"
+    sleep 10
+fi
+
+echo
+echo
+echo "Replacing existing Ethereum block with transactions syncronizer service definition with ${ETHEREUM_SYNCHRONIZE_SERVICE}"
+chmod 644 "${SCRIPT_DIR}/${ETHEREUM_SYNCHRONIZE_SERVICE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_SYNCHRONIZE_SERVICE}" "/etc/systemd/system/${ETHEREUM_SYNCHRONIZE_SERVICE}"
+systemctl daemon-reload
+systemctl restart "${ETHEREUM_SYNCHRONIZE_SERVICE}"
 
 echo
 echo
