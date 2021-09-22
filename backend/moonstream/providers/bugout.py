@@ -321,6 +321,34 @@ class EthereumTXPoolProvider(BugoutEventProvider):
         return subscriptions_filters
 
 
+class NftProvider(BugoutEventProvider):
+    def __init__(
+        self,
+        event_type: str,
+        description: str,
+        default_time_interval_seconds: int,
+        estimated_events_per_time_interval: float,
+        tags: Optional[List[str]] = None,
+        batch_size: int = 100,
+        timeout: float = 30.0,
+    ):
+
+        super().__init__(
+            event_type=event_type,
+            description=description,
+            default_time_interval_seconds=default_time_interval_seconds,
+            estimated_events_per_time_interval=estimated_events_per_time_interval,
+            tags=tags,
+            batch_size=batch_size,
+            timeout=timeout,
+        )
+
+    def parse_filters(
+        self, query: StreamQuery, user_subscriptions: Dict[str, List[BugoutResource]]
+    ) -> Optional[List[str]]:
+        return []
+
+
 whalewatch_description = """Event provider for Ethereum whale watch.
 
 Shows the top 10 addresses active on the Ethereum blockchain over the last hour in the following categories:
@@ -360,7 +388,7 @@ Currently, it summarizes the activities on the following NFT markets:
 
 This provider is currently not accessible for subscription. The data from this provider is publicly
 available at the /nft endpoint."""
-nft_summary_provider = BugoutEventProvider(
+nft_summary_provider = NftProvider(
     event_type="nft_summary",
     description=nft_summary_description,
     # 40 blocks per summary, 15 seconds per block + 2 seconds wiggle room.

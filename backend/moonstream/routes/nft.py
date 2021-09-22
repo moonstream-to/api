@@ -7,6 +7,8 @@ from datetime import datetime
 import logging
 from typing import Optional
 
+from bugout.data import BugoutResource
+
 from fastapi import Depends, FastAPI, Query
 from moonstreamdb import db
 from fastapi.middleware.cors import CORSMiddleware
@@ -70,9 +72,7 @@ async def stream_handler(
         data_journal_id=MOONSTREAM_DATA_JOURNAL_ID,
         data_access_token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
         stream_boundary=stream_boundary,
-        user_subscriptions={
-            nft_summary_provider.event_type: [nft_summary_provider.event_type]
-        },
+        user_subscriptions={nft_summary_provider.event_type: []},
         query=StreamQuery(subscription_types=[nft_summary_provider.event_type]),
     )
 
