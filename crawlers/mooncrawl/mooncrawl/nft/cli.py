@@ -117,7 +117,11 @@ def get_latest_nft_labeled_block(db_session: Session) -> Optional[int]:
         .limit(1)
     )
 
-    return query.one_or_none().block_number
+    start_block = query.one_or_none()
+    if start_block is not None:
+        return start_block.block_number
+    else:
+        return None
 
 
 def sync_labels(db_session: Session, web3_client: Web3, start: Optional[int]) -> int:
@@ -128,7 +132,7 @@ def sync_labels(db_session: Session, web3_client: Web3, start: Optional[int]) ->
         start = get_latest_nft_labeled_block(db_session)
         if start is None:
             logger.warning(
-                "Didn't find any nft labels in db, starting sync from 3 month before now"
+                "Didn't find any nft labels in db, starting sync from 1st Jan 2021 before now"
             )
             start_date = datetime(2021, 1, 1, tzinfo=timezone.utc)
             start = (
@@ -164,7 +168,7 @@ def sync_summaries(
             start += 1
         else:
             logger.info(
-                "There is no entry in Bugout, starting to create summaries from 3 month ago"
+                "There is no entry in Bugout, starting to create summaries from 1st Jan 2021"
             )
             start_date = datetime(2021, 1, 1, tzinfo=timezone.utc)
             start = (
