@@ -1,4 +1,5 @@
 import os
+from typing import cast
 
 # Bugout
 HUMBUG_REPORTER_CRAWLERS_TOKEN = os.environ.get("HUMBUG_REPORTER_CRAWLERS_TOKEN")
@@ -18,3 +19,16 @@ except:
 
 # Etherscan
 MOONSTREAM_ETHERSCAN_TOKEN = os.environ.get("MOONSTREAM_ETHERSCAN_TOKEN")
+
+# NFT crawler
+MOONSTREAM_HUMBUG_TOKEN = os.environ.get("MOONSTREAM_HUMBUG_TOKEN")
+if MOONSTREAM_HUMBUG_TOKEN is None:
+    raise ValueError("MOONSTREAM_HUMBUG_TOKEN env variable is not set")
+
+MOONSTREAM_ADMIN_ACCESS_TOKEN = os.environ.get("MOONSTREAM_ADMIN_ACCESS_TOKEN")
+if MOONSTREAM_ADMIN_ACCESS_TOKEN is None:
+    raise ValueError("MOONSTREAM_ADMIN_ACCESS_TOKEN env variable is not set")
+
+MOONSTREAM_DATA_JOURNAL_ID = os.environ.get("MOONSTREAM_DATA_JOURNAL_ID")
+if MOONSTREAM_DATA_JOURNAL_ID is None:
+    raise ValueError("MOONSTREAM_DATA_JOURNAL_ID env variable is not set")

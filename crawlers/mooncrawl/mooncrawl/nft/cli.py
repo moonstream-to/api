@@ -3,10 +3,8 @@ A command line tool to crawl information about NFTs from various sources.
 """
 import argparse
 from datetime import datetime, timezone
-from dateutil.relativedelta import relativedelta
 import json
 import logging
-import os
 import sys
 import time
 from typing import Any, cast, Dict, Optional
@@ -31,7 +29,12 @@ from .ethereum import (
     SUMMARY_KEY_END_BLOCK,
 )
 from ..publish import publish_json
-from ..settings import MOONSTREAM_IPC_PATH
+from ..settings import (
+    MOONSTREAM_IPC_PATH,
+    MOONSTREAM_ADMIN_ACCESS_TOKEN,
+    MOONSTREAM_HUMBUG_TOKEN,
+    MOONSTREAM_DATA_JOURNAL_ID,
+)
 from ..version import MOONCRAWL_VERSION
 
 logging.basicConfig(level=logging.INFO)
@@ -65,11 +68,12 @@ def get_latest_block_from_db(db_session: Session):
     )
 
 
-def get_latest_summary_block(
-    bugout_access_token: str, bugout_journal_id: str
-) -> Optional[int]:
+def get_latest_summary_block() -> Optional[int]:
     try:
+
         bugout_client = Bugout()
+        bugout_access_token = cast(str, MOONSTREAM_ADMIN_ACCESS_TOKEN)
+        bugout_journal_id = cast(str, MOONSTREAM_DATA_JOURNAL_ID)
         query = "#crawl_type:nft_ethereum"
 
         events = bugout_client.search(
@@ -150,15 +154,12 @@ def sync_summaries(
     db_session: Session,
     start: Optional[int],
     end: int,
-    humbug_token: str,
-    bugout_access_token: str,
-    bugout_journal_id: str,
 ) -> int:
     if start is None:
         logger.info(
             "Syncing summary start block is not given, getting it from latest nft summary from Bugout"
         )
-        start = get_latest_summary_block(bugout_access_token, bugout_journal_id)
+        start = get_latest_summary_block()
         if start is not None:
             start += 1
         else:
@@ -180,7 +181,7 @@ def sync_summaries(
         logger.warn("Syncing summaries is not required")
     while batch_end <= end:
         summary_result = ethereum_summary(db_session, start, batch_end)
-        push_summary(summary_result, humbug_token)
+        push_summary(summary_result)
         logger.info(f"Pushed summary of blocks : {start}-{batch_end}")
         start = batch_end + 1
         batch_end += BLOCKS_PER_SUMMARY
@@ -194,16 +195,6 @@ def sync_summaries(
 def ethereum_sync_handler(args: argparse.Namespace) -> None:
     web3_client = web3_client_from_cli_or_env(args)
 
-    humbug_token = os.environ.get("MOONSTREAM_HUMBUG_TOKEN")
-    if humbug_token is None:
-        raise ValueError("MOONSTREAM_HUMBUG_TOKEN env variable is not set")
-    bugout_access_token = os.environ.get("MOONSTREAM_ADMIN_ACCESS_TOKEN")
-    if bugout_access_token is None:
-        raise ValueError("MOONSTREAM_ADMIN_ACCESS_TOKEN env variable is not set")
-    bugout_journal_id = os.environ.get("MOONSTREAM_DATA_JOURNAL_ID")
-    if bugout_journal_id is None:
-        raise ValueError("MOONSTREAM_DATA_JOURNAL_ID env variable is not set")
-
     with yield_db_session_ctx() as db_session:
         logger.info("Initial labeling:")
         last_labeled = sync_labels(db_session, web3_client, args.start)
@@ -212,9 +203,6 @@ def ethereum_sync_handler(args: argparse.Namespace) -> None:
             db_session,
             args.start,
             last_labeled,
-            humbug_token,
-            bugout_access_token,
-            bugout_journal_id,
         )
         while True:
             logger.info("Syncing")
@@ -223,9 +211,6 @@ def ethereum_sync_handler(args: argparse.Namespace) -> None:
                 db_session,
                 last_summary_created + 1,
                 last_labeled,
-                humbug_token,
-                bugout_access_token,
-                bugout_journal_id,
             )
             sleep_time = 10 * 60
             logger.info(f"Going to sleep for {sleep_time}s")
@@ -238,7 +223,9 @@ def ethereum_label_handler(args: argparse.Namespace) -> None:
         add_labels(web3_client, db_session, args.start, args.end, args.address)
 
 
-def push_summary(result: Dict[str, Any], humbug_token: str):
+def push_summary(result: Dict[str, Any], humbug_token: Optional[str] = None):
+    if humbug_token is None:
+        humbug_token = cast(str, MOONSTREAM_HUMBUG_TOKEN)
     title = (
         f"NFT activity on the Ethereum blockchain: crawled at: {result['crawled_at'] })"
     )
@@ -287,18 +274,12 @@ def ethereum_summary_handler(args: argparse.Namespace) -> None:
 
     with yield_db_session_ctx() as db_session:
         result = ethereum_summary(db_session, args.start, args.end)
-    humbug_token = args.humbug
-    if humbug_token is None:
-        humbug_token = os.environ.get("MOONSTREAM_HUMBUG_TOKEN")
-    if humbug_token:
-        push_summary(result, humbug_token)
+    push_summary(result, args.humbug)
     with args.outfile as ofp:
         json.dump(result, ofp)
 
 
 def main() -> None:
-    time_now = datetime.now(timezone.utc)
-
     parser = argparse.ArgumentParser(description="Moonstream NFT crawlers")
     parser.set_defaults(func=lambda _: parser.print_help())
     subcommands = parser.add_subparsers(description="Subcommands")
@@ -389,11 +370,6 @@ def main() -> None:
         type=int,
         required=False,
         help="Starting block number (inclusive if block available)",
-    )
-    parser_ethereum_sync.add_argument(
-        "--humbug",
-        default=None,
-        help=("Humbug token to publish summary reports"),
     )
     parser_ethereum_sync.set_defaults(func=ethereum_sync_handler)
 
