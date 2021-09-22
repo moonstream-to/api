@@ -7,7 +7,7 @@ User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/moonstream/crawlers/ethtxpool
 EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
-ExecStart=/home/ubuntu/moonstream/crawlers/ethtxpool/ethtxpool -geth http://127.0.0.1:"${MOONSTREAM_GETH_HTTP_PORT}"
+ExecStart=/home/ubuntu/moonstream/crawlers/ethtxpool/ethtxpool -geth "${MOONSTREAM_IPC_PATH}"
 SyslogIdentifier=ethereum-txpool
 
 [Install]

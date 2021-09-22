@@ -5,10 +5,9 @@ After=network.target
 [Service]
 User=ubuntu
 Group=www-data
-EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
 ExecStart=/usr/bin/geth --syncmode full \
     --port 41381 --datadir /mnt/disks/nodes/ethereum \
-    --txpool.globalslots 950000 --txpool.globalqueue 50000 \
+    --txpool.globalslots 450000 --txpool.globalqueue 50000 \
     --http --http.port 18375 --http.api eth,web3,txpool
 ExecStop=/bin/kill -s SIGINT -$MAINPID
 SyslogIdentifier=ethereum-node
