@@ -65,7 +65,7 @@ const Tokens = () => {
         </Center>
       ) : (
         <ScaleFade in>
-          <Modal isOpen={isOpen} onClose={onClose}>
+          <Modal isOpen={isOpen} onClose={onClose} size="lg" trapFocus={false}>
             <ModalOverlay />
             <ModalContent>
               <ModalHeader>New API access token</ModalHeader>

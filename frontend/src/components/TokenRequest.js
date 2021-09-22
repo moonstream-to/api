@@ -8,7 +8,7 @@ import {
   Stack,
   Button,
   Input,
-  Text,
+  chakra,
 } from "@chakra-ui/react";
 import { useEffect, useState, useRef } from "react";
 import { Icon } from "../../src/Theme";
@@ -61,7 +61,7 @@ const TokenRequest = ({ setNewToken, onClose }) => {
       <form onSubmit={handleSubmit(createToken.mutate)} style={formStyle}>
         <Stack direction="column" spacing={4} w="100%">
           <Stack direction="column" spacing={1}>
-            <Text fontSize="sm">API key label</Text>
+            <chakra.label for="pwd">API key label:</chakra.label>
             <Input
               w="100%"
               ref={register}
@@ -71,18 +71,19 @@ const TokenRequest = ({ setNewToken, onClose }) => {
             />
           </Stack>
           <Stack direction="column" spacing={1}>
-            <Text fontSize="sm">Your password</Text>
+            <chakra.label for="pwd">Password:</chakra.label>
             <FormControl isInvalid={errors.password}>
               <InputGroup minWidth="300px">
                 <InputLeftElement onClick={togglePassword}>
                   <Icon icon="password" />
                 </InputLeftElement>
+
                 <Input
+                  id="pwd"
                   colorScheme="blue"
                   variant="filled"
                   isDisabled={createToken.isLoading}
-                  autoComplete="on"
-                  placeholder="Your Bugout password"
+                  placeholder="This action requires your password to confirm"
                   name="password"
                   type={showPassword}
                   ref={(e) => {
