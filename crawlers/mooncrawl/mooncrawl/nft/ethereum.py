@@ -20,6 +20,8 @@ from web3 import Web3
 from web3.types import FilterParams, LogReceipt
 from web3._utils.events import get_event_data
 
+from ..reporter import reporter
+
 # Default length (in blocks) of an Ethereum NFT crawl.
 DEFAULT_CRAWL_LENGTH = 100
 
@@ -317,6 +319,7 @@ def label_erc721_addresses(
         db_session.bulk_save_objects(labels)
         db_session.commit()
     except Exception as e:
+        reporter.error_report(e, ["nft-crawler"], True)
         db_session.rollback()
         logger.error(f"Failed to save labels to db:\n{e}")
 
@@ -372,6 +375,7 @@ def label_transfers(
         db_session.bulk_save_objects(new_labels)
         db_session.commit()
     except Exception as e:
+        reporter.error_report(e, ["nft-crawler"], True)
         db_session.rollback()
         logger.error("Could not write transfer/mint labels to database")
         logger.error(e)
@@ -383,7 +387,7 @@ def add_labels(
     from_block: Optional[int] = None,
     to_block: Optional[int] = None,
     contract_address: Optional[str] = None,
-    batch_size: int = 50,
+    batch_size: int = 100,
 ) -> None:
     """
     Crawls blocks between from_block and to_block checking for NFT mints and transfers.
