@@ -68,6 +68,10 @@ def get_latest_block_from_db(db_session: Session):
     )
 
 
+def get_latest_block_from_node(web3_client: Web3):
+    return web3_client.eth.block_number
+
+
 def get_latest_summary_block() -> Optional[int]:
     try:
 
@@ -95,31 +99,7 @@ def get_latest_summary_block() -> Optional[int]:
 
 
 def get_latest_nft_labeled_block(db_session: Session) -> Optional[int]:
-
-    query = (
-        db_session.query(
-            EthereumLabel.label,
-            EthereumTransaction.hash,
-            EthereumBlock.block_number,
-        )
-        .join(
-            EthereumTransaction,
-            EthereumLabel.transaction_hash == EthereumTransaction.hash,
-        )
-        .join(
-            EthereumBlock,
-            EthereumTransaction.block_number == EthereumBlock.block_number,
-        )
-        .filter(EthereumLabel.label.in_([MINT_LABEL, TRANSFER_LABEL]))
-        .order_by(EthereumBlock.block_number.desc())
-        .limit(1)
-    )
-
-    start_block = query.one_or_none()
-    if start_block is not None:
-        return start_block.block_number
-    else:
-        return None
+    raise NotImplementedError()
 
 
 def sync_labels(db_session: Session, web3_client: Web3, start: Optional[int]) -> int:
@@ -141,15 +121,14 @@ def sync_labels(db_session: Session, web3_client: Web3, start: Optional[int]) ->
                 .one()
             ).block_number
     logger.info(f"Syncing labels, start block: {start}")
-    latest_block = get_latest_block_from_db(db_session)
-    end = latest_block.block_number
+    end = get_latest_block_from_node(web3_client)
     if start > end:
         logger.warn(f"Start block {start} is greater than latest_block {end} in db")
         logger.warn("Maybe ethcrawler is not syncing or nft sync is up to date")
         return start - 1
     logger.info(f"Labeling blocks {start}-{end}")
     add_labels(web3_client, db_session, start, end)
-    return latest_block.block_number
+    return end
 
 
 def sync_summaries(
