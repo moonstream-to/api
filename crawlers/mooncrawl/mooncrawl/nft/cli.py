@@ -59,15 +59,6 @@ def web3_client_from_cli_or_env(args: argparse.Namespace) -> Web3:
     return connect(web3_connection_string)
 
 
-def get_latest_block_from_db(db_session: Session):
-    return (
-        db_session.query(EthereumBlock)
-        .order_by(EthereumBlock.timestamp.desc())
-        .limit(1)
-        .one()
-    )
-
-
 def get_latest_block_from_node(web3_client: Web3):
     return web3_client.eth.block_number
 
@@ -98,6 +89,9 @@ def get_latest_summary_block() -> Optional[int]:
         return None
 
 
+# TODO(yhtiyar):
+# Labeling status should be stored in new tabel, and
+# latest label should be got from there
 def get_latest_nft_labeled_block(db_session: Session) -> Optional[int]:
     raise NotImplementedError()
 
