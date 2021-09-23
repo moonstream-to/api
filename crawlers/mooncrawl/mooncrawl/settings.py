@@ -21,9 +21,9 @@ except:
 MOONSTREAM_ETHERSCAN_TOKEN = os.environ.get("MOONSTREAM_ETHERSCAN_TOKEN")
 
 # NFT crawler
-MOONSTREAM_HUMBUG_TOKEN = os.environ.get("MOONSTREAM_HUMBUG_TOKEN", "")
-if MOONSTREAM_HUMBUG_TOKEN == "":
-    raise ValueError("MOONSTREAM_HUMBUG_TOKEN env variable is not set")
+NFT_HUMBUG_TOKEN = os.environ.get("NFT_HUMBUG_TOKEN", "")
+if NFT_HUMBUG_TOKEN == "":
+    raise ValueError("NFT_HUMBUG_TOKEN env variable is not set")
 
 MOONSTREAM_ADMIN_ACCESS_TOKEN = os.environ.get("MOONSTREAM_ADMIN_ACCESS_TOKEN", "")
 if MOONSTREAM_ADMIN_ACCESS_TOKEN == "":
