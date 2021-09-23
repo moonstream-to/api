@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Skeleton, IconButton } from "@chakra-ui/react";
 import {
   Table,
@@ -24,38 +24,47 @@ const SORT_DIRECTION_TYPES = {
   ASC: true,
   DESC: false,
 };
-const List = ({ data, revoke, isLoading, update }) => {
+const List = ({ data, revoke, isLoading, update, filter }) => {
   const [stateData, setStateData] = useState(data);
   const userToken = localStorage.getItem("MOONSTREAM_ACCESS_TOKEN");
   const [sortBy, setSortBy] = useState({
     column: SORT_BY_TYPES.LABEL,
     direction: SORT_DIRECTION_TYPES.ASC,
   });
+
+  const sortedTokens = useMemo(() => {
+    return data?.token?.sort(function (a, b) {
+      var aName = a?.note?.toUpperCase();
+      var bName = b?.note?.toUpperCase();
+
+      if ((a.note || b.note) && sortBy.column === SORT_BY_TYPES.LABEL) {
+        if (!b.note) return -1;
+        if (sortBy.direction === SORT_DIRECTION_TYPES.ASC) {
+          return aName < bName ? -1 : aName > bName ? 1 : 0;
+        } else {
+          return aName > bName ? -1 : aName < bName ? 1 : 0;
+        }
+      } else {
+        if (sortBy.direction === SORT_DIRECTION_TYPES.ASC) {
+          return new Date(b.created_at) - new Date(a.created_at);
+        } else {
+          return new Date(a.created_at) - new Date(b.created_at);
+        }
+      }
+    });
+  }, [sortBy, data]);
+
   useEffect(() => {
     if (data?.token?.length > 0) {
-      const sortedTokens = data.token.sort(function (a, b) {
-        var aName = a?.note?.toUpperCase();
-        var bName = b?.note?.toUpperCase();
-
-        if ((a.note || b.note) && sortBy.column === SORT_BY_TYPES.LABEL) {
-          if (!b.note) return -1;
-          if (sortBy.direction === SORT_DIRECTION_TYPES.ASC) {
-            return aName < bName ? -1 : aName > bName ? 1 : 0;
-          } else {
-            return aName > bName ? -1 : aName < bName ? 1 : 0;
-          }
-        } else {
-          if (sortBy.direction === SORT_DIRECTION_TYPES.ASC) {
-            return new Date(b.created_at) - new Date(a.created_at);
-          } else {
-            return new Date(a.created_at) - new Date(b.created_at);
-          }
-        }
+      const filteredTokens = sortedTokens.filter((item) => {
+        if (filter === null || filter === undefined || filter === "") {
+          return true;
+        } else return item.note.includes(filter);
       });
 
-      setStateData({ ...data, token: [...sortedTokens] });
+      setStateData({ ...data, token: [...filteredTokens] });
     }
-  }, [data, sortBy]);
+  }, [data, sortBy, filter, sortedTokens]);
 
   const cellProps = {
     px: ["2px", "6px", "inherit"],
@@ -77,7 +86,9 @@ const List = ({ data, revoke, isLoading, update }) => {
                 variant="link"
                 my={0}
                 size="sm"
-                colorScheme="blue"
+                colorScheme={
+                  sortBy.column !== SORT_BY_TYPES.LABEL ? "blue" : "orange"
+                }
                 onClick={() =>
                   setSortBy({
                     column: SORT_BY_TYPES.LABEL,
@@ -107,7 +118,9 @@ const List = ({ data, revoke, isLoading, update }) => {
                 variant="link"
                 my={0}
                 size="sm"
-                colorScheme="blue"
+                colorScheme={
+                  sortBy.column !== SORT_BY_TYPES.DATE ? "blue" : "orange"
+                }
                 onClick={() =>
                   setSortBy({
                     column: SORT_BY_TYPES.DATE,
@@ -128,8 +141,7 @@ const List = ({ data, revoke, isLoading, update }) => {
                   />
                 }
               >
-                {" "}
-                Date Created{" "}
+                {`Date Created`}
               </Button>
 
               {/* <IconButton
@@ -150,7 +162,7 @@ const List = ({ data, revoke, isLoading, update }) => {
           </Tr>
         </Thead>
         <Tbody>
-          {stateData.token.map((token) => {
+          {stateData.token?.map((token) => {
             if (token.active) {
               if (userToken !== token.id) {
                 return (
