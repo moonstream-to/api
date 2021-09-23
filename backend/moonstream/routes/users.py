@@ -188,7 +188,7 @@ async def token_update_handler(
 ) -> BugoutToken:
     token = request.state.token
     try:
-        response = bc.update_token(access_token, token_note=token_note)
+        response = bc.update_token(token=access_token, token_note=token_note)
     except BugoutResponseException as e:
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
