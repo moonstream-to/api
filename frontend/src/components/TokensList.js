@@ -9,31 +9,53 @@ import {
   Tbody,
   Editable,
   EditableInput,
+  Button,
   EditablePreview,
 } from "@chakra-ui/react";
-import { DeleteIcon } from "@chakra-ui/icons";
+import { DeleteIcon, TriangleDownIcon } from "@chakra-ui/icons";
 import moment from "moment";
 import CopyButton from "./CopyButton";
 
+const SORT_BY_TYPES = {
+  DATE: 0,
+  LABEL: 1,
+};
+const SORT_DIRECTION_TYPES = {
+  ASC: true,
+  DESC: false,
+};
 const List = ({ data, revoke, isLoading, update }) => {
   const [stateData, setStateData] = useState(data);
   const userToken = localStorage.getItem("MOONSTREAM_ACCESS_TOKEN");
-
+  const [sortBy, setSortBy] = useState({
+    column: SORT_BY_TYPES.LABEL,
+    direction: SORT_DIRECTION_TYPES.ASC,
+  });
   useEffect(() => {
     if (data?.token?.length > 0) {
       const sortedTokens = data.token.sort(function (a, b) {
         var aName = a?.note?.toUpperCase();
         var bName = b?.note?.toUpperCase();
-        if (a.note || b.note) {
-          return aName < bName ? -1 : aName < bName ? 1 : 0;
+
+        if ((a.note || b.note) && sortBy.column === SORT_BY_TYPES.LABEL) {
+          if (!b.note) return -1;
+          if (sortBy.direction === SORT_DIRECTION_TYPES.ASC) {
+            return aName < bName ? -1 : aName > bName ? 1 : 0;
+          } else {
+            return aName > bName ? -1 : aName < bName ? 1 : 0;
+          }
         } else {
-          return new Date(b.created_at) - new Date(a.created_at);
+          if (sortBy.direction === SORT_DIRECTION_TYPES.ASC) {
+            return new Date(b.created_at) - new Date(a.created_at);
+          } else {
+            return new Date(a.created_at) - new Date(b.created_at);
+          }
         }
       });
 
       setStateData({ ...data, token: [...sortedTokens] });
     }
-  }, [data]);
+  }, [data, sortBy]);
 
   const cellProps = {
     px: ["2px", "6px", "inherit"],
@@ -50,9 +72,80 @@ const List = ({ data, revoke, isLoading, update }) => {
       >
         <Thead>
           <Tr>
-            <Th>Label</Th>
+            <Th>
+              <Button
+                variant="link"
+                my={0}
+                size="sm"
+                colorScheme="blue"
+                onClick={() =>
+                  setSortBy({
+                    column: SORT_BY_TYPES.LABEL,
+                    direction:
+                      sortBy.column !== SORT_BY_TYPES.LABEL
+                        ? SORT_DIRECTION_TYPES.ASC
+                        : !sortBy.direction,
+                  })
+                }
+                rightIcon={
+                  <TriangleDownIcon
+                    boxSize="12px"
+                    transform={
+                      sortBy.direction === SORT_DIRECTION_TYPES.ASC
+                        ? "rotate(180deg)"
+                        : "rotate(0deg)"
+                    }
+                  />
+                }
+              >
+                Label
+              </Button>
+            </Th>
             <Th {...cellProps}>Token</Th>
-            <Th {...cellProps}>Date Created</Th>
+            <Th {...cellProps}>
+              <Button
+                variant="link"
+                my={0}
+                size="sm"
+                colorScheme="blue"
+                onClick={() =>
+                  setSortBy({
+                    column: SORT_BY_TYPES.DATE,
+                    direction:
+                      sortBy.column !== SORT_BY_TYPES.DATE
+                        ? SORT_DIRECTION_TYPES.ASC
+                        : !sortBy.direction,
+                  })
+                }
+                rightIcon={
+                  <TriangleDownIcon
+                    boxSize="12px"
+                    transform={
+                      sortBy.direction === SORT_DIRECTION_TYPES.ASC
+                        ? "rotate(180deg)"
+                        : "rotate(0deg)"
+                    }
+                  />
+                }
+              >
+                {" "}
+                Date Created{" "}
+              </Button>
+
+              {/* <IconButton
+                hidden={sortBy.column !== SORT_BY_TYPES.DATE}
+                size="xs"
+                variant="ghost"
+                icon={}
+                onClick={() =>
+                  setSortBy({
+                    column: SORT_BY_TYPES.DATE,
+                    direction: !sortBy.direction,
+                  })
+                }
+
+              /> */}
+            </Th>
             <Th {...cellProps}>Actions</Th>
           </Tr>
         </Thead>
