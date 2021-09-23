@@ -92,8 +92,8 @@ const List = ({ data, revoke, isLoading, update }) => {
                     boxSize="12px"
                     transform={
                       sortBy.direction === SORT_DIRECTION_TYPES.ASC
-                        ? "rotate(180deg)"
-                        : "rotate(0deg)"
+                        ? "rotate(0deg)"
+                        : "rotate(180deg)"
                     }
                   />
                 }
@@ -122,8 +122,8 @@ const List = ({ data, revoke, isLoading, update }) => {
                     boxSize="12px"
                     transform={
                       sortBy.direction === SORT_DIRECTION_TYPES.ASC
-                        ? "rotate(180deg)"
-                        : "rotate(0deg)"
+                        ? "rotate(0deg)"
+                        : "rotate(180deg)"
                     }
                   />
                 }
