@@ -32,7 +32,7 @@ from ..publish import publish_json
 from ..settings import (
     MOONSTREAM_IPC_PATH,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
-    MOONSTREAM_HUMBUG_TOKEN,
+    NFT_HUMBUG_TOKEN,
     MOONSTREAM_DATA_JOURNAL_ID,
 )
 from ..version import MOONCRAWL_VERSION
@@ -227,7 +227,7 @@ def ethereum_label_handler(args: argparse.Namespace) -> None:
 
 def push_summary(result: Dict[str, Any], humbug_token: Optional[str] = None):
     if humbug_token is None:
-        humbug_token = MOONSTREAM_HUMBUG_TOKEN
+        humbug_token = NFT_HUMBUG_TOKEN
     title = (
         f"NFT activity on the Ethereum blockchain: crawled at: {result['crawled_at'] })"
     )
