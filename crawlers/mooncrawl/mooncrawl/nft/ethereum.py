@@ -1,5 +1,5 @@
 from dataclasses import dataclass, asdict
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import json
 import logging
 from hexbytes.main import HexBytes
@@ -20,6 +20,8 @@ from web3 import Web3
 from web3.types import FilterParams, LogReceipt
 from web3._utils.events import get_event_data
 
+from ..reporter import reporter
+
 # Default length (in blocks) of an Ethereum NFT crawl.
 DEFAULT_CRAWL_LENGTH = 100
 
@@ -31,7 +33,11 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 # Summary keys
-SUMMARY_KEY_BLOCKS = "blocks"
+SUMMARY_KEY_ID = "summary_id"
+SUMMARY_KEY_ARGS = "args"
+SUMMARY_KEY_START_BLOCK = "start_block"
+SUMMARY_KEY_END_BLOCK = "end_block"
+SUMMARY_KEY_NUM_BLOCKS = "num_blocks"
 SUMMARY_KEY_NUM_TRANSACTIONS = "num_transactions"
 SUMMARY_KEY_TOTAL_VALUE = "total_value"
 SUMMARY_KEY_NFT_TRANSFERS = "nft_transfers"
@@ -41,7 +47,11 @@ SUMMARY_KEY_NFT_PURCHASERS = "nft_owners"
 SUMMARY_KEY_NFT_MINTERS = "nft_minters"
 
 SUMMARY_KEYS = [
-    SUMMARY_KEY_BLOCKS,
+    SUMMARY_KEY_ID,
+    SUMMARY_KEY_ARGS,
+    SUMMARY_KEY_START_BLOCK,
+    SUMMARY_KEY_END_BLOCK,
+    SUMMARY_KEY_NUM_BLOCKS,
     SUMMARY_KEY_NUM_TRANSACTIONS,
     SUMMARY_KEY_TOTAL_VALUE,
     SUMMARY_KEY_NFT_TRANSFERS,
@@ -52,16 +62,16 @@ SUMMARY_KEYS = [
 ]
 
 
-# First abi is for old NFT's like crypto kitties
 # The erc721 standart requieres that Transfer event is indexed for all arguments
 # That is how we get distinguished from erc20 transfer events
+# Second abi is for old NFT's like crypto kitties
 erc721_transfer_event_abis = [
     {
         "anonymous": False,
         "inputs": [
-            {"indexed": False, "name": "from", "type": "address"},
-            {"indexed": False, "name": "to", "type": "address"},
-            {"indexed": False, "name": "tokenId", "type": "uint256"},
+            {"indexed": True, "name": "from", "type": "address"},
+            {"indexed": True, "name": "to", "type": "address"},
+            {"indexed": True, "name": "tokenId", "type": "uint256"},
         ],
         "name": "Transfer",
         "type": "event",
@@ -69,9 +79,9 @@ erc721_transfer_event_abis = [
     {
         "anonymous": False,
         "inputs": [
-            {"indexed": True, "name": "from", "type": "address"},
-            {"indexed": True, "name": "to", "type": "address"},
-            {"indexed": True, "name": "tokenId", "type": "uint256"},
+            {"indexed": False, "name": "from", "type": "address"},
+            {"indexed": False, "name": "to", "type": "address"},
+            {"indexed": False, "name": "tokenId", "type": "uint256"},
         ],
         "name": "Transfer",
         "type": "event",
@@ -129,7 +139,6 @@ class NFTContract:
     address: str
     name: Optional[str] = None
     symbol: Optional[str] = None
-    total_supply: Optional[str] = None
 
 
 def get_erc721_contract_info(w3: Web3, address: str) -> NFTContract:
@@ -148,14 +157,10 @@ def get_erc721_contract_info(w3: Web3, address: str) -> NFTContract:
     except:
         logger.error(f"Could not get symbol for potential NFT contract: {address}")
 
-    totalSupply: Optional[str] = None
-    try:
-        totalSupply = contract.functions.totalSupply().call()
-    except:
-        logger.error(f"Could not get totalSupply for potential NFT contract: {address}")
-
     return NFTContract(
-        address=address, name=name, symbol=symbol, total_supply=totalSupply
+        address=address,
+        name=name,
+        symbol=symbol,
     )
 
 
@@ -183,13 +188,6 @@ class NFTTransfer:
     transfer_tx: str
     value: Optional[int] = None
     is_mint: bool = False
-
-
-def get_value_by_tx(w3: Web3, tx_hash: HexBytes):
-    print(f"Trying to get tx: {tx_hash.hex()}")
-    tx = w3.eth.get_transaction(tx_hash)
-    print("got it")
-    return tx["value"]
 
 
 def decode_nft_transfer_data(w3: Web3, log: LogReceipt) -> Optional[NFTTransferRaw]:
@@ -311,7 +309,6 @@ def label_erc721_addresses(
                     label_data={
                         "name": contract_info.name,
                         "symbol": contract_info.symbol,
-                        "totalSupply": contract_info.total_supply,
                     },
                 )
             )
@@ -322,6 +319,7 @@ def label_erc721_addresses(
         db_session.bulk_save_objects(labels)
         db_session.commit()
     except Exception as e:
+        reporter.error_report(e, ["nft-crawler"], True)
         db_session.rollback()
         logger.error(f"Failed to save labels to db:\n{e}")
 
@@ -377,6 +375,7 @@ def label_transfers(
         db_session.bulk_save_objects(new_labels)
         db_session.commit()
     except Exception as e:
+        reporter.error_report(e, ["nft-crawler"], True)
         db_session.rollback()
         logger.error("Could not write transfer/mint labels to database")
         logger.error(e)
@@ -485,20 +484,19 @@ def add_labels(
     pbar.close()
 
 
-def time_bounded_summary(
+def block_bounded_summary(
     db_session: Session,
-    start_time: datetime,
-    end_time: datetime,
+    start_block: int,
+    end_block: int,
 ) -> Dict[str, Any]:
     """
     Produces a summary of Ethereum NFT activity between the given start_time and end_time (inclusive).
     """
-    start_timestamp = int(start_time.timestamp())
-    end_timestamp = int(end_time.timestamp())
+    summary_id = f"nft-ethereum-start-{start_block}-end-{end_block}"
 
-    time_filter = and_(
-        EthereumBlock.timestamp >= start_timestamp,
-        EthereumBlock.timestamp <= end_timestamp,
+    block_filter = and_(
+        EthereumBlock.block_number >= start_block,
+        EthereumBlock.block_number <= end_block,
     )
 
     transactions_query = (
@@ -507,7 +505,7 @@ def time_bounded_summary(
             EthereumBlock,
             EthereumTransaction.block_number == EthereumBlock.block_number,
         )
-        .filter(time_filter)
+        .filter(block_filter)
     )
 
     def nft_query(label: str) -> Query:
@@ -529,7 +527,7 @@ def time_bounded_summary(
                 EthereumBlock,
                 EthereumTransaction.block_number == EthereumBlock.block_number,
             )
-            .filter(time_filter)
+            .filter(block_filter)
             .filter(EthereumLabel.label == label)
         )
         return query
@@ -556,7 +554,7 @@ def time_bounded_summary(
                 EthereumTransaction.block_number == EthereumBlock.block_number,
             )
             .filter(EthereumLabel.label == label)
-            .filter(time_filter)
+            .filter(block_filter)
             .order_by(
                 # Without "transfer_value" and "owner_address" as sort keys, the final distinct query
                 # does not seem to be deterministic.
@@ -572,21 +570,30 @@ def time_bounded_summary(
     purchaser_query = holder_query(TRANSFER_LABEL)
     minter_query = holder_query(MINT_LABEL)
 
-    blocks_result: Dict[str, int] = {}
-    min_block = (
-        db_session.query(func.min(EthereumBlock.block_number))
-        .filter(time_filter)
-        .scalar()
+    blocks = (
+        db_session.query(EthereumBlock)
+        .filter(block_filter)
+        .order_by(EthereumBlock.block_number.asc())
     )
-    max_block = (
-        db_session.query(func.max(EthereumBlock.block_number))
-        .filter(time_filter)
-        .scalar()
-    )
+    first_block = None
+    last_block = None
+    num_blocks = 0
+    for block in blocks:
+        if num_blocks == 0:
+            min_block = block
+        max_block = block
+        num_blocks += 1
+
+    start_time = None
+    end_time = None
     if min_block is not None:
-        blocks_result["start"] = min_block
+        first_block = min_block.block_number
+        start_time = datetime.fromtimestamp(
+            min_block.timestamp, timezone.utc
+        ).isoformat()
     if max_block is not None:
-        blocks_result["end"] = max_block
+        last_block = max_block.block_number
+        end_time = datetime.fromtimestamp(max_block.timestamp, timezone.utc).isoformat()
 
     num_transactions = transactions_query.distinct(EthereumTransaction.hash).count()
     num_transfers = transfer_query.distinct(EthereumTransaction.hash).count()
@@ -614,12 +621,16 @@ def time_bounded_summary(
 
     result = {
         "date_range": {
-            "start_time": start_time.isoformat(),
+            "start_time": start_time,
             "include_start": True,
-            "end_time": end_time.isoformat(),
+            "end_time": end_time,
             "include_end": True,
         },
-        SUMMARY_KEY_BLOCKS: blocks_result,
+        SUMMARY_KEY_ID: summary_id,
+        SUMMARY_KEY_ARGS: {"start": start_block, "end": end_block},
+        SUMMARY_KEY_START_BLOCK: first_block,
+        SUMMARY_KEY_END_BLOCK: last_block,
+        SUMMARY_KEY_NUM_BLOCKS: num_blocks,
         SUMMARY_KEY_NUM_TRANSACTIONS: f"{num_transactions}",
         SUMMARY_KEY_TOTAL_VALUE: f"{total_value}",
         SUMMARY_KEY_NFT_TRANSFERS: f"{num_transfers}",
@@ -632,28 +643,12 @@ def time_bounded_summary(
     return result
 
 
-def summary(db_session: Session, end_time: datetime) -> Dict[str, Any]:
+def summary(db_session: Session, start_block: int, end_block: int) -> Dict[str, Any]:
     """
     Produces a summary of all Ethereum NFT activity:
-    1. From 1 hour before end_time to end_time
-    2. From 1 day before end_time to end_time
-    3. From 1 week before end_time to end_time
+        From 1 hour before end_time to end_time
     """
-    start_times = {
-        "hour": end_time - timedelta(hours=1),
-        "day": end_time - timedelta(days=1),
-        "week": end_time - timedelta(weeks=1),
-    }
-    summaries = {
-        period: time_bounded_summary(db_session, start_time, end_time)
-        for period, start_time in start_times.items()
-    }
 
-    def aggregate_summary(key: str) -> Dict[str, Any]:
-        return {period: summary.get(key) for period, summary in summaries.items()}
-
-    result: Dict[str, Any] = {
-        summary_key: aggregate_summary(summary_key) for summary_key in SUMMARY_KEYS
-    }
-    result["crawled_at"] = end_time.isoformat()
+    result = block_bounded_summary(db_session, start_block, end_block)
+    result["crawled_at"] = datetime.utcnow().isoformat()
     return result

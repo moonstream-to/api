@@ -8,12 +8,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import data
-from .routes.subscriptions import app as subscriptions_api
-from .routes.users import app as users_api
-from .routes.txinfo import app as txinfo_api
-from .routes.streams import app as streams_api
 from .routes.address_info import app as addressinfo_api
-
+from .routes.nft import app as nft_api
+from .routes.subscriptions import app as subscriptions_api
+from .routes.streams import app as streams_api
+from .routes.txinfo import app as txinfo_api
+from .routes.users import app as users_api
 from .settings import ORIGINS
 from .version import MOONSTREAM_VERSION
 
@@ -51,3 +51,4 @@ app.mount("/users", users_api)
 app.mount("/streams", streams_api)
 app.mount("/txinfo", txinfo_api)
 app.mount("/address_info", addressinfo_api)
+app.mount("/nft", nft_api)
