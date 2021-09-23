@@ -20,7 +20,7 @@ const useTokens = () => {
     },
   });
 
-  const { mutate: update } = useMutation(AuthService.updateToken, {
+  const updateMutation = useMutation(AuthService.updateToken, {
     onSuccess: () => {
       list();
     },
@@ -42,7 +42,7 @@ const useTokens = () => {
   return {
     createToken,
     list,
-    update,
+    updateMutation,
     revoke,
     isLoading,
     data,

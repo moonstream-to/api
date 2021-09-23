@@ -15,9 +15,12 @@ import { DeleteIcon } from "@chakra-ui/icons";
 import moment from "moment";
 import CopyButton from "./CopyButton";
 
-const List = ({ data, revoke, isLoading, updateCallback }) => {
-  const userToken = localStorage.getItem("BUGOUT_ACCESS_TOKEN");
+const List = ({ data, revoke, isLoading, update }) => {
+  const userToken = localStorage.getItem("MOONSTREAM_ACCESS_TOKEN");
 
+  const cellProps = {
+    px: ["2px", "6px", "inherit"],
+  };
   if (data) {
     return (
       <Table
@@ -30,10 +33,10 @@ const List = ({ data, revoke, isLoading, updateCallback }) => {
       >
         <Thead>
           <Tr>
-            <Th>Token</Th>
-            <Th>Date Created</Th>
-            <Th>Note</Th>
-            <Th>Actions</Th>
+            <Th>Label</Th>
+            <Th {...cellProps}>Token</Th>
+            <Th {...cellProps}>Date Created</Th>
+            <Th {...cellProps}>Actions</Th>
           </Tr>
         </Thead>
         <Tbody>
@@ -42,27 +45,37 @@ const List = ({ data, revoke, isLoading, updateCallback }) => {
               if (userToken !== token.id) {
                 return (
                   <Tr key={`token-row-${token.id}`}>
-                    <Td mr={4} p={0}>
-                      <CopyButton>{token.id}</CopyButton>
-                    </Td>
-                    <Td py={0}>{moment(token.created_at).format("L")}</Td>
-                    <Td py={0}>
+                    <Td py={0} {...cellProps}>
                       <Editable
                         colorScheme="blue"
-                        placeholder="enter note here"
+                        placeholder="Click to set up label"
                         defaultValue={token.note}
+                        isDisabled={update.isLoading}
                         onSubmit={(nextValue) =>
-                          updateCallback({ token: token.id, note: nextValue })
+                          update.mutate({ token: token.id, note: nextValue })
                         }
                       >
                         <EditablePreview
                           maxW="40rem"
+                          textColor={token.note ? "inherit" : "gray.900"}
                           _placeholder={{ color: "black" }}
                         />
                         <EditableInput maxW="40rem" />
                       </Editable>
                     </Td>
-                    <Td py={0}>
+                    <Td
+                      mr={4}
+                      py={0}
+                      {...cellProps}
+                      isTruncated
+                      maxW={["100px", "150px", "300px"]}
+                    >
+                      <CopyButton>{token.id}</CopyButton>
+                    </Td>
+                    <Td py={0} {...cellProps}>
+                      {moment(token.created_at).format("L")}
+                    </Td>
+                    <Td py={0} {...cellProps}>
                       <IconButton
                         size="sm"
                         variant="ghost"

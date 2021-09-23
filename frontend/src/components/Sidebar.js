@@ -8,10 +8,15 @@ import {
 } from "react-pro-sidebar";
 import { useContext } from "react";
 import RouterLink from "next/link";
-import { Flex, Image, IconButton } from "@chakra-ui/react";
+import { Flex, Image, IconButton, Divider } from "@chakra-ui/react";
 import UIContext from "../core/providers/UIProvider/context";
 import React from "react";
-import { HamburgerIcon, ArrowLeftIcon, ArrowRightIcon } from "@chakra-ui/icons";
+import {
+  HamburgerIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  LockIcon,
+} from "@chakra-ui/icons";
 import { MdTimeline, MdSettings } from "react-icons/md";
 import { ImStatsBars } from "react-icons/im";
 import { HiAcademicCap } from "react-icons/hi";
@@ -117,7 +122,16 @@ const Sidebar = () => {
         </SidebarContent>
       )}
 
-      <SidebarFooter></SidebarFooter>
+      <SidebarFooter style={{ paddingBottom: "3rem" }}>
+        <Divider color="gray.300" w="100%" />
+        {ui.isLoggedIn && (
+          <Menu iconShape="square">
+            <MenuItem icon={<LockIcon />}>
+              <RouterLink href="/account/tokens">API Tokens</RouterLink>
+            </MenuItem>
+          </Menu>
+        )}
+      </SidebarFooter>
     </ProSidebar>
   );
 };

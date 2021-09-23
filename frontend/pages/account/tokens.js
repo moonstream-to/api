@@ -24,7 +24,7 @@ const Tokens = () => {
   const { onOpen, onClose, isOpen } = useDisclosure();
   const [newToken, setNewToken] = useState(null);
   const [tokens, setTokens] = useState();
-  const { list, update, revoke, isLoading, data } = useTokens();
+  const { list, updateMutation, revoke, isLoading, data } = useTokens();
 
   useEffect(() => {
     list();
@@ -44,7 +44,7 @@ const Tokens = () => {
     if (data?.data?.user_id) {
       setTokens(data.data);
     }
-  }, [data?.data, isLoading]);
+  }, [data, isLoading]);
 
   useEffect(() => {
     document.title = `Tokens`;
@@ -75,8 +75,8 @@ const Tokens = () => {
               </ModalBody>
             </ModalContent>
           </Modal>
-          <Heading variant="tokensScreen"> My access tokens </Heading>
-          <VStack overflow="initial" maxH="unset" height="100%">
+          <Heading variant="tokensScreen"> My API tokens </Heading>
+          <VStack overflow="initial" maxH="unset" height="100%" maxW="100%">
             <Button
               alignSelf="flex-end"
               onClick={onOpen}
@@ -90,7 +90,7 @@ const Tokens = () => {
               data={tokens}
               revoke={revoke}
               isLoading={isLoading}
-              updateCallback={update}
+              update={updateMutation}
             />
           </VStack>
         </ScaleFade>
