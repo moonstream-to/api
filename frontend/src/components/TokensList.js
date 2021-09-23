@@ -16,7 +16,7 @@ import moment from "moment";
 import CopyButton from "./CopyButton";
 
 const List = ({ data, revoke, isLoading, update }) => {
-  const userToken = localStorage.getItem("BUGOUT_ACCESS_TOKEN");
+  const userToken = localStorage.getItem("MOONSTREAM_ACCESS_TOKEN");
 
   const cellProps = {
     px: ["2px", "6px", "inherit"],
