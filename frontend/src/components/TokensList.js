@@ -11,6 +11,7 @@ import {
   EditableInput,
   Button,
   EditablePreview,
+  useBreakpointValue,
 } from "@chakra-ui/react";
 import { DeleteIcon, TriangleDownIcon } from "@chakra-ui/icons";
 import moment from "moment";
@@ -30,6 +31,15 @@ const List = ({ data, revoke, isLoading, update, filter }) => {
   const [sortBy, setSortBy] = useState({
     column: SORT_BY_TYPES.LABEL,
     direction: SORT_DIRECTION_TYPES.ASC,
+  });
+
+  const buttonSize = useBreakpointValue({
+    base: "xs",
+    sm: "sm",
+    md: "sm",
+    lg: "sm",
+    xl: "sm",
+    "2xl": "sm",
   });
 
   const sortedTokens = useMemo(() => {
@@ -85,7 +95,8 @@ const List = ({ data, revoke, isLoading, update, filter }) => {
               <Button
                 variant="link"
                 my={0}
-                size="sm"
+                mx={0}
+                size={buttonSize}
                 colorScheme={
                   sortBy.column !== SORT_BY_TYPES.LABEL ? "blue" : "orange"
                 }
@@ -100,6 +111,9 @@ const List = ({ data, revoke, isLoading, update, filter }) => {
                 }
                 rightIcon={
                   <TriangleDownIcon
+                    color={
+                      sortBy.column !== SORT_BY_TYPES.LABEL && "transparent"
+                    }
                     boxSize="12px"
                     transform={
                       sortBy.direction === SORT_DIRECTION_TYPES.ASC
@@ -112,12 +126,15 @@ const List = ({ data, revoke, isLoading, update, filter }) => {
                 Label
               </Button>
             </Th>
-            <Th {...cellProps}>Token</Th>
-            <Th {...cellProps}>
+            <Th {...cellProps} fontSize={["xx-small", "xs", null]}>
+              Token
+            </Th>
+            <Th {...cellProps} fontSize={["xx-small", "xs", null]}>
               <Button
+                mx={0}
                 variant="link"
                 my={0}
-                size="sm"
+                size={buttonSize}
                 colorScheme={
                   sortBy.column !== SORT_BY_TYPES.DATE ? "blue" : "orange"
                 }
@@ -132,6 +149,9 @@ const List = ({ data, revoke, isLoading, update, filter }) => {
                 }
                 rightIcon={
                   <TriangleDownIcon
+                    color={
+                      sortBy.column !== SORT_BY_TYPES.DATE && "transparent"
+                    }
                     boxSize="12px"
                     transform={
                       sortBy.direction === SORT_DIRECTION_TYPES.ASC
@@ -143,22 +163,10 @@ const List = ({ data, revoke, isLoading, update, filter }) => {
               >
                 {`Date Created`}
               </Button>
-
-              {/* <IconButton
-                hidden={sortBy.column !== SORT_BY_TYPES.DATE}
-                size="xs"
-                variant="ghost"
-                icon={}
-                onClick={() =>
-                  setSortBy({
-                    column: SORT_BY_TYPES.DATE,
-                    direction: !sortBy.direction,
-                  })
-                }
-
-              /> */}
             </Th>
-            <Th {...cellProps}>Actions</Th>
+            <Th {...cellProps} fontSize={["xx-small", "xs", null]}>
+              Actions
+            </Th>
           </Tr>
         </Thead>
         <Tbody>

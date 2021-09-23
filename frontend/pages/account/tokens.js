@@ -87,6 +87,11 @@ const Tokens = () => {
                 <Input
                   type="search"
                   maxW="300px"
+                  flexBasis="50px"
+                  flexGrow={1}
+                  display="flex"
+                  minW="150px"
+                  w="unset"
                   borderRadius="md"
                   placeholder="Type here to filter by label name"
                   value={filter}
@@ -98,6 +103,7 @@ const Tokens = () => {
                 onClick={onOpen}
                 colorScheme="orange"
                 variant="solid"
+                px="2rem"
                 size="sm"
               >
                 Add new token
