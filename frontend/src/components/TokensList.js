@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Skeleton, IconButton } from "@chakra-ui/react";
 import {
   Table,
@@ -16,12 +16,29 @@ import moment from "moment";
 import CopyButton from "./CopyButton";
 
 const List = ({ data, revoke, isLoading, update }) => {
+  const [stateData, setStateData] = useState(data);
   const userToken = localStorage.getItem("MOONSTREAM_ACCESS_TOKEN");
+
+  useEffect(() => {
+    if (data?.token?.length > 0) {
+      const sortedTokens = data.token.sort(function (a, b) {
+        var aName = a?.note?.toUpperCase();
+        var bName = b?.note?.toUpperCase();
+        if (a.note || b.note) {
+          return aName < bName ? -1 : aName < bName ? 1 : 0;
+        } else {
+          return new Date(b.created_at) - new Date(a.created_at);
+        }
+      });
+
+      setStateData({ ...data, token: [...sortedTokens] });
+    }
+  }, [data]);
 
   const cellProps = {
     px: ["2px", "6px", "inherit"],
   };
-  if (data) {
+  if (stateData) {
     return (
       <Table
         variant="simple"
@@ -40,7 +57,7 @@ const List = ({ data, revoke, isLoading, update }) => {
           </Tr>
         </Thead>
         <Tbody>
-          {data.token.map((token) => {
+          {stateData.token.map((token) => {
             if (token.active) {
               if (userToken !== token.id) {
                 return (
@@ -50,7 +67,6 @@ const List = ({ data, revoke, isLoading, update }) => {
                         colorScheme="blue"
                         placeholder="Click to set up label"
                         defaultValue={token.note}
-                        isDisabled={update.isLoading}
                         onSubmit={(nextValue) =>
                           update.mutate({ token: token.id, note: nextValue })
                         }
