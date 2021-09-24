@@ -7,7 +7,7 @@ with open("README.md") as ifp:
 
 setup(
     name="mooncrawl",
-    version="0.0.3",
+    version="0.0.5",
     author="Bugout.dev",
     author_email="engineers@bugout.dev",
     license="Apache License 2.0",
