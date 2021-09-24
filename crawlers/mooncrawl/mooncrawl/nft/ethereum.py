@@ -444,7 +444,7 @@ def add_labels(
     # address_ids: Dict[str, int] = {}
     # For now quitting this idea because some contracts have unicode escapes
     # in their names, and global cache will fuck up not only that batch labeling
-    # but latet ones as well
+    # but later ones as well
 
     pbar = tqdm(total=(end - start + 1))
     pbar.set_description(f"Labeling blocks {start}-{end}")
