@@ -48,7 +48,7 @@ def yield_blocks_numbers_lists(
         input_start_block = int(blocks_start_end[0])
         input_end_block = int(blocks_start_end[1])
     except Exception:
-        print(
+        logger.error(
             "Wrong format provided, expected {bottom_block}-{top_block}, as ex. 105-340"
         )
         raise Exception
@@ -144,12 +144,14 @@ def ethcrawler_blocks_add_handler(args: argparse.Namespace) -> None:
     startTime = time.time()
 
     for blocks_numbers_list in yield_blocks_numbers_lists(args.blocks):
-        print(f"Adding blocks {blocks_numbers_list[-1]}-{blocks_numbers_list[0]}")
+        logger.info(f"Adding blocks {blocks_numbers_list[-1]}-{blocks_numbers_list[0]}")
         crawl_blocks_executor(
             block_numbers_list=blocks_numbers_list, with_transactions=True
         )
 
-    print(f"Required {time.time() - startTime} with {MOONSTREAM_CRAWL_WORKERS} workers")
+    logger.info(
+        f"Required {time.time() - startTime} with {MOONSTREAM_CRAWL_WORKERS} workers"
+    )
 
 
 def ethcrawler_blocks_missing_handler(args: argparse.Namespace) -> None:
@@ -161,7 +163,8 @@ def ethcrawler_blocks_missing_handler(args: argparse.Namespace) -> None:
     missing_blocks_numbers_total = []
     for blocks_numbers_list in yield_blocks_numbers_lists(args.blocks):
         logger.info(
-            f"Checking missing blocks {blocks_numbers_list[-1]}-{blocks_numbers_list[0]} with transactions: {not args.notransactions}"
+            f"Checking missing blocks {blocks_numbers_list[-1]}-{blocks_numbers_list[0]} "
+            f"with comparing transactions: {not args.notransactions}"
         )
         missing_blocks_numbers = check_missing_blocks(
             blocks_numbers=blocks_numbers_list,
@@ -175,13 +178,11 @@ def ethcrawler_blocks_missing_handler(args: argparse.Namespace) -> None:
         f"{missing_blocks_numbers_total if len(missing_blocks_numbers_total) <= 10 else '...'}"
     )
 
-    time.sleep(5)
-
     if (len(missing_blocks_numbers_total)) > 0:
+        time.sleep(5)
         crawl_blocks_executor(
             missing_blocks_numbers_total,
             with_transactions=True,
-            verbose=args.verbose,
             num_processes=1 if args.lazy else MOONSTREAM_CRAWL_WORKERS,
         )
     logger.info(
@@ -317,12 +318,6 @@ def main() -> None:
         "--lazy",
         action="store_true",
         help="Lazy block adding one by one",
-    )
-    parser_ethcrawler_blocks_missing.add_argument(
-        "-v",
-        "--verbose",
-        action="store_true",
-        help="Print additional information",
     )
     parser_ethcrawler_blocks_missing.set_defaults(
         func=ethcrawler_blocks_missing_handler
