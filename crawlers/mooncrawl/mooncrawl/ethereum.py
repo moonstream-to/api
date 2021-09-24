@@ -1,11 +1,15 @@
-from concurrent.futures import Future, ProcessPoolExecutor, wait
+from concurrent.futures import Future, ProcessPoolExecutor, ThreadPoolExecutor, wait
 from dataclasses import dataclass
 from datetime import datetime
+import logging
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
+from psycopg2.errors import UniqueViolation  # type: ignore
 from sqlalchemy import desc, Column
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, Query
+from tqdm import tqdm
 from web3 import Web3, IPCProvider, HTTPProvider
 from web3.types import BlockData
 
@@ -16,6 +20,9 @@ from moonstreamdb.models import (
     EthereumAddress,
     EthereumTransaction,
 )
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class EthereumBlockCrawlError(Exception):
@@ -118,15 +125,17 @@ def get_latest_blocks(confirmations: int = 0) -> Tuple[Optional[int], int]:
     return latest_stored_block_number, latest_block_number
 
 
-def crawl_blocks(
-    blocks_numbers: List[int], with_transactions: bool = False, verbose: bool = False
-) -> None:
+def crawl_blocks(blocks_numbers: List[int], with_transactions: bool = False) -> None:
     """
     Open database and geth sessions and fetch block data from blockchain.
     """
     web3_client = connect()
     with yield_db_session_ctx() as db_session:
+        pbar = tqdm(total=len(blocks_numbers))
         for block_number in blocks_numbers:
+            pbar.set_description(
+                f"Crawling block {block_number} with txs: {with_transactions}"
+            )
             try:
                 block: BlockData = web3_client.eth.get_block(
                     block_number, full_transactions=with_transactions
@@ -137,38 +146,94 @@ def crawl_blocks(
                     add_block_transactions(db_session, block)
 
                 db_session.commit()
+            except IntegrityError as err:
+                assert isinstance(err.orig, UniqueViolation)
+                logger.warning(
+                    "UniqueViolation error occurred, it means block already exists"
+                )
             except Exception as err:
                 db_session.rollback()
                 message = f"Error adding block (number={block_number}) to database:\n{repr(err)}"
                 raise EthereumBlockCrawlError(message)
             except:
                 db_session.rollback()
-                print(
+                logger.error(
                     f"Interrupted while adding block (number={block_number}) to database."
                 )
                 raise
+            pbar.update()
+        pbar.close()
 
-            if verbose:
-                print(f"Added block: {block_number}")
 
-
-def check_missing_blocks(blocks_numbers: List[int]) -> List[int]:
+def check_missing_blocks(blocks_numbers: List[int], notransactions=False) -> List[int]:
     """
     Query block from postgres. If block does not presented in database,
     add to missing blocks numbers list.
+    If arg notransactions=False, it checks correct number of transactions in
+    database according to blockchain.
     """
     bottom_block = min(blocks_numbers[-1], blocks_numbers[0])
     top_block = max(blocks_numbers[-1], blocks_numbers[0])
+
     with yield_db_session_ctx() as db_session:
-        blocks_exist_raw = (
-            db_session.query(EthereumBlock.block_number)
-            .filter(EthereumBlock.block_number >= bottom_block)
-            .filter(EthereumBlock.block_number <= top_block)
-            .all()
-        )
-    blocks_exist = [block[0] for block in blocks_exist_raw]
+        if notransactions:
+            blocks_exist_raw_query = (
+                db_session.query(EthereumBlock.block_number)
+                .filter(EthereumBlock.block_number >= bottom_block)
+                .filter(EthereumBlock.block_number <= top_block)
+            )
+            blocks_exist = [[block[0]] for block in blocks_exist_raw_query.all()]
+        else:
+            corrupted_blocks = []
+            blocks_exist_raw_query = (
+                db_session.query(
+                    EthereumBlock.block_number, func.count(EthereumTransaction.hash)
+                )
+                .join(
+                    EthereumTransaction,
+                    EthereumTransaction.block_number == EthereumBlock.block_number,
+                )
+                .filter(EthereumBlock.block_number >= bottom_block)
+                .filter(EthereumBlock.block_number <= top_block)
+                .group_by(EthereumBlock.block_number)
+            )
+            blocks_exist = [
+                [block[0], block[1]] for block in blocks_exist_raw_query.all()
+            ]
+
+            web3_client = connect()
+
+            blocks_exist_len = len(blocks_exist)
+            pbar = tqdm(total=blocks_exist_len)
+            pbar.set_description(f"Checking txs in {blocks_exist_len} blocks")
+
+            for i, block_in_db in enumerate(blocks_exist):
+                block = web3_client.eth.get_block(
+                    block_in_db[0], full_transactions=True
+                )
+                if len(block.transactions) != block_in_db[1]:
+                    corrupted_blocks.append(block_in_db[0])
+                    # Delete existing corrupted block and add to missing list
+                    del_block = (
+                        db_session.query(EthereumBlock)
+                        .filter(EthereumBlock.block_number == block_in_db[0])
+                        .one()
+                    )
+                    db_session.delete(del_block)
+                    del blocks_exist[i]
+                pbar.update()
+            pbar.close()
+
+            db_session.commit()
+
+            corrupted_blocks_len = len(corrupted_blocks)
+            if corrupted_blocks_len > 0:
+                logger.warning(
+                    f"Removed {corrupted_blocks_len} corrupted blocks: {corrupted_blocks if corrupted_blocks_len <= 10 else '...'}"
+                )
+
     missing_blocks_numbers = [
-        block for block in blocks_numbers if block not in blocks_exist
+        block for block in blocks_numbers if block not in [i[0] for i in blocks_exist]
     ]
     return missing_blocks_numbers
 
@@ -176,7 +241,6 @@ def check_missing_blocks(blocks_numbers: List[int]) -> List[int]:
 def crawl_blocks_executor(
     block_numbers_list: List[int],
     with_transactions: bool = False,
-    verbose: bool = False,
     num_processes: int = MOONSTREAM_CRAWL_WORKERS,
 ) -> None:
     """
@@ -185,7 +249,6 @@ def crawl_blocks_executor(
     Args:
     block_numbers_list - List of block numbers to add to database.
     with_transactions - If True, also adds transactions from those blocks to the ethereum_transactions table.
-    verbose - Print logs to stdout?
     num_processes - Number of processes to use to feed blocks into database.
 
     Returns nothing, but if there was an error processing the given blocks it raises an EthereumBlocksCrawlError.
@@ -205,17 +268,14 @@ def crawl_blocks_executor(
 
     results: List[Future] = []
     if num_processes == 1:
-        return crawl_blocks(block_numbers_list, with_transactions, verbose)
+        logger.warning("Executing block crawler in lazy mod")
+        return crawl_blocks(block_numbers_list, with_transactions)
     else:
-        with ProcessPoolExecutor(max_workers=MOONSTREAM_CRAWL_WORKERS) as executor:
+        with ThreadPoolExecutor(max_workers=MOONSTREAM_CRAWL_WORKERS) as executor:
             for worker in worker_indices:
-                if verbose:
-                    print(f"Spawned process for {len(worker_job_lists[worker])} blocks")
-                result = executor.submit(
-                    crawl_blocks,
-                    worker_job_lists[worker],
-                    with_transactions,
-                )
+                block_chunk = worker_job_lists[worker]
+                logger.info(f"Spawned process for {len(block_chunk)} blocks")
+                result = executor.submit(crawl_blocks, block_chunk, with_transactions)
                 result.add_done_callback(record_error)
                 results.append(result)
 
