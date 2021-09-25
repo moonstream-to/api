@@ -33,7 +33,10 @@ setup(
     package_data={"moonstreamdb": ["py.typed"]},
     zip_safe=False,
     install_requires=["alembic", "psycopg2-binary", "sqlalchemy"],
-    extras_require={"dev": ["black", "mypy"]},
+    extras_require={
+        "dev": ["black", "mypy"],
+        "distribute": ["setuptools", "twine", "wheel"],
+    },
     entry_points={
         "console_scripts": [
             "moonstreamdb=moonstreamdb.cli:main",
