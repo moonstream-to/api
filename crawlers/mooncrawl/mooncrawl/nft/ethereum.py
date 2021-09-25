@@ -302,13 +302,24 @@ def label_erc721_addresses(
     for address, id in address_ids:
         try:
             contract_info = get_erc721_contract_info(w3, address)
+
+            # Postgres cannot store the following unicode code point in a string: \u0000
+            # Therefore, we replace that code point with the empty string to avoid errors:
+            # https://stackoverflow.com/a/31672314
+            contract_name = contract_info.name.replace("\\u0000", "").replace(
+                "\x00", ""
+            )
+            contract_symbol = contract_info.symbol.replace("\\u0000", "").replace(
+                "\x00", ""
+            )
+
             labels.append(
                 EthereumLabel(
                     address_id=id,
                     label=NFT_LABEL,
                     label_data={
-                        "name": contract_info.name,
-                        "symbol": contract_info.symbol,
+                        "name": contract_name,
+                        "symbol": contract_symbol,
                     },
                 )
             )
