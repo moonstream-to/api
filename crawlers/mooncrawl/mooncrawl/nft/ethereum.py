@@ -302,13 +302,28 @@ def label_erc721_addresses(
     for address, id in address_ids:
         try:
             contract_info = get_erc721_contract_info(w3, address)
+
+            # Postgres cannot store the following unicode code point in a string: \u0000
+            # Therefore, we replace that code point with the empty string to avoid errors:
+            # https://stackoverflow.com/a/31672314
+            contract_name: Optional[str] = None
+            if contract_info.name is not None:
+                contract_name = contract_info.name.replace("\\u0000", "").replace(
+                    "\x00", ""
+                )
+            contract_symbol: Optional[str] = None
+            if contract_info.symbol is not None:
+                contract_symbol = contract_info.symbol.replace("\\u0000", "").replace(
+                    "\x00", ""
+                )
+
             labels.append(
                 EthereumLabel(
                     address_id=id,
                     label=NFT_LABEL,
                     label_data={
-                        "name": contract_info.name,
-                        "symbol": contract_info.symbol,
+                        "name": contract_name,
+                        "symbol": contract_symbol,
                     },
                 )
             )
@@ -319,9 +334,9 @@ def label_erc721_addresses(
         db_session.bulk_save_objects(labels)
         db_session.commit()
     except Exception as e:
-        reporter.error_report(e, ["nft-crawler"], True)
         db_session.rollback()
-        logger.error(f"Failed to save labels to db:\n{e}")
+        logger.error(f"Failed to save erc721 labels to db:\n{e}")
+        raise e
 
 
 def label_key(label: EthereumLabel) -> Tuple[str, int, int, str, str]:
@@ -375,10 +390,10 @@ def label_transfers(
         db_session.bulk_save_objects(new_labels)
         db_session.commit()
     except Exception as e:
-        reporter.error_report(e, ["nft-crawler"], True)
         db_session.rollback()
         logger.error("Could not write transfer/mint labels to database")
         logger.error(e)
+        raise e
 
 
 def add_labels(
@@ -440,7 +455,11 @@ def add_labels(
     batch_start = start
     batch_end = min(start + batch_size - 1, end)
 
-    address_ids: Dict[str, int] = {}
+    # TODO(yhtiyar): Make address_ids as global cache to fast up crawling
+    # address_ids: Dict[str, int] = {}
+    # For now quitting this idea because some contracts have unicode escapes
+    # in their names, and global cache will fuck up not only that batch labeling
+    # but later ones as well
 
     pbar = tqdm(total=(end - start + 1))
     pbar.set_description(f"Labeling blocks {start}-{end}")
@@ -453,6 +472,7 @@ def add_labels(
         )
         contract_addresses = {transfer.contract_address for transfer in job}
         updated_address_ids = ensure_addresses(db_session, contract_addresses)
+        address_ids: Dict[str, int] = {}
         for address, address_id in updated_address_ids.items():
             address_ids[address] = address_id
 
@@ -472,10 +492,32 @@ def add_labels(
         ]
 
         # Add 'erc721' labels
-        label_erc721_addresses(w3, db_session, unlabelled_address_ids)
+        try:
+            label_erc721_addresses(w3, db_session, unlabelled_address_ids)
+        except Exception as e:
+            reporter.error_report(
+                e,
+                [
+                    "nft_crawler",
+                    "erc721_label",
+                    f"batch_start:{batch_start}",
+                    f"batch_end:{batch_end}",
+                ],
+            )
 
         # Add mint/transfer labels to (transaction, contract_address) pairs
-        label_transfers(db_session, job, updated_address_ids)
+        try:
+            label_transfers(db_session, job, updated_address_ids)
+        except Exception as e:
+            reporter.error_report(
+                e,
+                [
+                    "nft_crawler",
+                    "nft_transfer",
+                    f"batch_start:{batch_start}",
+                    f"batch_end:{batch_end}",
+                ],
+            )
 
         # Update batch at end of iteration
         pbar.update(batch_end - batch_start + 1)
