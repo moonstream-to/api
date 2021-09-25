@@ -64,6 +64,7 @@ def get_contract_source_info(
 class LabelNames(Enum):
     ETHERSCAN_SMARTCONTRACT = "etherscan_smartcontract"
     COINMARKETCAP_TOKEN = "coinmarketcap_token"
+    ERC721 = "erc721"
 
 
 def get_ethereum_address_info(
@@ -78,6 +79,7 @@ def get_ethereum_address_info(
 
     address_info = data.EthereumAddressInfo(address=address)
     etherscan_address_url = f"https://etherscan.io/address/{address}"
+    etherscan_token_url = f"https://etherscan.io/token/{address}"
     blockchain_com_url = f"https://www.blockchain.com/eth/address/{address}"
     # Checking for token:
     coinmarketcap_label: Optional[EthereumLabel] = (
@@ -94,7 +96,7 @@ def get_ethereum_address_info(
             symbol=coinmarketcap_label.label_data["symbol"],
             external_url=[
                 coinmarketcap_label.label_data["coinmarketcap_url"],
-                etherscan_address_url,
+                etherscan_token_url,
                 blockchain_com_url,
             ],
         )
@@ -114,6 +116,23 @@ def get_ethereum_address_info(
             external_url=[etherscan_address_url, blockchain_com_url],
         )
 
+    # Checking for NFT
+    # Checking for smart contract
+    erc721_label: Optional[EthereumLabel] = (
+        db_session.query(EthereumLabel)
+        .filter(EthereumLabel.address_id == id[0])
+        .filter(EthereumLabel.label == LabelNames.ERC721.value)
+        .order_by(text("created_at desc"))
+        .limit(1)
+        .one_or_none()
+    )
+    if erc721_label is not None:
+        address_info.nft = data.EthereumNFTDetails(
+            name=erc721_label.label_data.get("name"),
+            symbol=erc721_label.label_data.get("symbol"),
+            total_supply=erc721_label.label_data.get("totalSupply"),
+            external_url=[etherscan_token_url, blockchain_com_url],
+        )
     return address_info
 
 
