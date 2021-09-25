@@ -6,7 +6,7 @@ with open("README.md") as ifp:
 
 setup(
     name="nfts",
-    version="0.0.1",
+    version="0.0.2",
     author="Bugout.dev",
     author_email="engineers@bugout.dev",
     license="Apache License 2.0",
@@ -31,7 +31,7 @@ setup(
     package_data={"nfts": ["py.typed"]},
     zip_safe=False,
     install_requires=[
-        "moonstreamdb @ git+https://git@github.com/bugout-dev/moonstream.git@a4fff6498f66789934d4af26fd42a8cfb6e5eed5#egg=moonstreamdb&subdirectory=db",
+        "moonstreamdb",
         "humbug",
         "tqdm",
         "web3",
@@ -40,7 +40,5 @@ setup(
         "dev": ["black", "mypy"],
         "distribute": ["setuptools", "twine", "wheel"],
     },
-    entry_points={
-        "console_scripts": []
-    },
+    entry_points={"console_scripts": []},
 )
