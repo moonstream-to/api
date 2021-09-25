@@ -306,12 +306,16 @@ def label_erc721_addresses(
             # Postgres cannot store the following unicode code point in a string: \u0000
             # Therefore, we replace that code point with the empty string to avoid errors:
             # https://stackoverflow.com/a/31672314
-            contract_name = contract_info.name.replace("\\u0000", "").replace(
-                "\x00", ""
-            )
-            contract_symbol = contract_info.symbol.replace("\\u0000", "").replace(
-                "\x00", ""
-            )
+            contract_name: Optional[str] = None
+            if contract_info.name is not None:
+                contract_name = contract_info.name.replace("\\u0000", "").replace(
+                    "\x00", ""
+                )
+            contract_symbol: Optional[str] = None
+            if contract_info.symbol is not None:
+                contract_symbol = contract_info.symbol.replace("\\u0000", "").replace(
+                    "\x00", ""
+                )
 
             labels.append(
                 EthereumLabel(
