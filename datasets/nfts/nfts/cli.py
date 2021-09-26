@@ -1,5 +1,6 @@
 import argparse
 import contextlib
+import logging
 import os
 import sqlite3
 from typing import Optional, Union
@@ -7,9 +8,13 @@ from typing import Optional, Union
 from moonstreamdb.db import yield_db_session_ctx
 from web3 import Web3, IPCProvider, HTTPProvider
 
-from .data import event_types, nft_event
+from .data import event_types, nft_event, BlockBounds
 from .datastore import setup_database
 from .materialize import create_dataset
+
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def web3_connection(web3_uri: Optional[str] = None) -> Web3:
@@ -37,11 +42,26 @@ def handle_initdb(args: argparse.Namespace) -> None:
 
 def handle_materialize(args: argparse.Namespace) -> None:
     event_type = nft_event(args.type)
-    print(args)
+    bounds: Optional[BlockBounds] = None
+    if args.start is not None:
+        bounds = BlockBounds(starting_block=args.start, ending_block=args.end)
+    elif args.end is not None:
+        raise ValueError("You cannot set --end unless you also set --start")
+
+    logger.info(f"Materializing NFT events to datastore: {args.datastore}")
+    logger.info(f"Block bounds: {bounds}")
+
     with yield_db_session_ctx() as db_session, contextlib.closing(
         sqlite3.connect(args.datastore)
     ) as moonstream_datastore:
-        create_dataset(moonstream_datastore, db_session, args.web3, event_type)
+        create_dataset(
+            moonstream_datastore,
+            db_session,
+            args.web3,
+            event_type,
+            bounds,
+            args.batch_size,
+        )
 
 
 def main() -> None:
@@ -88,6 +108,19 @@ def main() -> None:
         "--type",
         choices=event_types,
         help="Type of event to materialize intermediate data for",
+    )
+    parser_materialize.add_argument(
+        "--start", type=int, default=None, help="Starting block number"
+    )
+    parser_materialize.add_argument(
+        "--end", type=int, default=None, help="Ending block number"
+    )
+    parser_materialize.add_argument(
+        "-n",
+        "--batch-size",
+        type=int,
+        default=1000,
+        help="Number of events to process per batch",
     )
     parser_materialize.set_defaults(func=handle_materialize)
 

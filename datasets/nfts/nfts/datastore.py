@@ -29,8 +29,8 @@ CREATE TABLE {event_tables[event_type]}
         token_id TEXT,
         from_address TEXT,
         to_address TEXT,
-        value INT,
-        timestamp INT
+        value INTEGER,
+        timestamp INTEGER
     );
     """
     return creation_query
@@ -72,14 +72,14 @@ def nft_event_to_tuple(event: NFTEvent) -> Tuple[Any]:
     dropping e.g. the event_type field.
     """
     return (
-        event.transaction_hash,
-        event.block_number,
-        event.nft_address,
-        event.token_id,
-        event.from_address,
-        event.to_address,
-        int(event.value),
-        event.timestamp,
+        str(event.transaction_hash),
+        str(event.block_number),
+        str(event.nft_address),
+        str(event.token_id),
+        str(event.from_address),
+        str(event.to_address),
+        str(event.value),
+        str(event.timestamp),
     )
 
 
