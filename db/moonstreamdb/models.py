@@ -212,3 +212,22 @@ class ESDEventSignature(Base):  # type: ignore
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )
+
+
+class OpenSeaCrawlingState(Base):  # type: ignore
+    """
+    Model for control opeansea crawling state.
+    """
+
+    __tablename__ = "opensea_crawler_state"
+
+    id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    query = Column(Text, nullable=False)
+    crawled_at = Column(
+        DateTime(timezone=True),
+        server_default=utcnow(),
+        onupdate=utcnow(),
+        nullable=False,
+    )
+
+    total_count = Column(Integer, nullable=False)
