@@ -337,6 +337,7 @@ def next_event(
         include_end=False,
     )
     parsed_filters = parse_filters(query, user_subscriptions)
+    print("parsed_filters", parsed_filters)
     if parsed_filters is None:
         return None
 
@@ -344,9 +345,10 @@ def next_event(
         query_ethereum_transactions(db_session, next_stream_boundary, parsed_filters)
         .order_by(text("timestamp asc"))
         .limit(1)
-        .one_or_none()
     )
-
+    print(maybe_ethereum_transaction)
+    maybe_ethereum_transaction = maybe_ethereum_transaction.one_or_none()
+    print(maybe_ethereum_transaction)
     if maybe_ethereum_transaction is None:
         return None
     return ethereum_transaction_event(maybe_ethereum_transaction)

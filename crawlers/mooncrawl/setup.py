@@ -33,7 +33,7 @@ setup(
     package_data={"mooncrawl": ["py.typed"]},
     zip_safe=False,
     install_requires=[
-        "moonstreamdb @ git+https://git@github.com/bugout-dev/moonstream.git@39d2b8e36a49958a9ae085ec2cc1be3fc732b9d0#egg=moonstreamdb&subdirectory=db",
+        "moonstreamdb @ git+https://git@github.com/bugout-dev/moonstream.git@d23313c9d1cb9a1280c2c150f581e64edfd1b682#egg=moonstreamdb&subdirectory=db",
         "python-dateutil",
         "requests",
         "tqdm",

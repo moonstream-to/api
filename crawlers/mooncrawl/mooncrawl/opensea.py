@@ -5,7 +5,7 @@ import json
 from pprint import pprint
 import string
 import time
-from typing import Any, Collection, Dict
+from typing import Any, Collection, Dict, Optional
 
 from moonstreamdb.models import EthereumAddress, EthereumLabel, OpenSeaCrawlingState
 from moonstreamdb.db import yield_db_session_ctx
@@ -40,6 +40,8 @@ def make_request(headers: Dict[str, Any], data: Dict[str, Any]):
                     headers=headers,
                     json=data,
                 )
+                graphql_resp.raise_for_status()
+                print(graphql_resp.headers)
             except Exception as err:
                 print(f"Error on get request status {graphql_resp.status_code} ")
                 repeat += 1
@@ -84,14 +86,15 @@ def check_if_third_requred(query: str, data: Dict[str, Any]):
         print(
             f'last coursor len {len(response_result["data"]["query"]["collections"]["edges"])}'
         )
-        print(response_result["data"]["query"]["collections"]["edges"][0])
+        print(json.dumps(response_result["data"]["query"]["collections"]["edges"][0]))
         required = True
-    except TypeError:
+    except TypeError as err:
         pass
-    except IndexError:
+    except IndexError as err:
+        pass
+    except KeyError as err:
         pass
     except Exception as err:
-        print(err)
         raise
     return required
 
@@ -103,6 +106,8 @@ def write_contract_to_database(
     name: str,
     slug: str,
     image_url: str,
+    tokenStandard: Optional[str],
+    node: Any,
 ):
     """
     Write to datbase
@@ -133,7 +138,9 @@ def write_contract_to_database(
         "name": name,
         "opensea_url": f"https://opensea.io/assets/{slug}",
         "blockchain": blockchain,
+        "tokenStandard": tokenStandard,
         "imageUrl": image_url,
+        "full_meta": node,
     }
 
     eth_label = EthereumLabel(
@@ -161,6 +168,9 @@ def parse_contract(db_session: Session, collection: Dict[str, Any]):
             "address"
         ]
         blockchain = collection["node"]["representativeAsset"]["assetContract"]["chain"]
+        tokenStandard = collection["node"]["representativeAsset"]["assetContract"][
+            "tokenStandard"
+        ]
         image_url = collection["node"]["imageUrl"]
         write_contract_to_database(
             db_session=db_session,
@@ -169,6 +179,8 @@ def parse_contract(db_session: Session, collection: Dict[str, Any]):
             name=name,
             slug=slug,
             image_url=image_url,
+            tokenStandard=tokenStandard,
+            node=collection["node"],
         )
     except Exception as err:
         print(f"Can't read metadata from Graphql response: {err}")
@@ -212,15 +224,18 @@ def crawl_collections_query_loop(
             return
         start_cursour = 0
     else:
-        if query_state.updated_at.replace(tzinfo=None) > datetime.utcnow().replace(
+        if query_state.crawled_at.replace(tzinfo=None) > datetime.utcnow().replace(
             tzinfo=None
         ) - timedelta(days=7):
+            print(f"query_state{query_state.crawled_at}")
+            print()
             return
         start_cursour = query_state.total_count
 
     total_write = 0  # just for logs
 
     array_of_collection = []
+    print(f"query_state.total_count:{query_state.total_count}")
 
     while True:
 
@@ -241,15 +256,21 @@ def crawl_collections_query_loop(
             break
         except IndexError:
             break
+        except KeyError:
+            break
         except Exception as err:
             raise
 
         array_of_collection = json_response["data"]["query"]["collections"]["edges"]
 
+        # print(json.dump(array_of_collection[0]))
+
         for collection_types_oblect in array_of_collection:
 
             if (
-                collection_types_oblect["node"]["representativeAsset"]
+                collection_types_oblect
+                and collection_types_oblect["node"]
+                and collection_types_oblect["node"]["representativeAsset"]
                 and collection_types_oblect["node"]["name"] not in already_parsed
             ):
                 parse_contract(
@@ -286,6 +307,7 @@ def recurce_query_extend(
                 db_session, new_search_query, grapql_collections_payload, symbols_string
             )
     else:
+        print("search_query", search_query, "more_required", more_required)
         crawl_collections_query_loop(
             db_session, search_query, grapql_collections_payload
         )
@@ -305,7 +327,136 @@ def crawl_opensea(args: argparse.Namespace):
     with yield_db_session_ctx() as db_session:
         grapql_collections_payload = {
             "id": "CollectionFilterQuery",
-            "query": "query CollectionFilterQuery(\n  $assetOwner: IdentityInputType\n  $categories: [CollectionSlug!]\n  $chains: [ChainScalar!]\n  $collections: [CollectionSlug!]\n  $count: Int\n  $cursor: String\n  $includeHidden: Boolean\n  $query: String\n  $sortAscending: Boolean\n  $sortBy: CollectionSort\n) {\n  query {\n    ...CollectionFilter_data_421KmG\n  }\n}\n\nfragment CollectionFilter_data_421KmG on Query {\n  selectedCollections: collections(first: 25, collections: $collections, includeHidden: true) {\n    edges {\n      node {\n   stats {\n totalSupply\n }\n      TotalCount\n   representativeAsset {\n      assetContract {\n  name\n label\n  address\n     openseaVersion\n        id\n      }\n      id\n    }\n     imageUrl\n        name\n        slug\n        id\n      }\n    }\n  }\n  collections(after: $cursor, assetOwner: $assetOwner, chains: $chains, first: $count, includeHidden: $includeHidden, parents: $categories, query: $query, sortAscending: $sortAscending, sortBy: $sortBy) {\n    edges {\n      node {\n  author {\n address\n  id\n  }\n   TotalCount\n   representativeAsset {\n      assetContract {\n   address\n  chain\n   openseaVersion\n        id\n      }\n      id\n    }\n   assetCount\n  stats {\n totalSupply\n }\n      imageUrl\n        name\n        slug\n        id\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n  totalCount\n   }\n  }\n}\n",
+            "query": "query CollectionFilterQuery(\n  $assetOwner: IdentityInputType\n"
+            "  $categories: [CollectionSlug!]\n"
+            "  $chains: [ChainScalar!]\n"
+            "  $collections: [CollectionSlug!]\n"
+            "  $count: Int\n"
+            "  $cursor: String\n"
+            "  $includeHidden: Boolean\n"
+            "  $query: String\n"
+            "  $sortAscending: Boolean\n"
+            "  $sortBy: CollectionSort\n"
+            ")"
+            " {\n  query"
+            " {\n"
+            "    ...CollectionFilter_data_421KmG\n"
+            "  }"
+            "\n}\n\n"
+            "fragment CollectionFilter_data_421KmG on Query {\n"
+            "  selectedCollections:"
+            " collections("
+            "first: 25,"
+            "collections: $collections,"
+            " includeHidden: true)"
+            " {\n    edges {\n      node {\n   stats {\n totalSupply\n }\n      TotalCount\n   representativeAsset {\n      assetContract {\n  name\n label\n  address\n     openseaVersion\n        id\n      }\n      id\n    }\n     imageUrl\n        name\n        slug\n        id\n      }\n    }\n  }\n"
+            "collections(after: $cursor,"
+            " assetOwner: $assetOwner,"
+            " chains: $chains,"
+            " first: $count,"
+            " includeHidden: $includeHidden,"
+            " parents: $categories,"
+            " query: $query,"
+            " sortAscending: $sortAscending,"
+            " sortBy: $sortBy)"
+            " {\n"
+            "    edges {\n"
+            "      node {\n"
+            "         createdDate\n"
+            "         name\n"
+            "         slug\n"
+            "         imageUrl\n"
+            "         largeImageUrl\n"
+            "         featuredImageUrl\n"
+            "         bannerImageUrl\n"
+            "         externalUrl\n"
+            "         chatUrl\n"
+            "         wikiUrl\n"
+            "         discordUrl\n"
+            "         telegramUrl\n"
+            "         twitterUsername\n"
+            "         instagramUsername\n"
+            "         mediumUsername\n"
+            "         description\n"
+            "         shortDescription\n"
+            "         hidden\n"
+            "         featured\n"
+            "         isCurated\n"
+            "         isDelisted\n"
+            "         isNsfw\n"
+            "         isSubjectToWhitelist\n"
+            "         isMintable\n"
+            "         isTransferrable\n"
+            "         isListable\n"
+            "         onlyProxiedTransfers\n"
+            "         defaultToFiat\n"
+            "         devBuyerFeeBasisPoints\n"
+            "         devSellerFeeBasisPoints\n"
+            "         openseaBuyerFeeBasisPoints\n"
+            "         openseaSellerFeeBasisPoints\n"
+            "         payoutAddress\n"
+            "         author {\n"
+            "                  address\n"
+            "                  id\n"
+            "               }\n"
+            "         TotalCount\n"
+            "         assetContractAddress\n"
+            "         assetContracts {\n"
+            "                              edges {\n"
+            "                                   node {\n"
+            "                                            address\n"
+            "                                             name\n"
+            "                                             symbol\n"
+            "                                             openseaVersion\n"
+            "                                             tokenStandard\n"
+            "                                             isSharedStorefront\n"
+            "                                             id\n"
+            "                                             blockExplorerLink\n"
+            "                                             chain\n"
+            "                                             createdDate\n"
+            "                                             modifiedDate\n"
+            "                                             relayId\n"
+            "                                        }\n"
+            "                                \n}"
+            "                       }\n"
+            "        representativeAsset "
+            "                         {\n "
+            "                            tokenMetadata\n"
+            "                            assetContract {\n"
+            "                               address\n"
+            "                               chain\n"
+            "                               openseaVersion\n"
+            "                               tokenStandard\n"
+            "                               id\n"
+            "                            }\n"
+            "                            id\n"
+            "                         }\n"
+            "        assetCount\n"
+            "        stats {\n totalSupply\n }\n"
+            "        authorizedEditors\n"
+            "        defaultChain\n"
+            "        defaultMintableAssetContract\n"
+            "        displayData\n"
+            "        assetFavoritesCount\n"
+            "        hasAssets\n"
+            "        hasListings\n"
+            "        includeTradingHistory\n"
+            "        isAuthorizedEditor\n"
+            "        isEditable\n"
+            "        isSafelisted\n"
+            "        isVerified\n"
+            "        numericTraits\n"
+            "        owner\n"
+            "        stringTraits\n"
+            "        logo\n"
+            "        banner\n"
+            "        floorPrice\n"
+            "        modifiedDate\n"
+            "        relayId\n"
+            "        __typename\n"
+            "      }\n"
+            "    cursor\n"
+            "}\n    pageInfo {\n      endCursor\n      hasNextPage\n  totalCount\n   }\n  }\n}\n",
             "variables": {
                 "assetOwner": None,
                 "categories": None,
