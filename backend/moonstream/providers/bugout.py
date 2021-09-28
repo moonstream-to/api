@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from .. import data
 from ..stream_queries import StreamQuery
 
+from ..settings import ETHTXPOOL_HUMBUG_CLIENT_ID
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARN)
@@ -376,7 +377,7 @@ ethereum_txpool_provider = EthereumTXPoolProvider(
     description=ethereum_txpool_description,
     default_time_interval_seconds=5,
     estimated_events_per_time_interval=50,
-    tags=["client:ethereum-txpool-crawler-0"],
+    tags=[ETHTXPOOL_HUMBUG_CLIENT_ID],
 )
 
 nft_summary_description = """Event provider for NFT market summaries.
