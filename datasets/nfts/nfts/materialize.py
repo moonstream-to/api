@@ -3,8 +3,6 @@ import sqlite3
 from typing import Any, Iterator, List, Optional
 import json
 
-from sqlalchemy.sql.expression import select
-
 from moonstreamdb.models import (
     EthereumAddress,
     EthereumLabel,
