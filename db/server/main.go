@@ -13,11 +13,6 @@ import (
 
 var MOONSTREAM_DB_URI = os.Getenv("MOONSTREAM_DB_URI")
 
-type Error interface {
-	error
-	Status() int
-}
-
 type PingResponse struct {
 	Status string `json:"status"`
 }
