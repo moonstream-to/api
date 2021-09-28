@@ -10,7 +10,7 @@ from web3 import Web3, IPCProvider, HTTPProvider
 
 from .data import event_types, nft_event, BlockBounds
 from .datastore import setup_database
-from .materialize import create_dataset
+from .materialize import create_dataset, EthereumBatchloader
 
 
 logging.basicConfig(level=logging.INFO)
@@ -48,6 +48,8 @@ def handle_materialize(args: argparse.Namespace) -> None:
     elif args.end is not None:
         raise ValueError("You cannot set --end unless you also set --start")
 
+    batch_loader = EthereumBatchloader(jrpc_url=args.jrpc)
+
     logger.info(f"Materializing NFT events to datastore: {args.datastore}")
     logger.info(f"Block bounds: {bounds}")
 
@@ -61,6 +63,7 @@ def handle_materialize(args: argparse.Namespace) -> None:
             event_type,
             bounds,
             args.batch_size,
+            batch_loader
         )
 
 
@@ -102,6 +105,12 @@ def main() -> None:
         default=default_web3_provider,
         type=web3_connection,
         help=f"Web3 provider to use when collecting data directly from the Ethereum blockchain (default: {default_web3_provider})",
+    )
+    parser_materialize.add_argument(
+        "--jrpc",
+        default=default_web3_provider,
+        type=str,
+        help=f"Http uri provider to use when collecting data directly from the Ethereum blockchain (default: {default_web3_provider})",
     )
     parser_materialize.add_argument(
         "-t",
