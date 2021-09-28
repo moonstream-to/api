@@ -377,7 +377,7 @@ ethereum_txpool_provider = EthereumTXPoolProvider(
     description=ethereum_txpool_description,
     default_time_interval_seconds=5,
     estimated_events_per_time_interval=50,
-    tags=[f"#client:{ETHTXPOOL_HUMBUG_CLIENT_ID}"],
+    tags=[f"client:{ETHTXPOOL_HUMBUG_CLIENT_ID}"],
 )
 
 nft_summary_description = """Event provider for NFT market summaries.
