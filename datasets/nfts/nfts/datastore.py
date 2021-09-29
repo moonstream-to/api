@@ -80,7 +80,9 @@ INSERT INTO {event_tables[event_type]}(
     return query
 
 
-def nft_event_to_tuple(event: NFTEvent) -> Tuple[Any]:
+def nft_event_to_tuple(
+    event: NFTEvent,
+) -> Tuple[str, str, str, str, str, str, str, str]:
     """
     Converts an NFT event into a tuple for use with sqlite cursor executemany. This includes
     dropping e.g. the event_type field.
@@ -121,6 +123,7 @@ def insert_checkpoint(
         """
     cur = conn.cursor()
     cur.execute(query, [event_type.value, offset, transaction_hash])
+    conn.commit()
 
 
 def insert_events(conn: sqlite3.Connection, events: List[NFTEvent]) -> None:
@@ -136,19 +139,13 @@ def insert_events(conn: sqlite3.Connection, events: List[NFTEvent]) -> None:
             for event in events
             if event.event_type == EventType.TRANSFER
         ]
-        cur.executemany(insert_events_query(EventType.TRANSFER), transfers)
+
         mints = [
             nft_event_to_tuple(event)
             for event in events
             if event.event_type == EventType.MINT
         ]
-        # transfers = []
-        # mints = []
-        # for event in events:
-        #     if event.event_type == EventType.TRANSFER:
-        #         transfers.append(nft_event_to_tuple(event))
-        #     elif event.event_type == EventType.MINT:
-        #         mints.append(nft_event_to_tuple(event))
+
         cur.executemany(insert_events_query(EventType.TRANSFER), transfers)
         cur.executemany(insert_events_query(EventType.MINT), mints)
 

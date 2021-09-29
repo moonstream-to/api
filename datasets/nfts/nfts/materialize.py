@@ -1,6 +1,6 @@
 import logging
 import sqlite3
-from typing import Any, Iterator, List, Optional, Set
+from typing import Any, cast, Iterator, List, Optional, Set
 import json
 
 from moonstreamdb.models import (
@@ -82,7 +82,9 @@ class EthereumBatchloader:
 
 
 def enrich_from_web3(
-    web3_client: Web3, nft_events: List[NFTEvent], batch_loader: EthereumBatchloader
+    web3_client: Web3,
+    nft_events: List[NFTEvent],
+    batch_loader: EthereumBatchloader,
 ) -> List[NFTEvent]:
     """
     Adds block number, value, timestamp from web3 if they are None (because that transaction is missing in db)
@@ -101,6 +103,7 @@ def enrich_from_web3(
     if len(transactions_to_query) == 0:
         return nft_events
     jrpc_response = batch_loader.load_transactions(list(transactions_to_query))
+    breakpoint()
     transactions_map = {
         result["result"]["hash"]: (
             int(result["result"]["value"], 16),
@@ -114,7 +117,7 @@ def enrich_from_web3(
         nft_events[index].value, nft_events[index].block_number = transactions_map[
             nft_events[index].transaction_hash
         ]
-        blocks_to_query.add(nft_events[index].block_number)
+        blocks_to_query.add(cast(int, nft_events[index].block_number))
 
     if len(blocks_to_query) == 0:
         return nft_events
@@ -124,7 +127,7 @@ def enrich_from_web3(
         for result in jrpc_response
     }
     for index in indices_to_update:
-        nft_events[index].timestamp = blocks_map[nft_event.block_number]
+        nft_events[index].timestamp = blocks_map[cast(int, nft_event.block_number)]
     return nft_events
 
 
@@ -132,7 +135,7 @@ def get_events(
     db_session: Session,
     event_type: EventType,
     bounds: Optional[BlockBounds] = None,
-    offset: int = 0,
+    initial_offset: int = 0,
     batch_size: int = 1000,
 ) -> Iterator[NFTEvent]:
     query = (
@@ -167,7 +170,7 @@ def get_events(
                 EthereumTransaction.block_number <= bounds.ending_block
             )
         query = query.filter(or_(*bounds_filters))
-
+    offset = initial_offset
     while True:
         events = query.offset(offset).limit(batch_size).all()
         if not events:
@@ -201,9 +204,9 @@ def create_dataset(
     db_session: Session,
     web3_client: Web3,
     event_type: EventType,
+    batch_loader: EthereumBatchloader,
     bounds: Optional[BlockBounds] = None,
     batch_size: int = 1000,
-    batch_loader: EthereumBatchloader = None,
 ) -> None:
     """
     Creates Moonstream NFTs dataset in the given SQLite datastore.
@@ -223,10 +226,7 @@ def create_dataset(
         if len(raw_events_batch) == batch_size:
             logger.info("Writing batch of events to datastore")
 
-            insert_events(
-                datastore_conn,
-                raw_events,
-            )
+            insert_events(datastore_conn, raw_events_batch)
             offset += batch_size
 
             insert_checkpoint(

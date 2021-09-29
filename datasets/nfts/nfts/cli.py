@@ -61,9 +61,9 @@ def handle_materialize(args: argparse.Namespace) -> None:
             db_session,
             args.web3,
             event_type,
+            batch_loader,
             bounds,
             args.batch_size,
-            batch_loader
         )
 
 
