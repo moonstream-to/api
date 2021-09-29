@@ -8,21 +8,18 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 )
 
-var MOONSTREAM_IPC_PATH = os.Getenv("MOONSTREAM_DB_URI")
-
-type GethEthSyncingResponse struct {
-	CurrentBlock string `json:"currentBlock"`
-}
+var MOONSTREAM_IPC_PATH = os.Getenv("MOONSTREAM_IPC_PATH")
 
 type GethResponse struct {
-	Result GethEthSyncingResponse `json:"result"`
+	Result string `json:"result"`
 }
 
 type PingGethResponse struct {
-	Status       string `json:"status"`
-	CurrentBlock string `json:"current_block"`
+	CurrentBlock uint64 `json:"current_block"`
 }
 
 type PingResponse struct {
@@ -42,16 +39,19 @@ func pingGeth(w http.ResponseWriter, req *http.Request) {
 
 	postBody, err := json.Marshal(map[string]interface{}{
 		"jsonrpc": "2.0",
-		"method":  "eth_syncing",
+		"method":  "eth_blockNumber",
+		"params":  []string{},
 		"id":      1,
 	})
 	if err != nil {
+		log.Println(err)
 		http.Error(w, http.StatusText(500), 500)
 		return
 	}
 	gethResponse, err := http.Post(MOONSTREAM_IPC_PATH, "application/json",
 		bytes.NewBuffer(postBody))
 	if err != nil {
+		log.Printf("Unable to request geth, error: %v", err)
 		http.Error(w, http.StatusText(500), 500)
 		return
 	}
@@ -59,14 +59,23 @@ func pingGeth(w http.ResponseWriter, req *http.Request) {
 
 	gethResponseBody, err := ioutil.ReadAll(gethResponse.Body)
 	if err != nil {
+		log.Printf("Unable to read geth response, error: %v", err)
 		http.Error(w, http.StatusText(500), 500)
 		return
 	}
 	var obj GethResponse
 	_ = json.Unmarshal(gethResponseBody, &obj)
 
+	blockNumberHex := strings.Replace(obj.Result, "0x", "", -1)
+	blockNumberStr, err := strconv.ParseUint(blockNumberHex, 16, 64)
+	if err != nil {
+		log.Printf("Unable to parse block number from hex to string, error: %v", err)
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	response := PingGethResponse{Status: "ok", CurrentBlock: obj.Result.CurrentBlock}
+	response := PingGethResponse{CurrentBlock: blockNumberStr}
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -81,7 +90,7 @@ func main() {
 	log.Printf("Starting server at %s\n", address)
 
 	http.HandleFunc("/ping", ping)
-	http.HandleFunc("/ping/geth", pingGeth)
+	http.HandleFunc("/status", pingGeth)
 
 	http.ListenAndServe(address, nil)
 }
