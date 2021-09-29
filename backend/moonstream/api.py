@@ -3,6 +3,7 @@ The Moonstream HTTP API
 """
 import logging
 import time
+from typing import Any, Dict
 
 from bugout.data import BugoutSearchResults
 from bugout.exceptions import BugoutResponseException
@@ -62,7 +63,10 @@ async def status_handler() -> data.StatusResponse:
     - ethereum_txpool
     - ethereum_trending
     """
-    crawl_types_timestamp = {"ethereum_txpool": None, "ethereum_trending": None}
+    crawl_types_timestamp: Dict[str, Any] = {
+        "ethereum_txpool": None,
+        "ethereum_trending": None,
+    }
     for crawl_type in crawl_types_timestamp.keys():
         try:
             search_results: BugoutSearchResults = bc.search(
