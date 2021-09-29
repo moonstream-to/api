@@ -42,8 +42,7 @@ CREATE TABLE {event_tables[event_type]}
         from_address TEXT,
         to_address TEXT,
         transaction_value INTEGER,
-        timestamp INTEGER,
-        UNIQUE (transaction_hash, nft_address, from_address, to_address, token_id)
+        timestamp INTEGER
     );
     """
     return creation_query
