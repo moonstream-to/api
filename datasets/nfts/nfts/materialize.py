@@ -16,7 +16,7 @@ from web3 import Web3
 import requests
 
 from .data import BlockBounds, EventType, NFTEvent, event_types, nft_event
-from .datastore import insert_events
+from .datastore import get_checkpoint_offset, insert_checkpoint, insert_events
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -69,7 +69,7 @@ class EthereumBatchloader:
         headers = {"Content-Type": "application/json"}
 
         try:
-            r = requests.post(self.jrpc_url, headers=headers, data=payload)
+            r = requests.post(self.jrpc_url, headers=headers, data=payload, timeout=300)
         except Exception as e:
             print(e)
         return r
@@ -82,17 +82,24 @@ class EthereumBatchloader:
 
 
 def enrich_from_web3(
-    web3_client: Web3, nft_events: NFTEvent, batch_loader: EthereumBatchloader
-) -> NFTEvent:
+    web3_client: Web3, nft_events: List[NFTEvent], batch_loader: EthereumBatchloader
+) -> List[NFTEvent]:
     """
     Adds block number, value, timestamp from web3 if they are None (because that transaction is missing in db)
     """
-    transactions_to_query = {
-        nft_event.transaction_hash
-        for nft_event in nft_events
-        if (nft_event.value is None or nft_event.block_number is None)
-    }
+    transactions_to_query = set()
+    indices_to_update: List[int] = []
+    for index, nft_event in enumerate(nft_events):
+        if (
+            nft_event.block_number is None
+            or nft_event.value is None
+            or nft_event.timestamp is None
+        ):
+            transactions_to_query.add(nft_event.transaction_hash)
+            indices_to_update.append(index)
 
+    if len(transactions_to_query) == 0:
+        return nft_events
     jrpc_response = batch_loader.load_transactions(list(transactions_to_query))
     transactions_map = {
         result["result"]["hash"]: (
@@ -101,20 +108,16 @@ def enrich_from_web3(
         )
         for result in jrpc_response
     }
-    blocks_to_query: Set[int] = set()
-    indices_to_update: List[int] = []
-    for index, nft_event in enumerate(nft_events):
-        if (
-            nft_event.block_number is None
-            or nft_event.value is None
-            or nft_event.timestamp is None
-        ):
-            nft_event.value, nft_event.block_number = transactions_map[
-                nft_event.transaction_hash
-            ]
-            blocks_to_query.add(nft_event.block_number)
-            indices_to_update.append(index)
 
+    blocks_to_query: Set[int] = set()
+    for index in indices_to_update:
+        nft_events[index].value, nft_events[index].block_number = transactions_map[
+            nft_events[index].transaction_hash
+        ]
+        blocks_to_query.add(nft_events[index].block_number)
+
+    if len(blocks_to_query) == 0:
+        return nft_events
     jrpc_response = batch_loader.load_blocks(list(blocks_to_query), False)
     blocks_map = {
         int(result["result"]["number"], 16): int(result["result"]["timestamp"], 16)
@@ -127,10 +130,10 @@ def enrich_from_web3(
 
 def get_events(
     db_session: Session,
-    web3_client: Web3,
     event_type: EventType,
     bounds: Optional[BlockBounds] = None,
-    batch_size: int = 200,
+    offset: int = 0,
+    batch_size: int = 1000,
 ) -> Iterator[NFTEvent]:
     query = (
         db_session.query(
@@ -165,7 +168,6 @@ def get_events(
             )
         query = query.filter(or_(*bounds_filters))
 
-    offset = 0
     while True:
         events = query.offset(offset).limit(batch_size).all()
         if not events:
@@ -200,21 +202,35 @@ def create_dataset(
     web3_client: Web3,
     event_type: EventType,
     bounds: Optional[BlockBounds] = None,
-    batch_size: int = 200,
+    batch_size: int = 1000,
     batch_loader: EthereumBatchloader = None,
 ) -> None:
     """
     Creates Moonstream NFTs dataset in the given SQLite datastore.
     """
-    raw_events = get_events(db_session, web3_client, event_type, bounds, batch_size)
+    offset = get_checkpoint_offset(datastore_conn, event_type)
+    if offset is not None:
+        logger.info(f"Found checkpoint for {event_type.value}: offset = {offset}")
+    else:
+        offset = 0
+        logger.info(f"Did not found any checkpoint for {event_type.value}")
+
+    raw_events = get_events(db_session, event_type, bounds, offset, batch_size)
     raw_events_batch: List[NFTEvent] = []
+
     for event in tqdm(raw_events, desc="Events processed", colour="#DD6E0F"):
         raw_events_batch.append(event)
         if len(raw_events_batch) == batch_size:
             logger.info("Writing batch of events to datastore")
+
             insert_events(
                 datastore_conn,
-                enrich_from_web3(web3_client, raw_events_batch, batch_loader),
+                raw_events,
+            )
+            offset += batch_size
+
+            insert_checkpoint(
+                datastore_conn, event_type, offset, event.transaction_hash
             )
             raw_events_batch = []
     logger.info("Writing remaining events to datastore")
