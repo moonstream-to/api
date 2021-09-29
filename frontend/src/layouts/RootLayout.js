@@ -8,6 +8,15 @@ const Navbar = React.lazy(() => import("../components/Navbar"));
 const RootLayout = (props) => {
   const ui = useContext(UIContext);
   const [showBanner, setShowBanner] = useState(true);
+  const [discordURL, setDiscordURL] = useState();
+
+  let url =
+    "https://s3.amazonaws.com/static.simiotics.com/moonstream/discord_link.json";
+
+  fetch(url)
+    .then((res) => res.json())
+    .then((out) => setDiscordURL(out?.link))
+    .catch((err) => console.error(err));
 
   return (
     <Flex
@@ -59,7 +68,7 @@ const RootLayout = (props) => {
                 >
                   Join early. Our first 1000 users get free lifetime access to
                   blockchain analytics. Contact our team on{" "}
-                  <Link href={"https://discord.gg/V3tWaP36"} color="orange.900">
+                  <Link isExternal href={discordURL} color="orange.900">
                     Discord
                   </Link>
                 </Text>
