@@ -59,7 +59,11 @@ const RootLayout = (props) => {
                 >
                   Join early. Our first 1000 users get free lifetime access to
                   blockchain analytics. Contact our team on{" "}
-                  <Link href={"https://discord.gg/V3tWaP36"} color="orange.900">
+                  <Link
+                    isExternal
+                    href={"https://discord.gg/K56VNUQGvA"}
+                    color="orange.900"
+                  >
                     Discord
                   </Link>
                 </Text>
