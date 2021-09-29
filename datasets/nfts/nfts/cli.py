@@ -10,29 +10,12 @@ from web3 import Web3, IPCProvider, HTTPProvider
 
 from .data import event_types, nft_event, BlockBounds
 from .datastore import setup_database
+from .derive import current_owners
 from .materialize import create_dataset, EthereumBatchloader
 
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-def web3_connection(web3_uri: Optional[str] = None) -> Web3:
-    """
-    Connect to the given web3 provider. You may specify a web3 provider either as a path to an IPC
-    socket on your filesystem or as an HTTP(S) URI to a JSON RPC provider.
-
-    If web3_uri is not provided or is set to None, this function attempts to use the default behavior
-    of the web3.py IPCProvider (one of the steps is looking for .ethereum/geth.ipc, but there may be others).
-    """
-    web3_provider: Union[IPCProvider, HTTPProvider] = Web3.IPCProvider()
-    if web3_uri is not None:
-        if web3_uri.startswith("http://") or web3_uri.startswith("https://"):
-            web3_provider = Web3.HTTPProvider(web3_uri)
-        else:
-            web3_provider = Web3.IPCProvider(web3_uri)
-    web3_client = Web3(web3_provider)
-    return web3_client
 
 
 def handle_initdb(args: argparse.Namespace) -> None:
@@ -48,7 +31,7 @@ def handle_materialize(args: argparse.Namespace) -> None:
     elif args.end is not None:
         raise ValueError("You cannot set --end unless you also set --start")
 
-    batch_loader = EthereumBatchloader(jrpc_url=args.jrpc)
+    batch_loader = EthereumBatchloader(jsonrpc_url=args.jsonrpc)
 
     logger.info(f"Materializing NFT events to datastore: {args.datastore}")
     logger.info(f"Block bounds: {bounds}")
@@ -59,12 +42,17 @@ def handle_materialize(args: argparse.Namespace) -> None:
         create_dataset(
             moonstream_datastore,
             db_session,
-            args.web3,
             event_type,
             batch_loader,
             bounds,
             args.batch_size,
         )
+
+
+def handle_derive(args: argparse.Namespace) -> None:
+    with contextlib.closing(sqlite3.connect(args.datastore)) as moonstream_datastore:
+        results = current_owners(moonstream_datastore)
+    logger.info("Done!")
 
 
 def main() -> None:
@@ -76,6 +64,12 @@ def main() -> None:
     # Command: nfts <subcommand>
     """
     default_web3_provider = os.environ.get("MOONSTREAM_WEB3_PROVIDER")
+    if default_web3_provider is not None and not default_web3_provider.startswith(
+        "http"
+    ):
+        raise ValueError(
+            f"Please either unset MOONSTREAM_WEB3_PROVIDER environment variable or set it to an HTTP/HTTPS URL. Current value: {default_web3_provider}"
+        )
 
     parser = argparse.ArgumentParser(
         description="Tools to work with the Moonstream NFTs dataset"
@@ -101,13 +95,7 @@ def main() -> None:
         help="Path to SQLite database representing the dataset",
     )
     parser_materialize.add_argument(
-        "--web3",
-        default=default_web3_provider,
-        type=web3_connection,
-        help=f"Web3 provider to use when collecting data directly from the Ethereum blockchain (default: {default_web3_provider})",
-    )
-    parser_materialize.add_argument(
-        "--jrpc",
+        "--jsonrpc",
         default=default_web3_provider,
         type=str,
         help=f"Http uri provider to use when collecting data directly from the Ethereum blockchain (default: {default_web3_provider})",
@@ -132,6 +120,17 @@ def main() -> None:
         help="Number of events to process per batch",
     )
     parser_materialize.set_defaults(func=handle_materialize)
+
+    parser_derive = subcommands.add_parser(
+        "derive", description="Create/updated derived data in the dataset"
+    )
+    parser_derive.add_argument(
+        "-d",
+        "--datastore",
+        required=True,
+        help="Path to SQLite database representing the dataset",
+    )
+    parser_derive.set_defaults(func=handle_derive)
 
     args = parser.parse_args()
     args.func(args)

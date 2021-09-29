@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 event_tables = {EventType.TRANSFER: "transfers", EventType.MINT: "mints"}
 
-CREATE_NFTS_TABLE_QUERY = """CREATE TABLE nfts
+CREATE_NFTS_TABLE_QUERY = """CREATE TABLE IF NOT EXISTS nfts
     (
         address TEXT NOT NULL UNIQUE ON CONFLICT FAIL,
         name TEXT,
@@ -22,8 +22,8 @@ CREATE_NFTS_TABLE_QUERY = """CREATE TABLE nfts
     );
 """
 
-CREATE_CHECKPOINT_TABLE_QUERY = """CREATE TABLE checkpoint
-    (   
+CREATE_CHECKPOINT_TABLE_QUERY = """CREATE TABLE IF NOT EXISTS checkpoint
+    (
         event_type STRING,
         offset INTEGER,
         transaction_hash STRING
@@ -33,7 +33,7 @@ CREATE_CHECKPOINT_TABLE_QUERY = """CREATE TABLE checkpoint
 
 def create_events_table_query(event_type: EventType) -> str:
     creation_query = f"""
-CREATE TABLE {event_tables[event_type]}
+CREATE TABLE IF NOT EXISTS {event_tables[event_type]}
     (
         transaction_hash TEXT,
         block_number INTEGER,
@@ -53,10 +53,12 @@ def setup_database(conn: sqlite3.Connection) -> None:
     Sets up the schema of the Moonstream NFTs dataset in the given SQLite database.
     """
     cur = conn.cursor()
+
     cur.execute(CREATE_NFTS_TABLE_QUERY)
     cur.execute(create_events_table_query(EventType.TRANSFER))
     cur.execute(create_events_table_query(EventType.MINT))
     cur.execute(CREATE_CHECKPOINT_TABLE_QUERY)
+
     conn.commit()
 
 
