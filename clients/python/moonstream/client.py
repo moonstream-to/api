@@ -170,8 +170,10 @@ class Moonstream:
             self.api.endpoints[ENDPOINT_TOKEN],
             data={"username": username, "password": password},
         )
-        token = r.text
-        self.authorize(token)
+        r.raise_for_status()
+
+        token = r.json()
+        self.authorize(token["id"])
         return token
 
     def logout(self) -> None:
@@ -217,7 +219,7 @@ class Moonstream:
         """
         self.requires_authorization()
         r = self._session.post(
-            ENDPOINT_SUBSCRIPTIONS,
+            self.api.endpoints[ENDPOINT_SUBSCRIPTIONS],
             data={
                 "subscription_type_id": subscription_type,
                 "label": label,
@@ -355,9 +357,9 @@ class Moonstream:
     def events(
         self,
         start_time: int,
-        include_start: bool,
         end_time: int,
-        include_end: bool,
+        include_start: bool = False,
+        include_end: bool = False,
         q: str = "",
     ) -> Dict[str, Any]:
         """
