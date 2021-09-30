@@ -1,5 +1,5 @@
 const baseStyle = {
-  color: "primary.400",
+  color: "blue.400",
   thickness: "4px",
   speed: "1.5s",
   my: 8,

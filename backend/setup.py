@@ -12,7 +12,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         "boto3",
-        "bugout >= 0.1.17",
+        "bugout >= 0.1.18",
         "fastapi",
         "humbug>=0.2.7",
         "python-dateutil",

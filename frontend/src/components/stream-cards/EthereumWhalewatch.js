@@ -215,7 +215,7 @@ const EthereumWhalewatchCard_ = ({
                     <Box boxSize="min-content">
                       <IconButton
                         onClick={() => subscribeClicked(whaleType)}
-                        colorScheme="secondary"
+                        colorScheme="orange"
                         variant="outline"
                         m={0}
                         boxSize="24px"

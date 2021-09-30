@@ -26,7 +26,7 @@ const LandingNavbar = () => {
         <>
           <IconButton
             alignSelf="flex-start"
-            colorScheme="primary"
+            colorScheme="blue"
             variant="solid"
             onClick={() => ui.setSidebarToggled(!ui.sidebarToggled)}
             icon={<HamburgerIcon />}
@@ -57,12 +57,7 @@ const LandingNavbar = () => {
       {!ui.isMobileView && (
         <>
           <Spacer />
-          <ButtonGroup
-            variant="link"
-            colorScheme="secondary"
-            spacing={4}
-            pr={16}
-          >
+          <ButtonGroup variant="link" colorScheme="orange" spacing={4} pr={16}>
             {ALL_NAV_PATHES.map((item, idx) => (
               <RouteButton
                 key={`${idx}-${item.title}-landing-all-links`}
@@ -79,7 +74,7 @@ const LandingNavbar = () => {
               <RouterLink href="/stream" passHref>
                 <Button
                   as={Link}
-                  colorScheme="secondary"
+                  colorScheme="orange"
                   variant="outline"
                   size="sm"
                   fontWeight="400"
@@ -111,7 +106,7 @@ const LandingNavbar = () => {
               </Button>
             )}
             {ui.isLoggedIn && (
-              <ChakraAccountIconButton variant="link" colorScheme="secondary" />
+              <ChakraAccountIconButton variant="link" colorScheme="orange" />
             )}
           </ButtonGroup>
         </>
@@ -119,7 +114,7 @@ const LandingNavbar = () => {
       {ui.isLoggedIn && ui.isMobileView && (
         <>
           <Spacer />
-          <ChakraAccountIconButton variant="link" colorScheme="secondary" />
+          <ChakraAccountIconButton variant="link" colorScheme="orange" />
         </>
       )}
     </>

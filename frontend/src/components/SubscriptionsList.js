@@ -50,7 +50,7 @@ const SubscriptionsList = ({ emptyCTA }) => {
         borderColor="gray.200"
         borderWidth="1px"
         variant="simple"
-        colorScheme="primary"
+        colorScheme="blue"
         justifyContent="center"
         borderBottomRadius="xl"
         alignItems="baseline"
@@ -81,7 +81,7 @@ const SubscriptionsList = ({ emptyCTA }) => {
                 </Td>
                 <Td py={0}>
                   <Editable
-                    colorScheme="primary"
+                    colorScheme="blue"
                     placeholder="enter note here"
                     defaultValue={subscription.label}
                     onSubmit={(nextValue) =>
@@ -125,7 +125,7 @@ const SubscriptionsList = ({ emptyCTA }) => {
                     <IconButton
                       size="sm"
                       variant="ghost"
-                      colorScheme="primary"
+                      colorScheme="blue"
                       icon={<DeleteIcon />}
                     />
                   </ConfirmationRequest>
@@ -143,7 +143,7 @@ const SubscriptionsList = ({ emptyCTA }) => {
     return (
       <Container>
         {` You don't have any subscriptions at the moment.`}
-        {emptyCTA && <Button variant="suggested">Create one</Button>}
+        {emptyCTA && <Button variant="green">Create one</Button>}
       </Container>
     );
   } else if (subscriptionsCache.isLoading) {

@@ -25,7 +25,11 @@ async def addressinfo_handler(
     address: str,
     db_session: Session = Depends(yield_db_session),
 ) -> Optional[data.EthereumAddressInfo]:
-    response = actions.get_ethereum_address_info(db_session, address)
+    try:
+        response = actions.get_ethereum_address_info(db_session, address)
+    except Exception as e:
+        logger.error(f"Unable to get info about Ethereum address {e}")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
     return response
 
 
