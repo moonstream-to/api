@@ -135,7 +135,7 @@ async def stream_handler(
             raise_on_error=True,
         )
     except ReceivingEventsException as e:
-        logger.error(f"Error receiving events from provider err: {e}")
+        logger.error(f"Error receiving events from provider")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
     except Exception as e:
         logger.error("Unable to get events")
@@ -178,7 +178,7 @@ async def latest_events_handler(
             sort_events=True,
         )
     except ReceivingEventsException as e:
-        logger.error(f"Error receiving events from provider err: {e}")
+        logger.error(f"Error receiving events from provider")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
     except Exception as e:
         logger.error("Unable to get latest events")
@@ -233,7 +233,7 @@ async def next_event_handler(
             raise_on_error=True,
         )
     except ReceivingEventsException as e:
-        logger.error(f"Error receiving events from provider err: {e}")
+        logger.error(f"Error receiving events from provider")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
     except Exception as e:
         logger.error("Unable to get next events")
@@ -288,7 +288,7 @@ async def previous_event_handler(
             raise_on_error=True,
         )
     except ReceivingEventsException as e:
-        logger.error(f"Error receiving events from provider err: {e}")
+        logger.error(f"Error receiving events from provider")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
     except Exception as e:
         logger.error("Unable to get previous events")
