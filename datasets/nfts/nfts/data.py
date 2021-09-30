@@ -3,6 +3,7 @@ Data structures used in (and as part of the maintenance of) the Moonstream NFTs 
 """
 from dataclasses import dataclass
 from enum import Enum
+from os import name
 from typing import Optional
 
 
@@ -15,6 +16,7 @@ class BlockBounds:
 class EventType(Enum):
     TRANSFER = "nft_transfer"
     MINT = "nft_mint"
+    ERC721 = "erc721"
 
 
 event_types = {event_type.value: event_type for event_type in EventType}
@@ -38,3 +40,10 @@ class NFTEvent:
     value: Optional[int] = None
     block_number: Optional[int] = None
     timestamp: Optional[int] = None
+
+
+@dataclass
+class NFTMetadata:
+    address: str
+    name: str
+    symbol: str

@@ -6,7 +6,7 @@ import logging
 import sqlite3
 from typing import Any, List, Tuple, Optional
 
-from .data import EventType, NFTEvent, nft_event
+from .data import EventType, NFTEvent, NFTMetadata
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -18,7 +18,8 @@ CREATE_NFTS_TABLE_QUERY = """CREATE TABLE IF NOT EXISTS nfts
     (
         address TEXT NOT NULL UNIQUE ON CONFLICT FAIL,
         name TEXT,
-        symbol TEXT
+        symbol TEXT,
+        UNIQUE(address, name, symbol)
     );
 """
 
@@ -125,6 +126,30 @@ def insert_checkpoint(
     cur = conn.cursor()
     cur.execute(query, [event_type.value, offset, transaction_hash])
     conn.commit()
+
+
+def insert_address_metadata(
+    conn: sqlite3.Connection, metadata_list: List[NFTMetadata]
+) -> None:
+    cur = conn.cursor()
+    query = f"""
+    INSERT INTO nfts (
+        address,
+        name,
+        symbol
+    ) VALUES (?, ?, ?)
+    """
+    try:
+        nfts = [
+            (metadata.address, metadata.name, metadata.symbol)
+            for metadata in metadata_list
+        ]
+        cur.executemany(query, nfts)
+        conn.commit()
+    except Exception as e:
+        logger.error(f"Failed to save :\n {metadata_list}")
+        conn.rollback()
+        raise e
 
 
 def insert_events(conn: sqlite3.Connection, events: List[NFTEvent]) -> None:
