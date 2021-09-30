@@ -25,12 +25,15 @@ logger = logging.getLogger(__name__)
 
 
 tags_metadata = [
-    {"name": "addressinfo", "description": "Address public information."},
-    {"name": "labels", "description": "Addresses label information."},
-    {"name": "nft", "description": "NFT market summaries"},
-    {"name": "streams", "description": "Operations with data stream and filters."},
-    {"name": "subscriptions", "description": "Operations with subscriptions."},
-    {"name": "time", "description": "Timestamp endpoints."},
+    {"name": "addressinfo", "description": "Blockchain addresses public information."},
+    {
+        "name": "labels",
+        "description": "Labels for transactions, addresses with additional information.",
+    },
+    {"name": "nft", "description": "NFT market summaries."},
+    {"name": "streams", "description": "Operations with data streams and filters."},
+    {"name": "subscriptions", "description": "Operations with user subscriptions."},
+    {"name": "time", "description": "Server timestamp endpoints."},
     {"name": "tokens", "description": "Operations with user tokens."},
     {"name": "txinfo", "description": "Ethereum transactions info."},
     {"name": "users", "description": "Operations with users."},
@@ -74,23 +77,32 @@ app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
 
 @app.get("/ping", response_model=data.PingResponse)
 async def ping_handler() -> data.PingResponse:
+    """
+    Check server status.
+    """
     return data.PingResponse(status="ok")
 
 
 @app.get("/version", response_model=data.VersionResponse)
 async def version_handler() -> data.VersionResponse:
+    """
+    Get server version.
+    """
     return data.VersionResponse(version=MOONSTREAM_VERSION)
 
 
 @app.get("/now", tags=["time"])
 async def now_handler() -> data.NowResponse:
+    """
+    Get server current time.
+    """
     return data.NowResponse(epoch_time=time.time())
 
 
 @app.get("/status", response_model=data.StatusResponse)
 async def status_handler() -> data.StatusResponse:
     """
-    Get latest records and their creation timestamp for crawlers:
+    Find latest crawlers records with creation timestamp:
     - ethereum_txpool
     - ethereum_trending
     """
