@@ -1,0 +1,14 @@
+[Unit]
+Description=moonstreamcrawlers-service
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/moonstream/crawlers/server
+EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
+ExecStart=/home/ubuntu/moonstream/crawlers/server/moonstreamcrawlers -host 0.0.0.0 -port "${MOONSTREAM_CRAWLERS_SERVER_PORT}"
+SyslogIdentifier=moonstreamcrawlers
+
+[Install]
+WantedBy=multi-user.target
