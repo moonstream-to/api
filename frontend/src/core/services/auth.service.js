@@ -1,7 +1,15 @@
 import { http } from "../utils";
 
 const API_URL = process.env.NEXT_PUBLIC_MOONSTREAM_API_URL;
+const DB_URL = process.env.NEXT_PUBLIC_MOONSTREAM_DB_URL;
 export const AUTH_URL = `${API_URL}/users`;
+
+export const status = () => {
+  return http({
+    method: "GET",
+    url: `${DB_URL}/block/latest`,
+  });
+};
 
 export const login = ({ username, password, token_note }) => {
   const data = new FormData();
