@@ -264,6 +264,7 @@ def crawl_collections_query_loop(
         array_of_collection = json_response["data"]["query"]["collections"]["edges"]
 
         # print(json.dump(array_of_collection[0]))
+        # raise
 
         for collection_types_oblect in array_of_collection:
 
