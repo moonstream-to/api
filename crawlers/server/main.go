@@ -13,6 +13,7 @@ import (
 )
 
 var MOONSTREAM_IPC_PATH = os.Getenv("MOONSTREAM_IPC_PATH")
+var MOONSTREAM_CORS_ALLOWED_ORIGINS = os.Getenv("MOONSTREAM_CORS_ALLOWED_ORIGINS")
 
 type GethResponse struct {
 	Result string `json:"result"`
@@ -26,8 +27,17 @@ type PingResponse struct {
 	Status string `json:"status"`
 }
 
+func setupCorsResponse(w *http.ResponseWriter, req *http.Request) {
+	(*w).Header().Set("Access-Control-Allow-Origin", MOONSTREAM_CORS_ALLOWED_ORIGINS)
+	(*w).Header().Set("Access-Control-Allow-Methods", "GET")
+}
+
 func ping(w http.ResponseWriter, req *http.Request) {
+	setupCorsResponse(&w, req)
 	log.Printf("%s, %s, %q", req.RemoteAddr, req.Method, req.URL.String())
+	if (*req).Method == "OPTIONS" {
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	response := PingResponse{Status: "ok"}
@@ -35,7 +45,11 @@ func ping(w http.ResponseWriter, req *http.Request) {
 }
 
 func pingGeth(w http.ResponseWriter, req *http.Request) {
+	setupCorsResponse(&w, req)
 	log.Printf("%s, %s, %q", req.RemoteAddr, req.Method, req.URL.String())
+	if (*req).Method == "OPTIONS" {
+		return
+	}
 
 	postBody, err := json.Marshal(map[string]interface{}{
 		"jsonrpc": "2.0",
