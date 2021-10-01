@@ -12,6 +12,7 @@ import (
 )
 
 var MOONSTREAM_DB_URI = os.Getenv("MOONSTREAM_DB_URI")
+var MOONSTREAM_CORS_ALLOWED_ORIGINS = os.Getenv("MOONSTREAM_CORS_ALLOWED_ORIGINS")
 
 type PingResponse struct {
 	Status string `json:"status"`
@@ -21,8 +22,17 @@ type BlockResponse struct {
 	BlockNumber uint64 `json:"block_number"`
 }
 
+func setupCorsResponse(w *http.ResponseWriter, req *http.Request) {
+	(*w).Header().Set("Access-Control-Allow-Origin", MOONSTREAM_CORS_ALLOWED_ORIGINS)
+	(*w).Header().Set("Access-Control-Allow-Methods", "GET")
+}
+
 func ping(w http.ResponseWriter, req *http.Request) {
+	setupCorsResponse(&w, req)
 	log.Printf("%s, %s, %q", req.RemoteAddr, req.Method, req.URL.String())
+	if (*req).Method == "OPTIONS" {
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	response := PingResponse{Status: "ok"}
@@ -30,7 +40,11 @@ func ping(w http.ResponseWriter, req *http.Request) {
 }
 
 func blockLatest(w http.ResponseWriter, req *http.Request) {
+	setupCorsResponse(&w, req)
 	log.Printf("%s, %s, %q", req.RemoteAddr, req.Method, req.URL.String())
+	if (*req).Method == "OPTIONS" {
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 
