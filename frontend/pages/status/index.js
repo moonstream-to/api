@@ -4,7 +4,6 @@ import {
 	Heading,
 	Text,
 	Flex,
-	Link,
 	Spacer,
 	Stack,
 	chakra,
@@ -31,8 +30,14 @@ const Status = () => {
 		apiServerData,
 		crawlersServerStatus,
 		crawlersServerData,
+		gethStatus,
+		gethData,
+		crawlersStatus,
+		crawlersData,
 		dbServerStatus,
-		dbServerData
+		dbServerData,
+		latestBlockDBStatus,
+		latestBlockDBData
 	} = useStatus();
 	const [apiServerDataStatus, setAPIServerDataStatus] = useState({
 		color: downStatusColor,
@@ -42,10 +47,15 @@ const Status = () => {
 		color: downStatusColor,
 		text: downStatusText
 	});
+	const [txpoolDataStatus, setTxpoolDataStatus] = useState(null);
+	const [trendingDataStatus, setTrendingDataStatus] = useState(null);
+	const [gethDataStatus, setGethDataStatus] = useState(null);
 	const [dbServerDataStatus, setDBServerDataStatus] = useState({
 		color: downStatusColor,
 		text: downStatusText
 	});
+	const [latestBlockDBDataStatus, setLatestBlockDBDataStatus] =
+		useState(null);
 
 	const [background, setBackground] = useState("background720");
 	const [backgroundLoaded720, setBackgroundLoaded720] = useState(false);
@@ -68,7 +78,10 @@ const Status = () => {
 	useEffect(() => {
 		apiServerStatus();
 		crawlersServerStatus();
+		gethStatus();
 		dbServerStatus();
+		latestBlockDBStatus();
+		crawlersStatus();
 
 		assets[
 			"background720"
@@ -150,11 +163,34 @@ const Status = () => {
 				text: healthyStatusText
 			});
 		}
+		if (gethData?.data?.current_block) {
+			setGethDataStatus(gethData?.data?.current_block);
+		}
+		if (crawlersData?.data) {
+			if (crawlersData?.data?.ethereum_txpool_timestamp) {
+				setTxpoolDataStatus(
+					crawlersData?.data?.ethereum_txpool_timestamp
+						.replace(/^.+T/, "")
+						.replace(/\..+/, "")
+				);
+			}
+			if (crawlersData?.data?.ethereum_trending_timestamp) {
+				setTrendingDataStatus(
+					crawlersData?.data?.ethereum_trending_timestamp
+						.replace(/^.+T/, "")
+						.replace(/\..+/, "")
+				);
+			}
+		}
+
 		if (dbServerData?.data?.status == "ok") {
 			setDBServerDataStatus({
 				color: healthyStatusColor,
 				text: healthyStatusText
 			});
+		}
+		if (latestBlockDBData?.data?.block_number) {
+			setLatestBlockDBDataStatus(latestBlockDBData?.data?.block_number);
 		}
 	}, [apiServerData, crawlersServerData, dbServerData]);
 
@@ -209,17 +245,17 @@ const Status = () => {
 					<Flex mb={3}>
 						<Text>Latest block in Geth</Text>
 						<Spacer />
-						<Text>321321</Text>
+						<Text>{gethDataStatus}</Text>
 					</Flex>
 					<Flex mb={3}>
 						<Text>Txpool latest record ts</Text>
 						<Spacer />
-						<Text>32</Text>
+						<Text>{txpoolDataStatus}</Text>
 					</Flex>
 					<Flex mb={3}>
 						<Text>Trending latest record ts</Text>
 						<Spacer />
-						<Text>32</Text>
+						<Text>{trendingDataStatus}</Text>
 					</Flex>
 					<br />
 					<Flex mb={3}>
@@ -232,7 +268,7 @@ const Status = () => {
 					<Flex mb={3}>
 						<Text>Latest block in Database</Text>
 						<Spacer />
-						<Text>123123</Text>
+						<Text>{latestBlockDBDataStatus}</Text>
 					</Flex>
 				</chakra.span>
 			</Stack>

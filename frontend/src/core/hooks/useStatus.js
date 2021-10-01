@@ -26,6 +26,28 @@ const useStatus = () => {
 				// toast("Status received", "success");
 			}
 		});
+	const { mutate: gethStatus, data: gethData } = useMutation(
+		AuthService.gethStatus,
+		{
+			onError: (error) => {
+				// toast(error, "error");
+			},
+			onSuccess: () => {
+				// toast("Status received", "success");
+			}
+		}
+	);
+	const { mutate: crawlersStatus, data: crawlersData } = useMutation(
+		AuthService.crawlersStatus,
+		{
+			onError: (error) => {
+				// toast(error, "error");
+			},
+			onSuccess: () => {
+				// toast("Status received", "success");
+			}
+		}
+	);
 
 	const { mutate: dbServerStatus, data: dbServerData } = useMutation(
 		AuthService.dbServerStatus,
@@ -38,14 +60,29 @@ const useStatus = () => {
 			}
 		}
 	);
+	const { mutate: latestBlockDBStatus, data: latestBlockDBData } =
+		useMutation(AuthService.latestBlockDBStatus, {
+			onError: (error) => {
+				// toast(error, "error");
+			},
+			onSuccess: () => {
+				// toast("Status received", "success");
+			}
+		});
 
 	return {
 		apiServerStatus,
 		apiServerData,
 		crawlersServerStatus,
 		crawlersServerData,
+		gethStatus,
+		gethData,
+		crawlersStatus,
+		crawlersData,
 		dbServerStatus,
-		dbServerData
+		dbServerData,
+		latestBlockDBStatus,
+		latestBlockDBData
 	};
 };
 
