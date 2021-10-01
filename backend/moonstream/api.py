@@ -12,6 +12,7 @@ from . import data
 from .middleware import MoonstreamHTTPException
 from .routes.address_info import app as addressinfo_api
 from .routes.nft import app as nft_api
+from .routes.whales import app as whales_api
 from .routes.subscriptions import app as subscriptions_api
 from .routes.streams import app as streams_api
 from .routes.txinfo import app as txinfo_api
@@ -75,3 +76,4 @@ app.mount("/streams", streams_api)
 app.mount("/txinfo", txinfo_api)
 app.mount("/address_info", addressinfo_api)
 app.mount("/nft", nft_api)
+app.mount("/whales", whales_api)
