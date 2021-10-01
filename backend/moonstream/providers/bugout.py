@@ -327,7 +327,7 @@ class EthereumTXPoolProvider(BugoutEventProvider):
         return subscriptions_filters
 
 
-class NftProvider(BugoutEventProvider):
+class PublicDataProvider(BugoutEventProvider):
     def __init__(
         self,
         event_type: str,
@@ -364,7 +364,7 @@ Shows the top 10 addresses active on the Ethereum blockchain over the last hour 
 4. Amount (in WEI) received
 
 To restrict your queries to this provider, add a filter of \"type:ethereum_whalewatch\" to your query (query parameter: \"q\") on the /streams endpoint."""
-whalewatch_provider = BugoutEventProvider(
+whalewatch_provider = PublicDataProvider(
     event_type="ethereum_whalewatch",
     description=whalewatch_description,
     default_time_interval_seconds=310,
@@ -394,7 +394,7 @@ Currently, it summarizes the activities on the following NFT markets:
 
 This provider is currently not accessible for subscription. The data from this provider is publicly
 available at the /nft endpoint."""
-nft_summary_provider = NftProvider(
+nft_summary_provider = PublicDataProvider(
     event_type="nft_summary",
     description=nft_summary_description,
     # 40 blocks per summary, 15 seconds per block + 2 seconds wiggle room.
