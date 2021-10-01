@@ -1,22 +1,52 @@
-import { useMutation } from "react-query"
-import { useToast } from "./"
-import { AuthService } from "../../core/services"
+import { useMutation } from "react-query";
+import { useToast } from "./";
+import { AuthService } from "../../core/services";
 
 const useStatus = () => {
-	const toast = useToast()
+	const toast = useToast();
 
-	const {
-		mutate: status
-	} = useMutation(AuthService.status, {
-		onError: (error) => {
-			toast(error, "error")
-		},
-		onSuccess: () => {
-			toast("Status got", "success")
+	const { mutate: apiServerStatus, data: apiServerData } = useMutation(
+		AuthService.apiServerStatus,
+		{
+			onError: (error) => {
+				// toast(error, "error");
+			},
+			onSuccess: () => {
+				// toast("Status received", "success");
+			}
 		}
-	})
+	);
 
-	return { status }
-}
+	const { mutate: crawlersServerStatus, data: crawlersServerData } =
+		useMutation(AuthService.crawlersServerStatus, {
+			onError: (error) => {
+				// toast(error, "error");
+			},
+			onSuccess: () => {
+				// toast("Status received", "success");
+			}
+		});
 
-export default useStatus
+	const { mutate: dbServerStatus, data: dbServerData } = useMutation(
+		AuthService.dbServerStatus,
+		{
+			onError: (error) => {
+				// toast(error, "error");
+			},
+			onSuccess: () => {
+				// toast("Status received", "success");
+			}
+		}
+	);
+
+	return {
+		apiServerStatus,
+		apiServerData,
+		crawlersServerStatus,
+		crawlersServerData,
+		dbServerStatus,
+		dbServerData
+	};
+};
+
+export default useStatus;
