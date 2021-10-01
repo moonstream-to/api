@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -22,9 +23,17 @@ type BlockResponse struct {
 	BlockNumber uint64 `json:"block_number"`
 }
 
+// Extends handler with allowed CORS policies
 func setupCorsResponse(w *http.ResponseWriter, req *http.Request) {
-	(*w).Header().Set("Access-Control-Allow-Origin", MOONSTREAM_CORS_ALLOWED_ORIGINS)
-	(*w).Header().Set("Access-Control-Allow-Methods", "GET")
+	for _, allowedOrigin := range strings.Split(MOONSTREAM_CORS_ALLOWED_ORIGINS, ",") {
+		for _, reqOrigin := range req.Header["Origin"] {
+			if reqOrigin == allowedOrigin {
+				(*w).Header().Set("Access-Control-Allow-Origin", allowedOrigin)
+			}
+		}
+
+	}
+	(*w).Header().Set("Access-Control-Allow-Methods", "GET,OPTIONS")
 }
 
 func ping(w http.ResponseWriter, req *http.Request) {
