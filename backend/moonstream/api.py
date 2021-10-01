@@ -7,7 +7,9 @@ import time
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from . import actions
 from . import data
+from .middleware import MoonstreamHTTPException
 from .routes.address_info import app as addressinfo_api
 from .routes.nft import app as nft_api
 from .routes.subscriptions import app as subscriptions_api
@@ -44,6 +46,27 @@ async def version_handler() -> data.VersionResponse:
 @app.get("/now", tags=["time"])
 async def now_handler() -> data.NowResponse:
     return data.NowResponse(epoch_time=time.time())
+
+
+@app.get("/status", response_model=data.StatusResponse)
+async def status_handler() -> data.StatusResponse:
+    """
+    Get latest records and their creation timestamp for crawlers:
+    - ethereum_txpool
+    - ethereum_trending
+    """
+    try:
+        crawl_types_timestamp = actions.check_api_status()
+    except actions.StatusAPIException:
+        raise MoonstreamHTTPException(status_code=500)
+    except Exception as e:
+        logger.error(f"Unhandled status exception, error: {e}")
+        raise MoonstreamHTTPException(status_code=500)
+
+    return data.StatusResponse(
+        ethereum_txpool_timestamp=crawl_types_timestamp["ethereum_txpool"],
+        ethereum_trending_timestamp=crawl_types_timestamp["ethereum_trending"],
+    )
 
 
 app.mount("/subscriptions", subscriptions_api)
