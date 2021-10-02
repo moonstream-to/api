@@ -244,8 +244,8 @@ def add_events(
 
         logger.info(f"Adding {len(raw_events_batch)} to database")
         insert_events(
-            datastore_conn, enrich_from_web3(raw_events_batch, batch_loader, bounds)
-        )
+            datastore_conn, raw_events_batch
+        )  # TODO REMOVED WEB3 enrich, since node is down
         insert_checkpoint(datastore_conn, event_type, batch_end + initial_offset)
         pbar.update(batch_end - batch_start + 1)
         batch_start = batch_end + 1
