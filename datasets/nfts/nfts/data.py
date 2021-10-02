@@ -31,6 +31,7 @@ def nft_event(raw_event: str) -> EventType:
 
 @dataclass
 class NFTEvent:
+    event_id: str
     event_type: EventType
     nft_address: str
     token_id: str

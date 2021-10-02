@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 event_tables = {EventType.TRANSFER: "transfers", EventType.MINT: "mints"}
 
 CREATE_NFTS_TABLE_QUERY = """CREATE TABLE IF NOT EXISTS nfts
-    (
+    (   
         address TEXT NOT NULL UNIQUE ON CONFLICT FAIL,
         name TEXT,
         symbol TEXT,
@@ -26,8 +26,7 @@ CREATE_NFTS_TABLE_QUERY = """CREATE TABLE IF NOT EXISTS nfts
 CREATE_CHECKPOINT_TABLE_QUERY = """CREATE TABLE IF NOT EXISTS checkpoint
     (
         event_type STRING,
-        offset INTEGER,
-        transaction_hash STRING
+        offset INTEGER
     );
 """
 
@@ -35,7 +34,8 @@ CREATE_CHECKPOINT_TABLE_QUERY = """CREATE TABLE IF NOT EXISTS checkpoint
 def create_events_table_query(event_type: EventType) -> str:
     creation_query = f"""
 CREATE TABLE IF NOT EXISTS {event_tables[event_type]}
-    (
+    (   
+        event_id TEXT NOT NULL UNIQUE ON CONFLICT FAIL,
         transaction_hash TEXT,
         block_number INTEGER,
         nft_address TEXT REFERENCES nfts(address),
@@ -68,7 +68,8 @@ def insert_events_query(event_type: EventType) -> str:
     Generates a query which inserts NFT events into the appropriate events table.
     """
     query = f"""
-INSERT INTO {event_tables[event_type]}(
+INSERT OR IGNORE INTO {event_tables[event_type]}(
+    event_id,
     transaction_hash,
     block_number,
     nft_address,
@@ -77,19 +78,20 @@ INSERT INTO {event_tables[event_type]}(
     to_address,
     transaction_value,
     timestamp
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
     return query
 
 
 def nft_event_to_tuple(
     event: NFTEvent,
-) -> Tuple[str, str, str, str, str, str, str, str]:
+) -> Tuple[str, str, str, str, str, str, str, str, str]:
     """
     Converts an NFT event into a tuple for use with sqlite cursor executemany. This includes
     dropping e.g. the event_type field.
     """
     return (
+        str(event.event_id),
         str(event.transaction_hash),
         str(event.block_number),
         str(event.nft_address),
@@ -113,18 +115,15 @@ def get_checkpoint_offset(
     return None
 
 
-def insert_checkpoint(
-    conn: sqlite3.Connection, event_type: EventType, offset: int, transaction_hash: str
-):
+def insert_checkpoint(conn: sqlite3.Connection, event_type: EventType, offset: int):
     query = f"""
     INSERT INTO checkpoint (
         event_type,
-        offset,
-        transaction_hash
-        ) VALUES (?, ?, ?)
+        offset
+        ) VALUES (?, ?)
         """
     cur = conn.cursor()
-    cur.execute(query, [event_type.value, offset, transaction_hash])
+    cur.execute(query, [event_type.value, offset])
     conn.commit()
 
 
