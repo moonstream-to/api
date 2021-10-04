@@ -2,7 +2,7 @@ import { http } from "../utils";
 
 const API_URL = process.env.NEXT_PUBLIC_MOONSTREAM_API_URL;
 const DB_URL = process.env.NEXT_PUBLIC_MOONSTREAM_DB_URL;
-const CRAWLERS_URL = process.env.NEXT_PUBLIC_MOONSTREAM_CRAWLERS_URL;
+const CRAWLERS_URL = process.env.NEXT_PUBLIC_MOONSTREAM_ETHEREUM_CLUSTER_URL;
 export const AUTH_URL = `${API_URL}/users`;
 
 export const login = ({ username, password, token_note }) => {
@@ -105,43 +105,43 @@ export const revokeToken = (token) => {
 };
 
 export const apiServerStatus = () => {
-	return http({
-		method: "GET",
-		url: `${API_URL}/ping`
-	});
+  return http({
+    method: "GET",
+    url: `${API_URL}/ping`,
+  });
 };
 
 export const crawlersServerStatus = () => {
-	return http({
-		method: "GET",
-		url: `${CRAWLERS_URL}/ping`
-	});
+  return http({
+    method: "GET",
+    url: `${CRAWLERS_URL}/ping`,
+  });
 };
 
 export const gethStatus = () => {
-	return http({
-		method: "GET",
-		url: `${CRAWLERS_URL}/status`
-	});
+  return http({
+    method: "GET",
+    url: `${CRAWLERS_URL}/status`,
+  });
 };
 
 export const crawlersStatus = () => {
-	return http({
-		method: "GET",
-		url: `${API_URL}/status`
-	});
+  return http({
+    method: "GET",
+    url: `${API_URL}/status`,
+  });
 };
 
 export const dbServerStatus = () => {
-	return http({
-		method: "GET",
-		url: `${DB_URL}/ping`
-	});
+  return http({
+    method: "GET",
+    url: `${DB_URL}/ping`,
+  });
 };
 
 export const latestBlockDBStatus = () => {
-	return http({
-		method: "GET",
-		url: `${DB_URL}/block/latest`
-	});
+  return http({
+    method: "GET",
+    url: `${DB_URL}/block/latest`,
+  });
 };
