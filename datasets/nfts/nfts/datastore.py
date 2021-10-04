@@ -70,12 +70,12 @@ def select_events_table_query(event_type: EventType) -> str:
 SELECT
     event_id,
     transaction_hash,
-    block_number,
     nft_address,
     token_id,
     from_address,
     to_address,
     transaction_value,
+    block_number,
     timestamp
 FROM {event_tables[event_type]};
     """
@@ -266,13 +266,14 @@ def import_data(
         if event_type == EventType.ERC721:
             batch.append(NFTMetadata(*cast(Tuple[str, str, str], row)))
         else:
+            # Order matches select query returned by select_events_table_query
             (
                 event_id,
+                transaction_hash,
                 nft_address,
                 token_id,
                 from_address,
                 to_address,
-                transaction_hash,
                 value,
                 block_number,
                 timestamp,
@@ -291,16 +292,16 @@ def import_data(
                 row,
             )
             event = NFTEvent(
-                event_id,
-                event_type,  # Original argument to this function
-                nft_address,
-                token_id,
-                from_address,
-                to_address,
-                transaction_hash,
-                value,
-                block_number,
-                timestamp,
+                event_id=event_id,
+                event_type=event_type,  # Original argument to this function
+                nft_address=nft_address,
+                token_id=token_id,
+                from_address=from_address,
+                to_address=to_address,
+                transaction_hash=transaction_hash,
+                value=value,
+                block_number=block_number,
+                timestamp=timestamp,
             )
             batch.append(event)
 

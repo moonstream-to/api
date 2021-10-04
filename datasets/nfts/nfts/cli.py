@@ -9,7 +9,7 @@ from moonstreamdb.db import yield_db_session_ctx
 
 from .data import event_types, nft_event, BlockBounds
 from .datastore import setup_database, import_data
-from .derive import current_owners
+from .derive import current_owners, current_market_values
 from .materialize import create_dataset, EthereumBatchloader
 
 
@@ -58,7 +58,8 @@ def handle_materialize(args: argparse.Namespace) -> None:
 
 def handle_derive(args: argparse.Namespace) -> None:
     with contextlib.closing(sqlite3.connect(args.datastore)) as moonstream_datastore:
-        results = current_owners(moonstream_datastore)
+        current_owners(moonstream_datastore)
+        current_market_values(moonstream_datastore)
     logger.info("Done!")
 
 

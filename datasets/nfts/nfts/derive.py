@@ -30,14 +30,33 @@ class LastValue:
         return self.value
 
 
+class LastNonzeroValue:
+    """
+    Stores the last non-zero value in a given column. This is meant to be used as an aggregate
+    function. We use it, for example, to get the current market value of an NFT (inside a given
+    window of time).
+    """
+
+    def __init__(self):
+        self.value = 0
+
+    def step(self, value):
+        if value != 0:
+            self.value = value
+
+    def finalize(self):
+        return self.value
+
+
 def ensure_custom_aggregate_functions(conn: sqlite3.Connection) -> None:
     """
     Loads custom aggregate functions to an active SQLite3 connection.
     """
     conn.create_aggregate("last_value", 1, LastValue)
+    conn.create_aggregate("last_nonzero_value", 1, LastNonzeroValue)
 
 
-def current_owners(conn: sqlite3.Connection) -> List[Tuple]:
+def current_owners(conn: sqlite3.Connection) -> None:
     """
     Requires a connection to a dataset in which the raw data (esp. transfers) has already been
     loaded.
@@ -46,7 +65,12 @@ def current_owners(conn: sqlite3.Connection) -> List[Tuple]:
     drop_existing_current_owners_query = "DROP TABLE IF EXISTS current_owners;"
     current_owners_query = """
     CREATE TABLE current_owners AS
-        SELECT nft_address, token_id, CAST(last_value(to_address) AS TEXT) AS owner FROM transfers
+        SELECT nft_address, token_id, last_value(to_address) AS owner FROM
+        (
+            SELECT * FROM mints
+            UNION ALL
+            SELECT * FROM transfers
+        )
         GROUP BY nft_address, token_id;"""
     cur = conn.cursor()
     try:
@@ -56,4 +80,33 @@ def current_owners(conn: sqlite3.Connection) -> List[Tuple]:
     except Exception as e:
         conn.rollback()
         logger.error("Could not create derived dataset: current_owners")
+        logger.error(e)
+
+
+def current_market_values(conn: sqlite3.Connection) -> None:
+    """
+    Requires a connection to a dataset in which the raw data (esp. transfers) has already been
+    loaded.
+    """
+    ensure_custom_aggregate_functions(conn)
+    drop_existing_current_market_values_query = (
+        "DROP TABLE IF EXISTS current_market_values;"
+    )
+    current_market_values_query = """
+    CREATE TABLE current_market_values AS
+        SELECT nft_address, token_id, last_nonzero_value(transaction_value) AS market_value FROM
+        (
+            SELECT * FROM mints
+            UNION ALL
+            SELECT * FROM transfers
+        )
+        GROUP BY nft_address, token_id;"""
+    cur = conn.cursor()
+    try:
+        cur.execute(drop_existing_current_market_values_query)
+        cur.execute(current_market_values_query)
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        logger.error("Could not create derived dataset: current_market_values")
         logger.error(e)
