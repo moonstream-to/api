@@ -83,6 +83,116 @@ FROM {event_tables[event_type]};
     return selection_query
 
 
+def get_events_for_enrich(
+    conn: sqlite3.Connection, event_type: EventType
+) -> List[NFTEvent]:
+    def select_query(event_type: EventType) -> str:
+        selection_query = f"""
+    SELECT
+        event_id,
+        transaction_hash,
+        block_number,
+        nft_address,
+        token_id,
+        from_address,
+        to_address,
+        transaction_value,
+        timestamp
+    FROM {event_tables[event_type]} WHERE block_number = 'None';
+        """
+
+        return selection_query
+
+    logger.info(f"Loading {event_tables[event_type]} table events for enrich")
+    cur = conn.cursor()
+    cur.execute(select_query(event_type))
+
+    events: List[NFTEvent] = []
+
+    for row in cur:
+        (
+            event_id,
+            transaction_hash,
+            block_number,
+            nft_address,
+            token_id,
+            from_address,
+            to_address,
+            value,
+            timestamp,
+        ) = cast(
+            Tuple[
+                str,
+                str,
+                Optional[int],
+                str,
+                str,
+                str,
+                str,
+                Optional[int],
+                Optional[int],
+            ],
+            row,
+        )
+        event = NFTEvent(
+            event_id=event_id,
+            event_type=event_type,  # Original argument to this function
+            nft_address=nft_address,
+            token_id=token_id,
+            from_address=from_address,
+            to_address=to_address,
+            transaction_hash=transaction_hash,
+            value=value,
+            block_number=block_number,
+            timestamp=timestamp,
+        )
+        events.append(event)
+    logger.info(f"Found {len(events)} events to enrich")
+    return events
+
+
+def update_events_batch(conn: sqlite3.Connection, events: List[NFTEvent]) -> None:
+    def replace_query(event_type: EventType) -> str:
+        query = f"""
+    REPLACE INTO {event_tables[event_type]}(
+        event_id,
+        transaction_hash,
+        block_number,
+        nft_address,
+        token_id,
+        from_address,
+        to_address,
+        transaction_value,
+        timestamp
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
+        return query
+
+    logger.info("Updating events in sqlite")
+    cur = conn.cursor()
+    try:
+        transfers = [
+            nft_event_to_tuple(event)
+            for event in events
+            if event.event_type == EventType.TRANSFER
+        ]
+
+        mints = [
+            nft_event_to_tuple(event)
+            for event in events
+            if event.event_type == EventType.MINT
+        ]
+
+        cur.executemany(replace_query(EventType.TRANSFER), transfers)
+        cur.executemany(replace_query(EventType.MINT), mints)
+
+        conn.commit()
+    except Exception as e:
+        logger.error(f"FAILED TO replace!!! :{events}")
+        conn.rollback()
+        raise e
+
+
 def setup_database(conn: sqlite3.Connection) -> None:
     """
     Sets up the schema of the Moonstream NFTs dataset in the given SQLite database.

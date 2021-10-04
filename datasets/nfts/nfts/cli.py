@@ -7,10 +7,11 @@ from typing import Optional
 
 from moonstreamdb.db import yield_db_session_ctx
 
-from .data import event_types, nft_event, BlockBounds
+from .data import EventType, event_types, nft_event, BlockBounds
 from .datastore import setup_database, import_data
 from .derive import current_owners
-from .materialize import create_dataset, EthereumBatchloader
+from .enrich import EthereumBatchloader, enrich
+from .materialize import create_dataset
 
 
 logging.basicConfig(level=logging.INFO)
@@ -50,8 +51,29 @@ def handle_materialize(args: argparse.Namespace) -> None:
             moonstream_datastore,
             db_session,
             event_type,
-            batch_loader,
             bounds,
+            args.batch_size,
+        )
+
+
+def handle_enrich(args: argparse.Namespace) -> None:
+
+    batch_loader = EthereumBatchloader(jsonrpc_url=args.jsonrpc)
+
+    logger.info(f"Enriching NFT events in datastore: {args.datastore}")
+
+    with contextlib.closing(sqlite3.connect(args.datastore)) as moonstream_datastore:
+        enrich(
+            moonstream_datastore,
+            EventType.TRANSFER,
+            batch_loader,
+            args.batch_size,
+        )
+
+        enrich(
+            moonstream_datastore,
+            EventType.MINT,
+            batch_loader,
             args.batch_size,
         )
 
@@ -165,6 +187,30 @@ def main() -> None:
         help="Batch size for database commits into target datastore.",
     )
     parser_import_data.set_defaults(func=handle_import_data)
+
+    parser_enrich = subcommands.add_parser(
+        "enrich", description="enrich dataset from geth node"
+    )
+    parser_enrich.add_argument(
+        "-d",
+        "--datastore",
+        required=True,
+        help="Path to SQLite database representing the dataset",
+    )
+    parser_enrich.add_argument(
+        "--jsonrpc",
+        default=default_web3_provider,
+        type=str,
+        help=f"Http uri provider to use when collecting data directly from the Ethereum blockchain (default: {default_web3_provider})",
+    )
+    parser_enrich.add_argument(
+        "-n",
+        "--batch-size",
+        type=int,
+        default=1000,
+        help="Number of events to process per batch",
+    )
+    parser_enrich.set_defaults(func=handle_enrich)
 
     args = parser.parse_args()
     args.func(args)
