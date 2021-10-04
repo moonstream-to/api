@@ -1,26 +1,30 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
-
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
 
-var MOONSTREAM_DB_URI = os.Getenv("MOONSTREAM_DB_URI")
+var MOONSTREAM_IPC_PATH = os.Getenv("MOONSTREAM_IPC_PATH")
 var MOONSTREAM_CORS_ALLOWED_ORIGINS = os.Getenv("MOONSTREAM_CORS_ALLOWED_ORIGINS")
+
+type GethResponse struct {
+	Result string `json:"result"`
+}
+
+type PingGethResponse struct {
+	CurrentBlock uint64 `json:"current_block"`
+}
 
 type PingResponse struct {
 	Status string `json:"status"`
-}
-
-type BlockResponse struct {
-	BlockNumber uint64 `json:"block_number"`
 }
 
 // Extends handler with allowed CORS policies
@@ -48,26 +52,53 @@ func ping(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-func blockLatest(w http.ResponseWriter, req *http.Request) {
+func pingGeth(w http.ResponseWriter, req *http.Request) {
 	setupCorsResponse(&w, req)
 	log.Printf("%s, %s, %q", req.RemoteAddr, req.Method, req.URL.String())
 	if (*req).Method == "OPTIONS" {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-
-	var latestBlock BlockResponse
-	db, err := gorm.Open(postgres.Open(MOONSTREAM_DB_URI), &gorm.Config{})
+	postBody, err := json.Marshal(map[string]interface{}{
+		"jsonrpc": "2.0",
+		"method":  "eth_blockNumber",
+		"params":  []string{},
+		"id":      1,
+	})
 	if err != nil {
+		log.Println(err)
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
+	gethResponse, err := http.Post(MOONSTREAM_IPC_PATH, "application/json",
+		bytes.NewBuffer(postBody))
+	if err != nil {
+		log.Printf("Unable to request geth, error: %v", err)
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
+	defer gethResponse.Body.Close()
+
+	gethResponseBody, err := ioutil.ReadAll(gethResponse.Body)
+	if err != nil {
+		log.Printf("Unable to read geth response, error: %v", err)
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
+	var obj GethResponse
+	_ = json.Unmarshal(gethResponseBody, &obj)
+
+	blockNumberHex := strings.Replace(obj.Result, "0x", "", -1)
+	blockNumberStr, err := strconv.ParseUint(blockNumberHex, 16, 64)
+	if err != nil {
+		log.Printf("Unable to parse block number from hex to string, error: %v", err)
 		http.Error(w, http.StatusText(500), 500)
 		return
 	}
 
-	query := "SELECT block_number FROM ethereum_blocks ORDER BY block_number DESC LIMIT 1"
-	db.Raw(query, 1).Scan(&latestBlock.BlockNumber)
-
-	json.NewEncoder(w).Encode(latestBlock)
+	w.Header().Set("Content-Type", "application/json")
+	response := PingGethResponse{CurrentBlock: blockNumberStr}
+	json.NewEncoder(w).Encode(response)
 }
 
 func main() {
@@ -81,7 +112,7 @@ func main() {
 	log.Printf("Starting server at %s\n", address)
 
 	http.HandleFunc("/ping", ping)
-	http.HandleFunc("/block/latest", blockLatest)
+	http.HandleFunc("/status", pingGeth)
 
 	http.ListenAndServe(address, nil)
 }

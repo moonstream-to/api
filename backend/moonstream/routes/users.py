@@ -7,7 +7,6 @@ import uuid
 
 from bugout.data import BugoutToken, BugoutUser, BugoutResource, BugoutUserTokens
 from bugout.exceptions import BugoutResponseException
-
 from fastapi import (
     Body,
     FastAPI,
