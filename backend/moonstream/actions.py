@@ -5,6 +5,8 @@ from enum import Enum
 import uuid
 
 import boto3  # type: ignore
+from bugout.data import BugoutSearchResults
+from bugout.journal import SearchOrder
 from moonstreamdb.models import (
     EthereumAddress,
     EthereumLabel,
@@ -20,10 +22,18 @@ from .settings import (
     MOONSTREAM_APPLICATION_ID,
     bugout_client as bc,
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
+    MOONSTREAM_ADMIN_ACCESS_TOKEN,
+    MOONSTREAM_DATA_JOURNAL_ID,
 )
 
 logger = logging.getLogger(__name__)
 ETHERSCAN_SMARTCONTRACT_LABEL_NAME = "etherscan_smartcontract"
+
+
+class StatusAPIException(Exception):
+    """
+    Raised during checking Moonstream API statuses.
+    """
 
 
 def get_contract_source_info(
@@ -192,3 +202,29 @@ def create_onboarding_resource(
         timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
     )
     return resource
+
+
+def check_api_status():
+    crawl_types_timestamp: Dict[str, Any] = {
+        "ethereum_txpool": None,
+        "ethereum_trending": None,
+    }
+    for crawl_type in crawl_types_timestamp.keys():
+        try:
+            search_results: BugoutSearchResults = bc.search(
+                token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                journal_id=MOONSTREAM_DATA_JOURNAL_ID,
+                query=f"tag:crawl_type:{crawl_type}",
+                limit=1,
+                content=False,
+                timeout=10.0,
+                order=SearchOrder.DESCENDING,
+            )
+            if len(search_results.results) == 1:
+                crawl_types_timestamp[crawl_type] = search_results.results[0].created_at
+        except Exception:
+            raise StatusAPIException(
+                f"Unable to get status for crawler with type: {crawl_type}"
+            )
+
+    return crawl_types_timestamp

@@ -1,0 +1,45 @@
+name: Publish Moonstream Python client library
+
+on:
+  push:
+    tags:
+      - "clients/python/v*"
+
+defaults:
+  run:
+    working-directory: clients/python
+
+jobs:
+  publish:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.9"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[distribute]
+      - name: Build and publish
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        run: |
+          python setup.py sdist bdist_wheel
+          twine upload dist/*
+  create_release:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/create-release@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: "Moonstream Python client library - ${{ github.ref }}"
+          body: |
+            Version ${{ github.ref }} of the Moonstream Python client library.
+          draft: true
+          prerelease: false
