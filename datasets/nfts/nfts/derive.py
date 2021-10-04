@@ -57,3 +57,26 @@ def current_owners(conn: sqlite3.Connection) -> List[Tuple]:
         conn.rollback()
         logger.error("Could not create derived dataset: current_owners")
         logger.error(e)
+
+
+def current_values_distribution(conn: sqlite3.Connection) -> List[Tuple]:
+    """
+    Requires a connection to a dataset in which the raw data (esp. transfers) has already been
+    loaded.
+    """
+    ensure_custom_aggregate_functions(conn)
+    drop_existing_values_distribution_query = (
+        "DROP TABLE IF EXISTS market_values_distribution;"
+    )
+    current_values_distribution_query = """
+    CREATE TABLE market_values_distribution AS
+        select nft_address as address, market_value as value,  CUME_DIST() over (PARTITION BY nft_address ORDER BY market_value) as cumulate_value from current_market_values;"""
+    cur = conn.cursor()
+    try:
+        cur.execute(drop_existing_values_distribution_query)
+        cur.execute(current_values_distribution_query)
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        logger.error("Could not create derived dataset: current_owners")
+        logger.error(e)

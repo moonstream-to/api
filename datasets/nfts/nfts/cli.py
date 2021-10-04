@@ -10,12 +10,18 @@ from web3 import Web3, IPCProvider, HTTPProvider
 
 from .data import event_types, nft_event, BlockBounds
 from .datastore import setup_database
-from .derive import current_owners
+from .derive import current_owners, current_values_distribution
 from .materialize import create_dataset, EthereumBatchloader
 
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+derive_functions = {
+    "current_owners": current_owners,
+    "current_values_distribution": current_values_distribution,
+}
 
 
 def handle_initdb(args: argparse.Namespace) -> None:
@@ -51,7 +57,15 @@ def handle_materialize(args: argparse.Namespace) -> None:
 
 def handle_derive(args: argparse.Namespace) -> None:
     with contextlib.closing(sqlite3.connect(args.datastore)) as moonstream_datastore:
-        results = current_owners(moonstream_datastore)
+        calling_functions = []
+        if not args.derive_functions:
+            calling_functions.extend(derive_functions.keys())
+        else:
+            calling_functions.extend(args.derive_functions)
+
+        for function_name in calling_functions:
+            if function_name in calling_functions:
+                derive_functions[function_name](moonstream_datastore)
     logger.info("Done!")
 
 
@@ -129,6 +143,13 @@ def main() -> None:
         "--datastore",
         required=True,
         help="Path to SQLite database representing the dataset",
+    )
+    parser_derive.add_argument(
+        "-f",
+        "--derive_functions",
+        required=False,
+        nargs="+",
+        help=f"Functions wich will call from derive module availabel {list(derive_functions.keys())}",
     )
     parser_derive.set_defaults(func=handle_derive)
 
