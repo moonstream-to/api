@@ -16,8 +16,13 @@ from tqdm import tqdm
 from web3 import Web3
 import requests
 
-from .data import BlockBounds, EventType, NFTEvent, event_types
-from .datastore import get_checkpoint_offset, insert_checkpoint, insert_events
+from .data import BlockBounds, EventType, NFTEvent, NFTMetadata, event_types
+from .datastore import (
+    get_checkpoint_offset,
+    insert_address_metadata,
+    insert_checkpoint,
+    insert_events,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -147,15 +152,28 @@ def enrich_from_web3(
     return admissible_events
 
 
-def get_events(
+def add_events(
+    datastore_conn: sqlite3.Connection,
     db_session: Session,
     event_type: EventType,
+    batch_loader: EthereumBatchloader,
+    initial_offset=0,
     bounds: Optional[BlockBounds] = None,
-    initial_offset: int = 0,
-    batch_size: int = 1000,
-) -> Iterator[NFTEvent]:
+    batch_size: int = 10,
+) -> None:
+    raw_created_at_list = (
+        db_session.query(EthereumLabel.created_at)
+        .filter(EthereumLabel.label == event_type.value)
+        .order_by(EthereumLabel.created_at.asc())
+        .distinct(EthereumLabel.created_at)
+    ).all()
+
+    created_at_list = [
+        created_at[0] for created_at in raw_created_at_list[initial_offset:]
+    ]
     query = (
         db_session.query(
+            EthereumLabel.id,
             EthereumLabel.label,
             EthereumAddress.address,
             EthereumLabel.label_data,
@@ -164,6 +182,7 @@ def get_events(
             EthereumTransaction.block_number,
             EthereumBlock.timestamp,
         )
+        .filter(EthereumLabel.label == event_type.value)
         .join(EthereumAddress, EthereumLabel.address_id == EthereumAddress.id)
         .outerjoin(
             EthereumTransaction,
@@ -173,11 +192,8 @@ def get_events(
             EthereumBlock,
             EthereumTransaction.block_number == EthereumBlock.block_number,
         )
-        .filter(EthereumLabel.label == event_type.value)
         .order_by(
             EthereumLabel.created_at.asc(),
-            EthereumLabel.transaction_hash.asc(),
-            EthereumLabel.address_id.asc(),
         )
     )
     if bounds is not None:
@@ -187,13 +203,23 @@ def get_events(
         bounds_filters = [EthereumTransaction.hash == None, and_(*time_filters)]
 
         query = query.filter(or_(*bounds_filters))
-    offset = initial_offset
-    while True:
-        events = query.offset(offset).limit(batch_size).all()
+
+    pbar = tqdm(total=(len(raw_created_at_list)))
+    pbar.set_description(f"Processing created ats")
+    pbar.update(initial_offset)
+    batch_start = 0
+    batch_end = batch_start + batch_size
+    while batch_start <= len(created_at_list):
+
+        events = query.filter(
+            EthereumLabel.created_at.in_(created_at_list[batch_start : batch_end + 1])
+        ).all()
         if not events:
-            break
-        offset += batch_size
+            continue
+
+        raw_events_batch = []
         for (
+            event_id,
             label,
             address,
             label_data,
@@ -203,6 +229,7 @@ def get_events(
             timestamp,
         ) in events:
             raw_event = NFTEvent(
+                event_id=event_id,
                 event_type=event_types[label],
                 nft_address=address,
                 token_id=label_data["tokenId"],
@@ -213,7 +240,16 @@ def get_events(
                 block_number=block_number,
                 timestamp=timestamp,
             )
-            yield raw_event
+            raw_events_batch.append(raw_event)
+
+        logger.info(f"Adding {len(raw_events_batch)} to database")
+        insert_events(
+            datastore_conn, raw_events_batch
+        )  # TODO REMOVED WEB3 enrich, since node is down
+        insert_checkpoint(datastore_conn, event_type, batch_end + initial_offset)
+        pbar.update(batch_end - batch_start + 1)
+        batch_start = batch_end + 1
+        batch_end = min(batch_end + batch_size, len(created_at_list))
 
 
 def create_dataset(
@@ -222,7 +258,7 @@ def create_dataset(
     event_type: EventType,
     batch_loader: EthereumBatchloader,
     bounds: Optional[BlockBounds] = None,
-    batch_size: int = 1000,
+    batch_size: int = 10,
 ) -> None:
     """
     Creates Moonstream NFTs dataset in the given SQLite datastore.
@@ -234,35 +270,52 @@ def create_dataset(
         offset = 0
         logger.info(f"Did not found any checkpoint for {event_type.value}")
 
-    raw_events = get_events(db_session, event_type, bounds, offset, batch_size)
-    raw_events_batch: List[NFTEvent] = []
+    if event_type == EventType.ERC721:
+        add_contracts_metadata(datastore_conn, db_session, offset, batch_size)
+    else:
+        add_events(
+            datastore_conn,
+            db_session,
+            event_type,
+            batch_loader,
+            offset,
+            bounds,
+            batch_size,
+        )
 
-    for event in tqdm(raw_events, desc="Events processed", colour="#DD6E0F"):
-        raw_events_batch.append(event)
-        if len(raw_events_batch) == batch_size:
-            logger.info("Writing batch of events to datastore")
 
-            insert_events(
-                datastore_conn,
-                enrich_from_web3(raw_events_batch, batch_loader, bounds),
-            )
-            offset += batch_size
-
-            insert_checkpoint(
-                datastore_conn,
-                event_type,
-                offset,
-                event.transaction_hash,
-            )
-            raw_events_batch = []
-    logger.info("Writing remaining events to datastore")
-    insert_events(
-        datastore_conn, enrich_from_web3(raw_events_batch, batch_loader, bounds)
+def add_contracts_metadata(
+    datastore_conn: sqlite3.Connection,
+    db_session: Session,
+    initial_offset: int = 0,
+    batch_size: int = 1000,
+) -> None:
+    logger.info("Adding erc721 contract metadata")
+    query = (
+        db_session.query(EthereumLabel.label_data, EthereumAddress.address)
+        .filter(EthereumLabel.label == EventType.ERC721.value)
+        .join(EthereumAddress, EthereumLabel.address_id == EthereumAddress.id)
+        .order_by(EthereumLabel.created_at, EthereumLabel.address_id)
     )
-    offset += len(raw_events_batch)
-    insert_checkpoint(
-        datastore_conn,
-        event_type,
-        offset,
-        raw_events_batch[-1].transaction_hash,
-    )
+
+    offset = initial_offset
+    while True:
+        events = query.offset(offset).limit(batch_size).all()
+        if not events:
+            break
+        offset += len(events)
+
+        events_batch: List[NFTMetadata] = []
+        for label_data, address in events:
+            events_batch.append(
+                NFTMetadata(
+                    address=address,
+                    name=label_data.get("name", None),
+                    symbol=label_data.get("symbol", None),
+                )
+            )
+        insert_address_metadata(datastore_conn, events_batch)
+        insert_checkpoint(datastore_conn, EventType.ERC721, offset)
+        logger.info(f"Already added {offset}")
+
+    logger.info(f"Added total of {offset-initial_offset} nfts metadata")

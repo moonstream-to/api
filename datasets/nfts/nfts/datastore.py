@@ -4,9 +4,11 @@ a datastore for a Moonstream NFTs dataset.
 """
 import logging
 import sqlite3
-from typing import Any, List, Tuple, Optional
+from typing import Any, cast, List, Tuple, Optional
 
-from .data import EventType, NFTEvent, nft_event
+from tqdm import tqdm
+
+from .data import EventType, NFTEvent, NFTMetadata
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -18,15 +20,19 @@ CREATE_NFTS_TABLE_QUERY = """CREATE TABLE IF NOT EXISTS nfts
     (
         address TEXT NOT NULL UNIQUE ON CONFLICT FAIL,
         name TEXT,
-        symbol TEXT
+        symbol TEXT,
+        UNIQUE(address, name, symbol)
     );
 """
+
+BACKUP_NFTS_TABLE_QUERY = "ALTER TABLE nfts RENAME TO nfts_backup;"
+DROP_BACKUP_NFTS_TABLE_QUERY = "DROP TABLE IF EXISTS nfts_backup;"
+SELECT_NFTS_QUERY = "SELECT address, name, symbol FROM nfts;"
 
 CREATE_CHECKPOINT_TABLE_QUERY = """CREATE TABLE IF NOT EXISTS checkpoint
     (
         event_type STRING,
-        offset INTEGER,
-        transaction_hash STRING
+        offset INTEGER
     );
 """
 
@@ -35,6 +41,7 @@ def create_events_table_query(event_type: EventType) -> str:
     creation_query = f"""
 CREATE TABLE IF NOT EXISTS {event_tables[event_type]}
     (
+        event_id TEXT NOT NULL UNIQUE ON CONFLICT FAIL,
         transaction_hash TEXT,
         block_number INTEGER,
         nft_address TEXT REFERENCES nfts(address),
@@ -46,6 +53,34 @@ CREATE TABLE IF NOT EXISTS {event_tables[event_type]}
     );
     """
     return creation_query
+
+
+def backup_events_table_query(event_type: EventType) -> str:
+    backup_query = f"ALTER TABLE {event_tables[event_type]} RENAME TO {event_tables[event_type]}_backup;"
+    return backup_query
+
+
+def drop_backup_events_table_query(event_type: EventType) -> str:
+    drop_query = f"DROP TABLE IF EXISTS {event_tables[event_type]}_backup;"
+    return drop_query
+
+
+def select_events_table_query(event_type: EventType) -> str:
+    selection_query = f"""
+SELECT
+    event_id,
+    transaction_hash,
+    block_number,
+    nft_address,
+    token_id,
+    from_address,
+    to_address,
+    transaction_value,
+    timestamp
+FROM {event_tables[event_type]};
+    """
+
+    return selection_query
 
 
 def setup_database(conn: sqlite3.Connection) -> None:
@@ -67,7 +102,8 @@ def insert_events_query(event_type: EventType) -> str:
     Generates a query which inserts NFT events into the appropriate events table.
     """
     query = f"""
-INSERT INTO {event_tables[event_type]}(
+INSERT OR IGNORE INTO {event_tables[event_type]}(
+    event_id,
     transaction_hash,
     block_number,
     nft_address,
@@ -76,19 +112,20 @@ INSERT INTO {event_tables[event_type]}(
     to_address,
     transaction_value,
     timestamp
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
     return query
 
 
 def nft_event_to_tuple(
     event: NFTEvent,
-) -> Tuple[str, str, str, str, str, str, str, str]:
+) -> Tuple[str, str, str, str, str, str, str, str, str]:
     """
     Converts an NFT event into a tuple for use with sqlite cursor executemany. This includes
     dropping e.g. the event_type field.
     """
     return (
+        str(event.event_id),
         str(event.transaction_hash),
         str(event.block_number),
         str(event.nft_address),
@@ -112,19 +149,53 @@ def get_checkpoint_offset(
     return None
 
 
-def insert_checkpoint(
-    conn: sqlite3.Connection, event_type: EventType, offset: int, transaction_hash: str
-):
+def delete_checkpoints(
+    conn: sqlite3.Connection, event_type: EventType, commit: bool = True
+) -> None:
+    cur = conn.cursor()
+    cur.execute(f"DELETE FROM checkpoint where event_type='{event_type.value}';")
+    if commit:
+        try:
+            conn.commit()
+        except:
+            conn.rollback()
+            raise
+
+
+def insert_checkpoint(conn: sqlite3.Connection, event_type: EventType, offset: int):
     query = f"""
-    INSERT INTO checkpoint (
-        event_type,
-        offset,
-        transaction_hash
-        ) VALUES (?, ?, ?)
+INSERT INTO checkpoint (
+    event_type,
+    offset
+) VALUES (?, ?)
         """
     cur = conn.cursor()
-    cur.execute(query, [event_type.value, offset, transaction_hash])
+    cur.execute(query, [event_type.value, offset])
     conn.commit()
+
+
+def insert_address_metadata(
+    conn: sqlite3.Connection, metadata_list: List[NFTMetadata]
+) -> None:
+    cur = conn.cursor()
+    query = f"""
+INSERT INTO nfts (
+    address,
+    name,
+    symbol
+) VALUES (?, ?, ?)
+    """
+    try:
+        nfts = [
+            (metadata.address, metadata.name, metadata.symbol)
+            for metadata in metadata_list
+        ]
+        cur.executemany(query, nfts)
+        conn.commit()
+    except Exception as e:
+        logger.error(f"Failed to save :\n {metadata_list}")
+        conn.rollback()
+        raise e
 
 
 def insert_events(conn: sqlite3.Connection, events: List[NFTEvent]) -> None:
@@ -155,3 +226,99 @@ def insert_events(conn: sqlite3.Connection, events: List[NFTEvent]) -> None:
         logger.error(f"FAILED TO SAVE :{events}")
         conn.rollback()
         raise e
+
+
+def import_data(
+    target_conn: sqlite3.Connection,
+    source_conn: sqlite3.Connection,
+    event_type: EventType,
+    batch_size: int = 1000,
+) -> None:
+    """
+    Imports the data correspondong to the given event type from the source database into the target
+    database.
+
+    Any existing data of that type in the target database is first deleted. It is a good idea to
+    create a backup copy of your target database before performing this operation.
+    """
+    target_cur = target_conn.cursor()
+    drop_backup_query = DROP_BACKUP_NFTS_TABLE_QUERY
+    backup_table_query = BACKUP_NFTS_TABLE_QUERY
+    create_table_query = CREATE_NFTS_TABLE_QUERY
+    source_selection_query = SELECT_NFTS_QUERY
+    if event_type != EventType.ERC721:
+        drop_backup_query = drop_backup_events_table_query(event_type)
+        backup_table_query = backup_events_table_query(event_type)
+        create_table_query = create_events_table_query(event_type)
+        source_selection_query = select_events_table_query(event_type)
+
+    target_cur.execute(drop_backup_query)
+    target_cur.execute(backup_table_query)
+    target_cur.execute(create_table_query)
+    target_conn.commit()
+
+    source_cur = source_conn.cursor()
+    source_cur.execute(source_selection_query)
+
+    batch: List[Any] = []
+
+    for row in tqdm(source_cur, desc="Rows processed"):
+        if event_type == EventType.ERC721:
+            batch.append(NFTMetadata(*cast(Tuple[str, str, str], row)))
+        else:
+            (
+                event_id,
+                nft_address,
+                token_id,
+                from_address,
+                to_address,
+                transaction_hash,
+                value,
+                block_number,
+                timestamp,
+            ) = cast(
+                Tuple[
+                    str,
+                    str,
+                    str,
+                    str,
+                    str,
+                    str,
+                    Optional[int],
+                    Optional[int],
+                    Optional[int],
+                ],
+                row,
+            )
+            event = NFTEvent(
+                event_id,
+                event_type,  # Original argument to this function
+                nft_address,
+                token_id,
+                from_address,
+                to_address,
+                transaction_hash,
+                value,
+                block_number,
+                timestamp,
+            )
+            batch.append(event)
+
+        if len(batch) == batch_size:
+            if event_type == EventType.ERC721:
+                insert_address_metadata(target_conn, cast(List[NFTMetadata], batch))
+            else:
+                insert_events(target_conn, cast(List[NFTEvent], batch))
+
+    if event_type == EventType.ERC721:
+        insert_address_metadata(target_conn, cast(List[NFTMetadata], batch))
+    else:
+        insert_events(target_conn, cast(List[NFTEvent], batch))
+
+    target_cur.execute(CREATE_CHECKPOINT_TABLE_QUERY)
+    target_conn.commit()
+
+    source_offset = get_checkpoint_offset(source_conn, event_type)
+    if source_offset is not None:
+        delete_checkpoints(target_conn, event_type, commit=False)
+        insert_checkpoint(target_conn, event_type, source_offset)

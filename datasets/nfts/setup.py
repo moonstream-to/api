@@ -41,5 +41,9 @@ setup(
         "dev": ["black", "mypy", "types-requests"],
         "distribute": ["setuptools", "twine", "wheel"],
     },
-    entry_points={"console_scripts": []},
+    entry_points={
+        "console_scripts": [
+            "nfts=nfts.cli:main",
+        ]
+    },
 )
