@@ -67,6 +67,11 @@ class NowResponse(BaseModel):
     epoch_time: float
 
 
+class StatusResponse(BaseModel):
+    ethereum_txpool_timestamp: Optional[datetime] = None
+    ethereum_trending_timestamp: Optional[datetime] = None
+
+
 class SubscriptionUpdate(BaseModel):
     update: Dict[str, Any]
     drop_keys: List[str] = Field(default_factory=list)
