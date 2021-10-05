@@ -23,6 +23,7 @@ derive_functions = {
     "current_owners": current_owners,
     "current_market_values": current_market_values,
     "current_values_distribution": current_values_distribution,
+    "transfer_statistics_by_address": transfer_statistics_by_address,
 }
 
 

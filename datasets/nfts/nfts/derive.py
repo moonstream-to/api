@@ -146,3 +146,47 @@ def current_values_distribution(conn: sqlite3.Connection) -> List[Tuple]:
         conn.rollback()
         logger.error("Could not create derived dataset: current_values_distribution")
         logger.error(e)
+
+
+def transfer_statistics_by_address(conn: sqlite3.Connection) -> None:
+    """
+    Create transfer in and transfer out for each address.
+    """
+    drop_existing_transfer_statistics_by_address_query = (
+        "DROP TABLE IF EXISTS transfer_statistics_by_address;"
+    )
+    transfer_statistics_by_address_query = """
+        CREATE TABLE transfer_statistics_by_address AS
+        SELECT
+            address,
+            sum(transfer_out) as transfers_out,
+            sum(transfer_in) as transfers_in
+        from
+            (
+                SELECT
+                    from_address as address,
+                    1 as transfer_out,
+                    0 as transfer_in
+                from
+                    transfers
+                UNION
+                ALL
+                select
+                    to_address as address,
+                    0 as transfer_out,
+                    1 as transfer_in
+                from
+                    transfers
+            )
+        group by
+            address;
+        """
+    cur = conn.cursor()
+    try:
+        cur.execute(drop_existing_transfer_statistics_by_address_query)
+        cur.execute(transfer_statistics_by_address_query)
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        logger.error("Could not create derived dataset: current_values_distribution")
+        logger.error(e)
