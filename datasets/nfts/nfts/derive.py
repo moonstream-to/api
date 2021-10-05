@@ -120,8 +120,23 @@ def current_values_distribution(conn: sqlite3.Connection) -> List[Tuple]:
         "DROP TABLE IF EXISTS market_values_distribution;"
     )
     current_values_distribution_query = """
-    CREATE TABLE market_values_distribution AS
-        select nft_address as address, market_value as value,  CUME_DIST() over (PARTITION BY nft_address ORDER BY market_value) as cumulate_value from current_market_values;"""
+        CREATE TABLE market_values_distribution AS
+        select
+            nft_address as address,
+            current_market_values.token_id as token_id,
+            CAST(current_market_values.market_value as REAL) / max_values.max_value as 
+        from
+            current_market_values
+            inner join (
+                select
+                    nft_address,
+                    max(market_value) as max_value
+                from
+                    current_market_values
+                group by
+                    nft_address
+            ) as max_values on current_market_values.nft_address = max_values.nft_address;
+    """
     cur = conn.cursor()
     try:
         cur.execute(drop_existing_values_distribution_query)
