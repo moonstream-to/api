@@ -433,3 +433,37 @@ def import_data(
     if source_offset is not None:
         delete_checkpoints(target_conn, event_type, commit=False)
         insert_checkpoint(target_conn, event_type, source_offset)
+
+
+def filter_data(sqlite_db: sqlite3.Connection, cli_args):
+    """
+    Run Deletes query depends on filters
+    """
+
+    cur = sqlite_db.cursor()
+    print(f"Remove by timestamp < {cli_args.start_time}")
+    if cli_args.start_time:
+        cur.execute(f"DELETE from transfers where timestamp < {cli_args.start_time}")
+        print(f"filtered out: {cur.rowcount}")
+        sqlite_db.commit()
+        cur.execute(f"DELETE from mints where timestamp < {cli_args.start_time}")
+        print(f"filtered out: {cur.rowcount}")
+        sqlite_db.commit()
+
+    print(f"Remove by timestamp > {cli_args.end_time}")
+    if cli_args.end_time:
+        cur.execute(f"DELETE from transfers where timestamp > {cli_args.end_time}")
+        print(f"filtered out: {cur.rowcount}")
+        sqlite_db.commit()
+        cur.execute(f"DELETE from mints where timestamp > {cli_args.end_time}")
+        print(f"filtered out: {cur.rowcount}")
+        sqlite_db.commit()
+
+    # print(f"Remove by type != '{cli_args.type}")
+    # if cli_args.type:
+    #     cur.execute(f"DELETE from transfers where type != '{cli_args.type}'")
+    #     print(f"filtered out: {cur.rowcount}")
+    #     sqlite_db.commit()
+    #     cur.execute(f"DELETE from mints where type != '{cli_args.type}'")
+    #     print(f"filtered out: {cur.rowcount}")
+    #     sqlite_db.commit()
