@@ -68,11 +68,6 @@ def handel_generate_filtered(args: argparse.Namespace) -> None:
         new_db_path = "/".join(path_list)
         copyfile(args.source, new_db_path)
 
-        # with io.open(name, "w") as f:
-        #     for linha in source_conn.iterdump():
-        #         f.write("%s\n" % linha)
-        os
-
     # do connection
     with contextlib.closing(sqlite3.connect(new_db_path)) as source_conn:
         print("Start filtering")
