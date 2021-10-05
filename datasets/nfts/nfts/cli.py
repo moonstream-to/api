@@ -176,7 +176,7 @@ def main() -> None:
     )
     parser_derive.add_argument(
         "-f",
-        "--derive_functions",
+        "--derive-functions",
         required=False,
         nargs="+",
         help=f"Functions wich will call from derive module availabel {list(derive_functions.keys())}",
