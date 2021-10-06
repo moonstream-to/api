@@ -11,7 +11,13 @@ from moonstreamdb.db import yield_db_session_ctx
 from .enrich import EthereumBatchloader, enrich
 from .data import EventType, event_types, nft_event, BlockBounds
 from .datastore import setup_database, import_data, filter_data
-from .derive import current_owners, current_market_values, current_values_distribution
+from .derive import (
+    current_owners,
+    current_market_values,
+    current_values_distribution,
+    transfer_statistics_by_address,
+    qurtile_generating,
+)
 from .materialize import create_dataset
 
 
@@ -24,6 +30,7 @@ derive_functions = {
     "current_market_values": current_market_values,
     "current_values_distribution": current_values_distribution,
     "transfer_statistics_by_address": transfer_statistics_by_address,
+    "qurtile_generating": qurtile_generating,
 }
 
 
@@ -40,39 +47,28 @@ def handle_import_data(args: argparse.Namespace) -> None:
         import_data(target_conn, source_conn, event_type, args.batch_size)
 
 
-def handel_generate_filtered(args: argparse.Namespace) -> None:
+def handle_filter_data(args: argparse.Namespace) -> None:
 
     with contextlib.closing(sqlite3.connect(args.source)) as source_conn:
 
-        if not args.target:
-            # generate name if not set
-            path_list = args.source.split("/")
-            file = path_list.pop()
-            old_prefix, ext = file.split(".")
-            new_prefix = old_prefix
-            if args.start_time:
-                new_prefix += f"-{args.start_time}"
-            if args.end_time:
-                new_prefix += f"-{args.end_time}"
-            if args.type:
-                new_prefix += f"-{args.type}"
-
-            name = f"{new_prefix}.{ext}"
-
+        if args.target == args.source:
+            sqlite_path = f"{args.target}.dump"
         else:
-            name = f"{args.target}"
+            sqlite_path = args.target
 
-        if name == args.source:
-            name = f"{name}.dump"
-        path_list.append(name)
-        print(f"Creating new database:{name}")
-        new_db_path = "/".join(path_list)
-        copyfile(args.source, new_db_path)
+        print(f"Creating new database:{sqlite_path}")
+
+        copyfile(args.source, sqlite_path)
 
     # do connection
-    with contextlib.closing(sqlite3.connect(new_db_path)) as source_conn:
+    with contextlib.closing(sqlite3.connect(sqlite_path)) as source_conn:
         print("Start filtering")
-        filter_data(source_conn, args)
+        filter_data(
+            source_conn,
+            start_time=args.start_time,
+            end_time=args.end_time,
+            type=args.type,
+        )
         print("Filtering end.")
         for index, function_name in enumerate(derive_functions.keys()):
             print(
@@ -243,21 +239,16 @@ def main() -> None:
     )
     parser_import_data.set_defaults(func=handle_import_data)
 
-    # crete dump for apply filters
+    # Create dump of filtered data
 
     parser_filtered_copy = subcommands.add_parser(
-        "copy", description="Create copy of database with applied filters.",
+        "filter-data", description="Create copy of database with applied filters.",
     )
     parser_filtered_copy.add_argument(
-        "--target", help="Datastore into which you want to import data",
+        "--target", required=True, help="Datastore into which you want to import data",
     )
     parser_filtered_copy.add_argument(
         "--source", required=True, help="Datastore from which you want to import data"
-    )
-    parser_filtered_copy.add_argument(
-        "--type",
-        choices=event_types,
-        help="Type of data you would like to import from source to target",
     )
     parser_filtered_copy.add_argument(
         "--start-time", required=False, type=int, help="Start timestamp.",
@@ -266,7 +257,7 @@ def main() -> None:
         "--end-time", required=False, type=int, help="End timestamp.",
     )
 
-    parser_filtered_copy.set_defaults(func=handel_generate_filtered)
+    parser_filtered_copy.set_defaults(func=handle_filter_data)
 
     parser_enrich = subcommands.add_parser(
         "enrich", description="enrich dataset from geth node"

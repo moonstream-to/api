@@ -66,9 +66,7 @@ def add_events(
             EthereumBlock,
             EthereumTransaction.block_number == EthereumBlock.block_number,
         )
-        .order_by(
-            EthereumLabel.created_at.asc(),
-        )
+        .order_by(EthereumLabel.created_at.asc(),)
     )
     if bounds is not None:
         time_filters = [EthereumTransaction.block_number >= bounds.starting_block]
@@ -147,12 +145,7 @@ def create_dataset(
         add_contracts_metadata(datastore_conn, db_session, offset, batch_size)
     else:
         add_events(
-            datastore_conn,
-            db_session,
-            event_type,
-            offset,
-            bounds,
-            batch_size,
+            datastore_conn, db_session, event_type, offset, bounds, batch_size,
         )
 
 
