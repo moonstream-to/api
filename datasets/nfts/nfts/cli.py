@@ -68,10 +68,7 @@ def handle_filter_data(args: argparse.Namespace) -> None:
     with contextlib.closing(sqlite3.connect(sqlite_path)) as source_conn:
         print("Start filtering")
         filter_data(
-            source_conn,
-            start_time=args.start_time,
-            end_time=args.end_time,
-            type=args.type,
+            source_conn, start_time=args.start_time, end_time=args.end_time,
         )
         print("Filtering end.")
         for index, function_name in enumerate(derive_functions.keys()):
