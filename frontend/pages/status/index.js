@@ -30,18 +30,12 @@ const Status = () => {
   };
 
   const {
-    apiServerStatus,
-    apiServerData,
-    crawlersServerStatus,
-    crawlersServerData,
-    gethStatus,
-    gethData,
-    crawlersStatus,
-    crawlersData,
-    dbServerStatus,
-    dbServerData,
-    latestBlockDBStatus,
-    latestBlockDBData,
+    apiServerStatusCache,
+    ethereumClusterServerStatusCache,
+    gethStatusCache,
+    crawlersStatusCache,
+    dbServerStatusCache,
+    latestBlockDBStatusCache,
   } = useStatus();
 
   const [background, setBackground] = useState("background720");
@@ -63,13 +57,6 @@ const Status = () => {
   ]);
 
   useEffect(() => {
-    apiServerStatus();
-    crawlersServerStatus();
-    crawlersStatus();
-    gethStatus();
-    dbServerStatus();
-    latestBlockDBStatus();
-
     assets[
       "background720"
     ] = `${AWS_ASSETS_PATH}/product-background-720x405.png`;
@@ -175,12 +162,14 @@ const Status = () => {
             <Spacer />
             <Text
               color={
-                apiServerData?.data?.status == "ok"
+                !apiServerStatusCache.isLoading &&
+                apiServerStatusCache?.data?.status == "ok"
                   ? healthyStatusColor
                   : downStatusColor
               }
             >
-              {apiServerData?.data?.status == "ok"
+              {!apiServerStatusCache.isLoading &&
+              apiServerStatusCache?.data?.status == "ok"
                 ? healthyStatusText
                 : downStatusText}
             </Text>
@@ -191,12 +180,14 @@ const Status = () => {
             <Spacer />
             <Text
               color={
-                crawlersServerData?.data?.status == "ok"
+                !ethereumClusterServerStatusCache.isLoading &&
+                ethereumClusterServerStatusCache?.data?.status == "ok"
                   ? healthyStatusColor
                   : downStatusColor
               }
             >
-              {crawlersServerData?.data?.status == "ok"
+              {!ethereumClusterServerStatusCache.isLoading &&
+              ethereumClusterServerStatusCache?.data
                 ? healthyStatusText
                 : downStatusText}
             </Text>
@@ -205,15 +196,21 @@ const Status = () => {
             <Text>Latest block in Geth</Text>
             <Spacer />
             <Text>
-              {gethData?.data?.current_block ? gethData.data.current_block : 0}
+              {!gethStatusCache.isLoading &&
+              gethStatusCache?.data?.current_block
+                ? gethStatusCache.data.current_block
+                : 0}
             </Text>
           </Flex>
           <Flex mb={3}>
             <Text>Txpool latest record ts</Text>
             <Spacer />
             <Text>
-              {crawlersData?.data?.ethereum_txpool_timestamp
-                ? shortTimestamp(crawlersData?.data?.ethereum_txpool_timestamp)
+              {!crawlersStatusCache.isLoading &&
+              crawlersStatusCache?.data?.ethereum_txpool_timestamp
+                ? shortTimestamp(
+                    crawlersStatusCache?.data?.ethereum_txpool_timestamp
+                  )
                 : downStatusText}
             </Text>
           </Flex>
@@ -221,9 +218,10 @@ const Status = () => {
             <Text>Trending latest record ts</Text>
             <Spacer />
             <Text>
-              {crawlersData?.data?.ethereum_trending_timestamp
+              {!crawlersStatusCache.isLoading &&
+              crawlersStatusCache?.data?.ethereum_trending_timestamp
                 ? shortTimestamp(
-                    crawlersData?.data?.ethereum_trending_timestamp
+                    crawlersStatusCache?.data?.ethereum_trending_timestamp
                   )
                 : downStatusText}
             </Text>
@@ -234,12 +232,14 @@ const Status = () => {
             <Spacer />
             <Text
               color={
-                dbServerData?.data?.status == "ok"
+                !dbServerStatusCache.isLoading &&
+                dbServerStatusCache?.data?.status == "ok"
                   ? healthyStatusColor
                   : downStatusColor
               }
             >
-              {dbServerData?.data?.status == "ok"
+              {!dbServerStatusCache.isLoading &&
+              dbServerStatusCache?.data?.status == "ok"
                 ? healthyStatusText
                 : downStatusText}
             </Text>
@@ -248,8 +248,9 @@ const Status = () => {
             <Text>Latest block in Database</Text>
             <Spacer />
             <Text>
-              {latestBlockDBData?.data?.block_number
-                ? latestBlockDBData.data.block_number
+              {!latestBlockDBStatusCache.isLoading &&
+              latestBlockDBStatusCache?.data?.block_number
+                ? latestBlockDBStatusCache.data.block_number
                 : 0}
             </Text>
           </Flex>

@@ -1,90 +1,67 @@
-import { useMutation } from "react-query";
-import { useToast } from "./";
-import { AuthService } from "../../core/services";
+import { useQuery } from "react-query";
+import { queryCacheProps } from "./hookCommon";
+import { StatusService } from "../../core/services";
 
 const useStatus = () => {
-  const toast = useToast();
+  const getAPIServerStatus = async () => {
+    const response = await StatusService.apiServerStatus();
+    return response.data;
+  };
+  const getEthereumClusterServerStatus = async () => {
+    const response = await StatusService.ethereumClusterServerStatus();
+    return response.data;
+  };
+  const getGethStatus = async () => {
+    const response = await StatusService.gethStatus();
+    return response.data;
+  };
+  const getCrawlersStatus = async () => {
+    const response = await StatusService.crawlersStatus();
+    return response.data;
+  };
+  const getDBServerStatus = async () => {
+    const response = await StatusService.dbServerStatus();
+    return response.data;
+  };
+  const getLatestBlockDBStatus = async () => {
+    const response = await StatusService.latestBlockDBStatus();
+    return response.data;
+  };
 
-  const { mutate: apiServerStatus, data: apiServerData } = useMutation(
-    AuthService.apiServerStatus,
+  const apiServerStatusCache = useQuery("apiServer", getAPIServerStatus, {
+    ...queryCacheProps,
+  });
+  const ethereumClusterServerStatusCache = useQuery(
+    "ethereumClusterServer",
+    getEthereumClusterServerStatus,
     {
-      onError: (error) => {
-        // toast(error, "error");
-      },
-      onSuccess: () => {
-        // toast("Status received", "success");
-      },
+      ...queryCacheProps,
     }
   );
-
-  const { mutate: crawlersServerStatus, data: crawlersServerData } =
-    useMutation(AuthService.crawlersServerStatus, {
-      onError: (error) => {
-        // toast(error, "error");
-      },
-      onSuccess: () => {
-        // toast("Status received", "success");
-      },
-    });
-  const { mutate: gethStatus, data: gethData } = useMutation(
-    AuthService.gethStatus,
+  const gethStatusCache = useQuery("geth", getGethStatus, {
+    ...queryCacheProps,
+  });
+  const crawlersStatusCache = useQuery("crawlers", getCrawlersStatus, {
+    ...queryCacheProps,
+  });
+  const dbServerStatusCache = useQuery("dbServer", getDBServerStatus, {
+    ...queryCacheProps,
+  });
+  const latestBlockDBStatusCache = useQuery(
+    "latestBlockDB",
+    getLatestBlockDBStatus,
     {
-      onError: (error) => {
-        // toast(error, "error");
-      },
-      onSuccess: () => {
-        // toast("Status received", "success");
-      },
-    }
-  );
-  const { mutate: crawlersStatus, data: crawlersData } = useMutation(
-    AuthService.crawlersStatus,
-    {
-      onError: (error) => {
-        // toast(error, "error");
-      },
-      onSuccess: () => {
-        // toast("Status received", "success");
-      },
-    }
-  );
-
-  const { mutate: dbServerStatus, data: dbServerData } = useMutation(
-    AuthService.dbServerStatus,
-    {
-      onError: (error) => {
-        // toast(error, "error");
-      },
-      onSuccess: () => {
-        // toast("Status received", "success");
-      },
-    }
-  );
-  const { mutate: latestBlockDBStatus, data: latestBlockDBData } = useMutation(
-    AuthService.latestBlockDBStatus,
-    {
-      onError: (error) => {
-        // toast(error, "error");
-      },
-      onSuccess: () => {
-        // toast("Status received", "success");
-      },
+      ...queryCacheProps,
     }
   );
 
   return {
-    apiServerStatus,
-    apiServerData,
-    crawlersServerStatus,
-    crawlersServerData,
-    gethStatus,
-    gethData,
-    crawlersStatus,
-    crawlersData,
-    dbServerStatus,
-    dbServerData,
-    latestBlockDBStatus,
-    latestBlockDBData,
+    apiServerStatusCache,
+    ethereumClusterServerStatusCache,
+    gethStatusCache,
+    crawlersStatusCache,
+    dbServerStatusCache,
+    latestBlockDBStatusCache,
   };
 };
 
