@@ -254,7 +254,7 @@ const Homepage = () => {
                           fontWeight="semibold"
                           color="white"
                         >
-                          All the crypto data you care about in a single stream
+                          Open source blockchain analytics
                         </Heading>
                         <chakra.span
                           my={12}
@@ -262,18 +262,18 @@ const Homepage = () => {
                           display="inline-block"
                           color="blue.200"
                         >
-                          Get all the crypto data you need in a single stream.
-                          From pending transactions in the Ethereum transaction
-                          pool to Elon Musk’s latest tweets.
+                          Product analytics for Web3. Moonstream helps you
+                          understand exactly how people are using your smart
+                          contracts.
                         </chakra.span>
-                        <chakra.span
+                        {/* <chakra.span
                           fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
                           display="inline-block"
                           color="blue.300"
                         >
                           Access this data through the Moonstream dashboard or
                           API
-                        </chakra.span>
+                        </chakra.span> */}
                       </Stack>
                     </Flex>
                   </Box>
@@ -285,7 +285,7 @@ const Homepage = () => {
                 colSpan="12"
                 // pt={["20px", "20px", "100px", null, "120px"]}
                 pt={0}
-                pb={["20px", "56px", null, "184px"]}
+                // pb={["20px", "56px", null, "184px"]}
                 minH="100vh"
               >
                 <chakra.span
@@ -301,9 +301,9 @@ const Homepage = () => {
                     // mb={[12, 12, 12, null, 48]}
                     fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
                   >
-                    {` We believe in financial inclusion. Proprietary technologies
-                    are not financially inclusive. That's why all our software
-                    is `}
+                    We believe that the blockchain is for everyone. This
+                    requires complete <b>transparency</b>. That’s why all our
+                    software is open source.
                     <chakra.span display="inline-block" textColor="orange.900">
                       <i>open source</i>
                     </chakra.span>
@@ -313,10 +313,10 @@ const Homepage = () => {
                 <Heading
                   {...HEADING_PROPS}
                   textAlign="center"
-                  mt={16}
-                  pb={[12, 12, 12, null, 48]}
+                  mt={48}
+                  pb={[12, 12, 12, null, 24]}
                 >
-                  Data you can add to your stream:
+                  See how your smart contracts are being used from:
                 </Heading>
                 <SimpleGrid columns={[1, 2, 2, 4, null, 4]}>
                   <Stack spacing={1} px={1} alignItems="center">
@@ -360,7 +360,7 @@ const Homepage = () => {
                     <Heading textAlign="center ">Social media posts</Heading>
                   </Stack>
                 </SimpleGrid>
-                <Center>
+                {/* <Center>
                   <Heading pt="160px" pb="60px">
                     Moonstream is meant for you if
                   </Heading>
@@ -404,9 +404,9 @@ const Homepage = () => {
                       },
                     }}
                   />
-                </Flex>
+                </Flex> */}
               </GridItem>
-              <GridItem
+              {/* <GridItem
                 px="7%"
                 colSpan="12"
                 pt={["1rem", "1rem", "5.125rem", null, "5.125rem"]}
@@ -453,8 +453,8 @@ const Homepage = () => {
                   ]}
                   imgURL={assets["cryptoTraders"]}
                 />
-              </GridItem>
-              <GridItem
+              </GridItem> */}
+              {/* <GridItem
                 px="7%"
                 colSpan="12"
                 pt={["1rem", "1rem", "5.125rem", null, "5.125rem"]}
@@ -499,18 +499,18 @@ const Homepage = () => {
                   ]}
                   imgURL={assets["algorithmicFunds"]}
                 />
-              </GridItem>
+              </GridItem> */}
               <GridItem
                 px="7%"
                 colSpan="12"
-                pt={["1rem", "1rem", "5.125rem", null, "5.125rem"]}
+                pt={["1rem", "1rem", "1.125rem", null, "5.125rem"]}
                 pb={["0", "66px", null, "66px"]}
                 id="smartDeveloper"
                 minH={ui.isMobileView ? "100vh" : null}
               >
                 <SplitWithImage
                   cta={{
-                    label: "I want early access!",
+                    label: "Want to find out more?",
                     onClick: () => {
                       mixpanel.get_distinct_id() &&
                         mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
@@ -553,7 +553,7 @@ const Homepage = () => {
                       bgColor: "blue.900",
                     },
                   ]}
-                  imgURL={assets["smartDevelopers"]}
+                  imgURL={assets["cryptoTraders"]}
                 />
               </GridItem>
               <GridItem
@@ -564,24 +564,44 @@ const Homepage = () => {
                 pb="120px"
               >
                 <Center>
-                  <Button
-                    as={Link}
-                    isExternal
-                    href={"https://discord.gg/K56VNUQGvA"}
-                    size="lg"
-                    variant="solid"
-                    colorScheme="green"
-                    id="test"
-                    onClick={() => {
-                      mixpanel.get_distinct_id() &&
-                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Join our discord`,
-                        });
-                      toggleModal("hubspot");
-                    }}
-                  >
-                    Join our discord
-                  </Button>
+                  <Stack placeContent="center">
+                    <Text fontWeight="500" fontSize="24px">
+                      Want to find out more? Reach out to us on{" "}
+                      <Link
+                        color="orange.900"
+                        onClick={() => {
+                          mixpanel.get_distinct_id() &&
+                            mixpanel.track(
+                              `${MIXPANEL_EVENTS.BUTTON_CLICKED}`,
+                              {
+                                [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Join our discord`,
+                              }
+                            );
+                          toggleModal("hubspot");
+                        }}
+                        isExternal
+                        href={"https://discord.gg/K56VNUQGvA"}
+                      >
+                        Discord
+                      </Link>{" "}
+                      or{" "}
+                      <Link
+                        color="orange.900"
+                        onClick={() => {
+                          mixpanel.get_distinct_id() &&
+                            mixpanel.track(
+                              `${MIXPANEL_EVENTS.BUTTON_CLICKED}`,
+                              {
+                                [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer`,
+                              }
+                            );
+                          toggleModal("hubspot-developer");
+                        }}
+                      >
+                        request early access
+                      </Link>
+                    </Text>
+                  </Stack>
                 </Center>
               </GridItem>
             </Grid>
