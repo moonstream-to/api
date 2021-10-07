@@ -3,11 +3,13 @@ import { http } from "../utils";
 const API_URL = process.env.NEXT_PUBLIC_MOONSTREAM_API_URL;
 export const AUTH_URL = `${API_URL}/users`;
 
-export const login = ({ username, password }) => {
+export const login = ({ username, password, token_note }) => {
   const data = new FormData();
   data.append("username", username);
   data.append("password", password);
-
+  if (token_note) {
+    data.append("token_note", token_note);
+  }
   return http({
     method: "POST",
     url: `${AUTH_URL}/token`,
@@ -72,5 +74,30 @@ export const changePassword = ({ currentPassword, newPassword }) => {
     method: "POST",
     url: `${AUTH_URL}/profile/password`,
     data,
+  });
+};
+
+export const getTokenList = () => {
+  return http({
+    method: "GET",
+    url: `${AUTH_URL}/tokens`,
+  });
+};
+
+export const updateToken = ({ note, token }) => {
+  const data = new FormData();
+  data.append("token_note", note);
+  data.append("access_token", token);
+  return http({
+    method: "PUT",
+    url: `${AUTH_URL}/token`,
+    data,
+  });
+};
+
+export const revokeToken = (token) => {
+  return http({
+    method: "POST",
+    url: `${AUTH_URL}/revoke/${token}`,
   });
 };

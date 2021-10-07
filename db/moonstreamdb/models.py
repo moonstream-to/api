@@ -152,7 +152,6 @@ class EthereumLabel(Base):  # type: ignore
     )
     transaction_hash = Column(
         VARCHAR(256),
-        ForeignKey("ethereum_transactions.hash", ondelete="CASCADE"),
         nullable=True,
         index=True,
     )

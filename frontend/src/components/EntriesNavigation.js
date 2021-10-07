@@ -257,7 +257,7 @@ const EntriesNavigation = () => {
                             {filter.direction === DIRECTIONS.SOURCE && (
                               <Select
                                 variant="solid"
-                                colorScheme="primary"
+                                colorScheme="blue"
                                 name="address"
                                 onChange={handleAddressChange(idx)}
                               >
@@ -298,7 +298,7 @@ const EntriesNavigation = () => {
                         )}
                         <IconButton
                           placeItems="center"
-                          colorScheme="primary"
+                          colorScheme="blue"
                           variant="ghost"
                           onClick={() => dropNewFilterArrayItem(idx)}
                           icon={<ImCancelCircle />}
@@ -311,7 +311,7 @@ const EntriesNavigation = () => {
                   <MenuButton
                     as={Button}
                     mt={4}
-                    colorScheme="secondary"
+                    colorScheme="orange"
                     variant="solid"
                   >
                     Add filter row
@@ -357,7 +357,7 @@ const EntriesNavigation = () => {
               </DrawerBody>
               <DrawerFooter pb={16} placeContent="center">
                 <Button
-                  colorScheme="suggested"
+                  colorScheme="green"
                   variant="solid"
                   // type="submit"
                   onClick={() => handleFilterSubmit()}
@@ -377,7 +377,7 @@ const EntriesNavigation = () => {
                     mx={1}
                     size="lg"
                     variant="solid"
-                    colorScheme="secondary"
+                    colorScheme="orange"
                   >
                     {filter?.type === FILTER_TYPES.ADDRESS && (
                       <TagLabel>
@@ -401,7 +401,7 @@ const EntriesNavigation = () => {
             <IconButton
               mr={4}
               onClick={onOpen}
-              colorScheme="primary"
+              colorScheme="blue"
               variant="ghost"
               icon={<FaFilter />}
             />
@@ -428,7 +428,7 @@ const EntriesNavigation = () => {
                       loadNewesEventHandler();
                     }}
                     variant="outline"
-                    colorScheme="suggested"
+                    colorScheme="green"
                   >
                     Load newer events
                   </Button>
@@ -437,7 +437,7 @@ const EntriesNavigation = () => {
                     isLoading
                     loadingText="Loading"
                     variant="outline"
-                    colorScheme="suggested"
+                    colorScheme="green"
                   ></Button>
                 )}
               </Stack>
@@ -468,7 +468,7 @@ const EntriesNavigation = () => {
                       loadPreviousEventHandler();
                     }}
                     variant="outline"
-                    colorScheme="suggested"
+                    colorScheme="green"
                   >
                     Load older events
                   </Button>
@@ -482,7 +482,7 @@ const EntriesNavigation = () => {
                       isLoading
                       loadingText="Loading"
                       variant="outline"
-                      colorScheme="suggested"
+                      colorScheme="green"
                     ></Button>
                   )}
                 </Center>
@@ -495,7 +495,7 @@ const EntriesNavigation = () => {
           <Spinner
             mt="50%"
             size="lg"
-            color="primary.500"
+            color="blue.500"
             thickness="4px"
             speed="1.5s"
           />

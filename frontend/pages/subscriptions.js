@@ -36,7 +36,7 @@ const Subscriptions = () => {
     pt: 2,
     mb: 4,
     borderBottom: "solid",
-    borderColor: "primary.50",
+    borderColor: "blue.50",
     borderBottomWidth: "2px",
   };
 
@@ -72,7 +72,7 @@ const Subscriptions = () => {
             hidden={false}
             my={8}
             size="lg"
-            color="primary.500"
+            color="blue.500"
             thickness="4px"
             speed="1.5s"
           />
@@ -90,7 +90,7 @@ const Subscriptions = () => {
             <Flex
               h="3rem"
               w="100%"
-              bgColor="primary.50"
+              bgColor="blue.50"
               borderTopRadius="xl"
               justifyContent="flex-end"
               alignItems="center"
@@ -99,7 +99,7 @@ const Subscriptions = () => {
                 <Button
                   onClick={() => newSubscriptionClicked(true)}
                   mr={8}
-                  colorScheme="suggested"
+                  colorScheme="green"
                   variant="solid"
                   size="sm"
                   rightIcon={<AiOutlinePlusCircle />}
@@ -110,7 +110,7 @@ const Subscriptions = () => {
               <Button
                 onClick={() => newSubscriptionClicked(false)}
                 mr={8}
-                colorScheme="primary"
+                colorScheme="blue"
                 variant="solid"
                 size="sm"
                 rightIcon={<AiOutlinePlusCircle />}

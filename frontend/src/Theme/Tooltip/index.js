@@ -19,7 +19,7 @@ const baseStyle = (props) => {
 };
 
 const variantSuggestion = (props) => {
-  const bg = mode("primary.700", "primary.300")(props);
+  const bg = mode("blue.700", "blue.300")(props);
   return {
     "--tooltip-bg": `colors.${bg}`,
     px: "8px",
@@ -37,7 +37,7 @@ const variantSuggestion = (props) => {
 };
 
 const variantOnboarding = (props) => {
-  const bg = mode("secondary.700", "secondary.300")(props);
+  const bg = mode("orange.700", "orange.300")(props);
   return {
     "--tooltip-bg": `colors.${bg}`,
     px: "8px",

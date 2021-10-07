@@ -2,12 +2,11 @@
 The Moonstream users HTTP API
 """
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 import uuid
 
-from bugout.data import BugoutToken, BugoutUser, BugoutResource
+from bugout.data import BugoutToken, BugoutUser, BugoutResource, BugoutUserTokens
 from bugout.exceptions import BugoutResponseException
-
 from fastapi import (
     Body,
     FastAPI,
@@ -149,21 +148,68 @@ async def delete_user_handler(
 
 @app.post("/token", tags=["tokens"], response_model=BugoutToken)
 async def login_handler(
-    username: str = Form(...), password: str = Form(...)
+    username: str = Form(...),
+    password: str = Form(...),
+    token_note: Optional[str] = Form(None),
 ) -> BugoutToken:
     try:
         token: BugoutToken = bc.create_token(
             username=username,
             password=password,
             application_id=MOONSTREAM_APPLICATION_ID,
+            token_note=token_note,
         )
+
     except BugoutResponseException as e:
-        raise MoonstreamHTTPException(
-            status_code=e.status_code, detail=f"Error from Brood API: {e.detail}"
-        )
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
     return token
+
+
+@app.get("/tokens", tags=["tokens"], response_model=BugoutUserTokens)
+async def tokens_handler(request: Request) -> BugoutUserTokens:
+    token = request.state.token
+    try:
+        response = bc.get_user_tokens(
+            token, timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS, active=True
+        )
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+    return response
+
+
+@app.put("/token", tags=["tokens"], response_model=BugoutToken)
+async def token_update_handler(
+    request: Request, token_note: str = Form(...), access_token: str = Form(...)
+) -> BugoutToken:
+    try:
+        response = bc.update_token(token=access_token, token_note=token_note)
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+    return response
+
+
+@app.post("/revoke/{access_token}", tags=["tokens"], response_model=uuid.UUID)
+async def delete_token_by_id_handler(
+    request: Request, access_token: uuid.UUID
+) -> uuid.UUID:
+    token = request.state.token
+    try:
+        response = bc.revoke_token(
+            token=token,
+            target_token=access_token,
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+        )
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+    return response
 
 
 @app.delete("/token", tags=["tokens"], response_model=uuid.UUID)

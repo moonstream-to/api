@@ -77,7 +77,7 @@ const StreamEntry_ = ({ entry, showOnboardingTooltips, className }) => {
               variant="solid"
               px={0}
               minW="24px"
-              colorScheme="secondary"
+              colorScheme="orange"
               icon={<ArrowRightIcon w="24px" />}
             />
           </Tooltip>

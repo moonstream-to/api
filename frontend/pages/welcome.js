@@ -82,7 +82,7 @@ const Welcome = () => {
         <StepProgress
           numSteps={ui.onboardingSteps.length}
           currentStep={ui.onboardingStep}
-          colorScheme="primary"
+          colorScheme="blue"
           buttonCallback={progressButtonCallback}
           buttonTitles={[
             "Moonstream basics",
@@ -278,7 +278,7 @@ const Welcome = () => {
                   onChange={setProfile}
                   value={profile}
                   // fontWeight="bold"
-                  colorScheme="secondary"
+                  colorScheme="orange"
                   // py={0}
                   // my={0}
                 >
@@ -361,7 +361,7 @@ const Welcome = () => {
               )}
               {!showSubscriptionForm && (
                 <Button
-                  colorScheme="suggested"
+                  colorScheme="green"
                   variant="solid"
                   onClick={() => setShowSubscriptionForm.on()}
                 >
@@ -437,7 +437,7 @@ const Welcome = () => {
                     <IconButton
                       mr={4}
                       // onClick={onOpen}
-                      colorScheme="primary"
+                      colorScheme="blue"
                       variant="ghost"
                       icon={<FaFilter />}
                     />
@@ -482,7 +482,7 @@ const Welcome = () => {
 
         <ButtonGroup>
           <Button
-            colorScheme="secondary"
+            colorScheme="orange"
             leftIcon={<ArrowLeftIcon />}
             variant="outline"
             hidden={ui.onboardingStep === 0}
@@ -498,8 +498,8 @@ const Welcome = () => {
           <Button
             colorScheme={
               ui.onboardingStep < ui.onboardingSteps.length - 1
-                ? `secondary`
-                : `suggested`
+                ? `orange`
+                : `green`
             }
             variant={
               ui.onboardingStep < ui.onboardingSteps.length - 1

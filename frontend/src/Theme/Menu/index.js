@@ -11,11 +11,11 @@ const Menu = {
         textColor: `${c}.900`,
 
         _hover: {
-          bg: `secondary.800`,
+          bg: `orange.800`,
           textColor: "white.100",
         },
         _focus: {
-          bg: `secondary.700`,
+          bg: `orange.700`,
           textColor: "white.100",
         },
       },

@@ -23,7 +23,7 @@ const ConfirmationRequest = (props) => {
             <PopoverFooter>
               <Button
                 onClick={onClose}
-                colorScheme="primary"
+                colorScheme="blue"
                 variant="outline"
                 size="sm"
               >
@@ -34,7 +34,7 @@ const ConfirmationRequest = (props) => {
                   props.onConfirm();
                   onClose();
                 }}
-                colorScheme="unsafe"
+                colorScheme="red"
                 variant="solid"
                 size="sm"
               >

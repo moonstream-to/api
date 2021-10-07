@@ -46,7 +46,7 @@ const SignUp = ({ toggleModal }) => {
             <InputGroup>
               <Input
                 variant="filled"
-                colorScheme="primary"
+                colorScheme="blue"
                 placeholder="Your username here"
                 name="username"
                 ref={register({ required: "Username is required!" })}
@@ -55,7 +55,7 @@ const SignUp = ({ toggleModal }) => {
                 <CustomIcon icon="name" />
               </InputRightElement>
             </InputGroup>
-            <FormErrorMessage color="unsafe.400" pl="1">
+            <FormErrorMessage color="red.400" pl="1">
               {errors.username && errors.username.message}
             </FormErrorMessage>
           </FormControl>
@@ -63,7 +63,7 @@ const SignUp = ({ toggleModal }) => {
             <InputGroup>
               <Input
                 variant="filled"
-                colorScheme="primary"
+                colorScheme="blue"
                 placeholder="Your email here"
                 name="email"
                 ref={register({ required: "Email is required!" })}
@@ -72,7 +72,7 @@ const SignUp = ({ toggleModal }) => {
                 <CustomIcon icon="name" />
               </InputRightElement>
             </InputGroup>
-            <FormErrorMessage color="unsafe.400" pl="1">
+            <FormErrorMessage color="red.400" pl="1">
               {errors.email && errors.email.message}
             </FormErrorMessage>
           </FormControl>
@@ -82,7 +82,7 @@ const SignUp = ({ toggleModal }) => {
               name="password"
               ref={register({ required: "Password is required!" })}
             />
-            <FormErrorMessage color="unsafe.400" pl="1">
+            <FormErrorMessage color="red.400" pl="1">
               {errors.password && errors.password.message}
             </FormErrorMessage>
           </FormControl>
@@ -90,7 +90,7 @@ const SignUp = ({ toggleModal }) => {
         <Button
           my={8}
           variant="solid"
-          colorScheme="primary"
+          colorScheme="blue"
           width="100%"
           type="submit"
           isLoading={isLoading}
@@ -103,7 +103,7 @@ const SignUp = ({ toggleModal }) => {
         Already have an account?{" "}
         <Box
           cursor="pointer"
-          color="primary.400"
+          color="blue.400"
           as="span"
           onClick={() => toggleModal("login")}
         >

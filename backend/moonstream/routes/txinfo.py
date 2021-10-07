@@ -28,7 +28,7 @@ tags_metadata = [
 ]
 
 app = FastAPI(
-    title=f"Moonstream users API.",
+    title=f"Moonstream /txinfo API.",
     description="User, token and password handlers.",
     version=MOONSTREAM_VERSION,
     openapi_tags=tags_metadata,

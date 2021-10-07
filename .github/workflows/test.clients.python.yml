@@ -1,0 +1,38 @@
+name: Linting and tests for the Moonstream Python client library
+
+on:
+  pull_request:
+    branches:
+      - "main"
+    paths:
+      - "clients/python/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.9"
+      - name: Install test requirements
+        working-directory: ./clients/python
+        run: pip install -e .[dev]
+      - name: Mypy type check
+        working-directory: ./clients/python
+        run: mypy moonstream/
+      - name: Black syntax check
+        working-directory: ./clients/python
+        run: black --check moonstream/
+      - name: Unit tests
+        working-directory: ./clients/python
+        run: python -m unittest discover -v
+      - name: Check that versions are synchronized
+        working-directory: ./clients/python
+        run: |
+          CLIENT_VERSION=$(python -c "from moonstream.client import CLIENT_VERSION; print(CLIENT_VERSION)")
+          SETUP_PY_VERSION=$(python setup.py --version)
+          echo "Client version: $CLIENT_VERSION"
+          echo "setup.py version: $SETUP_PY_VERSION"
+          test "$CLIENT_VERSION" = "$SETUP_PY_VERSION"

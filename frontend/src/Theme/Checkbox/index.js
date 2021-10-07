@@ -44,7 +44,7 @@ const baseStyleControl = (props) => {
     },
 
     _invalid: {
-      borderColor: mode("unsafe.500", "unsafe.300")(props),
+      borderColor: mode("red.500", "red.300")(props),
     },
   };
 };
@@ -55,7 +55,7 @@ const Checkbox = {
     control: baseStyleControl(props),
   }),
   defaultProps: {
-    colorScheme: "primary",
+    colorScheme: "blue",
   },
 };
 
