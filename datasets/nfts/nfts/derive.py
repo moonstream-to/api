@@ -148,9 +148,9 @@ def current_values_distribution(conn: sqlite3.Connection) -> None:
     current_values_distribution_query = """
         CREATE TABLE market_values_distribution AS
         select
-            nft_address as address,
+            current_market_values.nft_address as address,
             current_market_values.token_id as token_id,
-            CAST(current_market_values.market_value as REAL) / max_values.max_value as 
+            CAST(current_market_values.market_value as REAL) / max_values.max_value as relative_value
         from
             current_market_values
             inner join (
@@ -214,7 +214,7 @@ def transfer_statistics_by_address(conn: sqlite3.Connection) -> None:
         conn.commit()
     except Exception as e:
         conn.rollback()
-        logger.error("Could not create derived dataset: current_values_distribution")
+        logger.error("Could not create derived dataset: transfer_statistics_by_address")
         logger.error(e)
 
 
@@ -223,66 +223,78 @@ def qurtile_generating(conn: sqlite3.Connection):
     Create qurtile wich depends on setted on class defenition
     """
     ensure_custom_aggregate_functions(conn)
-    drop_calculate_qurtiles = (
+    drop_calculate_10_qurtiles = (
         "DROP TABLE IF EXISTS transfer_values_quartile_10_distribution_per_address;"
     )
-    calculate_qurtiles = """
+    calculate_10_qurtiles = """
     CREATE TABLE transfer_values_quartile_10_distribution_per_address AS
-    select qurtiled_sum.address as address,
-    SUM(qurtiled_sum.sum_of_qurtile) over (PARTITION BY qurtiled_sum.address order by qurtiled_sum.qurtiles ) as cululative_total,
-    qurtiled_sum.qurtiles as qurtiles
-    from  (
-        select
-            qurtiled.address,
-            count(qurtiled.relative_value)/count_value.count_value as sum_of_qurtile,
-            qurtiled.qurtiles as qurtiles
+    select
+            cumulate.address as address,
+            CAST(qurtile_10(cumulate.relative_value) as TEXT) as qurtiles,
+            cumulate.relative_value as relative_value
         from
-            (
-            select
-                cumulate.address as address,
-                quartile_10(cumulate.relative_value) as qurtiles,
-                cumulate.relative_value as relative_value
-            from
-                (
-                    select
-                        current_market_values.nft_address as address,
-                        COALESCE(
-                            CAST(current_market_values.market_value as REAL) / max_values.max_value,
-                            0
-                        ) as relative_value
-                    from
-                        current_market_values
-                        inner join (
-                            select
-                                current_market_values.nft_address,
-                                max(market_value) as max_value
-                            from
-                                current_market_values
-                            group by
-                                current_market_values.nft_address
-                        ) as max_values on current_market_values.nft_address = max_values.nft_address
-                ) as cumulate
-            ) as qurtiled
-            inner join (
+        (
                 select
-                    current_market_values.nft_address,
-                    count(market_value) as count_value
+                    current_market_values.nft_address as address,
+                    COALESCE(
+                        CAST(current_market_values.market_value as REAL) / max_values.max_value,
+                        0
+                    ) as relative_value
                 from
                     current_market_values
-                group by
-                    current_market_values.nft_address
-            ) as count_value on qurtiled.address = count_value.nft_address
-    ) as qurtiled_sum;
+                    inner join (
+                        select
+                            current_market_values.nft_address,
+                            max(market_value) as max_value
+                        from
+                            current_market_values
+                        group by
+                            current_market_values.nft_address
+                    ) as max_values on current_market_values.nft_address = max_values.nft_address
+        ) as cumulate
+    
+    """
+    drop_calculate_25_qurtiles = (
+        "DROP TABLE IF EXISTS transfer_values_quartile_10_distribution_per_address;"
+    )
+    calculate_25_qurtiles = """
+    CREATE TABLE transfer_values_quartile_10_distribution_per_address AS
+    select
+            cumulate.address as address,
+            CAST(qurtile_10(cumulate.relative_value) as TEXT) as qurtiles,
+            cumulate.relative_value as relative_value
+        from
+        (
+                select
+                    current_market_values.nft_address as address,
+                    COALESCE(
+                        CAST(current_market_values.market_value as REAL) / max_values.max_value,
+                        0
+                    ) as relative_value
+                from
+                    current_market_values
+                    inner join (
+                        select
+                            current_market_values.nft_address,
+                            max(market_value) as max_value
+                        from
+                            current_market_values
+                        group by
+                            current_market_values.nft_address
+                    ) as max_values on current_market_values.nft_address = max_values.nft_address
+        ) as cumulate
     
     """
     cur = conn.cursor()
     try:
-        cur.execute(drop_calculate_qurtiles)
-        cur.execute(calculate_qurtiles)
+        cur.execute(drop_calculate_10_qurtiles)
+        cur.execute(calculate_10_qurtiles)
+        cur.execute(drop_calculate_25_qurtiles)
+        cur.execute(calculate_25_qurtiles)
         conn.commit()
     except Exception as e:
         conn.rollback()
-        logger.error("Could not create derived dataset: current_values_distribution")
+        logger.error("Could not create derived dataset: qurtile_generating")
         logger.error(e)
 
 
@@ -293,10 +305,10 @@ def transfers_mints_connection_table(conn: sqlite3.Connection):
 
     drop_transfers_mints_connection = "DROP TABLE IF EXISTS transfers_mints;"
     transfers_mints_connection = """
-    CREATE transfers_mints as 
+    CREATE TABLE transfers_mints as 
     select
-        transfers.event_id,
-        mints.mint_id
+        transfers.event_id as transfer_id,
+        mints.mint_id as mint_id
     from
         transfers
         inner join (
@@ -351,7 +363,9 @@ def transfers_mints_connection_table(conn: sqlite3.Connection):
         conn.commit()
     except Exception as e:
         conn.rollback()
-        logger.error("Could not create derived dataset: current_values_distribution")
+        logger.error(
+            "Could not create derived dataset: transfers_mints_connection_table"
+        )
         logger.error(e)
 
 
@@ -360,27 +374,34 @@ def mint_holding_times(conn: sqlite3.Connection):
     drop_mints_holding_table = "DROP TABLE IF EXISTS mint_holding_times;"
     mints_holding_table = """
     CREATE TABLE mint_holding_times AS
-    SELECT days_after_minted.days as days, count(*) as num_holds from (
-        SELECT
-            mints.nft_address,
-            mints.token_id,
-            (
-            firsts_transfers.firts_transfer - mints.timestamp
-            ) / 86400 as days
-        from
-            mints
-            inner join (
-            select
-                nft_address,
-                token_id,
-                min(timestamp) as firts_transfer
+    SELECT
+        days_after_minted.days as days,
+        count(*) as num_holds
+    from
+        (
+            SELECT
+                mints.nft_address,
+                mints.token_id,
+                (
+                    firsts_transfers.firts_transfer - mints.timestamp
+                ) / 86400 as days
             from
-                transfers
-            group by
-                nft_address,
-                token_id
-            ) as firsts_transfers on firsts_transfers.nft_address = mints.nft_address
-            and firsts_transfers.token_id = mints.token_id ) as days_after_minted
+                mints
+                inner join (
+                    select
+                        transfers_mints.mint_id,
+                        transfers.nft_address,
+                        transfers.token_id,
+                        min(transfers.timestamp) as firts_transfer
+                    from
+                        transfers
+                    inner join transfers_mints on transfers_mints.transfer_id = transfers.event_id
+                    group by
+                        transfers.nft_address,
+                        transfers.token_id,
+                        transfers_mints.mint_id
+                ) as firsts_transfers on firsts_transfers.mint_id = mints.event_id
+        ) as days_after_minted
     group by days;
     """
     cur = conn.cursor()
@@ -390,7 +411,7 @@ def mint_holding_times(conn: sqlite3.Connection):
         conn.commit()
     except Exception as e:
         conn.rollback()
-        logger.error("Could not create derived dataset: current_values_distribution")
+        logger.error("Could not create derived dataset: mint_holding_times")
         logger.error(e)
 
 
@@ -433,5 +454,5 @@ def transfer_holding_times(conn: sqlite3.Connection):
         conn.commit()
     except Exception as e:
         conn.rollback()
-        logger.error("Could not create derived dataset: current_values_distribution")
+        logger.error("Could not create derived dataset: transfer_holding_times")
         logger.error(e)
