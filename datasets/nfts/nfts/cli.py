@@ -19,6 +19,7 @@ from .derive import (
     qurtile_generating,
     mint_holding_times,
     transfer_holding_times,
+    transfers_mints_connection_table,
 )
 from .materialize import create_dataset
 
@@ -33,6 +34,7 @@ derive_functions = {
     "current_values_distribution": current_values_distribution,
     "transfer_statistics_by_address": transfer_statistics_by_address,
     # "qurtile_generating": qurtile_generating,
+    "transfers_mints_connection_table": transfers_mints_connection_table,
     "mint_holding_times": mint_holding_times,
     "transfer_holding_times": transfer_holding_times,
 }
@@ -55,7 +57,7 @@ def handle_filter_data(args: argparse.Namespace) -> None:
 
     with contextlib.closing(sqlite3.connect(args.source)) as source_conn:
 
-        if args.target == args.source:
+        if args.target == args.source and args.source is not None:
             sqlite_path = f"{args.target}.dump"
         else:
             sqlite_path = args.target

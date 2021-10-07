@@ -286,6 +286,75 @@ def qurtile_generating(conn: sqlite3.Connection):
         logger.error(e)
 
 
+def transfers_mints_connection_table(conn: sqlite3.Connection):
+    """
+    Create cinnection transfers and mints
+    """
+
+    drop_transfers_mints_connection = "DROP TABLE IF EXISTS transfers_mints;"
+    transfers_mints_connection = """
+    CREATE transfers_mints as 
+    select
+        transfers.event_id,
+        mints.mint_id
+    from
+        transfers
+        inner join (
+            select
+                Max(posable_mints.mints_time) as mint_time,
+                posable_mints.transfer_id as transfer_id
+            from
+                (
+                    select
+                        mint_id,
+                        mints.timestamp as mints_time,
+                        transfers.token_id,
+                        transfers.timestamp,
+                        transfers.event_id as transfer_id
+                    from
+                        transfers
+                        inner join (
+                            select
+                                mints.event_id as mint_id,
+                                mints.nft_address,
+                                mints.token_id,
+                                mints.timestamp
+                            from
+                                mints
+                            group by
+                                mints.nft_address,
+                                mints.token_id,
+                                mints.timestamp
+                        ) as mints on transfers.nft_address = mints.nft_address
+                        and transfers.token_id = mints.token_id
+                        and mints.timestamp <= transfers.timestamp
+                ) as posable_mints
+            group by
+                posable_mints.transfer_id
+        ) as mint_time on mint_time.transfer_id = transfers.event_id
+        inner join (
+            select
+                mints.event_id as mint_id,
+                mints.nft_address,
+                mints.token_id,
+                mints.timestamp
+            from
+                mints
+        ) as mints on transfers.nft_address = mints.nft_address
+        and transfers.token_id = mints.token_id
+        and mints.timestamp = mint_time.mint_time;
+    """
+    cur = conn.cursor()
+    try:
+        cur.execute(drop_transfers_mints_connection)
+        cur.execute(transfers_mints_connection)
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        logger.error("Could not create derived dataset: current_values_distribution")
+        logger.error(e)
+
+
 def mint_holding_times(conn: sqlite3.Connection):
 
     drop_mints_holding_table = "DROP TABLE IF EXISTS mint_holding_times;"
