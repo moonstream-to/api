@@ -258,7 +258,7 @@ def quartile_generating(conn: sqlite3.Connection):
         "DROP TABLE IF EXISTS transfer_values_quartile_10_distribution_per_address;"
     )
     calculate_25_quartiles = """
-    CREATE TABLE transfer_values_quartile_10_distribution_per_address AS
+    CREATE TABLE transfer_values_quartile_25_distribution_per_address AS
     select
             cumulate.address as address,
             CAST(quartile_25(cumulate.relative_value) as TEXT) as quartiles,
