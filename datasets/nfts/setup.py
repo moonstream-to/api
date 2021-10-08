@@ -33,8 +33,10 @@ setup(
     install_requires=[
         "moonstreamdb",
         "humbug",
+        "numpy",
         "pandas",
         "requests",
+        "scipy",
         "tqdm",
         "web3",
     ],

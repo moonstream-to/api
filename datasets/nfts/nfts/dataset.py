@@ -2,9 +2,10 @@
 Functions to access various data in the NFTs dataset.
 """
 import sqlite3
-from typing import Dict
+from typing import Any, List, Tuple
 
 import pandas as pd
+import scipy.sparse
 
 from .datastore import event_tables, EventType
 
@@ -19,6 +20,7 @@ CURRENT_MARKET_VALUES = "current_market_values"
 TRANSFER_STATISTICS_BY_ADDRESS = "transfer_statistics_by_address"
 MINT_HOLDING_TIMES = "mint_holding_times"
 TRANSFER_HOLDING_TIMES = "transfer_holding_times"
+OWNERSHIP_TRANSITIONS = "ownership_transitions"
 
 AVAILABLE_DATAFRAMES = {
     NFTS: """Describes the NFT contracts represented in this dataset, with a name and symbol if they were available at time of crawl.
@@ -84,6 +86,21 @@ Columns:
 }
 
 
+AVAILABLE_MATRICES = {
+    OWNERSHIP_TRANSITIONS: f"""{OWNERSHIP_TRANSITIONS} is an adjacency matrix which counts the number of times that a token was transferred from a source address (indexed by the rows of the matrix) to a target address (indexed by the columns of the matrix).
+
+These counts only include data about mints and transfers made between April 1, 2021 and September 25, 2021. We also denote the current owners of an NFT as having transitioned
+the NFT from themselves back to themselves. This gives some estimate of an owner retaining the NFT in the given time period.
+
+Load this matrix as follows:
+>>> indexed_addresses, transitions = ds.load_ownership_transitions()
+
+- "indexed_addresses" is a list denoting the address that each index (row/column) in the matrix represents.
+- "transitions" is a numpy ndarray containing the matrix, with source addresses on the row axis and target addresses on the column axis.
+"""
+}
+
+
 def explain() -> None:
     """
     Explains the structure of the dataset.
@@ -101,8 +118,14 @@ This dataset consists of the following dataframes:"""
     for name, explanation in AVAILABLE_DATAFRAMES.items():
         print(f"\nDataframe: {name}")
         print(
-            f'Load using:\n\t{name}_df = ds.load_dataframe(<sqlite connection or path to sqlite db>, "{name}")'
+            f'Load using:\n>>> {name}_df = ds.load_dataframe(<sqlite connection or path to sqlite db>, "{name}")'
         )
+        print("")
+        print(explanation)
+        print("- - -")
+
+    for name, explanation in AVAILABLE_MATRICES:
+        print(f"\nMatrix: {name}")
         print("")
         print(explanation)
         print("- - -")
@@ -127,9 +150,32 @@ class FromSQLite:
         df = pd.read_sql_query(f"SELECT * FROM {name};", self.conn)
         return df
 
-    def load_all(self) -> Dict[str, pd.DataFrame]:
+    def load_ownership_transitions(self) -> Tuple[List[str], Any]:
         """
-        Load all the datasets and return them in a dictionary with the keys being the dataframe names.
+        Loads ownership transitions adjacency matrix from SQLite database.
+
+        To learn more about this matrix, run:
+        >>> nfts.dataset.explain()
         """
-        dfs = {f"{name}_df": self.load_dataframe(name) for name in AVAILABLE_DATAFRAMES}
-        return dfs
+        cur = self.conn.cursor()
+        address_indexes_query = """
+WITH all_addresses AS (
+    SELECT from_address AS address FROM ownership_transitions
+    UNION
+    SELECT to_address AS address FROM ownership_transitions
+)
+SELECT DISTINCT(all_addresses.address) AS address FROM all_addresses ORDER BY address ASC;
+"""
+        addresses = [row[0] for row in cur.execute(address_indexes_query)]
+        num_addresses = len(addresses)
+        address_indexes = {address: i for i, address in enumerate(addresses)}
+
+        adjacency_matrix = scipy.sparse.dok_matrix((num_addresses, num_addresses))
+        adjacency_query = "SELECT from_address, to_address, num_transitions FROM ownership_transitions;"
+
+        for from_address, to_address, num_transitions in cur.execute(adjacency_query):
+            from_index = address_indexes[from_address]
+            to_index = address_indexes[to_address]
+            adjacency_matrix[from_index, to_index] = num_transitions
+
+        return addresses, adjacency_matrix
