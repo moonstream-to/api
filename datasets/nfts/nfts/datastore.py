@@ -433,3 +433,32 @@ def import_data(
     if source_offset is not None:
         delete_checkpoints(target_conn, event_type, commit=False)
         insert_checkpoint(target_conn, event_type, source_offset)
+
+
+def filter_data(
+    sqlite_db: sqlite3.Connection,
+    start_time: Optional[int] = None,
+    end_time: Optional[int] = None,
+):
+    """
+    Run Deletes query depends on filters
+    """
+
+    cur = sqlite_db.cursor()
+    print(f"Remove by timestamp <= {start_time}")
+    if start_time:
+        cur.execute(f"DELETE from transfers where timestamp <= {start_time}")
+        print(f"Transfers filtered out: {cur.rowcount}")
+        sqlite_db.commit()
+        cur.execute(f"DELETE from mints where timestamp <= {start_time}")
+        print(f"Mints filtered out: {cur.rowcount}")
+        sqlite_db.commit()
+
+    print(f"Remove by timestamp >= {end_time}")
+    if end_time:
+        cur.execute(f"DELETE from transfers where timestamp >= {end_time}")
+        print(f"Transfers filtered out: {cur.rowcount}")
+        sqlite_db.commit()
+        cur.execute(f"DELETE from mints where timestamp >= {end_time}")
+        print(f"Mints filtered out: {cur.rowcount}")
+        sqlite_db.commit()
