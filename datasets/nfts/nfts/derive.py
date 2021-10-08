@@ -255,7 +255,7 @@ def quartile_generating(conn: sqlite3.Connection):
     
     """
     drop_calculate_25_quartiles = (
-        "DROP TABLE IF EXISTS transfer_values_quartile_10_distribution_per_address;"
+        "DROP TABLE IF EXISTS transfer_values_quartile_25_distribution_per_address;"
     )
     calculate_25_quartiles = """
     CREATE TABLE transfer_values_quartile_25_distribution_per_address AS
