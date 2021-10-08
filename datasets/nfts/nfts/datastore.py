@@ -445,20 +445,20 @@ def filter_data(
     """
 
     cur = sqlite_db.cursor()
-    print(f"Remove by timestamp <= {start_time}")
+    print(f"Remove by timestamp < {start_time}")
     if start_time:
-        cur.execute(f"DELETE from transfers where timestamp <= {start_time}")
+        cur.execute(f"DELETE from transfers where timestamp < {start_time}")
         print(f"Transfers filtered out: {cur.rowcount}")
         sqlite_db.commit()
-        cur.execute(f"DELETE from mints where timestamp <= {start_time}")
+        cur.execute(f"DELETE from mints where timestamp < {start_time}")
         print(f"Mints filtered out: {cur.rowcount}")
         sqlite_db.commit()
 
-    print(f"Remove by timestamp >= {end_time}")
+    print(f"Remove by timestamp > {end_time}")
     if end_time:
-        cur.execute(f"DELETE from transfers where timestamp >= {end_time}")
+        cur.execute(f"DELETE from transfers where timestamp > {end_time}")
         print(f"Transfers filtered out: {cur.rowcount}")
         sqlite_db.commit()
-        cur.execute(f"DELETE from mints where timestamp >= {end_time}")
+        cur.execute(f"DELETE from mints where timestamp > {end_time}")
         print(f"Mints filtered out: {cur.rowcount}")
         sqlite_db.commit()
