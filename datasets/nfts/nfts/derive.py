@@ -51,8 +51,8 @@ class LastNonzeroValue:
 class QuartileFunction:
     """ Split vlues to quartiles """
 
-    def __init__(self, num_qurtiles) -> None:
-        self.divider = 1 / num_qurtiles
+    def __init__(self, num_quartiles) -> None:
+        self.divider = 1 / num_quartiles
 
     def __call__(self, value):
         if value is None or value == "None":
@@ -63,9 +63,9 @@ class QuartileFunction:
                 quartile += self.divider
 
             if quartile > 1:
-                qurtile = 1
+                quartile = 1
 
-            return qurtile
+            return quartile
 
         except Exception as err:
             print(err)
@@ -218,19 +218,19 @@ def transfer_statistics_by_address(conn: sqlite3.Connection) -> None:
         logger.error(e)
 
 
-def qurtile_generating(conn: sqlite3.Connection):
+def quartile_generating(conn: sqlite3.Connection):
     """
-    Create qurtile wich depends on setted on class defenition
+    Create quartile wich depends on setted on class defenition
     """
     ensure_custom_aggregate_functions(conn)
-    drop_calculate_10_qurtiles = (
+    drop_calculate_10_quartiles = (
         "DROP TABLE IF EXISTS transfer_values_quartile_10_distribution_per_address;"
     )
-    calculate_10_qurtiles = """
+    calculate_10_quartiles = """
     CREATE TABLE transfer_values_quartile_10_distribution_per_address AS
     select
             cumulate.address as address,
-            CAST(quartile_10(cumulate.relative_value) as TEXT) as qurtiles,
+            CAST(quartile_10(cumulate.relative_value) as TEXT) as quartiles,
             cumulate.relative_value as relative_value
         from
         (
@@ -254,14 +254,14 @@ def qurtile_generating(conn: sqlite3.Connection):
         ) as cumulate
     
     """
-    drop_calculate_25_qurtiles = (
+    drop_calculate_25_quartiles = (
         "DROP TABLE IF EXISTS transfer_values_quartile_10_distribution_per_address;"
     )
-    calculate_25_qurtiles = """
+    calculate_25_quartiles = """
     CREATE TABLE transfer_values_quartile_10_distribution_per_address AS
     select
             cumulate.address as address,
-            CAST(quartile_25(cumulate.relative_value) as TEXT) as qurtiles,
+            CAST(quartile_25(cumulate.relative_value) as TEXT) as quartiles,
             cumulate.relative_value as relative_value
         from
         (
@@ -288,15 +288,15 @@ def qurtile_generating(conn: sqlite3.Connection):
     cur = conn.cursor()
     try:
         print("Creating transfer_values_quartile_10_distribution_per_address")
-        cur.execute(drop_calculate_10_qurtiles)
-        cur.execute(calculate_10_qurtiles)
+        cur.execute(drop_calculate_10_quartiles)
+        cur.execute(calculate_10_quartiles)
         print("Creating transfer_values_quartile_25_distribution_per_address")
-        cur.execute(drop_calculate_25_qurtiles)
-        cur.execute(calculate_25_qurtiles)
+        cur.execute(drop_calculate_25_quartiles)
+        cur.execute(calculate_25_quartiles)
         conn.commit()
     except Exception as e:
         conn.rollback()
-        logger.error("Could not create derived dataset: qurtile_generating")
+        logger.error("Could not create derived dataset: quartile_generating")
         logger.error(e)
 
 
