@@ -6,7 +6,6 @@ For example:
 - Current value of each token
 """
 import logging
-from typing import List, Tuple
 import sqlite3
 
 
@@ -107,6 +106,7 @@ def current_owners(conn: sqlite3.Connection) -> None:
         conn.rollback()
         logger.error("Could not create derived dataset: current_owners")
         logger.error(e)
+
 
 
 def current_market_values(conn: sqlite3.Connection) -> None:
@@ -455,4 +455,40 @@ def transfer_holding_times(conn: sqlite3.Connection):
     except Exception as e:
         conn.rollback()
         logger.error("Could not create derived dataset: transfer_holding_times")
+        logger.error(e)
+
+def ownership_transitions(conn: sqlite3.Connection) -> None:
+    """
+    Derives a table called ownership_transitions which counts the number of transitions in ownership
+    from address A to address B for each pair of addresses (A, B) for which there was at least
+    one transfer from A to B.
+
+    Requires the following tables:
+    - transfers
+    - current_owners
+    """
+    table_name = "ownership_transitions"
+    drop_ownership_transitions = f"DROP TABLE IF EXISTS {table_name};"
+    # TODO(zomglings): Adding transaction_value below causes integer overflow. Might be worth trying MEAN instead of SUM for value transferred.
+    create_ownership_transitions = f"""
+CREATE TABLE {table_name} AS
+WITH transitions(from_address, to_address, transition) AS (
+    SELECT current_owners.owner as from_address, current_owners.owner as to_address, 1 as transition FROM current_owners
+    UNION ALL
+    SELECT transfers.from_address as from_address, transfers.to_address as to_address, 1 as transition FROM transfers
+)
+SELECT
+    transitions.from_address,
+    transitions.to_address,
+    sum(transitions.transition) as num_transitions
+FROM transitions GROUP BY transitions.from_address, transitions.to_address;
+"""
+    cur = conn.cursor()
+    try:
+        cur.execute(drop_ownership_transitions)
+        cur.execute(create_ownership_transitions)
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        logger.error(f"Could not create derived dataset: {table_name}")
         logger.error(e)

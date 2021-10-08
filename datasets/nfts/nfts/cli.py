@@ -18,6 +18,7 @@ from .derive import (
     transfer_statistics_by_address,
     quantile_generating,
     mint_holding_times,
+    ownership_transitions,
     transfer_holding_times,
     transfers_mints_connection_table,
 )
@@ -32,11 +33,12 @@ derive_functions = {
     "current_owners": current_owners,
     "current_market_values": current_market_values,
     "current_values_distribution": current_values_distribution,
-    "transfer_statistics_by_address": transfer_statistics_by_address,
-    "quantile_generating": quantile_generating,
-    "transfers_mints_connection_table": transfers_mints_connection_table,
     "mint_holding_times": mint_holding_times,
+    "ownership_transitions": ownership_transitions,
+    "quantile_generating": quantile_generating,
     "transfer_holding_times": transfer_holding_times,
+    "transfers_mints_connection_table": transfers_mints_connection_table,
+    "transfer_statistics_by_address": transfer_statistics_by_address,
 }
 
 
