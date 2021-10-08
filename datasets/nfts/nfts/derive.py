@@ -108,7 +108,6 @@ def current_owners(conn: sqlite3.Connection) -> None:
         logger.error(e)
 
 
-
 def current_market_values(conn: sqlite3.Connection) -> None:
     """
     Requires a connection to a dataset in which the raw data (esp. transfers) has already been
@@ -456,6 +455,7 @@ def transfer_holding_times(conn: sqlite3.Connection):
         conn.rollback()
         logger.error("Could not create derived dataset: transfer_holding_times")
         logger.error(e)
+
 
 def ownership_transitions(conn: sqlite3.Connection) -> None:
     """
