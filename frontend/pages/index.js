@@ -64,9 +64,7 @@ const assets = {
   pendingTransactions: `${AWS_ASSETS_PATH}/Ethereum+pending+transactions.png`,
   priceInformation: `${AWS_ASSETS_PATH}/Price+information.png`,
   socialMediaPosts: `${AWS_ASSETS_PATH}/Social+media+posts.png`,
-  algorithmicFunds: `${AWS_ASSETS_PATH}/algorithmic+funds.png`,
   cryptoTraders: `${AWS_ASSETS_PATH}/crypto+traders.png`,
-  smartDevelopers: `${AWS_ASSETS_PATH}/smart+contract+developers.png`,
 };
 const Homepage = () => {
   const ui = useContext(UIContext);
@@ -273,8 +271,13 @@ const Homepage = () => {
                   >
                     We believe that the blockchain is for everyone. This
                     requires complete <b>transparency</b>. That’s why all our
-                    software is open source.
-                    <chakra.span display="inline-block" textColor="orange.900">
+                    software is{" "}
+                    <chakra.span
+                      display="inline-block"
+                      textColor="orange.900"
+                      as={Link}
+                      href="https://github.com/bugout-dev/moonstream"
+                    >
                       <i>open source</i>
                     </chakra.span>
                   </Text>
@@ -505,7 +508,7 @@ const Homepage = () => {
                   badge={`For smart contract developers`}
                   bullets={[
                     {
-                      text: `See how people use your smart contracts`,
+                      text: `Monitor blockchain data in real time`,
                       icon: IoTelescopeSharp,
                       color: "blue.50",
                       bgColor: "blue.900",
