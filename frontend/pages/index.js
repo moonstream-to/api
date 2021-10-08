@@ -11,7 +11,6 @@ import {
   Heading,
   Box,
   Image as ChakraImage,
-  Button,
   Center,
   chakra,
   Stack,
@@ -39,41 +38,12 @@ const SplitWithImage = dynamic(
     ssr: false,
   }
 );
-const ConnectedButtons = dynamic(
-  () => import("../src/components/ConnectedButtons"),
-  {
-    ssr: false,
-  }
-);
-
-const RiDashboardFill = dynamic(() =>
-  import("react-icons/ri").then((mod) => mod.RiDashboardFill)
-);
-const FaFileContract = dynamic(() =>
-  import("react-icons/fa").then((mod) => mod.FaFileContract)
-);
-const GiMeshBall = dynamic(() =>
-  import("react-icons/gi").then((mod) => mod.GiMeshBall)
-);
-
-const GiLogicGateXor = dynamic(() =>
-  import("react-icons/gi").then((mod) => mod.GiLogicGateXor)
-);
-
 const GiSuspicious = dynamic(() =>
   import("react-icons/gi").then((mod) => mod.GiSuspicious)
 );
 
 const GiHook = dynamic(() =>
   import("react-icons/gi").then((mod) => mod.GiHook)
-);
-
-const AiFillApi = dynamic(() =>
-  import("react-icons/ai").then((mod) => mod.AiFillApi)
-);
-
-const BiTransfer = dynamic(() =>
-  import("react-icons/bi").then((mod) => mod.BiTransfer)
 );
 
 const IoTelescopeSharp = dynamic(() =>
