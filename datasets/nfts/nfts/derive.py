@@ -252,7 +252,6 @@ def quantile_generating(conn: sqlite3.Connection):
                             current_market_values.nft_address
                     ) as max_values on current_market_values.nft_address = max_values.nft_address
         ) as cumulate
-
     """
     drop_calculate_25_quantiles = (
         "DROP TABLE IF EXISTS transfer_values_quantile_25_distribution_per_address;"
@@ -283,7 +282,6 @@ def quantile_generating(conn: sqlite3.Connection):
                             current_market_values.nft_address
                     ) as max_values on current_market_values.nft_address = max_values.nft_address
         ) as cumulate
-
     """
     cur = conn.cursor()
     try:
