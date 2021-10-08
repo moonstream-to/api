@@ -48,24 +48,24 @@ class LastNonzeroValue:
         return self.value
 
 
-class QuartileFunction:
-    """ Split vlues to quartiles """
+class QuantileFunction:
+    """Split vlues to quantiles"""
 
-    def __init__(self, num_quartiles) -> None:
-        self.divider = 1 / num_quartiles
+    def __init__(self, num_quantiles) -> None:
+        self.divider = 1 / num_quantiles
 
     def __call__(self, value):
         if value is None or value == "None":
             value = 0
-        quartile = self.divider
+        quantile = self.divider
         try:
-            while value > quartile:
-                quartile += self.divider
+            while value > quantile:
+                quantile += self.divider
 
-            if quartile > 1:
-                quartile = 1
+            if quantile > 1:
+                quantile = 1
 
-            return quartile
+            return quantile
 
         except Exception as err:
             print(err)
@@ -78,8 +78,8 @@ def ensure_custom_aggregate_functions(conn: sqlite3.Connection) -> None:
     """
     conn.create_aggregate("last_value", 1, LastValue)
     conn.create_aggregate("last_nonzero_value", 1, LastNonzeroValue)
-    conn.create_function("quartile_10", 1, QuartileFunction(10))
-    conn.create_function("quartile_25", 1, QuartileFunction(25))
+    conn.create_function("quantile_10", 1, QuantileFunction(10))
+    conn.create_function("quantile_25", 1, QuantileFunction(25))
 
 
 def current_owners(conn: sqlite3.Connection) -> None:
@@ -218,19 +218,19 @@ def transfer_statistics_by_address(conn: sqlite3.Connection) -> None:
         logger.error(e)
 
 
-def quartile_generating(conn: sqlite3.Connection):
+def quantile_generating(conn: sqlite3.Connection):
     """
-    Create quartile wich depends on setted on class defenition
+    Create quantile wich depends on setted on class defenition
     """
     ensure_custom_aggregate_functions(conn)
-    drop_calculate_10_quartiles = (
-        "DROP TABLE IF EXISTS transfer_values_quartile_10_distribution_per_address;"
+    drop_calculate_10_quantiles = (
+        "DROP TABLE IF EXISTS transfer_values_quantile_10_distribution_per_address;"
     )
-    calculate_10_quartiles = """
-    CREATE TABLE transfer_values_quartile_10_distribution_per_address AS
+    calculate_10_quantiles = """
+    CREATE TABLE transfer_values_quantile_10_distribution_per_address AS
     select
             cumulate.address as address,
-            CAST(quartile_10(cumulate.relative_value) as TEXT) as quartiles,
+            CAST(quantile_10(cumulate.relative_value) as TEXT) as quantiles,
             cumulate.relative_value as relative_value
         from
         (
@@ -252,16 +252,16 @@ def quartile_generating(conn: sqlite3.Connection):
                             current_market_values.nft_address
                     ) as max_values on current_market_values.nft_address = max_values.nft_address
         ) as cumulate
-    
+
     """
-    drop_calculate_25_quartiles = (
-        "DROP TABLE IF EXISTS transfer_values_quartile_25_distribution_per_address;"
+    drop_calculate_25_quantiles = (
+        "DROP TABLE IF EXISTS transfer_values_quantile_25_distribution_per_address;"
     )
-    calculate_25_quartiles = """
-    CREATE TABLE transfer_values_quartile_25_distribution_per_address AS
+    calculate_25_quantiles = """
+    CREATE TABLE transfer_values_quantile_25_distribution_per_address AS
     select
             cumulate.address as address,
-            CAST(quartile_25(cumulate.relative_value) as TEXT) as quartiles,
+            CAST(quantile_25(cumulate.relative_value) as TEXT) as quantiles,
             cumulate.relative_value as relative_value
         from
         (
@@ -283,20 +283,20 @@ def quartile_generating(conn: sqlite3.Connection):
                             current_market_values.nft_address
                     ) as max_values on current_market_values.nft_address = max_values.nft_address
         ) as cumulate
-    
+
     """
     cur = conn.cursor()
     try:
-        print("Creating transfer_values_quartile_10_distribution_per_address")
-        cur.execute(drop_calculate_10_quartiles)
-        cur.execute(calculate_10_quartiles)
-        print("Creating transfer_values_quartile_25_distribution_per_address")
-        cur.execute(drop_calculate_25_quartiles)
-        cur.execute(calculate_25_quartiles)
+        print("Creating transfer_values_quantile_10_distribution_per_address")
+        cur.execute(drop_calculate_10_quantiles)
+        cur.execute(calculate_10_quantiles)
+        print("Creating transfer_values_quantile_25_distribution_per_address")
+        cur.execute(drop_calculate_25_quantiles)
+        cur.execute(calculate_25_quantiles)
         conn.commit()
     except Exception as e:
         conn.rollback()
-        logger.error("Could not create derived dataset: quartile_generating")
+        logger.error("Could not create derived dataset: quantile_generating")
         logger.error(e)
 
 
@@ -307,7 +307,7 @@ def transfers_mints_connection_table(conn: sqlite3.Connection):
 
     drop_transfers_mints_connection = "DROP TABLE IF EXISTS transfers_mints;"
     transfers_mints_connection = """
-    CREATE TABLE transfers_mints as 
+    CREATE TABLE transfers_mints as
     select
         transfers.event_id as transfer_id,
         mints.mint_id as mint_id

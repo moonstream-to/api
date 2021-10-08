@@ -16,7 +16,7 @@ from .derive import (
     current_market_values,
     current_values_distribution,
     transfer_statistics_by_address,
-    quartile_generating,
+    quantile_generating,
     mint_holding_times,
     transfer_holding_times,
     transfers_mints_connection_table,
@@ -33,7 +33,7 @@ derive_functions = {
     "current_market_values": current_market_values,
     "current_values_distribution": current_values_distribution,
     "transfer_statistics_by_address": transfer_statistics_by_address,
-    "quartile_generating": quartile_generating,
+    "quantile_generating": quantile_generating,
     "transfers_mints_connection_table": transfers_mints_connection_table,
     "mint_holding_times": mint_holding_times,
     "transfer_holding_times": transfer_holding_times,
@@ -70,7 +70,9 @@ def handle_filter_data(args: argparse.Namespace) -> None:
     with contextlib.closing(sqlite3.connect(sqlite_path)) as source_conn:
         print("Start filtering")
         filter_data(
-            source_conn, start_time=args.start_time, end_time=args.end_time,
+            source_conn,
+            start_time=args.start_time,
+            end_time=args.end_time,
         )
         print("Filtering end.")
         for index, function_name in enumerate(derive_functions.keys()):
@@ -99,7 +101,11 @@ def handle_materialize(args: argparse.Namespace) -> None:
         sqlite3.connect(args.datastore)
     ) as moonstream_datastore:
         create_dataset(
-            moonstream_datastore, db_session, event_type, bounds, args.batch_size,
+            moonstream_datastore,
+            db_session,
+            event_type,
+            bounds,
+            args.batch_size,
         )
 
 
@@ -111,11 +117,17 @@ def handle_enrich(args: argparse.Namespace) -> None:
 
     with contextlib.closing(sqlite3.connect(args.datastore)) as moonstream_datastore:
         enrich(
-            moonstream_datastore, EventType.TRANSFER, batch_loader, args.batch_size,
+            moonstream_datastore,
+            EventType.TRANSFER,
+            batch_loader,
+            args.batch_size,
         )
 
         enrich(
-            moonstream_datastore, EventType.MINT, batch_loader, args.batch_size,
+            moonstream_datastore,
+            EventType.MINT,
+            batch_loader,
+            args.batch_size,
         )
 
 
@@ -222,7 +234,9 @@ def main() -> None:
         description="Import data from another source NFTs dataset datastore. This operation is performed per table, and replaces the existing table in the target datastore.",
     )
     parser_import_data.add_argument(
-        "--target", required=True, help="Datastore into which you want to import data",
+        "--target",
+        required=True,
+        help="Datastore into which you want to import data",
     )
     parser_import_data.add_argument(
         "--source", required=True, help="Datastore from which you want to import data"
@@ -245,19 +259,28 @@ def main() -> None:
     # Create dump of filtered data
 
     parser_filtered_copy = subcommands.add_parser(
-        "filter-data", description="Create copy of database with applied filters.",
+        "filter-data",
+        description="Create copy of database with applied filters.",
     )
     parser_filtered_copy.add_argument(
-        "--target", required=True, help="Datastore into which you want to import data",
+        "--target",
+        required=True,
+        help="Datastore into which you want to import data",
     )
     parser_filtered_copy.add_argument(
         "--source", required=True, help="Datastore from which you want to import data"
     )
     parser_filtered_copy.add_argument(
-        "--start-time", required=False, type=int, help="Start timestamp.",
+        "--start-time",
+        required=False,
+        type=int,
+        help="Start timestamp.",
     )
     parser_filtered_copy.add_argument(
-        "--end-time", required=False, type=int, help="End timestamp.",
+        "--end-time",
+        required=False,
+        type=int,
+        help="End timestamp.",
     )
 
     parser_filtered_copy.set_defaults(func=handle_filter_data)
