@@ -33,9 +33,10 @@ setup(
     install_requires=[
         "moonstreamdb",
         "humbug",
+        "pandas",
+        "requests",
         "tqdm",
         "web3",
-        "requests",
     ],
     extras_require={
         "dev": ["black", "mypy", "types-requests"],
