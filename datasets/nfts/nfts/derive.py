@@ -230,7 +230,7 @@ def qurtile_generating(conn: sqlite3.Connection):
     CREATE TABLE transfer_values_quartile_10_distribution_per_address AS
     select
             cumulate.address as address,
-            CAST(qurtile_10(cumulate.relative_value) as TEXT) as qurtiles,
+            CAST(quartile_10(cumulate.relative_value) as TEXT) as qurtiles,
             cumulate.relative_value as relative_value
         from
         (
@@ -261,7 +261,7 @@ def qurtile_generating(conn: sqlite3.Connection):
     CREATE TABLE transfer_values_quartile_10_distribution_per_address AS
     select
             cumulate.address as address,
-            CAST(qurtile_10(cumulate.relative_value) as TEXT) as qurtiles,
+            CAST(quartile_25(cumulate.relative_value) as TEXT) as qurtiles,
             cumulate.relative_value as relative_value
         from
         (
@@ -287,8 +287,10 @@ def qurtile_generating(conn: sqlite3.Connection):
     """
     cur = conn.cursor()
     try:
+        print("Creating transfer_values_quartile_10_distribution_per_address")
         cur.execute(drop_calculate_10_qurtiles)
         cur.execute(calculate_10_qurtiles)
+        print("Creating transfer_values_quartile_25_distribution_per_address")
         cur.execute(drop_calculate_25_qurtiles)
         cur.execute(calculate_25_qurtiles)
         conn.commit()

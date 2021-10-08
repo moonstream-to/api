@@ -33,7 +33,7 @@ derive_functions = {
     "current_market_values": current_market_values,
     "current_values_distribution": current_values_distribution,
     "transfer_statistics_by_address": transfer_statistics_by_address,
-    # "qurtile_generating": qurtile_generating,
+    "qurtile_generating": qurtile_generating,
     "transfers_mints_connection_table": transfers_mints_connection_table,
     "mint_holding_times": mint_holding_times,
     "transfer_holding_times": transfer_holding_times,
