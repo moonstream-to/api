@@ -65,6 +65,7 @@ const assets = {
   priceInformation: `${AWS_ASSETS_PATH}/Price+information.png`,
   socialMediaPosts: `${AWS_ASSETS_PATH}/Social+media+posts.png`,
   cryptoTraders: `${AWS_ASSETS_PATH}/crypto+traders.png`,
+  comicWhite: `${AWS_ASSETS_PATH}/moonstream-comic-white.png`,
 };
 const Homepage = () => {
   const ui = useContext(UIContext);
@@ -575,6 +576,17 @@ const Homepage = () => {
                       </Link>
                     </Text>
                   </Stack>
+                </Center>
+              </GridItem>
+              <GridItem
+                placeItems="center"
+                w="100%"
+                colSpan="12"
+                pt={["0", "0", "5.125rem", null, "5.125rem"]}
+                pb="120px"
+              >
+                <Center>
+                  <ChakraImage src={assets["comicWhite"]}></ChakraImage>
                 </Center>
               </GridItem>
             </Grid>
