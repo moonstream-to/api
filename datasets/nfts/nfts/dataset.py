@@ -2,10 +2,12 @@
 Functions to access various data in the NFTs dataset.
 """
 import sqlite3
-from typing import Any, List, Tuple
+from typing import List, Optional, Tuple
 
+import numpy as np
 import pandas as pd
 import scipy.sparse
+from tqdm import tqdm
 
 from .datastore import event_tables, EventType
 
@@ -124,7 +126,7 @@ This dataset consists of the following dataframes:"""
         print(explanation)
         print("- - -")
 
-    for name, explanation in AVAILABLE_MATRICES:
+    for name, explanation in AVAILABLE_MATRICES.items():
         print(f"\nMatrix: {name}")
         print("")
         print(explanation)
@@ -137,6 +139,12 @@ class FromSQLite:
         Initialize an NFTs dataset instance by connecting it to a SQLite database containing the data.
         """
         self.conn = sqlite3.connect(datafile)
+        self.ownership_transitions: Optional[
+            Tuple[List[str], scipy.sparse.spmatrix]
+        ] = None
+        self.ownership_transition_probabilities: Optional[
+            Tuple[List[str], scipy.sparse.spmatrix]
+        ] = None
 
     def load_dataframe(self, name: str) -> pd.DataFrame:
         """
@@ -150,13 +158,17 @@ class FromSQLite:
         df = pd.read_sql_query(f"SELECT * FROM {name};", self.conn)
         return df
 
-    def load_ownership_transitions(self) -> Tuple[List[str], Any]:
+    def load_ownership_transitions(
+        self, force: bool = False
+    ) -> Tuple[List[str], scipy.sparse.spmatrix]:
         """
         Loads ownership transitions adjacency matrix from SQLite database.
 
         To learn more about this matrix, run:
         >>> nfts.dataset.explain()
         """
+        if self.ownership_transitions is not None and not force:
+            return self.ownership_transitions
         cur = self.conn.cursor()
         address_indexes_query = """
 WITH all_addresses AS (
@@ -173,9 +185,44 @@ SELECT DISTINCT(all_addresses.address) AS address FROM all_addresses ORDER BY ad
         adjacency_matrix = scipy.sparse.dok_matrix((num_addresses, num_addresses))
         adjacency_query = "SELECT from_address, to_address, num_transitions FROM ownership_transitions;"
 
-        for from_address, to_address, num_transitions in cur.execute(adjacency_query):
+        rows = cur.execute(adjacency_query)
+        for from_address, to_address, num_transitions in tqdm(
+            rows, desc="Ownership transitions (adjacency matrix)"
+        ):
             from_index = address_indexes[from_address]
             to_index = address_indexes[to_address]
             adjacency_matrix[from_index, to_index] = num_transitions
 
-        return addresses, adjacency_matrix
+        self.ownership_transitions = (addresses, adjacency_matrix)
+        return self.ownership_transitions
+
+    def load_ownership_transition_probabilities(
+        self,
+        force: bool = False,
+    ) -> Tuple[List[str], scipy.sparse.spmatrix]:
+        """
+        Returns transition probabilities of ownership transitions, with each entry A_{i,j} denoting the
+        probability that the address represented by row i transferred and NFT to the address represented by row[j].
+        """
+        if self.ownership_transition_probabilities is not None and not force:
+            return self.ownership_transition_probabilities
+
+        addresses, adjacency_matrix = self.load_ownership_transitions(force)
+
+        # Sum of the entries in each row:
+        # https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.spmatrix.sum.html#scipy.sparse.spmatrix.sum
+        row_sums = adjacency_matrix.sum(axis=1)
+
+        # Convert adjacency matrix to matrix of transition probabilities.
+        # We cannot do this by simply dividing transition_probabilites /= row_sums because that tries
+        # to coerce the matrix into a dense numpy ndarray and requires terabytes of memory.
+        transition_probabilities = adjacency_matrix.copy()
+        for i, j in zip(*transition_probabilities.nonzero()):
+            transition_probabilities[i, j] = (
+                transition_probabilities[i, j] / row_sums[i]
+            )
+
+        # Now we identify and remove burn addresses from this data.
+
+        self.ownership_transition_probabilities = (addresses, transition_probabilities)
+        return self.ownership_transition_probabilities
