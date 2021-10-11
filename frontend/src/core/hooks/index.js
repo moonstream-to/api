@@ -14,6 +14,7 @@ export { default as useQuery } from "./useQuery";
 export { default as useResetPassword } from "./useResetPassword";
 export { default as useRouter } from "./useRouter";
 export { default as useSignUp } from "./useSignUp";
+export { default as useStatus } from "./useStatus";
 export { default as useStorage } from "./useStorage";
 export { default as useStream } from "./useStream";
 export { default as useStripe } from "./useStripe";
