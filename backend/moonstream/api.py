@@ -51,13 +51,6 @@ app = FastAPI(
     redoc_url=f"/{DOCS_TARGET_PATH}",
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 whitelist_paths: Dict[str, str] = {}
 whitelist_paths.update(
     {
@@ -75,6 +68,13 @@ whitelist_paths.update(
     }
 )
 app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/ping", response_model=data.PingResponse)
