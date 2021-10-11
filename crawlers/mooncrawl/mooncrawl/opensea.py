@@ -35,14 +35,13 @@ def make_request(headers: Dict[str, Any], data: Dict[str, Any]):
 
         while True:
             try:
-                graphql_resp = session.get(
-                    "https://api.opensea.io/graphql/",
-                    headers=headers,
-                    json=data,
+                graphql_resp = session.post(
+                    "https://api.opensea.io/graphql/", json=data, headers=headers
                 )
                 graphql_resp.raise_for_status()
                 print(graphql_resp.headers)
             except Exception as err:
+                print(err)
                 print(f"Error on get request status {graphql_resp.status_code} ")
                 repeat += 1
                 time.sleep(10)
@@ -319,6 +318,10 @@ def crawl_opensea(args: argparse.Namespace):
     """
     Use one session for crawling TODO(Andrey) Add headers and maybe ssl randomization
     """
+
+    BASE_TOKEN_URL = "https://opensea.io"
+
+    page = session.get(BASE_TOKEN_URL, headers=headers)
 
     BASE_TOKEN_URL = "https://opensea.io/assets"
 
