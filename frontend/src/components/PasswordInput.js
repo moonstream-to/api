@@ -9,7 +9,7 @@ const PasswordInput = ({ placeholder, name }, ref) => {
     <InputGroup>
       <Input
         variant="filled"
-        colorScheme="primary"
+        colorScheme="blue"
         autoComplete="current-password"
         placeholder={placeholder}
         name={name}

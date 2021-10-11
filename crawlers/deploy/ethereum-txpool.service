@@ -1,0 +1,14 @@
+[Unit]
+Description=Ethereum txpool crawler
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/moonstream/crawlers/ethtxpool
+EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
+ExecStart=/home/ubuntu/moonstream/crawlers/ethtxpool/ethtxpool -geth "${MOONSTREAM_IPC_PATH}"
+SyslogIdentifier=ethereum-txpool
+
+[Install]
+WantedBy=multi-user.target

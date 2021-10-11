@@ -5,6 +5,7 @@ import argparse
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 import json
+import logging
 import os
 import sys
 import time
@@ -14,7 +15,6 @@ import dateutil.parser
 
 from .ethereum import (
     crawl_blocks_executor,
-    crawl_blocks,
     check_missing_blocks,
     get_latest_blocks,
     process_contract_deployments,
@@ -24,6 +24,9 @@ from .ethereum import (
 from .publish import publish_json
 from .settings import MOONSTREAM_CRAWL_WORKERS
 from .version import MOONCRAWL_VERSION
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class ProcessingOrder(Enum):
@@ -45,10 +48,10 @@ def yield_blocks_numbers_lists(
         input_start_block = int(blocks_start_end[0])
         input_end_block = int(blocks_start_end[1])
     except Exception:
-        print(
+        logger.error(
             "Wrong format provided, expected {bottom_block}-{top_block}, as ex. 105-340"
         )
-        return
+        raise Exception
 
     starting_block = max(input_start_block, input_end_block)
     ending_block = min(input_start_block, input_end_block)
@@ -88,31 +91,50 @@ def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
     """
     Synchronize latest Ethereum blocks with database.
     """
-    starting_block: int = args.start
     while True:
-        bottom_block_number, top_block_number = get_latest_blocks(args.confirmations)
-        if bottom_block_number is None:
-            raise ValueError("Variable bottom_block_number can't be None")
-        bottom_block_number = max(bottom_block_number + 1, starting_block)
-        if bottom_block_number >= top_block_number:
-            print(
-                f"Synchronization is unnecessary for blocks {bottom_block_number}-{top_block_number - 1}"
+        latest_stored_block_number, latest_block_number = get_latest_blocks(
+            args.confirmations
+        )
+        if latest_stored_block_number is None:
+            latest_stored_block_number = 0
+
+        block_number_difference = latest_block_number - 1 - latest_stored_block_number
+
+        if args.start is None:
+            if block_number_difference < args.confirmations:
+                logger.info(
+                    f"Synchronization is unnecessary for blocks {latest_stored_block_number}-{latest_block_number - 1}"
+                )
+                time.sleep(5)
+                continue
+            else:
+                bottom_block_number = latest_block_number - args.confirmations
+        else:
+            bottom_block_number = max(latest_stored_block_number + 1, args.start)
+
+        if latest_stored_block_number >= latest_block_number:
+            logger.info(
+                f"Synchronization is unnecessary for blocks {latest_stored_block_number}-{latest_block_number - 1}"
             )
             time.sleep(5)
             continue
 
         for blocks_numbers_list in yield_blocks_numbers_lists(
-            f"{bottom_block_number}-{top_block_number}",
+            f"{bottom_block_number}-{latest_block_number}",
             order=args.order,
         ):
-            print(f"Adding blocks {blocks_numbers_list[-1]}-{blocks_numbers_list[0]}")
+            logger.info(
+                f"Adding blocks {blocks_numbers_list[-1]}-{blocks_numbers_list[0]}"
+            )
             # TODO(kompotkot): Set num_processes argument based on number of blocks to synchronize.
             crawl_blocks_executor(
                 block_numbers_list=blocks_numbers_list,
-                with_transactions=not args.notransactions,
+                with_transactions=True,
                 num_processes=args.jobs,
             )
-        print(f"Synchronized blocks from {bottom_block_number} to {top_block_number}")
+        logger.info(
+            f"Synchronized blocks from {latest_stored_block_number} to {latest_block_number}"
+        )
 
 
 def ethcrawler_blocks_add_handler(args: argparse.Namespace) -> None:
@@ -122,47 +144,48 @@ def ethcrawler_blocks_add_handler(args: argparse.Namespace) -> None:
     startTime = time.time()
 
     for blocks_numbers_list in yield_blocks_numbers_lists(args.blocks):
-        print(f"Adding blocks {blocks_numbers_list[-1]}-{blocks_numbers_list[0]}")
+        logger.info(f"Adding blocks {blocks_numbers_list[-1]}-{blocks_numbers_list[0]}")
         crawl_blocks_executor(
-            block_numbers_list=blocks_numbers_list,
-            with_transactions=not args.notransactions,
+            block_numbers_list=blocks_numbers_list, with_transactions=True
         )
 
-    print(f"Required {time.time() - startTime} with {MOONSTREAM_CRAWL_WORKERS} workers")
+    logger.info(
+        f"Required {time.time() - startTime} with {MOONSTREAM_CRAWL_WORKERS} workers"
+    )
 
 
 def ethcrawler_blocks_missing_handler(args: argparse.Namespace) -> None:
+    """
+    Check missing blocks and missing transactions in each block.
+    """
     startTime = time.time()
+
     missing_blocks_numbers_total = []
     for blocks_numbers_list in yield_blocks_numbers_lists(args.blocks):
-        print(
-            f"Check missing blocks from {blocks_numbers_list[0]} to {blocks_numbers_list[-1]}"
+        logger.info(
+            f"Checking missing blocks {blocks_numbers_list[-1]}-{blocks_numbers_list[0]} "
+            f"with comparing transactions: {not args.notransactions}"
         )
         missing_blocks_numbers = check_missing_blocks(
             blocks_numbers=blocks_numbers_list,
+            notransactions=args.notransactions,
         )
         if len(missing_blocks_numbers) > 0:
-            print(f"Found {len(missing_blocks_numbers)} missing blocks")
+            logger.info(f"Found {len(missing_blocks_numbers)} missing blocks")
         missing_blocks_numbers_total.extend(missing_blocks_numbers)
-    print(f"Found {len(missing_blocks_numbers_total)} missing blocks total")
-
-    time.sleep(5)
+    logger.info(
+        f"Found {len(missing_blocks_numbers_total)} missing blocks total: "
+        f"{missing_blocks_numbers_total if len(missing_blocks_numbers_total) <= 10 else '...'}"
+    )
 
     if (len(missing_blocks_numbers_total)) > 0:
-        if args.lazy:
-            print("Executed lazy block crawler")
-            crawl_blocks(
-                missing_blocks_numbers_total,
-                with_transactions=not args.notransactions,
-                verbose=args.verbose,
-            )
-        else:
-            crawl_blocks_executor(
-                missing_blocks_numbers_total,
-                with_transactions=not args.notransactions,
-                verbose=args.verbose,
-            )
-    print(
+        time.sleep(5)
+        crawl_blocks_executor(
+            missing_blocks_numbers_total,
+            with_transactions=True,
+            num_processes=1 if args.lazy else MOONSTREAM_CRAWL_WORKERS,
+        )
+    logger.info(
         f"Required {time.time() - startTime} with {MOONSTREAM_CRAWL_WORKERS} workers "
         f"for {len(missing_blocks_numbers_total)} missing blocks"
     )
@@ -234,17 +257,10 @@ def main() -> None:
         "synchronize", description="Synchronize to latest ethereum block commands"
     )
     parser_ethcrawler_blocks_sync.add_argument(
-        "-n",
-        "--notransactions",
-        action="store_true",
-        help="Skip crawling block transactions",
-    )
-    parser_ethcrawler_blocks_sync.add_argument(
         "-s",
         "--start",
         type=int,
-        default=0,
-        help="(Optional) Block to start synchronization from. Default: 0",
+        help="(Optional) Block to start synchronization from. Default: None - current Ethereum block minus confirmations ",
     )
     parser_ethcrawler_blocks_sync.add_argument(
         "-c",
@@ -256,8 +272,8 @@ def main() -> None:
     parser_ethcrawler_blocks_sync.add_argument(
         "--order",
         type=processing_order,
-        default=ProcessingOrder.DESCENDING,
-        help="Order in which to process blocks (choices: desc, asc; default: desc)",
+        default=ProcessingOrder.ASCENDING,
+        help="Order in which to process blocks (choices: desc, asc; default: asc)",
     )
     parser_ethcrawler_blocks_sync.add_argument(
         "-j",
@@ -280,16 +296,10 @@ def main() -> None:
         required=True,
         help="List of blocks range in format {bottom_block}-{top_block}",
     )
-    parser_ethcrawler_blocks_add.add_argument(
-        "-n",
-        "--notransactions",
-        action="store_true",
-        help="Skip crawling block transactions",
-    )
     parser_ethcrawler_blocks_add.set_defaults(func=ethcrawler_blocks_add_handler)
 
     parser_ethcrawler_blocks_missing = subcommands_ethcrawler_blocks.add_parser(
-        "missing", description="Add missing ethereum blocks commands"
+        "missing", description="Add missing ethereum blocks with transactions commands"
     )
     parser_ethcrawler_blocks_missing.add_argument(
         "-b",
@@ -308,12 +318,6 @@ def main() -> None:
         "--lazy",
         action="store_true",
         help="Lazy block adding one by one",
-    )
-    parser_ethcrawler_blocks_missing.add_argument(
-        "-v",
-        "--verbose",
-        action="store_true",
-        help="Print additional information",
     )
     parser_ethcrawler_blocks_missing.set_defaults(
         func=ethcrawler_blocks_missing_handler

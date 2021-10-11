@@ -16,7 +16,7 @@ const Tags = ({ tags }) => {
         {displayTags?.map((tag, index) => (
           <Tag
             variant="subtle"
-            colorScheme="primary"
+            colorScheme="blue"
             key={`${tag}-${index}`}
             zIndex={1}
           >

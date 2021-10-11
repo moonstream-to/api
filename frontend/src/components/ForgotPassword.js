@@ -36,7 +36,7 @@ const ForgotPassword = ({ toggleModal }) => {
         <FormControl isInvalid={errors.email} my={4}>
           <InputGroup>
             <Input
-              colorScheme="primary"
+              colorScheme="blue"
               variant="filled"
               placeholder="Your email here"
               name="email"
@@ -46,14 +46,14 @@ const ForgotPassword = ({ toggleModal }) => {
               <CustomIcon icon="name" />
             </InputRightElement>
           </InputGroup>
-          <FormErrorMessage color="unsafe.400" pl="1">
+          <FormErrorMessage color="red.400" pl="1">
             {errors.email && errors.email.message}
           </FormErrorMessage>
         </FormControl>
         <Button
           type="submit"
           variant="solid"
-          colorScheme="primary"
+          colorScheme="blue"
           width="100%"
           isLoading={isLoading}
         >

@@ -2,18 +2,19 @@
 The Moonstream subscriptions HTTP API
 """
 import logging
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from bugout.data import BugoutResource
-from fastapi import FastAPI, HTTPException, Request, Query, Depends
+from fastapi import FastAPI, Request, Query, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from moonstreamdb import db
 from sqlalchemy.orm import Session
 
 
 from .. import data
-from ..middleware import BroodAuthMiddleware
+from ..middleware import BroodAuthMiddleware, MoonstreamHTTPException
 from ..providers import (
+    ReceivingEventsException,
     event_providers,
     get_events,
     latest_events,
@@ -57,8 +58,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-whitelist_paths: Dict[str, str] = {}
+whitelist_paths: Dict[str, str] = {"/streams/info": "GET"}
 whitelist_paths.update(DOCS_PATHS)
+whitelist_paths.update()
 app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
 
 
@@ -85,6 +87,19 @@ def get_user_subscriptions(token: str) -> Dict[str, List[BugoutResource]]:
         user_subscriptions[subscription_type].append(subscription)
 
     return user_subscriptions
+
+
+@app.get("/info", tags=["streams"])
+async def info_handler() -> Dict[str, Any]:
+    info = {
+        event_type: {
+            "description": provider.description,
+            "default_time_interval_seconds": provider.default_time_interval_seconds,
+            "estimated_events_per_time_interval": provider.estimated_events_per_time_interval,
+        }
+        for event_type, provider in event_providers.items()
+    }
+    return info
 
 
 @app.get("/", tags=["streams"], response_model=data.GetEventsResponse)
@@ -121,17 +136,25 @@ async def stream_handler(
     if q.strip() != "":
         query = stream_queries.parse_query_string(q)
 
-    _, events = get_events(
-        db_session,
-        bc,
-        MOONSTREAM_DATA_JOURNAL_ID,
-        MOONSTREAM_ADMIN_ACCESS_TOKEN,
-        stream_boundary,
-        query,
-        user_subscriptions,
-        result_timeout=10.0,
-        raise_on_error=True,
-    )
+    try:
+        _, events = get_events(
+            db_session,
+            bc,
+            MOONSTREAM_DATA_JOURNAL_ID,
+            MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            stream_boundary,
+            query,
+            user_subscriptions,
+            result_timeout=10.0,
+            raise_on_error=True,
+        )
+    except ReceivingEventsException as e:
+        logger.error("Error receiving events from provider")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+    except Exception as e:
+        logger.error("Unable to get events")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
     response = data.GetEventsResponse(stream_boundary=stream_boundary, events=events)
     return response
 
@@ -155,18 +178,26 @@ async def latest_events_handler(
     if q.strip() != "":
         query = stream_queries.parse_query_string(q)
 
-    events = latest_events(
-        db_session,
-        bc,
-        MOONSTREAM_DATA_JOURNAL_ID,
-        MOONSTREAM_ADMIN_ACCESS_TOKEN,
-        query,
-        1,
-        user_subscriptions,
-        result_timeout=6.0,
-        raise_on_error=True,
-        sort_events=True,
-    )
+    try:
+        events = latest_events(
+            db_session,
+            bc,
+            MOONSTREAM_DATA_JOURNAL_ID,
+            MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            query,
+            1,
+            user_subscriptions,
+            result_timeout=6.0,
+            raise_on_error=True,
+            sort_events=True,
+        )
+    except ReceivingEventsException as e:
+        logger.error("Error receiving events from provider")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+    except Exception as e:
+        logger.error("Unable to get latest events")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
     return events
 
 
@@ -203,17 +234,24 @@ async def next_event_handler(
     if q.strip() != "":
         query = stream_queries.parse_query_string(q)
 
-    event = next_event(
-        db_session,
-        bc,
-        MOONSTREAM_DATA_JOURNAL_ID,
-        MOONSTREAM_ADMIN_ACCESS_TOKEN,
-        stream_boundary,
-        query,
-        user_subscriptions,
-        result_timeout=6.0,
-        raise_on_error=True,
-    )
+    try:
+        event = next_event(
+            db_session,
+            bc,
+            MOONSTREAM_DATA_JOURNAL_ID,
+            MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            stream_boundary,
+            query,
+            user_subscriptions,
+            result_timeout=6.0,
+            raise_on_error=True,
+        )
+    except ReceivingEventsException as e:
+        logger.error("Error receiving events from provider")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+    except Exception as e:
+        logger.error("Unable to get next events")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     return event
 
@@ -251,16 +289,23 @@ async def previous_event_handler(
     if q.strip() != "":
         query = stream_queries.parse_query_string(q)
 
-    event = previous_event(
-        db_session,
-        bc,
-        MOONSTREAM_DATA_JOURNAL_ID,
-        MOONSTREAM_ADMIN_ACCESS_TOKEN,
-        stream_boundary,
-        query,
-        user_subscriptions,
-        result_timeout=6.0,
-        raise_on_error=True,
-    )
+    try:
+        event = previous_event(
+            db_session,
+            bc,
+            MOONSTREAM_DATA_JOURNAL_ID,
+            MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            stream_boundary,
+            query,
+            user_subscriptions,
+            result_timeout=6.0,
+            raise_on_error=True,
+        )
+    except ReceivingEventsException as e:
+        logger.error("Error receiving events from provider")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+    except Exception as e:
+        logger.error("Unable to get previous events")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     return event

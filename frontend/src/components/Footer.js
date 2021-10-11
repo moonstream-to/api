@@ -6,7 +6,7 @@ import RouterLink from "next/link";
 const ICONS = [
   {
     social: "discord",
-    link: "https://discord.gg/FetK5BxD",
+    link: "https://discord.gg/K56VNUQGvA",
   },
 
   { social: "twit", link: "https://twitter.com/moonstreamto" },
@@ -110,9 +110,9 @@ const Footer = () => (
             mx={2}
             mb={2}
             borderRadius="13px"
-            bg="primary.800"
+            bg="blue.800"
             boxSize={["3rem", "4rem", "6rem", null, "6rem"]}
-            _hover={{ bg: "primary.600" }}
+            _hover={{ bg: "blue.600" }}
             alignItems="center"
             justifyContent="center"
             href={icon.link}
@@ -123,7 +123,7 @@ const Footer = () => (
           </Link>
         ))}
       </Flex>
-      <Text pt={24} alignSelf="flex-end" textColor="primary.500">
+      <Text pt={24} alignSelf="flex-end" textColor="blue.500">
         All rights reserved.2021
       </Text>
     </Flex>

@@ -23,6 +23,7 @@ import {
   AccordionButton,
   AccordionPanel,
   AccordionIcon,
+  Divider,
 } from "@chakra-ui/react";
 import StepProgress from "../src/components/StepProgress";
 import { ArrowLeftIcon, ArrowRightIcon } from "@chakra-ui/icons";
@@ -70,7 +71,7 @@ const Welcome = () => {
       ui.setOnboardingStep(ui.onboardingStep + 1);
       scrollRef?.current?.scrollIntoView();
     } else {
-      ui.setisOnboardingComplete(true);
+      ui.setOnboardingComplete(true);
       router.push("/stream");
     }
   };
@@ -81,7 +82,7 @@ const Welcome = () => {
         <StepProgress
           numSteps={ui.onboardingSteps.length}
           currentStep={ui.onboardingStep}
-          colorScheme="primary"
+          colorScheme="blue"
           buttonCallback={progressButtonCallback}
           buttonTitles={[
             "Moonstream basics",
@@ -95,7 +96,7 @@ const Welcome = () => {
           <Fade in>
             <Stack spacing={4}>
               <Stack
-                px={12}
+                px={[0, 12, null]}
                 // mt={24}
                 bgColor="gray.50"
                 borderRadius="xl"
@@ -119,7 +120,7 @@ const Welcome = () => {
                 </Text>
               </Stack>
               <Stack
-                px={12}
+                px={[0, 12, null]}
                 // mt={24}
                 bgColor="gray.50"
                 borderRadius="xl"
@@ -176,7 +177,7 @@ const Welcome = () => {
                 </Accordion>
               </Stack>
               <Stack
-                px={12}
+                px={[0, 12, null]}
                 // mt={24}
                 bgColor="gray.50"
                 borderRadius="xl"
@@ -277,7 +278,7 @@ const Welcome = () => {
                   onChange={setProfile}
                   value={profile}
                   // fontWeight="bold"
-                  colorScheme="secondary"
+                  colorScheme="orange"
                   // py={0}
                   // my={0}
                 >
@@ -298,7 +299,7 @@ const Welcome = () => {
           <Fade in>
             <Stack px="7%">
               <Stack
-                px={12}
+                px={[0, 12, null]}
                 // mt={24}
                 bgColor="gray.50"
                 borderRadius="xl"
@@ -345,18 +346,22 @@ const Welcome = () => {
                 )}
               <SubscriptionsList />
               {showSubscriptionForm && (
-                <>
-                  <Heading pt={12}>{`Let's add new subscription!`}</Heading>
+                <Flex direction="column" pt={6}>
+                  <Divider bgColor="gray.500" borderWidth="2px" />
+                  <Heading
+                    size="md"
+                    pt={2}
+                  >{`Let's add new subscription!`}</Heading>
 
                   <NewSubscription
                     isFreeOption={false}
                     onClose={SubscriptonCreatedCallback}
                   />
-                </>
+                </Flex>
               )}
               {!showSubscriptionForm && (
                 <Button
-                  colorScheme="suggested"
+                  colorScheme="green"
                   variant="solid"
                   onClick={() => setShowSubscriptionForm.on()}
                 >
@@ -370,7 +375,7 @@ const Welcome = () => {
           <Fade in>
             <Stack>
               <Stack
-                px={12}
+                px={[0, 12, null]}
                 // mt={24}
                 bgColor="gray.50"
                 borderRadius="xl"
@@ -432,7 +437,7 @@ const Welcome = () => {
                     <IconButton
                       mr={4}
                       // onClick={onOpen}
-                      colorScheme="primary"
+                      colorScheme="blue"
                       variant="ghost"
                       icon={<FaFilter />}
                     />
@@ -477,7 +482,7 @@ const Welcome = () => {
 
         <ButtonGroup>
           <Button
-            colorScheme="secondary"
+            colorScheme="orange"
             leftIcon={<ArrowLeftIcon />}
             variant="outline"
             hidden={ui.onboardingStep === 0}
@@ -493,8 +498,8 @@ const Welcome = () => {
           <Button
             colorScheme={
               ui.onboardingStep < ui.onboardingSteps.length - 1
-                ? `secondary`
-                : `suggested`
+                ? `orange`
+                : `green`
             }
             variant={
               ui.onboardingStep < ui.onboardingSteps.length - 1

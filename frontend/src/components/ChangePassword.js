@@ -71,7 +71,7 @@ const ChangePassword = () => {
                   <CustomIcon icon="password" />
                 </InputRightElement>
               </InputGroup>
-              <FormErrorMessage color="unsafe.400" pl="1">
+              <FormErrorMessage color="red.400" pl="1">
                 {errors.newPassword && errors.newPassword.message}
               </FormErrorMessage>
             </FormControl>
@@ -90,7 +90,7 @@ const ChangePassword = () => {
                   <CustomIcon icon="password" />
                 </InputRightElement>
               </InputGroup>
-              <FormErrorMessage color="unsafe.400" pl="1">
+              <FormErrorMessage color="red.400" pl="1">
                 {errors.newPassword && errors.newPassword.message}
               </FormErrorMessage>
             </FormControl>
@@ -109,7 +109,7 @@ const ChangePassword = () => {
                   <CustomIcon icon="password" />
                 </InputRightElement>
               </InputGroup>
-              <FormErrorMessage color="unsafe.400" pl="1">
+              <FormErrorMessage color="red.400" pl="1">
                 {errors.confirmPassword && errors.confirmPassword.message}
               </FormErrorMessage>
             </FormControl>
@@ -119,7 +119,7 @@ const ChangePassword = () => {
             <Button
               my={8}
               variant="solid"
-              colorScheme="primary"
+              colorScheme="blue"
               type="submit"
               isLoading={isLoading}
             >

@@ -13,6 +13,7 @@ import {
   InputGroup,
   Button,
   Input,
+  Link,
   InputRightElement,
 } from "@chakra-ui/react";
 import CustomIcon from "./CustomIcon";
@@ -48,7 +49,7 @@ const SignIn = ({ toggleModal }) => {
                 _placeholder={{ textColor: "gray.1200" }}
                 autoComplete="username"
                 variant="filled"
-                colorScheme="primary"
+                colorScheme="blue"
                 placeholder="Your Moonstream username"
                 name="username"
                 {...register("username", { required: true })}
@@ -58,7 +59,7 @@ const SignIn = ({ toggleModal }) => {
                 <CustomIcon icon="name" />
               </InputRightElement>
             </InputGroup>
-            <FormErrorMessage color="unsafe.400" pl="1">
+            <FormErrorMessage color="red.400" pl="1">
               {errors.username && errors.username.message}
             </FormErrorMessage>
           </FormControl>
@@ -68,7 +69,7 @@ const SignIn = ({ toggleModal }) => {
               name="password"
               ref={register({ required: "Password is required!" })}
             />
-            <FormErrorMessage color="unsafe.400" pl="1">
+            <FormErrorMessage color="red.400" pl="1">
               {errors.password && errors.password.message}
             </FormErrorMessage>
           </FormControl>
@@ -78,34 +79,38 @@ const SignIn = ({ toggleModal }) => {
           type="submit"
           width="100%"
           variant="solid"
-          colorScheme="primary"
+          colorScheme="blue"
           isLoading={isLoading}
         >
           Login
         </Button>
       </form>
-      <Box height="1px" width="100%" background="#eaebf8" mb="1.875rem" />
-      <Text textAlign="center" fontSize="md" color="gray.1200">
-        Don`t have an account?{" "}
-        <Box
-          cursor="pointer"
-          color="primary.800"
-          as="span"
-          onClick={() => toggleModal("register")}
-        >
-          Register
-        </Box>
-      </Text>
       <Text textAlign="center" fontSize="md" color="gray.1200">
         {" "}
         <Box
           cursor="pointer"
-          color="primary.800"
+          color="blue.800"
           as="span"
           onClick={() => toggleModal("forgot")}
         >
           Forgot your password?
         </Box>
+        <Box height="1px" width="100%" background="#eaebf8" mb="1.875rem" />
+      </Text>
+      <Text textAlign="center" fontSize="md" color="gray.1200">
+        {/* Don`t have an account?{" "} */}
+        We are in early access. If you would like to use Moonstream,{" "}
+        <Link href={"https://discord.gg/V3tWaP36"} color="orange.900">
+          contact us on Discord.
+        </Link>
+        {/* <Box
+          cursor="pointer"
+          color="blue.800"
+          as="span"
+          onClick={() => toggleModal("register")}
+        >
+          Register
+        </Box> */}
       </Text>
     </Modal>
   );

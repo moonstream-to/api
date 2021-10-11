@@ -1,16 +1,17 @@
 import { useState } from "react";
-
 import { StreamService } from "../services";
 import { useQuery } from "react-query";
 import { queryCacheProps } from "./hookCommon";
 import { defaultStreamBoundary } from "../services/servertime.service.js";
-
-const useStream = (q) => {
+import { PAGE_SIZE } from "../constants";
+const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
   const [streamQuery, setStreamQuery] = useState(q || "");
   const [events, setEvents] = useState([]);
   const [streamBoundary, setStreamBoundary] = useState({});
   const [olderEvent, setOlderEvent] = useState(null);
   const [newerEvent, setNewerEvent] = useState(null);
+
+  const twentyFourHoursInMs = 1000 * 60 * 60 * 24;
 
   const isStreamBoundaryEmpty = () => {
     return !streamBoundary.start_time && !streamBoundary.end_time;
@@ -30,15 +31,6 @@ const useStream = (q) => {
     }
 
     let newBoundary = { ...streamBoundary };
-    // We do not check if there is no overlap between the streamBoundary and the pageBoundary - we assume
-    // that there *is* an overlap and even if there isn't the stream should gracefully respect the
-    // pageBoundary because that was the most recent request the user made.
-    // TODO(zomglings): If there is no overlap in boundaries, replace streamBoundary with pageBoundary.
-    // No overlap logic:
-    // if (<no overlap>) {
-    //   setStreamBoundary(pageBoundary)
-    //   return pageBoundary
-    // }
     if (!ignoreStart) {
       if (
         !newBoundary.start_time ||
@@ -84,13 +76,17 @@ const useStream = (q) => {
     return response.data;
   };
 
+  //////////////////////////////////////////////////
+  /// Just load event by current event boundary ///
+  ////////////////////////////////////////////////
+
   const {
     isLoading: eventsIsLoading,
     refetch: eventsRefetch,
     isFetching: eventsIsFetching,
     remove: eventsRemove,
   } = useQuery(
-    ["stream-events", streamQuery],
+    "stream-default",
     () => {
       if (isStreamBoundaryEmpty()) {
         return null;
@@ -102,16 +98,29 @@ const useStream = (q) => {
       retry: 2,
       onSuccess: (newEvents) => {
         if (newEvents && newEvents.stream_boundary && newEvents.events) {
-          setEvents([...newEvents.events]);
+          if (cursor === null) {
+            setCursor(0);
+            setStreamCache([...newEvents.events]);
+            if (newEvents.events.length > PAGE_SIZE) {
+              setEvents(newEvents.events.slice(0, PAGE_SIZE));
+            } else {
+              setEvents(newEvents.events.slice(0, newEvents.events.length));
+            }
+          }
+
           updateStreamBoundaryWith(newEvents.stream_boundary, {});
         }
       },
     }
   );
 
+  ///////////////////////////
+  /// Load olders events ///
+  /////////////////////////
+
   const { refetch: loadOlderEvents, isFetching: loadOlderEventsIsFetching } =
     useQuery(
-      ["stream-events", streamQuery],
+      "stream-older-events",
       () => {
         if (olderEvent) {
           const newStreamBoundary = {
@@ -129,10 +138,17 @@ const useStream = (q) => {
       {
         ...queryCacheProps,
         enabled: false,
+        refetchOnWindowFocus: false,
+        refetchOnmount: false,
+        refetchOnReconnect: false,
+        staleTime: twentyFourHoursInMs,
         retry: 2,
         onSuccess: (newEvents) => {
           if (newEvents && newEvents.stream_boundary && newEvents.events) {
-            setEvents([...newEvents.events, ...events]);
+            let oldEventsList = streamCache;
+
+            setStreamCache([...oldEventsList, ...newEvents.events]);
+
             updateStreamBoundaryWith(newEvents.stream_boundary, {
               ignoreEnd: true,
             });
@@ -141,9 +157,13 @@ const useStream = (q) => {
       }
     );
 
+  ///////////////////////////
+  /// Load newest events ///
+  /////////////////////////
+
   const { refetch: loadNewerEvents, isFetching: loadNewerEventsIsFetching } =
     useQuery(
-      ["stream-events", streamQuery],
+      "stream-newest-events",
       () => {
         if (newerEvent) {
           const newStreamBoundary = {
@@ -155,16 +175,28 @@ const useStream = (q) => {
             end_time: newerEvent.event_timestamp + 5 * 60,
             include_end: true,
           };
+
           return getEvents(newStreamBoundary);
         }
       },
       {
         ...queryCacheProps,
         enabled: false,
+        refetchOnWindowFocus: false,
+        refetchOnmount: false,
+        refetchOnReconnect: false,
         retry: 2,
+        staleTime: twentyFourHoursInMs,
         onSuccess: (newEvents) => {
           if (newEvents && newEvents.stream_boundary && newEvents.events) {
-            setEvents([...events, ...newEvents.events]);
+            let oldEventsList = streamCache;
+
+            setStreamCache([...newEvents.events, ...oldEventsList]);
+
+            if (oldEventsList.length > 0) {
+              setCursor(cursor + newEvents.events.length);
+            }
+
             updateStreamBoundaryWith(newEvents.stream_boundary, {
               ignoreStart: true,
             });
@@ -178,6 +210,10 @@ const useStream = (q) => {
     return response.data;
   };
 
+  /////////////////////
+  /// latest event ///
+  ///////////////////
+
   const {
     data: latestEvents,
     isLoading: latestEventsIsLoading,
@@ -185,7 +221,7 @@ const useStream = (q) => {
     isFetching: latestEventsIsFetching,
     remove: latestEventsRemove,
   } = useQuery(
-    ["stream-latest", streamQuery],
+    "stream-latest",
     () => {
       if (isStreamBoundaryEmpty()) {
         return null;
@@ -204,9 +240,17 @@ const useStream = (q) => {
       q: streamQuery,
       ...streamBoundary,
     });
-    setNewerEvent({ ...response.data });
+    if (response.data) {
+      setNewerEvent({ ...response.data });
+    } else {
+      setNewerEvent(null);
+    }
     return response.data;
   };
+
+  ///////////////////////
+  /// get next event ///
+  /////////////////////
 
   const {
     data: nextEvent,
@@ -215,7 +259,7 @@ const useStream = (q) => {
     isFetching: nextEventIsFetching,
     remove: nextEventRemove,
   } = useQuery(
-    ["stream-next", streamQuery],
+    "stream-next",
     () => {
       if (isStreamBoundaryEmpty()) {
         return null;
@@ -238,6 +282,10 @@ const useStream = (q) => {
     return response.data;
   };
 
+  ///////////////////////////
+  /// get previous event ///
+  /////////////////////////
+
   const {
     data: previousEvent,
     isLoading: previousEventIsLoading,
@@ -245,7 +293,7 @@ const useStream = (q) => {
     isFetching: previousEventIsFetching,
     remove: previousEventRemove,
   } = useQuery(
-    ["stream-previous", streamQuery],
+    "stream-previous",
     () => {
       if (isStreamBoundaryEmpty()) {
         return null;
@@ -259,6 +307,34 @@ const useStream = (q) => {
     }
   );
 
+  /// handle previous events
+  const loadPreviousEventHandler = () => {
+    if (streamCache.length > cursor + PAGE_SIZE) {
+      setCursor(cursor + PAGE_SIZE);
+    } else if (streamCache.length == cursor + PAGE_SIZE) {
+      setCursor(cursor + PAGE_SIZE);
+      loadOlderEvents();
+      previousEventRefetch();
+    } else {
+      loadOlderEvents();
+      previousEventRefetch();
+    }
+  };
+
+  /// handle newest events
+  const loadNewesEventHandler = () => {
+    if (0 < cursor - PAGE_SIZE) {
+      setCursor(cursor - PAGE_SIZE);
+    } else if (0 == cursor - PAGE_SIZE) {
+      setCursor(cursor - PAGE_SIZE);
+      loadNewerEvents();
+      nextEventRefetch();
+    } else {
+      loadNewerEvents();
+      nextEventRefetch();
+    }
+  };
+
   return {
     streamBoundary,
     setDefaultBoundary,
@@ -268,6 +344,7 @@ const useStream = (q) => {
     eventsRefetch,
     eventsIsFetching,
     eventsRemove,
+    setEvents,
     setStreamQuery,
     latestEvents,
     latestEventsIsLoading,
@@ -288,6 +365,8 @@ const useStream = (q) => {
     loadOlderEventsIsFetching,
     loadNewerEvents,
     loadNewerEventsIsFetching,
+    loadPreviousEventHandler,
+    loadNewesEventHandler,
   };
 };
 export default useStream;

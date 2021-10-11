@@ -82,7 +82,7 @@ const Input = {
   },
 
   defaultProps: {
-    colorScheme: "primary",
+    colorScheme: "blue",
     size: "md",
     variant: "filled",
   },

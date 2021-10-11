@@ -1,13 +1,13 @@
 import { Flex, Box } from "@chakra-ui/react";
 import React, { useEffect, useRef, useState } from "react";
-import { useRouter, useAnalytics } from "../core/hooks";
+import { useRouter } from "../core/hooks";
+import mixpanel from "mixpanel-browser";
 const Scrollable = (props) => {
   const scrollerRef = useRef();
   const router = useRouter();
   const [path, setPath] = useState();
 
   const [scrollDepth, setScrollDepth] = useState(0);
-  const { mixpanel, isLoaded } = useAnalytics();
 
   const getScrollPrecent = ({ currentTarget }) => {
     const scroll_level =
@@ -20,7 +20,7 @@ const Scrollable = (props) => {
     const currentScroll = Math.ceil(getScrollPrecent(e) / 10);
     if (currentScroll > scrollDepth) {
       setScrollDepth(currentScroll);
-      isLoaded &&
+      mixpanel.get_distinct_id() &&
         mixpanel.people.increment({
           [`Scroll depth at: ${router.nextRouter.pathname}`]: currentScroll,
         });

@@ -1,49 +1,37 @@
-import { useToast as useChakraToast, Box } from "@chakra-ui/react";
-import React, { useCallback } from "react";
-import { useAnalytics } from ".";
+import { useToast as useChakraToast } from "@chakra-ui/react";
+import { useCallback } from "react";
+import mixpanel from "mixpanel-browser";
+import { MIXPANEL_EVENTS } from "../providers/AnalyticsProvider/constants";
 
 const useToast = () => {
   const chakraToast = useChakraToast();
-  const analytics = useAnalytics();
 
   const toast = useCallback(
-    (message, type) => {
-      if (analytics.isLoaded && type === "error") {
-        analytics.mixpanel.track(
-          `${analytics.MIXPANEL_EVENTS.TOAST_ERROR_DISPLAYED}`,
-          {
-            status: message?.response?.status,
-            detail: message?.response?.data.detail,
-          }
-        );
-      }
-      const background = type === "error" ? "unsafe.500" : "suggested.500";
+    (message, type, title) => {
+      const userTitle = title ?? message?.response?.statusText ?? type;
+
       const userMessage =
-        type === "error"
-          ? message?.response
-            ? `${message.response.data.detail}..`
-            : message
-            ? `Error:${message}`
-            : "Something is very wrong"
-          : message;
+        message?.response?.data?.detail ??
+        message ??
+        (userTitle === type ? "" : type);
+
+      if (mixpanel.get_distinct_id() && type === "error") {
+        mixpanel.track(`${MIXPANEL_EVENTS.TOAST_ERROR_DISPLAYED}`, {
+          status: message?.response?.status,
+          title: userTitle,
+          detail: userMessage,
+        });
+      }
 
       chakraToast({
         position: "bottom",
+        title: userTitle,
+        description: userMessage,
+        status: type,
         duration: 3000,
-        render: () => (
-          <Box
-            shadow="rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;"
-            m={3}
-            p={3}
-            color="white.100"
-            bg={background}
-          >
-            {userMessage}
-          </Box>
-        ),
       });
     },
-    [chakraToast, analytics]
+    [chakraToast]
   );
 
   return toast;

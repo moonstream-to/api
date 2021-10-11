@@ -1,10 +1,32 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, {
+  useState,
+  useContext,
+  useEffect,
+  useCallback,
+  useLayoutEffect,
+} from "react";
 import { useBreakpointValue } from "@chakra-ui/react";
 import { useStorage, useQuery, useRouter } from "../../hooks";
 import UIContext from "./context";
 import UserContext from "../UserProvider/context";
 import ModalContext from "../ModalProvider/context";
 import { v4 as uuid4 } from "uuid";
+import { PreferencesService } from "../../services";
+
+const onboardingSteps = [
+  {
+    step: "welcome",
+    description: "Basics of how Moonstream works",
+  },
+  {
+    step: "subscriptions",
+    description: "Learn how to subscribe to blockchain events",
+  },
+  {
+    step: "stream",
+    description: "Learn how to use your Moonstream to analyze blah blah blah",
+  },
+];
 
 const UIProvider = ({ children }) => {
   const router = useRouter();
@@ -31,35 +53,31 @@ const UIProvider = ({ children }) => {
   // ******* APP state ********
   const [isLoggedIn, setLoggedIn] = useState(user && user.username);
   const [isLoggingOut, setLoggingOut] = useState(false);
+  const [isLoggingIn, setLoggingIn] = useState(false);
   const [isAppReady, setAppReady] = useState(false);
-  const [isAppView, setAppView] = useState(
-    router.nextRouter.asPath.includes("/stream") ||
-      router.nextRouter.asPath.includes("/account") ||
-      router.nextRouter.asPath.includes("/subscriptions") ||
-      router.nextRouter.asPath.includes("/analytics") ||
-      router.nextRouter.asPath.includes("/welcome")
-  );
+  const [isAppView, setAppView] = useState(false);
 
-  useEffect(() => {
-    if (isAppView && isAppReady && !user?.username && !isLoggingOut) {
-      // toggleModal("login");
+  useLayoutEffect(() => {
+    if (
+      isAppView &&
+      isInit &&
+      !user?.username &&
+      !isLoggingOut &&
+      !isLoggingIn &&
+      !modal
+    ) {
+      toggleModal("login");
+    } else if (user || isLoggingOut) {
+      toggleModal(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAppView, isAppReady, user, isLoggingOut]);
+  }, [isAppView, isAppReady, user, isLoggingOut, modal]);
 
   useEffect(() => {
     if (isLoggingOut && !isAppView && user) {
       setLoggingOut(false);
     }
   }, [isAppView, user, isLoggingOut]);
-
-  useEffect(() => {
-    if (isInit && router.nextRouter.isReady) {
-      setAppReady(true);
-    } else {
-      setAppReady(false);
-    }
-  }, [isInit, router]);
 
   useEffect(() => {
     if (user && user.username) {
@@ -69,15 +87,16 @@ const UIProvider = ({ children }) => {
     }
   }, [user]);
 
-  useEffect(() => {
-    setAppView(
-      router.nextRouter.asPath.includes("/stream") ||
-        router.nextRouter.asPath.includes("/account") ||
-        router.nextRouter.asPath.includes("/subscriptions") ||
-        router.nextRouter.asPath.includes("/analytics") ||
-        router.nextRouter.asPath.includes("/welcome")
-    );
-  }, [router.nextRouter.asPath, user]);
+  useLayoutEffect(() => {
+    if (
+      isLoggingOut &&
+      router.nextRouter.pathname === "/" &&
+      !user &&
+      !localStorage.getItem("MOONSTREAM_ACCESS_TOKEN")
+    ) {
+      setLoggingOut(false);
+    }
+  }, [isLoggingOut, router.nextRouter.pathname, user]);
 
   // *********** Sidebar states **********************
 
@@ -155,80 +174,124 @@ const UIProvider = ({ children }) => {
 
   // *********** Onboarding state **********************
 
-  const onboardingSteps = [
-    {
-      step: "welcome",
-      description: "Basics of how Moonstream works",
-    },
-    {
-      step: "subscriptions",
-      description: "Learn how to subscribe to blockchain events",
-    },
-    {
-      step: "stream",
-      description: "Learn how to use your Moonstream to analyze blah blah blah",
-    },
-  ];
+  const [onboardingState, setOnboardingState] = useState(false);
+  const [onboardingStep, setOnboardingStep] = useState();
+  const [onboardingStateInit, setOnboardingStateInit] = useState(false);
+  const [onboardingRedirectCheckPassed, setOnboardingRedirectCheckPassed] =
+    useState(false);
 
-  const [onboardingState, setOnboardingState] = useStorage(
-    window.localStorage,
-    "onboardingState",
-    {
-      welcome: 0,
-      subscriptions: 0,
-      stream: 0,
-    }
-  );
-
-  const [onboardingStep, setOnboardingStep] = useState(() => {
-    const step = onboardingSteps.findIndex(
-      (event) => onboardingState[event.step] === 0
-    );
-    if (step === -1 && isOnboardingComplete) return onboardingSteps.length - 1;
-    else if (step === -1 && !isOnboardingComplete) return 0;
-    else return step;
-  });
-
-  const [isOnboardingComplete, setisOnboardingComplete] = useStorage(
-    window.localStorage,
-    "isOnboardingComplete",
-    isLoggedIn ? true : false
+  const setOnboardingComplete = useCallback(
+    (newState) => {
+      setOnboardingState({ ...onboardingState, is_complete: newState });
+    },
+    [onboardingState]
   );
 
   useEffect(() => {
-    if (isLoggedIn && !isOnboardingComplete) {
-      router.replace("/welcome");
+    //If onboarding state not exists - fetch it from backend
+    //If it exists but init is not set - set init true
+    //If it exists and is init -> post update to backend
+    if (!onboardingState && user && !isLoggingOut) {
+      const currentOnboardingState = async () =>
+        PreferencesService.getOnboardingState().then((response) => {
+          return response.data;
+        });
+
+      currentOnboardingState().then((response) => {
+        setOnboardingState(response);
+      });
+    } else if (user && onboardingState && !onboardingStateInit) {
+      setOnboardingStateInit(true);
+    } else if (user && onboardingStateInit) {
+      PreferencesService.setOnboardingState(onboardingState);
     }
     // eslint-disable-next-line
-  }, [isLoggedIn, isOnboardingComplete]);
+  }, [onboardingState, user]);
+
+  useEffect(() => {
+    //This will set step after state is fetched from backend
+    if (!Number.isInteger(onboardingStep) && onboardingState) {
+      const step = onboardingSteps.findIndex(
+        (event) => onboardingState[event.step] === 0
+      );
+      if (step === -1 && onboardingState["is_complete"])
+        setOnboardingStep(onboardingSteps.length - 1);
+      else if (step === -1 && !onboardingState["is_complete"])
+        return setOnboardingStep(0);
+      else setOnboardingStep(step);
+    }
+  }, [onboardingState, onboardingStep]);
+
+  useEffect(() => {
+    //redirect to welcome page if yet not completed onboarding
+    if (isLoggedIn && onboardingState && !onboardingState?.is_complete) {
+      router.replace("/welcome", undefined, { shallow: true });
+    }
+    if (isLoggedIn) {
+      setOnboardingRedirectCheckPassed(true);
+    } else {
+      setOnboardingRedirectCheckPassed(false);
+    }
+    // eslint-disable-next-line
+  }, [isLoggedIn, onboardingState?.is_complete]);
+
+  useEffect(() => {
+    //This will set up onboarding complete once user finishes each view at least once
+    if (onboardingState?.steps && user && isAppReady) {
+      if (
+        onboardingSteps.findIndex(
+          (event) => onboardingState.steps[event.step] === 0
+        ) === -1
+      ) {
+        !onboardingState.is_complete && setOnboardingComplete(true);
+      }
+    }
+  }, [onboardingState, user, isAppReady, setOnboardingComplete]);
+
+  useEffect(() => {
+    //This will update onboardingState when step changes
+    if (
+      router.nextRouter.pathname === "/welcome" &&
+      isAppReady &&
+      user &&
+      Number.isInteger(onboardingStep) &&
+      onboardingState?.steps
+    ) {
+      setOnboardingState({
+        ...onboardingState,
+        steps: {
+          ...onboardingState.steps,
+          [`${onboardingSteps[onboardingStep].step}`]:
+            onboardingState.steps[onboardingSteps[onboardingStep].step] + 1,
+        },
+      });
+    }
+    // eslint-disable-next-line
+  }, [onboardingStep, router.nextRouter.pathname, user, isAppReady]);
+
+  // ********************************************************
 
   useEffect(() => {
     if (
-      onboardingSteps.findIndex(
-        (event) => onboardingState[event.step] === 0
-      ) === -1
+      isInit &&
+      router.nextRouter.isReady &&
+      onboardingState &&
+      !isLoggingOut &&
+      !isLoggingIn &&
+      onboardingRedirectCheckPassed
     ) {
-      setisOnboardingComplete(true);
+      setAppReady(true);
+    } else {
+      setAppReady(false);
     }
-    //eslint-disable-next-line
-  }, [onboardingState]);
-
-  useEffect(() => {
-    if (router.nextRouter.pathname === "/welcome") {
-      const newOnboardingState = {
-        ...onboardingState,
-        [`${onboardingSteps[onboardingStep].step}`]:
-          onboardingState[onboardingSteps[onboardingStep].step] + 1,
-      };
-
-      setOnboardingState(newOnboardingState);
-    }
-    // eslint-disable-next-line
-  }, [onboardingStep, router.nextRouter.pathname]);
-
-  // const ONBOARDING_STEP_NUM = steps.length;
-
-  // ********************************************************
+  }, [
+    isInit,
+    router,
+    onboardingState,
+    isLoggingOut,
+    isLoggingIn,
+    onboardingRedirectCheckPassed,
+  ]);
 
   return (
     <UIContext.Provider
@@ -259,10 +322,13 @@ const UIProvider = ({ children }) => {
         isEntryDetailView,
         onboardingStep,
         setOnboardingStep,
-        isOnboardingComplete,
-        setisOnboardingComplete,
+        setOnboardingComplete,
         onboardingSteps,
         setOnboardingState,
+        onboardingState,
+        isLoggingOut,
+        isLoggingIn,
+        setLoggingIn,
       }}
     >
       {children}

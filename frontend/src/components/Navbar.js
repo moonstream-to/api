@@ -6,7 +6,6 @@ import { Flex } from "@chakra-ui/react";
 import UIContext from "../core/providers/UIProvider/context";
 const ForgotPassword = React.lazy(() => import("./ForgotPassword"));
 const SignIn = React.lazy(() => import("./SignIn"));
-const SignUp = React.lazy(() => import("./SignUp"));
 const LandingNavbar = React.lazy(() => import("./LandingNavbar"));
 const AppNavbar = React.lazy(() => import("./AppNavbar"));
 const HubspotForm = React.lazy(() => import("./HubspotForm"));
@@ -21,13 +20,13 @@ const Navbar = () => {
       id="Navbar"
       minH="3rem"
       maxH="3rem"
-      bgColor="primary.1200"
+      bgColor="blue.1200"
       direction="row"
       w="100%"
       overflow="hidden"
     >
       <Suspense fallback={""}>
-        {modal === "register" && <SignUp toggleModal={toggleModal} />}
+        {/* {modal === "register" && <SignUp toggleModal={toggleModal} />} */}
         {modal === "login" && <SignIn toggleModal={toggleModal} />}
         {modal === "forgot" && <ForgotPassword toggleModal={toggleModal} />}
         {modal === "hubspot-trader" && (

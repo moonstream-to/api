@@ -58,7 +58,6 @@ const ColorSelector = (props) => {
               </Text>{" "}
               <IconButton
                 size="md"
-                // colorScheme="primary"
                 color={"white.100"}
                 _hover={{ bgColor: { color } }}
                 bgColor={color}
@@ -87,7 +86,7 @@ const ColorSelector = (props) => {
                 props.callback(color);
                 onClose();
               }}
-              colorScheme="suggested"
+              colorScheme="green"
               variant="outline"
             >
               Apply

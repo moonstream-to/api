@@ -1,16 +1,17 @@
+import { useContext } from "react";
 import { useMutation } from "react-query";
 import { useToast, useUser, useInviteAccept } from ".";
+import UIContext from "../providers/UIProvider/context";
 import { AuthService } from "../services";
-import { useAnalytics } from ".";
 
 const LOGIN_TYPES = {
   MANUAL: true,
   TOKEN: true,
 };
 const useLogin = (loginType) => {
+  const { setLoggingIn } = useContext(UIContext);
   const { getUser } = useUser();
   const toast = useToast();
-  const analytics = useAnalytics();
   const { inviteAccept } = useInviteAccept();
   const {
     mutate: login,
@@ -18,6 +19,9 @@ const useLogin = (loginType) => {
     error,
     data,
   } = useMutation(AuthService.login, {
+    onMutate: () => {
+      setLoggingIn(true);
+    },
     onSuccess: (data) => {
       // Default value for loginType is LOGIN_TYPES.MANUAL
       if (!loginType) {
@@ -34,24 +38,13 @@ const useLogin = (loginType) => {
           inviteAccept(invite_code);
         }
         getUser();
-        if (analytics.isLoaded) {
-          analytics.mixpanel.people.set_once({
-            [`${analytics.MIXPANEL_EVENTS.FIRST_LOGIN_DATE}`]:
-              new Date().toISOString(),
-          });
-          analytics.mixpanel.people.set({
-            [`${analytics.MIXPANEL_EVENTS.LAST_LOGIN_DATE}`]:
-              new Date().toISOString(),
-          });
-          analytics.mixpanel.track(
-            `${analytics.MIXPANEL_EVENTS.USER_LOGS_IN}`,
-            {}
-          );
-        }
       }
     },
     onError: (error) => {
       toast(error, "error");
+    },
+    onSettled: () => {
+      setLoggingIn(false);
     },
   });
 

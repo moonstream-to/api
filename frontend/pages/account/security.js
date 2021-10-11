@@ -23,7 +23,7 @@ const Security = () => {
     pt: 2,
     mb: 4,
     borderBottom: "solid",
-    borderColor: "primary.50",
+    borderColor: "blue.50",
     borderBottomWidth: "2px",
   };
 
@@ -91,7 +91,7 @@ const Security = () => {
                     <Icon icon="password" />
                   </InputRightElement>
                 </InputGroup>
-                <FormErrorMessage color="unsafe.400" pl="1">
+                <FormErrorMessage color="red.400" pl="1">
                   {errors.newPassword && errors.newPassword.message}
                 </FormErrorMessage>
               </FormControl>
@@ -110,7 +110,7 @@ const Security = () => {
                     <Icon icon="password" />
                   </InputRightElement>
                 </InputGroup>
-                <FormErrorMessage color="unsafe.400" pl="1">
+                <FormErrorMessage color="red.400" pl="1">
                   {errors.newPassword && errors.newPassword.message}
                 </FormErrorMessage>
               </FormControl>
@@ -129,7 +129,7 @@ const Security = () => {
                     <Icon icon="password" />
                   </InputRightElement>
                 </InputGroup>
-                <FormErrorMessage color="unsafe.400" pl="1">
+                <FormErrorMessage color="red.400" pl="1">
                   {errors.confirmPassword && errors.confirmPassword.message}
                 </FormErrorMessage>
               </FormControl>
@@ -139,7 +139,7 @@ const Security = () => {
               <Button
                 my={8}
                 variant="solid"
-                colorScheme="primary"
+                colorScheme="blue"
                 type="submit"
                 isLoading={isLoading}
               >

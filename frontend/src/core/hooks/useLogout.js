@@ -1,34 +1,25 @@
-import { useCallback, useContext } from "react";
+import { useContext } from "react";
 import { useMutation, useQueryClient } from "react-query";
-import { useUser, useRouter, useAnalytics } from ".";
+import { useUser, useRouter } from ".";
 import UIContext from "../providers/UIProvider/context";
 import { AuthService } from "../services";
 
 const useLogout = () => {
   const { setLoggingOut } = useContext(UIContext);
   const router = useRouter();
-  const analytics = useAnalytics();
-  const { mutate: revoke } = useMutation(AuthService.revoke, {
+  const cache = useQueryClient();
+  const { mutate: logout } = useMutation(AuthService.revoke, {
+    onMutate: () => {
+      setLoggingOut(true);
+    },
     onSuccess: () => {
-      if (analytics.isLoaded) {
-        analytics.mixpanel.track(
-          `${analytics.MIXPANEL_EVENTS.USER_LOGS_OUT}`,
-          {}
-        );
-      }
+      router.push("/");
+      setUser(null);
       localStorage.removeItem("MOONSTREAM_ACCESS_TOKEN");
       cache.clear();
-      setUser(null);
-      router.push("/");
     },
   });
   const { setUser } = useUser();
-  const cache = useQueryClient();
-
-  const logout = useCallback(() => {
-    setLoggingOut(true);
-    revoke();
-  }, [revoke, setLoggingOut]);
 
   return {
     logout,

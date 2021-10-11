@@ -57,7 +57,7 @@ const AppNavbar = () => {
       <Popover usePortal>
         <PopoverTrigger>
           <IconButton
-            colorScheme="primary"
+            colorScheme="blue"
             variant="link"
             h="32px"
             size="lg"
@@ -81,12 +81,12 @@ const AppNavbar = () => {
               <Link
                 href="mailto:support@moonstream.to"
                 fontWeight="600"
-                textColor="primary.500"
+                textColor="blue.500"
               >
                 support@moonstream.to
               </Link>
             </Text>
-            <Text fontWeight="700" textColor="primary.500">
+            <Text fontWeight="700" textColor="blue.500">
               <Link href="https://discord.gg/K56VNUQGvA">Discord</Link>
             </Text>
           </PopoverBody>
@@ -102,7 +102,7 @@ const AppNavbar = () => {
           <Flex width="100%" px={2}>
             <Spacer />
             <Flex placeSelf="flex-end">
-              <ButtonGroup spacing={4} colorScheme="secondary">
+              <ButtonGroup spacing={4} colorScheme="orange">
                 {ALL_NAV_PATHES.map((item, idx) => (
                   <RouteButton
                     key={`${idx}-${item.title}-landing-all-links`}
@@ -115,12 +115,6 @@ const AppNavbar = () => {
                   </RouteButton>
                 ))}
                 {USER_NAV_PATHES.map((item, idx) => {
-                  console.log(
-                    "item.path:",
-                    item.path,
-                    "pathname:",
-                    router.nextRouter.pathname
-                  );
                   return (
                     <RouteButton
                       key={`${idx}-${item.title}-navlink`}
@@ -136,7 +130,7 @@ const AppNavbar = () => {
               </ButtonGroup>
               <SupportPopover />
               <AccountIconButton
-                colorScheme="primary"
+                colorScheme="blue"
                 variant="link"
                 color="gray.100"
                 size="lg"
@@ -240,7 +234,7 @@ const AppNavbar = () => {
                 alignContent="center"
                 h="32px"
                 size={iconSize}
-                colorScheme="primary"
+                colorScheme="blue"
               />
             )}
           </Flex>

@@ -9,6 +9,8 @@ bugout_client = Bugout(brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIR
 
 BUGOUT_REQUEST_TIMEOUT_SECONDS = 5
 
+HUMBUG_REPORTER_BACKEND_TOKEN = os.environ.get("HUMBUG_REPORTER_BACKEND_TOKEN")
+
 # Default value is "" instead of None so that mypy understands that MOONSTREAM_APPLICATION_ID is a string
 MOONSTREAM_APPLICATION_ID = os.environ.get("MOONSTREAM_APPLICATION_ID", "")
 if MOONSTREAM_APPLICATION_ID == "":
@@ -43,6 +45,10 @@ for path in MOONSTREAM_OPENAPI_LIST:
     DOCS_PATHS[f"/{path}/{DOCS_TARGET_PATH}/openapi.json"] = "GET"
 
 DEFAULT_STREAM_TIMEINTERVAL = 5 * 60
+
+ETHTXPOOL_HUMBUG_CLIENT_ID = os.environ.get(
+    "ETHTXPOOL_HUMBUG_CLIENT_ID", "client:ethereum-txpool-crawler-0"
+)
 
 # S3 Bucket
 ETHERSCAN_SMARTCONTRACTS_BUCKET = os.environ.get("AWS_S3_SMARTCONTRACT_BUCKET")

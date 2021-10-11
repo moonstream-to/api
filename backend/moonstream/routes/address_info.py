@@ -3,14 +3,14 @@ from typing import Dict, List, Optional
 
 from sqlalchemy.sql.expression import true
 
-from fastapi import FastAPI, Depends, Query, HTTPException
+from fastapi import FastAPI, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from moonstreamdb.db import yield_db_session
 from sqlalchemy.orm import Session
 
 from .. import actions
 from .. import data
-from ..middleware import BroodAuthMiddleware
+from ..middleware import BroodAuthMiddleware, MoonstreamHTTPException
 from ..settings import DOCS_TARGET_PATH, ORIGINS, DOCS_PATHS
 from ..version import MOONSTREAM_VERSION
 
@@ -53,7 +53,11 @@ async def addressinfo_handler(
     address: str,
     db_session: Session = Depends(yield_db_session),
 ) -> Optional[data.EthereumAddressInfo]:
-    response = actions.get_ethereum_address_info(db_session, address)
+    try:
+        response = actions.get_ethereum_address_info(db_session, address)
+    except Exception as e:
+        logger.error(f"Unable to get info about Ethereum address {e}")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
     return response
 
 
@@ -73,15 +77,15 @@ async def addresses_labels_bulk_handler(
     about known addresses.
     """
     if limit > 100:
-        raise HTTPException(
+        raise MoonstreamHTTPException(
             status_code=406, detail="The limit cannot exceed 100 addresses"
         )
     try:
         addresses_response = actions.get_address_labels(
             db_session=db_session, start=start, limit=limit, addresses=addresses
         )
-    except Exception as err:
-        logger.error(f"Unable to get info about Ethereum addresses {err}")
-        raise HTTPException(status_code=500)
+    except Exception as e:
+        logger.error(f"Unable to get info about Ethereum addresses {e}")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     return addresses_response

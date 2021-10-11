@@ -11,7 +11,6 @@ from sqlalchemy import (
     Numeric,
     Text,
     VARCHAR,
-    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import expression
@@ -136,7 +135,6 @@ class EthereumLabel(Base):  # type: ignore
     """
 
     __tablename__ = "ethereum_labels"
-    __table_args__ = (UniqueConstraint("label", "address_id"),)
 
     id = Column(
         UUID(as_uuid=True),
@@ -149,7 +147,12 @@ class EthereumLabel(Base):  # type: ignore
     address_id = Column(
         Integer,
         ForeignKey("ethereum_addresses.id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
+        index=True,
+    )
+    transaction_hash = Column(
+        VARCHAR(256),
+        nullable=True,
         index=True,
     )
     label_data = Column(JSONB, nullable=True)

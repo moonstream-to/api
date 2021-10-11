@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import {
   Text,
   Stack,
@@ -21,7 +21,7 @@ import { useToast } from "../../core/hooks";
 import { useSubscriptions } from "../../core/hooks";
 import moment from "moment";
 import { AiOutlineMonitor } from "react-icons/ai";
-import NewSubscription from "../NewModalSubscripton";
+import NewSubscription from "../NewSubscription";
 
 const EthereumWhalewatchCard_ = ({
   entry,
@@ -175,9 +175,9 @@ const EthereumWhalewatchCard_ = ({
         >
           Value
         </Text>
-        {Object.keys(whales).map((whaleType) => {
+        {Object.keys(whales).map((whaleType, idx) => {
           return (
-            <>
+            <Fragment key={`whale-whatch-${idx}`}>
               <Box gridColumn="1 / 3">
                 <Text
                   h="100%"
@@ -215,7 +215,7 @@ const EthereumWhalewatchCard_ = ({
                     <Box boxSize="min-content">
                       <IconButton
                         onClick={() => subscribeClicked(whaleType)}
-                        colorScheme="secondary"
+                        colorScheme="orange"
                         variant="outline"
                         m={0}
                         boxSize="24px"
@@ -238,7 +238,7 @@ const EthereumWhalewatchCard_ = ({
               >
                 {whales[whaleType].statistic}
               </Box>
-            </>
+            </Fragment>
           );
         })}
       </SimpleGrid>

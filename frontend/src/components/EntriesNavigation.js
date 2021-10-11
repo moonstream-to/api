@@ -1,10 +1,4 @@
-import React, {
-  useRef,
-  useEffect,
-  useContext,
-  useState,
-  useCallback,
-} from "react";
+import React, { useEffect, useContext, useState, useCallback } from "react";
 import {
   Flex,
   Spinner,
@@ -40,6 +34,8 @@ import { FaFilter } from "react-icons/fa";
 import useStream from "../core/hooks/useStream";
 import { ImCancelCircle } from "react-icons/im";
 import { previousEvent } from "../core/services/stream.service";
+import { PAGE_SIZE } from "../core/constants";
+import DataContext from "../core/providers/DataProvider/context";
 
 const FILTER_TYPES = {
   ADDRESS: 0,
@@ -61,11 +57,12 @@ const CONDITION = {
 };
 
 const EntriesNavigation = () => {
+  const { cursor, setCursor, streamCache, setStreamCache } =
+    useContext(DataContext);
   const ui = useContext(UIContext);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { subscriptionsCache } = useSubscriptions();
   const [initialized, setInitialized] = useState(false);
-  const [entries, setEntries] = useState([]);
   const [newFilterState, setNewFilterState] = useState([
     {
       type: FILTER_TYPES.ADDRESS,
@@ -76,21 +73,27 @@ const EntriesNavigation = () => {
   ]);
   const [filterState, setFilterState] = useState([]);
 
-  const loadMoreButtonRef = useRef(null);
-
   const {
-    events,
     eventsIsLoading,
     eventsRefetch,
-    eventsIsFetching,
     latestEventsRefetch,
     nextEventRefetch,
     previousEventRefetch,
     streamBoundary,
     setDefaultBoundary,
-    loadOlderEvents,
-    loadNewerEvents,
-  } = useStream(ui.searchTerm.q);
+    loadPreviousEventHandler,
+    loadNewesEventHandler,
+    loadOlderEventsIsFetching,
+    loadNewerEventsIsFetching,
+    previousEventIsFetching,
+    nextEventIsFetching,
+  } = useStream(
+    ui.searchTerm.q,
+    streamCache,
+    setStreamCache,
+    cursor,
+    setCursor
+  );
 
   useEffect(() => {
     if (!streamBoundary.start_time && !streamBoundary.end_time) {
@@ -112,12 +115,6 @@ const EntriesNavigation = () => {
     nextEventRefetch,
     previousEventRefetch,
   ]);
-
-  useEffect(() => {
-    if (events) {
-      setEntries(events);
-    }
-  }, [events]);
 
   const setFilterProps = useCallback(
     (filterIdx, props) => {
@@ -214,7 +211,7 @@ const EntriesNavigation = () => {
       direction="column"
       flexGrow={1}
     >
-      {entries && !eventsIsLoading ? (
+      {streamCache && !eventsIsLoading ? (
         <>
           <Drawer onClose={onClose} isOpen={isOpen} size="lg">
             <DrawerOverlay />
@@ -260,7 +257,7 @@ const EntriesNavigation = () => {
                             {filter.direction === DIRECTIONS.SOURCE && (
                               <Select
                                 variant="solid"
-                                colorScheme="primary"
+                                colorScheme="blue"
                                 name="address"
                                 onChange={handleAddressChange(idx)}
                               >
@@ -301,7 +298,7 @@ const EntriesNavigation = () => {
                         )}
                         <IconButton
                           placeItems="center"
-                          colorScheme="primary"
+                          colorScheme="blue"
                           variant="ghost"
                           onClick={() => dropNewFilterArrayItem(idx)}
                           icon={<ImCancelCircle />}
@@ -314,7 +311,7 @@ const EntriesNavigation = () => {
                   <MenuButton
                     as={Button}
                     mt={4}
-                    colorScheme="secondary"
+                    colorScheme="orange"
                     variant="solid"
                   >
                     Add filter row
@@ -360,7 +357,7 @@ const EntriesNavigation = () => {
               </DrawerBody>
               <DrawerFooter pb={16} placeContent="center">
                 <Button
-                  colorScheme="suggested"
+                  colorScheme="green"
                   variant="solid"
                   // type="submit"
                   onClick={() => handleFilterSubmit()}
@@ -380,7 +377,7 @@ const EntriesNavigation = () => {
                     mx={1}
                     size="lg"
                     variant="solid"
-                    colorScheme="secondary"
+                    colorScheme="orange"
                   >
                     {filter?.type === FILTER_TYPES.ADDRESS && (
                       <TagLabel>
@@ -404,7 +401,7 @@ const EntriesNavigation = () => {
             <IconButton
               mr={4}
               onClick={onOpen}
-              colorScheme="primary"
+              colorScheme="blue"
               variant="ghost"
               icon={<FaFilter />}
             />
@@ -425,14 +422,13 @@ const EntriesNavigation = () => {
               //onScroll={(e) => handleScroll(e)}
             >
               <Stack direction="row" justifyContent="space-between">
-                {!eventsIsFetching ? (
+                {!loadNewerEventsIsFetching && !nextEventIsFetching ? (
                   <Button
                     onClick={() => {
-                      loadNewerEvents();
-                      nextEventRefetch();
+                      loadNewesEventHandler();
                     }}
                     variant="outline"
-                    colorScheme="suggested"
+                    colorScheme="green"
                   >
                     Load newer events
                   </Button>
@@ -441,62 +437,55 @@ const EntriesNavigation = () => {
                     isLoading
                     loadingText="Loading"
                     variant="outline"
-                    colorScheme="suggested"
+                    colorScheme="green"
                   ></Button>
                 )}
               </Stack>
-              {entries.map((entry, idx) => (
-                <StreamEntry
-                  showOnboardingTooltips={false}
-                  key={`entry-list-${idx}`}
-                  entry={entry}
-                  disableDelete={!canDelete}
-                  disableCopy={!canCreate}
-                  filterCallback={handleFilterStateCallback}
-                  filterConstants={{ DIRECTIONS, CONDITION, FILTER_TYPES }}
-                />
-              ))}
-              {previousEvent && !eventsIsFetching ? (
+              {streamCache
+                .slice(
+                  cursor,
+                  streamCache.length <= cursor + PAGE_SIZE
+                    ? streamCache.length
+                    : cursor + PAGE_SIZE
+                )
+                .map((entry, idx) => (
+                  <StreamEntry
+                    showOnboardingTooltips={false}
+                    key={`entry-list-${idx}`}
+                    entry={entry}
+                    disableDelete={!canDelete}
+                    disableCopy={!canCreate}
+                    filterCallback={handleFilterStateCallback}
+                    filterConstants={{ DIRECTIONS, CONDITION, FILTER_TYPES }}
+                  />
+                ))}
+              {previousEvent &&
+              !loadOlderEventsIsFetching &&
+              !previousEventIsFetching ? (
                 <Center>
                   <Button
                     onClick={() => {
-                      loadOlderEvents();
-                      previousEventRefetch();
+                      loadPreviousEventHandler();
                     }}
                     variant="outline"
-                    colorScheme="suggested"
+                    colorScheme="green"
                   >
                     Load older events
                   </Button>
                 </Center>
               ) : (
                 <Center>
-                  {!eventsIsFetching ? (
+                  {!previousEventIsFetching && !loadOlderEventsIsFetching ? (
                     "Тransactions not found. You can subscribe to more addresses in Subscriptions menu."
                   ) : (
                     <Button
                       isLoading
                       loadingText="Loading"
                       variant="outline"
-                      colorScheme="suggested"
+                      colorScheme="green"
                     ></Button>
                   )}
                 </Center>
-              )}
-              {streamBoundary.previous_event_time && eventsIsLoading ? (
-                <Center>
-                  <Spinner
-                    //hidden={!isFetchingMore}
-                    ref={loadMoreButtonRef}
-                    my={8}
-                    size="lg"
-                    color="primary.500"
-                    thickness="4px"
-                    speed="1.5s"
-                  />
-                </Center>
-              ) : (
-                ""
               )}
             </Flex>
           </Flex>
@@ -506,7 +495,7 @@ const EntriesNavigation = () => {
           <Spinner
             mt="50%"
             size="lg"
-            color="primary.500"
+            color="blue.500"
             thickness="4px"
             speed="1.5s"
           />
