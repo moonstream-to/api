@@ -144,9 +144,13 @@ class EthereumLabel(Base):  # type: ignore
         nullable=False,
     )
     label = Column(VARCHAR(256), nullable=False, index=True)
-    address_id = Column(
-        Integer,
-        ForeignKey("ethereum_addresses.id", ondelete="CASCADE"),
+    block_number = Column(
+        BigInteger,
+        nullable=True,
+        index=True,
+    )
+    address = Column(
+        VARCHAR(256),
         nullable=True,
         index=True,
     )
