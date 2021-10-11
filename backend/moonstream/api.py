@@ -16,6 +16,7 @@ from .routes.streams import router as streams_router
 from .routes.subscriptions import router as subscriptions_router
 from .routes.txinfo import router as txinfo_router
 from .routes.users import router as users_router
+from .routes.whales import router as whales_router
 from .middleware import BroodAuthMiddleware, MoonstreamHTTPException
 from .settings import DOCS_TARGET_PATH, ORIGINS
 from .version import MOONSTREAM_VERSION
@@ -37,6 +38,7 @@ tags_metadata = [
     {"name": "tokens", "description": "Operations with user tokens."},
     {"name": "txinfo", "description": "Ethereum transactions info."},
     {"name": "users", "description": "Operations with users."},
+    {"name": "whales", "description": "Whales summaries"},
 ]
 
 app = FastAPI(
@@ -126,3 +128,4 @@ app.include_router(streams_router)
 app.include_router(subscriptions_router)
 app.include_router(txinfo_router)
 app.include_router(users_router)
+app.include_router(whales_router)
