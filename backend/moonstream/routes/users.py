@@ -8,66 +8,28 @@ import uuid
 from bugout.data import BugoutToken, BugoutUser, BugoutResource, BugoutUserTokens
 from bugout.exceptions import BugoutResponseException
 from fastapi import (
+    APIRouter,
     Body,
-    FastAPI,
     Form,
     Request,
 )
-from fastapi.middleware.cors import CORSMiddleware
 
 from .. import data
-from ..middleware import BroodAuthMiddleware, MoonstreamHTTPException
+from ..middleware import MoonstreamHTTPException
 
 from ..settings import (
     MOONSTREAM_APPLICATION_ID,
-    DOCS_TARGET_PATH,
-    ORIGINS,
-    DOCS_PATHS,
     bugout_client as bc,
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
 )
-from ..version import MOONSTREAM_VERSION
 from ..actions import create_onboarding_resource
 
 logger = logging.getLogger(__name__)
 
-tags_metadata = [
-    {"name": "users", "description": "Operations with users."},
-    {"name": "tokens", "description": "Operations with user tokens."},
-]
-
-app = FastAPI(
-    title=f"Moonstream users API.",
-    description="User, token and password handlers.",
-    version=MOONSTREAM_VERSION,
-    openapi_tags=tags_metadata,
-    openapi_url="/openapi.json",
-    docs_url=None,
-    redoc_url=f"/{DOCS_TARGET_PATH}",
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-whitelist_paths: Dict[str, str] = {}
-whitelist_paths.update(DOCS_PATHS)
-whitelist_paths.update(
-    {
-        "/users": "POST",
-        "/users/token": "POST",
-        "/users/password/reset_initiate": "POST",
-        "/users/password/reset_complete": "POST",
-    }
-)
-app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
+router = APIRouter(prefix="/users")
 
 
-@app.post("/", tags=["users"], response_model=BugoutUser)
+@router.post("/", tags=["users"], response_model=BugoutUser)
 async def create_user_handler(
     username: str = Form(...), email: str = Form(...), password: str = Form(...)
 ) -> BugoutUser:
@@ -85,13 +47,13 @@ async def create_user_handler(
     return user
 
 
-@app.get("/", tags=["users"], response_model=BugoutUser)
+@router.get("/", tags=["users"], response_model=BugoutUser)
 async def get_user_handler(request: Request) -> BugoutUser:
     user: BugoutUser = request.state.user
     return user
 
 
-@app.post("/password/reset_initiate", tags=["users"], response_model=Dict[str, Any])
+@router.post("/password/reset_initiate", tags=["users"], response_model=Dict[str, Any])
 async def restore_password_handler(email: str = Form(...)) -> Dict[str, Any]:
     try:
         response = bc.restore_password(email=email)
@@ -102,7 +64,7 @@ async def restore_password_handler(email: str = Form(...)) -> Dict[str, Any]:
     return response
 
 
-@app.post("/password/reset_complete", tags=["users"], response_model=BugoutUser)
+@router.post("/password/reset_complete", tags=["users"], response_model=BugoutUser)
 async def reset_password_handler(
     reset_id: str = Form(...), new_password: str = Form(...)
 ) -> BugoutUser:
@@ -115,7 +77,7 @@ async def reset_password_handler(
     return response
 
 
-@app.post("/password/change", tags=["users"], response_model=BugoutUser)
+@router.post("/password/change", tags=["users"], response_model=BugoutUser)
 async def change_password_handler(
     request: Request, current_password: str = Form(...), new_password: str = Form(...)
 ) -> BugoutUser:
@@ -131,7 +93,7 @@ async def change_password_handler(
     return user
 
 
-@app.delete("/", tags=["users"], response_model=BugoutUser)
+@router.delete("/", tags=["users"], response_model=BugoutUser)
 async def delete_user_handler(
     request: Request, password: str = Form(...)
 ) -> BugoutUser:
@@ -146,7 +108,7 @@ async def delete_user_handler(
     return user
 
 
-@app.post("/token", tags=["tokens"], response_model=BugoutToken)
+@router.post("/token", tags=["tokens"], response_model=BugoutToken)
 async def login_handler(
     username: str = Form(...),
     password: str = Form(...),
@@ -167,7 +129,7 @@ async def login_handler(
     return token
 
 
-@app.get("/tokens", tags=["tokens"], response_model=BugoutUserTokens)
+@router.get("/tokens", tags=["tokens"], response_model=BugoutUserTokens)
 async def tokens_handler(request: Request) -> BugoutUserTokens:
     token = request.state.token
     try:
@@ -181,9 +143,9 @@ async def tokens_handler(request: Request) -> BugoutUserTokens:
     return response
 
 
-@app.put("/token", tags=["tokens"], response_model=BugoutToken)
+@router.put("/token", tags=["tokens"], response_model=BugoutToken)
 async def token_update_handler(
-    request: Request, token_note: str = Form(...), access_token: str = Form(...)
+    token_note: str = Form(...), access_token: str = Form(...)
 ) -> BugoutToken:
     try:
         response = bc.update_token(token=access_token, token_note=token_note)
@@ -194,7 +156,7 @@ async def token_update_handler(
     return response
 
 
-@app.post("/revoke/{access_token}", tags=["tokens"], response_model=uuid.UUID)
+@router.post("/revoke/{access_token}", tags=["tokens"], response_model=uuid.UUID)
 async def delete_token_by_id_handler(
     request: Request, access_token: uuid.UUID
 ) -> uuid.UUID:
@@ -212,7 +174,7 @@ async def delete_token_by_id_handler(
     return response
 
 
-@app.delete("/token", tags=["tokens"], response_model=uuid.UUID)
+@router.delete("/token", tags=["tokens"], response_model=uuid.UUID)
 async def logout_handler(request: Request) -> uuid.UUID:
     token = request.state.token
     try:
@@ -224,7 +186,7 @@ async def logout_handler(request: Request) -> uuid.UUID:
     return token_id
 
 
-@app.post("/onboarding", tags=["users"], response_model=data.OnboardingState)
+@router.post("/onboarding", tags=["users"], response_model=data.OnboardingState)
 async def set_onboarding_state(
     request: Request,
     onboarding_data: data.OnboardingState = Body(...),
@@ -270,7 +232,7 @@ async def set_onboarding_state(
     return result
 
 
-@app.get("/onboarding", tags=["users"], response_model=data.OnboardingState)
+@router.get("/onboarding", tags=["users"], response_model=data.OnboardingState)
 async def get_onboarding_state(request: Request) -> data.OnboardingState:
     token = request.state.token
     try:
@@ -305,7 +267,7 @@ async def get_onboarding_state(request: Request) -> data.OnboardingState:
     return result
 
 
-@app.delete("/onboarding", tags=["users"], response_model=data.OnboardingState)
+@router.delete("/onboarding", tags=["users"], response_model=data.OnboardingState)
 async def delete_onboarding_state(request: Request) -> data.OnboardingState:
     token = request.state.token
     try:

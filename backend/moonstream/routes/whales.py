@@ -3,55 +3,28 @@ Moonstream's /whales endpoints.
 
 These endpoints provide public access to whale watch summaries. No authentication required.
 """
-from datetime import datetime
 import logging
 from typing import Optional
 
-from bugout.data import BugoutResource
-
-from fastapi import Depends, FastAPI, Query
+from fastapi import APIRouter, Depends, Query
 from moonstreamdb import db
-from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from .. import data
 from ..providers.bugout import whalewatch_provider
 from ..settings import (
     bugout_client,
-    DOCS_TARGET_PATH,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_DATA_JOURNAL_ID,
-    ORIGINS,
 )
 from ..stream_queries import StreamQuery
-from ..version import MOONSTREAM_VERSION
 
 logger = logging.getLogger(__name__)
 
-tags_metadata = [
-    {"name": "whales", "description": "Whales summaries"},
-]
-
-app = FastAPI(
-    title=f"Moonstream /whales API",
-    description="User, token and password handlers.",
-    version=MOONSTREAM_VERSION,
-    openapi_tags=tags_metadata,
-    openapi_url="/openapi.json",
-    docs_url=None,
-    redoc_url=f"/{DOCS_TARGET_PATH}",
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+router = APIRouter(prefix="/whales")
 
 
-@app.get("/", tags=["whales"], response_model=data.GetEventsResponse)
+@router.get("/", tags=["whales"], response_model=data.GetEventsResponse)
 async def stream_handler(
     start_time: int = Query(0),
     end_time: Optional[int] = Query(None),
