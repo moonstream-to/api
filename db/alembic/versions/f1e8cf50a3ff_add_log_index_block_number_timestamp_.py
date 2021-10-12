@@ -103,5 +103,14 @@ def downgrade():
     op.drop_column("ethereum_labels", "transaction_timestamp")
     op.drop_column("ethereum_labels", "log_index")
     op.drop_column("ethereum_labels", "block_number")
+    op.execute(
+        """ UPDATE labels
+            SET
+            labels.address_id = address.id
+            FROM ethereum_labels as labels
+                left join ethereum_addresses address
+                ON labels.address = address.address
+        """
+    )
     op.drop_column("ethereum_labels", "address")
     # ### end Alembic commands ###
