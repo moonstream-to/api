@@ -48,16 +48,6 @@ def upgrade():
         unique=False,
     )
     op.execute(
-        """INSERT INTO ethereum_labels (address)
-                        SELECT  con.address as address
-                        FROM   (
-                            select a.address from  ethereum_labels as a
-                            left join ethereum_addresses  as b
-                            ON a.address_id = b.id
-                        ) as con
-    """
-    )
-    op.execute(
         """ UPDATE labels
             SET
             labels.address = address.address
