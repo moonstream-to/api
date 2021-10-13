@@ -8,14 +8,13 @@ import {
   useBreakpointValue,
   Center,
 } from "@chakra-ui/react";
-import {
-  AWS_ASSETS_PATH,
-  MIXPANEL_EVENTS,
-  MIXPANEL_PROPS,
-} from "../../src/core/constants";
+import { AWS_ASSETS_PATH } from "../../src/core/constants";
 import SplitWithImage from "../../src/components/SplitWithImage";
 import mixpanel from "mixpanel-browser";
-
+import {
+  MIXPANEL_PROPS,
+  MIXPANEL_EVENTS,
+} from "../../src/core/providers/AnalyticsProvider/constants";
 const assets = {
   background720: `${AWS_ASSETS_PATH}/product-background-720x405.png`,
   background1920: `${AWS_ASSETS_PATH}/product-background-720x405.png`,
