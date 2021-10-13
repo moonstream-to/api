@@ -68,6 +68,8 @@ const SplitWithImage = ({
   elementName,
   cta,
   socialButton,
+  imgBoxShadow,
+  py,
 }) => {
   var buttonSize = useBreakpointValue({
     base: { single: "sm", double: "xs" },
@@ -94,10 +96,20 @@ const SplitWithImage = ({
     return () => observer.unobserve(current);
   }, []);
 
+  const themeColor = useColorModeValue(
+    `${colorScheme}.50`,
+    `${colorScheme}.900`
+  );
+
+  const bgThemeColor = useColorModeValue(
+    `${colorScheme}.900`,
+    `${colorScheme}.50`
+  );
+
   return (
     <Container
-      maxW={"7xl"}
-      py={0}
+      maxW={"100%"}
+      py={py}
       className={`fade-in-section ${isVisible ? "is-visible" : ""}`}
       ref={domRef}
     >
@@ -109,31 +121,36 @@ const SplitWithImage = ({
               alt={"feature image"}
               src={imgURL}
               objectFit={"contain"}
+              boxShadow={imgBoxShadow ?? "inherit"}
             />
           </Flex>
         )}
-        <Stack spacing={4} justifyContent="center">
-          <Stack direction="row">
-            <Text
-              id={`MoonBadge ${elementName}`}
-              // id={`MoonBadge${elementName}`}
-              textTransform={"uppercase"}
-              color={useColorModeValue(
-                `${colorScheme}.50`,
-                `${colorScheme}.900`
-              )}
-              fontWeight={600}
-              fontSize={"sm"}
-              bg={useColorModeValue(`${colorScheme}.900`, `${colorScheme}.50`)}
-              p={2}
-              alignSelf={mirror && !ui.isMobileView ? "flex-end" : "flex-start"}
-              rounded={"md"}
+        <Stack spacing={[2, 4]} justifyContent="center">
+          {badge && (
+            <Stack
+              direction="row"
+              placeContent={
+                mirror && !ui.isMobileView ? "flex-end" : "flex-start"
+              }
             >
-              {badge}
-            </Text>
-          </Stack>
-          <Heading>{title}</Heading>
-          <Text color={`blue.500`} fontSize={"lg"}>
+              <Text
+                id={`MoonBadge ${elementName}`}
+                // id={`MoonBadge${elementName}`}
+                textTransform={"uppercase"}
+                color={themeColor}
+                fontWeight={600}
+                fontSize={["xs", "sm"]}
+                bg={bgThemeColor}
+                p={[1, 2]}
+                // alignSelf={mirror && !ui.isMobileView ? "flex-end" : "flex-start"}
+                rounded={"md"}
+              >
+                {badge}
+              </Text>
+            </Stack>
+          )}
+          <Heading size="md">{title}</Heading>
+          <Text color={`blue.500`} fontSize={["sm", "md", "lg"]}>
             {body}
           </Text>
           <Stack
@@ -163,17 +180,19 @@ const SplitWithImage = ({
               flexWrap="nowrap"
               display={["column", "column", null, "row"]}
             >
-              <Button
-                colorScheme={colorScheme}
-                w={["100%", "100%", "fit-content", null]}
-                maxW={["250px", null, "fit-content"]}
-                variant="outline"
-                mt={[0, 0, null, 16]}
-                size={socialButton ? buttonSize.double : buttonSize.single}
-                onClick={cta.onClick}
-              >
-                {cta.label}
-              </Button>
+              {cta && (
+                <Button
+                  colorScheme={colorScheme}
+                  w={["100%", "100%", "fit-content", null]}
+                  maxW={["250px", null, "fit-content"]}
+                  variant="outline"
+                  mt={[0, 0, null, 16]}
+                  size={socialButton ? buttonSize.double : buttonSize.single}
+                  onClick={cta.onClick}
+                >
+                  {cta.label}
+                </Button>
+              )}
 
               {socialButton && (
                 <RouteButton
@@ -184,7 +203,7 @@ const SplitWithImage = ({
                   mt={[0, 0, null, 16]}
                   size={socialButton ? buttonSize.double : buttonSize.single}
                   variant="outline"
-                  colorScheme="blue"
+                  colorScheme={colorScheme}
                   leftIcon={<FaGithubSquare />}
                 >
                   git clone moonstream
@@ -194,12 +213,14 @@ const SplitWithImage = ({
           </Stack>
         </Stack>
         {(!mirror || ui.isMobileView) && (
-          <Flex justifyContent="center">
+          <Flex justifyContent="center" alignItems="center">
             <Image
               rounded={"md"}
               alt={"feature image"}
               src={imgURL}
               objectFit={"contain"}
+              h="fit-content"
+              boxShadow={imgBoxShadow ?? "inherit"}
             />
           </Flex>
         )}

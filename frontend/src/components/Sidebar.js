@@ -118,6 +118,14 @@ const Sidebar = () => {
             >
               Login
             </MenuItem>
+            <MenuItem>
+              {" "}
+              <RouterLink href="/product">Product </RouterLink>
+            </MenuItem>
+            <MenuItem>
+              {" "}
+              <RouterLink href="/team">Team </RouterLink>
+            </MenuItem>
           </Menu>
         </SidebarContent>
       )}

@@ -10,16 +10,16 @@ import {
   Flex,
   Heading,
   Box,
-  Image as ChakraImage,
   Center,
   chakra,
   Stack,
   Link,
-  SimpleGrid,
   useMediaQuery,
   Grid,
   Text,
   GridItem,
+  SimpleGrid,
+  Image as ChakraImage,
 } from "@chakra-ui/react";
 import dynamic from "next/dynamic";
 import useUser from "../src/core/hooks/useUser";
@@ -29,9 +29,9 @@ import {
   MIXPANEL_PROPS,
   MIXPANEL_EVENTS,
 } from "../src/core/providers/AnalyticsProvider/constants";
-import UIContext from "../src/core/providers/UIProvider/context";
 import { AWS_ASSETS_PATH } from "../src/core/constants";
 import mixpanel from "mixpanel-browser";
+import UIContext from "../src/core/providers/UIProvider/context";
 const SplitWithImage = dynamic(
   () => import("../src/components/SplitWithImage"),
   {
@@ -50,6 +50,34 @@ const IoTelescopeSharp = dynamic(() =>
   import("react-icons/io5").then((mod) => mod.IoTelescopeSharp)
 );
 
+const AiFillApi = dynamic(() =>
+  import("react-icons/ai").then((mod) => mod.AiFillApi)
+);
+
+const BiTransfer = dynamic(() =>
+  import("react-icons/bi").then((mod) => mod.BiTransfer)
+);
+
+const RiDashboardFill = dynamic(() =>
+  import("react-icons/ri").then((mod) => mod.RiDashboardFill)
+);
+const FaFileContract = dynamic(() =>
+  import("react-icons/fa").then((mod) => mod.FaFileContract)
+);
+const GiMeshBall = dynamic(() =>
+  import("react-icons/gi").then((mod) => mod.GiMeshBall)
+);
+
+const GiLogicGateXor = dynamic(() =>
+  import("react-icons/gi").then((mod) => mod.GiLogicGateXor)
+);
+
+const ConnectedButtons = dynamic(
+  () => import("../src/components/ConnectedButtons"),
+  {
+    ssr: false,
+  }
+);
 const HEADING_PROPS = {
   fontWeight: "700",
   fontSize: ["4xl", "5xl", "4xl", "5xl", "6xl", "7xl"],
@@ -66,6 +94,7 @@ const assets = {
   socialMediaPosts: `${AWS_ASSETS_PATH}/Social+media+posts.png`,
   cryptoTraders: `${AWS_ASSETS_PATH}/crypto+traders.png`,
   comicWhite: `${AWS_ASSETS_PATH}/moonstream-comic-white.png`,
+  smartDevelopers: `${AWS_ASSETS_PATH}/smart+contract+developers.png`,
 };
 const Homepage = () => {
   const ui = useContext(UIContext);
@@ -235,30 +264,14 @@ const Homepage = () => {
                           understand exactly how people are using your smart
                           contracts.
                         </chakra.span>
-                        {/* <chakra.span
-                          fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
-                          display="inline-block"
-                          color="blue.300"
-                        >
-                          Access this data through the Moonstream dashboard or
-                          API
-                        </chakra.span> */}
                       </Stack>
                     </Flex>
                   </Box>
                 </chakra.header>
               </GridItem>
 
-              <GridItem
-                px="7%"
-                colSpan="12"
-                // pt={["20px", "20px", "100px", null, "120px"]}
-                pt={0}
-                // pb={["20px", "56px", null, "184px"]}
-                minH="100vh"
-              >
+              <GridItem px="7%" colSpan="12" pt={0} minH="100vh">
                 <chakra.span
-                  // {...HEADING_PROPS}
                   textAlign="center"
                   fontWeight="600"
                   fontSize="lg"
@@ -267,7 +280,6 @@ const Homepage = () => {
                 >
                   <Text
                     mb={18}
-                    // mb={[12, 12, 12, null, 48]}
                     fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
                   >
                     We believe that the blockchain is for everyone. This
@@ -334,7 +346,7 @@ const Homepage = () => {
                     <Heading textAlign="center ">Social media posts</Heading>
                   </Stack>
                 </SimpleGrid>
-                {/* <Center>
+                <Center>
                   <Heading pt="160px" pb="60px">
                     Moonstream is meant for you if
                   </Heading>
@@ -343,49 +355,59 @@ const Homepage = () => {
                   w="100%"
                   direction={["column", "row", "column", null, "column"]}
                   flexWrap={["nowrap", "nowrap", "nowrap", null, "nowrap"]}
-                  pb="66px"
+                  pb="32px"
                 >
                   <ConnectedButtons
-                    title={"You are..."}
-                    button1={{
-                      label: "Crypto trader",
-                      link: "/#cryptoTrader",
+                    title={"You need a fusion of..."}
+                    button4={{
+                      label: "Blockchain analytics",
+                      link: "/#analytics",
                       onClick: () => {
                         mixpanel.get_distinct_id() &&
                           mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                            [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `scroll to CryptoTrader`,
+                            [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Connected buttons: scroll to analytics`,
+                          });
+                      },
+                    }}
+                    button1={{
+                      label: "TX pool real time data",
+                      link: "/#txpool",
+                      onClick: () => {
+                        mixpanel.get_distinct_id() &&
+                          mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                            [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Connected buttons: scroll to txpool`,
                           });
                       },
                     }}
                     button2={{
-                      label: "Algorithmic Fund",
-                      link: "/#algoFund",
+                      label: "Exchange price stream",
+                      link: "/#exchanges",
                       onClick: () => {
                         mixpanel.get_distinct_id() &&
                           mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                            [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `scroll to AlgoFund`,
+                            [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Connected buttons: scroll to exchanges`,
                           });
                       },
                     }}
                     button3={{
-                      label: "Developer",
+                      label: "Social media posts",
                       link: "/#smartDeveloper",
                       onClick: () => {
                         mixpanel.get_distinct_id() &&
                           mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                            [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `scroll to Developer`,
+                            [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Connected buttons: scroll to developer`,
                           });
                       },
                     }}
                   />
-                </Flex> */}
+                </Flex>
               </GridItem>
-              {/* <GridItem
+              <GridItem
                 px="7%"
                 colSpan="12"
                 pt={["1rem", "1rem", "5.125rem", null, "5.125rem"]}
                 pb={["0", "66px", null, "66px"]}
-                id="cryptoTrader"
+                id="txpool"
                 minH={ui.isMobileView ? "100vh" : null}
               >
                 <SplitWithImage
@@ -394,16 +416,18 @@ const Homepage = () => {
                     onClick: () => {
                       mixpanel.get_distinct_id() &&
                         mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: Crypto trader`,
+                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer txpool button`,
                         });
-                      toggleModal("hubspot-trader");
+                      toggleModal("hubspot-developer");
                     },
                   }}
                   elementName={"element1"}
                   colorScheme="green"
-                  badge={`For crypto traders`}
-                  title={``}
-                  body={``}
+                  badge={`Transaction pool data`}
+                  title={`Get real-time access to transaction pool`}
+                  body={`In blockchains, transaction pool is place where future blocks are being forged.
+                  Having insight in to this dynamic, always changing data means to be in the present moment
+                  `}
                   bullets={[
                     {
                       text: `Subscribe to the defi contracts you care about`,
@@ -412,28 +436,28 @@ const Homepage = () => {
                       bgColor: "green.900",
                     },
                     {
-                      text: `Make sense of how others are calling these contracts using Moonstream dashboards.
+                      text: `Get data directly from the transaction pool through our global network of Ethereum nodes
                       `,
                       icon: RiDashboardFill,
                       color: "green.50",
                       bgColor: "green.900",
                     },
                     {
-                      text: `Get data directly from the transaction pool through our global network of Ethereum nodes`,
+                      text: `Setup notifications to be first to know when and how your contract is being interacted`,
                       icon: GiMeshBall,
                       color: "green.50",
                       bgColor: "green.900",
                     },
                   ]}
-                  imgURL={assets["cryptoTraders"]}
+                  imgURL={assets["pendingTransactions"]}
                 />
-              </GridItem> */}
-              {/* <GridItem
+              </GridItem>
+              <GridItem
                 px="7%"
                 colSpan="12"
                 pt={["1rem", "1rem", "5.125rem", null, "5.125rem"]}
                 pb={["0", "66px", null, "66px"]}
-                id="algoFund"
+                id="exchanges"
                 minH={ui.isMobileView ? "100vh" : null}
               >
                 <SplitWithImage
@@ -442,15 +466,17 @@ const Homepage = () => {
                     onClick: () => {
                       mixpanel.get_distinct_id() &&
                         mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: Algo fund`,
+                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer exchanges button`,
                         });
-                      toggleModal("hubspot-fund");
+                      toggleModal("hubspot-developer");
                     },
                   }}
                   elementName={"element2"}
                   mirror={true}
                   colorScheme="orange"
-                  badge={`For algorithmic funds`}
+                  badge={`Centralized exchange prices`}
+                  title={`Market data - just in time! `}
+                  body={`Moonstream is your tool of choice to built algorithms and tools which need to source data from exchange services. Whether it is on-chian automatic market maker, or centralized exchange - get numbers in one dashboard`}
                   bullets={[
                     {
                       text: `Get API access to your stream`,
@@ -471,9 +497,9 @@ const Homepage = () => {
                       bgColor: "orange.900",
                     },
                   ]}
-                  imgURL={assets["algorithmicFunds"]}
+                  imgURL={assets["priceInformation"]}
                 />
-              </GridItem> */}
+              </GridItem>
               <GridItem
                 px="7%"
                 colSpan="12"
@@ -488,7 +514,7 @@ const Homepage = () => {
                     onClick: () => {
                       mixpanel.get_distinct_id() &&
                         mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer`,
+                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer smartDeveloper button`,
                         });
                       toggleModal("hubspot-developer");
                     },
@@ -506,28 +532,87 @@ const Homepage = () => {
                   }}
                   elementName={"element3"}
                   colorScheme="blue"
-                  badge={`For smart contract developers`}
+                  title={`What really matters - is people`}
+                  badge={`stay social`}
+                  body={`It's all about the community. Stay informed about what happens in social networks, news portals and rss feeds`}
                   bullets={[
                     {
-                      text: `Monitor blockchain data in real time`,
-                      icon: IoTelescopeSharp,
+                      text: `Use our AI to get semantics and find patterns`,
+                      icon: GiMeshBall,
                       color: "blue.50",
                       bgColor: "blue.900",
                     },
                     {
-                      text: `Set up alerts on suspicious activity`,
+                      text: `Secure your community wellbeing by automatically detecting social scam`,
                       icon: GiSuspicious,
                       color: "blue.50",
                       bgColor: "blue.900",
                     },
                     {
-                      text: `Register webhooks to connect your off-chain infrastructure`,
+                      text: `Register on-chain webhooks to take action`,
                       icon: GiHook,
                       color: "blue.50",
                       bgColor: "blue.900",
                     },
                   ]}
-                  imgURL={assets["cryptoTraders"]}
+                  imgURL={assets["socialMediaPosts"]}
+                />
+              </GridItem>
+              <GridItem
+                px="7%"
+                colSpan="12"
+                pt={["1rem", "1rem", "1.125rem", null, "5.125rem"]}
+                pb={["0", "66px", null, "66px"]}
+                id="analytics"
+                minH={ui.isMobileView ? "100vh" : null}
+              >
+                <SplitWithImage
+                  mirror
+                  cta={{
+                    label: "Want to find out more?",
+                    onClick: () => {
+                      mixpanel.get_distinct_id() &&
+                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer analytics button`,
+                        });
+                      toggleModal("hubspot-developer");
+                    },
+                  }}
+                  socialButton={{
+                    url: "https://github.com/bugout-dev/moonstream/",
+                    network: "github",
+                    label: "See our github",
+                    onClick: () => {
+                      mixpanel.get_distinct_id() &&
+                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Github link in landing page`,
+                        });
+                    },
+                  }}
+                  elementName={"element3"}
+                  colorScheme="red"
+                  badge={`Analyse blockchain activity`}
+                  bullets={[
+                    {
+                      text: `Monitor blockchain data in real time`,
+                      icon: IoTelescopeSharp,
+                      color: "red.50",
+                      bgColor: "red.900",
+                    },
+                    {
+                      text: `Set up alerts on suspicious activity`,
+                      icon: GiSuspicious,
+                      color: "red.50",
+                      bgColor: "red.900",
+                    },
+                    {
+                      text: `Register webhooks to connect your off-chain infrastructure`,
+                      icon: GiHook,
+                      color: "red.50",
+                      bgColor: "red.900",
+                    },
+                  ]}
+                  imgURL={assets["smartDevelopers"]}
                 />
               </GridItem>
               <GridItem
@@ -551,7 +636,6 @@ const Homepage = () => {
                                 [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Join our discord`,
                               }
                             );
-                          toggleModal("hubspot");
                         }}
                         isExternal
                         href={"https://discord.gg/K56VNUQGvA"}
@@ -566,7 +650,7 @@ const Homepage = () => {
                             mixpanel.track(
                               `${MIXPANEL_EVENTS.BUTTON_CLICKED}`,
                               {
-                                [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer`,
+                                [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer want to find more button`,
                               }
                             );
                           toggleModal("hubspot-developer");
