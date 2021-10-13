@@ -8,8 +8,6 @@ import {
   Stack,
   ButtonGroup,
   Spacer,
-  Radio,
-  RadioGroup,
   UnorderedList,
   ListItem,
   Fade,
@@ -28,7 +26,6 @@ import {
 import StepProgress from "../src/components/StepProgress";
 import { ArrowLeftIcon, ArrowRightIcon } from "@chakra-ui/icons";
 import Scrollable from "../src/components/Scrollable";
-import AnalyticsContext from "../src/core/providers/AnalyticsProvider/context";
 import NewSubscription from "../src/components/NewSubscription";
 import StreamEntry from "../src/components/StreamEntry";
 import SubscriptionsList from "../src/components/SubscriptionsList";
@@ -39,8 +36,6 @@ import { FaFilter } from "react-icons/fa";
 const Welcome = () => {
   const { subscriptionsCache } = useSubscriptions();
   const ui = useContext(UIContext);
-  const { mixpanel, isLoaded, MIXPANEL_PROPS } = useContext(AnalyticsContext);
-  const [profile, setProfile] = React.useState();
   const [showSubscriptionForm, setShowSubscriptionForm] = useBoolean(true);
 
   useEffect(() => {
@@ -52,14 +47,6 @@ const Welcome = () => {
   const progressButtonCallback = (index) => {
     ui.setOnboardingStep(index);
   };
-
-  useEffect(() => {
-    if (profile && isLoaded) {
-      mixpanel.people.set({
-        [`${MIXPANEL_PROPS.USER_SPECIALITY}`]: profile,
-      });
-    }
-  }, [profile, MIXPANEL_PROPS, isLoaded, mixpanel]);
 
   const SubscriptonCreatedCallback = () => {
     setShowSubscriptionForm.off();
@@ -249,48 +236,6 @@ const Welcome = () => {
                     </AccordionPanel>
                   </AccordionItem>
                 </Accordion>
-              </Stack>
-
-              <Stack
-                px={12}
-                // mt={24}
-                bgColor="gray.50"
-                borderRadius="xl"
-                boxShadow="xl"
-                py={4}
-              >
-                <Heading as="h4" size="md">
-                  Tell us more about your needs
-                </Heading>
-                <Text fontWeight="semibold" pl={2}>
-                  In order to create the best possible experience, we would love
-                  to find out some more about you.
-                </Text>
-                <Text fontWeight="semibold" pl={2}>
-                  Please tell us what profile describes you best.{" "}
-                  <i>
-                    This is purely analytical data, you can change it anytime
-                    later.
-                  </i>
-                </Text>
-                <RadioGroup
-                  position="relative"
-                  onChange={setProfile}
-                  value={profile}
-                  // fontWeight="bold"
-                  colorScheme="orange"
-                  // py={0}
-                  // my={0}
-                >
-                  <Stack
-                    direction={["column", "row", null]}
-                    justifyContent="space-evenly"
-                  >
-                    <Radio value="trader">I am trading crypto currency</Radio>
-                    <Radio value="fund">I represent investment fund</Radio>
-                    <Radio value="developer">I am developer</Radio>
-                  </Stack>
-                </RadioGroup>
               </Stack>
             </Stack>
           </Fade>

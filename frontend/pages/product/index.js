@@ -1,26 +1,30 @@
 import React, { useEffect, useState, useLayoutEffect } from "react";
 import {
-  Heading,
   Text,
   Flex,
   Link,
   Stack,
-  chakra,
   useMediaQuery,
   useBreakpointValue,
+  Center,
 } from "@chakra-ui/react";
-import { DEFAULT_METATAGS, AWS_ASSETS_PATH } from "../../src/core/constants";
-export async function getStaticProps() {
-  return {
-    props: { metaTags: { ...DEFAULT_METATAGS } },
-  };
-}
-
+import { AWS_ASSETS_PATH } from "../../src/core/constants";
+import SplitWithImage from "../../src/components/SplitWithImage";
+import mixpanel from "mixpanel-browser";
+import {
+  MIXPANEL_PROPS,
+  MIXPANEL_EVENTS,
+} from "../../src/core/providers/AnalyticsProvider/constants";
 const assets = {
   background720: `${AWS_ASSETS_PATH}/product-background-720x405.png`,
   background1920: `${AWS_ASSETS_PATH}/product-background-720x405.png`,
   background2880: `${AWS_ASSETS_PATH}/product-background-720x405.png`,
   background3840: `${AWS_ASSETS_PATH}/product-background-720x405.png`,
+  environment: `${AWS_ASSETS_PATH}/product_comic/environment.png`,
+  developers: `${AWS_ASSETS_PATH}/product_comic/developers.png`,
+  meanwhile: `${AWS_ASSETS_PATH}/product_comic/meanwhile.png`,
+  struggle: `${AWS_ASSETS_PATH}/product_comic/struggle.png`,
+  solution: `${AWS_ASSETS_PATH}/product_comic/solution.png`,
 };
 
 const Product = () => {
@@ -131,72 +135,115 @@ const Product = () => {
       alignItems="center"
       pb={24}
     >
-      <Stack mx={margin} my={12} maxW="1700px" textAlign="justify">
-        <Heading
-          as="h2"
-          size="md"
-          placeSelf="center"
-          px={12}
-          py={2}
-          borderTopRadius="xl"
-        >
-          {`Why you'll love Moonstream`}
-        </Heading>
-        <chakra.span pl={2} px={12} py={2}>
-          <Text mb={3}>
-            We strive for financial inclusion. With cryptocurrencies becoming
-            mainstream, now is the time for anyone with a computer and access to
-            the Internet to utilize this opportunity to make passive income.
-            We’re here to make it easier.
-          </Text>
-          <Text mb={3}>
-            Right now our source of data is Ethereum blockchain. Our goal is to
-            provide a live view of the transactions taking place on every public
-            blockchain - from the activity of specific accounts or smart
-            contracts to updates about general market movements.
-          </Text>
-          <Text mb={3}>
-            This information comes from the blockchains themselves, from their
-            mempools/transaction pools, and from centralized exchanges, social
-            media, and the news. This forms a stream of information tailored to
-            your specific needs.
-          </Text>
-          <Text mb={3}>
-            We’re giving you a macro view of the crypto market with direct
-            access from Moonstream dashboards to execute transactions. You can
-            also set up programs which execute (on- or off-chain) when your
-            stream meets certain conditions.
-          </Text>
-          <Text mb={3}>
-            Moonstream is accessible through dashboard, API and webhooks.
-          </Text>
-          <Text mb={3}>
-            Moonstream’s financial inclusion goes beyond providing access to
-            data. All of our work is open source as we do not believe that
-            proprietary technologies are financially inclusive.
-          </Text>
-          <Text mb={3}>
-            You can read{" "}
-            <Link
-              textColor="orange.900"
-              isExternal
-              href="https://github.com/bugout-dev/moonstream"
-            >
-              our code on GitHub.
-            </Link>{" "}
-            and keep track of our progress using{" "}
-            <Link
-              textColor="orange.900"
-              isExternal
-              href="https://github.com/bugout-dev/moonstream/milestones"
-            >
-              the Moonstream milestones
-            </Link>
-            .
-          </Text>
-        </chakra.span>
+      <Stack mx={margin} my={[4, 6, 12]} maxW="1700px" textAlign="justify">
+        <SplitWithImage
+          py={["12px", "24px", "48px"]}
+          title={`Smart contracts are starting to dominate blockchain activity`}
+          elementName={"element1"}
+          colorScheme="blue"
+          body={`web3 stands for decentralized automation through smart contracts.
+          Smart contract developers are building the future of the decentralized web.
+          `}
+          imgURL={assets["environment"]}
+          imgBoxShadow="lg"
+        />
+        <SplitWithImage
+          mirror
+          py={["12px", "24px", "48px"]}
+          elementName={"element1"}
+          colorScheme="blue"
+          title={`But smart contract activity can be opaque`}
+          body={`Even smart contract developers have a difficult time finding out who is using their smart contracts and how.
+          This makes it difficult for them to improve their users’ experience and to secure their decentralized applications.`}
+          imgURL={assets["developers"]}
+          imgBoxShadow="lg"
+        />
+        <SplitWithImage
+          elementName={"element1"}
+          colorScheme="blue"
+          py={["12px", "24px", "48px"]}
+          title={`Blockchain explorers are not enough`}
+          body={`Today, analyzing smart contract activity involves viewing data in or crawling data from blockchain explorers.
+          The process is tedious and unreliable, and the data is difficult to interpret.
+          `}
+          imgURL={assets["struggle"]}
+          imgBoxShadow="lg"
+        />
+        <SplitWithImage
+          mirror
+          elementName={"element1"}
+          py={["12px", "24px", "48px"]}
+          colorScheme="blue"
+          title={`Meanwhile, on Web 2.0`}
+          body={`Developers on the centralized web have access to tools like Google Analytics and Mixpanel.
+          They can instantly build dashboards to understand their user journeys and identify any issues that their users may be experiencing.
+          Nothing like this exists for the decentralized web… until now.
+          `}
+          imgURL={assets["meanwhile"]}
+          imgBoxShadow="lg"
+        />
+        <SplitWithImage
+          elementName={"element1"}
+          colorScheme="blue"
+          py={["12px", "24px", "48px"]}
+          title={`Meet Moonstream!`}
+          body={`Moonstream brings product analytics to web3.
+          Instantly get analytics for any smart contract you write.
+          We don’t care which EIPs you implement and which ones you don’t, or how custom your code is. Moonstream will immediately start giving you insights into what your users are doing with your contracts.
+          `}
+          imgURL={assets["solution"]}
+          imgBoxShadow="lg"
+        />
+        <Center>
+          <Stack placeContent="center">
+            <Text fontWeight="500" fontSize="24px">
+              To find out more, join us on{" "}
+              <Link
+                color="orange.900"
+                onClick={() => {
+                  mixpanel.get_distinct_id() &&
+                    mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                      [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Join our discord`,
+                    });
+                }}
+                isExternal
+                href={"https://discord.gg/K56VNUQGvA"}
+              >
+                Discord
+              </Link>{" "}
+            </Text>
+          </Stack>
+        </Center>
       </Stack>
     </Flex>
   );
 };
+
+export async function getStaticProps() {
+  const metaTags = {
+    title: "Moonstream.to: web3 analytics",
+    description:
+      "Moonstream brings product analytics to web3. Instantly get analytics for any smart contract you write.",
+    keywords:
+      "blockchain, crypto, data, trading, smart contracts, ethereum, solana, transactions, defi, finance, decentralized, analytics, product",
+    url: "https://www.moonstream.to/product",
+    image: `${AWS_ASSETS_PATH}/product_comic/solution.png`,
+  };
+
+  const assetPreload = Object.keys(assets).map((key) => {
+    return {
+      rel: "preload",
+      href: assets[key],
+      as: "image",
+    };
+  });
+  const preconnects = [{ rel: "preconnect", href: "https://s3.amazonaws.com" }];
+
+  const preloads = assetPreload.concat(preconnects);
+
+  return {
+    props: { metaTags, preloads },
+  };
+}
+
 export default Product;
