@@ -6,6 +6,7 @@ import "highlight.js/styles/github.css";
 import "focus-visible/dist/focus-visible";
 import dynamic from "next/dynamic";
 import { QueryClient, QueryClientProvider } from "react-query";
+import { ReactQueryDevtools } from "react-query/devtools";
 
 const HeadSEO = dynamic(() => import("../src/components/HeadSEO"), {
   ssr: false,
@@ -69,6 +70,7 @@ export default function CachingApp({ Component, pageProps }) {
       {pageProps.metaTags && <HeadSEO {...pageProps.metaTags} />}
       <HeadLinks links={headLinks} />
       <QueryClientProvider client={queryClient}>
+        <ReactQueryDevtools initialIsOpen={false} />
         <AppContext>{getLayout(<Component {...pageProps} />)}</AppContext>
       </QueryClientProvider>
     </>

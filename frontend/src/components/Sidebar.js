@@ -77,7 +77,7 @@ const Sidebar = () => {
           <Menu iconShape="square">
             <MenuItem icon={<ImStatsBars />}>
               {" "}
-              <RouterLink href="/analytics">Analytics </RouterLink>
+              <RouterLink href="/nft">NFT Analytics </RouterLink>
             </MenuItem>
           </Menu>
           <Menu iconShape="square">

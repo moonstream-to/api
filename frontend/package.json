@@ -14,13 +14,15 @@
     "@chakra-ui/react": "^1.6.4",
     "@emotion/react": "^11.4.0",
     "@emotion/styled": "^11.3.0",
+    "@nivo/bar": "^0.73.1",
+    "@nivo/core": "^0.73.0",
     "@stripe/stripe-js": "^1.16.0",
     "axios": "^0.21.1",
     "focus-visible": "^5.2.0",
     "framer-motion": "^4.1.17",
     "mixpanel-browser": "^2.41.0",
     "moment": "^2.29.1",
-    "next": "11.0.1",
+    "next": "11.1.2",
     "nprogress": "^0.2.0",
     "react": "^17.0.2",
     "react-calendly": "^2.2.1",
@@ -37,7 +39,8 @@
     "react-xarrows": "^2.0.2",
     "showdown": "^1.9.1",
     "showdown-highlight": "^2.1.8",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "web3": "^1.5.2"
   },
   "devDependencies": {
     "@babel/core": "^7.14.3",

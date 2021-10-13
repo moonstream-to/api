@@ -662,6 +662,17 @@ const Homepage = () => {
                   </Stack>
                 </Center>
               </GridItem>
+              <GridItem
+                placeItems="center"
+                w="100%"
+                colSpan="12"
+                pt={["0", "0", "5.125rem", null, "5.125rem"]}
+                pb="120px"
+              >
+                <Center>
+                  <ChakraImage src={assets["comicWhite"]}></ChakraImage>
+                </Center>
+              </GridItem>
             </Grid>
           </Flex>
         </Box>
