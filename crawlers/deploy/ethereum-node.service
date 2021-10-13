@@ -7,7 +7,7 @@ User=ubuntu
 Group=www-data
 ExecStart=/usr/bin/geth --syncmode full \
     --port 41381 --datadir /mnt/disks/nodes/ethereum \
-    --txpool.globalslots 153600 --txpool.globalqueue 30720 \
+    --txpool.globalslots 153600 --txpool.globalqueue 1024 \
     --http --http.port 18375 --http.api eth,web3,txpool
 ExecStop=/bin/kill -s SIGINT -$MAINPID
 TimeoutStopSec=300
