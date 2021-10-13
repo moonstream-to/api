@@ -311,10 +311,12 @@ const Homepage = () => {
                   pb="32px"
                 >
                   <ConnectedButtons
+                    speedBase={0.3}
                     title={"You need a fusion of..."}
                     button4={{
                       label: "Blockchain analytics",
-                      link: "/#analytics",
+                      speed: 1,
+                      // link: "/#analytics",
                       onClick: () => {
                         mixpanel.get_distinct_id() &&
                           mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
@@ -324,7 +326,8 @@ const Homepage = () => {
                     }}
                     button1={{
                       label: "TX pool real time data",
-                      link: "/#txpool",
+                      speed: 9,
+                      // link: "/#txpool",
                       onClick: () => {
                         mixpanel.get_distinct_id() &&
                           mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
@@ -334,7 +337,8 @@ const Homepage = () => {
                     }}
                     button2={{
                       label: "Exchange price stream",
-                      link: "/#exchanges",
+                      speed: 6,
+                      // link: "/#exchanges",
                       onClick: () => {
                         mixpanel.get_distinct_id() &&
                           mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
@@ -344,7 +348,8 @@ const Homepage = () => {
                     }}
                     button3={{
                       label: "Social media posts",
-                      link: "/#smartDeveloper",
+                      speed: 3,
+                      // link: "/#smartDeveloper",
                       onClick: () => {
                         mixpanel.get_distinct_id() &&
                           mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
