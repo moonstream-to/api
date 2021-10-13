@@ -129,7 +129,6 @@ const Product = () => {
       bgColor="transparent"
       backgroundImage={`url(${assets[`${background}`]})`}
       bgSize="cover"
-      // boxSize="full"
       minH="100vh"
       direction="column"
       alignItems="center"
@@ -141,31 +140,9 @@ const Product = () => {
           title={`Smart contracts are starting to dominate blockchain activity`}
           elementName={"element1"}
           colorScheme="blue"
-          // badge={`State of art`}
           body={`web3 stands for decentralized automation through smart contracts.
           Smart contract developers are building the future of the decentralized web.
           `}
-          // bullets={[
-          //   {
-          //     text: `Subscribe to the defi contracts you care about`,
-          //     // icon: FaFileContract,
-          //     color: "green.50",
-          //     bgColor: "green.900",
-          //   },
-          //   {
-          //     text: `Make sense of how others are calling these contracts using Moonstream dashboards.
-          //             `,
-          //     // icon: RiDashboardFill,
-          //     color: "green.50",
-          //     bgColor: "green.900",
-          //   },
-          //   {
-          //     text: `Get data directly from the transaction pool through our global network of Ethereum nodes`,
-          //     // icon: GiMeshBall,
-          //     color: "green.50",
-          //     bgColor: "green.900",
-          //   },
-          // ]}
           imgURL={assets["environment"]}
           imgBoxShadow="lg"
         />
@@ -174,31 +151,9 @@ const Product = () => {
           py={["12px", "24px", "48px"]}
           elementName={"element1"}
           colorScheme="blue"
-          // badge={`development tool`}
           title={`But smart contract activity can be opaque`}
           body={`Even smart contract developers have a difficult time finding out who is using their smart contracts and how.
           This makes it difficult for them to improve their users’ experience and to secure their decentralized applications.`}
-          // bullets={[
-          //   {
-          //     text: `Subscribe to the defi contracts you care about`,
-          //     // icon: FaFileContract,
-          //     color: "green.50",
-          //     bgColor: "green.900",
-          //   },
-          //   {
-          //     text: `Make sense of how others are calling these contracts using Moonstream dashboards.
-          //             `,
-          //     // icon: RiDashboardFill,
-          //     color: "green.50",
-          //     bgColor: "green.900",
-          //   },
-          //   {
-          //     text: `Get data directly from the transaction pool through our global network of Ethereum nodes`,
-          //     // icon: GiMeshBall,
-          //     color: "green.50",
-          //     bgColor: "green.900",
-          //   },
-          // ]}
           imgURL={assets["developers"]}
           imgBoxShadow="lg"
         />
@@ -206,7 +161,6 @@ const Product = () => {
           elementName={"element1"}
           colorScheme="blue"
           py={["12px", "24px", "48px"]}
-          // badge={`Complex functionality`}
           title={`Blockchain explorers are not enough`}
           body={`Today, analyzing smart contract activity involves viewing data in or crawling data from blockchain explorers.
           The process is tedious and unreliable, and the data is difficult to interpret.
@@ -219,7 +173,6 @@ const Product = () => {
           elementName={"element1"}
           py={["12px", "24px", "48px"]}
           colorScheme="blue"
-          // badge={`Simple to use`}
           title={`Meanwhile, on Web 2.0`}
           body={`Developers on the centralized web have access to tools like Google Analytics and Mixpanel.
           They can instantly build dashboards to understand their user journeys and identify any issues that their users may be experiencing.
