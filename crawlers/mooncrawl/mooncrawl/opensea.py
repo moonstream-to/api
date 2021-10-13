@@ -114,25 +114,6 @@ def write_contract_to_database(
     if not exists then get id and write label
     """
 
-    address_id = (
-        db_session.query(EthereumAddress.id)
-        .filter(EthereumAddress.address == token_address)
-        .one_or_none()
-    )
-
-    if not address_id:
-        try:
-            register_address = EthereumAddress(address=token_address)
-            db_session.add(register_address)
-            db_session.commit()
-            address_id = register_address.id
-        except Exception as err:
-
-            db_session.rollback()
-            print(f"Error adding address to database: {err}")
-    else:
-        address_id = address_id[0]
-
     label_data = {
         "name": name,
         "opensea_url": f"https://opensea.io/assets/{slug}",
@@ -144,7 +125,7 @@ def write_contract_to_database(
 
     eth_label = EthereumLabel(
         label="opensea_nft",
-        address_id=address_id,
+        address=token_address,
         label_data=label_data,
     )
     try:
