@@ -55,31 +55,6 @@ def push_to_bucket(contract_data: Dict[str, Any], contract_file: str):
     )
 
 
-def get_address_id(db_session: Session, contract_address: str) -> int:
-    """
-    Searches for given address in EthereumAddress table,
-    If doesn't find one, creates new.
-    Returns id of address
-    """
-    query = db_session.query(EthereumAddress.id).filter(
-        EthereumAddress.address == contract_address
-    )
-    id = query.one_or_none()
-    if id is not None:
-        return id[0]
-
-    smart_contract = EthereumAddress(
-        address=contract_address,
-    )
-    try:
-        db_session.add(smart_contract)
-        db_session.commit()
-        return smart_contract.id
-    except Exception as e:
-        db_session.rollback()
-        raise e
-
-
 def crawl_step(db_session: Session, contract: VerifiedSmartContract, crawl_url: str):
     attempt = 0
     current_interval = 2
@@ -110,10 +85,9 @@ def crawl_step(db_session: Session, contract: VerifiedSmartContract, crawl_url: 
     push_to_bucket(contract_info, object_key)
 
     try:
-        eth_address_id = get_address_id(db_session, contract.address)
         eth_label = EthereumLabel(
             label=ETHERSCAN_SMARTCONTRACTS_LABEL_NAME,
-            address_id=eth_address_id,
+            address_id=contract.address,
             label_data={
                 "object_uri": f"s3://{bucket}/{object_key}",
                 "name": contract.name,

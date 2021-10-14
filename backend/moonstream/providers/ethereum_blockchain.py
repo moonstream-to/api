@@ -229,8 +229,7 @@ def query_ethereum_transactions(
 
     if parsed_filters.labels:
         label_clause = (
-            db_session.query(EthereumAddress)
-            .join(EthereumLabel, EthereumAddress.id == EthereumLabel.address_id)
+            db_session.query(EthereumLabel)
             .filter(
                 or_(
                     *[

@@ -46,8 +46,12 @@ def get_contract_source_info(
     if id is None:
         return None
     labels = (
-        db_session.query(EthereumLabel).filter(EthereumLabel.address_id == id[0]).all()
+        db_session.query(EthereumLabel)
+        .filter(EthereumLabel.address == contract_address)
+        .all()
     )
+    if not labels:
+        return None
 
     for label in labels:
         if label.label == ETHERSCAN_SMARTCONTRACT_LABEL_NAME:
@@ -80,12 +84,6 @@ class LabelNames(Enum):
 def get_ethereum_address_info(
     db_session: Session, address: str
 ) -> Optional[data.EthereumAddressInfo]:
-    query = db_session.query(EthereumAddress.id).filter(
-        EthereumAddress.address == address
-    )
-    id = query.one_or_none()
-    if id is None:
-        return None
 
     address_info = data.EthereumAddressInfo(address=address)
     etherscan_address_url = f"https://etherscan.io/address/{address}"
@@ -94,7 +92,7 @@ def get_ethereum_address_info(
     # Checking for token:
     coinmarketcap_label: Optional[EthereumLabel] = (
         db_session.query(EthereumLabel)
-        .filter(EthereumLabel.address_id == id[0])
+        .filter(EthereumLabel.address == address)
         .filter(EthereumLabel.label == LabelNames.COINMARKETCAP_TOKEN.value)
         .order_by(text("created_at desc"))
         .limit(1)
@@ -114,7 +112,7 @@ def get_ethereum_address_info(
     # Checking for smart contract
     etherscan_label: Optional[EthereumLabel] = (
         db_session.query(EthereumLabel)
-        .filter(EthereumLabel.address_id == id[0])
+        .filter(EthereumLabel.address == address)
         .filter(EthereumLabel.label == LabelNames.ETHERSCAN_SMARTCONTRACT.value)
         .order_by(text("created_at desc"))
         .limit(1)
@@ -130,7 +128,7 @@ def get_ethereum_address_info(
     # Checking for smart contract
     erc721_label: Optional[EthereumLabel] = (
         db_session.query(EthereumLabel)
-        .filter(EthereumLabel.address_id == id[0])
+        .filter(EthereumLabel.address == address)
         .filter(EthereumLabel.label == LabelNames.ERC721.value)
         .order_by(text("created_at desc"))
         .limit(1)
@@ -152,24 +150,23 @@ def get_address_labels(
     """
     Attach labels to addresses.
     """
-    query = db_session.query(EthereumAddress)
     if addresses is not None:
         addresses_list = addresses.split(",")
-        query = query.filter(EthereumAddress.address.in_(addresses_list))
-
-    addresses_obj = query.order_by(EthereumAddress.id).slice(start, start + limit).all()
+        addresses_obj = addresses_list[start : start + limit]
+    else:
+        addresses_obj = []
 
     addresses_response = data.AddressListLabelsResponse(addresses=[])
 
     for address in addresses_obj:
         labels_obj = (
             db_session.query(EthereumLabel)
-            .filter(EthereumLabel.address_id == address.id)
+            .filter(EthereumLabel.address == address)
             .all()
         )
         addresses_response.addresses.append(
             data.AddressLabelsResponse(
-                address=address.address,
+                address=address,
                 labels=[
                     data.AddressLabelResponse(
                         label=label.label, label_data=label.label_data

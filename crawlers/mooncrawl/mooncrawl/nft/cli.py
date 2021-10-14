@@ -12,7 +12,7 @@ from typing import Any, cast, Dict, Optional
 from bugout.app import Bugout
 from bugout.journal import SearchOrder
 from moonstreamdb.db import yield_db_session_ctx
-from moonstreamdb.models import EthereumBlock, EthereumTransaction, EthereumLabel
+from moonstreamdb.models import EthereumBlock
 from sqlalchemy.orm.session import Session
 from web3 import Web3
 
