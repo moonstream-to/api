@@ -87,7 +87,7 @@ def crawl_step(db_session: Session, contract: VerifiedSmartContract, crawl_url: 
     try:
         eth_label = EthereumLabel(
             label=ETHERSCAN_SMARTCONTRACTS_LABEL_NAME,
-            address_id=contract.address,
+            address=contract.address,
             label_data={
                 "object_uri": f"s3://{bucket}/{object_key}",
                 "name": contract.name,
