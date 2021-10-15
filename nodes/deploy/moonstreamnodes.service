@@ -1,0 +1,14 @@
+[Unit]
+Description=moonstreamnodes-service
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/moonstream/nodes/server
+EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
+ExecStart=/home/ubuntu/moonstream/nodes/server/moonstreamnodes -host 127.0.0.1 -port "${MOONSTREAM_NODE_SERVER_PORT}"
+SyslogIdentifier=moonstreamnodes
+
+[Install]
+WantedBy=multi-user.tar
