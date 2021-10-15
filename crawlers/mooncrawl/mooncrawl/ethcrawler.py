@@ -110,7 +110,7 @@ def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
             logger.warning(
                 f"Block difference is too large: {block_number_difference}, crawling {args.confirmations + 1} latest blocks"
             )
-            bottom_block_number = latest_block_number - args.confirmations + 1
+            bottom_block_number = latest_block_number - args.confirmations - 1
         else:
             if args.start is None:
                 if block_number_difference < args.confirmations:
