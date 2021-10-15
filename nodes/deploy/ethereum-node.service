@@ -5,7 +5,7 @@ After=network.target
 [Service]
 User=ubuntu
 Group=www-data
-ExecStart=/usr/bin/geth --syncmode full --cache 4096 \
+ExecStart=/usr/bin/geth --syncmode snap --cache 4096 \
     --port 41380 --datadir /mnt/disks/nodes/ethereum \
     --txpool.globalslots 153600 --txpool.globalqueue 3072 \
     --http --http.port 18370 --http.api eth,web3,txpool
