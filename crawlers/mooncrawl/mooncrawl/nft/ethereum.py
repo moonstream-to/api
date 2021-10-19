@@ -260,46 +260,9 @@ def get_block_bounds(
     return start, end
 
 
-def ensure_addresses(db_session: Session, addresses: Set[str]) -> Dict[str, int]:
-    """
-    Ensures that the given addresses are registered in the ethereum_addresses table of the given
-    moonstreamdb database connection. Returns a mapping from the addresses to the ids of their
-    corresponding row in the ethereum_addresses table.
-
-    Returns address_ids for *every* address, not just the new ones.
-    """
-    if len(addresses) == 0:
-        return {}
-
-    # SQLAlchemy reference:
-    # https://docs.sqlalchemy.org/en/14/orm/persistence_techniques.html#using-postgresql-on-conflict-with-returning-to-return-upserted-orm-objects
-    stmt = (
-        insert(EthereumAddress)
-        .values([{"address": address} for address in addresses])
-        .on_conflict_do_nothing(index_elements=[EthereumAddress.address])
-    )
-
-    try:
-        db_session.execute(stmt)
-        db_session.commit()
-    except Exception:
-        db_session.rollback()
-        raise
-
-    rows = (
-        db_session.query(EthereumAddress)
-        .filter(EthereumAddress.address.in_(addresses))
-        .all()
-    )
-    address_ids = {address.address: address.id for address in rows}
-    return address_ids
-
-
-def label_erc721_addresses(
-    w3: Web3, db_session: Session, address_ids: List[Tuple[str, int]]
-) -> None:
+def label_erc721_addresses(w3: Web3, db_session: Session, addresses: List[str]) -> None:
     labels: List[EthereumLabel] = []
-    for address, id in address_ids:
+    for address in addresses:
         try:
             contract_info = get_erc721_contract_info(w3, address)
 
@@ -319,7 +282,7 @@ def label_erc721_addresses(
 
             labels.append(
                 EthereumLabel(
-                    address_id=id,
+                    address=address,
                     label=NFT_LABEL,
                     label_data={
                         "name": contract_name,
@@ -342,7 +305,7 @@ def label_erc721_addresses(
 def label_key(label: EthereumLabel) -> Tuple[str, int, int, str, str]:
     return (
         label.transaction_hash,
-        label.address_id,
+        label.address,
         label.label_data["tokenId"],
         label.label_data["from"],
         label.label_data["to"],
@@ -350,7 +313,7 @@ def label_key(label: EthereumLabel) -> Tuple[str, int, int, str, str]:
 
 
 def label_transfers(
-    db_session: Session, transfers: List[NFTTransfer], address_ids: Dict[str, int]
+    db_session: Session, transfers: List[NFTTransfer], addresses: Set[str]
 ) -> None:
     """
     Adds "nft_mint" or "nft_transfer" to the (transaction, address) pair represented by each of the
@@ -361,10 +324,9 @@ def label_transfers(
     for transfer in transfers:
         transaction_hash = transfer.transfer_tx
         transaction_hashes.append(transaction_hash)
-        address_id = address_ids.get(transfer.contract_address)
         label = MINT_LABEL if transfer.is_mint else TRANSFER_LABEL
         row = EthereumLabel(
-            address_id=address_id,
+            address=transfer.contract_address,
             transaction_hash=transaction_hash,
             label=label,
             label_data={
@@ -377,7 +339,7 @@ def label_transfers(
 
     existing_labels = (
         db_session.query(EthereumLabel)
-        .filter(EthereumLabel.address_id.in_(address_ids.values()))
+        .filter(EthereumLabel.address.in_(addresses))
         .filter(EthereumLabel.transaction_hash.in_(transaction_hashes))
     ).all()
     existing_label_keys = {label_key(label) for label in existing_labels}
@@ -471,29 +433,23 @@ def add_labels(
             contract_address=contract_address,
         )
         contract_addresses = {transfer.contract_address for transfer in job}
-        updated_address_ids = ensure_addresses(db_session, contract_addresses)
-        address_ids: Dict[str, int] = {}
-        for address, address_id in updated_address_ids.items():
-            address_ids[address] = address_id
 
-        labelled_address_ids = [
-            label.address_id
+        labelled_address = [
+            label.address
             for label in (
                 db_session.query(EthereumLabel)
                 .filter(EthereumLabel.label == NFT_LABEL)
-                .filter(EthereumLabel.address_id.in_(address_ids.values()))
+                .filter(EthereumLabel.address.in_(contract_addresses))
                 .all()
             )
         ]
-        unlabelled_address_ids = [
-            (address, address_id)
-            for address, address_id in address_ids.items()
-            if address_id not in labelled_address_ids
+        unlabelled_address = [
+            address for address in contract_addresses if address not in labelled_address
         ]
 
         # Add 'erc721' labels
         try:
-            label_erc721_addresses(w3, db_session, unlabelled_address_ids)
+            label_erc721_addresses(w3, db_session, unlabelled_address)
         except Exception as e:
             reporter.error_report(
                 e,
@@ -507,7 +463,7 @@ def add_labels(
 
         # Add mint/transfer labels to (transaction, contract_address) pairs
         try:
-            label_transfers(db_session, job, updated_address_ids)
+            label_transfers(db_session, job, contract_addresses)
         except Exception as e:
             reporter.error_report(
                 e,
@@ -555,7 +511,7 @@ def block_bounded_summary(
             db_session.query(
                 EthereumLabel.label,
                 EthereumLabel.label_data,
-                EthereumLabel.address_id,
+                EthereumLabel.address,
                 EthereumTransaction.hash,
                 EthereumTransaction.value,
                 EthereumBlock.block_number,
@@ -580,7 +536,7 @@ def block_bounded_summary(
     def holder_query(label: str) -> Query:
         query = (
             db_session.query(
-                EthereumLabel.address_id.label("address_id"),
+                EthereumLabel.address.label("address"),
                 EthereumLabel.label_data["to"].astext.label("owner_address"),
                 EthereumLabel.label_data["tokenId"].astext.label("token_id"),
                 EthereumTransaction.block_number.label("block_number"),
@@ -602,10 +558,10 @@ def block_bounded_summary(
                 # does not seem to be deterministic.
                 # Maybe relevant Stackoverflow post: https://stackoverflow.com/a/59410440
                 text(
-                    "address_id, token_id, block_number desc, transaction_index desc, transfer_value, owner_address"
+                    "address, token_id, block_number desc, transaction_index desc, transfer_value, owner_address"
                 )
             )
-            .distinct("address_id", "token_id")
+            .distinct("address", "token_id")
         )
         return query
 
