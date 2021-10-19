@@ -162,7 +162,7 @@ class EthereumLabel(Base):  # type: ignore
     )
     label_data = Column(JSONB, nullable=True)
     transaction_timestamp = Column(BigInteger, index=True)
-    log_index = Column(JSONB, nullable=True)
+    log_index = Column(Integer, nullable=True)
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )
