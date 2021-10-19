@@ -1,4 +1,4 @@
-"""Drop etherium_addresses and address_id column
+"""Drop ethereum_addresses and address_id column
 
 Revision ID: 240476c67b9f
 Revises: f1e8cf50a3ff
@@ -87,29 +87,29 @@ def upgrade():
         """
 
             ALTER TABLE
-                ONLY public.ethereum_labels
+                ONLY ethereum_labels
             ADD
                 CONSTRAINT pk_ethereum_labels PRIMARY KEY (id);
 
             ALTER TABLE
-                ONLY public.ethereum_labels
+                ONLY ethereum_labels
             ADD
                 CONSTRAINT uq_ethereum_labels_id UNIQUE (id);
 
             /* Create indexes must be unique cross database */
-            CREATE INDEX idx_ethereum_labels_opensea_nft_name ON public.ethereum_labels USING btree (((label_data ->> 'name' :: text)))
+            CREATE INDEX idx_ethereum_labels_opensea_nft_name ON ethereum_labels USING btree (((label_data ->> 'name' :: text)))
             WHERE
                 ((label) :: text = 'opensea_nft' :: text);
 
-            CREATE INDEX ix_ethereum_labels_address ON public.ethereum_labels USING btree (address);
+            CREATE INDEX ix_ethereum_labels_address ON ethereum_labels USING btree (address);
 
-            CREATE INDEX ix_ethereum_labels_block_number ON public.ethereum_labels USING btree (block_number);
+            CREATE INDEX ix_ethereum_labels_block_number ON ethereum_labels USING btree (block_number);
 
-            CREATE INDEX ix_ethereum_labels_label ON public.ethereum_labels USING btree (label);
+            CREATE INDEX ix_ethereum_labels_label ON ethereum_labels USING btree (label);
 
-            CREATE INDEX ix_ethereum_labels_transaction_hash ON public.ethereum_labels USING btree (transaction_hash);
+            CREATE INDEX ix_ethereum_labels_transaction_hash ON ethereum_labels USING btree (transaction_hash);
 
-            CREATE INDEX ix_ethereum_labels_block_timestamp ON public.ethereum_labels USING btree (block_timestamp);
+            CREATE INDEX ix_ethereum_labels_block_timestamp ON ethereum_labels USING btree (block_timestamp);
 
     """
     )
@@ -125,94 +125,20 @@ def downgrade():
 
     op.execute(
         """
-        CREATE TABLE public.ethereum_addresses (
-            id integer NOT NULL,
+        CREATE TABLE ethereum_addresses (
+            id integer PRIMARY KEY,
             transaction_hash character varying(256),
             address character varying(256) NOT NULL,
             created_at timestamp with time zone DEFAULT timezone('utc'::text, statement_timestamp()) NOT NULL
         );
 
 
-        ALTER TABLE public.ethereum_addresses OWNER TO postgres;
 
-        CREATE UNIQUE INDEX ix_ethereum_addresses_address ON public.ethereum_addresses USING btree (address);
+        CREATE UNIQUE INDEX ix_ethereum_addresses_address ON ethereum_addresses USING btree (address);
 
-        CREATE INDEX ix_ethereum_addresses_transaction_hash ON public.ethereum_addresses USING btree (transaction_hash);
+        CREATE INDEX ix_ethereum_addresses_transaction_hash ON ethereum_addresses USING btree (transaction_hash);
 
         """
-    )
-
-    # sequence creation
-
-    op.execute(
-        """
-
-         INSERT INTO
-            ethereum_addresses (
-                    id,
-                    address                    
-                )
-            SELECT
-                distinct(ethereum_labels.address_id) as id,
-                ethereum_labels.address as address
-            FROM
-                ethereum_labels
-                where address_id IS NOT NULL
-                order by id;
-
-    """
-    )
-
-    conn = op.get_bind()
-    latest_id = conn.execute(
-        "select MAX(address_id)  + 1 from ethereum_labels"
-    ).fetchall()
-
-    if latest_id:
-        max_id = latest_id[0][0]
-    else:
-        max_id = 1
-
-    op.execute(
-        f"CREATE SEQUENCE public.ethereum_smart_contracts_id_seq INCREMENT BY 1 START WITH {max_id} NO MINVALUE NO MAXVALUE CACHE 1"
-    )
-
-    # id column settings
-    op.execute(
-        """   
-
-        ALTER TABLE public.ethereum_smart_contracts_id_seq OWNER TO postgres;
-
-        ALTER SEQUENCE public.ethereum_smart_contracts_id_seq OWNED BY public.ethereum_addresses.id;
-
-        ALTER TABLE ONLY public.ethereum_addresses ALTER COLUMN id SET DEFAULT nextval('public.ethereum_smart_contracts_id_seq'::regclass);
-
-        ALTER TABLE ONLY public.ethereum_addresses ADD CONSTRAINT pk_ethereum_smart_contracts PRIMARY KEY (id);
-    
-    """
-    )
-
-    op.execute(
-        """
-
-         INSERT INTO
-            ethereum_addresses (
-                    address                    
-                )
-            select result.address from (
-            SELECT
-                ethereum_labels.address as address
-            FROM
-                ethereum_labels
-                where address_id IS NULL
-            EXCEPT 
-            SELECT
-                ethereum_labels.address as address
-            FROM
-                ethereum_labels
-                where address_id IS NOT NULL
-            ) AS result
-    """
     )
 
     op.execute(
@@ -252,13 +178,4 @@ def downgrade():
         ALTER INDEX ix_ethereum_labels_transaction_hash_v1 RENAME TO ix_ethereum_labels_transaction_hash;
         ALTER INDEX uq_ethereum_labels_id_v1 RENAME TO uq_ethereum_labels_id;
     """
-    )
-
-    op.create_foreign_key(
-        "fk_ethereum_labels_address_id_ethereum_addresses",
-        "ethereum_labels",
-        "ethereum_addresses",
-        ["address_id"],
-        ["id"],
-        ondelete="CASCADE",
     )

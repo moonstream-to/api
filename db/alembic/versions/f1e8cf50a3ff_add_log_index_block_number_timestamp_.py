@@ -29,7 +29,6 @@ def upgrade():
                     ethereum_labels.label_data as label_data,
                     ethereum_labels.created_at as created_at,
                     ethereum_labels.transaction_hash as transaction_hash,
-                    ethereum_addresses.id as address_id,
                     ethereum_addresses.address as address
                 FROM
                     ethereum_labels

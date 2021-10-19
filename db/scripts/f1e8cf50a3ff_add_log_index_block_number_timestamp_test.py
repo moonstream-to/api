@@ -1,115 +1,81 @@
 import argparse
-import os
-from typing import Any, Dict, Optional
+
+from moonstreamdb.db import yield_db_session_ctx
 
 
-from typing import Any, Dict, Optional
-from sqlalchemy import create_engine
+def ethereum_labels_copy_check() -> None:
 
+    with yield_db_session_ctx() as db_session:
 
-def ethereum_labels_copy_check(args: argparse.Namespace) -> None:
+        # check counts in 2 tables
 
-    engine = create_engine(args.database)
-    connection = engine.connect()
-
-    # check counts in 2 tables
-
-    count_original = connection.execute(
+        count_original = db_session.execute(
+            """
+            select count(*) from ethereum_labels;
         """
-        select count(*) from ethereum_labels;
-    """
-    ).fetchall()[0][0]
+        ).fetchall()[0][0]
 
-    count_new_labels = connection.execute(
+        count_new_labels = db_session.execute(
+            """
+            select count(*) from ethereum_labels_v2;
         """
-        select count(*) from ethereum_labels_v2;
-    """
-    ).fetchall()[0][0]
-    if count_original == count_new_labels:
-        print(f"Count check passed")
-    else:
-        print(f"Tables recors counts mismatch")
+        ).fetchall()[0][0]
+        if count_original == count_new_labels:
+            print(f"Count check passed")
+        else:
+            print(f"Tables recors counts mismatch")
 
-    print(
-        f"etherium_labels count:{count_original}, ethereum_labels_v2 count:{count_new_labels}"
-    )
-
-    # check random selected rows
-    original_table_rows_select = connection.execute(
-        """
-        select id from ethereum_labels TABLESAMPLE BERNOULLI (0.1) limit 1000;
-    """
-    ).fetchall()
-
-    ids = [str(row[0]) for row in original_table_rows_select]
-
-    ids_str = "', '".join(ids)
-
-    # check
-
-    original_table_rows_select = connection.execute(
-        """
-            SELECT
-                id,
-                label,
-                label_data,
-                created_at,
-                transaction_hash,
-                address
-            FROM
-                ethereum_labels_v2
-                where id IN ('{}')
-            EXCEPT 
-            SELECT
-                ethereum_labels.id as id,
-                ethereum_labels.label as label,
-                ethereum_labels.label_data as label_data,
-                ethereum_labels.created_at as created_at,
-                ethereum_labels.transaction_hash as transaction_hash,
-                ethereum_addresses.address as address
-            FROM
-                ethereum_labels
-                left join ethereum_addresses ON ethereum_labels.address_id = ethereum_addresses.id
-                where ethereum_labels.id IN ('{}');
-    """.format(
-            ids_str, ids_str
+        print(
+            f"ethereum_labels count:{count_original}, ethereum_labels_v2 count:{count_new_labels}"
         )
-    ).fetchall()
 
-    if original_table_rows_select:
-        print("Error rows data from sample missmatch")
-    else:
-        print("Rows sample is correct")
+        # check random selected rows
+        original_table_rows_select = db_session.execute(
+            """
+            select id from ethereum_labels TABLESAMPLE BERNOULLI (0.1) limit 1000;
+        """
+        ).fetchall()
 
+        ids = [str(row[0]) for row in original_table_rows_select]
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Migration check")
-    parser.set_defaults(func=lambda _: parser.print_help())
-    subcommands = parser.add_subparsers(description="Subcommands")
+        ids_str = "', '".join(ids)
 
-    parser_migration_check = subcommands.add_parser(
-        "ethereum_migration_check",
-        description="Check for migration between tables.",
-    )
-    parser_migration_check.set_defaults(
-        func=lambda _: parser_migration_check.print_help()
-    )
-    subparsers_migration_check = parser_migration_check.add_subparsers()
+        # check
 
-    parser_ethereum_migration_check = subparsers_migration_check.add_parser(
-        "run",
-        description="Run check of tables",
-    )
+        original_table_rows_select = db_session.execute(
+            """
+                SELECT
+                    id,
+                    label,
+                    label_data,
+                    created_at,
+                    transaction_hash,
+                    address
+                FROM
+                    ethereum_labels_v2
+                    where id IN ('{}')
+                EXCEPT 
+                SELECT
+                    ethereum_labels.id as id,
+                    ethereum_labels.label as label,
+                    ethereum_labels.label_data as label_data,
+                    ethereum_labels.created_at as created_at,
+                    ethereum_labels.transaction_hash as transaction_hash,
+                    ethereum_addresses.address as address
+                FROM
+                    ethereum_labels
+                    left join ethereum_addresses ON ethereum_labels.address_id = ethereum_addresses.id
+                    where ethereum_labels.id IN ('{}');
+        """.format(
+                ids_str, ids_str
+            )
+        ).fetchall()
 
-    parser_ethereum_migration_check.add_argument(
-        "--database", type=str, required=True, help="Database for check."
-    )
-
-    parser_ethereum_migration_check.set_defaults(func=ethereum_labels_copy_check)
-
-    args = parser.parse_args()
-    args.func(args)
+        if original_table_rows_select:
+            print("Error rows data from sample missmatch")
+        else:
+            print("Rows sample is correct")
 
 
 if __name__ == "__main__":
-    main()
+    ethereum_labels_copy_check()
