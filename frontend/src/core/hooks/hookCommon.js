@@ -11,3 +11,4 @@ export const queryCacheProps = {
     return status === 404 || status === 403 ? false : true;
   },
 };
+export default queryCacheProps;

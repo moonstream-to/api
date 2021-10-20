@@ -7,7 +7,7 @@ const Navbar = React.lazy(() => import("../components/Navbar"));
 
 const RootLayout = (props) => {
   const ui = useContext(UIContext);
-  const [showBanner, setShowBanner] = useState(true);
+  const [showBanner, setShowBanner] = useState(false);
 
   return (
     <Flex

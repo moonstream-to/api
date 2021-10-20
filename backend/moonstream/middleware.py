@@ -4,7 +4,6 @@ from typing import Any, Awaitable, Callable, Dict, Optional
 from bugout.data import BugoutUser
 from bugout.exceptions import BugoutResponseException
 from fastapi import HTTPException, Request, Response
-from starlette.background import BackgroundTask
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from .reporter import reporter

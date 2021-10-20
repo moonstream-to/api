@@ -97,26 +97,31 @@ def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
         if latest_stored_block_number is None:
             latest_stored_block_number = 0
 
-        block_number_difference = latest_block_number - 1 - latest_stored_block_number
-
-        if args.start is None:
-            if block_number_difference < args.confirmations:
-                logger.info(
-                    f"Synchronization is unnecessary for blocks {latest_stored_block_number}-{latest_block_number - 1}"
-                )
-                time.sleep(5)
-                continue
-            else:
-                bottom_block_number = latest_block_number - args.confirmations
-        else:
-            bottom_block_number = max(latest_stored_block_number + 1, args.start)
-
         if latest_stored_block_number >= latest_block_number:
             logger.info(
                 f"Synchronization is unnecessary for blocks {latest_stored_block_number}-{latest_block_number - 1}"
             )
             time.sleep(5)
             continue
+
+        block_number_difference = latest_block_number - 1 - latest_stored_block_number
+        if block_number_difference >= 70:
+            logger.warning(
+                f"Block difference is too large: {block_number_difference}, crawling {args.confirmations + 1} latest blocks"
+            )
+            bottom_block_number = latest_block_number - args.confirmations - 1
+        else:
+            if args.start is None:
+                if block_number_difference < args.confirmations:
+                    logger.info(
+                        f"Synchronization is unnecessary for blocks {latest_stored_block_number}-{latest_block_number - 1}"
+                    )
+                    time.sleep(5)
+                    continue
+                else:
+                    bottom_block_number = latest_stored_block_number + 1
+            else:
+                bottom_block_number = max(latest_stored_block_number + 1, args.start)
 
         for blocks_numbers_list in yield_blocks_numbers_lists(
             f"{bottom_block_number}-{latest_block_number}",

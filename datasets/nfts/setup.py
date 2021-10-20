@@ -1,18 +1,16 @@
 from setuptools import find_packages, setup
 
-from moonstreamdb.version import MOONSTREAMDB_VERSION
-
 long_description = ""
 with open("README.md") as ifp:
     long_description = ifp.read()
 
 setup(
-    name="moonstreamdb",
-    version=MOONSTREAMDB_VERSION,
+    name="nfts",
+    version="0.0.2",
     author="Bugout.dev",
     author_email="engineers@bugout.dev",
     license="Apache License 2.0",
-    description="Moonstream database",
+    description="Tools to build, update, and interact with the Moonstream NFTs dataset",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/bugout-dev/moonstream",
@@ -30,16 +28,25 @@ setup(
     ],
     python_requires=">=3.6",
     packages=find_packages(),
-    package_data={"moonstreamdb": ["py.typed"]},
+    package_data={"nfts": ["py.typed"]},
     zip_safe=False,
-    install_requires=["alembic", "psycopg2-binary", "sqlalchemy"],
+    install_requires=[
+        "moonstreamdb",
+        "humbug",
+        "numpy",
+        "pandas",
+        "requests",
+        "scipy",
+        "tqdm",
+        "web3",
+    ],
     extras_require={
-        "dev": ["black", "mypy"],
+        "dev": ["black", "mypy", "types-requests"],
         "distribute": ["setuptools", "twine", "wheel"],
     },
     entry_points={
         "console_scripts": [
-            "moonstreamdb=moonstreamdb.cli:main",
+            "nfts=nfts.cli:main",
         ]
     },
 )
