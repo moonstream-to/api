@@ -15,7 +15,6 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import expression
 from sqlalchemy.ext.compiler import compiles
-from sqlalchemy.sql.sqltypes import TIMESTAMP
 
 """
 Naming conventions doc
@@ -145,7 +144,7 @@ class EthereumLabel(Base):  # type: ignore
         index=True,
     )
     label_data = Column(JSONB, nullable=True)
-    transaction_timestamp = Column(BigInteger, index=True)
+    block_timestamp = Column(BigInteger, index=True)
     log_index = Column(Integer, nullable=True)
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
