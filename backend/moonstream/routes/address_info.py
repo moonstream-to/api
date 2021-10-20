@@ -12,7 +12,7 @@ from ..middleware import MoonstreamHTTPException
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
-    prefix="/users",
+    prefix="/address_info",
 )
 
 
