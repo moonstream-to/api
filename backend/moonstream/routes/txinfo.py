@@ -6,7 +6,7 @@ transactions, etc.) with side information and return objects that are better sui
 end users.
 """
 import logging
-from typing import Dict
+from typing import Dict, Optional
 
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
@@ -71,9 +71,11 @@ async def txinfo_ethereum_blockchain_handler(
             logger.error(err)
             response.errors.append("Could not decode ABI from the given input")
 
-    source_info = actions.get_contract_source_info(
-        db_session, txinfo_request.tx.to_address
-    )
+    source_info: Optional[data.EthereumSmartContractSourceInfo] = None
+    if txinfo_request.tx.to_address is not None:
+        source_info = actions.get_contract_source_info(
+            db_session, txinfo_request.tx.to_address
+        )
     if source_info is not None:
         response.smart_contract_info = source_info
         response.smart_contract_address = txinfo_request.tx.to_address
