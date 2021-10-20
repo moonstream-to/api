@@ -29,7 +29,6 @@ from moonstreamdb.models import (
     EthereumBlock,
     EthereumTransaction,
     EthereumPendingTransaction,
-    EthereumAddress,
     EthereumLabel,
     ESDEventSignature,
     ESDFunctionSignature,
@@ -40,7 +39,6 @@ def include_symbol(tablename, schema):
     return tablename in {
         EthereumBlock.__tablename__,
         EthereumTransaction.__tablename__,
-        EthereumAddress.__tablename__,
         EthereumLabel.__tablename__,
         EthereumPendingTransaction.__tablename__,
         ESDEventSignature.__tablename__,

@@ -102,22 +102,6 @@ class EthereumTransaction(Base):  # type: ignore
     )
 
 
-class EthereumAddress(Base):  # type: ignore
-    __tablename__ = "ethereum_addresses"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    transaction_hash = Column(
-        VARCHAR(256),
-        ForeignKey("ethereum_transactions.hash", ondelete="CASCADE"),
-        nullable=True,
-        index=True,
-    )
-    address = Column(VARCHAR(256), nullable=False, unique=True, index=True)
-    created_at = Column(
-        DateTime(timezone=True), server_default=utcnow(), nullable=False
-    )
-
-
 class EthereumLabel(Base):  # type: ignore
     """
     Example of label_data:
@@ -144,9 +128,13 @@ class EthereumLabel(Base):  # type: ignore
         nullable=False,
     )
     label = Column(VARCHAR(256), nullable=False, index=True)
-    address_id = Column(
-        Integer,
-        ForeignKey("ethereum_addresses.id", ondelete="CASCADE"),
+    block_number = Column(
+        BigInteger,
+        nullable=True,
+        index=True,
+    )
+    address = Column(
+        VARCHAR(256),
         nullable=True,
         index=True,
     )
@@ -156,6 +144,8 @@ class EthereumLabel(Base):  # type: ignore
         index=True,
     )
     label_data = Column(JSONB, nullable=True)
+    block_timestamp = Column(BigInteger, index=True)
+    log_index = Column(Integer, nullable=True)
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )

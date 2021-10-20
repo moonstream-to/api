@@ -17,7 +17,6 @@ from .settings import MOONSTREAM_IPC_PATH, MOONSTREAM_CRAWL_WORKERS
 from moonstreamdb.db import yield_db_session, yield_db_session_ctx
 from moonstreamdb.models import (
     EthereumBlock,
-    EthereumAddress,
     EthereumTransaction,
 )
 
@@ -284,61 +283,6 @@ def crawl_blocks_executor(
             error_messages = "\n".join([f"- {error}" for error in errors])
             message = f"Error processing blocks in list:\n{error_messages}"
             raise EthereumBlockCrawlError(message)
-
-
-def process_contract_deployments() -> List[Tuple[str, str]]:
-    """
-    Checks for new smart contracts that have been deployed to the blockchain but not registered in
-    the smart contract registry.
-
-    If it finds any such smart contracts, it retrieves their addresses from the transaction receipts
-    and registers them in the smart contract registry.
-
-    Returns a list of pairs of the form [..., ("<transaction_hash>", "<contract_address>"), ...].
-    """
-    web3_client = connect()
-    results: List[Tuple[str, str]] = []
-    with yield_db_session_ctx() as db_session:
-        current_offset = 0
-        limit = 10
-        transactions_remaining = True
-        existing_contract_transaction_hashes = db_session.query(
-            EthereumAddress.transaction_hash
-        )
-
-        while transactions_remaining:
-            contract_deployments = (
-                db_session.query(EthereumTransaction)
-                .order_by(desc(EthereumTransaction.block_number))
-                .filter(
-                    EthereumTransaction.hash.notin_(
-                        existing_contract_transaction_hashes
-                    )
-                )
-                .filter(EthereumTransaction.to_address == None)
-                .limit(limit)
-                .offset(current_offset)
-                .all()
-            )
-            if contract_deployments:
-                for deployment in contract_deployments:
-                    receipt = web3_client.eth.get_transaction_receipt(deployment.hash)
-                    contract_address = receipt.get("contractAddress")
-                    if contract_address is not None:
-                        results.append((deployment.hash, contract_address))
-                        db_session.add(
-                            EthereumAddress(
-                                transaction_hash=deployment.hash,
-                                address=contract_address,
-                            )
-                        )
-                db_session.commit()
-            else:
-                transactions_remaining = False
-
-            current_offset += limit
-
-    return results
 
 
 def trending(
