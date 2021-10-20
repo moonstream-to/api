@@ -103,22 +103,6 @@ class EthereumTransaction(Base):  # type: ignore
     )
 
 
-class EthereumAddress(Base):  # type: ignore
-    __tablename__ = "ethereum_addresses"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    transaction_hash = Column(
-        VARCHAR(256),
-        ForeignKey("ethereum_transactions.hash", ondelete="CASCADE"),
-        nullable=True,
-        index=True,
-    )
-    address = Column(VARCHAR(256), nullable=False, unique=True, index=True)
-    created_at = Column(
-        DateTime(timezone=True), server_default=utcnow(), nullable=False
-    )
-
-
 class EthereumLabel(Base):  # type: ignore
     """
     Example of label_data:

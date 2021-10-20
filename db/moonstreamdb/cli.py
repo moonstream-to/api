@@ -2,7 +2,7 @@ import argparse
 import json
 
 from .db import yield_db_session_ctx
-from .models import EthereumAddress, EthereumLabel
+from .models import EthereumLabel
 
 
 def labels_add_handler(args: argparse.Namespace) -> None:
@@ -41,9 +41,9 @@ def labels_list_handler(args: argparse.Namespace) -> None:
     Return list of all labels.
     """
     with yield_db_session_ctx() as db_session:
-        query = db_session.query(EthereumLabel).all()
+        query = db_session.query(EthereumLabel)
         if str(args.address) is not None:
-            query = query.filter(EthereumAddress.address == str(args.address))
+            query = query.filter(EthereumLabel.address == str(args.address))
         labels = query.all()
 
     print(

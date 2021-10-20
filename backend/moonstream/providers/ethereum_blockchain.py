@@ -8,7 +8,6 @@ from bugout.data import BugoutResource
 from moonstreamdb.models import (
     EthereumBlock,
     EthereumTransaction,
-    EthereumAddress,
     EthereumLabel,
 )
 from sqlalchemy import or_, and_, text

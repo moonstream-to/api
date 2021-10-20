@@ -8,7 +8,6 @@ import boto3  # type: ignore
 from bugout.data import BugoutSearchResults
 from bugout.journal import SearchOrder
 from moonstreamdb.models import (
-    EthereumAddress,
     EthereumLabel,
 )
 from sqlalchemy import text
@@ -39,12 +38,6 @@ class StatusAPIException(Exception):
 def get_contract_source_info(
     db_session: Session, contract_address: str
 ) -> Optional[data.EthereumSmartContractSourceInfo]:
-    query = db_session.query(EthereumAddress.id).filter(
-        EthereumAddress.address == contract_address
-    )
-    id = query.one_or_none()
-    if id is None:
-        return None
     labels = (
         db_session.query(EthereumLabel)
         .filter(EthereumLabel.address == contract_address)
