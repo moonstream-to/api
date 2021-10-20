@@ -7,7 +7,6 @@ from typing import Any, cast, Dict, List, Optional, Set, Tuple
 
 from eth_typing.encoding import HexStr
 from moonstreamdb.models import (
-    EthereumAddress,
     EthereumBlock,
     EthereumLabel,
     EthereumTransaction,
