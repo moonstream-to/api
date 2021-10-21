@@ -28,7 +28,7 @@ echo -e "${PREFIX_INFO} Retrieving deployment parameters"
 mkdir -p "${SECRETS_DIR}"
 > "${NODE_PARAMETERS_ENV_PATH}"
 
-LOCAL_IP="$(curl http://169.254.169.254/latest/meta-data/local-ipv4)"
+LOCAL_IP="$(ec2metadata --local-ipv4)"
 echo -e "${PREFIX_INFO} Found assign subnet IP ${C_GREEN}${LOCAL_IP}${C_RESET} for machine"
 ENV_PARAMETERS=$(aws ssm describe-parameters \
     --parameter-filters Key=tag:Product,Values=moonstream Key=tag:Blockchain,Values=$BLOCKCHAIN \
