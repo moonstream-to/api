@@ -52,17 +52,16 @@ done
 
 echo
 echo
-echo -e "${PREFIX_INFO} Replacing Ethereum Geth service definition with ${ETHEREUM_GETH_SERVICE}"
-chmod 644 "${SCRIPT_DIR}/${ETHEREUM_GETH_SERVICE}"
-cp "${SCRIPT_DIR}/${ETHEREUM_GETH_SERVICE}" "/etc/systemd/system/${ETHEREUM_GETH_SERVICE}"
-systemctl daemon-reload
-systemctl disable "${ETHEREUM_GETH_SERVICE}"
-
+echo -e "${PREFIX_INFO} Updating Ethereum Geth service"
 if systemctl is-active --quiet "${ETHEREUM_GETH_SERVICE}"
 then
     echo -e "${PREFIX_WARN} Ethereum Geth service ${ETHEREUM_GETH_SERVICE} already running"
 else
     echo -e "${PREFIX_INFO} Restart Geth service ${ETHEREUM_GETH_SERVICE}"
+    chmod 644 "${SCRIPT_DIR}/${ETHEREUM_GETH_SERVICE}"
+    cp "${SCRIPT_DIR}/${ETHEREUM_GETH_SERVICE}" "/etc/systemd/system/${ETHEREUM_GETH_SERVICE}"
+    systemctl daemon-reload
+    systemctl disable "${ETHEREUM_GETH_SERVICE}"
     systemctl restart "${ETHEREUM_GETH_SERVICE}"
     sleep 10
 fi
