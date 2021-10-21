@@ -47,7 +47,7 @@ do
     else
         param_value=$(echo $ENV_PARAMETERS_VALUES | jq .[$i].Value)
     fi
-    echo "export $param_key=$param_value" >> "${NODE_PARAMETERS_ENV_PATH}"
+    echo "$param_key=$param_value" >> "${NODE_PARAMETERS_ENV_PATH}"
 done
 
 echo
