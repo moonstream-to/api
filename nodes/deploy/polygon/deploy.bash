@@ -18,7 +18,7 @@ SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/moonstream-secrets}"
 NODE_PARAMETERS_ENV_PATH="${SECRETS_DIR}/node.env"
 SCRIPT_DIR="$(realpath $(dirname $0))"
 BLOCKCHAIN="polygon"
-HEIMDALL_HOME="/mnt/disks/nodes/${BLOCKCHAIN}"
+HEIMDALL_HOME="/mnt/disks/nodes/${BLOCKCHAIN}/.heimdalld"
 
 set -eu
 
