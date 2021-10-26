@@ -4,7 +4,7 @@ Moonstream CLI
 import argparse
 from typing import Optional
 
-from . import subscription_types
+from . import subscription_types, subscriptions
 from ..settings import (
     BUGOUT_BROOD_URL,
     BUGOUT_SPIRE_URL,
@@ -247,7 +247,7 @@ This CLI is configured to work with the following API URLs:
         help="Droped json fields",
     )
     parser_subscription_migrate.set_defaults(
-        func=subscription_types.cli_create_subscription_type
+        func=subscriptions.cli_migrate_subscriptions
     )
 
     args = parser.parse_args()
