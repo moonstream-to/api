@@ -4,6 +4,7 @@ The Moonstream subscriptions HTTP API
 import logging
 from typing import List, Optional
 
+import boto3
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Request, Form
@@ -15,6 +16,8 @@ from ..reporter import reporter
 from ..settings import (
     MOONSTREAM_APPLICATION_ID,
     bugout_client as bc,
+    SMARTCONTRACTS_ABI_BUCKET,
+    BUGOUT_REQUEST_TIMEOUT_SECONDS,
 )
 
 logger = logging.getLogger(__name__)
@@ -33,6 +36,7 @@ async def add_subscription_handler(
     color: str = Form(...),
     label: str = Form(...),
     subscription_type_id: str = Form(...),
+    abi: Optional[str] = Form(None),
 ) -> data.SubscriptionResourceData:
     """
     Add subscription to blockchain stream data for user.
@@ -63,6 +67,7 @@ async def add_subscription_handler(
         "address": address,
         "color": color,
         "label": label,
+        "abi": None,
     }
 
     try:
@@ -77,12 +82,43 @@ async def add_subscription_handler(
         logger.error(f"Error creating subscription resource: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
+    if abi:
+
+        s3_client = boto3.client("s3")
+
+        bucket = SMARTCONTRACTS_ABI_BUCKET
+
+        result_bytes = abi.encode("utf-8")
+        result_key = f"/v1/{address}/{resource.id}/abi.json"
+
+        s3_client.put_object(
+            Body=result_bytes,
+            Bucket=bucket,
+            Key=result_key,
+            ContentType="application/json",
+            Metadata={"Moonstream": "Abi data"},
+        )
+
+        try:
+            resource: BugoutResource = bc.update_resource(
+                resource_id=resource.id,
+                token=token,
+                resource_data={"update": {"abi": False}},
+                timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+            )
+        except BugoutResponseException as e:
+            raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+        except Exception as e:
+            logger.error(f"Error creating subscription resource: {str(e)}")
+            raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
     return data.SubscriptionResourceData(
         id=str(resource.id),
         user_id=resource.resource_data["user_id"],
         address=resource.resource_data["address"],
         color=resource.resource_data["color"],
         label=resource.resource_data["label"],
+        abi=resource.resource_data["abi"],
         subscription_type_id=resource.resource_data["subscription_type_id"],
         updated_at=resource.updated_at,
         created_at=resource.created_at,
@@ -113,6 +149,7 @@ async def delete_subscription_handler(request: Request, subscription_id: str):
         address=deleted_resource.resource_data["address"],
         color=deleted_resource.resource_data["color"],
         label=deleted_resource.resource_data["label"],
+        abi=deleted_resource.resource_data["abi"],
         subscription_type_id=deleted_resource.resource_data["subscription_type_id"],
         updated_at=deleted_resource.updated_at,
         created_at=deleted_resource.created_at,
@@ -148,6 +185,7 @@ async def get_subscriptions_handler(request: Request) -> data.SubscriptionsListR
                 address=resource.resource_data["address"],
                 color=resource.resource_data["color"],
                 label=resource.resource_data["label"],
+                abi=resource.resource_data["abi"],
                 subscription_type_id=resource.resource_data["subscription_type_id"],
                 updated_at=resource.updated_at,
                 created_at=resource.created_at,
@@ -167,6 +205,7 @@ async def update_subscriptions_handler(
     subscription_id: str,
     color: Optional[str] = Form(None),
     label: Optional[str] = Form(None),
+    abi: Optional[str] = Form(None),
 ) -> data.SubscriptionResourceData:
     """
     Get user's subscriptions.
@@ -180,6 +219,39 @@ async def update_subscriptions_handler(
 
     if label:
         update["label"] = label
+
+    if abi:
+
+        try:
+            existing_resources: BugoutResources = bc.list_resources(
+                token=token,
+                params={"type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION, "id": id},
+                timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+            )
+        except BugoutResponseException as e:
+            raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+        except Exception as e:
+            logger.error(f"Error getting user subscriptions: {str(e)}")
+            raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+        if existing_resources.resources:
+
+            s3_client = boto3.client("s3")
+
+            bucket = SMARTCONTRACTS_ABI_BUCKET
+
+            result_bytes = abi.encode("utf-8")
+            result_key = f"/v1/{existing_resources.resources[0].resource_data['address']}/{subscription_id}/abi.json"
+
+            s3_client.put_object(
+                Body=result_bytes,
+                Bucket=bucket,
+                Key=result_key,
+                ContentType="application/json",
+                Metadata={"Moonstream": "Abi data"},
+            )
+
+            update["abi"] = True
 
     try:
         resource: BugoutResource = bc.update_resource(
@@ -201,6 +273,7 @@ async def update_subscriptions_handler(
         address=resource.resource_data["address"],
         color=resource.resource_data["color"],
         label=resource.resource_data["label"],
+        abi=resource.resource_data["abi"],
         subscription_type_id=resource.resource_data["subscription_type_id"],
         updated_at=resource.updated_at,
         created_at=resource.created_at,
