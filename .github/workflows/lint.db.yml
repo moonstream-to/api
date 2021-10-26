@@ -22,6 +22,9 @@ jobs:
       - name: Mypy type check
         working-directory: ./db
         run: mypy moonstreamdb/
+      - name: isort import check
+        working-directory: ./db
+        run: isort --check moonstreamdb/
       - name: Black syntax check
         working-directory: ./db
         run: black --check moonstreamdb/

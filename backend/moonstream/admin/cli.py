@@ -4,12 +4,8 @@ Moonstream CLI
 import argparse
 from typing import Optional
 
+from ..settings import BUGOUT_BROOD_URL, BUGOUT_SPIRE_URL, MOONSTREAM_APPLICATION_ID
 from . import subscription_types
-from ..settings import (
-    BUGOUT_BROOD_URL,
-    BUGOUT_SPIRE_URL,
-    MOONSTREAM_APPLICATION_ID,
-)
 
 
 def parse_boolean_arg(raw_arg: Optional[str]) -> Optional[bool]:

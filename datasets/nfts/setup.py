@@ -41,7 +41,7 @@ setup(
         "web3",
     ],
     extras_require={
-        "dev": ["black", "mypy", "types-requests"],
+        "dev": ["black", "isort", "mypy", "types-requests"],
         "distribute": ["setuptools", "twine", "wheel"],
     },
     entry_points={

@@ -1,10 +1,10 @@
+import json
 import logging
 import sqlite3
-from typing import Any, cast, Iterator, List, Optional, Set
-import json
+from typing import Any, Iterator, List, Optional, Set, cast
 
-from tqdm import tqdm
 import requests
+from tqdm import tqdm
 
 from .data import BlockBounds, EventType, NFTEvent, event_types
 from .datastore import (

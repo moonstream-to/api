@@ -1,29 +1,26 @@
 import json
 import logging
-from typing import Optional, Dict, Any
-from enum import Enum
 import uuid
+from enum import Enum
+from typing import Any, Dict, Optional
 
 import boto3  # type: ignore
-from bugout.data import BugoutSearchResults
+from bugout.data import BugoutResource, BugoutSearchResults
 from bugout.journal import SearchOrder
-from moonstreamdb.models import (
-    EthereumLabel,
-)
+from moonstreamdb.models import EthereumLabel
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from . import data
 from .reporter import reporter
-from .settings import ETHERSCAN_SMARTCONTRACTS_BUCKET
-from bugout.data import BugoutResource
 from .settings import (
-    MOONSTREAM_APPLICATION_ID,
-    bugout_client as bc,
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
+    ETHERSCAN_SMARTCONTRACTS_BUCKET,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
+    MOONSTREAM_APPLICATION_ID,
     MOONSTREAM_DATA_JOURNAL_ID,
 )
+from .settings import bugout_client as bc
 
 logger = logging.getLogger(__name__)
 ETHERSCAN_SMARTCONTRACT_LABEL_NAME = "etherscan_smartcontract"

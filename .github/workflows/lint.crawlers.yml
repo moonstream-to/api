@@ -22,6 +22,9 @@ jobs:
       - name: Mypy type check
         working-directory: ./crawlers/mooncrawl
         run: mypy mooncrawl/
+      - name: isort import check
+        working-directory: ./crawlers/mooncrawl
+        run: isort --check mooncrawl/
       - name: Black syntax check
         working-directory: ./crawlers/mooncrawl
         run: black --check mooncrawl/

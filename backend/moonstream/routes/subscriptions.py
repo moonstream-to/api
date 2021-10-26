@@ -6,16 +6,14 @@ from typing import List, Optional
 
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
-from fastapi import APIRouter, Request, Form
+from fastapi import APIRouter, Form, Request
 
-from ..admin import subscription_types
 from .. import data
+from ..admin import subscription_types
 from ..middleware import MoonstreamHTTPException
 from ..reporter import reporter
-from ..settings import (
-    MOONSTREAM_APPLICATION_ID,
-    bugout_client as bc,
-)
+from ..settings import MOONSTREAM_APPLICATION_ID
+from ..settings import bugout_client as bc
 
 logger = logging.getLogger(__name__)
 

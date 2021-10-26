@@ -12,9 +12,8 @@ from fastapi import APIRouter, Depends
 from moonstreamdb.db import yield_db_session
 from sqlalchemy.orm import Session
 
+from .. import actions, data
 from ..abi_decoder import decode_abi
-from .. import actions
-from .. import data
 
 logger = logging.getLogger(__name__)
 

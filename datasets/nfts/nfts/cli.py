@@ -8,22 +8,21 @@ from typing import Optional
 
 from moonstreamdb.db import yield_db_session_ctx
 
-from .enrich import EthereumBatchloader, enrich
-from .data import EventType, event_types, nft_event, BlockBounds
-from .datastore import setup_database, import_data, filter_data
+from .data import BlockBounds, EventType, event_types, nft_event
+from .datastore import filter_data, import_data, setup_database
 from .derive import (
-    current_owners,
     current_market_values,
+    current_owners,
     current_values_distribution,
-    transfer_statistics_by_address,
-    quantile_generating,
     mint_holding_times,
     ownership_transitions,
+    quantile_generating,
     transfer_holding_times,
+    transfer_statistics_by_address,
     transfers_mints_connection_table,
 )
+from .enrich import EthereumBatchloader, enrich
 from .materialize import create_dataset
-
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

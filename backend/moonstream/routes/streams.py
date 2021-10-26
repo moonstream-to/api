@@ -5,11 +5,11 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from bugout.data import BugoutResource
-from fastapi import APIRouter, Request, Query, Depends
+from fastapi import APIRouter, Depends, Query, Request
 from moonstreamdb import db
 from sqlalchemy.orm import Session
 
-from .. import data
+from .. import data, stream_queries
 from ..middleware import MoonstreamHTTPException
 from ..providers import (
     ReceivingEventsException,
@@ -20,12 +20,11 @@ from ..providers import (
     previous_event,
 )
 from ..settings import (
+    BUGOUT_REQUEST_TIMEOUT_SECONDS,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_DATA_JOURNAL_ID,
-    bugout_client as bc,
-    BUGOUT_REQUEST_TIMEOUT_SECONDS,
 )
-from .. import stream_queries
+from ..settings import bugout_client as bc
 from .subscriptions import BUGOUT_RESOURCE_TYPE_SUBSCRIPTION
 
 logger = logging.getLogger(__name__)

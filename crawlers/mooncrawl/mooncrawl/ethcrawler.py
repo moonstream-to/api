@@ -2,22 +2,22 @@
 Moonstream crawlers CLI.
 """
 import argparse
-from datetime import datetime, timedelta, timezone
-from enum import Enum
 import json
 import logging
 import os
 import sys
 import time
+from datetime import datetime, timedelta, timezone
+from enum import Enum
 from typing import Iterator, List
 
 import dateutil.parser
 
 from .ethereum import (
-    crawl_blocks_executor,
-    check_missing_blocks,
-    get_latest_blocks,
     DateRange,
+    check_missing_blocks,
+    crawl_blocks_executor,
+    get_latest_blocks,
     trending,
 )
 from .publish import publish_json

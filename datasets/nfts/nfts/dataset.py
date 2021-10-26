@@ -9,7 +9,7 @@ import pandas as pd
 import scipy.sparse
 from tqdm import tqdm
 
-from .datastore import event_tables, EventType
+from .datastore import EventType, event_tables
 
 # TODO(zomglings): Make it so that table names are parametrized by importable variables. The way
 # things are now, we have to be very careful if we ever rename a table in our dataset. We should

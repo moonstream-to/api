@@ -1,23 +1,19 @@
-from dataclasses import dataclass, asdict
-from datetime import datetime, timedelta, timezone
 import json
 import logging
-from hexbytes.main import HexBytes
-from typing import Any, cast, Dict, List, Optional, Set, Tuple
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional, Set, Tuple, cast
 
 from eth_typing.encoding import HexStr
-from moonstreamdb.models import (
-    EthereumBlock,
-    EthereumLabel,
-    EthereumTransaction,
-)
+from hexbytes.main import HexBytes
+from moonstreamdb.models import EthereumBlock, EthereumLabel, EthereumTransaction
 from sqlalchemy import and_, func, text
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.orm import Session, Query
+from sqlalchemy.orm import Query, Session
 from tqdm import tqdm
 from web3 import Web3
-from web3.types import FilterParams, LogReceipt
 from web3._utils.events import get_event_data
+from web3.types import FilterParams, LogReceipt
 
 from ..reporter import reporter
 

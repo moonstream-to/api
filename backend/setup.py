@@ -21,7 +21,7 @@ setup(
         "types-requests",
     ],
     extras_require={
-        "dev": ["black", "mypy"],
+        "dev": ["black", "isort", "mypy"],
         "distribute": ["setuptools", "twine", "wheel"],
     },
     package_data={"moonstream": ["py.typed"]},

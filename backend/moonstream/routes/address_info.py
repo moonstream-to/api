@@ -5,8 +5,7 @@ from fastapi import APIRouter, Depends, Query
 from moonstreamdb.db import yield_db_session
 from sqlalchemy.orm import Session
 
-from .. import actions
-from .. import data
+from .. import actions, data
 from ..middleware import MoonstreamHTTPException
 
 logger = logging.getLogger(__name__)

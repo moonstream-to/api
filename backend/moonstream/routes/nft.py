@@ -14,9 +14,9 @@ from sqlalchemy.orm import Session
 from .. import data
 from ..providers.bugout import nft_summary_provider
 from ..settings import (
-    bugout_client,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_DATA_JOURNAL_ID,
+    bugout_client,
 )
 from ..stream_queries import StreamQuery
 

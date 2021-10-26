@@ -22,6 +22,9 @@ jobs:
       - name: Mypy type check
         working-directory: ./backend
         run: mypy moonstream/
+      - name: isort import check
+        working-directory: ./backend
+        run: isort --check moonstream/
       - name: Black syntax check
         working-directory: ./backend
         run: black --check moonstream/

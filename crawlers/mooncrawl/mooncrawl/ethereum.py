@@ -1,24 +1,20 @@
+import logging
 from concurrent.futures import Future, ProcessPoolExecutor, ThreadPoolExecutor, wait
 from dataclasses import dataclass
 from datetime import datetime
-import logging
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
+from moonstreamdb.db import yield_db_session, yield_db_session_ctx
+from moonstreamdb.models import EthereumBlock, EthereumTransaction
 from psycopg2.errors import UniqueViolation  # type: ignore
-from sqlalchemy import desc, Column
-from sqlalchemy import func
+from sqlalchemy import Column, desc, func
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session, Query
+from sqlalchemy.orm import Query, Session
 from tqdm import tqdm
-from web3 import Web3, IPCProvider, HTTPProvider
+from web3 import HTTPProvider, IPCProvider, Web3
 from web3.types import BlockData
 
-from .settings import MOONSTREAM_IPC_PATH, MOONSTREAM_CRAWL_WORKERS
-from moonstreamdb.db import yield_db_session, yield_db_session_ctx
-from moonstreamdb.models import (
-    EthereumBlock,
-    EthereumTransaction,
-)
+from .settings import MOONSTREAM_CRAWL_WORKERS, MOONSTREAM_IPC_PATH
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

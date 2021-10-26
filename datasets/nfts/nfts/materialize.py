@@ -1,18 +1,14 @@
+import json
 import logging
 import sqlite3
-from typing import Any, cast, Iterator, List, Optional, Set
-import json
+from typing import Any, Iterator, List, Optional, Set, cast
 
-from moonstreamdb.models import (
-    EthereumLabel,
-    EthereumTransaction,
-    EthereumBlock,
-)
-from sqlalchemy import or_, and_
+import requests
+from moonstreamdb.models import EthereumBlock, EthereumLabel, EthereumTransaction
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 from tqdm import tqdm
 from web3 import Web3
-import requests
 
 from .data import BlockBounds, EventType, NFTEvent, NFTMetadata, event_types
 from .datastore import (

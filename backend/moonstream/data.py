@@ -1,11 +1,10 @@
 """
 Pydantic schemas for the Moonstream HTTP API
 """
-from typing import List, Optional, Dict, Any
-
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
-from datetime import datetime
 
 USER_ONBOARDING_STATE = "onboarding_state"
 

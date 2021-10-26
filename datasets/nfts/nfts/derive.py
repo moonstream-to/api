@@ -8,7 +8,6 @@ For example:
 import logging
 import sqlite3
 
-
 logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
 

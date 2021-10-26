@@ -1,6 +1,6 @@
-from dataclasses import FrozenInstanceError
 import os
 import unittest
+from dataclasses import FrozenInstanceError
 
 from . import client
 

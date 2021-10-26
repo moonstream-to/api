@@ -3,8 +3,8 @@ Tests for stream boundary utilities.
 """
 import unittest
 
-from .data import StreamBoundary
 from . import stream_boundaries
+from .data import StreamBoundary
 
 
 class TestValidateStreamBoundary(unittest.TestCase):

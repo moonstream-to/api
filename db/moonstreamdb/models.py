@@ -1,20 +1,20 @@
 import uuid
 
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import (
+    VARCHAR,
     BigInteger,
     Column,
     DateTime,
-    Integer,
     ForeignKey,
+    Integer,
     MetaData,
     Numeric,
     Text,
-    VARCHAR,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
-from sqlalchemy.sql import expression
 from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.sql import expression
 
 """
 Naming conventions doc

@@ -25,6 +25,9 @@ jobs:
       - name: Black syntax check
         working-directory: ./clients/python
         run: black --check moonstream/
+      - name: isort import check
+        working-directory: ./clients/python
+        run: isort --check moonstream/
       - name: Unit tests
         working-directory: ./clients/python
         run: python -m unittest discover -v

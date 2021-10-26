@@ -4,7 +4,7 @@ a datastore for a Moonstream NFTs dataset.
 """
 import logging
 import sqlite3
-from typing import Any, cast, List, Tuple, Optional
+from typing import Any, List, Optional, Tuple, cast
 
 from tqdm import tqdm
 
