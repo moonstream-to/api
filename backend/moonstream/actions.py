@@ -7,8 +7,8 @@ import uuid
 import boto3  # type: ignore
 from bugout.data import BugoutSearchResults
 from bugout.journal import SearchOrder
-from ens.utils import is_valid_ens_name
-from eth_utils.address import is_address
+from ens.utils import is_valid_ens_name  # type: ignore
+from eth_utils.address import is_address  # type: ignore
 from moonstreamdb.models import (
     EthereumLabel,
 )
