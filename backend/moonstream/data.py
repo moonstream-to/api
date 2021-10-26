@@ -1,7 +1,8 @@
 """
 Pydantic schemas for the Moonstream HTTP API
 """
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
+from uuid import UUID
 
 
 from pydantic import BaseModel, Field
@@ -218,3 +219,22 @@ class AddressListLabelsResponse(BaseModel):
 class OnboardingState(BaseModel):
     is_complete: bool
     steps: Dict[str, int]
+
+
+class DashboardContractsAbi(BaseModel):
+    abi: str    
+    contract_label: str
+    contract_address: str
+
+
+class DashboardContractsAbiResource(BaseModel):
+    abi_s3_url: str
+    contract_label: str
+    contract_address: str
+
+
+class DashboardResource(BaseModel):
+    type: str
+    user_id: Union[str, UUID]
+    name: str
+    dashboard_subscriptions: List[UUID] 
