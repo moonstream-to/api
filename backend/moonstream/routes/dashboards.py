@@ -15,6 +15,8 @@ from ..settings import (
     MOONSTREAM_APPLICATION_ID,
     bugout_client as bc,
     SMARTCONTRACTS_ABI_BUCKET,
+    BUGOUT_REQUEST_TIMEOUT_SECONDS,
+    SMARTCONTRACTS_ABI_BUCKET,
 )
 
 logger = logging.getLogger(__name__)
@@ -33,7 +35,7 @@ async def add_subscription_handler(
     request: Request,
     name: str = Form(...),
     subscriptions_list: List[UUID] = Form(...),
-) -> data.DashboardResource:
+) -> BugoutResource:
     """
     Add subscription to blockchain stream data for user.
     """
@@ -140,17 +142,18 @@ async def get_dashboards_handler(
 
 
 @router.get("/{dashboarsd_id}", tags=["dashboards"], response_model=Any)
-async def get_dashboard_handler(request: Request) -> Any:
+async def get_dashboard_handler(request: Request, dashboarsd_id: UUID) -> Any:
     """
     Get user's subscriptions.
     """
     token = request.state.token
-    params = {
-        "type": BUGOUT_RESOURCE_TYPE_DASHBOARD,
-        "user_id": str(request.state.user.id),
-    }
+
     try:
-        resources: BugoutResources = bc.list_resources(token=token, params=params)
+        resource: BugoutResource = bc.get_resource(
+            token=token,
+            resource_id=dashboarsd_id,
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+        )
     except BugoutResponseException as e:
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
@@ -160,7 +163,29 @@ async def get_dashboard_handler(request: Request) -> Any:
         reporter.error_report(e)
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
-    return resources.resources
+    # if resources
+
+    s3_client = boto3.client("s3")
+
+    bucket = SMARTCONTRACTS_ABI_BUCKET
+
+    abi_urls = []
+
+    for subscription in resource.resource_data["dashboard_subscriptions"]:
+
+        result_key = f"/v1/{subscription}/{resource.id}/abi.json"
+        address_presigned_url = s3_client.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": bucket, "Key": result_key},
+            ExpiresIn=300,
+            HttpMethod="GET",
+        )
+
+        abi_urls.append(address_presigned_url)
+
+    # dashboard response
+
+    return abi_urls
 
 
 @router.get("/{dashboard_is}/data", tags=["dashboards"], response_model=Any)
