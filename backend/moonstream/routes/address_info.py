@@ -39,6 +39,60 @@ async def addressinfo_handler(
 
 
 @router.get(
+    "/ethereum/ens_name",
+    tags=["ens_name"],
+    response_model=str,
+)
+async def ens_name_handler(
+    address: str,
+    web3: Web3 = Depends(yield_web3_provider),
+) -> Optional[str]:
+    try:
+        response = actions.get_ens_name(web3, address)
+    except ValueError as e:
+        raise MoonstreamHTTPException(
+            status_code=400,
+            detail=str(e),
+            internal_error=e,
+        )
+    except Exception as e:
+        logger.error(f"Failed to get ens name: {e}")
+        raise MoonstreamHTTPException(
+            status_code=500,
+            internal_error=e,
+            detail="Currently unable to get ens name",
+        )
+    return response
+
+
+@router.get(
+    "/ethereum/ens_address",
+    tags=["ens_address"],
+    response_model=str,
+)
+async def ens_address_handler(
+    name: str,
+    web3: Web3 = Depends(yield_web3_provider),
+) -> Optional[str]:
+    try:
+        response = actions.get_ens_address(web3, name)
+    except ValueError as e:
+        raise MoonstreamHTTPException(
+            status_code=400,
+            detail=str(e),
+            internal_error=e,
+        )
+    except Exception as e:
+        logger.error(f"Failed to get ens address: {e}")
+        raise MoonstreamHTTPException(
+            status_code=500,
+            internal_error=e,
+            detail="Currently unable to get ens address",
+        )
+    return response
+
+
+@router.get(
     "/labels/ethereum",
     tags=["labels"],
     response_model=data.AddressListLabelsResponse,

@@ -7,6 +7,8 @@ import uuid
 import boto3  # type: ignore
 from bugout.data import BugoutSearchResults
 from bugout.journal import SearchOrder
+from ens.utils import is_valid_ens_name
+from eth_utils.address import is_address
 from moonstreamdb.models import (
     EthereumLabel,
 )
@@ -74,25 +76,56 @@ def get_contract_source_info(
     return None
 
 
+def get_ens_name(web3: Web3, address: str) -> Optional[str]:
+    try:
+        checksum_address = web3.toChecksumAddress(address)
+    except:
+        raise ValueError(f"{address} is invalid ethereum address is passed")
+    try:
+        ens_name = web3.ens.name(checksum_address)
+        return ens_name
+    except Exception as e:
+        reporter.error_report(e, ["web3", "ens"])
+        logger.error(
+            f"Cannot get ens name for address {checksum_address}. Probably node is down"
+        )
+        raise e
+
+
+def get_ens_address(web3: Web3, name: str) -> Optional[str]:
+
+    if not is_valid_ens_name(name):
+        raise ValueError(f"{name} is not valid ens name")
+
+    try:
+        ens_checksum_address = web3.ens.address(name)
+        if ens_checksum_address is not None:
+            ordinary_address = ens_checksum_address.lower()
+            return ordinary_address
+        return None
+    except Exception as e:
+        reporter.error_report(e, ["web3", "ens"])
+        logger.error(f"Cannot get ens address for name {name}. Probably node is down")
+        raise e
+
+
 def get_ethereum_address_info(
     db_session: Session, web3: Web3, address: str
 ) -> Optional[data.EthereumAddressInfo]:
 
+    if not is_address(address):
+        raise ValueError(f"Invalid ethereum address : {address}")
+
     address_info = data.EthereumAddressInfo(address=address)
+
+    try:
+        address_info.ens_name = get_ens_name(web3, address)
+    except:
+        pass
+
     etherscan_address_url = f"https://etherscan.io/address/{address}"
     etherscan_token_url = f"https://etherscan.io/token/{address}"
     blockchain_com_url = f"https://www.blockchain.com/eth/address/{address}"
-    try:
-        checksum_address = web3.toChecksumAddress(address)
-        try:
-            ens_name = web3.ens.name(checksum_address)
-            address_info.ens_name = ens_name
-        except:
-            logger.warning(
-                f"Cannot get ens name for address {ens_name}. Probably node is down"
-            )
-    except:
-        raise ValueError("Invalid address is passed")
 
     coinmarketcap_label: Optional[EthereumLabel] = (
         db_session.query(EthereumLabel)
