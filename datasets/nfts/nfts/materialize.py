@@ -4,7 +4,6 @@ from typing import Any, cast, Iterator, List, Optional, Set
 import json
 
 from moonstreamdb.models import (
-    EthereumAddress,
     EthereumLabel,
     EthereumTransaction,
     EthereumBlock,
@@ -49,7 +48,7 @@ def add_events(
         db_session.query(
             EthereumLabel.id,
             EthereumLabel.label,
-            EthereumAddress.address,
+            EthereumLabel.address,
             EthereumLabel.label_data,
             EthereumLabel.transaction_hash,
             EthereumTransaction.value,
@@ -57,7 +56,6 @@ def add_events(
             EthereumBlock.timestamp,
         )
         .filter(EthereumLabel.label == event_type.value)
-        .join(EthereumAddress, EthereumLabel.address_id == EthereumAddress.id)
         .outerjoin(
             EthereumTransaction,
             EthereumLabel.transaction_hash == EthereumTransaction.hash,
@@ -66,7 +64,9 @@ def add_events(
             EthereumBlock,
             EthereumTransaction.block_number == EthereumBlock.block_number,
         )
-        .order_by(EthereumLabel.created_at.asc(),)
+        .order_by(
+            EthereumLabel.created_at.asc(),
+        )
     )
     if bounds is not None:
         time_filters = [EthereumTransaction.block_number >= bounds.starting_block]
@@ -145,7 +145,12 @@ def create_dataset(
         add_contracts_metadata(datastore_conn, db_session, offset, batch_size)
     else:
         add_events(
-            datastore_conn, db_session, event_type, offset, bounds, batch_size,
+            datastore_conn,
+            db_session,
+            event_type,
+            offset,
+            bounds,
+            batch_size,
         )
 
 
@@ -157,10 +162,9 @@ def add_contracts_metadata(
 ) -> None:
     logger.info("Adding erc721 contract metadata")
     query = (
-        db_session.query(EthereumLabel.label_data, EthereumAddress.address)
+        db_session.query(EthereumLabel.label_data, EthereumLabel.address)
         .filter(EthereumLabel.label == EventType.ERC721.value)
-        .join(EthereumAddress, EthereumLabel.address_id == EthereumAddress.id)
-        .order_by(EthereumLabel.created_at, EthereumLabel.address_id)
+        .order_by(EthereumLabel.created_at)
     )
 
     offset = initial_offset

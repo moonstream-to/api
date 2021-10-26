@@ -12,7 +12,7 @@ from typing import Any, List, Optional, Dict
 
 import boto3  # type: ignore
 from moonstreamdb.db import yield_db_session_ctx
-from moonstreamdb.models import EthereumAddress, EthereumLabel
+from moonstreamdb.models import EthereumLabel
 import requests
 from sqlalchemy.orm import Session
 
