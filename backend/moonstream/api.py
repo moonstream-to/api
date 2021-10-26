@@ -67,7 +67,7 @@ whitelist_paths.update(
         "/users/password/reset_complete": "POST",
     }
 )
-app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
+# app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ORIGINS,

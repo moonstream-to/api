@@ -45,3 +45,8 @@ ETHTXPOOL_HUMBUG_CLIENT_ID = os.environ.get(
 ETHERSCAN_SMARTCONTRACTS_BUCKET = os.environ.get("AWS_S3_SMARTCONTRACT_BUCKET")
 if ETHERSCAN_SMARTCONTRACTS_BUCKET is None:
     raise ValueError("AWS_S3_SMARTCONTRACT_BUCKET is not set")
+
+# Web3 provider
+MOONSTREAM_WEB3_PROVIDER = os.environ.get("MOONSTREAM_WEB3_PROVIDER", "")
+if MOONSTREAM_WEB3_PROVIDER == "":
+    raise ValueError("MOONSTREAM_WEB3_PROVIDER environment variable  must be set")

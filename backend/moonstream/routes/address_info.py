@@ -4,10 +4,12 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query
 from moonstreamdb.db import yield_db_session
 from sqlalchemy.orm import Session
+from web3 import Web3
 
 from .. import actions
 from .. import data
 from ..middleware import MoonstreamHTTPException
+from ..web3_provider import yield_web3_provider
 
 logger = logging.getLogger(__name__)
 
@@ -17,16 +19,19 @@ router = APIRouter(
 
 
 @router.get(
-    "/ethereum_blockchain",
+    "/ethereum",
     tags=["addressinfo"],
     response_model=data.EthereumAddressInfo,
 )
 async def addressinfo_handler(
     address: str,
     db_session: Session = Depends(yield_db_session),
+    web3: Web3 = Depends(yield_web3_provider),
 ) -> Optional[data.EthereumAddressInfo]:
     try:
-        response = actions.get_ethereum_address_info(db_session, address)
+        response = actions.get_ethereum_address_info(db_session, web3, address)
+    except ValueError as e:
+        raise MoonstreamHTTPException(status_code=400, detail=str(e), internal_error=e)
     except Exception as e:
         logger.error(f"Unable to get info about Ethereum address {e}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
@@ -34,7 +39,7 @@ async def addressinfo_handler(
 
 
 @router.get(
-    "/labels/ethereum_blockchain",
+    "/labels/ethereum",
     tags=["labels"],
     response_model=data.AddressListLabelsResponse,
 )
