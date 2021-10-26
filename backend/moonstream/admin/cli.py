@@ -212,6 +212,44 @@ This CLI is configured to work with the following API URLs:
         func=subscription_types.cli_ensure_canonical_subscription_types
     )
 
+    parser_subscription = subcommands.add_parser(
+        "subscriptions", description="Manage Moonstream subscription"
+    )
+
+    parser_subscription.set_defaults(func=lambda _: parser_subscription.print_help())
+    subcommands_subscription = parser_subscription.add_subparsers()
+
+    parser_subscription_migrate = subcommands_subscription.add_parser(
+        "migrate", description="Create subscription type"
+    )
+    parser_subscription_migrate.add_argument(
+        "-f", "--file", required=False, type=str, help="path to file"
+    )
+    parser_subscription_migrate.add_argument(
+        "-m",
+        "--match",
+        required=False,
+        type=str,
+        help="Matching json",
+    )
+    parser_subscription_migrate.add_argument(
+        "-u",
+        "--update",
+        required=False,
+        type=str,
+        help="Updated/Added json fields",
+    )
+    parser_subscription_migrate.add_argument(
+        "-d",
+        "--drop_keys",
+        required=False,
+        type=str,
+        help="Droped json fields",
+    )
+    parser_subscription_migrate.set_defaults(
+        func=subscription_types.cli_create_subscription_type
+    )
+
     args = parser.parse_args()
     args.func(args)
 
