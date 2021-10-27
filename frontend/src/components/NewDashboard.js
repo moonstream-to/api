@@ -35,8 +35,6 @@ const NewDashboard = (props) => {
         {
           label: "",
           id: null,
-          isStorage: false,
-          isValue: false,
           isMethods: false,
         },
       ],
@@ -109,9 +107,7 @@ const NewDashboard = (props) => {
               <Tr>
                 <Th>Address</Th>
                 <Th w="90px">ABI State</Th>
-                <Th w="60px">Storage</Th>
-                <Th w="60px">Methods</Th>
-                <Th w="60px">Value</Th>
+                <Th w="90px">Track ABI</Th>
                 <Th w="60px"></Th>
               </Tr>
             </Thead>
@@ -377,14 +373,7 @@ const NewDashboard = (props) => {
                         </Button>
                       )}
                     </Td>
-                    <Td w="60px">
-                      <Checkbox
-                        isDisabled={
-                          !subscibedItem.address || !subscibedItem.hasABI
-                        }
-                        isChecked={subscibedItem.isStorage}
-                      ></Checkbox>
-                    </Td>
+
                     <Td w="60px">
                       <Checkbox
                         isDisabled={
@@ -393,9 +382,7 @@ const NewDashboard = (props) => {
                         isChecked={subscibedItem.isMethods}
                       ></Checkbox>
                     </Td>
-                    <Td w="60px">
-                      <Checkbox isChecked={subscibedItem.isValue}></Checkbox>
-                    </Td>
+
                     <Td>
                       {idx > 0 && (
                         <CloseButton
@@ -433,8 +420,6 @@ const NewDashboard = (props) => {
                 newState.subscriptions.push({
                   label: "",
                   id: null,
-                  isStorage: false,
-                  isValue: false,
                   isMethods: false,
                 });
                 setNewDashboardForm(newState);

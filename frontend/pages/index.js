@@ -25,7 +25,7 @@ import {
 } from "../src/core/providers/AnalyticsProvider/constants";
 import { AWS_ASSETS_PATH } from "../src/core/constants";
 import mixpanel from "mixpanel-browser";
-import { MODAL_TYPES } from "../src/core/providers/ModalProvider/constants";
+import { MODAL_TYPES } from "../src/core/providers/OverlayProvider/constants";
 
 const ConnectedButtons = dynamic(
   () => import("../src/components/ConnectedButtons"),

@@ -16,7 +16,7 @@ import ChakraAccountIconButton from "./AccountIconButton";
 import RouteButton from "./RouteButton";
 import { ALL_NAV_PATHES, WHITE_LOGO_W_TEXT_URL } from "../core/constants";
 import router from "next/router";
-import { MODAL_TYPES } from "../core/providers/ModalProvider/constants";
+import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 
 const LandingNavbar = () => {
   const ui = useContext(UIContext);

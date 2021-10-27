@@ -20,7 +20,7 @@ import {
 import { MdSettings } from "react-icons/md";
 import { HiAcademicCap } from "react-icons/hi";
 import { WHITE_LOGO_W_TEXT_URL } from "../core/constants";
-import { MODAL_TYPES } from "../core/providers/ModalProvider/constants";
+import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 
 const Sidebar = () => {
   const ui = useContext(UIContext);

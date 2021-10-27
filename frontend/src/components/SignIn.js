@@ -15,7 +15,7 @@ import {
 import CustomIcon from "./CustomIcon";
 import { useLogin } from "../core/hooks";
 import PasswordInput from "./PasswordInput";
-import { MODAL_TYPES } from "../core/providers/ModalProvider/constants";
+import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 
 const SignIn = ({ toggleModal }) => {
   const { handleSubmit, errors, register } = useForm();

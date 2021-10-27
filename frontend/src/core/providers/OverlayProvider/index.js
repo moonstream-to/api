@@ -1,5 +1,5 @@
 import React, { useState, useLayoutEffect, useContext, Suspense } from "react";
-import ModalContext from "./context";
+import OverlayContext from "./context";
 import { MODAL_TYPES, DRAWER_TYPES } from "./constants";
 import {
   Modal,
@@ -39,7 +39,7 @@ const NewSubscription = React.lazy(() =>
   import("../../../components/NewSubscription")
 );
 
-const ModalProvider = ({ children }) => {
+const OverlayProvider = ({ children }) => {
   const ui = useContext(UIContext);
   const { user } = useContext(UserContext);
   const [modal, toggleModal] = useState(MODAL_TYPES.OFF);
@@ -110,7 +110,9 @@ const ModalProvider = ({ children }) => {
   }, [ui.isAppView, ui.isAppReady, user, ui.isLoggingOut, modal]);
 
   return (
-    <ModalContext.Provider value={{ modal, toggleModal, drawer, toggleDrawer }}>
+    <OverlayContext.Provider
+      value={{ modal, toggleModal, drawer, toggleDrawer }}
+    >
       <AlertDialog
         isOpen={alertDisclosure.isOpen}
         leastDestructiveRef={cancelRef}
@@ -232,8 +234,8 @@ const ModalProvider = ({ children }) => {
       </Drawer>
 
       {children}
-    </ModalContext.Provider>
+    </OverlayContext.Provider>
   );
 };
 
-export default ModalProvider;
+export default OverlayProvider;

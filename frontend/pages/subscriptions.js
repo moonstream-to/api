@@ -12,12 +12,12 @@ import {
   Button,
 } from "@chakra-ui/react";
 import { AiOutlinePlusCircle } from "react-icons/ai";
-import ModalContext from "../src/core/providers/ModalProvider/context";
-import { MODAL_TYPES } from "../src/core/providers/ModalProvider/constants";
+import OverlayContext from "../src/core/providers/OverlayProvider/context";
+import { MODAL_TYPES } from "../src/core/providers/OverlayProvider/constants";
 
 const Subscriptions = () => {
   const { subscriptionsCache } = useSubscriptions();
-  const modal = useContext(ModalContext);
+  const modal = useContext(OverlayContext);
 
   document.title = `My Subscriptions`;
 

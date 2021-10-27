@@ -11,16 +11,16 @@ import {
 } from "@chakra-ui/react";
 import { PlusSquareIcon } from "@chakra-ui/icons";
 import UIContext from "../core/providers/UIProvider/context";
-import ModalContext from "../core/providers/ModalProvider/context";
+import OverlayContext from "../core/providers/OverlayProvider/context";
 
 import {
   DRAWER_TYPES,
   MODAL_TYPES,
-} from "../core/providers/ModalProvider/constants";
+} from "../core/providers/OverlayProvider/constants";
 
 const AddNewIconButton = (props) => {
   const ui = useContext(UIContext);
-  const modal = useContext(ModalContext);
+  const modal = useContext(OverlayContext);
 
   return (
     <Menu>

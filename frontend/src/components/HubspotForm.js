@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Spinner } from "@chakra-ui/react";
 import { useToast } from "../core/hooks";
 import HubspotForm from "react-hubspot-form";
-import { MODAL_TYPES } from "../core/providers/ModalProvider/constants";
+import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 
 const RequestIntegration = ({ toggleModal, formId }) => {
   const toast = useToast();

@@ -4,9 +4,9 @@ import theme from "./Theme/theme";
 import {
   AnalyticsProvider,
   UserProvider,
-  ModalProvider,
   UIProvider,
   DataProvider,
+  OverlayProvider,
 } from "./core/providers";
 import { StripeProvider } from "./core/providers/StripeProvider";
 
@@ -17,9 +17,9 @@ const AppContext = (props) => {
         <ChakraProvider theme={theme}>
           <DataProvider>
             <UIProvider>
-              <ModalProvider>
+              <OverlayProvider>
                 <AnalyticsProvider>{props.children}</AnalyticsProvider>
-              </ModalProvider>
+              </OverlayProvider>
             </UIProvider>
           </DataProvider>
         </ChakraProvider>

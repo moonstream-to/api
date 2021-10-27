@@ -1,8 +1,8 @@
-import ModalContext from "../providers/ModalProvider/context";
+import OverlayContext from "../providers/OverlayProvider/context";
 import { useContext } from "react";
 
 const useModals = () => {
-  const modals = useContext(ModalContext);
+  const modals = useContext(OverlayContext);
 
   return modals;
 };
