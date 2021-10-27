@@ -1,10 +1,10 @@
 import React, { useEffect } from "react";
-import { Heading, Spinner } from "@chakra-ui/react";
-import Modal from "./Modal";
+import { Spinner } from "@chakra-ui/react";
 import { useToast } from "../core/hooks";
 import HubspotForm from "react-hubspot-form";
+import { MODAL_TYPES } from "../core/providers/ModalProvider/constants";
 
-const RequestIntegration = ({ toggleModal, title, formId }) => {
+const RequestIntegration = ({ toggleModal, formId }) => {
   const toast = useToast();
 
   useEffect(() => {
@@ -14,7 +14,7 @@ const RequestIntegration = ({ toggleModal, title, formId }) => {
         event.data.eventName === "onFormSubmitted"
       ) {
         if (event.data.id === formId) {
-          toggleModal(null);
+          toggleModal(MODAL_TYPES.OFF);
           toast("Request sent", "success");
         }
       }
@@ -28,17 +28,12 @@ const RequestIntegration = ({ toggleModal, title, formId }) => {
   }, [toast, toggleModal]);
 
   return (
-    <Modal onClose={() => toggleModal(null)}>
-      <Heading my={2} as="h2" fontSize={["xl", "3xl"]}>
-        {title}
-      </Heading>
-      <HubspotForm
-        region="na1"
-        portalId="8018701"
-        formId={formId}
-        loading={<Spinner colorScheme="blue" speed="1s" />}
-      />
-    </Modal>
+    <HubspotForm
+      region="na1"
+      portalId="8018701"
+      formId={formId}
+      loading={<Spinner colorScheme="blue" speed="1s" />}
+    />
   );
 };
 

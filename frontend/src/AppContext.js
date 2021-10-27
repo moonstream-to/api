@@ -13,17 +13,17 @@ import { StripeProvider } from "./core/providers/StripeProvider";
 const AppContext = (props) => {
   return (
     <UserProvider>
-      <ModalProvider>
-        <StripeProvider>
-          <ChakraProvider theme={theme}>
-            <DataProvider>
-              <UIProvider>
+      <StripeProvider>
+        <ChakraProvider theme={theme}>
+          <DataProvider>
+            <UIProvider>
+              <ModalProvider>
                 <AnalyticsProvider>{props.children}</AnalyticsProvider>
-              </UIProvider>
-            </DataProvider>
-          </ChakraProvider>
-        </StripeProvider>
-      </ModalProvider>
+              </ModalProvider>
+            </UIProvider>
+          </DataProvider>
+        </ChakraProvider>
+      </StripeProvider>
     </UserProvider>
   );
 };

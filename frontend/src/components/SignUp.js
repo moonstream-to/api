@@ -4,7 +4,6 @@ import { jsx } from "@emotion/react";
 import { useContext, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {
-  Heading,
   Text,
   Stack,
   Box,
@@ -17,9 +16,9 @@ import {
 } from "@chakra-ui/react";
 import CustomIcon from "./CustomIcon";
 import { useSignUp } from "../core/hooks";
-import Modal from "./Modal";
 import PasswordInput from "./PasswordInput";
 import UIContext from "../core/providers/UIProvider/context";
+import { MODAL_TYPES } from "../core/providers/ModalProvider/constants";
 
 const SignUp = ({ toggleModal }) => {
   const { handleSubmit, errors, register } = useForm();
@@ -28,15 +27,12 @@ const SignUp = ({ toggleModal }) => {
 
   useEffect(() => {
     if (isSuccess) {
-      ui.toggleModal(null);
+      ui.toggleModal(MODAL_TYPES.OFF);
     }
   }, [isSuccess, toggleModal, ui]);
 
   return (
-    <Modal onClose={() => ui.toggleModal(null)}>
-      <Heading mt={2} size="md">
-        Create an account
-      </Heading>
+    <>
       <Text color="gray.1200" fontSize="md">
         Sign up for free
       </Text>
@@ -105,12 +101,12 @@ const SignUp = ({ toggleModal }) => {
           cursor="pointer"
           color="blue.400"
           as="span"
-          onClick={() => toggleModal("login")}
+          onClick={() => toggleModal(MODAL_TYPES.LOGIN)}
         >
           Login
         </Box>
       </Text>
-    </Modal>
+    </>
   );
 };
 
