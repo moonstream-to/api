@@ -17,10 +17,10 @@ import {
   ArrowRightIcon,
   LockIcon,
 } from "@chakra-ui/icons";
-import { MdTimeline, MdSettings } from "react-icons/md";
-import { ImStatsBars } from "react-icons/im";
+import { MdSettings } from "react-icons/md";
 import { HiAcademicCap } from "react-icons/hi";
 import { WHITE_LOGO_W_TEXT_URL } from "../core/constants";
+import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 
 const Sidebar = () => {
   const ui = useContext(UIContext);
@@ -68,24 +68,8 @@ const Sidebar = () => {
       </SidebarHeader>
       {ui.isLoggedIn && (
         <SidebarContent>
-          <Menu iconShape="square">
-            <MenuItem icon={<MdTimeline />}>
-              {" "}
-              <RouterLink href="/stream">Stream</RouterLink>
-            </MenuItem>
-          </Menu>
-          <Menu iconShape="square">
-            <MenuItem icon={<ImStatsBars />}>
-              {" "}
-              <RouterLink href="/analytics">Analytics </RouterLink>
-            </MenuItem>
-          </Menu>
-          <Menu iconShape="square">
-            <MenuItem icon={<MdSettings />}>
-              {" "}
-              <RouterLink href="/subscriptions">Subscriptions </RouterLink>
-            </MenuItem>
-          </Menu>
+          <Menu iconShape="square"></Menu>
+          <Menu iconShape="square"></Menu>
           {ui.isMobileView && (
             <Menu iconShape="square">
               <MenuItem icon={<HiAcademicCap />}>
@@ -112,7 +96,7 @@ const Sidebar = () => {
           <Menu iconShape="square">
             <MenuItem
               onClick={() => {
-                ui.toggleModal("login");
+                ui.toggleModal(MODAL_TYPES.LOGIN);
                 ui.setSidebarToggled(false);
               }}
             >
@@ -136,6 +120,10 @@ const Sidebar = () => {
           <Menu iconShape="square">
             <MenuItem icon={<LockIcon />}>
               <RouterLink href="/account/tokens">API Tokens</RouterLink>
+            </MenuItem>
+            <MenuItem icon={<MdSettings />}>
+              {" "}
+              <RouterLink href="/subscriptions">Subscriptions </RouterLink>
             </MenuItem>
           </Menu>
         )}

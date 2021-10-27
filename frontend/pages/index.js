@@ -25,6 +25,7 @@ import {
 } from "../src/core/providers/AnalyticsProvider/constants";
 import { AWS_ASSETS_PATH } from "../src/core/constants";
 import mixpanel from "mixpanel-browser";
+import { MODAL_TYPES } from "../src/core/providers/OverlayProvider/constants";
 
 const ConnectedButtons = dynamic(
   () => import("../src/components/ConnectedButtons"),
@@ -398,7 +399,7 @@ const Homepage = () => {
                                 [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer want to find more button`,
                               }
                             );
-                          toggleModal("hubspot-developer");
+                          toggleModal(MODAL_TYPES.HUBSPOT);
                         }}
                       >
                         request early access

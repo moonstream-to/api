@@ -1,5 +1,4 @@
 import React, { useState, useContext, useEffect } from "react";
-import RouterLink from "next/link";
 import {
   Flex,
   Image,
@@ -23,11 +22,11 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon,
 } from "@chakra-ui/icons";
-import { MdTimeline } from "react-icons/md";
 import useRouter from "../core/hooks/useRouter";
 import UIContext from "../core/providers/UIProvider/context";
 import AccountIconButton from "./AccountIconButton";
 import RouteButton from "./RouteButton";
+import AddNewIconButton from "./AddNewIconButton";
 import {
   USER_NAV_PATHES,
   ALL_NAV_PATHES,
@@ -129,6 +128,13 @@ const AppNavbar = () => {
                 })}
               </ButtonGroup>
               <SupportPopover />
+              <AddNewIconButton
+                colorScheme="blue"
+                variant="link"
+                color="gray.100"
+                size="lg"
+                h="32px"
+              />
               <AccountIconButton
                 colorScheme="blue"
                 variant="link"
@@ -161,19 +167,14 @@ const AppNavbar = () => {
                 }}
               />
             )}
-            <RouterLink href="/stream" passHref>
-              <IconButton
-                m={0}
-                variant="link"
-                justifyContent="space-evenly"
-                alignContent="center"
-                h="32px"
-                size={iconSize}
-                colorScheme="gray"
-                aria-label="go to ticker"
-                icon={<MdTimeline />}
-              />
-            </RouterLink>
+            <AddNewIconButton
+              variant="link"
+              justifyContent="space-evenly"
+              alignContent="center"
+              h="32px"
+              size={iconSize}
+              colorScheme="blue"
+            />
             {!isSearchBarActive && (
               <IconButton
                 m={0}

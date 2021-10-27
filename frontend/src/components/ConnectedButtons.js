@@ -54,8 +54,6 @@ const ArrowCTA = (props) => {
     null,
   ];
 
-  const speedConst = -0.05;
-
   return (
     <SimpleGrid
       columns={props.button4 ? [1, 2, 4, null, 4] : [1, 2, 3, null, 3]}

@@ -4,9 +4,9 @@ import theme from "./Theme/theme";
 import {
   AnalyticsProvider,
   UserProvider,
-  ModalProvider,
   UIProvider,
   DataProvider,
+  OverlayProvider,
 } from "./core/providers";
 import { StripeProvider } from "./core/providers/StripeProvider";
 
@@ -18,17 +18,17 @@ const AppContext = (props) => {
   }, []);
   return (
     <UserProvider>
-      <ModalProvider>
-        <StripeProvider>
-          <ChakraProvider theme={theme}>
-            <DataProvider>
-              <UIProvider>
+      <StripeProvider>
+        <ChakraProvider theme={theme}>
+          <DataProvider>
+            <UIProvider>
+              <OverlayProvider>
                 <AnalyticsProvider>{props.children}</AnalyticsProvider>
-              </UIProvider>
-            </DataProvider>
-          </ChakraProvider>
-        </StripeProvider>
-      </ModalProvider>
+              </OverlayProvider>
+            </UIProvider>
+          </DataProvider>
+        </ChakraProvider>
+      </StripeProvider>
     </UserProvider>
   );
 };
