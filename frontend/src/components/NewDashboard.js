@@ -61,15 +61,12 @@ const NewDashboard = (props) => {
     subscriptions.subscriptionsCache.isLoading,
   ]);
 
-  // console.log("selectedItems", newDashboardForm.s);
-
   const filterFn = (item, inputValue) =>
     item.subscription_type_id === "ethereum_blockchain" &&
     (!inputValue ||
       item.address.toUpperCase().includes(inputValue.toUpperCase()) ||
       item.label.toUpperCase().includes(inputValue.toUpperCase()));
 
-  console.log("ui.newDashBoardForm", newDashboardForm);
   return (
     <>
       <Stack spacing="24px">
@@ -142,11 +139,9 @@ const NewDashboard = (props) => {
                                 // selectedItem,
                                 getRootProps,
                               }) => {
-                                console.log("subscibedItem:", subscibedItem);
                                 const labelColor =
                                   subscibedItem.color &&
                                   color(`${subscibedItem.color}`);
-                                console.log("inputValue:", inputValue);
                                 return (
                                   <Box pos="relative">
                                     <Box
@@ -252,15 +247,7 @@ const NewDashboard = (props) => {
                                               const badgeColor = color(
                                                 `${item.color}`
                                               );
-                                              // badgeColor.setbadgeColor.isDark()
-                                              //   ? badgeColor.lighten(0.5)
-                                              //   : badgeColor.darken(0.5);
-                                              // console.log(
-                                              //   "original color",
-                                              //   item.color,
-                                              //   "modified:",
-                                              //   badgeColor.hex()
-                                              // );
+
                                               return (
                                                 <Stack
                                                   px={4}
@@ -391,7 +378,6 @@ const NewDashboard = (props) => {
                               ...newDashboardForm?.subscriptions,
                             ];
                             hardcopy.splice(idx, 1);
-                            console.log("index", idx, hardcopy);
                             setNewDashboardForm((prevState) => {
                               return {
                                 ...prevState,

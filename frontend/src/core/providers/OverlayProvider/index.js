@@ -49,16 +49,10 @@ const OverlayProvider = ({ children }) => {
   const modalDisclosure = useDisclosure();
   const alertDisclosure = useDisclosure();
 
-  // TODO @Peersky: This is written to take Disclosure state and modify modal state
-  // This should be written same as Drawer - Take modal state and modify Disclosure
-  // However to implement this - first SIGNUP,FORGOT,HUBSPOT components should be written to support this
   useLayoutEffect(() => {
     if (modal === MODAL_TYPES.OFF && modalDisclosure.isOpen) {
-      // toggleModal(MODAL_TYPES.NEW_SUBSCRIPTON);
-      console.log("thats unexpected");
       modalDisclosure.onClose();
     } else if (modal !== MODAL_TYPES.OFF && !modalDisclosure.isOpen) {
-      // toggleModal(MODAL_TYPES.OFF);
       modalDisclosure.onOpen();
     }
   }, [modal, modalDisclosure]);
@@ -81,11 +75,9 @@ const OverlayProvider = ({ children }) => {
     alertDisclosure.onOpen();
   };
 
-  console.log("drawer", drawer);
   console.assert(
     Object.values(DRAWER_TYPES).some((element) => element === drawer)
   );
-  console.log("modal", modal);
   console.assert(
     Object.values(MODAL_TYPES).some((element) => element === modal)
   );
@@ -224,6 +216,7 @@ const OverlayProvider = ({ children }) => {
             <Button
               colorScheme="blue"
               onClick={() => {
+                //TODO: @Peersky Implement logic part
                 console.log("submit clicked");
               }}
             >
