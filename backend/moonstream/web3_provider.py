@@ -6,7 +6,7 @@ from web3 import Web3
 from .settings import (
     MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI,
     MOONSTREAM_INTERNAL_HOSTED_ZONE_ID,
-    MOONSTREAM_NODE_ETHEREUM_IPC_PORT
+    MOONSTREAM_NODE_ETHEREUM_IPC_PORT,
 )
 
 logger = logging.getLogger(__name__)
@@ -32,11 +32,15 @@ def fetch_web3_provider_ip():
     return record_value
 
 
-if not MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI.replace(".","").isnumeric():
+if not MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI.replace(".", "").isnumeric():
     web3_provider_ip = fetch_web3_provider_ip()
     if web3_provider_ip is None:
         raise ValueError("Unable to extract web3 provider IP")
-    moonstream_web3_provider = Web3(Web3.HTTPProvider(f"http://{web3_provider_ip}:{MOONSTREAM_NODE_ETHEREUM_IPC_PORT}"))
+    moonstream_web3_provider = Web3(
+        Web3.HTTPProvider(
+            f"http://{web3_provider_ip}:{MOONSTREAM_NODE_ETHEREUM_IPC_PORT}"
+        )
+    )
 
 
 def yield_web3_provider() -> Web3:
