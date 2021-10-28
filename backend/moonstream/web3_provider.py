@@ -40,9 +40,7 @@ else:
     web3_provider_ip = MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI
 
 moonstream_web3_provider = Web3(
-    Web3.HTTPProvider(
-        f"http://{web3_provider_ip}:{MOONSTREAM_NODE_ETHEREUM_IPC_PORT}"
-    )
+    Web3.HTTPProvider(f"http://{web3_provider_ip}:{MOONSTREAM_NODE_ETHEREUM_IPC_PORT}")
 )
 
 
