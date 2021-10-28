@@ -5,6 +5,8 @@ import argparse
 from typing import Optional
 
 from . import subscription_types
+from .migrations.checksum_address import checksum_all_subscription_addresses
+from ..web3_provider import yield_web3_provider
 from ..settings import (
     BUGOUT_BROOD_URL,
     BUGOUT_SPIRE_URL,
@@ -20,6 +22,12 @@ def parse_boolean_arg(raw_arg: Optional[str]) -> Optional[bool]:
     if raw_arg_lower in ["t", "true", "1", "y", "yes"]:
         return True
     return False
+
+
+def migrations_run(args: argparse.Namespace) -> None:
+    web3_session = yield_web3_provider()
+    if args.id == 1:
+        checksum_all_subscription_addresses(web3_session)
 
 
 def main() -> None:
@@ -211,6 +219,21 @@ This CLI is configured to work with the following API URLs:
     parser_subscription_types_canonicalize.set_defaults(
         func=subscription_types.cli_ensure_canonical_subscription_types
     )
+
+    parser_migrations = subcommands.add_parser(
+        "migrations", description="Manage database, resource and etc migrations"
+    )
+    parser_migrations.set_defaults(func=lambda _: parser_migrations.print_help())
+    subcommands_migrations = parser_migrations.add_subparsers(
+        description="Migration commands"
+    )
+    parser_migrations_run = subcommands_migrations.add_parser(
+        "run", description="Run migration"
+    )
+    parser_migrations_run.add_argument(
+        "-i", "--id", required=True, type=int, help="Provide migration ID"
+    )
+    parser_migrations_run.set_defaults(func=migrations_run)
 
     args = parser.parse_args()
     args.func(args)
