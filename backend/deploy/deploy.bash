@@ -48,21 +48,7 @@ AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" "${PYTHON}" "${PARAMETERS_SCRIPT}" "$
 echo
 echo
 echo -e "${PREFIX_INFO} Retrieving addition deployment parameters"
-ENV_PARAMETERS=$(aws ssm describe-parameters \
-    --parameter-filters Key=tag:Product,Values=moonstream \
-    | jq -r .Parameters[].Name)
-ENV_PARAMETERS_VALUES=$(aws ssm get-parameters \
-    --names $ENV_PARAMETERS \
-    --query "Parameters[*].{Name:Name,Value:Value}")
-ENV_PARAMETERS_VALUES_LENGTH=$(echo $ENV_PARAMETERS_VALUES | jq length)
-echo -e "${PREFIX_INFO} Extracted ${ENV_PARAMETERS_VALUES_LENGTH} parameters"
-for i in $(seq 0 $(($ENV_PARAMETERS_VALUES_LENGTH - 1)))
-do
-    param_key=$(echo $ENV_PARAMETERS_VALUES | jq -r .[$i].Name)
-    param_value=$(echo $ENV_PARAMETERS_VALUES | jq .[$i].Value)
-    echo "$param_key=$param_value" >> "${PARAMETERS_ENV_PATH}"
-done
-
+bash parameters.bash -p "moonstream" -o "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
