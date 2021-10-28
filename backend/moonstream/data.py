@@ -222,7 +222,7 @@ class OnboardingState(BaseModel):
 
 
 class DashboardContractsAbi(BaseModel):
-    abi: str    
+    abi: str
     contract_label: str
     contract_address: str
 
@@ -237,4 +237,13 @@ class DashboardResource(BaseModel):
     type: str
     user_id: Union[str, UUID]
     name: str
-    dashboard_subscriptions: List[UUID] 
+    dashboard_subscriptions: List[UUID]
+
+
+class DashboardMeta(BaseModel):
+    subscription_id: UUID
+    generic: Optional[List[Dict[str, str]]]
+    all_methods: bool = False
+    all_events: bool = False
+    methods: List[Dict[str, Any]]
+    events: List[Dict[str, Any]]

@@ -1,13 +1,14 @@
 import logging
-from typing import Any, List, Optional
+from os import read
+from typing import Any, List, Optional, Dict
 from uuid import UUID
 
 import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
-from fastapi import APIRouter, Request, Form
-from starlette.datastructures import Address
+from fastapi import APIRouter, Request
 
+from .. import actions
 from .. import data
 from ..middleware import MoonstreamHTTPException
 from ..reporter import reporter
@@ -31,10 +32,10 @@ BUGOUT_RESOURCE_TYPE_SUBSCRIPTION = "subscription"
 
 
 @router.post("/", tags=["dashboards"], response_model=data.SubscriptionResourceData)
-async def add_subscription_handler(
+async def add_dashboard_handler(
     request: Request,
-    name: str = Form(...),
-    subscriptions_list: List[UUID] = Form(...),
+    name: str,
+    subscriptions: List[data.DashboardMeta],
 ) -> BugoutResource:
     """
     Add subscription to blockchain stream data for user.
@@ -43,6 +44,8 @@ async def add_subscription_handler(
     token = request.state.token
 
     user = request.state.user
+
+    dashboard_subscriptions = subscriptions
 
     # Get all user subscriptions
     params = {
@@ -60,17 +63,28 @@ async def add_subscription_handler(
         reporter.error_report(e)
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
-    active_resources_ids = [
-        resource.id
-        for resource in resources.resources
-        if resource.resource_data["active"]
-    ]
+    # process existing subscriptions with supplied ids
 
-    dashboard_subscriptions = [
-        subscription_id
-        for subscription_id in subscriptions_list
-        if subscription_id in active_resources_ids
-    ]
+    s3_client = boto3.client("s3")
+
+    available_subscriptions = {
+        resource.id: resource.resource_data for resource in resources.resources
+    }
+
+    for dashboard_subscription in dashboard_subscriptions:
+        if dashboard_subscription.subscription_id in available_subscriptions:
+
+            # TODO(Andrey): Add some dedublication for get object from s3 for repeated subscription_id
+
+            actions.dashboards_abi_validation(
+                dashboard_subscription, available_subscriptions, s3_client
+            )
+
+        else:
+            logger.error(
+                f"Error subscription_id: {dashboard_subscription.subscription_id} not exists."
+            )
+            raise MoonstreamHTTPException(status_code=404)
 
     dashboard_resource = data.DashboardResource(
         type=BUGOUT_RESOURCE_TYPE_DASHBOARD,
@@ -115,10 +129,10 @@ async def delete_subscription_handler(request: Request, dashboard_id: str):
     return deleted_resource
 
 
-@router.get("/", tags=["dashboards"], response_model=Any)
+@router.get("/", tags=["dashboards"], response_model=BugoutResources)
 async def get_dashboards_handler(
     request: Request, limit: Optional[int], offset: Optional[int]
-) -> Any:
+) -> BugoutResources:
     """
     Get user's subscriptions.
     """
@@ -138,7 +152,7 @@ async def get_dashboards_handler(
         reporter.error_report(e)
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
-    return resources.resources
+    return resources
 
 
 @router.get("/{dashboarsd_id}", tags=["dashboards"], response_model=Any)
@@ -186,6 +200,81 @@ async def get_dashboard_handler(request: Request, dashboarsd_id: UUID) -> Any:
     # dashboard response
 
     return abi_urls
+
+
+@router.put("/{dashboard_id}", tags=["dashboards"], response_model=BugoutResource)
+async def update_dashboard_handler(
+    request: Request,
+    dashboard_id: str,
+    name: Optional[str],
+    subscriptions: List[data.DashboardMeta],
+) -> BugoutResource:
+    """
+    Update dashboards mainly fully overwrite name and subscription metadata
+    """
+
+    token = request.state.token
+
+    user = request.state.user
+
+    dashboard_subscriptions = subscriptions
+
+    params = {
+        "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
+        "user_id": str(user.id),
+    }
+    try:
+        resources: BugoutResources = bc.list_resources(token=token, params=params)
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        logger.error(
+            f"Error listing subscriptions for user ({request.user.id}) with token ({request.state.token}), error: {str(e)}"
+        )
+        reporter.error_report(e)
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    s3_client = boto3.client("s3")
+
+    available_subscriptions = {
+        resource.id: resource.resource_data for resource in resources.resources
+    }
+
+    for dashboard_subscription in dashboard_subscriptions:
+        if dashboard_subscription.subscription_id in available_subscriptions:
+
+            actions.dashboards_abi_validation(
+                dashboard_subscription, available_subscriptions, s3_client
+            )
+
+        else:
+            logger.error(
+                f"Error subscription_id: {dashboard_subscription.subscription_id} not exists."
+            )
+            raise MoonstreamHTTPException(status_code=404)
+
+    dashboard_resource: Dict[str, Any] = {}
+
+    if subscriptions:
+
+        dashboard_resource["subscriptions"] = subscriptions
+
+    if name is not None:
+        dashboard_resource["name"] = name
+
+    try:
+        resource: BugoutResource = bc.update_resource(
+            token=token,
+            resource_id=dashboard_id,
+            resource_data=dashboard_resource,
+        )
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        logger.error(f"Error creating subscription resource: {str(e)}")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    return resource
 
 
 @router.get("/{dashboard_is}/data", tags=["dashboards"], response_model=Any)
