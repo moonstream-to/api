@@ -34,7 +34,7 @@ setup(
     install_requires=[
         "boto3",
         "bugout >= 0.1.17",
-        "moonstreamdb @ git+https://git@github.com/bugout-dev/moonstream.git@205b2234477f217bf4dca1913b4ca1d055c85f9a#egg=moonstreamdb&subdirectory=db",
+        "moonstreamdb @ git+https://git@github.com/bugout-dev/moonstream.git@0a771ddfbca1254be331149ccf2d162aa09b7bc0#egg=moonstreamdb&subdirectory=db",
         "humbug",
         "python-dateutil",
         "requests",

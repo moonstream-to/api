@@ -97,6 +97,7 @@ def add_block_transactions(db_session, block: Any) -> None:
             input=tx.input,
             nonce=tx.nonce,
             transaction_index=tx.transactionIndex,
+            transaction_type=int(tx["type"], 0) if tx["type"] is not None else None,
             value=tx.value,
         )
         db_session.add(tx_obj)
