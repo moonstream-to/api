@@ -3,6 +3,7 @@ Convert all addresses in user subscriptions to checksum address.
 """
 from bugout.data import BugoutResources
 from bugout.exceptions import BugoutResponseException
+from sqlalchemy.orm.session import Session
 from web3 import Web3
 
 from ...settings import BUGOUT_REQUEST_TIMEOUT_SECONDS, MOONSTREAM_ADMIN_ACCESS_TOKEN
@@ -38,3 +39,7 @@ def checksum_all_subscription_addresses(web3: Web3) -> None:
         except Exception as e:
             print(f"Unexpected error: {repr(e)}")
             continue
+
+
+def checksum_all_labels_addresses(db_session: Session) -> None:
+    pass

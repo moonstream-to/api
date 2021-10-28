@@ -4,8 +4,10 @@ Moonstream CLI
 import argparse
 from typing import Optional
 
+from moonstreamdb.db import SessionLocal
+
 from . import subscription_types
-from .migrations.checksum_address import checksum_all_subscription_addresses
+from .migrations import checksum_address
 from ..web3_provider import yield_web3_provider
 from ..settings import (
     BUGOUT_BROOD_URL,
@@ -26,8 +28,13 @@ def parse_boolean_arg(raw_arg: Optional[str]) -> Optional[bool]:
 
 def migrations_run(args: argparse.Namespace) -> None:
     web3_session = yield_web3_provider()
-    if args.id == 1:
-        checksum_all_subscription_addresses(web3_session)
+    db_session = SessionLocal()
+    try:
+        if args.id == 1:
+            checksum_address.checksum_all_subscription_addresses(web3_session)
+            checksum_address.checksum_all_labels_addresses(db_session)
+    finally:
+        db_session.close()
 
 
 def main() -> None:
