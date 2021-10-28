@@ -98,6 +98,7 @@ class EthereumTransaction(Base):  # type: ignore
     input = Column(Text)
     nonce = Column(VARCHAR(256))
     transaction_index = Column(BigInteger)
+    transaction_type = Column(Integer, nullable=True)
     value = Column(Numeric(precision=78, scale=0), index=True)
 
     indexed_at = Column(
