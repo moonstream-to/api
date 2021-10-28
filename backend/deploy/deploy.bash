@@ -22,6 +22,7 @@ PYTHON="${PYTHON_ENV_DIR}/bin/python"
 PIP="${PYTHON_ENV_DIR}/bin/pip"
 SCRIPT_DIR="$(realpath $(dirname $0))"
 PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.py"
+PARAMETERS_BASH_SCRIPT="${SCRIPT_DIR}/parameters.bash"
 SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/moonstream-secrets}"
 PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
 AWS_SSM_PARAMETER_PATH="${AWS_SSM_PARAMETER_PATH:-/moonstream/prod}"
@@ -48,7 +49,7 @@ AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" "${PYTHON}" "${PARAMETERS_SCRIPT}" "$
 echo
 echo
 echo -e "${PREFIX_INFO} Retrieving addition deployment parameters"
-bash parameters.bash -p "moonstream" -o "${PARAMETERS_ENV_PATH}"
+bash "${PARAMETERS_BASH_SCRIPT}" -p "moonstream" -o "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
