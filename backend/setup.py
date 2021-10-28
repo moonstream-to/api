@@ -1,14 +1,12 @@
 from setuptools import find_packages, setup
 
-from moonstream.version import MOONSTREAM_VERSION
-
 long_description = ""
 with open("README.md") as ifp:
     long_description = ifp.read()
 
 setup(
     name="moonstream",
-    version=MOONSTREAM_VERSION,
+    version="0.0.2",
     packages=find_packages(),
     install_requires=[
         "boto3",
