@@ -36,11 +36,14 @@ if not MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI.replace(".", "").isnumeric():
     web3_provider_ip = fetch_web3_provider_ip()
     if web3_provider_ip is None:
         raise ValueError("Unable to extract web3 provider IP")
-    moonstream_web3_provider = Web3(
-        Web3.HTTPProvider(
-            f"http://{web3_provider_ip}:{MOONSTREAM_NODE_ETHEREUM_IPC_PORT}"
-        )
+else:
+    web3_provider_ip = MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI
+
+moonstream_web3_provider = Web3(
+    Web3.HTTPProvider(
+        f"http://{web3_provider_ip}:{MOONSTREAM_NODE_ETHEREUM_IPC_PORT}"
     )
+)
 
 
 def yield_web3_provider() -> Web3:
