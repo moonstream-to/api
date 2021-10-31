@@ -46,9 +46,6 @@ const assets = {
   pendingTransactions: `${AWS_ASSETS_PATH}/Ethereum+pending+transactions.png`,
   priceInformation: `${AWS_ASSETS_PATH}/Price+information.png`,
   socialMediaPosts: `${AWS_ASSETS_PATH}/Social+media+posts.png`,
-  cryptoTraders: `${AWS_ASSETS_PATH}/crypto+traders.png`,
-  comicWhite: `${AWS_ASSETS_PATH}/moonstream-comic-white.png`,
-  smartDevelopers: `${AWS_ASSETS_PATH}/smart+contract+developers.png`,
 };
 const Homepage = () => {
   const [background, setBackground] = useState("background720");
