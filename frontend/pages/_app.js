@@ -6,13 +6,8 @@ import "highlight.js/styles/github.css";
 import "focus-visible/dist/focus-visible";
 import dynamic from "next/dynamic";
 import { QueryClient, QueryClientProvider } from "react-query";
-
-const HeadSEO = dynamic(() => import("../src/components/HeadSEO"), {
-  ssr: false,
-});
-const HeadLinks = dynamic(() => import("../src/components/HeadLinks"), {
-  ssr: false,
-});
+import HeadLinks from "../src/components/HeadLinks";
+import HeadSEO from "../src/components/HeadSEO";
 const AppContext = dynamic(() => import("../src/AppContext"), {
   ssr: false,
 });
@@ -53,6 +48,9 @@ export default function CachingApp({ Component, pageProps }) {
     { rel: "preload", as: "image", href: WHITE_LOGO_W_TEXT_URL },
   ];
   pageProps.preloads && headLinks.push(...pageProps.preloads);
+
+  // console.log("debugging pageProps", pageProps);
+  // console.log("debugging head links:", headLinks);
   return (
     <>
       <style global jsx>{`
