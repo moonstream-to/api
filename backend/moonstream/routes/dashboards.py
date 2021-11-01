@@ -6,7 +6,7 @@ from uuid import UUID
 import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Query
 
 from .. import actions
 from .. import data
@@ -167,7 +167,9 @@ async def delete_subscription_handler(request: Request, dashboard_id: str):
 
 @router.get("/", tags=["dashboards"], response_model=BugoutResources)
 async def get_dashboards_handler(
-    request: Request, limit: Optional[int], offset: Optional[int]
+    request: Request,
+    limit: int = Query(10),
+    offset: int = Query(0),
 ) -> BugoutResources:
     """
     Get user's subscriptions.
