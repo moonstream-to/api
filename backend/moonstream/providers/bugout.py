@@ -353,7 +353,7 @@ class PublicDataProvider(BugoutEventProvider):
         self, query: StreamQuery, user_subscriptions: Dict[str, List[BugoutResource]]
     ) -> Optional[List[str]]:
 
-        if not user_subscriptions.get(self.event_type):
+        if user_subscriptions.get(self.event_type, None) is None:
             return None
         return []
 
