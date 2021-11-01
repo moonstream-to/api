@@ -35,10 +35,12 @@
     "react-pro-sidebar": "^0.6.0",
     "react-query": "^3.18.1",
     "react-showdown": "^2.3.0",
+    "react-slick": "^0.28.1",
     "react-split-pane": "^0.1.92",
     "react-xarrows": "^2.0.2",
     "showdown": "^1.9.1",
     "showdown-highlight": "^2.1.8",
+    "slick-carousel": "^1.8.1",
     "uuid": "^8.3.2",
     "web3": "^1.5.2"
   },

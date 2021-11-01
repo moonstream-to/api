@@ -4,6 +4,8 @@ import "/styles/nprogress.css";
 import "/styles/sidebar.css";
 import "highlight.js/styles/github.css";
 import "focus-visible/dist/focus-visible";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 import dynamic from "next/dynamic";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
