@@ -32,9 +32,7 @@ def migrate_subscriptions(
         timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
     )
 
-    old_resources = [
-        resource for resource in response.resources if resource.resource_data["active"]
-    ]
+    old_resources = [resource for resource in response.resources]
 
     new_resources = []
 
