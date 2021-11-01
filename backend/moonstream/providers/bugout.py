@@ -352,6 +352,9 @@ class PublicDataProvider(BugoutEventProvider):
     def parse_filters(
         self, query: StreamQuery, user_subscriptions: Dict[str, List[BugoutResource]]
     ) -> Optional[List[str]]:
+
+        if not user_subscriptions.get(self.event_type):
+            return None
         return []
 
 
