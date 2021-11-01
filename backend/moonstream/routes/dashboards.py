@@ -76,8 +76,44 @@ async def add_dashboard_handler(
 
             # TODO(Andrey): Add some dedublication for get object from s3 for repeated subscription_id
 
+            bucket = available_subscriptions[dashboard_subscription.subscription_id][
+                "bucket"
+            ]
+            abi_path = available_subscriptions[dashboard_subscription.subscription_id][
+                "abi_path"
+            ]
+
+            if bucket is None or abi_path is None:
+                logger.error(
+                    f"Error on dashboard resource {dashboard_subscription.subscription_id} does not have an abi"
+                )
+                raise MoonstreamHTTPException(
+                    status_code=404,
+                    detail=f"Error on dashboard resource {dashboard_subscription.subscription_id} does not have an abi",
+                )
+            s3_path = f"s3://{bucket}/{abi_path}"
+
+            try:
+
+                response = s3_client.get_object(
+                    Bucket=bucket,
+                    Key=abi_path,
+                )
+
+            except s3_client.exceptions.NoSuchKey as e:
+                logger.error(
+                    f"Error getting Abi for subscription {dashboard_subscription.subscription_id} S3 {s3_path} does not exist : {str(e)}"
+                )
+                raise MoonstreamHTTPException(
+                    status_code=500,
+                    internal_error=e,
+                    detail=f"We can't access the abi for subscription with id:{dashboard_subscription.subscription_id}.",
+                )
+
+            abi = response["Body"].read().decode("utf-8")
+
             actions.dashboards_abi_validation(
-                dashboard_subscription, available_subscriptions, s3_client
+                dashboard_subscription, abi, s3_path=s3_path
             )
 
         else:

@@ -234,8 +234,8 @@ def json_type(evm_type: str) -> type:
 
 def dashboards_abi_validation(
     dashboard_subscription: data.DashboardMeta,
-    available_subscriptions: Any,
-    s3_client: Any,
+    abi: Any,
+    s3_path: str,
 ):
 
     """
@@ -243,39 +243,6 @@ def dashboards_abi_validation(
     with contract abi on S3
 
     """
-
-    bucket = available_subscriptions[dashboard_subscription.subscription_id]["bucket"]
-    abi_path = available_subscriptions[dashboard_subscription.subscription_id][
-        "abi_path"
-    ]
-
-    if bucket is None or abi_path is None:
-        logger.error(
-            f"Error on dashboard resource {dashboard_subscription.subscription_id} does not have an abi"
-        )
-        raise MoonstreamHTTPException(
-            status_code=404,
-            detail=f"Error on dashboard resource {dashboard_subscription.subscription_id} does not have an abi",
-        )
-
-    try:
-
-        response = s3_client.get_object(
-            Bucket=bucket,
-            Key=abi_path,
-        )
-
-    except s3_client.exceptions.NoSuchKey as e:
-        logger.error(
-            f"Error getting Abi for subscription {dashboard_subscription.subscription_id} S3 s3://{bucket}/{abi_path} does not exist : {str(e)}"
-        )
-        raise MoonstreamHTTPException(
-            status_code=500,
-            internal_error=e,
-            detail=f"We can't access the abi for subscription with id:{dashboard_subscription.subscription_id}.",
-        )
-
-    abi = response["Body"].read().decode("utf-8")
 
     # maybe its over but not found beter way
     abi_functions = {
@@ -291,7 +258,7 @@ def dashboards_abi_validation(
                 logger.error(
                     f"Error on dashboard resource validation method:{method['name']}"
                     f" of subscription: {dashboard_subscription.subscription_id}"
-                    f"does not exists in Abi s3://{bucket}/{abi_path}"
+                    f"does not exists in Abi {s3_path}"
                 )
                 raise MoonstreamHTTPException(status_code=400)
             if method.get("filters") and isinstance(dict, method["filters"]):
@@ -303,7 +270,7 @@ def dashboards_abi_validation(
                         logger.error(
                             f"Error on dashboard resource validation type argument: {input_argument_name} of method:{method['name']} "
                             f" of subscription: {dashboard_subscription.subscription_id} has incorrect"
-                            f"does not exists in Abi s3://{bucket}/{abi_path}"
+                            f"does not exists in Abi {s3_path}"
                         )
                         raise MoonstreamHTTPException(status_code=400)
 
@@ -331,7 +298,7 @@ def dashboards_abi_validation(
                 logger.error(
                     f"Error on dashboard resource validation event:{event['name']}"
                     f" of subscription: {dashboard_subscription.subscription_id}"
-                    f"does not exists in Abi s3://{bucket}/{abi_path}"
+                    f"does not exists in Abi {s3_path}"
                 )
                 raise MoonstreamHTTPException(status_code=400)
             if event.get("filters") and isinstance(dict, event["filters"]):
@@ -343,7 +310,7 @@ def dashboards_abi_validation(
                         logger.error(
                             f"Error on dashboard resource validation type argument: {input_argument_name} of method:{event['name']} "
                             f" of subscription: {dashboard_subscription.subscription_id} has incorrect"
-                            f"does not exists in Abi s3://{bucket}/{abi_path}"
+                            f"does not exists in Abi {s3_path}"
                         )
                         raise MoonstreamHTTPException(status_code=400)
 
