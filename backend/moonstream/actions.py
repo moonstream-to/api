@@ -261,7 +261,7 @@ def dashboards_abi_validation(
                     f"does not exists in Abi {s3_path}"
                 )
                 raise MoonstreamHTTPException(status_code=400)
-            if method.get("filters") and isinstance(dict, method["filters"]):
+            if method.get("filters") and isinstance(method["filters"], dict):
 
                 for input_argument_name, value in method["filters"].items():
 
@@ -275,8 +275,8 @@ def dashboards_abi_validation(
                         raise MoonstreamHTTPException(status_code=400)
 
                     if not isinstance(
+                        value,
                         json_type(abi_functions[method["name"]][input_argument_name]),
-                        type(value),
                     ):
                         # Argument has incorrect type
                         logger.error(
@@ -301,11 +301,12 @@ def dashboards_abi_validation(
                     f"does not exists in Abi {s3_path}"
                 )
                 raise MoonstreamHTTPException(status_code=400)
-            if event.get("filters") and isinstance(dict, event["filters"]):
+
+            if event.get("filters") and isinstance(event["filters"], dict):
 
                 for input_argument_name, value in event["filters"].items():
 
-                    if input_argument_name not in abi_functions[event["name"]]:
+                    if input_argument_name not in abi_events[event["name"]]:
                         # Argument not exists
                         logger.error(
                             f"Error on dashboard resource validation type argument: {input_argument_name} of method:{event['name']} "
@@ -315,12 +316,13 @@ def dashboards_abi_validation(
                         raise MoonstreamHTTPException(status_code=400)
 
                     if not isinstance(
+                        value,
                         json_type(abi_events[event["name"]][input_argument_name]),
-                        type(value),
                     ):
                         logger.error(
                             f"Error on dashboard resource validation type argument: {input_argument_name} of method:{event['name']} "
                             f" of subscription: {dashboard_subscription.subscription_id} has incorrect type {type(value)}"
-                            f" when {abi_functions[event['name']][input_argument_name]} required."
+                            f" when {abi_events[event['name']][input_argument_name]} required."
                         )
                         raise MoonstreamHTTPException(status_code=400)
+    return True
