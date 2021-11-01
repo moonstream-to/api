@@ -191,8 +191,8 @@ async def get_dashboards_handler(
     return resources
 
 
-@router.get("/{dashboarsd_id}", tags=["dashboards"], response_model=Any)
-async def get_dashboard_handler(request: Request, dashboarsd_id: UUID) -> Any:
+@router.get("/{dashboarsd_id}", tags=["dashboards"], response_model=List[str])
+async def get_dashboard_handler(request: Request, dashboarsd_id: UUID) -> List[str]:
     """
     Get user's subscriptions.
     """
@@ -349,28 +349,3 @@ async def update_dashboard_handler(
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     return resource
-
-
-@router.get("/{dashboard_is}/data", tags=["dashboards"], response_model=Any)
-async def get_dashboard_data(request: Request) -> Any:
-    """
-    Get user's subscriptions.
-    """
-
-    token = request.state.token
-    params = {
-        "type": BUGOUT_RESOURCE_TYPE_DASHBOARD,
-        "user_id": str(request.state.user.id),
-    }
-    try:
-        resources: BugoutResources = bc.list_resources(token=token, params=params)
-    except BugoutResponseException as e:
-        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
-    except Exception as e:
-        logger.error(
-            f"Error listing subscriptions for user ({request.user.id}) with token ({request.state.token}), error: {str(e)}"
-        )
-        reporter.error_report(e)
-        raise MoonstreamHTTPException(status_code=500, internal_error=e)
-
-    return resources.resources
