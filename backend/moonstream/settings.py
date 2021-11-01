@@ -58,7 +58,7 @@ MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI = os.environ.get(
     "MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI", ""
 )
 if MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI == "":
-    raise ValueError("MOONSTREAM_WEB3_PROVIDER_URI environment variable must be set")
+    raise ValueError("MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI environment variable must be set")
 MOONSTREAM_NODE_ETHEREUM_IPC_PORT = os.environ.get(
     "MOONSTREAM_NODE_ETHEREUM_IPC_PORT", 8545
 )

@@ -60,6 +60,7 @@ const EntriesNavigation = () => {
   const { cursor, setCursor, streamCache, setStreamCache } =
     useContext(DataContext);
   const ui = useContext(UIContext);
+  const [firstLoading, setFirstLoading] = useState(true);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { subscriptionsCache } = useSubscriptions();
   const [initialized, setInitialized] = useState(false);
@@ -87,6 +88,7 @@ const EntriesNavigation = () => {
     loadNewerEventsIsFetching,
     previousEventIsFetching,
     nextEventIsFetching,
+    olderEvent,
   } = useStream(
     ui.searchTerm.q,
     streamCache,
@@ -104,6 +106,13 @@ const EntriesNavigation = () => {
       nextEventRefetch();
       previousEventRefetch();
       setInitialized(true);
+    } else if (
+      streamCache.length == 0 &&
+      olderEvent?.event_timestamp &&
+      firstLoading
+    ) {
+      loadPreviousEventHandler();
+      setFirstLoading(false);
     }
   }, [
     streamBoundary,
