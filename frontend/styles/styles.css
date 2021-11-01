@@ -198,3 +198,12 @@ code {
   transform: none;
   visibility: visible;
 }
+
+.bgGrid {
+  background-color: white;
+  background-size: 10px 10px, 60px 60px;
+  background-image: linear-gradient(to bottom, transparent 6px, white 6px),
+    linear-gradient(to right, #444 1px, transparent 1px),
+    linear-gradient(to right, transparent 6px, white 6px),
+    linear-gradient(to bottom, #444 1px, transparent 1px);
+}
