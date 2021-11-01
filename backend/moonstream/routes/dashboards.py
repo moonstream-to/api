@@ -191,8 +191,10 @@ async def get_dashboards_handler(
     return resources
 
 
-@router.get("/{dashboarsd_id}", tags=["dashboards"], response_model=List[str])
-async def get_dashboard_handler(request: Request, dashboarsd_id: UUID) -> List[str]:
+@router.get("/{dashboarsd_id}", tags=["dashboards"], response_model=BugoutResource)
+async def get_dashboard_handler(
+    request: Request, dashboarsd_id: UUID
+) -> BugoutResource:
     """
     Get user's subscriptions.
     """
@@ -213,29 +215,7 @@ async def get_dashboard_handler(request: Request, dashboarsd_id: UUID) -> List[s
         reporter.error_report(e)
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
-    # if resources
-
-    s3_client = boto3.client("s3")
-
-    bucket = SMARTCONTRACTS_ABI_BUCKET
-
-    abi_urls = []
-
-    for subscription in resource.resource_data["dashboard_subscriptions"]:
-
-        result_key = f"/v1/{subscription}/{resource.id}/abi.json"
-        address_presigned_url = s3_client.generate_presigned_url(
-            "get_object",
-            Params={"Bucket": bucket, "Key": result_key},
-            ExpiresIn=300,
-            HttpMethod="GET",
-        )
-
-        abi_urls.append(address_presigned_url)
-
-    # dashboard response
-
-    return abi_urls
+    return resource
 
 
 @router.put("/{dashboard_id}", tags=["dashboards"], response_model=BugoutResource)
