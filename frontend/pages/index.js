@@ -32,6 +32,9 @@ import {
 import { AWS_ASSETS_PATH } from "../src/core/constants";
 import mixpanel from "mixpanel-browser";
 import UIContext from "../src/core/providers/UIProvider/context";
+import TrustedBadge from "../src/components/TrustedBadge";
+import Slider from "react-slick";
+import { v4 as uuidv4 } from "uuid";
 const SplitWithImage = dynamic(
   () => import("../src/components/SplitWithImage"),
   {
@@ -95,7 +98,21 @@ const assets = {
   cryptoTraders: `${AWS_ASSETS_PATH}/crypto+traders.png`,
   comicWhite: `${AWS_ASSETS_PATH}/moonstream-comic-white.png`,
   smartDevelopers: `${AWS_ASSETS_PATH}/smart+contract+developers.png`,
+  cointelegraph: `${AWS_ASSETS_PATH}/featured_by/Cointelegraph_logo.png`,
+  cryptoinsiders: `${AWS_ASSETS_PATH}/featured_by/crypto_insiders.png`,
+  cryptoslate: `${AWS_ASSETS_PATH}/featured_by/cs-media-logo-light.png`,
+  bitcoinLogo: `${AWS_ASSETS_PATH}/bitcoin.png`,
+  ethereumBlackLogo: `${AWS_ASSETS_PATH}/eth-diamond-black.png`,
+  ethereumRainbowLogo: `${AWS_ASSETS_PATH}/eth-diamond-rainbow.png`,
+  maticLogo: `${AWS_ASSETS_PATH}/matic-token-inverted-icon.png`,
 };
+
+const carousel_content = [
+  { title: "Bitcoin coming soon!", img: assets["bitcoinLogo"] },
+  { title: "Ethereum", img: assets["ethereumBlackLogo"] },
+  { title: "Ethereum transaction pool", img: assets["ethereumRainbowLogo"] },
+  { title: "Polygon coming soon!", img: assets["maticLogo"] },
+];
 const Homepage = () => {
   const ui = useContext(UIContext);
   const [background, setBackground] = useState("background720");
@@ -103,6 +120,8 @@ const Homepage = () => {
   const [backgroundLoaded1920, setBackgroundLoaded1920] = useState(false);
   const [backgroundLoaded2880, setBackgroundLoaded2880] = useState(false);
   const [backgroundLoaded3840, setBackgroundLoaded3840] = useState(false);
+
+  const [imageIndex, setImageIndex] = useState(0);
 
   const router = useRouter();
   const { isInit } = useUser();
@@ -196,6 +215,24 @@ const Homepage = () => {
     };
   }, []);
 
+  const settings = {
+    // infinite: true,
+    lazyLoad: true,
+    speed: 2500,
+    autoplay: true,
+    autoplaySpeed: 10000,
+    // cssEase: "linear",
+    cssEase: "cubic-bezier(0.165, 0.840, 0.440, 1.000)",
+    // cssEase: "ease-in",
+    slidesToScroll: 2,
+    slidesToShow: 3,
+    centerMode: true,
+    centerPadding: 0,
+    // nextArrow: "",
+    // prevArrow: "",
+    beforeChange: (current, next) => setImageIndex(next),
+  };
+
   return (
     <Suspense fallback="">
       <Fade in>
@@ -243,6 +280,7 @@ const Homepage = () => {
                         alignItems="center"
                         spacing={6}
                         maxW={["1620px", null, null, null, "1620px", "2222px"]}
+                        w="100%"
                         px="7%"
                         h="100%"
                         pt={["10vh", null, "20vh"]}
@@ -264,6 +302,43 @@ const Homepage = () => {
                           understand exactly how people are using your smart
                           contracts.
                         </chakra.span>
+                        <Box w="100%" minH="200px" p={0} overflow-x="hidden">
+                          <Slider
+                            {...settings}
+                            // adaptiveHeight={true}
+                            arrows={false}
+                            autoplay={true}
+                            autoplaySpeed={100}
+                          >
+                            {carousel_content.map((content_item, idx) => (
+                              <Box
+                                pt="10px"
+                                h="200px"
+                                w="150px"
+                                maxW="150px"
+                                // size="150px"
+                                key={uuidv4()}
+                                className={
+                                  idx === imageIndex
+                                    ? "slide activeSlide"
+                                    : "slide"
+                                }
+                                // bgColor="blue.900"
+                                borderRadius="lg"
+                                boxShadow="lg"
+                              >
+                                <Text color="blue.300">
+                                  {content_item.title}
+                                </Text>
+                                <ChakraImage
+                                  fit="contain"
+                                  boxSize="130px"
+                                  src={content_item.img}
+                                />
+                              </Box>
+                            ))}
+                          </Slider>
+                        </Box>
                       </Stack>
                     </Flex>
                   </Box>
@@ -360,7 +435,7 @@ const Homepage = () => {
                   <ConnectedButtons
                     title={"You need a fusion of..."}
                     button4={{
-                      label: "Blockchain analytics",
+                      label: "NFTs",
                       link: "/#analytics",
                       onClick: () => {
                         mixpanel.get_distinct_id() &&
@@ -370,7 +445,7 @@ const Homepage = () => {
                       },
                     }}
                     button1={{
-                      label: "TX pool real time data",
+                      label: "DeEx",
                       link: "/#txpool",
                       onClick: () => {
                         mixpanel.get_distinct_id() &&
@@ -380,7 +455,7 @@ const Homepage = () => {
                       },
                     }}
                     button2={{
-                      label: "Exchange price stream",
+                      label: "Tokens",
                       link: "/#exchanges",
                       onClick: () => {
                         mixpanel.get_distinct_id() &&
@@ -390,7 +465,7 @@ const Homepage = () => {
                       },
                     }}
                     button3={{
-                      label: "Social media posts",
+                      label: "DAOs",
                       link: "/#smartDeveloper",
                       onClick: () => {
                         mixpanel.get_distinct_id() &&
@@ -400,6 +475,37 @@ const Homepage = () => {
                       },
                     }}
                   />
+                </Flex>
+              </GridItem>
+              <GridItem
+                px="7%"
+                colSpan="12"
+                pt="66px"
+                bgColor="blue.50"
+                pb={["20px", "30px", "92px", null, "92px", "196px"]}
+              >
+                <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
+                  Featured by{" "}
+                </Heading>
+                <Flex wrap="wrap" direction="row" justifyContent="center">
+                  <Suspense fallback={""}>
+                    <TrustedBadge
+                      name="cointelegraph"
+                      caseURL=""
+                      ImgURL={assets["cointelegraph"]}
+                    />
+                    <TrustedBadge
+                      name="CryptoInsiders"
+                      caseURL="https://www.crypto-insiders.nl/nieuws/altcoin/17-van-ethereum-whales-bezitten-meer-dan-80-van-alle-nfts-op-de-blockchain/"
+                      ImgURL={assets["cryptoinsiders"]}
+                    />
+
+                    <TrustedBadge
+                      name="cryptoslate"
+                      caseURL="https://cryptoslate.com/just-17-of-all-ethereum-addresses-bought-80-of-all-nfts-this-year/"
+                      ImgURL={assets["cryptoslate"]}
+                    />
+                  </Suspense>
                 </Flex>
               </GridItem>
               <GridItem
@@ -660,17 +766,6 @@ const Homepage = () => {
                       </Link>
                     </Text>
                   </Stack>
-                </Center>
-              </GridItem>
-              <GridItem
-                placeItems="center"
-                w="100%"
-                colSpan="12"
-                pt={["0", "0", "5.125rem", null, "5.125rem"]}
-                pb="120px"
-              >
-                <Center>
-                  <ChakraImage src={assets["comicWhite"]}></ChakraImage>
                 </Center>
               </GridItem>
             </Grid>
