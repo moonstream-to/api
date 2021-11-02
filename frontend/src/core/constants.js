@@ -15,14 +15,37 @@ export const DEFAULT_METATAGS = {
   image: `https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/crypto+traders.png`,
 };
 
+export const FOOTER_COLUMNS = {
+  NEWS: "News",
+  COMPANY: "Company",
+  PRODUCT: "Product",
+};
+
 export const ALL_NAV_PATHES = [
   {
     title: "Product",
     path: "/product",
+    footerCategory: FOOTER_COLUMNS.PRODUCT,
   },
   {
     title: "Team",
     path: "/team",
+    footerCategory: FOOTER_COLUMNS.COMPANY,
+  },
+  {
+    title: "API",
+    path: "https://api.moonstream.to/docs",
+    footerCategory: FOOTER_COLUMNS.PRODUCT,
+  },
+  {
+    title: "Whitepapers",
+    path: "https://github.com/bugout-dev/papers",
+    footerCategory: FOOTER_COLUMNS.PRODUCT,
+  },
+  {
+    title: "Blog",
+    path: "https://blog.moonstream.to",
+    footerCategory: FOOTER_COLUMNS.NEWS,
   },
 ];
 

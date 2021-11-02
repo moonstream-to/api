@@ -19,8 +19,6 @@ const ArrowCTA = (props) => {
   const box3Ref = useRef(null);
   const box4Ref = useRef(null);
 
-  // const gridRow = props.button4 ? [5, 4, 2, null, 2] : [4, 3, 2, null, 2];
-
   const updateXarrow = useXarrow();
 
   useEffect(() => {
@@ -53,8 +51,6 @@ const ArrowCTA = (props) => {
     undefined,
     null,
   ];
-
-  const speedConst = -0.05;
 
   return (
     <SimpleGrid

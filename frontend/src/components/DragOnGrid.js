@@ -1,14 +1,29 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Draggable from "react-draggable";
 import { useXarrow } from "react-xarrows";
 const DragOnGrid = React.forwardRef((props, ref) => {
   const updateXarrow = useXarrow();
 
-  const handleDrag = (e) => {
-    console.log(e);
+  const [position, setPosition] = useState({
+    x: props.defaultPosition.x * props.gridStep,
+    y: props.defaultPosition.y * props.gridStep,
+  });
+  const [cellSize, setCellSize] = useState(props.gridStep);
+
+  useEffect(() => {
+    setPosition({
+      x: (position.x * props.gridStep) / cellSize,
+      y: (position.y * props.gridStep) / cellSize,
+    });
+    setCellSize(props.gridStep);
+    //eslint-disable-next-line
+  }, [props.gridStep]);
+
+  const handleDrag = (e, eData) => {
     setTimeout(() => {
       updateXarrow();
     }, 50);
+    setPosition({ x: position.x + eData.deltaX, y: position.y + eData.deltaY });
   };
 
   return (
@@ -16,12 +31,10 @@ const DragOnGrid = React.forwardRef((props, ref) => {
       nodeRef={ref}
       axis="both"
       handle=".handle"
-      {...props}
-      position={null}
-      grid={[60, 60]}
+      position={{ ...position }}
+      grid={[props.gridStep, props.gridStep]}
       scale={1}
       onDrag={handleDrag}
-      onStop={updateXarrow}
     >
       {props.children}
     </Draggable>

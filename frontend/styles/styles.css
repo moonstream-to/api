@@ -242,6 +242,8 @@ code {
 .prev {
   left: 0%;
   top: 50%;
+}
+
 .bgGrid {
   background-color: white;
   background-size: 10px 10px, 60px 60px;

@@ -20,7 +20,8 @@ import {
 import { MdTimeline, MdSettings } from "react-icons/md";
 import { ImStatsBars } from "react-icons/im";
 import { HiAcademicCap } from "react-icons/hi";
-import { WHITE_LOGO_W_TEXT_URL } from "../core/constants";
+import { WHITE_LOGO_W_TEXT_URL, ALL_NAV_PATHES } from "../core/constants";
+import { v4 } from "uuid";
 
 const Sidebar = () => {
   const ui = useContext(UIContext);
@@ -93,6 +94,16 @@ const Sidebar = () => {
                   Learn how to use Moonstream
                 </RouterLink>
               </MenuItem>
+              {ALL_NAV_PATHES.map((pathToLink) => {
+                return (
+                  <MenuItem key={v4()}>
+                    {" "}
+                    <RouterLink href={pathToLink.path}>
+                      {pathToLink.title}
+                    </RouterLink>
+                  </MenuItem>
+                );
+              })}
             </Menu>
           )}
         </SidebarContent>
@@ -118,14 +129,16 @@ const Sidebar = () => {
             >
               Login
             </MenuItem>
-            <MenuItem>
-              {" "}
-              <RouterLink href="/product">Product </RouterLink>
-            </MenuItem>
-            <MenuItem>
-              {" "}
-              <RouterLink href="/team">Team </RouterLink>
-            </MenuItem>
+            {ALL_NAV_PATHES.map((pathToLink) => {
+              return (
+                <MenuItem key={v4()}>
+                  {" "}
+                  <RouterLink href={pathToLink.path}>
+                    {pathToLink.title}
+                  </RouterLink>
+                </MenuItem>
+              );
+            })}
           </Menu>
         </SidebarContent>
       )}
