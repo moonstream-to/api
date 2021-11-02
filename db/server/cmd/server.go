@@ -5,6 +5,7 @@ import (
 	"flag"
 	"log"
 	"net/http"
+    "time"
 )
 
 type extendedServer struct {
@@ -23,7 +24,7 @@ func InitServer() {
 
 	es := extendedServer{db: db}
 
-	serverMux := http.NewServerMux()
+	serverMux := http.NewServeMux()
 	serverMux.HandleFunc("/ping", pingRoute)
 	serverMux.HandleFunc("/block/latest", es.blocksLatestRoute)
 
@@ -35,8 +36,8 @@ func InitServer() {
 	server := http.Server{
 		Addr:         listeningAddr + ":" + listeningPort,
 		Handler:      serverHandler,
-		ReadTimeout:  10 * time.Seconds,
-		WriteTimeout: 10 * time.Seconds,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
 	}
 
 	log.Printf("Starting server at %s:%s\n", listeningAddr, listeningPort)

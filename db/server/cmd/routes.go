@@ -17,7 +17,7 @@ func (es *extendedServer) blocksLatestRoute(w http.ResponseWriter, req *http.Req
 
 	var latestBlock BlockNumberResponse
 	query := "SELECT block_number FROM ethereum_blocks ORDER BY block_number DESC LIMIT 1"
-	s.db.Raw(query, 1).Scan(&latestBlock.BlockNumber)
+	es.db.Raw(query, 1).Scan(&latestBlock.BlockNumber)
 
 	json.NewEncoder(w).Encode(latestBlock)
 }
