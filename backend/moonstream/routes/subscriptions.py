@@ -68,6 +68,8 @@ async def add_subscription_handler(
         "color": color,
         "label": label,
         "abi": None,
+        "bucket": None,
+        "s3_path": None,
     }
 
     try:
