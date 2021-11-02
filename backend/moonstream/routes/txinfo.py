@@ -6,54 +6,24 @@ transactions, etc.) with side information and return objects that are better sui
 end users.
 """
 import logging
-from typing import Dict
+from typing import Optional
 
-from fastapi import FastAPI, Depends
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import APIRouter, Depends
 from moonstreamdb.db import yield_db_session
-from moonstreamdb.models import EthereumAddress
 from sqlalchemy.orm import Session
 
 from ..abi_decoder import decode_abi
 from .. import actions
 from .. import data
-from ..middleware import BroodAuthMiddleware
-from ..settings import DOCS_TARGET_PATH, ORIGINS, DOCS_PATHS
-from ..version import MOONSTREAM_VERSION
 
 logger = logging.getLogger(__name__)
 
-tags_metadata = [
-    {"name": "txinfo", "description": "Ethereum transactions info."},
-]
-
-app = FastAPI(
-    title=f"Moonstream /txinfo API.",
-    description="User, token and password handlers.",
-    version=MOONSTREAM_VERSION,
-    openapi_tags=tags_metadata,
-    openapi_url="/openapi.json",
-    docs_url=None,
-    redoc_url=f"/{DOCS_TARGET_PATH}",
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-whitelist_paths: Dict[str, str] = {}
-whitelist_paths.update(DOCS_PATHS)
-app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
-
+router = APIRouter(prefix="/txinfo")
 
 # TODO(zomglings): Factor out the enrichment logic into a separate action, because it may be useful
 # independently from serving API calls (e.g. data processing).
 # TODO(kompotkot): Re-organize function to be able handle each steps with exceptions.
-@app.post(
+@router.post(
     "/ethereum_blockchain",
     tags=["txinfo"],
     response_model=data.TxinfoEthereumBlockchainResponse,
@@ -71,22 +41,13 @@ async def txinfo_ethereum_blockchain_handler(
             logger.error(err)
             response.errors.append("Could not decode ABI from the given input")
 
-    # transaction is contract deployment:
-    if txinfo_request.tx.to_address is None:
-        response.is_smart_contract_deployment = True
-        smart_contract = (
-            db_session.query(EthereumAddress)
-            .filter(EthereumAddress.transaction_hash == txinfo_request.tx.hash)
-            .one_or_none()
-        )
-        if smart_contract is not None:
-            response.is_smart_contract_deployment = True
-    else:
+    source_info: Optional[data.EthereumSmartContractSourceInfo] = None
+    if txinfo_request.tx.to_address is not None:
         source_info = actions.get_contract_source_info(
             db_session, txinfo_request.tx.to_address
         )
-        if source_info is not None:
-            response.smart_contract_info = source_info
-            response.smart_contract_address = txinfo_request.tx.to_address
-            response.is_smart_contract_call = True
+    if source_info is not None:
+        response.smart_contract_info = source_info
+        response.smart_contract_address = txinfo_request.tx.to_address
+        response.is_smart_contract_call = True
     return response

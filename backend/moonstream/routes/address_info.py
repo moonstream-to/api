@@ -1,69 +1,100 @@
 import logging
-from typing import Dict, List, Optional
+from typing import Optional
 
-from sqlalchemy.sql.expression import true
-
-from fastapi import FastAPI, Depends, Query
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import APIRouter, Depends, Query
 from moonstreamdb.db import yield_db_session
 from sqlalchemy.orm import Session
+from web3 import Web3
 
 from .. import actions
 from .. import data
-from ..middleware import BroodAuthMiddleware, MoonstreamHTTPException
-from ..settings import DOCS_TARGET_PATH, ORIGINS, DOCS_PATHS
-from ..version import MOONSTREAM_VERSION
+from ..middleware import MoonstreamHTTPException
+from ..web3_provider import yield_web3_provider
 
 logger = logging.getLogger(__name__)
 
-tags_metadata = [
-    {"name": "addressinfo", "description": "Address public information."},
-    {"name": "labels", "description": "Addresses label information."},
-]
-
-app = FastAPI(
-    title=f"Moonstream users API.",
-    description="User, token and password handlers.",
-    version=MOONSTREAM_VERSION,
-    openapi_tags=tags_metadata,
-    openapi_url="/openapi.json",
-    docs_url=None,
-    redoc_url=f"/{DOCS_TARGET_PATH}",
+router = APIRouter(
+    prefix="/address_info",
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
-whitelist_paths: Dict[str, str] = {}
-whitelist_paths.update(DOCS_PATHS)
-app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
-
-
-@app.get(
-    "/ethereum_blockchain",
+@router.get(
+    "/ethereum",
     tags=["addressinfo"],
     response_model=data.EthereumAddressInfo,
 )
 async def addressinfo_handler(
     address: str,
     db_session: Session = Depends(yield_db_session),
+    web3: Web3 = Depends(yield_web3_provider),
 ) -> Optional[data.EthereumAddressInfo]:
     try:
-        response = actions.get_ethereum_address_info(db_session, address)
+        response = actions.get_ethereum_address_info(db_session, web3, address)
+    except ValueError as e:
+        raise MoonstreamHTTPException(status_code=400, detail=str(e), internal_error=e)
     except Exception as e:
         logger.error(f"Unable to get info about Ethereum address {e}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
     return response
 
 
-@app.get(
-    "/labels/ethereum_blockchain",
-    tags=["labels bul"],
+@router.get(
+    "/ethereum/ens_name",
+    tags=["ens_name"],
+    response_model=str,
+)
+async def ens_name_handler(
+    address: str,
+    web3: Web3 = Depends(yield_web3_provider),
+) -> Optional[str]:
+    try:
+        response = actions.get_ens_name(web3, address)
+    except ValueError as e:
+        raise MoonstreamHTTPException(
+            status_code=400,
+            detail=str(e),
+            internal_error=e,
+        )
+    except Exception as e:
+        logger.error(f"Failed to get ens name: {e}")
+        raise MoonstreamHTTPException(
+            status_code=500,
+            internal_error=e,
+            detail="Currently unable to get ens name",
+        )
+    return response
+
+
+@router.get(
+    "/ethereum/ens_address",
+    tags=["ens_address"],
+    response_model=str,
+)
+async def ens_address_handler(
+    name: str,
+    web3: Web3 = Depends(yield_web3_provider),
+) -> Optional[str]:
+    try:
+        response = actions.get_ens_address(web3, name)
+    except ValueError as e:
+        raise MoonstreamHTTPException(
+            status_code=400,
+            detail=str(e),
+            internal_error=e,
+        )
+    except Exception as e:
+        logger.error(f"Failed to get ens address: {e}")
+        raise MoonstreamHTTPException(
+            status_code=500,
+            internal_error=e,
+            detail="Currently unable to get ens address",
+        )
+    return response
+
+
+@router.get(
+    "/labels/ethereum",
+    tags=["labels"],
     response_model=data.AddressListLabelsResponse,
 )
 async def addresses_labels_bulk_handler(

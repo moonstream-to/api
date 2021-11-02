@@ -8,14 +8,8 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import dynamic from "next/dynamic";
 import { QueryClient, QueryClientProvider } from "react-query";
-import { ReactQueryDevtools } from "react-query/devtools";
-
-const HeadSEO = dynamic(() => import("../src/components/HeadSEO"), {
-  ssr: false,
-});
-const HeadLinks = dynamic(() => import("../src/components/HeadLinks"), {
-  ssr: false,
-});
+import HeadLinks from "../src/components/HeadLinks";
+import HeadSEO from "../src/components/HeadSEO";
 const AppContext = dynamic(() => import("../src/AppContext"), {
   ssr: false,
 });

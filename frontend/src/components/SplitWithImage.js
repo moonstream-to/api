@@ -135,14 +135,12 @@ const SplitWithImage = ({
             >
               <Text
                 id={`MoonBadge ${elementName}`}
-                // id={`MoonBadge${elementName}`}
                 textTransform={"uppercase"}
                 color={themeColor}
                 fontWeight={600}
                 fontSize={["xs", "sm"]}
                 bg={bgThemeColor}
                 p={[1, 2]}
-                // alignSelf={mirror && !ui.isMobileView ? "flex-end" : "flex-start"}
                 rounded={"md"}
               >
                 {badge}

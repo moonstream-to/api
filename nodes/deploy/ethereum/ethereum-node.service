@@ -1,0 +1,18 @@
+[Unit]
+Description=Ethereum node Geth client
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+EnvironmentFile=/home/ubuntu/moonstream-secrets/node.env
+ExecStart=/usr/bin/geth --syncmode snap --cache 4096 \
+    --port "${MOONSTREAM_NODE_ETHEREUM_LISTENING_PORT}" --datadir /mnt/disks/nodes/ethereum \
+    --txpool.globalslots 153600 --txpool.globalqueue 3072 \
+    --http --http.addr "${MOONSTREAM_NODE_ETHEREUM_IPC_ADDR}" --http.port "${MOONSTREAM_NODE_ETHEREUM_IPC_PORT}" --http.api eth,web3,txpool
+ExecStop=/bin/kill -s SIGINT -$MAINPID
+TimeoutStopSec=300
+SyslogIdentifier=ethereum-node
+
+[Install]
+WantedBy=multi-user.target

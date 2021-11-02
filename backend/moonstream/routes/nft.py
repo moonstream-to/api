@@ -3,55 +3,29 @@ Moonstream's /nft endpoints.
 
 These endpoints provide public access to NFT market summaries. No authentication required.
 """
-from datetime import datetime
 import logging
 from typing import Optional
 
-from bugout.data import BugoutResource
-
-from fastapi import Depends, FastAPI, Query
-from moonstreamdb import db
+from fastapi import APIRouter, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
+from moonstreamdb import db
 from sqlalchemy.orm import Session
 
 from .. import data
 from ..providers.bugout import nft_summary_provider
 from ..settings import (
     bugout_client,
-    DOCS_TARGET_PATH,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_DATA_JOURNAL_ID,
-    ORIGINS,
 )
 from ..stream_queries import StreamQuery
-from ..version import MOONSTREAM_VERSION
 
 logger = logging.getLogger(__name__)
 
-tags_metadata = [
-    {"name": "nft", "description": "NFT market summaries"},
-]
-
-app = FastAPI(
-    title=f"Moonstream /nft API",
-    description="User, token and password handlers.",
-    version=MOONSTREAM_VERSION,
-    openapi_tags=tags_metadata,
-    openapi_url="/openapi.json",
-    docs_url=None,
-    redoc_url=f"/{DOCS_TARGET_PATH}",
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+router = APIRouter(prefix="/nft")
 
 
-@app.get("/", tags=["streams"], response_model=data.GetEventsResponse)
+@router.get("/", tags=["streams"], response_model=data.GetEventsResponse)
 async def stream_handler(
     start_time: int = Query(0),
     end_time: Optional[int] = Query(None),
