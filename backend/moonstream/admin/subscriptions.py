@@ -11,7 +11,6 @@ from sqlalchemy.sql.expression import update
 from ..data import SubscriptionTypeResourceData
 from ..settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
-    MOONSTREAM_APPLICATION_ID,
     bugout_client as bc,
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
 )
@@ -20,7 +19,7 @@ from ..settings import (
 def migrate_subscriptions(
     match: Dict[str, Union[str, int]],
     update: Dict[str, Union[str, int]],
-    drop_keys: Optional[Dict[str, Union[str, int]]],
+    drop_keys: Optional[List[str]],
 ):
     """
     Search all subscriptinons and replace them one by one
@@ -54,7 +53,7 @@ def cli_migrate_subscriptions(args: argparse.Namespace) -> None:
     Handler for subscriptions migrate.
     """
 
-    drop_keys = None
+    drop_keys = []
 
     if args.file is not None:
         with open(args.file) as migration_json_file:
@@ -69,7 +68,7 @@ def cli_migrate_subscriptions(args: argparse.Namespace) -> None:
         match = migration_json["match"]
         update = migration_json["update"]
 
-        if drop_keys in migration_json:
+        if "drop_keys" in migration_json:
             drop_keys = migration_json["drop_keys"]
 
     elif args.match is not None and args.update is not None:
