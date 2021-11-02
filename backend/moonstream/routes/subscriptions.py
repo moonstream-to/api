@@ -2,9 +2,9 @@
 The Moonstream subscriptions HTTP API
 """
 import logging
-from typing import List, Optional
+from typing import List, Optional, Dict, Any, Union
 
-import boto3
+import boto3  # ignore
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Request, Form
@@ -100,7 +100,7 @@ async def add_subscription_handler(
         )
 
         try:
-            resource: BugoutResource = bc.update_resource(
+            subscription_resource: BugoutResource = bc.update_resource(
                 resource_id=resource.id,
                 token=token,
                 resource_data={"update": {"abi": False}},
@@ -114,14 +114,16 @@ async def add_subscription_handler(
 
     return data.SubscriptionResourceData(
         id=str(resource.id),
-        user_id=resource.resource_data["user_id"],
-        address=resource.resource_data["address"],
-        color=resource.resource_data["color"],
-        label=resource.resource_data["label"],
-        abi=resource.resource_data["abi"],
-        subscription_type_id=resource.resource_data["subscription_type_id"],
-        updated_at=resource.updated_at,
-        created_at=resource.created_at,
+        user_id=subscription_resource.resource_data["user_id"],
+        address=subscription_resource.resource_data["address"],
+        color=subscription_resource.resource_data["color"],
+        label=subscription_resource.resource_data["label"],
+        abi=subscription_resource.resource_data["abi"],
+        subscription_type_id=subscription_resource.resource_data[
+            "subscription_type_id"
+        ],
+        updated_at=subscription_resource.updated_at,
+        created_at=subscription_resource.created_at,
     )
 
 
@@ -212,7 +214,7 @@ async def update_subscriptions_handler(
     """
     token = request.state.token
 
-    update = {}
+    update: Dict[str, Any] = {}
 
     if color:
         update["color"] = color

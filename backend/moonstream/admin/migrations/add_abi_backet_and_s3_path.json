@@ -3,7 +3,7 @@
   "update": {
     "abi": false,
     "backet": null,
-    "path": null
+    "s3_path": null
   },
   "drop_keys": {}
 }
