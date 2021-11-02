@@ -19,8 +19,6 @@ const ArrowCTA = (props) => {
   const box3Ref = useRef(null);
   const box4Ref = useRef(null);
 
-  // const gridRow = props.button4 ? [5, 4, 2, null, 2] : [4, 3, 2, null, 2];
-
   const updateXarrow = useXarrow();
 
   useEffect(() => {
@@ -53,8 +51,6 @@ const ArrowCTA = (props) => {
     undefined,
     null,
   ];
-
-  const speedConst = -0.05;
 
   return (
     <SimpleGrid
@@ -93,6 +89,7 @@ const ArrowCTA = (props) => {
 
       <Button
         as={props.button1.link && Link}
+        _hover={!props.button1.link && { cursor: "unset" }}
         href={props.button1.link ?? null}
         gridColumn={[1, 2, 1, null, 1]}
         gridRow={[2, 1, 2, null, 2]}
@@ -112,6 +109,7 @@ const ArrowCTA = (props) => {
       <Button
         as={props.button2.link && Link}
         href={props.button2.link ?? null}
+        _hover={!props.button1.link && { cursor: "unset" }}
         gridColumn={[1, 2, 2, null, 2]}
         gridRow={[3, 2, 2, null, 2]}
         zIndex={10}
@@ -130,6 +128,7 @@ const ArrowCTA = (props) => {
       <Button
         as={props.button3.link && Link}
         href={props.button3.link ?? null}
+        _hover={!props.button1.link && { cursor: "unset" }}
         gridColumn={[1, 2, 3, null, 3]}
         gridRow={[4, 3, 2, null, 2]}
         zIndex={10}
@@ -147,6 +146,7 @@ const ArrowCTA = (props) => {
         <Button
           as={props.button4.link && Link}
           href={props.button4.link ?? null}
+          _hover={!props.button1.link && { cursor: "unset" }}
           gridColumn={[1, 2, 4, null, 4]}
           gridRow={[5, 4, 2, null, 2]}
           zIndex={10}
@@ -166,7 +166,7 @@ const ArrowCTA = (props) => {
         dashness={{
           strokeLen: 10,
           nonStrokeLen: 15,
-          animation: speedConst,
+          animation: props.speedBase * props.button1.speed,
         }}
         // animateDrawing={true}
         color="#92D050"
@@ -179,7 +179,7 @@ const ArrowCTA = (props) => {
         dashness={{
           strokeLen: 10,
           nonStrokeLen: 15,
-          animation: speedConst * 9,
+          animation: props.speedBase * props.button2.speed,
         }}
         color="#FD5602"
         startAnchor={xarrowEntrySide ?? "top"}
@@ -191,7 +191,7 @@ const ArrowCTA = (props) => {
         dashness={{
           strokeLen: 10,
           nonStrokeLen: 15,
-          animation: speedConst * 6,
+          animation: props.speedBase * props.button3.speed,
         }}
         color="#212990"
         startAnchor={xarrowEntrySide ?? "top"}
@@ -204,7 +204,7 @@ const ArrowCTA = (props) => {
           dashness={{
             strokeLen: 10,
             nonStrokeLen: 15,
-            animation: speedConst * 3,
+            animation: props.speedBase * props.button4.speed,
           }}
           color="#C53030"
           startAnchor={xarrowEntrySide ?? "top"}

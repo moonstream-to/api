@@ -34,6 +34,7 @@ import mixpanel from "mixpanel-browser";
 import UIContext from "../src/core/providers/UIProvider/context";
 import TrustedBadge from "../src/components/TrustedBadge";
 import Slider from "react-slick";
+import SchematicPlayground from "../src/components/SchematicPlayground";
 import { v4 as uuidv4 } from "uuid";
 const SplitWithImage = dynamic(
   () => import("../src/components/SplitWithImage"),
@@ -75,12 +76,6 @@ const GiLogicGateXor = dynamic(() =>
   import("react-icons/gi").then((mod) => mod.GiLogicGateXor)
 );
 
-const ConnectedButtons = dynamic(
-  () => import("../src/components/ConnectedButtons"),
-  {
-    ssr: false,
-  }
-);
 const HEADING_PROPS = {
   fontWeight: "700",
   fontSize: ["4xl", "5xl", "4xl", "5xl", "6xl", "7xl"],
@@ -224,9 +219,9 @@ const Homepage = () => {
     // cssEase: "linear",
     cssEase: "cubic-bezier(0.165, 0.840, 0.440, 1.000)",
     // cssEase: "ease-in",
-    slidesToScroll: 2,
+    slidesToScroll: 3,
     slidesToShow: 3,
-    centerMode: true,
+    centerMode: false,
     centerPadding: 0,
     // nextArrow: "",
     // prevArrow: "",
@@ -324,8 +319,8 @@ const Homepage = () => {
                                     : "slide"
                                 }
                                 // bgColor="blue.900"
-                                borderRadius="lg"
-                                boxShadow="lg"
+                                // borderRadius="lg"
+                                // boxShadow="lg"
                               >
                                 <Text color="blue.300">
                                   {content_item.title}
@@ -422,8 +417,12 @@ const Homepage = () => {
                   </Stack>
                 </SimpleGrid>
                 <Center>
-                  <Heading pt="160px" pb="60px">
-                    Moonstream is meant for you if
+                  <Heading
+                    pt={["12px", "160px", null]}
+                    pb={["12px", "60px", null]}
+                    textAlign="justify"
+                  >
+                    Your game changer in blockchain infrastracture
                   </Heading>
                 </Center>
                 <Flex
@@ -431,52 +430,12 @@ const Homepage = () => {
                   direction={["column", "row", "column", null, "column"]}
                   flexWrap={["nowrap", "nowrap", "nowrap", null, "nowrap"]}
                   pb="32px"
+                  placeContent="center"
                 >
-                  <ConnectedButtons
-                    title={"You need a fusion of..."}
-                    button4={{
-                      label: "NFTs",
-                      link: "/#analytics",
-                      onClick: () => {
-                        mixpanel.get_distinct_id() &&
-                          mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                            [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Connected buttons: scroll to analytics`,
-                          });
-                      },
-                    }}
-                    button1={{
-                      label: "DeEx",
-                      link: "/#txpool",
-                      onClick: () => {
-                        mixpanel.get_distinct_id() &&
-                          mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                            [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Connected buttons: scroll to txpool`,
-                          });
-                      },
-                    }}
-                    button2={{
-                      label: "Tokens",
-                      link: "/#exchanges",
-                      onClick: () => {
-                        mixpanel.get_distinct_id() &&
-                          mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                            [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Connected buttons: scroll to exchanges`,
-                          });
-                      },
-                    }}
-                    button3={{
-                      label: "DAOs",
-                      link: "/#smartDeveloper",
-                      onClick: () => {
-                        mixpanel.get_distinct_id() &&
-                          mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                            [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Connected buttons: scroll to developer`,
-                          });
-                      },
-                    }}
-                  />
+                  <SchematicPlayground />
                 </Flex>
               </GridItem>
+
               <GridItem
                 px="7%"
                 colSpan="12"

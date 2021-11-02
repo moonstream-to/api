@@ -17,7 +17,6 @@ from .ethereum import (
     crawl_blocks_executor,
     check_missing_blocks,
     get_latest_blocks,
-    process_contract_deployments,
     DateRange,
     trending,
 )
@@ -98,26 +97,31 @@ def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
         if latest_stored_block_number is None:
             latest_stored_block_number = 0
 
-        block_number_difference = latest_block_number - 1 - latest_stored_block_number
-
-        if args.start is None:
-            if block_number_difference < args.confirmations:
-                logger.info(
-                    f"Synchronization is unnecessary for blocks {latest_stored_block_number}-{latest_block_number - 1}"
-                )
-                time.sleep(5)
-                continue
-            else:
-                bottom_block_number = latest_block_number - args.confirmations
-        else:
-            bottom_block_number = max(latest_stored_block_number + 1, args.start)
-
         if latest_stored_block_number >= latest_block_number:
             logger.info(
                 f"Synchronization is unnecessary for blocks {latest_stored_block_number}-{latest_block_number - 1}"
             )
             time.sleep(5)
             continue
+
+        block_number_difference = latest_block_number - 1 - latest_stored_block_number
+        if block_number_difference >= 70:
+            logger.warning(
+                f"Block difference is too large: {block_number_difference}, crawling {args.confirmations + 1} latest blocks"
+            )
+            bottom_block_number = latest_block_number - args.confirmations - 1
+        else:
+            if args.start is None:
+                if block_number_difference < args.confirmations:
+                    logger.info(
+                        f"Synchronization is unnecessary for blocks {latest_stored_block_number}-{latest_block_number - 1}"
+                    )
+                    time.sleep(5)
+                    continue
+                else:
+                    bottom_block_number = latest_stored_block_number + 1
+            else:
+                bottom_block_number = max(latest_stored_block_number + 1, args.start)
 
         for blocks_numbers_list in yield_blocks_numbers_lists(
             f"{bottom_block_number}-{latest_block_number}",
@@ -189,12 +193,6 @@ def ethcrawler_blocks_missing_handler(args: argparse.Namespace) -> None:
         f"Required {time.time() - startTime} with {MOONSTREAM_CRAWL_WORKERS} workers "
         f"for {len(missing_blocks_numbers_total)} missing blocks"
     )
-
-
-def ethcrawler_contracts_update_handler(args: argparse.Namespace) -> None:
-    results = process_contract_deployments()
-    with args.outfile:
-        json.dump(results, args.outfile)
 
 
 def ethcrawler_trending_handler(args: argparse.Namespace) -> None:
@@ -321,31 +319,6 @@ def main() -> None:
     )
     parser_ethcrawler_blocks_missing.set_defaults(
         func=ethcrawler_blocks_missing_handler
-    )
-
-    parser_ethcrawler_contracts = subcommands.add_parser(
-        "contracts", description="Ethereum smart contract related crawlers"
-    )
-    parser_ethcrawler_contracts.set_defaults(
-        func=lambda _: parser_ethcrawler_contracts.print_help()
-    )
-    subcommands_ethcrawler_contracts = parser_ethcrawler_contracts.add_subparsers(
-        description="Ethereum contracts commands"
-    )
-
-    parser_ethcrawler_contracts_update = subcommands_ethcrawler_contracts.add_parser(
-        "update",
-        description="Update smart contract registry to include newly deployed smart contracts",
-    )
-    parser_ethcrawler_contracts_update.add_argument(
-        "-o",
-        "--outfile",
-        type=argparse.FileType("w"),
-        default=sys.stdout,
-        help="(Optional) File to write new (transaction_hash, contract_address) pairs to",
-    )
-    parser_ethcrawler_contracts_update.set_defaults(
-        func=ethcrawler_contracts_update_handler
     )
 
     parser_ethcrawler_trending = subcommands.add_parser(

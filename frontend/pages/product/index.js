@@ -185,7 +185,6 @@ const Product = () => {
           elementName={"element1"}
           colorScheme="blue"
           py={["12px", "24px", "48px"]}
-          // badge={`Here to help you`}
           title={`Meet Moonstream!`}
           body={`Moonstream brings product analytics to web3.
           Instantly get analytics for any smart contract you write.

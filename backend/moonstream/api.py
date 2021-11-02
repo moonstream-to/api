@@ -3,28 +3,71 @@ The Moonstream HTTP API
 """
 import logging
 import time
+from typing import Dict
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import actions
 from . import data
-from .middleware import MoonstreamHTTPException
-from .routes.address_info import app as addressinfo_api
-from .routes.nft import app as nft_api
-from .routes.whales import app as whales_api
-from .routes.subscriptions import app as subscriptions_api
-from .routes.streams import app as streams_api
-from .routes.txinfo import app as txinfo_api
-from .routes.users import app as users_api
-from .settings import ORIGINS
+from .routes.address_info import router as addressinfo_router
+from .routes.nft import router as nft_router
+from .routes.streams import router as streams_router
+from .routes.subscriptions import router as subscriptions_router
+from .routes.txinfo import router as txinfo_router
+from .routes.users import router as users_router
+from .routes.whales import router as whales_router
+from .middleware import BroodAuthMiddleware, MoonstreamHTTPException
+from .settings import DOCS_TARGET_PATH, ORIGINS
 from .version import MOONSTREAM_VERSION
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(openapi_url=None)
 
+tags_metadata = [
+    {"name": "addressinfo", "description": "Blockchain addresses public information."},
+    {
+        "name": "labels",
+        "description": "Labels for transactions, addresses with additional information.",
+    },
+    {"name": "nft", "description": "NFT market summaries."},
+    {"name": "streams", "description": "Operations with data streams and filters."},
+    {"name": "subscriptions", "description": "Operations with user subscriptions."},
+    {"name": "time", "description": "Server timestamp endpoints."},
+    {"name": "tokens", "description": "Operations with user tokens."},
+    {"name": "txinfo", "description": "Ethereum transactions info."},
+    {"name": "users", "description": "Operations with users."},
+    {"name": "whales", "description": "Whales summaries"},
+]
+
+app = FastAPI(
+    title=f"Moonstream API",
+    description="Moonstream API endpoints.",
+    version=MOONSTREAM_VERSION,
+    openapi_tags=tags_metadata,
+    openapi_url="/openapi.json",
+    docs_url=None,
+    redoc_url=f"/{DOCS_TARGET_PATH}",
+)
+
+whitelist_paths: Dict[str, str] = {}
+whitelist_paths.update(
+    {
+        "/ping": "GET",
+        "/version": "GET",
+        "/now": "GET",
+        "/docs": "GET",
+        "/openapi.json": "GET",
+        "/streams/info": "GET",
+        "/subscriptions/types": "GET",
+        "/users": "POST",
+        "/users/token": "POST",
+        "/users/password/reset_initiate": "POST",
+        "/users/password/reset_complete": "POST",
+    }
+)
+app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ORIGINS,
@@ -36,23 +79,32 @@ app.add_middleware(
 
 @app.get("/ping", response_model=data.PingResponse)
 async def ping_handler() -> data.PingResponse:
+    """
+    Check server status.
+    """
     return data.PingResponse(status="ok")
 
 
 @app.get("/version", response_model=data.VersionResponse)
 async def version_handler() -> data.VersionResponse:
+    """
+    Get server version.
+    """
     return data.VersionResponse(version=MOONSTREAM_VERSION)
 
 
 @app.get("/now", tags=["time"])
 async def now_handler() -> data.NowResponse:
+    """
+    Get server current time.
+    """
     return data.NowResponse(epoch_time=time.time())
 
 
 @app.get("/status", response_model=data.StatusResponse)
 async def status_handler() -> data.StatusResponse:
     """
-    Get latest records and their creation timestamp for crawlers:
+    Find latest crawlers records with creation timestamp:
     - ethereum_txpool
     - ethereum_trending
     """
@@ -70,10 +122,10 @@ async def status_handler() -> data.StatusResponse:
     )
 
 
-app.mount("/subscriptions", subscriptions_api)
-app.mount("/users", users_api)
-app.mount("/streams", streams_api)
-app.mount("/txinfo", txinfo_api)
-app.mount("/address_info", addressinfo_api)
-app.mount("/nft", nft_api)
-app.mount("/whales", whales_api)
+app.include_router(addressinfo_router)
+app.include_router(nft_router)
+app.include_router(streams_router)
+app.include_router(subscriptions_router)
+app.include_router(txinfo_router)
+app.include_router(users_router)
+app.include_router(whales_router)
