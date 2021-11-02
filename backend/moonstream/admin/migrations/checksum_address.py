@@ -59,16 +59,13 @@ def checksum_all_labels_addresses(db_session: Session, web3: Web3) -> None:
     Docs for SQLAlchemy mapping:
     https://docs.sqlalchemy.org/en/14/orm/session_api.html#sqlalchemy.orm.Session.bulk_update_mappings
     """
-    query_limit = 30
-    query_index = 0
+    query_limit = 500
 
     while True:
         query = (
             db_session.query(EthereumLabel.id, EthereumLabel.address)
             .filter(EthereumLabel.address == func.lower(EthereumLabel.address))
-            .order_by(EthereumLabel.address)
             .limit(query_limit)
-            .offset(query_index * query_limit)
         )
         address_list = query.all()
         address_list_len = len(address_list)
@@ -87,4 +84,3 @@ def checksum_all_labels_addresses(db_session: Session, web3: Web3) -> None:
         db_session.commit()
         mappings[:] = []
 
-        query_index += 1
