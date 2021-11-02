@@ -24,6 +24,7 @@ import {
   AlertDialogOverlay,
   Button,
   Spinner,
+  Divider,
 } from "@chakra-ui/react";
 import UserContext from "../UserProvider/context";
 import UIContext from "../UIProvider/context";
@@ -38,6 +39,8 @@ const NewDashboard = React.lazy(() =>
 const NewSubscription = React.lazy(() =>
   import("../../../components/NewSubscription")
 );
+
+const UploadABI = React.lazy(() => import("../../../components/UploadABI"));
 
 const OverlayProvider = ({ children }) => {
   const ui = useContext(UIContext);
@@ -146,16 +149,21 @@ const OverlayProvider = ({ children }) => {
         <ModalOverlay />
 
         <ModalContent>
-          <ModalHeader>
+          <ModalHeader bgColor="white.200" py={2} fontSize="lg">
             {modal === MODAL_TYPES.NEW_SUBSCRIPTON &&
               "Subscribe to a new address"}
             {modal === MODAL_TYPES.FORGOT && "Forgot Password"}
             {modal === MODAL_TYPES.HUBSPOT && "Join the waitlist"}
             {modal === MODAL_TYPES.LOGIN && "Login now"}
             {modal === MODAL_TYPES.SIGNUP && "Create an account"}
+            {modal === MODAL_TYPES.UPLOAD_ABI && "Assign ABI"}
           </ModalHeader>
+          <Divider />
           <ModalCloseButton />
-          <ModalBody zIndex={100002}>
+          <ModalBody
+            zIndex={100002}
+            bgColor={modal === MODAL_TYPES.UPLOAD_ABI ? "white.200" : undefined}
+          >
             <Suspense fallback={<Spinner />}>
               {modal === MODAL_TYPES.NEW_SUBSCRIPTON && (
                 <NewSubscription
@@ -178,6 +186,7 @@ const OverlayProvider = ({ children }) => {
                 modal === MODAL_TYPES.SIGNUP && ""
                 // <SignUp toggleModal={toggleModal} />
               }
+              {modal === MODAL_TYPES.UPLOAD_ABI && <UploadABI />}
             </Suspense>
           </ModalBody>
         </ModalContent>

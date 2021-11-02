@@ -7,6 +7,7 @@ export const MODAL_TYPES = {
   CONFIRM: 5,
   HUBSPOT: 6,
   NEW_SUBSCRIPTON: 7,
+  UPLOAD_ABI: 8,
 };
 
 export const DRAWER_TYPES = {

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Skeleton, IconButton, Container } from "@chakra-ui/react";
 import {
   Table,
@@ -14,12 +14,14 @@ import {
   EditablePreview,
   Button,
 } from "@chakra-ui/react";
-import { DeleteIcon } from "@chakra-ui/icons";
+import { CheckIcon, DeleteIcon } from "@chakra-ui/icons";
 import moment from "moment";
 import CopyButton from "./CopyButton";
 import { useSubscriptions } from "../core/hooks";
 import ConfirmationRequest from "./ConfirmationRequest";
 import ColorSelector from "./ColorSelector";
+import OverlayContext from "../core/providers/OverlayProvider/context";
+import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 
 const mapper = {
   "tag:erc721": "NFTs",
@@ -27,6 +29,7 @@ const mapper = {
 };
 
 const SubscriptionsList = ({ emptyCTA }) => {
+  const overlay = useContext(OverlayContext);
   const {
     subscriptionsCache,
     updateSubscription,
@@ -63,6 +66,7 @@ const SubscriptionsList = ({ emptyCTA }) => {
             <Th>Token</Th>
             <Th>Label</Th>
             <Th>Address</Th>
+            <Th>abi</Th>
             <Th>Color</Th>
             <Th>Date Created</Th>
             <Th>Actions</Th>
@@ -103,6 +107,23 @@ const SubscriptionsList = ({ emptyCTA }) => {
                     <CopyButton>{mapper[subscription.address]}</CopyButton>
                   ) : (
                     <CopyButton>{subscription.address}</CopyButton>
+                  )}
+                </Td>
+                <Td mr={4} p={0}>
+                  {subscription.abi ? (
+                    <CheckIcon />
+                  ) : (
+                    <Button
+                      colorScheme="orange"
+                      size="xs"
+                      py={2}
+                      disabled={!subscription.address}
+                      onClick={() =>
+                        overlay.toggleModal(MODAL_TYPES.UPLOAD_ABI)
+                      }
+                    >
+                      Upload
+                    </Button>
                   )}
                 </Td>
                 <Td>

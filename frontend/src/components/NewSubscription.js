@@ -113,7 +113,7 @@ const _NewSubscription = ({
 
   return (
     <form onSubmit={handleSubmit(createSubscriptionWrapper)}>
-      <Stack my={4} direction="column">
+      <Stack mb={0} direction="column">
         <Stack spacing={1} w="100%">
           <Text fontWeight="600">Source:</Text>
           {/* position must be relative otherwise radio boxes add strange spacing on selection */}
@@ -136,7 +136,7 @@ const _NewSubscription = ({
                     !type.active ||
                     (isFreeOption && type.id !== "ethereum_blockchain"),
                 });
-
+                if (type.id === "ethereum_whalewatch") return "";
                 return (
                   <RadioCard
                     px="8px"
