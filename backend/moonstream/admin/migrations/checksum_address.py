@@ -60,11 +60,13 @@ def checksum_all_labels_addresses(db_session: Session, web3: Web3) -> None:
     https://docs.sqlalchemy.org/en/14/orm/session_api.html#sqlalchemy.orm.Session.bulk_update_mappings
     """
     query_limit = 500
+    malformed_addresses = []
 
     while True:
         query = (
             db_session.query(EthereumLabel.id, EthereumLabel.address)
             .filter(EthereumLabel.address == func.lower(EthereumLabel.address))
+            .filter()
             .limit(query_limit)
         )
         address_list = query.all()
@@ -77,10 +79,17 @@ def checksum_all_labels_addresses(db_session: Session, web3: Web3) -> None:
         # Build map of id and updated address checksum
         mappings = []
         for address in address_list:
-            mappings.append(
-                {"id": address[0], "address": web3.toChecksumAddress(address[1])}
-            )
+            try:
+                checksum_address = web3.toChecksumAddress(address[1])
+                mappings.append({"id": address[0], "address": checksum_address})
+            except Exception as e:
+                logger.warn(
+                    f"Unable checksum address: {address[1]}, added to malformed list"
+                )
+                malformed_addresses.append(address[1])
+
         db_session.bulk_update_mappings(EthereumLabel, mappings)
         db_session.commit()
         mappings[:] = []
 
+    logger.warn(f"List of malformed addresses: {malformed_addresses}")
