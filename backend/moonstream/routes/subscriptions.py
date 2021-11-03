@@ -5,7 +5,7 @@ import logging
 import json
 from typing import List, Optional, Dict, Any, Union
 
-import boto3  # ignore
+import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Request, Form
@@ -111,7 +111,7 @@ async def add_subscription_handler(
             Metadata={"Moonstream": "Abi data"},
         )
 
-        update_resource = {}
+        update_resource: Dict[str, Any] = {}
 
         update_resource["abi"] = True
 

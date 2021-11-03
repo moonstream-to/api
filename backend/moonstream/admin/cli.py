@@ -2,6 +2,7 @@
 Moonstream CLI
 """
 import argparse
+import json
 from typing import Optional
 
 from . import subscription_types, subscriptions
@@ -20,6 +21,45 @@ def parse_boolean_arg(raw_arg: Optional[str]) -> Optional[bool]:
     if raw_arg_lower in ["t", "true", "1", "y", "yes"]:
         return True
     return False
+
+
+def cli_migrate_subscriptions(args: argparse.Namespace) -> None:
+    """
+    Handler for subscriptions migrate.
+    """
+
+    drop_keys = []
+
+    if args.file is not None:
+        with open(args.file) as migration_json_file:
+            migration_json = json.load(migration_json_file)
+
+        if "match" not in migration_json or "update" not in migration_json:
+            print(
+                "Migration file plan have incorrect format require specified {match:{}, update:{}, drop_keys: Optional}"
+            )
+            return
+
+        match = migration_json["match"]
+        update = migration_json["update"]
+
+        if "drop_keys" in migration_json:
+            drop_keys = migration_json["drop_keys"]
+
+    elif args.match is not None and args.update is not None:
+
+        match = json.loads(args.update)
+
+        update = json.loads(args.match)
+
+        if args.drop_keys is not None:
+            drop_keys = json.loads(args.drop_keys)
+
+    else:
+        print("Specified file or --match and --update is required.")
+        return
+
+    subscriptions.migrate_subscriptions(match=match, update=update, drop_keys=drop_keys)
 
 
 def main() -> None:
@@ -246,9 +286,7 @@ This CLI is configured to work with the following API URLs:
         type=str,
         help="Droped json fields",
     )
-    parser_subscription_migrate.set_defaults(
-        func=subscriptions.cli_migrate_subscriptions
-    )
+    parser_subscription_migrate.set_defaults(func=cli_migrate_subscriptions)
 
     args = parser.parse_args()
     args.func(args)
