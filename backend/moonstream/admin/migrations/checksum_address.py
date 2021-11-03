@@ -3,6 +3,7 @@ Convert all addresses in user subscriptions
 and ethereum_labels column to checksum address.
 """
 import logging
+from typing import List
 
 from bugout.data import BugoutResources
 from bugout.exceptions import BugoutResponseException
@@ -60,13 +61,13 @@ def checksum_all_labels_addresses(db_session: Session, web3: Web3) -> None:
     https://docs.sqlalchemy.org/en/14/orm/session_api.html#sqlalchemy.orm.Session.bulk_update_mappings
     """
     query_limit = 500
-    malformed_addresses = []
+    malformed_addresses: List[str] = []
 
     while True:
         query = (
             db_session.query(EthereumLabel.id, EthereumLabel.address)
             .filter(EthereumLabel.address == func.lower(EthereumLabel.address))
-            .filter()
+            .filter(EthereumLabel.address.not_in(malformed_addresses))
             .limit(query_limit)
         )
         address_list = query.all()
