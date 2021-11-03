@@ -34,7 +34,7 @@ export const ALL_NAV_PATHES = [
   },
   {
     title: "API",
-    path: "https://api.moonstream.to/docs",
+    path: "/docs",
     footerCategory: FOOTER_COLUMNS.PRODUCT,
   },
   {
@@ -46,6 +46,11 @@ export const ALL_NAV_PATHES = [
     title: "Blog",
     path: "https://blog.moonstream.to",
     footerCategory: FOOTER_COLUMNS.NEWS,
+  },
+  {
+    title: "Status",
+    path: "/status",
+    footerCategory: FOOTER_COLUMNS.PRODUCT,
   },
 ];
 
