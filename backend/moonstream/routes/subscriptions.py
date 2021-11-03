@@ -17,7 +17,7 @@ from ..reporter import reporter
 from ..settings import (
     MOONSTREAM_APPLICATION_ID,
     bugout_client as bc,
-    SMARTCONTRACTS_ABI_BUCKET,
+    MOONSTREAM_SMARTCONTRACTS_ABI_BUCKET,
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
 )
 
@@ -96,7 +96,7 @@ async def add_subscription_handler(
 
         s3_client = boto3.client("s3")
 
-        bucket = SMARTCONTRACTS_ABI_BUCKET
+        bucket = MOONSTREAM_SMARTCONTRACTS_ABI_BUCKET
 
         result_bytes = abi.encode("utf-8")
         result_key = (
@@ -115,7 +115,7 @@ async def add_subscription_handler(
 
         update_resource["abi"] = True
 
-        update_resource["bucket"] = SMARTCONTRACTS_ABI_BUCKET
+        update_resource["bucket"] = MOONSTREAM_SMARTCONTRACTS_ABI_BUCKET
         update_resource[
             "s3_path"
         ] = f"abi/v1/{resource.resource_data['address']}/{resource.id}/abi.json"
@@ -271,7 +271,7 @@ async def update_subscriptions_handler(
 
         s3_client = boto3.client("s3")
 
-        bucket = SMARTCONTRACTS_ABI_BUCKET
+        bucket = MOONSTREAM_SMARTCONTRACTS_ABI_BUCKET
 
         result_bytes = abi.encode("utf-8")
         result_key = (
@@ -288,7 +288,7 @@ async def update_subscriptions_handler(
 
         update["abi"] = True
 
-        update["bucket"] = SMARTCONTRACTS_ABI_BUCKET
+        update["bucket"] = MOONSTREAM_SMARTCONTRACTS_ABI_BUCKET
         update[
             "s3_path"
         ] = f"abi/v1/{subscription.resource_data['address']}/{subscription_id}/abi.json"

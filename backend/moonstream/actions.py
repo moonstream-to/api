@@ -7,6 +7,8 @@ import uuid
 import boto3  # type: ignore
 from bugout.data import BugoutSearchResults
 from bugout.journal import SearchOrder
+from ens.utils import is_valid_ens_name  # type: ignore
+from eth_utils.address import is_address  # type: ignore
 from moonstreamdb.models import (
     EthereumLabel,
 )
@@ -24,9 +26,9 @@ from .settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_DATA_JOURNAL_ID,
 )
+from web3 import Web3
 
 logger = logging.getLogger(__name__)
-ETHERSCAN_SMARTCONTRACT_LABEL_NAME = "etherscan_smartcontract"
 
 
 class StatusAPIException(Exception):
@@ -35,54 +37,96 @@ class StatusAPIException(Exception):
     """
 
 
-def get_contract_source_info(
-    db_session: Session, contract_address: str
-) -> Optional[data.EthereumSmartContractSourceInfo]:
-    labels = (
-        db_session.query(EthereumLabel)
-        .filter(EthereumLabel.address == contract_address)
-        .all()
-    )
-    if not labels:
-        return None
-
-    for label in labels:
-        if label.label == ETHERSCAN_SMARTCONTRACT_LABEL_NAME:
-            object_uri = label.label_data["object_uri"]
-            key = object_uri.split("s3://etherscan-smart-contracts/")[1]
-            s3 = boto3.client("s3")
-            bucket = ETHERSCAN_SMARTCONTRACTS_BUCKET
-            try:
-                raw_obj = s3.get_object(Bucket=bucket, Key=key)
-                obj_data = json.loads(raw_obj["Body"].read().decode("utf-8"))["data"]
-                contract_source_info = data.EthereumSmartContractSourceInfo(
-                    name=obj_data["ContractName"],
-                    source_code=obj_data["SourceCode"],
-                    compiler_version=obj_data["CompilerVersion"],
-                    abi=obj_data["ABI"],
-                )
-                return contract_source_info
-            except Exception as e:
-                logger.error(f"Failed to load smart contract {object_uri}")
-                reporter.error_report(e)
-    return None
-
-
 class LabelNames(Enum):
     ETHERSCAN_SMARTCONTRACT = "etherscan_smartcontract"
     COINMARKETCAP_TOKEN = "coinmarketcap_token"
     ERC721 = "erc721"
 
 
+def get_contract_source_info(
+    db_session: Session, contract_address: str
+) -> Optional[data.EthereumSmartContractSourceInfo]:
+    label = (
+        db_session.query(EthereumLabel)
+        .filter(EthereumLabel.address == contract_address)
+        .filter(EthereumLabel.label == LabelNames.ETHERSCAN_SMARTCONTRACT.value)
+        .one_or_none()
+    )
+    if label is None:
+        return None
+
+    object_uri = label.label_data["object_uri"]
+    key = object_uri.split("s3://etherscan-smart-contracts/")[1]
+    s3 = boto3.client("s3")
+    bucket = ETHERSCAN_SMARTCONTRACTS_BUCKET
+    try:
+        raw_obj = s3.get_object(Bucket=bucket, Key=key)
+        obj_data = json.loads(raw_obj["Body"].read().decode("utf-8"))["data"]
+        contract_source_info = data.EthereumSmartContractSourceInfo(
+            name=obj_data["ContractName"],
+            source_code=obj_data["SourceCode"],
+            compiler_version=obj_data["CompilerVersion"],
+            abi=obj_data["ABI"],
+        )
+        return contract_source_info
+    except Exception as e:
+        logger.error(f"Failed to load smart contract {object_uri}")
+        reporter.error_report(e)
+
+    return None
+
+
+def get_ens_name(web3: Web3, address: str) -> Optional[str]:
+    try:
+        checksum_address = web3.toChecksumAddress(address)
+    except:
+        raise ValueError(f"{address} is invalid ethereum address is passed")
+    try:
+        ens_name = web3.ens.name(checksum_address)
+        return ens_name
+    except Exception as e:
+        reporter.error_report(e, ["web3", "ens"])
+        logger.error(
+            f"Cannot get ens name for address {checksum_address}. Probably node is down"
+        )
+        raise e
+
+
+def get_ens_address(web3: Web3, name: str) -> Optional[str]:
+
+    if not is_valid_ens_name(name):
+        raise ValueError(f"{name} is not valid ens name")
+
+    try:
+        ens_checksum_address = web3.ens.address(name)
+        if ens_checksum_address is not None:
+            ordinary_address = ens_checksum_address.lower()
+            return ordinary_address
+        return None
+    except Exception as e:
+        reporter.error_report(e, ["web3", "ens"])
+        logger.error(f"Cannot get ens address for name {name}. Probably node is down")
+        raise e
+
+
 def get_ethereum_address_info(
-    db_session: Session, address: str
+    db_session: Session, web3: Web3, address: str
 ) -> Optional[data.EthereumAddressInfo]:
 
+    if not is_address(address):
+        raise ValueError(f"Invalid ethereum address : {address}")
+
     address_info = data.EthereumAddressInfo(address=address)
+
+    try:
+        address_info.ens_name = get_ens_name(web3, address)
+    except:
+        pass
+
     etherscan_address_url = f"https://etherscan.io/address/{address}"
     etherscan_token_url = f"https://etherscan.io/token/{address}"
     blockchain_com_url = f"https://www.blockchain.com/eth/address/{address}"
-    # Checking for token:
+
     coinmarketcap_label: Optional[EthereumLabel] = (
         db_session.query(EthereumLabel)
         .filter(EthereumLabel.address == address)
@@ -91,6 +135,7 @@ def get_ethereum_address_info(
         .limit(1)
         .one_or_none()
     )
+
     if coinmarketcap_label is not None:
         address_info.token = data.EthereumTokenDetails(
             name=coinmarketcap_label.label_data["name"],
