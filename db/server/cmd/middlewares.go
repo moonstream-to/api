@@ -1,13 +1,12 @@
 package cmd
 
 import (
-	"fmt"
 	"log"
 	"net/http"
-    "strings"
+	"strings"
 	"time"
 
-    settings "github.com/bugout-dev/moonstream/db/server/configs"
+	settings "github.com/bugout-dev/moonstream/db/server/configs"
 )
 
 // Handle panic errors to prevent server shutdown
@@ -29,7 +28,7 @@ func logsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		next.ServeHTTP(w, r)
-		fmt.Printf("[%s] %s %s %s\n", time.Since(start), r.Method, r.URL.Path, r.RemoteAddr)
+		log.Printf("%s %s %s %s\n", time.Since(start), r.Method, r.URL.Path, r.RemoteAddr)
 	})
 }
 
@@ -38,7 +37,7 @@ func corsMiddleware(next http.Handler) http.Handler {
 	// Iterate over list of allowed origins
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		for _, allowedOrigin := range strings.Split(settings.MOONSTREAM_CORS_ALLOWED_ORIGINS, ",") {
-            if r.Header.Get("Origin") == allowedOrigin {
+			if r.Header.Get("Origin") == allowedOrigin {
 				w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
 			}
 		}

@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"database/sql"
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
@@ -16,8 +18,17 @@ func (es *extendedServer) blocksLatestRoute(w http.ResponseWriter, req *http.Req
 	w.Header().Set("Content-Type", "application/json")
 
 	var latestBlock BlockNumberResponse
-	query := "SELECT block_number FROM ethereum_blocks ORDER BY block_number DESC LIMIT 1"
-	es.db.Raw(query, 1).Scan(&latestBlock.BlockNumber)
+	row := es.db.QueryRow("SELECT block_number FROM ethereum_blocks ORDER BY block_number DESC LIMIT 1")
+	err := row.Scan(&latestBlock.BlockNumber)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Row not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+		}
+		log.Printf("An error occurred during sql operation: %s", err)
+		return
+	}
 
 	json.NewEncoder(w).Encode(latestBlock)
 }

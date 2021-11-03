@@ -5,7 +5,7 @@ import (
 	"flag"
 	"log"
 	"net/http"
-    "time"
+	"time"
 )
 
 type extendedServer struct {
