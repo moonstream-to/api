@@ -24,6 +24,16 @@ export default function CachingApp({ Component, pageProps }) {
   const router = useRouter();
 
   useEffect(() => {
+    if (
+      router.pathname !== "/entry-point" &&
+      window &&
+      localStorage.getItem("entry_point")
+    ) {
+      localStorage.removeItem("entry_point");
+    }
+  }, [router]);
+
+  useEffect(() => {
     const handleStart = () => {
       NProgress.start();
     };
