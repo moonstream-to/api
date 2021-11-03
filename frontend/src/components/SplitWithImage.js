@@ -127,12 +127,7 @@ const SplitWithImage = ({
         )}
         <Stack spacing={[2, 4]} justifyContent="center">
           {badge && (
-            <Stack
-              direction="row"
-              placeContent={
-                mirror && !ui.isMobileView ? "flex-end" : "flex-start"
-              }
-            >
+            <Stack direction="row" placeContent={"flex-start"}>
               <Text
                 id={`MoonBadge ${elementName}`}
                 textTransform={"uppercase"}

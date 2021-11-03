@@ -39,7 +39,7 @@ export const ALL_NAV_PATHES = [
   },
   {
     title: "Whitepapers",
-    path: "https://github.com/bugout-dev/papers",
+    path: "/whitepapers",
     footerCategory: FOOTER_COLUMNS.PRODUCT,
   },
   {

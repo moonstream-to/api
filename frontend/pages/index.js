@@ -107,6 +107,10 @@ const carousel_content = [
   { title: "Ethereum", img: assets["ethereumBlackLogo"] },
   { title: "Ethereum transaction pool", img: assets["ethereumRainbowLogo"] },
   { title: "Polygon coming soon!", img: assets["maticLogo"] },
+  { title: "Bitcoin coming soon!", img: assets["bitcoinLogo"] },
+  { title: "Ethereum", img: assets["ethereumBlackLogo"] },
+  { title: "Ethereum transaction pool", img: assets["ethereumRainbowLogo"] },
+  { title: "Polygon coming soon!", img: assets["maticLogo"] },
 ];
 const Homepage = () => {
   const ui = useContext(UIContext);
@@ -211,17 +215,17 @@ const Homepage = () => {
   }, []);
 
   const settings = {
-    // infinite: true,
+    infinite: true,
     lazyLoad: true,
-    speed: 2500,
+    speed: 2000,
     autoplay: true,
-    autoplaySpeed: 10000,
+    autoplaySpeed: 0,
     // cssEase: "linear",
     cssEase: "cubic-bezier(0.165, 0.840, 0.440, 1.000)",
     // cssEase: "ease-in",
-    slidesToScroll: 3,
-    slidesToShow: 3,
-    centerMode: false,
+    slidesToScroll: 1,
+    slidesToShow: ui.isMobileView ? 3 : 5,
+    centerMode: true,
     centerPadding: 0,
     // nextArrow: "",
     // prevArrow: "",
@@ -297,7 +301,14 @@ const Homepage = () => {
                           understand exactly how people are using your smart
                           contracts.
                         </chakra.span>
-                        <Box w="100%" minH="200px" p={0} overflow-x="hidden">
+                        <Box
+                          w="100vw"
+                          minH="200px"
+                          // px="7%"
+                          py={0}
+                          overflowX="hidden"
+                          overflowY="visible"
+                        >
                           <Slider
                             {...settings}
                             // adaptiveHeight={true}
@@ -307,8 +318,8 @@ const Homepage = () => {
                           >
                             {carousel_content.map((content_item, idx) => (
                               <Box
-                                pt="10px"
-                                h="200px"
+                                pt="80px"
+                                h="auto"
                                 w="150px"
                                 maxW="150px"
                                 // size="150px"
@@ -455,13 +466,11 @@ const Homepage = () => {
                     />
                     <TrustedBadge
                       name="CryptoInsiders"
-                      caseURL="https://www.crypto-insiders.nl/nieuws/altcoin/17-van-ethereum-whales-bezitten-meer-dan-80-van-alle-nfts-op-de-blockchain/"
                       ImgURL={assets["cryptoinsiders"]}
                     />
 
                     <TrustedBadge
                       name="cryptoslate"
-                      caseURL="https://cryptoslate.com/just-17-of-all-ethereum-addresses-bought-80-of-all-nfts-this-year/"
                       ImgURL={assets["cryptoslate"]}
                     />
                   </Suspense>
@@ -477,7 +486,7 @@ const Homepage = () => {
               >
                 <SplitWithImage
                   cta={{
-                    label: "I want early access!",
+                    label: "Want to find out more?",
                     onClick: () => {
                       mixpanel.get_distinct_id() &&
                         mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
@@ -527,7 +536,7 @@ const Homepage = () => {
               >
                 <SplitWithImage
                   cta={{
-                    label: "I want early access!",
+                    label: "Want to find out more?",
                     onClick: () => {
                       mixpanel.get_distinct_id() &&
                         mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
