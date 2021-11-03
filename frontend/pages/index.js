@@ -333,14 +333,18 @@ const Homepage = () => {
                                 // borderRadius="lg"
                                 // boxShadow="lg"
                               >
-                                <Text color="blue.300">
-                                  {content_item.title}
-                                </Text>
                                 <ChakraImage
                                   fit="contain"
-                                  boxSize="130px"
+                                  boxSize={["64px", "96px", "130px", null]}
                                   src={content_item.img}
                                 />
+                                <Text
+                                  py={2}
+                                  color="blue.300"
+                                  fontSize={["sm", "md", null]}
+                                >
+                                  {content_item.title}
+                                </Text>
                               </Box>
                             ))}
                           </Slider>
@@ -433,7 +437,7 @@ const Homepage = () => {
                     pb={["12px", "60px", null]}
                     textAlign="justify"
                   >
-                    Your game changer in blockchain infrastracture
+                    Your game changer in blockchain analytics
                   </Heading>
                 </Center>
                 <Flex
@@ -695,6 +699,7 @@ const Homepage = () => {
                 colSpan="12"
                 pt={["0", "0", "5.125rem", null, "5.125rem"]}
                 pb="120px"
+                px="7%"
               >
                 <Center>
                   <Stack placeContent="center">
