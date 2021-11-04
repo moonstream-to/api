@@ -42,6 +42,8 @@ async def add_subscription_handler(
     """
     token = request.state.token
 
+    checksum_address = address
+
     if subscription_type_id != "ethereum_whalewatch":
         try:
             checksum_address = web3.toChecksumAddress(address)
