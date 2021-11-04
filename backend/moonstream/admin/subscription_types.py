@@ -5,16 +5,16 @@ import argparse
 import json
 from typing import Dict, List, Optional
 
-from bugout.data import BugoutResources, BugoutResource
+from bugout.data import BugoutResource, BugoutResources
 from sqlalchemy.sql.expression import update
 
 from ..data import SubscriptionTypeResourceData
 from ..settings import (
+    BUGOUT_REQUEST_TIMEOUT_SECONDS,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_APPLICATION_ID,
-    bugout_client as bc,
-    BUGOUT_REQUEST_TIMEOUT_SECONDS,
 )
+from ..settings import bugout_client as bc
 
 CANONICAL_SUBSCRIPTION_TYPES = {
     "ethereum_blockchain": SubscriptionTypeResourceData(
