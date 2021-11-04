@@ -4,7 +4,6 @@ import {
   Input,
   Stack,
   Text,
-  useRadioGroup,
   FormControl,
   FormErrorMessage,
   Button,
@@ -32,25 +31,13 @@ import { useForm } from "react-hook-form";
 import Web3 from "web3";
 import Downshift from "downshift";
 import { QuestionIcon } from "@chakra-ui/icons";
-const _NewSubscription = ({
-  isFreeOption,
-  onClose,
-  setIsLoading,
-  initialAddress,
-  initialType,
-  isModal,
-  initialValue,
-}) => {
+const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
   const [color, setColor] = useState(makeColor());
   const { handleSubmit, errors, register } = useForm({});
   const [address, setAddress] = useState();
   const [label, setLabel] = useState();
   const [type, setType] = useState();
   const { typesCache, createSubscription } = useSubscriptions();
-
-  const [radioState, setRadioState] = useState(
-    initialType ?? "ethereum_blockchain"
-  );
 
   const [pickerItems, setPickerItems] = useState();
 
@@ -64,26 +51,6 @@ const _NewSubscription = ({
       setPickerItems(massaged);
     }
   }, [typesCache.data, typesCache.isLoading]);
-
-  const mapper = {
-    "tag:erc721": "NFTs",
-    "input:address": "Address",
-  };
-
-  const [subscriptionAdressFormatRadio, setsubscriptionAdressFormatRadio] =
-    useState("input:address");
-
-  let { getRadioProps } = useRadioGroup({
-    name: "type",
-    defaultValue: radioState,
-    onChange: setRadioState,
-  });
-
-  let { getRadioProps: getRadioPropsSubscription } = useRadioGroup({
-    name: "subscription",
-    defaultValue: subscriptionAdressFormatRadio,
-    onChange: setsubscriptionAdressFormatRadio,
-  });
 
   useEffect(() => {
     if (initialValue && initialValue !== "") {
@@ -111,13 +78,7 @@ const _NewSubscription = ({
     (props) => {
       props.label = props.label ?? "Address";
       props.type = type.id;
-      if (
-        subscriptionAdressFormatRadio.startsWith("tag") &&
-        radioState != "ethereum_whalewatch"
-      ) {
-        props.address = subscriptionAdressFormatRadio;
-        props.label = "Tag";
-      }
+
       if (!props.address) {
         props.address = "0x000000000000000000000000000000000000dead";
       }
@@ -138,26 +99,11 @@ const _NewSubscription = ({
           });
       }
     },
-    [
-      toast,
-      createSubscription,
-      color,
-      radioState,
-      subscriptionAdressFormatRadio,
-      type,
-    ]
+    [toast, createSubscription, color, type]
   );
   const downshiftRef = useRef(null);
 
   if (typesCache.isLoading) return <Spinner />;
-
-  function search(nameKey, myArray) {
-    for (var i = 0; i < myArray.length; i++) {
-      if (myArray[i].id === nameKey) {
-        return myArray[i];
-      }
-    }
-  }
 
   const handleChangeColorComplete = (color) => {
     setColor(color.hex);
@@ -203,7 +149,6 @@ const _NewSubscription = ({
                   {({
                     getInputProps,
                     getItemProps,
-                    getLabelProps,
                     getMenuProps,
                     getToggleButtonProps,
                     isOpen,

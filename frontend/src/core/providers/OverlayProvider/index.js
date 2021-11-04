@@ -1,9 +1,4 @@
-import React, {
-  useState,
-  useLayoutEffect,
-  useContext,
-  Suspense,
-} from "react";
+import React, { useState, useLayoutEffect, useContext, Suspense } from "react";
 import OverlayContext from "./context";
 import { MODAL_TYPES, DRAWER_TYPES } from "./constants";
 import {
