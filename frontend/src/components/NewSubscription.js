@@ -28,7 +28,7 @@ import { BiRefresh } from "react-icons/bi";
 import { GithubPicker } from "react-color";
 import { makeColor } from "../core/utils/makeColor";
 import { useForm } from "react-hook-form";
-import Web3 from "web3";
+import { isAddress } from "web3-utils";
 import Downshift from "downshift";
 import { QuestionIcon } from "@chakra-ui/icons";
 const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
@@ -54,8 +54,8 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
 
   useEffect(() => {
     if (initialValue && initialValue !== "") {
-      console.log("iv:", initialValue, Web3.utils.isAddress(initialValue));
-      if (Web3.utils.isAddress(initialValue)) {
+      console.log("iv:", initialValue, isAddress(initialValue));
+      if (isAddress(initialValue)) {
         setAddress(initialValue);
       } else {
         setLabel(initialValue);
@@ -83,7 +83,7 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
         props.address = "0x000000000000000000000000000000000000dead";
       }
 
-      if (Web3.utils.isAddress(props.address)) {
+      if (isAddress(props.address)) {
         createSubscription.mutate({
           ...props,
           color: color,
