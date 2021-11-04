@@ -5,20 +5,21 @@ import argparse
 import json
 from typing import Dict, List, Optional, Union
 
-from bugout.data import BugoutResources, BugoutResource
-from sqlalchemy.sql.expression import update
+from bugout.data import BugoutResources
 
-from ..data import SubscriptionTypeResourceData
 from ..settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     bugout_client as bc,
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
 )
+from .. import reporter
 
 
 def migrate_subscriptions(
     match: Dict[str, Union[str, int]],
     update: Dict[str, Union[str, int]],
+    descriptions: str,
+    file: str,
     drop_keys: Optional[List[str]],
 ):
     """
@@ -35,14 +36,32 @@ def migrate_subscriptions(
 
     new_resources = []
 
-    for resource in old_resources:
+    reporter.custom_report(
+        title="Subscription migration",
+        content=descriptions,
+        tags=["subscriptions", "migration", f"migration_file:{file}"],
+    )
 
-        new_resource = bc.update_resource(
-            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-            resource_id=resource.id,
-            resource_data={"update": update, "drop_keys": drop_keys},
-            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+    try:
+        for resource in old_resources:
+
+            new_resource = bc.update_resource(
+                token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                resource_id=resource.id,
+                resource_data={"update": update, "drop_keys": drop_keys},
+                timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+            )
+            new_resources.append(new_resource)
+    except Exception as err:
+        reporter.error_report(
+            err,
+            tags=[
+                "subscriptions",
+                "migration",
+                "error",
+                f"resource_id:{resource.id}",
+                f"migration_file:{file}",
+            ],
         )
-        new_resources.append(new_resource)
 
     return new_resources

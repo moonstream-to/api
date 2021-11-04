@@ -1,9 +1,0 @@
-{
-  "match": { "type": "subscription" },
-  "update": {
-    "abi": null,
-    "bucket": null,
-    "s3_path": null
-  },
-  "drop_keys": []
-}

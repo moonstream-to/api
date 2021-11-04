@@ -34,32 +34,35 @@ def cli_migrate_subscriptions(args: argparse.Namespace) -> None:
         with open(args.file) as migration_json_file:
             migration_json = json.load(migration_json_file)
 
-        if "match" not in migration_json or "update" not in migration_json:
+        if (
+            "match" not in migration_json
+            or "update" not in migration_json[args.command]
+            or "description" not in migration_json
+        ):
             print(
-                "Migration file plan have incorrect format require specified {match:{}, update:{}, drop_keys: Optional}"
+                'Migration file plan have incorrect format require specified {"match": {},"description": "","upgrade": { "update": {}, "drop_keys": [] }, "downgrade": { "update": {}, "drop_keys": [] }}'
             )
             return
 
         match = migration_json["match"]
-        update = migration_json["update"]
+        description = migration_json["description"]
+        update = migration_json[args.command]["update"]
+        file = args.file
 
-        if "drop_keys" in migration_json:
-            drop_keys = migration_json["drop_keys"]
+        if "drop_keys" in migration_json[args.command]:
+            drop_keys = migration_json[args.command]["drop_keys"]
 
-    elif args.match is not None and args.update is not None:
-
-        match = json.loads(args.update)
-
-        update = json.loads(args.match)
-
-        if args.drop_keys is not None:
-            drop_keys = json.loads(args.drop_keys)
+        subscriptions.migrate_subscriptions(
+            match=match,
+            descriptions=description,
+            update=update,
+            drop_keys=drop_keys,
+            file=file,
+        )
 
     else:
-        print("Specified file or --match and --update is required.")
+        print("Specified file is required.")
         return
-
-    subscriptions.migrate_subscriptions(match=match, update=update, drop_keys=drop_keys)
 
 
 def main() -> None:
@@ -266,27 +269,16 @@ This CLI is configured to work with the following API URLs:
         "-f", "--file", required=False, type=str, help="path to file"
     )
     parser_subscription_migrate.add_argument(
-        "-m",
-        "--match",
-        required=False,
+        "-c",
+        "--command",
+        default="upgrade",
+        choices=["upgrade", "downgrade"],
         type=str,
-        help="Matching json",
+        help="Command for migration",
     )
-    parser_subscription_migrate.add_argument(
-        "-u",
-        "--update",
-        required=False,
-        type=str,
-        help="Updated/Added json fields",
+    parser_subscription_migrate.set_defaults(
+        func=lambda _: parser_subscription.print_help()
     )
-    parser_subscription_migrate.add_argument(
-        "-d",
-        "--drop_keys",
-        required=False,
-        type=str,
-        help="Droped json fields",
-    )
-    parser_subscription_migrate.set_defaults(func=cli_migrate_subscriptions)
 
     args = parser.parse_args()
     args.func(args)
