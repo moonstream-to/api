@@ -20,7 +20,6 @@ from ..settings import (
     MOONSTREAM_APPLICATION_ID,
     bugout_client as bc,
     MOONSTREAM_SMARTCONTRACTS_ABI_BUCKET,
-    BUGOUT_REQUEST_TIMEOUT_SECONDS,
 )
 
 logger = logging.getLogger(__name__)
@@ -88,7 +87,7 @@ async def add_subscription_handler(
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     if abi:
-        
+
         try:
             validate_abi(json.loads(abi))
         except json.JSONDecodeError:
@@ -104,9 +103,7 @@ async def add_subscription_handler(
         bucket = MOONSTREAM_SMARTCONTRACTS_ABI_BUCKET
 
         result_bytes = abi.encode("utf-8")
-        result_key = (
-            f"abi/v1/{resource.resource_data['address']}/{resource.id}/abi.json"
-        )
+        result_key = f"v1/{resource.resource_data['address']}/{resource.id}/abi.json"
 
         s3_client.put_object(
             Body=result_bytes,
@@ -123,7 +120,7 @@ async def add_subscription_handler(
         update_resource["bucket"] = MOONSTREAM_SMARTCONTRACTS_ABI_BUCKET
         update_resource[
             "s3_path"
-        ] = f"abi/v1/{resource.resource_data['address']}/{resource.id}/abi.json"
+        ] = f"v1/{resource.resource_data['address']}/{resource.id}/abi.json"
 
         try:
             updated_resource: BugoutResource = bc.update_resource(
