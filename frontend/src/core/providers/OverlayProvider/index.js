@@ -1,4 +1,9 @@
-import React, { useState, useLayoutEffect, useContext, Suspense } from "react";
+import React, {
+  useState,
+  useLayoutEffect,
+  useContext,
+  Suspense,
+} from "react";
 import OverlayContext from "./context";
 import { MODAL_TYPES, DRAWER_TYPES } from "./constants";
 import {
@@ -51,6 +56,7 @@ const OverlayProvider = ({ children }) => {
   const drawerDisclosure = useDisclosure();
   const modalDisclosure = useDisclosure();
   const alertDisclosure = useDisclosure();
+  const [modalProps, setModalProps] = useState();
 
   useLayoutEffect(() => {
     if (modal === MODAL_TYPES.OFF && modalDisclosure.isOpen) {
@@ -106,7 +112,7 @@ const OverlayProvider = ({ children }) => {
 
   return (
     <OverlayContext.Provider
-      value={{ modal, toggleModal, drawer, toggleDrawer }}
+      value={{ modal, toggleModal, drawer, toggleDrawer, setModalProps }}
     >
       <AlertDialog
         isOpen={alertDisclosure.isOpen}
@@ -169,6 +175,7 @@ const OverlayProvider = ({ children }) => {
                 <NewSubscription
                   onClose={() => toggleModal(MODAL_TYPES.OFF)}
                   isModal={true}
+                  {...modalProps}
                 />
               )}
               {modal === MODAL_TYPES.FORGOT && <ForgotPassword />}
@@ -193,6 +200,7 @@ const OverlayProvider = ({ children }) => {
       </Modal>
       {/* )} */}
       <Drawer
+        trapFocus={false}
         isOpen={drawerDisclosure.isOpen}
         placement="right"
         size="xl"
@@ -201,13 +209,13 @@ const OverlayProvider = ({ children }) => {
         onClose={() => toggleAlert(() => toggleDrawer(DRAWER_TYPES.OFF))}
       >
         <DrawerOverlay />
-        <DrawerContent>
+        <DrawerContent overflowY="scroll">
           <DrawerCloseButton />
           <DrawerHeader borderBottomWidth="1px">
             {DRAWER_TYPES.NEW_DASHBOARD && "New dashboard"}
           </DrawerHeader>
 
-          <DrawerBody>
+          <DrawerBody h="auto">
             {DRAWER_TYPES.NEW_DASHBOARD && (
               <Suspense fallback={<Spinner />}>
                 <NewDashboard firstField={firstField} />

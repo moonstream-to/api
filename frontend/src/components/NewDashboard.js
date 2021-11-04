@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import {
   chakra,
   FormLabel,
@@ -24,8 +24,13 @@ import { CheckCircleIcon } from "@chakra-ui/icons";
 import { useStorage, useSubscriptions } from "../core/hooks";
 import Downshift from "downshift";
 import color from "color";
+import OverlayContext from "../core/providers/OverlayProvider/context";
+import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
+import UIContext from "../core/providers/UIProvider/context";
 
 const NewDashboard = (props) => {
+  const ui = useContext(UIContext);
+  const overlay = useContext(OverlayContext);
   const [newDashboardForm, setNewDashboardForm] = useStorage(
     sessionStorage,
     "new_dashboard",
@@ -36,6 +41,7 @@ const NewDashboard = (props) => {
           label: "",
           id: null,
           isMethods: false,
+          isEvents: false,
         },
       ],
     }
@@ -104,7 +110,8 @@ const NewDashboard = (props) => {
               <Tr>
                 <Th>Address</Th>
                 <Th w="90px">ABI State</Th>
-                <Th w="90px">Track ABI</Th>
+                <Th w="90px">Methods</Th>
+                <Th w="90px">Events</Th>
                 <Th w="60px"></Th>
               </Tr>
             </Thead>
@@ -155,7 +162,9 @@ const NewDashboard = (props) => {
                                         <InputLeftAddon
                                           isTruncated
                                           maxW="60px"
-                                          fontSize="sm"
+                                          fontSize={
+                                            ui.isMobileView ? "xs" : "sm"
+                                          }
                                           bgColor={
                                             subscibedItem?.color ?? "gray.100"
                                           }
@@ -178,9 +187,9 @@ const NewDashboard = (props) => {
                                           placeholder="Subscription to use in dashboard"
                                           isTruncated
                                           fontSize="sm"
-                                          defaultValue={
-                                            subscibedItem?.label ?? "yoyoy"
-                                          }
+                                          // defaultValue={
+                                          //   subscibedItem?.label ?? "yoyoy"
+                                          // }
                                           {...getInputProps({
                                             defaultValue:
                                               subscibedItem?.label ?? "iha",
@@ -233,9 +242,20 @@ const NewDashboard = (props) => {
                                               colorScheme="orange"
                                               variant="outline"
                                               size="sm"
+                                              fontSize="sm"
+                                              w="100%"
+                                              m={0}
+                                              isTruncated
+                                              onClick={() => {
+                                                overlay.toggleModal(
+                                                  MODAL_TYPES.NEW_SUBSCRIPTON
+                                                );
+                                                overlay.setModalProps({
+                                                  initialValue: inputValue,
+                                                });
+                                              }}
                                             >
-                                              Set new subscription to:{" "}
-                                              {inputValue}{" "}
+                                              Subscribe to: {inputValue}{" "}
                                             </Button>
                                           )}
                                         {pickerItems &&
@@ -306,6 +326,23 @@ const NewDashboard = (props) => {
                                                 </Stack>
                                               );
                                             })}
+                                        {inputValue === "" && (
+                                          <Button
+                                            colorScheme="orange"
+                                            variant="outline"
+                                            w="100%"
+                                            m={0}
+                                            size="sm"
+                                            onClick={() =>
+                                              overlay.toggleModal(
+                                                MODAL_TYPES.NEW_SUBSCRIPTON
+                                              )
+                                            }
+                                          >
+                                            New subscription
+                                            {inputValue}{" "}
+                                          </Button>
+                                        )}
                                       </Stack>
                                     ) : null}
                                     {/* </Menu> */}
@@ -355,6 +392,9 @@ const NewDashboard = (props) => {
                           size="xs"
                           py={2}
                           disabled={!subscibedItem.address}
+                          onClick={() =>
+                            overlay.toggleModal(MODAL_TYPES.UPLOAD_ABI)
+                          }
                         >
                           Upload
                         </Button>
@@ -367,6 +407,14 @@ const NewDashboard = (props) => {
                           !subscibedItem.address || !subscibedItem.hasABI
                         }
                         isChecked={subscibedItem.isMethods}
+                      ></Checkbox>
+                    </Td>
+                    <Td w="60px">
+                      <Checkbox
+                        isDisabled={
+                          !subscibedItem.address || !subscibedItem.hasABI
+                        }
+                        isChecked={subscibedItem.isEvents}
                       ></Checkbox>
                     </Td>
 
