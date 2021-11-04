@@ -76,6 +76,30 @@ const GiLogicGateXor = dynamic(() =>
   import("react-icons/gi").then((mod) => mod.GiLogicGateXor)
 );
 
+const VscOrganization = dynamic(() =>
+  import("react-icons/vsc").then((mod) => mod.VscOrganization)
+);
+const FaVoteYea = dynamic(() =>
+  import("react-icons/fa").then((mod) => mod.FaVoteYea)
+);
+import { RiOrganizationChart } from "react-icons"
+// const RiOrganizationChart = dynamic(() =>
+//   import("react-icons/ri").then((mod) => mod.RiOrganizationChart)
+// );
+const FiActivity = dynamic(() =>
+  import("react-icons/fi").then((mod) => mod.FiActivity)
+);
+
+const MdOutlineDashboardCustomize = dynamic(() =>
+  import("react-icons/md").then((mod) => mod.MdOutlineDashboardCustomize)
+);
+
+const RiMapPinUserLine = dynamic(() =>
+  import("react-icons/ri").then((mod) => mod.RiMapPinUserLine)
+);
+
+const BiBot = dynamic(() => import("react-icons/bi").then((mod) => mod.BiBot));
+
 const HEADING_PROPS = {
   fontWeight: "700",
   fontSize: ["4xl", "5xl", "4xl", "5xl", "6xl", "7xl"],
@@ -501,28 +525,37 @@ const Homepage = () => {
                   }}
                   elementName={"element1"}
                   colorScheme="green"
-                  badge={`Transaction pool data`}
-                  title={`Get real-time access to transaction pool`}
-                  body={`In blockchains, transaction pool is place where future blocks are being forged.
-                  Having insight in to this dynamic, always changing data means to be in the present moment
-                  `}
+                  badge={`NFTs`}
+                  title={`Custom analytics for NFTs`}
+                  body={`Moonstream automatically understands smart contracts. Create your own custom dashboards. Doesn’t matter what the custom behavior is, you can track it.`}
                   bullets={[
                     {
-                      text: `Subscribe to the defi contracts you care about`,
+                      text: `Who owns your NFTs?`,
+                      icon: MdOutlineDashboardCustomize,
+                      color: "green.50",
+                      bgColor: "green.900",
+                    },
+                    {
+                      text: `Who is selling your NFTs?`,
                       icon: FaFileContract,
                       color: "green.50",
                       bgColor: "green.900",
                     },
                     {
-                      text: `Get data directly from the transaction pool through our global network of Ethereum nodes
-                      `,
+                      text: `How much are your NFTs being sold for on OpenSea, Nifty Gateway, Rarible?`,
                       icon: RiDashboardFill,
                       color: "green.50",
                       bgColor: "green.900",
                     },
                     {
-                      text: `Setup notifications to be first to know when and how your contract is being interacted`,
+                      text: `Who is using the custom features of your NFTs?`,
                       icon: GiMeshBall,
+                      color: "green.50",
+                      bgColor: "green.900",
+                    },
+                    {
+                      text: `How are they using them?`,
+                      icon: RiMapPinUserLine,
                       color: "green.50",
                       bgColor: "green.900",
                     },
@@ -552,25 +585,38 @@ const Homepage = () => {
                   elementName={"element2"}
                   mirror={true}
                   colorScheme="orange"
-                  badge={`Centralized exchange prices`}
-                  title={`Market data - just in time! `}
-                  body={`Moonstream is your tool of choice to built algorithms and tools which need to source data from exchange services. Whether it is on-chian automatic market maker, or centralized exchange - get numbers in one dashboard`}
+                  badge={`ERC20`}
+                  title={`Feel the pulse of token activity`}
+                  body={`Visualize market activity with Moonstream dashboards. Monitor token activity on the blockchain and in the transaction pool.`}
                   bullets={[
                     {
-                      text: `Get API access to your stream`,
+                      text: `Who owns your tokens?`,
+                      icon: GiSuspicious,
+                      color: "orange.50",
+                      bgColor: "orange.900",
+                    },
+                    {
+                      text: `What is your weekly, daily, or hourly transaction volume?`,
                       icon: AiFillApi,
                       color: "orange.50",
                       bgColor: "orange.900",
                     },
                     {
-                      text: `Set conditions that trigger predefined actions`,
-                      icon: GiLogicGateXor,
+                      text: `Which exchanges is your token trending on?`,
+                      icon: IoTelescopeSharp,
                       color: "orange.50",
                       bgColor: "orange.900",
                     },
                     {
-                      text: `Execute transactions directly on Moonstream nodes`,
+                      text: `Which other tokens is your token being traded for?`,
                       icon: BiTransfer,
+                      color: "orange.50",
+                      bgColor: "orange.900",
+                    },
+                    {
+                      text: `How many people are holding your token versus actively using it?
+                      `,
+                      icon: GiLogicGateXor,
                       color: "orange.50",
                       bgColor: "orange.900",
                     },
@@ -610,24 +656,30 @@ const Homepage = () => {
                   }}
                   elementName={"element3"}
                   colorScheme="blue"
-                  title={`What really matters - is people`}
-                  badge={`stay social`}
-                  body={`It's all about the community. Stay informed about what happens in social networks, news portals and rss feeds`}
+                  title={`All the data you need to make a market`}
+                  badge={`DEXs`}
+                  body={`Monitor the performance of your DEX live from the blockchain and from the transaction pool. Build dashboards that show you DEX activity monthly, weekly, daily, hourly, or by the minute.`}
                   bullets={[
                     {
-                      text: `Use our AI to get semantics and find patterns`,
-                      icon: GiMeshBall,
-                      color: "blue.50",
-                      bgColor: "blue.900",
-                    },
-                    {
-                      text: `Secure your community wellbeing by automatically detecting social scam`,
+                      text: `Who is providing liquidity on your DEX?`,
                       icon: GiSuspicious,
                       color: "blue.50",
                       bgColor: "blue.900",
                     },
                     {
-                      text: `Register on-chain webhooks to take action`,
+                      text: `How much liquidity for each token pair?`,
+                      icon: GiMeshBall,
+                      color: "blue.50",
+                      bgColor: "blue.900",
+                    },
+                    {
+                      text: `Bot vs. human activity on your exchange`,
+                      icon: BiBot,
+                      color: "blue.50",
+                      bgColor: "blue.900",
+                    },
+                    {
+                      text: `How large is your transaction pool backlog?`,
                       icon: GiHook,
                       color: "blue.50",
                       bgColor: "blue.900",
@@ -669,23 +721,38 @@ const Homepage = () => {
                   }}
                   elementName={"element3"}
                   colorScheme="red"
-                  badge={`Analyse blockchain activity`}
+                  badge={`DAOs`}
+                  title={`What really matters is community`}
+                  body={`Gain insight into your community. Build community dashboards to make participation more open. Monitor your DAO ecosystem.`}
                   bullets={[
                     {
-                      text: `Monitor blockchain data in real time`,
-                      icon: IoTelescopeSharp,
+                      text: `Who are your community members?`,
+                      icon: VscOrganization,
                       color: "red.50",
                       bgColor: "red.900",
                     },
                     {
-                      text: `Set up alerts on suspicious activity`,
+                      text: `Who is actively participating?`,
                       icon: GiSuspicious,
                       color: "red.50",
                       bgColor: "red.900",
                     },
                     {
-                      text: `Register webhooks to connect your off-chain infrastructure`,
-                      icon: GiHook,
+                      text: `What are the open initiatives for your DAO?`,
+                      icon: FaVoteYea,
+                      color: "red.50",
+                      bgColor: "red.900",
+                    },
+                    {
+                      text: `What is the level of participation for each initiative?`,
+                      icon: FiActivity,
+                      color: "red.50",
+                      bgColor: "red.900",
+                    },
+                    {
+                      text: `Which DAOs or other protocols interact with yours?
+                      `,
+                      icon: RiOrganizationChart,
                       color: "red.50",
                       bgColor: "red.900",
                     },
