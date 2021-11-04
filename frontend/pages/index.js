@@ -29,7 +29,7 @@ import {
   MIXPANEL_PROPS,
   MIXPANEL_EVENTS,
 } from "../src/core/providers/AnalyticsProvider/constants";
-import { AWS_ASSETS_PATH } from "../src/core/constants";
+import { AWS_ASSETS_PATH, DEFAULT_METATAGS } from "../src/core/constants";
 import mixpanel from "mixpanel-browser";
 import UIContext from "../src/core/providers/UIProvider/context";
 import TrustedBadge from "../src/components/TrustedBadge";
@@ -815,16 +815,6 @@ const Homepage = () => {
 };
 
 export async function getStaticProps() {
-  const metaTags = {
-    title: "Moonstream.to: All your crypto data in one stream",
-    description:
-      "From the Ethereum transaction pool to Elon Musk’s latest tweets get all the crypto data you care about in one stream.",
-    keywords:
-      "blockchain, crypto, data, trading, smart contracts, ethereum, solana, transactions, defi, finance, decentralized",
-    url: "https://www.moonstream.to",
-    image: `${AWS_ASSETS_PATH}/crypto+traders.png`,
-  };
-
   const assetPreload = Object.keys(assets).map((key) => {
     return {
       rel: "preload",
@@ -837,7 +827,7 @@ export async function getStaticProps() {
   const preloads = assetPreload.concat(preconnects);
 
   return {
-    props: { metaTags, preloads },
+    props: { metaTags: DEFAULT_METATAGS, preloads },
   };
 }
 
