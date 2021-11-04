@@ -129,7 +129,7 @@ const SchematicPlayground = () => {
             textAlign="center"
             zIndex={10}
           >
-            MSTR
+            Web2
           </Button>
         </DragOnGrid>
         <DragOnGrid

@@ -82,20 +82,19 @@ const VscOrganization = dynamic(() =>
 const FaVoteYea = dynamic(() =>
   import("react-icons/fa").then((mod) => mod.FaVoteYea)
 );
-import { RiOrganizationChart } from "react-icons"
-// const RiOrganizationChart = dynamic(() =>
-//   import("react-icons/ri").then((mod) => mod.RiOrganizationChart)
-// );
+
+const RiOrganizationChart = dynamic(() =>
+  import("react-icons/ri").then((mod) => mod.RiOrganizationChart)
+);
 const FiActivity = dynamic(() =>
   import("react-icons/fi").then((mod) => mod.FiActivity)
 );
 
-const MdOutlineDashboardCustomize = dynamic(() =>
-  import("react-icons/md").then((mod) => mod.MdOutlineDashboardCustomize)
-);
-
 const RiMapPinUserLine = dynamic(() =>
   import("react-icons/ri").then((mod) => mod.RiMapPinUserLine)
+);
+const AiOutlinePieChart = dynamic(() =>
+  import("react-icons/ai").then((mod) => mod.AiOutlinePieChart)
 );
 
 const BiBot = dynamic(() => import("react-icons/bi").then((mod) => mod.BiBot));
@@ -380,31 +379,6 @@ const Homepage = () => {
               </GridItem>
 
               <GridItem px="7%" colSpan="12" pt={0} minH="100vh">
-                <chakra.span
-                  textAlign="center"
-                  fontWeight="600"
-                  fontSize="lg"
-                  w="100%"
-                  h="fit-content"
-                >
-                  <Text
-                    mb={18}
-                    fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
-                  >
-                    We believe that the blockchain is for everyone. This
-                    requires complete <b>transparency</b>. That’s why all our
-                    software is{" "}
-                    <chakra.span
-                      display="inline-block"
-                      textColor="orange.900"
-                      as={Link}
-                      href="https://github.com/bugout-dev/moonstream"
-                    >
-                      <i>open source</i>
-                    </chakra.span>
-                  </Text>
-                </chakra.span>
-
                 <Heading
                   {...HEADING_PROPS}
                   textAlign="center"
@@ -531,7 +505,7 @@ const Homepage = () => {
                   bullets={[
                     {
                       text: `Who owns your NFTs?`,
-                      icon: MdOutlineDashboardCustomize,
+                      icon: AiOutlinePieChart,
                       color: "green.50",
                       bgColor: "green.900",
                     },
@@ -768,8 +742,32 @@ const Homepage = () => {
                 pb="120px"
                 px="7%"
               >
-                <Center>
-                  <Stack placeContent="center">
+                <Stack direction="column" justifyContent="center">
+                  <chakra.span
+                    textAlign="center"
+                    fontWeight="600"
+                    fontSize="lg"
+                    w="100%"
+                    h="fit-content"
+                  >
+                    <Text
+                      mb={18}
+                      fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
+                    >
+                      We believe that the blockchain is for everyone. This
+                      requires complete <b>transparency</b>. That’s why all our
+                      software is{" "}
+                      <chakra.span
+                        display="inline-block"
+                        textColor="orange.900"
+                        as={Link}
+                        href="https://github.com/bugout-dev/moonstream"
+                      >
+                        <i>open source</i>
+                      </chakra.span>
+                    </Text>
+                  </chakra.span>
+                  <Stack placeSelf="center">
                     <Text fontWeight="500" fontSize="24px">
                       Want to find out more? Reach out to us on{" "}
                       <Link
@@ -806,7 +804,7 @@ const Homepage = () => {
                       </Link>
                     </Text>
                   </Stack>
-                </Center>
+                </Stack>
               </GridItem>
             </Grid>
           </Flex>
