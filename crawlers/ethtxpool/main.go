@@ -175,11 +175,13 @@ func PollTxpoolContent(gethClient *rpc.Client, interval int, reporter *humbug.Hu
 }
 
 func main() {
-	var gethConnectionString string
 	var intervalSeconds int
-	flag.StringVar(&gethConnectionString, "geth", "", "Geth IPC path/RPC url/Websockets URL")
 	flag.IntVar(&intervalSeconds, "interval", 1, "Number of seconds to wait between RPC calls to query the transaction pool (default: 1)")
 	flag.Parse()
+
+    var MOONSTREAM_NODE_ETHEREUM_IPC_ADDR = os.Getenv("MOONSTREAM_NODE_ETHEREUM_IPC_ADDR")
+    var MOONSTREAM_NODE_ETHEREUM_IPC_PORT = os.Getenv("MOONSTREAM_NODE_ETHEREUM_IPC_PORT")
+    var MOONSTREAM_IPC_PATH = fmt.Sprintf("http://%s:%s", MOONSTREAM_NODE_ETHEREUM_IPC_ADDR, MOONSTREAM_NODE_ETHEREUM_IPC_PORT)
 
 	sessionID := uuid.New().String()
 	
@@ -199,7 +201,7 @@ func main() {
 	}()
 
 	// Set connection with Ethereum blockchain via geth
-	gethClient, err := rpc.Dial(gethConnectionString)
+	gethClient, err := rpc.Dial(MOONSTREAM_IPC_PATH)
 	if err != nil {
 		panic(fmt.Sprintf("Could not connect to geth: %s", err.Error()))
 	}
