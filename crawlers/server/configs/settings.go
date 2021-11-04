@@ -1,7 +1,7 @@
 package settings
 
 import (
-    "fmt"
+	"fmt"
 	"os"
 )
 
