@@ -42,11 +42,9 @@ async def add_subscription_handler(
     """
     token = request.state.token
 
-    checksum_address = address
-
     if subscription_type_id != "ethereum_whalewatch":
         try:
-            checksum_address = web3.toChecksumAddress(address)
+            address = web3.toChecksumAddress(address)
         except ValueError as e:
             raise MoonstreamHTTPException(
                 status_code=400,
@@ -82,7 +80,7 @@ async def add_subscription_handler(
         "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
         "user_id": str(user.id),
         "subscription_type_id": subscription_type_id,
-        "address": checksum_address,
+        "address": address,
         "color": color,
         "label": label,
     }
