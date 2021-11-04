@@ -325,35 +325,33 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
           <Flex direction="row" w="100%" flexWrap="wrap">
             {/* position must be relative otherwise radio boxes add strange spacing on selection */}
             <VStack w="100%" spacing={0}>
-              {subscriptionAdressFormatRadio.startsWith("input") && (
-                <Flex w="100%">
-                  <FormControl isInvalid={errors?.address}>
-                    <InputGroup my={2} fontSize="xs">
-                      <InputLeftAddon>
-                        <FormLabel
-                          fontWeight="600"
-                          // alignSelf="flex-start"
-                          m={0}
-                        >
-                          Address:
-                        </FormLabel>
-                      </InputLeftAddon>
-                      <Input
-                        type="text"
-                        autoComplete="off"
-                        placeholder="Address to subscribe to"
-                        name="address"
-                        value={address}
-                        onChange={(e) => setAddress(e.target.value)}
-                        ref={register({ required: "address is required!" })}
-                      ></Input>
-                    </InputGroup>
-                    <FormErrorMessage color="red.400" pl="1">
-                      {errors?.address && errors?.address.message}
-                    </FormErrorMessage>
-                  </FormControl>
-                </Flex>
-              )}
+              <Flex w="100%">
+                <FormControl isInvalid={errors?.address}>
+                  <InputGroup my={2} fontSize="xs">
+                    <InputLeftAddon>
+                      <FormLabel
+                        fontWeight="600"
+                        // alignSelf="flex-start"
+                        m={0}
+                      >
+                        Address:
+                      </FormLabel>
+                    </InputLeftAddon>
+                    <Input
+                      type="text"
+                      autoComplete="off"
+                      placeholder="Address to subscribe to"
+                      name="address"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      ref={register({ required: "address is required!" })}
+                    ></Input>
+                  </InputGroup>
+                  <FormErrorMessage color="red.400" pl="1">
+                    {errors?.address && errors?.address.message}
+                  </FormErrorMessage>
+                </FormControl>
+              </Flex>
             </VStack>
           </Flex>
         )}
