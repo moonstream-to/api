@@ -51,7 +51,7 @@ setup(
             "identity=mooncrawl.identity:main",
             "etherscan=mooncrawl.etherscan:main",
             "nft=mooncrawl.nft.cli:main",
-            "deploycrawler=mooncrawl.contract.cli:main",
+            "contractcrawler=mooncrawl.contract.cli:main",
         ]
     },
 )

@@ -14,10 +14,8 @@ from ..ethereum import connect
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-SLEEP_TIME = 5 * 60
 
-
-def runc_crawler_asc(
+def run_crawler_asc(
     w3: Web3,
     session: Session,
     from_block: Optional[int],
@@ -25,6 +23,7 @@ def runc_crawler_asc(
     synchronize: bool,
     batch_size: int,
     respect_state: bool,
+    sleep_time: int,
 ):
     """
     Runs crawler in ascending order
@@ -44,7 +43,9 @@ def runc_crawler_asc(
         to_block = moonstream_data_store.get_last_block_number()
         logger.info(f"Ending block set to : {to_block}")
 
-    assert from_block <= to_block, "from_block must be less than or equal to to_block"
+    assert (
+        from_block <= to_block
+    ), "from_block must be less than or equal to to_block in asc order, used --order desc"
 
     logger.info(f"Starting crawling from block {from_block} to block {to_block}")
     contract_deployment_crawler.crawl(
@@ -57,13 +58,13 @@ def runc_crawler_asc(
         while True:
             contract_deployment_crawler.crawl(
                 from_block=last_crawled_block + 1,
-                to_block=None,
+                to_block=None,  # to_block will be set to last_crawled_block
                 batch_size=batch_size,
             )
-            time.sleep(SLEEP_TIME)
+            time.sleep(sleep_time)
 
 
-def runc_crawler_desc(
+def run_crawler_desc(
     w3: Web3,
     session: Session,
     from_block: Optional[int],
@@ -71,6 +72,7 @@ def runc_crawler_desc(
     synchronize: bool,
     batch_size: int,
     respect_state: bool,
+    sleep_time: int,
 ):
     """
     Runs crawler in descending order
@@ -92,7 +94,7 @@ def runc_crawler_desc(
 
     assert (
         from_block >= to_block
-    ), "from_block must be greater than or equal to to_block"
+    ), "from_block must be greater than or equal to to_block in desc order, used --order asc"
 
     logger.info(f"Starting crawling from block {from_block} to block {to_block}")
     contract_deployment_crawler.crawl(
@@ -101,16 +103,22 @@ def runc_crawler_desc(
         batch_size=batch_size,
     )
     if synchronize:
-        # It will lead to holes if crawler shutted down not clearly and --respect-state will be problem,
-        # since crawler's crawl step is implemented in asc order. Maybe later we can implement desc order
-        raise ValueError("Synchronize not implemented for descending order")
+        last_crawled_block = to_block
+        while True:
+            to_block = moonstream_data_store.get_first_block_number()
+            contract_deployment_crawler.crawl(
+                from_block=last_crawled_block - 1,
+                to_block=to_block,
+                batch_size=batch_size,
+            )
+            time.sleep(sleep_time)
 
 
 def handle_parser(args: argparse.Namespace):
     with yield_db_session_ctx() as session:
         w3 = connect()
         if args.order == "asc":
-            runc_crawler_asc(
+            run_crawler_asc(
                 w3=w3,
                 session=session,
                 from_block=args.start,
@@ -118,9 +126,10 @@ def handle_parser(args: argparse.Namespace):
                 synchronize=args.synchronize,
                 batch_size=args.batch,
                 respect_state=args.respect_state,
+                sleep_time=args.sleep,
             )
         elif args.order == "desc":
-            runc_crawler_desc(
+            run_crawler_desc(
                 w3=w3,
                 session=session,
                 from_block=args.start,
@@ -128,9 +137,8 @@ def handle_parser(args: argparse.Namespace):
                 synchronize=args.synchronize,
                 batch_size=args.batch,
                 respect_state=args.respect_state,
+                sleep_time=args.sleep,
             )
-        else:
-            raise ValueError(f"Invalid order {args.order}")
 
 
 def generate_parser():
@@ -150,9 +158,16 @@ def generate_parser():
     parser.add_argument(
         "--to", "-t", type=int, default=None, help="block to stop crawling at"
     )
+
     parser.add_argument(
-        "--order", type=str, default="asc", help="order to crawl : (desc, asc)"
+        "--order",
+        "-o",
+        type=str,
+        default="asc",
+        choices=["asc", "desc"],
+        help="order to crawl : (desc, asc)",
     )
+
     parser.add_argument(
         "--synchronize", action="store_true", default=False, help="Continious crawling"
     )
@@ -162,6 +177,12 @@ def generate_parser():
         action="store_true",
         default=False,
         help="If set to True:\n If order is asc: start=last_labeled_block+1\n If order is desc: start=first_labeled_block-1",
+    )
+    parser.add_argument(
+        "--sleep",
+        type=int,
+        default=1,
+        help="time to sleep synzhronize mode waiting for new block crawled to db",
     )
     parser.set_defaults(func=handle_parser)
     return parser
