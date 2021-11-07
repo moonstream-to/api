@@ -8,8 +8,8 @@ from moonstreamdb.db import yield_db_session_ctx
 from sqlalchemy.orm.session import Session
 from web3 import Web3
 
-from .deployment_crawler import ContractDeploymentCrawler, MoonstreamDataStore
 from ..ethereum import connect
+from .deployment_crawler import ContractDeploymentCrawler, MoonstreamDataStore
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

@@ -2,6 +2,7 @@ from typing import Optional
 from unittest import TestCase
 
 from web3.main import Web3
+
 from .deployment_crawler import get_batch_block_range
 
 

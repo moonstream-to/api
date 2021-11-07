@@ -1,10 +1,11 @@
-from dataclasses import dataclass
 import logging
+from dataclasses import dataclass
 from typing import Iterator, List, Optional, Tuple, cast
-from hexbytes import HexBytes
 
-from moonstreamdb.models import EthereumBlock, EthereumTransaction, EthereumLabel
-from sqlalchemy.orm import Session, Query
+from hexbytes import HexBytes
+from moonstreamdb.models import (EthereumBlock, EthereumLabel,
+                                 EthereumTransaction)
+from sqlalchemy.orm import Query, Session
 from web3 import Web3
 from web3.types import TxReceipt
 
