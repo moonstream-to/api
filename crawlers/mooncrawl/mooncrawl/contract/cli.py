@@ -181,7 +181,7 @@ def generate_parser():
     parser.add_argument(
         "--sleep",
         type=int,
-        default=1,
+        default=3 * 60,
         help="time to sleep synzhronize mode waiting for new block crawled to db",
     )
     parser.set_defaults(func=handle_parser)
