@@ -2,7 +2,7 @@ import argparse
 import json
 
 from .db import yield_db_session_ctx
-from .models import EthereumAddress, EthereumLabel
+from .models import EthereumLabel
 
 
 def labels_add_handler(args: argparse.Namespace) -> None:
@@ -16,17 +16,9 @@ def labels_add_handler(args: argparse.Namespace) -> None:
         raise ValueError("Unable to parse data as dictionary")
 
     with yield_db_session_ctx() as db_session:
-        address = (
-            db_session.query(EthereumAddress)
-            .filter(EthereumAddress.address == str(args.address))
-            .one_or_none()
-        )
-        if address is None:
-            print(f"There is no {args.address} address")
-            return
 
         label = EthereumLabel(
-            label=args.label, address_id=address.id, label_data=label_data
+            label=args.label, address=str(args.address), label_data=label_data
         )
         db_session.add(label)
         db_session.commit()
@@ -36,7 +28,7 @@ def labels_add_handler(args: argparse.Namespace) -> None:
                 {
                     "id": str(label.id),
                     "label": str(label.label),
-                    "address_id": str(label.address_id),
+                    "address_id": str(label.address),
                     "label_data": str(label.label_data),
                     "created_at": str(label.created_at),
                 }
@@ -49,9 +41,9 @@ def labels_list_handler(args: argparse.Namespace) -> None:
     Return list of all labels.
     """
     with yield_db_session_ctx() as db_session:
-        query = db_session.query(EthereumLabel).all()
+        query = db_session.query(EthereumLabel)
         if str(args.address) is not None:
-            query = query.filter(EthereumAddress.address == str(args.address))
+            query = query.filter(EthereumLabel.address == str(args.address))
         labels = query.all()
 
     print(

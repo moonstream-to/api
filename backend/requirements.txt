@@ -12,7 +12,7 @@ h11==0.12.0
 idna==3.2
 jmespath==0.10.0
 humbug==0.2.7
--e git+https://git@github.com/bugout-dev/moonstream.git@a4fff6498f66789934d4af26fd42a8cfb6e5eed5#egg=moonstreamdb&subdirectory=db
+-e git+https://git@github.com/bugout-dev/moonstream.git@5dad139d311920c943d842673003312fa6cb2bdb#egg=moonstreamdb&subdirectory=db
 mypy==0.910
 mypy-extensions==0.4.3
 pathspec==0.9.0
@@ -32,3 +32,4 @@ typing-extensions==3.10.0.0
 types-requests==2.25.6
 urllib3==1.26.6
 uvicorn==0.14.0
+web3==5.24.0

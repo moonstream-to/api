@@ -367,6 +367,7 @@ const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
     loadNewerEventsIsFetching,
     loadPreviousEventHandler,
     loadNewesEventHandler,
+    olderEvent,
   };
 };
 export default useStream;

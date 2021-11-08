@@ -5,10 +5,11 @@ After=network.target
 [Service]
 User=ubuntu
 Group=www-data
+EnvironmentFile=/home/ubuntu/moonstream-secrets/node.env
 ExecStart=/usr/bin/geth --syncmode snap --cache 4096 \
-    --port 41380 --datadir /mnt/disks/nodes/ethereum \
+    --port "${MOONSTREAM_NODE_ETHEREUM_LISTENING_PORT}" --datadir /mnt/disks/nodes/ethereum \
     --txpool.globalslots 153600 --txpool.globalqueue 3072 \
-    --http --http.port 18370 --http.api eth,web3,txpool
+    --http --http.addr "${MOONSTREAM_NODE_ETHEREUM_IPC_ADDR}" --http.port "${MOONSTREAM_NODE_ETHEREUM_IPC_PORT}" --http.api eth,web3,txpool
 ExecStop=/bin/kill -s SIGINT -$MAINPID
 TimeoutStopSec=300
 SyslogIdentifier=ethereum-node

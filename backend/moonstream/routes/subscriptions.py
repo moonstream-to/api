@@ -6,7 +6,8 @@ from typing import List, Optional
 
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
-from fastapi import APIRouter, Request, Form
+from fastapi import APIRouter, Depends, Request, Form
+from web3 import Web3
 
 from ..admin import subscription_types
 from .. import data
@@ -16,6 +17,7 @@ from ..settings import (
     MOONSTREAM_APPLICATION_ID,
     bugout_client as bc,
 )
+from ..web3_provider import yield_web3_provider
 
 logger = logging.getLogger(__name__)
 
@@ -33,11 +35,28 @@ async def add_subscription_handler(
     color: str = Form(...),
     label: str = Form(...),
     subscription_type_id: str = Form(...),
+    web3: Web3 = Depends(yield_web3_provider),
 ) -> data.SubscriptionResourceData:
     """
     Add subscription to blockchain stream data for user.
     """
     token = request.state.token
+
+    try:
+        checksum_address = web3.toChecksumAddress(address)
+    except ValueError as e:
+        raise MoonstreamHTTPException(
+            status_code=400,
+            detail=str(e),
+            internal_error=e,
+        )
+    except Exception as e:
+        logger.error(f"Failed to convert address to checksum address")
+        raise MoonstreamHTTPException(
+            status_code=500,
+            internal_error=e,
+            detail="Currently unable to convert address to checksum address",
+        )
 
     active_subscription_types_response = subscription_types.list_subscription_types(
         active_only=True
@@ -60,7 +79,7 @@ async def add_subscription_handler(
         "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
         "user_id": str(user.id),
         "subscription_type_id": subscription_type_id,
-        "address": address,
+        "address": checksum_address,
         "color": color,
         "label": label,
     }

@@ -8,7 +8,6 @@ from bugout.data import BugoutResource
 from moonstreamdb.models import (
     EthereumBlock,
     EthereumTransaction,
-    EthereumAddress,
     EthereumLabel,
 )
 from sqlalchemy import or_, and_, text
@@ -229,8 +228,7 @@ def query_ethereum_transactions(
 
     if parsed_filters.labels:
         label_clause = (
-            db_session.query(EthereumAddress)
-            .join(EthereumLabel, EthereumAddress.id == EthereumLabel.address_id)
+            db_session.query(EthereumLabel)
             .filter(
                 or_(
                     *[

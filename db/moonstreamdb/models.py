@@ -59,6 +59,7 @@ class EthereumBlock(Base):  # type: ignore
     extra_data = Column(VARCHAR(128))
     gas_limit = Column(BigInteger)
     gas_used = Column(BigInteger)
+    base_fee_per_gas = Column(Numeric(precision=78, scale=0), nullable=True)
     hash = Column(VARCHAR(256), index=True)
     logs_bloom = Column(VARCHAR(1024))
     miner = Column(VARCHAR(256))
@@ -92,28 +93,15 @@ class EthereumTransaction(Base):  # type: ignore
     to_address = Column(VARCHAR(256), index=True)
     gas = Column(Numeric(precision=78, scale=0), index=True)
     gas_price = Column(Numeric(precision=78, scale=0), index=True)
+    max_fee_per_gas = Column(Numeric(precision=78, scale=0), nullable=True)
+    max_priority_fee_per_gas = Column(Numeric(precision=78, scale=0), nullable=True)
     input = Column(Text)
     nonce = Column(VARCHAR(256))
     transaction_index = Column(BigInteger)
+    transaction_type = Column(Integer, nullable=True)
     value = Column(Numeric(precision=78, scale=0), index=True)
 
     indexed_at = Column(
-        DateTime(timezone=True), server_default=utcnow(), nullable=False
-    )
-
-
-class EthereumAddress(Base):  # type: ignore
-    __tablename__ = "ethereum_addresses"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    transaction_hash = Column(
-        VARCHAR(256),
-        ForeignKey("ethereum_transactions.hash", ondelete="CASCADE"),
-        nullable=True,
-        index=True,
-    )
-    address = Column(VARCHAR(256), nullable=False, unique=True, index=True)
-    created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )
 
@@ -144,9 +132,13 @@ class EthereumLabel(Base):  # type: ignore
         nullable=False,
     )
     label = Column(VARCHAR(256), nullable=False, index=True)
-    address_id = Column(
-        Integer,
-        ForeignKey("ethereum_addresses.id", ondelete="CASCADE"),
+    block_number = Column(
+        BigInteger,
+        nullable=True,
+        index=True,
+    )
+    address = Column(
+        VARCHAR(256),
         nullable=True,
         index=True,
     )
@@ -156,6 +148,8 @@ class EthereumLabel(Base):  # type: ignore
         index=True,
     )
     label_data = Column(JSONB, nullable=True)
+    block_timestamp = Column(BigInteger, index=True)
+    log_index = Column(Integer, nullable=True)
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )
