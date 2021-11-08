@@ -20,7 +20,7 @@ from ..reporter import reporter
 from ..settings import (
     MOONSTREAM_APPLICATION_ID,
     bugout_client as bc,
-    MOONSTREAM_SMARTCONTRACTS_ABI_BUCKET,
+    AWS_S3_SMARTCONTRACTS_ABI_BUCKET,
 )
 from ..web3_provider import yield_web3_provider
 
@@ -120,7 +120,7 @@ async def add_subscription_handler(
             )
         s3_client = boto3.client("s3")
 
-        bucket = MOONSTREAM_SMARTCONTRACTS_ABI_BUCKET
+        bucket = AWS_S3_SMARTCONTRACTS_ABI_BUCKET
 
         result_bytes = abi.encode("utf-8")
         result_key = f"v1/{resource.resource_data['address']}/{resource.id}/abi.json"
@@ -137,7 +137,7 @@ async def add_subscription_handler(
 
         update_resource["abi"] = True
 
-        update_resource["bucket"] = MOONSTREAM_SMARTCONTRACTS_ABI_BUCKET
+        update_resource["bucket"] = AWS_S3_SMARTCONTRACTS_ABI_BUCKET
         update_resource[
             "s3_path"
         ] = f"v1/{resource.resource_data['address']}/{resource.id}/abi.json"
@@ -297,7 +297,7 @@ async def update_subscriptions_handler(
 
         s3_client = boto3.client("s3")
 
-        bucket = MOONSTREAM_SMARTCONTRACTS_ABI_BUCKET
+        bucket = AWS_S3_SMARTCONTRACTS_ABI_BUCKET
 
         result_bytes = abi.encode("utf-8")
         result_key = f"v1/{subscription_resource.resource_data['address']}/{subscription_resource.id}/abi.json"
@@ -312,7 +312,7 @@ async def update_subscriptions_handler(
 
         update["abi"] = True
 
-        update["bucket"] = MOONSTREAM_SMARTCONTRACTS_ABI_BUCKET
+        update["bucket"] = AWS_S3_SMARTCONTRACTS_ABI_BUCKET
         update[
             "s3_path"
         ] = f"v1/{subscription_resource.resource_data['address']}/{subscription_resource.id}/abi.json"
