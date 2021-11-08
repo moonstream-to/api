@@ -9,6 +9,7 @@ const SignIn = React.lazy(() => import("./SignIn"));
 const LandingNavbar = React.lazy(() => import("./LandingNavbar"));
 const AppNavbar = React.lazy(() => import("./AppNavbar"));
 const HubspotForm = React.lazy(() => import("./HubspotForm"));
+const SignUp = React.lazy(() => import("./SignUp"));
 
 const Navbar = () => {
   const { modal, toggleModal, isAppView, isLoggedIn } = useContext(UIContext);
@@ -26,7 +27,7 @@ const Navbar = () => {
       overflow="hidden"
     >
       <Suspense fallback={""}>
-        {/* {modal === "register" && <SignUp toggleModal={toggleModal} />} */}
+        {modal === "register" && <SignUp toggleModal={toggleModal} />}
         {modal === "login" && <SignIn toggleModal={toggleModal} />}
         {modal === "forgot" && <ForgotPassword toggleModal={toggleModal} />}
         {modal === "hubspot-trader" && (

@@ -37,6 +37,7 @@ import Slider from "react-slick";
 import SchematicPlayground from "../src/components/SchematicPlayground";
 import { v4 as uuidv4 } from "uuid";
 import RouteButton from "../src/components/RouteButton";
+import { FaDiscord } from "react-icons/fa";
 const SplitWithImage = dynamic(
   () => import("../src/components/SplitWithImage"),
   {
@@ -118,7 +119,6 @@ const assets = {
   priceInformation: `${AWS_ASSETS_PATH}/Price+information.png`,
   socialMediaPosts: `${AWS_ASSETS_PATH}/Social+media+posts.png`,
   cryptoTraders: `${AWS_ASSETS_PATH}/crypto+traders.png`,
-  comicWhite: `${AWS_ASSETS_PATH}/moonstream-comic-white.png`,
   smartDevelopers: `${AWS_ASSETS_PATH}/smart+contract+developers.png`,
   cointelegraph: `${AWS_ASSETS_PATH}/featured_by/Cointelegraph_logo.png`,
   cryptoinsiders: `${AWS_ASSETS_PATH}/featured_by/crypto_insiders.png`,
@@ -129,9 +129,6 @@ const assets = {
   maticLogo: `${AWS_ASSETS_PATH}/matic-token-inverted-icon.png`,
   erc20: `${AWS_ASSETS_PATH}/ERC 20.png`,
   DAO: `${AWS_ASSETS_PATH}/DAO .png`,
-  lender: `${AWS_ASSETS_PATH}/lender.png`,
-  DEX: `${AWS_ASSETS_PATH}/Decentralized Exchange.png`,
-  SC: `${AWS_ASSETS_PATH}/smart contract.png`,
   NFT: `${AWS_ASSETS_PATH}/NFT.png`,
 };
 
@@ -392,58 +389,56 @@ const Homepage = () => {
                 <Heading
                   {...HEADING_PROPS}
                   textAlign="center"
-                  mt={48}
+                  mt={[24, 32, 48]}
                   pb={[12, 12, 12, null, 24]}
                 >
-                  See how your smart contracts are being used from:
+                  Get analytics for your:
                 </Heading>
                 <SimpleGrid columns={[1, 2, 2, 4, null, 4]}>
                   <Stack spacing={1} px={1} alignItems="center">
                     <ChakraImage
                       boxSize={["220px", "220px", "xs", null, "xs"]}
                       objectFit="contain"
-                      src={assets["minedTransactions"]}
+                      src={assets["NFT"]}
                       alt="mined transactions"
                     />
-                    <Heading textAlign="center ">
-                      Ethereum mined transactions
-                    </Heading>
+                    <Heading textAlign="center ">NFTs</Heading>
                   </Stack>
                   <Stack spacing={1} px={1} alignItems="center">
                     <ChakraImage
                       boxSize={["220px", "220px", "xs", null, "xs"]}
                       objectFit="contain"
-                      src={assets["pendingTransactions"]}
+                      src={assets["erc20"]}
                       alt="mined transactions"
                     />
-                    <Heading textAlign="center ">
-                      Ethereum pending transactions
-                    </Heading>
+                    <Heading textAlign="center ">Tokens</Heading>
+                  </Stack>
+
+                  <Stack spacing={1} px={1} alignItems="center">
+                    <ChakraImage
+                      boxSize={["220px", "220px", "xs", null, "xs"]}
+                      objectFit="contain"
+                      src={assets["cryptoTraders"]}
+                      alt="mined transactions"
+                    />
+                    <Heading textAlign="center ">DEXs</Heading>
                   </Stack>
                   <Stack spacing={1} px={1} alignItems="center">
                     <ChakraImage
                       boxSize={["220px", "220px", "xs", null, "xs"]}
                       objectFit="contain"
-                      src={assets["priceInformation"]}
+                      src={assets["DAO"]}
                       alt="mined transactions"
                     />
-                    <Heading textAlign="center ">Centralized exchanges</Heading>
-                  </Stack>
-                  <Stack spacing={1} px={1} alignItems="center">
-                    <ChakraImage
-                      boxSize={["220px", "220px", "xs", null, "xs"]}
-                      objectFit="contain"
-                      src={assets["socialMediaPosts"]}
-                      alt="mined transactions"
-                    />
-                    <Heading textAlign="center ">Social media posts</Heading>
+                    <Heading textAlign="center ">{`DAOs`}</Heading>
                   </Stack>
                 </SimpleGrid>
                 <Center>
                   <Heading
-                    pt={["12px", "160px", null]}
+                    pt={["32px", "160px", null]}
                     pb={["12px", "60px", null]}
-                    textAlign="justify"
+                    fontSize={["18px", "32px", null]}
+                    textAlign="center"
                   >
                     Your game changer in blockchain analytics
                   </Heading>
@@ -491,7 +486,7 @@ const Homepage = () => {
               <GridItem
                 px="7%"
                 colSpan="12"
-                pt={["1rem", "1rem", "5.125rem", null, "5.125rem"]}
+                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
                 pb={["0", "66px", null, "66px"]}
                 id="txpool"
                 minH={ui.isMobileView ? "100vh" : null}
@@ -550,7 +545,7 @@ const Homepage = () => {
               <GridItem
                 px="7%"
                 colSpan="12"
-                pt={["1rem", "1rem", "5.125rem", null, "5.125rem"]}
+                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
                 pb={["0", "66px", null, "66px"]}
                 id="exchanges"
                 minH={ui.isMobileView ? "100vh" : null}
@@ -611,7 +606,7 @@ const Homepage = () => {
               <GridItem
                 px="7%"
                 colSpan="12"
-                pt={["1rem", "1rem", "1.125rem", null, "5.125rem"]}
+                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
                 pb={["0", "66px", null, "66px"]}
                 id="smartDeveloper"
                 minH={ui.isMobileView ? "100vh" : null}
@@ -664,7 +659,7 @@ const Homepage = () => {
               <GridItem
                 px="7%"
                 colSpan="12"
-                pt={["1rem", "1rem", "1.125rem", null, "5.125rem"]}
+                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
                 pb={["0", "66px", null, "66px"]}
                 id="analytics"
                 minH={ui.isMobileView ? "100vh" : null}
@@ -755,6 +750,32 @@ const Homepage = () => {
                       </chakra.span>
                     </Text>
                   </chakra.span>
+                  <Flex direction="row" flexWrap="wrap" placeContent="center">
+                    <RouteButton
+                      placeSelf="center"
+                      isExternal
+                      href={`https://github.com/bugout-dev/moonstream`}
+                      size="md"
+                      variant="outline"
+                      colorScheme="blue"
+                      w="250px"
+                      leftIcon={<FaGithubSquare />}
+                    >
+                      git clone moonstream
+                    </RouteButton>
+                    <RouteButton
+                      placeSelf="center"
+                      isExternal
+                      href={"https://discord.gg/K56VNUQGvA"}
+                      size="md"
+                      variant="outline"
+                      colorScheme="blue"
+                      leftIcon={<FaDiscord />}
+                      w="250px"
+                    >
+                      Join our Discord
+                    </RouteButton>
+                  </Flex>
                   <RouteButton
                     placeSelf="center"
                     isExternal
@@ -762,49 +783,11 @@ const Homepage = () => {
                     maxW={["250px", null, "fit-content"]}
                     href={`https://github.com/bugout-dev/moonstream`}
                     size="lg"
-                    variant="outline"
-                    colorScheme="blue"
-                    leftIcon={<FaGithubSquare />}
+                    variant="solid"
+                    colorScheme="orange"
                   >
-                    git clone moonstream
+                    Sign up
                   </RouteButton>
-                  <Stack placeSelf="center" pt="12px">
-                    <Text fontWeight="500" fontSize="24px">
-                      Want to find out more? Reach out to us on{" "}
-                      <Link
-                        color="orange.900"
-                        onClick={() => {
-                          mixpanel.get_distinct_id() &&
-                            mixpanel.track(
-                              `${MIXPANEL_EVENTS.BUTTON_CLICKED}`,
-                              {
-                                [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Join our discord`,
-                              }
-                            );
-                        }}
-                        isExternal
-                        href={"https://discord.gg/K56VNUQGvA"}
-                      >
-                        Discord
-                      </Link>{" "}
-                      or{" "}
-                      <Link
-                        color="orange.900"
-                        onClick={() => {
-                          mixpanel.get_distinct_id() &&
-                            mixpanel.track(
-                              `${MIXPANEL_EVENTS.BUTTON_CLICKED}`,
-                              {
-                                [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer want to find more button`,
-                              }
-                            );
-                          toggleModal("hubspot-developer");
-                        }}
-                      >
-                        request early access
-                      </Link>
-                    </Text>
-                  </Stack>
                 </Stack>
               </GridItem>
             </Grid>

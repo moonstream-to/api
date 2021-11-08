@@ -69,7 +69,7 @@ const List = ({ data, revoke, isLoading, update, filter }) => {
       const filteredTokens = sortedTokens.filter((item) => {
         if (filter === null || filter === undefined || filter === "") {
           return true;
-        } else return item.note.includes(filter);
+        } else return item.note?.includes(filter);
       });
 
       setStateData({ ...data, token: [...filteredTokens] });
