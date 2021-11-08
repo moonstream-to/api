@@ -2,6 +2,7 @@ import React from "react";
 import { RedocStandalone } from "redoc";
 import { Box } from "@chakra-ui/react";
 import { getLayout } from "../src/layouts/RootLayout";
+import { DEFAULT_METATAGS } from "../src/core/constants";
 
 const Docs = () => {
   return (
@@ -36,7 +37,7 @@ export async function getStaticProps() {
     keywords: "API, docs",
     url: "https://www.moonstream.to/docs",
   };
-  return { props: { metaTags: { ...metaTags } } };
+  return { props: { metaTags: { ...DEFAULT_METATAGS, ...metaTags } } };
 }
 
 Docs.getLayout = getLayout;

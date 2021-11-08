@@ -118,7 +118,6 @@ const assets = {
   priceInformation: `${AWS_ASSETS_PATH}/Price+information.png`,
   socialMediaPosts: `${AWS_ASSETS_PATH}/Social+media+posts.png`,
   cryptoTraders: `${AWS_ASSETS_PATH}/crypto+traders.png`,
-  comicWhite: `${AWS_ASSETS_PATH}/moonstream-comic-white.png`,
   smartDevelopers: `${AWS_ASSETS_PATH}/smart+contract+developers.png`,
   cointelegraph: `${AWS_ASSETS_PATH}/featured_by/Cointelegraph_logo.png`,
   cryptoinsiders: `${AWS_ASSETS_PATH}/featured_by/crypto_insiders.png`,
@@ -129,9 +128,6 @@ const assets = {
   maticLogo: `${AWS_ASSETS_PATH}/matic-token-inverted-icon.png`,
   erc20: `${AWS_ASSETS_PATH}/ERC 20.png`,
   DAO: `${AWS_ASSETS_PATH}/DAO .png`,
-  lender: `${AWS_ASSETS_PATH}/lender.png`,
-  DEX: `${AWS_ASSETS_PATH}/Decentralized Exchange.png`,
-  SC: `${AWS_ASSETS_PATH}/smart contract.png`,
   NFT: `${AWS_ASSETS_PATH}/NFT.png`,
 };
 
@@ -441,9 +437,10 @@ const Homepage = () => {
                 </SimpleGrid>
                 <Center>
                   <Heading
-                    pt={["12px", "160px", null]}
+                    pt={["32px", "160px", null]}
                     pb={["12px", "60px", null]}
-                    textAlign="justify"
+                    fontSize={["18px", "32px", null]}
+                    textAlign="center"
                   >
                     Your game changer in blockchain analytics
                   </Heading>
