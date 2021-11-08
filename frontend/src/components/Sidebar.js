@@ -75,18 +75,6 @@ const Sidebar = () => {
               <RouterLink href="/stream">Stream</RouterLink>
             </MenuItem>
           </Menu>
-          <Menu iconShape="square">
-            <MenuItem icon={<ImStatsBars />}>
-              {" "}
-              <RouterLink href="/nft">NFT Analytics </RouterLink>
-            </MenuItem>
-          </Menu>
-          <Menu iconShape="square">
-            <MenuItem icon={<MdSettings />}>
-              {" "}
-              <RouterLink href="/subscriptions">Subscriptions </RouterLink>
-            </MenuItem>
-          </Menu>
           {ui.isMobileView && (
             <Menu iconShape="square">
               <MenuItem icon={<HiAcademicCap />}>
@@ -149,6 +137,9 @@ const Sidebar = () => {
           <Menu iconShape="square">
             <MenuItem icon={<LockIcon />}>
               <RouterLink href="/account/tokens">API Tokens</RouterLink>
+            </MenuItem>
+            <MenuItem icon={<MdSettings />}>
+              <RouterLink href="/subscriptions">Subscriptions </RouterLink>
             </MenuItem>
           </Menu>
         )}
