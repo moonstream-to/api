@@ -1,0 +1,1 @@
+-e git+https://git@github.com/bugout-dev/moonstream.git@67fe019f1086c435dd3b58f1ade2778acc2167c7#egg=moonstreamdb&subdirectory=db
