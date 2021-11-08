@@ -5,9 +5,13 @@ import argparse
 
 import logging
 import json
+import os
+from posix import listdir
 from typing import Optional
 
+
 from moonstreamdb.db import SessionLocal
+from sqlalchemy.orm import with_expression
 
 from ..settings import BUGOUT_BROOD_URL, BUGOUT_SPIRE_URL, MOONSTREAM_APPLICATION_ID
 from ..web3_provider import yield_web3_provider
@@ -16,6 +20,8 @@ from .migrations import checksum_address
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+MIGRATIONS_FOLDER = "./moonstream/admin/migrations"
 
 
 def parse_boolean_arg(raw_arg: Optional[str]) -> Optional[bool]:
@@ -28,57 +34,35 @@ def parse_boolean_arg(raw_arg: Optional[str]) -> Optional[bool]:
     return False
 
 
-def cli_migrate_subscriptions(args: argparse.Namespace) -> None:
-    """
-    Handler for subscriptions migrate.
-    """
-
-    drop_keys = []
-
-    if args.file is not None:
-
-        with open(args.file) as migration_json_file:
-            migration_json = json.load(migration_json_file)
-
-        if (
-            "match" not in migration_json
-            or "update" not in migration_json[args.command]
-            or "description" not in migration_json
-        ):
-            print(
-                'Migration file plan have incorrect format require specified {"match": {},"description": "","upgrade": { "update": {}, "drop_keys": [] }, "downgrade": { "update": {}, "drop_keys": [] }}'
-            )
-            return
-
-        match = migration_json["match"]
-        description = migration_json["description"]
-        update = migration_json[args.command]["update"]
-        file = args.file
-
-        if "drop_keys" in migration_json[args.command]:
-            drop_keys = migration_json[args.command]["drop_keys"]
-
-        subscriptions.migrate_subscriptions(
-            match=match,
-            descriptions=description,
-            update=update,
-            drop_keys=drop_keys,
-            file=file,
-        )
-
-    else:
-        print("Specified file is required.")
-        return
-
-
 def migrations_list(args: argparse.Namespace) -> None:
     migrations_overview = f"""
 
-    - id: 20211101
-    name: {checksum_address.__name__}
-    description: {checksum_address.__doc__}
+- id: 20211101
+name: {checksum_address.__name__}
+description: {checksum_address.__doc__}
     """
     logger.info(migrations_overview)
+    json_migrations_oreview = "Available migrations files."
+    for file in os.listdir(MIGRATIONS_FOLDER):
+        if file.endswith(".json"):
+            with open(os.path.join(MIGRATIONS_FOLDER, file), "r") as migration_file:
+                json_migrations_oreview += "\n\n"
+
+                migration = json.load(migration_file)
+                json_migrations_oreview = "\n".join(
+                    (json_migrations_oreview, f"- id: {migration['id']}")
+                )
+                json_migrations_oreview = "\n".join(
+                    (json_migrations_oreview, f"  file: {file}")
+                )
+                json_migrations_oreview = "\n".join(
+                    (
+                        json_migrations_oreview,
+                        f"  description: {migration['description']}",
+                    )
+                )
+
+    logger.info(json_migrations_oreview)
 
 
 def migrations_run(args: argparse.Namespace) -> None:
@@ -90,6 +74,43 @@ def migrations_run(args: argparse.Namespace) -> None:
             checksum_address.checksum_all_subscription_addresses(web3_session)
             logger.info("Starting update of ethereum_labels in database...")
             checksum_address.checksum_all_labels_addresses(db_session, web3_session)
+        else:
+            drop_keys = []
+
+            if args.file is not None:
+
+                with open(args.file) as migration_json_file:
+                    migration_json = json.load(migration_json_file)
+
+                if (
+                    "match" not in migration_json
+                    or "update" not in migration_json[args.command]
+                    or "description" not in migration_json
+                ):
+                    print(
+                        'Migration file plan have incorrect format require specified {"match": {},"description": "","upgrade": { "update": {}, "drop_keys": [] }, "downgrade": { "update": {}, "drop_keys": [] }}'
+                    )
+                    return
+
+                match = migration_json["match"]
+                description = migration_json["description"]
+                update = migration_json[args.command]["update"]
+                file = args.file
+
+                if "drop_keys" in migration_json[args.command]:
+                    drop_keys = migration_json[args.command]["drop_keys"]
+
+                subscriptions.migrate_subscriptions(
+                    match=match,
+                    descriptions=description,
+                    update=update,
+                    drop_keys=drop_keys,
+                    file=file,
+                )
+
+            else:
+                print("Specified ID or migration FILE is required.")
+                return
     finally:
         db_session.close()
 
@@ -284,29 +305,6 @@ This CLI is configured to work with the following API URLs:
         func=subscription_types.cli_ensure_canonical_subscription_types
     )
 
-    parser_subscription = subcommands.add_parser(
-        "subscriptions", description="Manage Moonstream subscription"
-    )
-
-    parser_subscription.set_defaults(func=lambda _: parser_subscription.print_help())
-    subcommands_subscription = parser_subscription.add_subparsers()
-
-    parser_subscription_migrate = subcommands_subscription.add_parser(
-        "migrate", description="Create subscription type"
-    )
-    parser_subscription_migrate.add_argument(
-        "-f", "--file", required=False, type=str, help="path to file"
-    )
-    parser_subscription_migrate.add_argument(
-        "-c",
-        "--command",
-        default="upgrade",
-        choices=["upgrade", "downgrade"],
-        type=str,
-        help="Command for migration",
-    )
-    parser_subscription_migrate.set_defaults(func=cli_migrate_subscriptions)
-
     parser_migrations = subcommands.add_parser(
         "migrations", description="Manage database, resource and etc migrations"
     )
@@ -322,7 +320,18 @@ This CLI is configured to work with the following API URLs:
         "run", description="Run migration"
     )
     parser_migrations_run.add_argument(
-        "-i", "--id", required=True, type=int, help="Provide migration ID"
+        "-i", "--id", required=False, type=int, help="Provide migration ID"
+    )
+    parser_migrations_run.add_argument(
+        "-f", "--file", required=False, type=str, help="path to file"
+    )
+    parser_migrations_run.add_argument(
+        "-c",
+        "--command",
+        default="upgrade",
+        choices=["upgrade", "downgrade"],
+        type=str,
+        help="Command for migration",
     )
     parser_migrations_run.set_defaults(func=migrations_run)
 
