@@ -399,21 +399,10 @@ const Homepage = () => {
                     <ChakraImage
                       boxSize={["220px", "220px", "xs", null, "xs"]}
                       objectFit="contain"
-                      src={assets["cryptoTraders"]}
+                      src={assets["NFT"]}
                       alt="mined transactions"
                     />
-                    <Heading textAlign="center ">
-                      Decentralized Exchanges
-                    </Heading>
-                  </Stack>
-                  <Stack spacing={1} px={1} alignItems="center">
-                    <ChakraImage
-                      boxSize={["220px", "220px", "xs", null, "xs"]}
-                      objectFit="contain"
-                      src={assets["DAO"]}
-                      alt="mined transactions"
-                    />
-                    <Heading textAlign="center ">{`DAO's`}</Heading>
+                    <Heading textAlign="center ">NFTs</Heading>
                   </Stack>
                   <Stack spacing={1} px={1} alignItems="center">
                     <ChakraImage
@@ -422,16 +411,26 @@ const Homepage = () => {
                       src={assets["erc20"]}
                       alt="mined transactions"
                     />
-                    <Heading textAlign="center ">Fungeble Tokens</Heading>
+                    <Heading textAlign="center ">Tokens</Heading>
+                  </Stack>
+
+                  <Stack spacing={1} px={1} alignItems="center">
+                    <ChakraImage
+                      boxSize={["220px", "220px", "xs", null, "xs"]}
+                      objectFit="contain"
+                      src={assets["cryptoTraders"]}
+                      alt="mined transactions"
+                    />
+                    <Heading textAlign="center ">DEXs</Heading>
                   </Stack>
                   <Stack spacing={1} px={1} alignItems="center">
                     <ChakraImage
                       boxSize={["220px", "220px", "xs", null, "xs"]}
                       objectFit="contain"
-                      src={assets["NFT"]}
+                      src={assets["DAO"]}
                       alt="mined transactions"
                     />
-                    <Heading textAlign="center ">Non-Fungable Tokens</Heading>
+                    <Heading textAlign="center ">{`DAOs`}</Heading>
                   </Stack>
                 </SimpleGrid>
                 <Center>
