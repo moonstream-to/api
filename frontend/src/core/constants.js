@@ -6,11 +6,11 @@ export const BUGOUT_ENDPOINTS = {
 };
 
 export const DEFAULT_METATAGS = {
-  title: "Moonstream.to: All your crypto data in one stream",
+  title: "Moonstream: Open source blockchain analytics",
   description:
-    "From the Ethereum transaction pool to Elon Musk’s latest tweets get all the crypto data you care about in one stream.",
+    "Product analytics for Web3. Moonstream helps you understand exactly how people are using your smart contracts",
   keywords:
-    "blockchain, crypto, data, trading, smart contracts, ethereum, solana, transactions, defi, finance, decentralized",
+    "analytics, blockchain analytics, protocol, protocols, blockchain, crypto, data, trading, smart contracts, web3, smart contract, ethereum, solana, polygon, matic, transactions, defi, finance, decentralized, mempool, NFT, NFTs, DAO, DAOs, DEX, DEXes, DEXs, cryptocurrency, cryptocurrencies, bitcoin",
   url: "https://www.moonstream.to",
   image: `https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/crypto+traders.png`,
 };
@@ -33,7 +33,7 @@ export const ALL_NAV_PATHES = [
     footerCategory: FOOTER_COLUMNS.COMPANY,
   },
   {
-    title: "API",
+    title: "Docs",
     path: "/docs",
     footerCategory: FOOTER_COLUMNS.PRODUCT,
   },

@@ -18,7 +18,6 @@ import {
   LockIcon,
 } from "@chakra-ui/icons";
 import { MdTimeline, MdSettings } from "react-icons/md";
-import { ImStatsBars } from "react-icons/im";
 import { HiAcademicCap } from "react-icons/hi";
 import { WHITE_LOGO_W_TEXT_URL, ALL_NAV_PATHES } from "../core/constants";
 import { v4 } from "uuid";
@@ -73,18 +72,6 @@ const Sidebar = () => {
             <MenuItem icon={<MdTimeline />}>
               {" "}
               <RouterLink href="/stream">Stream</RouterLink>
-            </MenuItem>
-          </Menu>
-          <Menu iconShape="square">
-            <MenuItem icon={<ImStatsBars />}>
-              {" "}
-              <RouterLink href="/nft">NFT Analytics </RouterLink>
-            </MenuItem>
-          </Menu>
-          <Menu iconShape="square">
-            <MenuItem icon={<MdSettings />}>
-              {" "}
-              <RouterLink href="/subscriptions">Subscriptions </RouterLink>
             </MenuItem>
           </Menu>
           {ui.isMobileView && (
@@ -149,6 +136,9 @@ const Sidebar = () => {
           <Menu iconShape="square">
             <MenuItem icon={<LockIcon />}>
               <RouterLink href="/account/tokens">API Tokens</RouterLink>
+            </MenuItem>
+            <MenuItem icon={<MdSettings />}>
+              <RouterLink href="/subscriptions">Subscriptions </RouterLink>
             </MenuItem>
           </Menu>
         )}

@@ -129,7 +129,7 @@ const SchematicPlayground = () => {
             textAlign="center"
             zIndex={10}
           >
-            MSTR
+            ERC20
           </Button>
         </DragOnGrid>
         <DragOnGrid
@@ -217,7 +217,7 @@ const SchematicPlayground = () => {
             textAlign="center"
             zIndex={10}
           >
-            ORACLE
+            Oracle
           </Button>
         </DragOnGrid>
       </Box>
