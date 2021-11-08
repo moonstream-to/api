@@ -20,6 +20,7 @@
     "focus-visible": "^5.2.0",
     "framer-motion": "^4.1.17",
     "mixpanel-browser": "^2.41.0",
+    "mobx": "^6.3.6",
     "moment": "^2.29.1",
     "next": "11.1.2",
     "nprogress": "^0.2.0",
@@ -42,6 +43,7 @@
     "showdown": "^1.9.1",
     "showdown-highlight": "^2.1.8",
     "slick-carousel": "^1.8.1",
+    "styled-components": "^5.3.3",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
