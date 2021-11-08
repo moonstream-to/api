@@ -18,7 +18,6 @@ import {
   LockIcon,
 } from "@chakra-ui/icons";
 import { MdTimeline, MdSettings } from "react-icons/md";
-import { ImStatsBars } from "react-icons/im";
 import { HiAcademicCap } from "react-icons/hi";
 import { WHITE_LOGO_W_TEXT_URL, ALL_NAV_PATHES } from "../core/constants";
 import { v4 } from "uuid";

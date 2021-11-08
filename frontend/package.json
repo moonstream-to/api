@@ -42,7 +42,7 @@
     "showdown": "^1.9.1",
     "showdown-highlight": "^2.1.8",
     "slick-carousel": "^1.8.1",
-    "uuid": "^8.3.2",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@babel/core": "^7.14.3",
