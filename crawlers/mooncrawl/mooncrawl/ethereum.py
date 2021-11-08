@@ -13,7 +13,7 @@ from tqdm import tqdm
 from web3 import Web3, IPCProvider, HTTPProvider
 from web3.types import BlockData
 
-from .settings import MOONSTREAM_IPC_PATH, MOONSTREAM_CRAWL_WORKERS
+from .settings import MOONSTREAM_ETHEREUM_IPC_PATH, MOONSTREAM_CRAWL_WORKERS
 from moonstreamdb.db import yield_db_session, yield_db_session_ctx
 from moonstreamdb.models import (
     EthereumBlock,
@@ -24,9 +24,9 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-class EthereumBlockCrawlError(Exception):
+class BlockCrawlError(Exception):
     """
-    Raised when there is a problem crawling Ethereum blocks.
+    Raised when there is a problem crawling blocks.
     """
 
 
@@ -38,7 +38,7 @@ class DateRange:
     include_end: bool
 
 
-def connect(web3_uri: Optional[str] = MOONSTREAM_IPC_PATH):
+def connect(web3_uri: Optional[str] = MOONSTREAM_ETHEREUM_IPC_PATH):
     web3_provider: Union[IPCProvider, HTTPProvider] = Web3.IPCProvider()
     if web3_uri is not None:
         if web3_uri.startswith("http://") or web3_uri.startswith("https://"):
@@ -157,7 +157,7 @@ def crawl_blocks(blocks_numbers: List[int], with_transactions: bool = False) -> 
             except Exception as err:
                 db_session.rollback()
                 message = f"Error adding block (number={block_number}) to database:\n{repr(err)}"
-                raise EthereumBlockCrawlError(message)
+                raise BlockCrawlError(message)
             except:
                 db_session.rollback()
                 logger.error(
@@ -286,7 +286,7 @@ def crawl_blocks_executor(
         if len(errors) > 0:
             error_messages = "\n".join([f"- {error}" for error in errors])
             message = f"Error processing blocks in list:\n{error_messages}"
-            raise EthereumBlockCrawlError(message)
+            raise BlockCrawlError(message)
 
 
 def trending(

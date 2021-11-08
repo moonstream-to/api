@@ -7,7 +7,7 @@ with open("README.md") as ifp:
 
 setup(
     name="mooncrawl",
-    version="0.0.5",
+    version="0.0.6",
     author="Bugout.dev",
     author_email="engineers@bugout.dev",
     license="Apache License 2.0",
@@ -34,7 +34,7 @@ setup(
     install_requires=[
         "boto3",
         "bugout >= 0.1.17",
-        "moonstreamdb @ git+https://git@github.com/bugout-dev/moonstream.git@0a771ddfbca1254be331149ccf2d162aa09b7bc0#egg=moonstreamdb&subdirectory=db",
+        "moonstreamdb @ git+https://git@github.com/bugout-dev/moonstream.git@2371b7f5971f3c1659ce6b05e0c3667550378bbe#egg=moonstreamdb&subdirectory=db",
         "humbug",
         "python-dateutil",
         "requests",
@@ -46,7 +46,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "ethcrawler=mooncrawl.ethcrawler:main",
+            "crawler=mooncrawl.crawler:main",
             "esd=mooncrawl.esd:main",
             "identity=mooncrawl.identity:main",
             "etherscan=mooncrawl.etherscan:main",

@@ -12,7 +12,7 @@ chardet==4.0.0
 charset-normalizer==2.0.4
 click==8.0.1
 cytoolz==0.11.0
--e git+https://git@github.com/bugout-dev/moonstream.git@0a771ddfbca1254be331149ccf2d162aa09b7bc0#egg=moonstreamdb&subdirectory=db
+-e git+https://git@github.com/bugout-dev/moonstream.git@2371b7f5971f3c1659ce6b05e0c3667550378bbe#egg=moonstreamdb&subdirectory=db
 eth-abi==2.1.1
 eth-account==0.5.5
 eth-hash==0.3.2
