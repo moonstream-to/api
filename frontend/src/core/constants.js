@@ -33,7 +33,7 @@ export const ALL_NAV_PATHES = [
     footerCategory: FOOTER_COLUMNS.COMPANY,
   },
   {
-    title: "API",
+    title: "Docs",
     path: "/docs",
     footerCategory: FOOTER_COLUMNS.PRODUCT,
   },
