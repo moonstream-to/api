@@ -70,3 +70,9 @@ if AWS_S3_SMARTCONTRACTS_ABI_BUCKET is None:
     raise ValueError(
         "AWS_S3_SMARTCONTRACTS_ABI_BUCKET environment variable must be set"
     )
+AWS_S3_SMARTCONTRACTS_ABI_PREFIX = os.environ.get("AWS_S3_SMARTCONTRACTS_ABI_PREFIX")
+if AWS_S3_SMARTCONTRACTS_ABI_PREFIX is None:
+    raise ValueError(
+        "AWS_S3_SMARTCONTRACTS_ABI_PREFIX environment variable must be set"
+    )
+AWS_S3_SMARTCONTRACTS_ABI_PREFIX = AWS_S3_SMARTCONTRACTS_ABI_PREFIX.rstrip("/")

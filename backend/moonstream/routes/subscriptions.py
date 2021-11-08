@@ -21,6 +21,7 @@ from ..settings import (
     MOONSTREAM_APPLICATION_ID,
     bugout_client as bc,
     AWS_S3_SMARTCONTRACTS_ABI_BUCKET,
+    AWS_S3_SMARTCONTRACTS_ABI_PREFIX,
 )
 from ..web3_provider import yield_web3_provider
 
@@ -123,7 +124,7 @@ async def add_subscription_handler(
         bucket = AWS_S3_SMARTCONTRACTS_ABI_BUCKET
 
         result_bytes = abi.encode("utf-8")
-        result_key = f"v1/{resource.resource_data['address']}/{resource.id}/abi.json"
+        result_key = f"{AWS_S3_SMARTCONTRACTS_ABI_PREFIX}/{resource.resource_data['address']}/{resource.id}/abi.json"
 
         s3_client.put_object(
             Body=result_bytes,
@@ -140,7 +141,7 @@ async def add_subscription_handler(
         update_resource["bucket"] = AWS_S3_SMARTCONTRACTS_ABI_BUCKET
         update_resource[
             "s3_path"
-        ] = f"v1/{resource.resource_data['address']}/{resource.id}/abi.json"
+        ] = f"{AWS_S3_SMARTCONTRACTS_ABI_PREFIX}/{resource.resource_data['address']}/{resource.id}/abi.json"
 
         try:
             updated_resource: BugoutResource = bc.update_resource(
@@ -300,7 +301,7 @@ async def update_subscriptions_handler(
         bucket = AWS_S3_SMARTCONTRACTS_ABI_BUCKET
 
         result_bytes = abi.encode("utf-8")
-        result_key = f"v1/{subscription_resource.resource_data['address']}/{subscription_resource.id}/abi.json"
+        result_key = f"{AWS_S3_SMARTCONTRACTS_ABI_PREFIX}/{subscription_resource.resource_data['address']}/{subscription_resource.id}/abi.json"
 
         s3_client.put_object(
             Body=result_bytes,
@@ -315,7 +316,7 @@ async def update_subscriptions_handler(
         update["bucket"] = AWS_S3_SMARTCONTRACTS_ABI_BUCKET
         update[
             "s3_path"
-        ] = f"v1/{subscription_resource.resource_data['address']}/{subscription_resource.id}/abi.json"
+        ] = f"{AWS_S3_SMARTCONTRACTS_ABI_PREFIX}/{subscription_resource.resource_data['address']}/{subscription_resource.id}/abi.json"
 
     try:
         resource: BugoutResource = bc.update_resource(
