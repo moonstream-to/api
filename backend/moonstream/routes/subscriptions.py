@@ -9,7 +9,8 @@ from typing import List, Optional, Dict, Any
 import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
-from fastapi import APIRouter, Request, Form
+from fastapi import APIRouter, Depends, Request, Form
+from web3 import Web3
 from web3._utils.validation import validate_abi
 
 from ..admin import subscription_types
@@ -21,6 +22,7 @@ from ..settings import (
     bugout_client as bc,
     MOONSTREAM_SMARTCONTRACTS_ABI_BUCKET,
 )
+from ..web3_provider import yield_web3_provider
 
 logger = logging.getLogger(__name__)
 
@@ -39,11 +41,29 @@ async def add_subscription_handler(
     label: str = Form(...),
     subscription_type_id: str = Form(...),
     abi: Optional[str] = Form(None),
+    web3: Web3 = Depends(yield_web3_provider),
 ) -> data.SubscriptionResourceData:
     """
     Add subscription to blockchain stream data for user.
     """
     token = request.state.token
+
+    if subscription_type_id != "ethereum_whalewatch":
+        try:
+            address = web3.toChecksumAddress(address)
+        except ValueError as e:
+            raise MoonstreamHTTPException(
+                status_code=400,
+                detail=str(e),
+                internal_error=e,
+            )
+        except Exception as e:
+            logger.error(f"Failed to convert address to checksum address")
+            raise MoonstreamHTTPException(
+                status_code=500,
+                internal_error=e,
+                detail="Currently unable to convert address to checksum address",
+            )
 
     active_subscription_types_response = subscription_types.list_subscription_types(
         active_only=True

@@ -2,15 +2,20 @@
 Moonstream CLI
 """
 import argparse
+
+import logging
 import json
 from typing import Optional
 
+from moonstreamdb.db import SessionLocal
+
+from ..settings import BUGOUT_BROOD_URL, BUGOUT_SPIRE_URL, MOONSTREAM_APPLICATION_ID
+from ..web3_provider import yield_web3_provider
 from . import subscription_types, subscriptions
-from ..settings import (
-    BUGOUT_BROOD_URL,
-    BUGOUT_SPIRE_URL,
-    MOONSTREAM_APPLICATION_ID,
-)
+from .migrations import checksum_address
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def parse_boolean_arg(raw_arg: Optional[str]) -> Optional[bool]:
@@ -64,6 +69,29 @@ def cli_migrate_subscriptions(args: argparse.Namespace) -> None:
     else:
         print("Specified file is required.")
         return
+
+
+def migrations_list(args: argparse.Namespace) -> None:
+    migrations_overview = f"""
+
+    - id: 20211101
+    name: {checksum_address.__name__}
+    description: {checksum_address.__doc__}
+    """
+    logger.info(migrations_overview)
+
+
+def migrations_run(args: argparse.Namespace) -> None:
+    web3_session = yield_web3_provider()
+    db_session = SessionLocal()
+    try:
+        if args.id == 20211101:
+            logger.info("Starting update of subscriptions in Brood resource...")
+            checksum_address.checksum_all_subscription_addresses(web3_session)
+            logger.info("Starting update of ethereum_labels in database...")
+            checksum_address.checksum_all_labels_addresses(db_session, web3_session)
+    finally:
+        db_session.close()
 
 
 def main() -> None:
@@ -278,6 +306,25 @@ This CLI is configured to work with the following API URLs:
         help="Command for migration",
     )
     parser_subscription_migrate.set_defaults(func=cli_migrate_subscriptions)
+
+    parser_migrations = subcommands.add_parser(
+        "migrations", description="Manage database, resource and etc migrations"
+    )
+    parser_migrations.set_defaults(func=lambda _: parser_migrations.print_help())
+    subcommands_migrations = parser_migrations.add_subparsers(
+        description="Migration commands"
+    )
+    parser_migrations_list = subcommands_migrations.add_parser(
+        "list", description="List migrations"
+    )
+    parser_migrations_list.set_defaults(func=migrations_list)
+    parser_migrations_run = subcommands_migrations.add_parser(
+        "run", description="Run migration"
+    )
+    parser_migrations_run.add_argument(
+        "-i", "--id", required=True, type=int, help="Provide migration ID"
+    )
+    parser_migrations_run.set_defaults(func=migrations_run)
 
     args = parser.parse_args()
     args.func(args)
