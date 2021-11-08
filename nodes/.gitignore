@@ -1,0 +1,5 @@
+# Custom
+.secrets/*
+dev.env
+prod.env
+test.env

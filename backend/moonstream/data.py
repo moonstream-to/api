@@ -187,6 +187,7 @@ class EthereumNFTDetails(EthereumTokenDetails):
 
 class EthereumAddressInfo(BaseModel):
     address: str
+    ens_name: Optional[str] = None
     token: Optional[EthereumTokenDetails] = None
     smart_contract: Optional[EthereumSmartContractDetails] = None
     nft: Optional[EthereumNFTDetails] = None
