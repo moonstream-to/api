@@ -36,11 +36,15 @@ import TrustedBadge from "../src/components/TrustedBadge";
 import Slider from "react-slick";
 import SchematicPlayground from "../src/components/SchematicPlayground";
 import { v4 as uuidv4 } from "uuid";
+import RouteButton from "../src/components/RouteButton";
 const SplitWithImage = dynamic(
   () => import("../src/components/SplitWithImage"),
   {
     ssr: false,
   }
+);
+const FaGithubSquare = dynamic(() =>
+  import("react-icons/fa").then((mod) => mod.FaGithubSquare)
 );
 const GiSuspicious = dynamic(() =>
   import("react-icons/gi").then((mod) => mod.GiSuspicious)
@@ -123,6 +127,12 @@ const assets = {
   ethereumBlackLogo: `${AWS_ASSETS_PATH}/eth-diamond-black.png`,
   ethereumRainbowLogo: `${AWS_ASSETS_PATH}/eth-diamond-rainbow.png`,
   maticLogo: `${AWS_ASSETS_PATH}/matic-token-inverted-icon.png`,
+  erc20: `${AWS_ASSETS_PATH}/ERC 20.png`,
+  DAO: `${AWS_ASSETS_PATH}/DAO .png`,
+  lender: `${AWS_ASSETS_PATH}/lender.png`,
+  DEX: `${AWS_ASSETS_PATH}/Decentralized Exchange.png`,
+  SC: `${AWS_ASSETS_PATH}/smart contract.png`,
+  NFT: `${AWS_ASSETS_PATH}/NFT.png`,
 };
 
 const carousel_content = [
@@ -534,7 +544,7 @@ const Homepage = () => {
                       bgColor: "green.900",
                     },
                   ]}
-                  imgURL={assets["pendingTransactions"]}
+                  imgURL={assets["NFT"]}
                 />
               </GridItem>
               <GridItem
@@ -595,7 +605,7 @@ const Homepage = () => {
                       bgColor: "orange.900",
                     },
                   ]}
-                  imgURL={assets["priceInformation"]}
+                  imgURL={assets["erc20"]}
                 />
               </GridItem>
               <GridItem
@@ -615,17 +625,6 @@ const Homepage = () => {
                           [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer smartDeveloper button`,
                         });
                       toggleModal("hubspot-developer");
-                    },
-                  }}
-                  socialButton={{
-                    url: "https://github.com/bugout-dev/moonstream/",
-                    network: "github",
-                    label: "See our github",
-                    onClick: () => {
-                      mixpanel.get_distinct_id() &&
-                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Github link in landing page`,
-                        });
                     },
                   }}
                   elementName={"element3"}
@@ -659,7 +658,7 @@ const Homepage = () => {
                       bgColor: "blue.900",
                     },
                   ]}
-                  imgURL={assets["socialMediaPosts"]}
+                  imgURL={assets["cryptoTraders"]}
                 />
               </GridItem>
               <GridItem
@@ -680,17 +679,6 @@ const Homepage = () => {
                           [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer analytics button`,
                         });
                       toggleModal("hubspot-developer");
-                    },
-                  }}
-                  socialButton={{
-                    url: "https://github.com/bugout-dev/moonstream/",
-                    network: "github",
-                    label: "See our github",
-                    onClick: () => {
-                      mixpanel.get_distinct_id() &&
-                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Github link in landing page`,
-                        });
                     },
                   }}
                   elementName={"element3"}
@@ -731,7 +719,7 @@ const Homepage = () => {
                       bgColor: "red.900",
                     },
                   ]}
-                  imgURL={assets["smartDevelopers"]}
+                  imgURL={assets["DAO"]}
                 />
               </GridItem>
               <GridItem
@@ -767,7 +755,20 @@ const Homepage = () => {
                       </chakra.span>
                     </Text>
                   </chakra.span>
-                  <Stack placeSelf="center">
+                  <RouteButton
+                    placeSelf="center"
+                    isExternal
+                    w={["100%", "100%", "fit-content", null]}
+                    maxW={["250px", null, "fit-content"]}
+                    href={`https://github.com/bugout-dev/moonstream`}
+                    size="lg"
+                    variant="outline"
+                    colorScheme="blue"
+                    leftIcon={<FaGithubSquare />}
+                  >
+                    git clone moonstream
+                  </RouteButton>
+                  <Stack placeSelf="center" pt="12px">
                     <Text fontWeight="500" fontSize="24px">
                       Want to find out more? Reach out to us on{" "}
                       <Link
