@@ -155,32 +155,6 @@ class EthereumLabel(Base):  # type: ignore
     )
 
 
-class EthereumPendingTransaction(Base):  # type: ignore
-    __tablename__ = "ethereum_pending_transactions"
-
-    hash = Column(
-        VARCHAR(256), primary_key=True, unique=True, nullable=False, index=True
-    )
-    block_number = Column(
-        BigInteger,
-        ForeignKey("ethereum_blocks.block_number", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
-    )
-    from_address = Column(VARCHAR(256), index=True)
-    to_address = Column(VARCHAR(256), index=True)
-    gas = Column(Numeric(precision=78, scale=0), index=True)
-    gas_price = Column(Numeric(precision=78, scale=0), index=True)
-    input = Column(Text)
-    nonce = Column(VARCHAR(256))
-    transaction_index = Column(BigInteger)
-    value = Column(Numeric(precision=78, scale=0), index=True)
-
-    indexed_at = Column(
-        DateTime(timezone=True), server_default=utcnow(), nullable=False
-    )
-
-
 class ESDFunctionSignature(Base):  # type: ignore
     """
     Function signature from Ethereum Signature Database.

@@ -28,7 +28,6 @@ target_metadata = MoonstreamBase.metadata
 from moonstreamdb.models import (
     EthereumBlock,
     EthereumTransaction,
-    EthereumPendingTransaction,
     EthereumLabel,
     ESDEventSignature,
     ESDFunctionSignature,
@@ -40,7 +39,6 @@ def include_symbol(tablename, schema):
         EthereumBlock.__tablename__,
         EthereumTransaction.__tablename__,
         EthereumLabel.__tablename__,
-        EthereumPendingTransaction.__tablename__,
         ESDEventSignature.__tablename__,
         ESDFunctionSignature.__tablename__,
     }
