@@ -27,7 +27,14 @@ const LINKS_SIZES = {
 
 const ListHeader = ({ children }) => {
   return (
-    <Text fontWeight={"500"} fontSize={"lg"} mb={2}>
+    <Text
+      fontWeight={"500"}
+      fontSize={"lg"}
+      mb={2}
+      borderBottom="1px"
+      borderColor="blue.700"
+      textColor="blue.500"
+    >
       {children}
     </Text>
   );
@@ -126,61 +133,6 @@ const Footer = () => (
             </Stack>
           );
         })}
-        {/* <Stack align={"flex-start"}>
-          {ALL_NAV_PATHES.filter(
-            (navPath) => navPath.footerCategory === FOOTER_COLUMNS.COMPANY
-          ).length > 0 && (
-            <>
-              <ListHeader>Company</ListHeader>
-              {ALL_NAV_PATHES.filter(
-                (navPath) => navPath.footerCategory === FOOTER_COLUMNS.COMPANY
-              ).map((linkItem) => {
-                return (
-                  <RouterLink passHref href={linkItem.path} key={v4()}>
-                    <Link {...LINKS_SIZES}>{linkItem.title}</Link>
-                  </RouterLink>
-                );
-              })}
-            </>
-          )}
-        </Stack> */}
-        {/* <Stack align={"flex-start"}>
-          {ALL_NAV_PATHES.filter(
-            (navPath) => navPath.footerCategory === FOOTER_COLUMNS.NEWS
-          ).length > 0 && (
-            <>
-              <ListHeader>Company</ListHeader>
-              {ALL_NAV_PATHES.filter(
-                (navPath) => navPath.footerCategory === FOOTER_COLUMNS.NEWS
-              ).map((linkItem) => {
-                return (
-                  <RouterLink passHref href={linkItem.path} key={v4()}>
-                    <Link {...LINKS_SIZES}>{linkItem.title}</Link>
-                  </RouterLink>
-                );
-              })}
-            </>
-          )}
-        </Stack> */}
-
-        {/* <Stack align={"flex-start"}>
-          {ALL_NAV_PATHES.filter(
-            (navPath) => navPath.footerCategory === FOOTER_COLUMNS.PRODUCT
-          ).length > 0 && (
-            <>
-              <ListHeader>Company</ListHeader>
-              {ALL_NAV_PATHES.filter(
-                (navPath) => navPath.footerCategory === FOOTER_COLUMNS.PRODUCT
-              ).map((linkItem) => {
-                return (
-                  <RouterLink passHref href={linkItem.path} key={v4()}>
-                    <Link {...LINKS_SIZES}>{linkItem.title}</Link>
-                  </RouterLink>
-                );
-              })}
-            </>
-          )}
-        </Stack> */}
       </SimpleGrid>
     </Container>
   </Box>
