@@ -42,21 +42,22 @@ async def add_subscription_handler(
     """
     token = request.state.token
 
-    try:
-        checksum_address = web3.toChecksumAddress(address)
-    except ValueError as e:
-        raise MoonstreamHTTPException(
-            status_code=400,
-            detail=str(e),
-            internal_error=e,
-        )
-    except Exception as e:
-        logger.error(f"Failed to convert address to checksum address")
-        raise MoonstreamHTTPException(
-            status_code=500,
-            internal_error=e,
-            detail="Currently unable to convert address to checksum address",
-        )
+    if subscription_type_id != "ethereum_whalewatch":
+        try:
+            address = web3.toChecksumAddress(address)
+        except ValueError as e:
+            raise MoonstreamHTTPException(
+                status_code=400,
+                detail=str(e),
+                internal_error=e,
+            )
+        except Exception as e:
+            logger.error(f"Failed to convert address to checksum address")
+            raise MoonstreamHTTPException(
+                status_code=500,
+                internal_error=e,
+                detail="Currently unable to convert address to checksum address",
+            )
 
     active_subscription_types_response = subscription_types.list_subscription_types(
         active_only=True
@@ -79,7 +80,7 @@ async def add_subscription_handler(
         "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
         "user_id": str(user.id),
         "subscription_type_id": subscription_type_id,
-        "address": checksum_address,
+        "address": address,
         "color": color,
         "label": label,
     }
