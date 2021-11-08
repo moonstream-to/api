@@ -19,6 +19,7 @@ import {
   Text,
   GridItem,
   SimpleGrid,
+  Button,
   Image as ChakraImage,
 } from "@chakra-ui/react";
 import dynamic from "next/dynamic";
@@ -776,18 +777,18 @@ const Homepage = () => {
                       Join our Discord
                     </RouteButton>
                   </Flex>
-                  <RouteButton
+                  <Button
                     placeSelf="center"
                     isExternal
                     w={["100%", "100%", "fit-content", null]}
                     maxW={["250px", null, "fit-content"]}
-                    href={`https://github.com/bugout-dev/moonstream`}
+                    onClick={() => toggleModal("register")}
                     size="lg"
                     variant="solid"
                     colorScheme="orange"
                   >
                     Sign up
-                  </RouteButton>
+                  </Button>
                 </Stack>
               </GridItem>
             </Grid>
