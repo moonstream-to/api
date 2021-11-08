@@ -402,7 +402,7 @@ const Homepage = () => {
                       src={assets["NFT"]}
                       alt="mined transactions"
                     />
-                    <Heading textAlign="center ">NFT</Heading>
+                    <Heading textAlign="center ">NFTs</Heading>
                   </Stack>
                   <Stack spacing={1} px={1} alignItems="center">
                     <ChakraImage
@@ -421,7 +421,7 @@ const Homepage = () => {
                       src={assets["cryptoTraders"]}
                       alt="mined transactions"
                     />
-                    <Heading textAlign="center ">DEX</Heading>
+                    <Heading textAlign="center ">DEXs</Heading>
                   </Stack>
                   <Stack spacing={1} px={1} alignItems="center">
                     <ChakraImage
@@ -430,7 +430,7 @@ const Homepage = () => {
                       src={assets["DAO"]}
                       alt="mined transactions"
                     />
-                    <Heading textAlign="center ">{`DAO's`}</Heading>
+                    <Heading textAlign="center ">{`DAOs`}</Heading>
                   </Stack>
                 </SimpleGrid>
                 <Center>
