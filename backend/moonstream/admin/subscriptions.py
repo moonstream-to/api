@@ -41,9 +41,11 @@ def migrate_subscriptions(
         content=descriptions,
         tags=["subscriptions", "migration", f"migration_file:{file}"],
     )
+    print(f"Affected resources: {len(old_resources)}")
 
-    try:
-        for resource in old_resources:
+    for resource in old_resources:
+        try:
+            print(f"Updating resource: {resource.id}")
 
             new_resource = bc.update_resource(
                 token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -52,16 +54,17 @@ def migrate_subscriptions(
                 timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
             )
             new_resources.append(new_resource)
-    except Exception as err:
-        reporter.error_report(
-            err,
-            tags=[
-                "subscriptions",
-                "migration",
-                "error",
-                f"resource_id:{resource.id}",
-                f"migration_file:{file}",
-            ],
-        )
+        except Exception as err:
+            print(err)
+            reporter.error_report(
+                err,
+                tags=[
+                    "subscriptions",
+                    "migration",
+                    "error",
+                    f"resource_id:{resource.id}",
+                    f"migration_file:{file}",
+                ],
+            )
 
     return new_resources

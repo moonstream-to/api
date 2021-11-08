@@ -31,6 +31,7 @@ def cli_migrate_subscriptions(args: argparse.Namespace) -> None:
     drop_keys = []
 
     if args.file is not None:
+
         with open(args.file) as migration_json_file:
             migration_json = json.load(migration_json_file)
 
@@ -276,9 +277,7 @@ This CLI is configured to work with the following API URLs:
         type=str,
         help="Command for migration",
     )
-    parser_subscription_migrate.set_defaults(
-        func=lambda _: parser_subscription.print_help()
-    )
+    parser_subscription_migrate.set_defaults(func=cli_migrate_subscriptions)
 
     args = parser.parse_args()
     args.func(args)
