@@ -37,6 +37,7 @@ import Slider from "react-slick";
 import SchematicPlayground from "../src/components/SchematicPlayground";
 import { v4 as uuidv4 } from "uuid";
 import RouteButton from "../src/components/RouteButton";
+import { FaDiscord } from "react-icons/fa";
 const SplitWithImage = dynamic(
   () => import("../src/components/SplitWithImage"),
   {
@@ -391,48 +392,46 @@ const Homepage = () => {
                   mt={[24, 32, 48]}
                   pb={[12, 12, 12, null, 24]}
                 >
-                  See how your smart contracts are being used from:
+                  Get analytics for your:
                 </Heading>
                 <SimpleGrid columns={[1, 2, 2, 4, null, 4]}>
                   <Stack spacing={1} px={1} alignItems="center">
                     <ChakraImage
                       boxSize={["220px", "220px", "xs", null, "xs"]}
                       objectFit="contain"
-                      src={assets["minedTransactions"]}
+                      src={assets["cryptoTraders"]}
                       alt="mined transactions"
                     />
                     <Heading textAlign="center ">
-                      Ethereum mined transactions
+                      Decentralized Exchanges
                     </Heading>
                   </Stack>
                   <Stack spacing={1} px={1} alignItems="center">
                     <ChakraImage
                       boxSize={["220px", "220px", "xs", null, "xs"]}
                       objectFit="contain"
-                      src={assets["pendingTransactions"]}
+                      src={assets["DAO"]}
                       alt="mined transactions"
                     />
-                    <Heading textAlign="center ">
-                      Ethereum pending transactions
-                    </Heading>
+                    <Heading textAlign="center ">{`DAO's`}</Heading>
                   </Stack>
                   <Stack spacing={1} px={1} alignItems="center">
                     <ChakraImage
                       boxSize={["220px", "220px", "xs", null, "xs"]}
                       objectFit="contain"
-                      src={assets["priceInformation"]}
+                      src={assets["erc20"]}
                       alt="mined transactions"
                     />
-                    <Heading textAlign="center ">Centralized exchanges</Heading>
+                    <Heading textAlign="center ">Fungeble Tokens</Heading>
                   </Stack>
                   <Stack spacing={1} px={1} alignItems="center">
                     <ChakraImage
                       boxSize={["220px", "220px", "xs", null, "xs"]}
                       objectFit="contain"
-                      src={assets["socialMediaPosts"]}
+                      src={assets["NFT"]}
                       alt="mined transactions"
                     />
-                    <Heading textAlign="center ">Social media posts</Heading>
+                    <Heading textAlign="center ">Non-Fungable Tokens</Heading>
                   </Stack>
                 </SimpleGrid>
                 <Center>
@@ -752,56 +751,44 @@ const Homepage = () => {
                       </chakra.span>
                     </Text>
                   </chakra.span>
+                  <Flex direction="row" flexWrap="wrap" placeContent="center">
+                    <RouteButton
+                      placeSelf="center"
+                      isExternal
+                      href={`https://github.com/bugout-dev/moonstream`}
+                      size="md"
+                      variant="outline"
+                      colorScheme="blue"
+                      w="250px"
+                      leftIcon={<FaGithubSquare />}
+                    >
+                      git clone moonstream
+                    </RouteButton>
+                    <RouteButton
+                      placeSelf="center"
+                      isExternal
+                      href={"https://discord.gg/K56VNUQGvA"}
+                      size="md"
+                      variant="outline"
+                      colorScheme="blue"
+                      leftIcon={<FaDiscord />}
+                      w="250px"
+                    >
+                      Join our Discord
+                    </RouteButton>
+                  </Flex>
                   <RouteButton
                     placeSelf="center"
                     isExternal
                     w={["100%", "100%", "fit-content", null]}
                     maxW={["250px", null, "fit-content"]}
                     href={`https://github.com/bugout-dev/moonstream`}
-                    size="md"
-                    variant="outline"
-                    colorScheme="blue"
-                    leftIcon={<FaGithubSquare />}
+                    size="lg"
+                    variant="solid"
+                    colorScheme="orange"
                   >
-                    git clone moonstream
+                    Sign up
                   </RouteButton>
-                  <Stack placeSelf="center" pt="12px" textAlign="justify">
-                    <Text fontWeight="500" fontSize="24px">
-                      Want to find out more? Reach out to us on{" "}
-                      <Link
-                        color="orange.900"
-                        onClick={() => {
-                          mixpanel.get_distinct_id() &&
-                            mixpanel.track(
-                              `${MIXPANEL_EVENTS.BUTTON_CLICKED}`,
-                              {
-                                [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Join our discord`,
-                              }
-                            );
-                        }}
-                        isExternal
-                        href={"https://discord.gg/K56VNUQGvA"}
-                      >
-                        Discord
-                      </Link>{" "}
-                      or{" "}
-                      <Link
-                        color="orange.900"
-                        onClick={() => {
-                          mixpanel.get_distinct_id() &&
-                            mixpanel.track(
-                              `${MIXPANEL_EVENTS.BUTTON_CLICKED}`,
-                              {
-                                [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer want to find more button`,
-                              }
-                            );
-                          toggleModal("hubspot-developer");
-                        }}
-                      >
-                        request early access
-                      </Link>
-                    </Text>
-                  </Stack>
                 </Stack>
               </GridItem>
             </Grid>
