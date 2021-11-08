@@ -84,18 +84,18 @@ const LandingNavbar = () => {
                 </Button>
               </RouterLink>
             )}
-            {/* {!ui.isLoggedIn && (
+            {!ui.isLoggedIn && (
               <Button
-                colorScheme="whiteAlpha"
-                variant="outline"
+                colorScheme="orange"
+                variant="solid"
                 onClick={() => toggleModal("register")}
                 size="sm"
                 fontWeight="400"
                 borderRadius="2xl"
               >
-                Get started
+                Sign Up
               </Button>
-            )} */}
+            )}
             {!ui.isLoggedIn && (
               <Button
                 color="white"
