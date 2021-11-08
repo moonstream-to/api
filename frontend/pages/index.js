@@ -388,7 +388,7 @@ const Homepage = () => {
                 <Heading
                   {...HEADING_PROPS}
                   textAlign="center"
-                  mt={48}
+                  mt={[24, 32, 48]}
                   pb={[12, 12, 12, null, 24]}
                 >
                   See how your smart contracts are being used from:
@@ -488,7 +488,7 @@ const Homepage = () => {
               <GridItem
                 px="7%"
                 colSpan="12"
-                pt={["1rem", "1rem", "5.125rem", null, "5.125rem"]}
+                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
                 pb={["0", "66px", null, "66px"]}
                 id="txpool"
                 minH={ui.isMobileView ? "100vh" : null}
@@ -547,7 +547,7 @@ const Homepage = () => {
               <GridItem
                 px="7%"
                 colSpan="12"
-                pt={["1rem", "1rem", "5.125rem", null, "5.125rem"]}
+                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
                 pb={["0", "66px", null, "66px"]}
                 id="exchanges"
                 minH={ui.isMobileView ? "100vh" : null}
@@ -608,7 +608,7 @@ const Homepage = () => {
               <GridItem
                 px="7%"
                 colSpan="12"
-                pt={["1rem", "1rem", "1.125rem", null, "5.125rem"]}
+                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
                 pb={["0", "66px", null, "66px"]}
                 id="smartDeveloper"
                 minH={ui.isMobileView ? "100vh" : null}
@@ -661,7 +661,7 @@ const Homepage = () => {
               <GridItem
                 px="7%"
                 colSpan="12"
-                pt={["1rem", "1rem", "1.125rem", null, "5.125rem"]}
+                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
                 pb={["0", "66px", null, "66px"]}
                 id="analytics"
                 minH={ui.isMobileView ? "100vh" : null}
@@ -758,14 +758,14 @@ const Homepage = () => {
                     w={["100%", "100%", "fit-content", null]}
                     maxW={["250px", null, "fit-content"]}
                     href={`https://github.com/bugout-dev/moonstream`}
-                    size="lg"
+                    size="md"
                     variant="outline"
                     colorScheme="blue"
                     leftIcon={<FaGithubSquare />}
                   >
                     git clone moonstream
                   </RouteButton>
-                  <Stack placeSelf="center" pt="12px">
+                  <Stack placeSelf="center" pt="12px" textAlign="justify">
                     <Text fontWeight="500" fontSize="24px">
                       Want to find out more? Reach out to us on{" "}
                       <Link
