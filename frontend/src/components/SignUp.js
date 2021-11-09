@@ -27,7 +27,7 @@ const SignUp = ({ toggleModal }) => {
 
   useEffect(() => {
     if (isSuccess) {
-      ui.toggleModal(MODAL_TYPES.OFF);
+      ui.toggleModal({ type: MODAL_TYPES.OFF });
     }
   }, [isSuccess, toggleModal, ui]);
 
@@ -101,7 +101,7 @@ const SignUp = ({ toggleModal }) => {
           cursor="pointer"
           color="blue.400"
           as="span"
-          onClick={() => toggleModal(MODAL_TYPES.LOGIN)}
+          onClick={() => toggleModal({ type: MODAL_TYPES.LOGIN })}
         >
           Login
         </Box>

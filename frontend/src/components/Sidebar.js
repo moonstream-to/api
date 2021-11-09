@@ -96,7 +96,7 @@ const Sidebar = () => {
           <Menu iconShape="square">
             <MenuItem
               onClick={() => {
-                ui.toggleModal(MODAL_TYPES.LOGIN);
+                ui.toggleModal({ type: MODAL_TYPES.LOGIN });
                 ui.setSidebarToggled(false);
               }}
             >

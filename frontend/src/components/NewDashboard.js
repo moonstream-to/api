@@ -247,11 +247,11 @@ const NewDashboard = (props) => {
                                               m={0}
                                               isTruncated
                                               onClick={() => {
-                                                overlay.toggleModal(
-                                                  MODAL_TYPES.NEW_SUBSCRIPTON
-                                                );
-                                                overlay.setModalProps({
-                                                  initialValue: inputValue,
+                                                overlay.toggleModal({
+                                                  type: MODAL_TYPES.NEW_SUBSCRIPTON,
+                                                  props: {
+                                                    initialValue: inputValue,
+                                                  },
                                                 });
                                               }}
                                             >
@@ -334,9 +334,9 @@ const NewDashboard = (props) => {
                                             m={0}
                                             size="sm"
                                             onClick={() =>
-                                              overlay.toggleModal(
-                                                MODAL_TYPES.NEW_SUBSCRIPTON
-                                              )
+                                              overlay.toggleModal({
+                                                type: MODAL_TYPES.NEW_SUBSCRIPTON,
+                                              })
                                             }
                                           >
                                             New subscription
@@ -393,7 +393,10 @@ const NewDashboard = (props) => {
                           py={2}
                           disabled={!subscibedItem.address}
                           onClick={() =>
-                            overlay.toggleModal(MODAL_TYPES.UPLOAD_ABI)
+                            overlay.toggleModal({
+                              type: MODAL_TYPES.UPLOAD_ABI,
+                              props: { id: subscibedItem.id },
+                            })
                           }
                         >
                           Upload

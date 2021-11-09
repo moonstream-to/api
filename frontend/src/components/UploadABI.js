@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Flex, ButtonGroup, Button, useToast, Spinner } from "@chakra-ui/react";
+import { modifySubscription } from "../core/services/subscriptions.service";
 // import hljs from "highlight.js";
 // import ReactQuill from "react-quill"; // ES6
 import AceEditor from "react-ace";
@@ -44,7 +45,7 @@ const ABIUPLoad = () => {
   };
   const handleSubmit = () => {
     if (json) {
-      setSubmitting(true);
+      modifySubscription({ id: abi: json });
     }
   };
 

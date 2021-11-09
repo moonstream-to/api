@@ -14,7 +14,7 @@ const RequestIntegration = ({ toggleModal, formId }) => {
         event.data.eventName === "onFormSubmitted"
       ) {
         if (event.data.id === formId) {
-          toggleModal(MODAL_TYPES.OFF);
+          toggleModal({ type: MODAL_TYPES.OFF });
           toast("Request sent", "success");
         }
       }

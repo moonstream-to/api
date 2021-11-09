@@ -396,7 +396,7 @@ const Homepage = () => {
                                 [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer want to find more button`,
                               }
                             );
-                          toggleModal(MODAL_TYPES.HUBSPOT);
+                          toggleModal({ type: MODAL_TYPES.HUBSPOT });
                         }}
                       >
                         request early access

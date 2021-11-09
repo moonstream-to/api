@@ -100,7 +100,7 @@ const LandingNavbar = () => {
             {!ui.isLoggedIn && (
               <Button
                 color="white"
-                onClick={() => toggleModal(MODAL_TYPES.LOGIN)}
+                onClick={() => toggleModal({ type: MODAL_TYPES.LOGIN })}
                 fontWeight="400"
               >
                 Log in
