@@ -231,17 +231,22 @@ class OnboardingState(BaseModel):
     steps: Dict[str, int]
 
 
-class DashboardResource(BaseModel):
-    type: str
-    user_id: Union[str, UUID]
-    name: str
-    dashboard_subscriptions: List[UUID]
-
-
 class DashboardMeta(BaseModel):
-    subscription_id: UUID
+    subscription_id: Union[UUID, str]
     generic: Optional[List[Dict[str, str]]]
     all_methods: bool = False
     all_events: bool = False
     methods: List[Dict[str, Any]]
     events: List[Dict[str, Any]]
+
+
+class DashboardResource(BaseModel):
+    type: str
+    user_id: str
+    name: str
+    dashboard_subscriptions: List[DashboardMeta]
+
+
+class DashboardCreate(BaseModel):
+    name: str
+    subscriptions: List[DashboardMeta]
