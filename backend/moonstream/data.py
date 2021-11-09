@@ -1,6 +1,7 @@
 """
 Pydantic schemas for the Moonstream HTTP API
 """
+from enum import Enum
 from typing import List, Optional, Dict, Any, Union
 from uuid import UUID
 
@@ -9,6 +10,13 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 
 USER_ONBOARDING_STATE = "onboarding_state"
+
+
+class TimeScale(Enum):
+    year = "year"
+    month = "month"
+    week = "week"
+    day = "day"
 
 
 class SubscriptionTypeResourceData(BaseModel):

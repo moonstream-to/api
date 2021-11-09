@@ -331,3 +331,87 @@ async def update_dashboard_handler(
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     return resource
+
+
+@router.get(
+    "/{dashboard_id}/data_links", tags=["dashboards"], response_model=BugoutResource
+)
+async def get_dashboard_data_links_handler(
+    request: Request, dashboard_id: str
+) -> Dict[str, Any]:
+    """
+    Update dashboards mainly fully overwrite name and subscription metadata
+    """
+
+    token = request.state.token
+
+    user = request.state.user
+
+    try:
+        dashboard_resource: BugoutResource = bc.get_resource(
+            token=token, resource_id=dashboard_id
+        )
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        logger.error(
+            f"Error listing subscriptions for user ({request.user.id}) with token ({request.state.token}), error: {str(e)}"
+        )
+        reporter.error_report(e)
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    s3_client = boto3.client("s3")
+
+    # get subscriptions
+
+    params = {
+        "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
+        "user_id": str(user.id),
+    }
+    try:
+        subscription_resources: BugoutResources = bc.list_resources(
+            token=token, params=params
+        )
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        logger.error(
+            f"Error listing subscriptions for user ({request.user.id}) with token ({request.state.token}), error: {str(e)}"
+        )
+        reporter.error_report(e)
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+    # filter out dasboards
+
+    dashboard_subscriptions = [
+        subscription
+        for subscription in subscription_resources.resources
+        if subscription.id
+        in dashboard_resource.resource_data["dashboard_subscriptions"]
+    ]
+
+    # generate s3 links
+
+    s3_client = boto3.client("s3")
+
+    stats: Dict[str, Any] = {}
+
+    for subscription in dashboard_subscriptions:
+
+        available_timescales = [timescale.value for timescale in data.TimeScale]
+        stats[subscription.id] = {}
+        for timescale in available_timescales:
+            try:
+                result_key = f'contracts_data/{subscription.resource_data["address"]}/v1/{timescale}.json'
+                stats_presigned_url = s3_client.generate_presigned_url(
+                    "get_object",
+                    Params={"Bucket": SMARTCONTRACTS_ABI_BUCKET, "Key": result_key},
+                    ExpiresIn=300,
+                    HttpMethod="GET",
+                )
+                stats[subscription.id][timescale] = stats_presigned_url
+            except Exception as err:
+                logger.warning(
+                    f"Can't generate S3 presigned url in stats endpoint for Bucket:{SMARTCONTRACTS_ABI_BUCKET}, Key:{result_key} get error:{err}"
+                )
+
+    return stats
