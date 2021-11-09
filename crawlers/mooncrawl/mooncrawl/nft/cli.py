@@ -2,12 +2,12 @@
 A command line tool to crawl information about NFTs from various sources.
 """
 import argparse
-from datetime import datetime, timezone
 import json
 import logging
 import sys
 import time
-from typing import Any, cast, Dict, Optional
+from datetime import datetime, timezone
+from typing import Any, Dict, Optional, cast
 
 from bugout.app import Bugout
 from bugout.journal import SearchOrder
@@ -16,26 +16,25 @@ from moonstreamdb.models import EthereumBlock
 from sqlalchemy.orm.session import Session
 from web3 import Web3
 
-from ..ethereum import connect
+from ..blockchain import connect
+from ..data import AvailableBlockchainType
+from ..publish import publish_json
+from ..settings import (
+    MOONSTREAM_ADMIN_ACCESS_TOKEN,
+    MOONSTREAM_DATA_JOURNAL_ID,
+    MOONSTREAM_ETHEREUM_IPC_PATH,
+    NFT_HUMBUG_TOKEN,
+)
+from ..version import MOONCRAWL_VERSION
 from .ethereum import (
-    summary as ethereum_summary,
-    add_labels,
-    MINT_LABEL,
-    TRANSFER_LABEL,
     SUMMARY_KEY_ARGS,
+    SUMMARY_KEY_END_BLOCK,
     SUMMARY_KEY_ID,
     SUMMARY_KEY_NUM_BLOCKS,
     SUMMARY_KEY_START_BLOCK,
-    SUMMARY_KEY_END_BLOCK,
+    add_labels,
 )
-from ..publish import publish_json
-from ..settings import (
-    MOONSTREAM_IPC_PATH,
-    MOONSTREAM_ADMIN_ACCESS_TOKEN,
-    NFT_HUMBUG_TOKEN,
-    MOONSTREAM_DATA_JOURNAL_ID,
-)
-from ..version import MOONCRAWL_VERSION
+from .ethereum import summary as ethereum_summary
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -46,17 +45,17 @@ BLOCKS_PER_SUMMARY = 40
 def web3_client_from_cli_or_env(args: argparse.Namespace) -> Web3:
     """
     Returns a web3 client either by parsing "--web3" argument on the given arguments or by looking up
-    the MOONSTREAM_IPC_PATH environment variable.
+    the MOONSTREAM_ETHEREUM_IPC_PATH environment variable.
     """
-    web3_connection_string = MOONSTREAM_IPC_PATH
+    web3_connection_string = MOONSTREAM_ETHEREUM_IPC_PATH
     args_web3 = vars(args).get("web3")
     if args_web3 is not None:
         web3_connection_string = cast(str, args_web3)
     if web3_connection_string is None:
         raise ValueError(
-            "Could not find Web3 connection information in arguments or in MOONSTREAM_IPC_PATH environment variable"
+            "Could not find Web3 connection information in arguments or in MOONSTREAM_ETHEREUM_IPC_PATH environment variable"
         )
-    return connect(web3_connection_string)
+    return connect(AvailableBlockchainType.ETHEREUM, web3_connection_string)
 
 
 def get_latest_block_from_node(web3_client: Web3):
@@ -295,7 +294,7 @@ def main() -> None:
         "--web3",
         type=str,
         default=None,
-        help="(Optional) Web3 connection string. If not provided, uses the value specified by MOONSTREAM_IPC_PATH environment variable.",
+        help="(Optional) Web3 connection string. If not provided, uses the value specified by MOONSTREAM_ETHEREUM_IPC_PATH environment variable.",
     )
     parser_ethereum_label.set_defaults(func=ethereum_label_handler)
 

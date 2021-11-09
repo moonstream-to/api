@@ -1,5 +1,6 @@
 from setuptools import find_packages, setup
 
+from mooncrawl.version import MOONCRAWL_VERSION
 
 long_description = ""
 with open("README.md") as ifp:
@@ -7,7 +8,7 @@ with open("README.md") as ifp:
 
 setup(
     name="mooncrawl",
-    version="0.0.5",
+    version=MOONCRAWL_VERSION,
     author="Bugout.dev",
     author_email="engineers@bugout.dev",
     license="Apache License 2.0",
@@ -34,7 +35,7 @@ setup(
     install_requires=[
         "boto3",
         "bugout >= 0.1.17",
-        "moonstreamdb @ git+https://git@github.com/bugout-dev/moonstream.git@0a771ddfbca1254be331149ccf2d162aa09b7bc0#egg=moonstreamdb&subdirectory=db",
+        "moonstreamdb == 0.2.0",
         "humbug",
         "python-dateutil",
         "requests",
@@ -42,11 +43,11 @@ setup(
         "web3",
     ],
     extras_require={
-        "dev": ["black", "mypy", "types-requests", "types-python-dateutil"]
+        "dev": ["black", "isort", "mypy", "types-requests", "types-python-dateutil"]
     },
     entry_points={
         "console_scripts": [
-            "ethcrawler=mooncrawl.ethcrawler:main",
+            "crawler=mooncrawl.crawler:main",
             "esd=mooncrawl.esd:main",
             "identity=mooncrawl.identity:main",
             "etherscan=mooncrawl.etherscan:main",

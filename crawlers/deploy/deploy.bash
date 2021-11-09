@@ -28,11 +28,19 @@ PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.py"
 CHECKENV_REPO_URL="https://raw.githubusercontent.com/bugout-dev/checkenv/main/scripts"
 CHECKENV_PARAMETERS_SCRIPT_URL="${CHECKENV_REPO_URL}/parameters.bash"
 CHECKENV_NODES_CONNECTIONS_SCRIPT_URL="${CHECKENV_REPO_URL}/nodes-connections.bash"
+
+# Ethereum service files
 ETHEREUM_SYNCHRONIZE_SERVICE="ethereum-synchronize.service"
-ETHEREUM_TRENDING_SERVICE="ethereum-trending.service"
-ETHEREUM_TRENDING_TIMER="ethereum-trending.service"
-ETHEREUM_TXPOOL_SERVICE="ethereum-txpool.service"
-ETHEREUM_CRAWLERS_SERVICE_FILE="moonstreamcrawlers.service"
+ETHEREUM_TRENDING_SERVICE_FILE="ethereum-trending.service"
+ETHEREUM_TRENDING_TIMER_FILE="ethereum-trending.service"
+ETHEREUM_TXPOOL_SERVICE_FILE="ethereum-txpool.service"
+
+# Polygon service file
+POLYGON_SYNCHRONIZE_SERVICE="polygon-synchronize.service"
+
+CRAWLERS_SERVICE_FILE="moonstreamcrawlers.service"
+
+
 
 set -eu
 
@@ -84,27 +92,35 @@ systemctl restart "${ETHEREUM_SYNCHRONIZE_SERVICE}"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Replacing existing Ethereum trending service and timer with: ${ETHEREUM_TRENDING_SERVICE}, ${ETHEREUM_TRENDING_TIMER}"
-chmod 644 "${SCRIPT_DIR}/${ETHEREUM_TRENDING_SERVICE}" "${SCRIPT_DIR}/${ETHEREUM_TRENDING_TIMER}"
-cp "${SCRIPT_DIR}/${ETHEREUM_TRENDING_SERVICE}" "/etc/systemd/system/${ETHEREUM_TRENDING_SERVICE}"
-cp "${SCRIPT_DIR}/${ETHEREUM_TRENDING_TIMER}" "/etc/systemd/system/${ETHEREUM_TRENDING_TIMER}"
+echo -e "${PREFIX_INFO} Replacing existing Ethereum trending service and timer with: ${ETHEREUM_TRENDING_SERVICE_FILE}, ${ETHEREUM_TRENDING_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ETHEREUM_TRENDING_SERVICE_FILE}" "${SCRIPT_DIR}/${ETHEREUM_TRENDING_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_TRENDING_SERVICE_FILE}" "/etc/systemd/system/${ETHEREUM_TRENDING_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_TRENDING_TIMER_FILE}" "/etc/systemd/system/${ETHEREUM_TRENDING_TIMER_FILE}"
 systemctl daemon-reload
-systemctl restart "${ETHEREUM_TRENDING_TIMER}"
+systemctl restart "${ETHEREUM_TRENDING_TIMER_FILE}"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Replacing existing Ethereum transaction pool crawler service definition with ${ETHEREUM_TXPOOL_SERVICE}"
-chmod 644 "${SCRIPT_DIR}/${ETHEREUM_TXPOOL_SERVICE}"
-cp "${SCRIPT_DIR}/${ETHEREUM_TXPOOL_SERVICE}" "/etc/systemd/system/${ETHEREUM_TXPOOL_SERVICE}"
+echo -e "${PREFIX_INFO} Replacing existing Ethereum transaction pool crawler service definition with ${ETHEREUM_TXPOOL_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ETHEREUM_TXPOOL_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_TXPOOL_SERVICE_FILE}" "/etc/systemd/system/${ETHEREUM_TXPOOL_SERVICE_FILE}"
 systemctl daemon-reload
-systemctl restart "${ETHEREUM_TXPOOL_SERVICE}"
+systemctl restart "${ETHEREUM_TXPOOL_SERVICE_FILE}"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Replacing existing moonstreamcrawlers service definition with ${ETHEREUM_CRAWLERS_SERVICE_FILE}"
-chmod 644 "${SCRIPT_DIR}/${ETHEREUM_CRAWLERS_SERVICE_FILE}"
-cp "${SCRIPT_DIR}/${ETHEREUM_CRAWLERS_SERVICE_FILE}" "/etc/systemd/system/${ETHEREUM_CRAWLERS_SERVICE_FILE}"
+echo -e "${PREFIX_INFO} Replacing existing Polygon block with transactions syncronizer service definition with ${POLYGON_SYNCHRONIZE_SERVICE}"
+chmod 644 "${SCRIPT_DIR}/${POLYGON_SYNCHRONIZE_SERVICE}"
+cp "${SCRIPT_DIR}/${POLYGON_SYNCHRONIZE_SERVICE}" "/etc/systemd/system/${POLYGON_SYNCHRONIZE_SERVICE}"
 systemctl daemon-reload
-systemctl restart "${ETHEREUM_CRAWLERS_SERVICE_FILE}"
-systemctl status "${ETHEREUM_CRAWLERS_SERVICE_FILE}"
+systemctl restart "${POLYGON_SYNCHRONIZE_SERVICE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing moonstreamcrawlers service definition with ${CRAWLERS_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${CRAWLERS_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${CRAWLERS_SERVICE_FILE}" "/etc/systemd/system/${CRAWLERS_SERVICE_FILE}"
+systemctl daemon-reload
+systemctl restart "${CRAWLERS_SERVICE_FILE}"
+systemctl status "${CRAWLERS_SERVICE_FILE}"
 
