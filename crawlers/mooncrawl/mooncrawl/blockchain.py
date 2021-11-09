@@ -60,7 +60,7 @@ def connect(blockchain_type: AvailableBlockchainType, web3_uri: Optional[str] = 
     return web3_client
 
 
-def get_block_model_model(
+def get_block_model(
     blockchain_type: AvailableBlockchainType,
 ) -> Type[Union[EthereumBlock, PolygonBlock]]:
     """
@@ -78,7 +78,7 @@ def get_block_model_model(
     return block_model
 
 
-def get_transaction_model_model(
+def get_transaction_model(
     blockchain_type: AvailableBlockchainType,
 ) -> Type[Union[EthereumTransaction, PolygonTransaction]]:
     """
@@ -101,17 +101,18 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
     Add block if doesn't presented in database.
 
     block: web3.types.BlockData
-
-    Polygon notes:
-        - BlockData.extraData doesn't exist
     """
-    block_model = get_block_model_model(blockchain_type)
+    block_model = get_block_model(blockchain_type)
+
+    # BlockData.extraData doesn't exist at Polygon mainnet
+    extra_data = None
+    if block.get("extraData", None) is not None:
+        extra_data = block.get("extraData").hex()
+
     block_obj = block_model(
         block_number=block.number,
         difficulty=block.difficulty,
-        extra_data=block.get("extraData").hex()
-        if block.get("extraData", None) is not None
-        else None,
+        extra_data=extra_data,
         gas_limit=block.gasLimit,
         gas_used=block.gasUsed,
         base_fee_per_gas=block.get("baseFeePerGas", None),
@@ -139,7 +140,7 @@ def add_block_transactions(
 
     block: web3.types.BlockData
     """
-    transaction_model = get_transaction_model_model(blockchain_type)
+    transaction_model = get_transaction_model(blockchain_type)
     for tx in block.transactions:
         tx_obj = transaction_model(
             hash=tx.hash.hex(),
@@ -173,7 +174,7 @@ def get_latest_blocks(
     if confirmations > 0:
         latest_block_number -= confirmations
 
-    block_model = get_block_model_model(blockchain_type)
+    block_model = get_block_model(blockchain_type)
     with yield_db_session_ctx() as db_session:
         latest_stored_block_row = (
             db_session.query(block_model.block_number)
@@ -245,8 +246,8 @@ def check_missing_blocks(
     bottom_block = min(blocks_numbers[-1], blocks_numbers[0])
     top_block = max(blocks_numbers[-1], blocks_numbers[0])
 
-    block_model = get_block_model_model(blockchain_type)
-    transaction_model = get_transaction_model_model(blockchain_type)
+    block_model = get_block_model(blockchain_type)
+    transaction_model = get_transaction_model(blockchain_type)
     with yield_db_session_ctx() as db_session:
         if notransactions:
             blocks_exist_raw_query = (
