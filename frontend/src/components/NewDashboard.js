@@ -299,7 +299,7 @@ const NewDashboard = (props) => {
                                                     size="sm"
                                                     placeSelf="self-end"
                                                     colorScheme={
-                                                      item.hasABI
+                                                      item.abi
                                                         ? "green"
                                                         : "gray"
                                                     }
@@ -383,10 +383,10 @@ const NewDashboard = (props) => {
                         )}
                     </Td>
                     <Td w="90px">
-                      {subscibedItem.hasABI && subscibedItem.address && (
+                      {subscibedItem.abi && subscibedItem.address && (
                         <CheckCircleIcon color="green" />
                       )}
-                      {!subscibedItem.hasABI && (
+                      {!subscibedItem.abi && (
                         <Button
                           colorScheme="orange"
                           size="xs"
@@ -407,7 +407,7 @@ const NewDashboard = (props) => {
                     <Td w="60px">
                       <Checkbox
                         isDisabled={
-                          !subscibedItem.address || !subscibedItem.hasABI
+                          !subscibedItem.address || !subscibedItem.abi
                         }
                         isChecked={subscibedItem.isMethods}
                       ></Checkbox>
@@ -415,7 +415,7 @@ const NewDashboard = (props) => {
                     <Td w="60px">
                       <Checkbox
                         isDisabled={
-                          !subscibedItem.address || !subscibedItem.hasABI
+                          !subscibedItem.address || !subscibedItem.abi
                         }
                         isChecked={subscibedItem.isEvents}
                       ></Checkbox>

@@ -1,17 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Flex, ButtonGroup, Button, useToast, Spinner } from "@chakra-ui/react";
-import { modifySubscription } from "../core/services/subscriptions.service";
+import { useSubscriptions } from "../core/hooks";
 // import hljs from "highlight.js";
 // import ReactQuill from "react-quill"; // ES6
 import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/theme-github";
 import "ace-builds/src-noconflict/mode-json";
+import OverlayContext from "../core/providers/OverlayProvider/context";
+import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 
-const ABIUPLoad = () => {
+const ABIUPLoad = (props) => {
+  console.assert(props.id, "id not defined in ABI Upload");
+  const { updateSubscription } = useSubscriptions();
   const toast = useToast();
   const [text, setText] = useState();
   const [json, setJSON] = useState();
-  const [isSubmitting, setSubmitting] = useState(false);
+  const { toggleModal } = useContext(OverlayContext);
 
   const handleVerify = (raw) => {
     try {
@@ -33,6 +37,19 @@ const ABIUPLoad = () => {
   };
 
   useEffect(() => {
+    updateSubscription.isSuccess && toggleModal({ type: MODAL_TYPES.OFF });
+    updateSubscription.isSuccess &&
+      toast({
+        id: "upload_abi_success",
+        description: "ABI was assigned to the subscription",
+        title: "Success!",
+        position: "bottom",
+        status: "success",
+        variant: "subtle",
+      });
+  }, [updateSubscription.isSuccess, toggleModal]);
+
+  useEffect(() => {
     if (json === false) {
       const clearingInterval = setInterval(() => setJSON(), 200);
       return () => clearInterval(clearingInterval);
@@ -45,11 +62,14 @@ const ABIUPLoad = () => {
   };
   const handleSubmit = () => {
     if (json) {
-      modifySubscription({ id: abi: json });
+      console.log("id:", props.id);
+      updateSubscription.mutate({
+        id: props.id,
+        abi: JSON.stringify(json),
+      });
     }
   };
 
-  console.log("json", json);
   return (
     <Flex
       // minH="420px"
@@ -65,7 +85,7 @@ const ABIUPLoad = () => {
       borderWidth={json === false ? "1px" : "0px"}
       transition="0.1s"
     >
-      {isSubmitting && (
+      {updateSubscription.isLoading && (
         <Spinner position="absolute" top="50%" left="50%" zIndex={1} />
       )}
       {/* ABI HERE PLEASE: */}
@@ -79,13 +99,13 @@ const ABIUPLoad = () => {
         onChange={(e) => handleChange(e)}
         name="AbiUploadField"
         editorProps={{ $blockScrolling: false }}
-        readOnly={isSubmitting}
+        readOnly={updateSubscription.isLoading}
         showGutter={true}
       />
       {/* <Divider /> */}
       <ButtonGroup pt={2} placeContent="flex-end">
         <Button
-          isLoading={isSubmitting}
+          isLoading={updateSubscription.isLoading}
           onClick={() => setJSON(handleVerify(text))}
           transition="0.3s"
           colorScheme={json ? "green" : json === false ? "red" : "blue"}
@@ -93,7 +113,7 @@ const ABIUPLoad = () => {
           Verify
         </Button>
         <Button
-          isLoading={isSubmitting}
+          isLoading={updateSubscription.isLoading}
           disabled={!json}
           onClick={() => handleSubmit()}
           transition="0.3s"
