@@ -222,18 +222,6 @@ class OnboardingState(BaseModel):
     steps: Dict[str, int]
 
 
-class DashboardContractsAbi(BaseModel):
-    abi: str
-    contract_label: str
-    contract_address: str
-
-
-class DashboardContractsAbiResource(BaseModel):
-    abi_s3_url: str
-    contract_label: str
-    contract_address: str
-
-
 class DashboardResource(BaseModel):
     type: str
     user_id: Union[str, UUID]
