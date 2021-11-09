@@ -71,9 +71,6 @@ async def add_dashboard_handler(
     }
 
     for dashboard_subscription in dashboard_subscriptions:
-        print(available_subscriptions.keys())
-        print(dashboard_subscription.subscription_id)
-
         if dashboard_subscription.subscription_id in available_subscriptions.keys():
 
             # TODO(Andrey): Add some dedublication for get object from s3 for repeated subscription_id
@@ -107,7 +104,6 @@ async def add_dashboard_handler(
                 )
 
             except s3_client.exceptions.NoSuchKey as e:
-                print(e)
                 logger.error(
                     f"Error getting Abi for subscription {dashboard_subscription.subscription_id} S3 {s3_path} does not exist : {str(e)}"
                 )
@@ -395,7 +391,6 @@ async def get_dashboard_data_links_handler(
             "dashboard_subscriptions"
         ]
     ]
-    print(subscriptions_ids)
 
     dashboard_subscriptions = [
         subscription
