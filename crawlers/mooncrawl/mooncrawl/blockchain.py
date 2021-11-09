@@ -7,7 +7,7 @@ from moonstreamdb.models import (
     EthereumBlock,
     EthereumTransaction,
     PolygonBlock,
-    PolygonTransactions,
+    PolygonTransaction,
 )
 from psycopg2.errors import UniqueViolation  # type: ignore
 from sqlalchemy import Column, desc, func
@@ -106,7 +106,9 @@ def add_block_transactions(db_session, block: Any) -> None:
         db_session.add(tx_obj)
 
 
-def get_latest_blocks(blockchain_type: AvailableBlockchainType,confirmations: int = 0) -> Tuple[Optional[int], int]:
+def get_latest_blocks(
+    blockchain_type: AvailableBlockchainType, confirmations: int = 0
+) -> Tuple[Optional[int], int]:
     """
     Retrieve the latest block from the connected node (connection is created by the connect(AvailableBlockchainType) method).
 
@@ -131,7 +133,11 @@ def get_latest_blocks(blockchain_type: AvailableBlockchainType,confirmations: in
     return latest_stored_block_number, latest_block_number
 
 
-def crawl_blocks(blockchain_type: AvailableBlockchainType, blocks_numbers: List[int], with_transactions: bool = False) -> None:
+def crawl_blocks(
+    blockchain_type: AvailableBlockchainType,
+    blocks_numbers: List[int],
+    with_transactions: bool = False,
+) -> None:
     """
     Open database and geth sessions and fetch block data from blockchain.
     """
@@ -171,7 +177,11 @@ def crawl_blocks(blockchain_type: AvailableBlockchainType, blocks_numbers: List[
         pbar.close()
 
 
-def check_missing_blocks(blockchain_type: AvailableBlockchainType, blocks_numbers: List[int], notransactions=False) -> List[int]:
+def check_missing_blocks(
+    blockchain_type: AvailableBlockchainType,
+    blocks_numbers: List[int],
+    notransactions=False,
+) -> List[int]:
     """
     Query block from postgres. If block does not presented in database,
     add to missing blocks numbers list.
@@ -245,7 +255,7 @@ def check_missing_blocks(blockchain_type: AvailableBlockchainType, blocks_number
 
 
 def crawl_blocks_executor(
-    blockchain_type: AvailableBlockchainType, 
+    blockchain_type: AvailableBlockchainType,
     block_numbers_list: List[int],
     with_transactions: bool = False,
     num_processes: int = MOONSTREAM_CRAWL_WORKERS,
@@ -282,7 +292,9 @@ def crawl_blocks_executor(
             for worker in worker_indices:
                 block_chunk = worker_job_lists[worker]
                 logger.info(f"Spawned process for {len(block_chunk)} blocks")
-                result = executor.submit(crawl_blocks, blockchain_type, block_chunk, with_transactions)
+                result = executor.submit(
+                    crawl_blocks, blockchain_type, block_chunk, with_transactions
+                )
                 result.add_done_callback(record_error)
                 results.append(result)
 
