@@ -11,8 +11,11 @@ from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Depends, Request, Form
 from web3 import Web3
-from web3._utils.validation import validate_abi
 
+from ..actions import (
+    validate_abi_string,
+    upload_abi_to_s3,
+)
 from ..admin import subscription_types
 from .. import data
 from ..middleware import MoonstreamHTTPException
@@ -109,39 +112,9 @@ async def add_subscription_handler(
 
     if abi:
 
-        try:
-            validate_abi(json.loads(abi))
-        except json.JSONDecodeError:
-            raise MoonstreamHTTPException(status_code=400, detail="Malformed abi body.")
-        except ValueError as e:
-            raise MoonstreamHTTPException(status_code=400, detail=e)
-        except:
-            raise MoonstreamHTTPException(
-                status_code=400, detail="Error on abi valiadation."
-            )
-        s3_client = boto3.client("s3")
+        validate_abi_string(abi=abi)
 
-        bucket = AWS_S3_SMARTCONTRACTS_ABI_BUCKET
-
-        result_bytes = abi.encode("utf-8")
-        result_key = f"{AWS_S3_SMARTCONTRACTS_ABI_PREFIX}/{resource.resource_data['address']}/{resource.id}/abi.json"
-
-        s3_client.put_object(
-            Body=result_bytes,
-            Bucket=bucket,
-            Key=result_key,
-            ContentType="application/json",
-            Metadata={"Moonstream": "Abi data"},
-        )
-
-        update_resource: Dict[str, Any] = {}
-
-        update_resource["abi"] = True
-
-        update_resource["bucket"] = AWS_S3_SMARTCONTRACTS_ABI_BUCKET
-        update_resource[
-            "s3_path"
-        ] = f"{AWS_S3_SMARTCONTRACTS_ABI_PREFIX}/{resource.resource_data['address']}/{resource.id}/abi.json"
+        update_resource = upload_abi_to_s3(resource=resource, abi=abi, update={})
 
         try:
             updated_resource: BugoutResource = bc.update_resource(
@@ -268,16 +241,7 @@ async def update_subscriptions_handler(
 
     if abi:
 
-        try:
-            validate_abi(json.loads(abi))
-        except json.JSONDecodeError:
-            raise MoonstreamHTTPException(status_code=400, detail="Malformed abi body.")
-        except ValueError as e:
-            raise MoonstreamHTTPException(status_code=400, detail=e)
-        except:
-            raise MoonstreamHTTPException(
-                status_code=400, detail="Error on abi valiadation."
-            )
+        validate_abi_string(abi=abi)
 
         try:
             subscription_resource: BugoutResource = bc.get_resource(
@@ -296,27 +260,9 @@ async def update_subscriptions_handler(
                 detail="Subscription already have ABI. For add a new ABI create new subscription.",
             )
 
-        s3_client = boto3.client("s3")
-
-        bucket = AWS_S3_SMARTCONTRACTS_ABI_BUCKET
-
-        result_bytes = abi.encode("utf-8")
-        result_key = f"{AWS_S3_SMARTCONTRACTS_ABI_PREFIX}/{subscription_resource.resource_data['address']}/{subscription_resource.id}/abi.json"
-
-        s3_client.put_object(
-            Body=result_bytes,
-            Bucket=bucket,
-            Key=result_key,
-            ContentType="application/json",
-            Metadata={"Moonstream": "Abi data"},
+        update = upload_abi_to_s3(
+            resource=subscription_resource, abi=abi, update=update
         )
-
-        update["abi"] = True
-
-        update["bucket"] = AWS_S3_SMARTCONTRACTS_ABI_BUCKET
-        update[
-            "s3_path"
-        ] = f"{AWS_S3_SMARTCONTRACTS_ABI_PREFIX}/{subscription_resource.resource_data['address']}/{subscription_resource.id}/abi.json"
 
     try:
         resource: BugoutResource = bc.update_resource(
