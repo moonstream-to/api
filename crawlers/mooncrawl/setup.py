@@ -2,7 +2,6 @@ from setuptools import find_packages, setup
 
 from mooncrawl.version import MOONCRAWL_VERSION
 
-
 long_description = ""
 with open("README.md") as ifp:
     long_description = ifp.read()
