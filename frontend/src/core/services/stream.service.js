@@ -1,5 +1,4 @@
 import { http } from "../utils";
-// import axios from "axios";
 
 const API = process.env.NEXT_PUBLIC_MOONSTREAM_API_URL;
 
