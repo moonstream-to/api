@@ -20,7 +20,7 @@ const ForgotPassword = ({ toggleModal }) => {
   useEffect(() => {
     if (!data) return;
 
-    toggleModal(MODAL_TYPES.OFF);
+    toggleModal({ type: MODAL_TYPES.OFF });
   }, [data, toggleModal, toast]);
 
   return (

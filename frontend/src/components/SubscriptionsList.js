@@ -119,7 +119,10 @@ const SubscriptionsList = ({ emptyCTA }) => {
                       py={2}
                       disabled={!subscription.address}
                       onClick={() =>
-                        overlay.toggleModal(MODAL_TYPES.UPLOAD_ABI)
+                        overlay.toggleModal({
+                          type: MODAL_TYPES.UPLOAD_ABI,
+                          props: { id: subscription.id },
+                        })
                       }
                     >
                       Upload

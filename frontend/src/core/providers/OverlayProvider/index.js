@@ -45,21 +45,23 @@ const UploadABI = React.lazy(() => import("../../../components/UploadABI"));
 const OverlayProvider = ({ children }) => {
   const ui = useContext(UIContext);
   const { user } = useContext(UserContext);
-  const [modal, toggleModal] = useState(MODAL_TYPES.OFF);
+  const [modal, toggleModal] = useState({
+    type: MODAL_TYPES.OFF,
+    props: undefined,
+  });
   const [drawer, toggleDrawer] = useState(DRAWER_TYPES.OFF);
   const [alertCallback, setAlertCallback] = useState(null);
   const drawerDisclosure = useDisclosure();
   const modalDisclosure = useDisclosure();
   const alertDisclosure = useDisclosure();
-  const [modalProps, setModalProps] = useState();
 
   useLayoutEffect(() => {
-    if (modal === MODAL_TYPES.OFF && modalDisclosure.isOpen) {
+    if (modal.type === MODAL_TYPES.OFF && modalDisclosure.isOpen) {
       modalDisclosure.onClose();
-    } else if (modal !== MODAL_TYPES.OFF && !modalDisclosure.isOpen) {
+    } else if (modal.type !== MODAL_TYPES.OFF && !modalDisclosure.isOpen) {
       modalDisclosure.onOpen();
     }
-  }, [modal, modalDisclosure]);
+  }, [modal.type, modalDisclosure]);
 
   useLayoutEffect(() => {
     if (drawer === DRAWER_TYPES.OFF && drawerDisclosure.isOpen) {
@@ -83,7 +85,7 @@ const OverlayProvider = ({ children }) => {
     Object.values(DRAWER_TYPES).some((element) => element === drawer)
   );
   console.assert(
-    Object.values(MODAL_TYPES).some((element) => element === modal)
+    Object.values(MODAL_TYPES).some((element) => element === modal.type)
   );
 
   const cancelRef = React.useRef();
@@ -96,18 +98,18 @@ const OverlayProvider = ({ children }) => {
       !user?.username &&
       !ui.isLoggingOut &&
       !ui.isLoggingIn &&
-      !modal
+      !modal.type
     ) {
-      toggleModal(MODAL_TYPES.LOGIN);
+      toggleModal({ type: MODAL_TYPES.LOGIN });
     } else if (user && ui.isLoggingOut) {
-      toggleModal(MODAL_TYPES.OFF);
+      toggleModal({ type: MODAL_TYPES.OFF });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ui.isAppView, ui.isAppReady, user, ui.isLoggingOut, modal]);
+  }, [ui.isAppView, ui.isAppReady, user, ui.isLoggingOut, modal.type]);
 
   return (
     <OverlayContext.Provider
-      value={{ modal, toggleModal, drawer, toggleDrawer, setModalProps }}
+      value={{ modal, toggleModal, drawer, toggleDrawer }}
     >
       <AlertDialog
         isOpen={alertDisclosure.isOpen}
@@ -142,7 +144,7 @@ const OverlayProvider = ({ children }) => {
 
       <Modal
         isOpen={modalDisclosure.isOpen}
-        onClose={() => toggleModal(MODAL_TYPES.OFF)}
+        onClose={() => toggleModal({ type: MODAL_TYPES.OFF })}
         size="2xl"
         scrollBehavior="outside"
         trapFocus={false}
@@ -151,44 +153,48 @@ const OverlayProvider = ({ children }) => {
 
         <ModalContent>
           <ModalHeader bgColor="white.200" py={2} fontSize="lg">
-            {modal === MODAL_TYPES.NEW_SUBSCRIPTON &&
+            {modal.type === MODAL_TYPES.NEW_SUBSCRIPTON &&
               "Subscribe to a new address"}
-            {modal === MODAL_TYPES.FORGOT && "Forgot Password"}
-            {modal === MODAL_TYPES.HUBSPOT && "Join the waitlist"}
-            {modal === MODAL_TYPES.LOGIN && "Login now"}
-            {modal === MODAL_TYPES.SIGNUP && "Create an account"}
-            {modal === MODAL_TYPES.UPLOAD_ABI && "Assign ABI"}
+            {modal.type === MODAL_TYPES.FORGOT && "Forgot Password"}
+            {modal.type === MODAL_TYPES.HUBSPOT && "Join the waitlist"}
+            {modal.type === MODAL_TYPES.LOGIN && "Login now"}
+            {modal.type === MODAL_TYPES.SIGNUP && "Create an account"}
+            {modal.type === MODAL_TYPES.UPLOAD_ABI && "Assign ABI"}
           </ModalHeader>
           <Divider />
           <ModalCloseButton />
           <ModalBody
             zIndex={100002}
-            bgColor={modal === MODAL_TYPES.UPLOAD_ABI ? "white.200" : undefined}
+            bgColor={
+              modal.type === MODAL_TYPES.UPLOAD_ABI ? "white.200" : undefined
+            }
           >
             <Suspense fallback={<Spinner />}>
-              {modal === MODAL_TYPES.NEW_SUBSCRIPTON && (
+              {modal.type === MODAL_TYPES.NEW_SUBSCRIPTON && (
                 <NewSubscription
-                  onClose={() => toggleModal(MODAL_TYPES.OFF)}
+                  onClose={() => toggleModal({ type: MODAL_TYPES.OFF })}
                   isModal={true}
-                  {...modalProps}
+                  {...modal.props}
                 />
               )}
-              {modal === MODAL_TYPES.FORGOT && <ForgotPassword />}
-              {modal === MODAL_TYPES.HUBSPOT && (
+              {modal.type === MODAL_TYPES.FORGOT && <ForgotPassword />}
+              {modal.type === MODAL_TYPES.HUBSPOT && (
                 <HubspotForm
                   toggleModal={toggleModal}
                   title={"Join the waitlist"}
                   formId={"1897f4a1-3a00-475b-9bd5-5ca2725bd720"}
                 />
               )}
-              {modal === MODAL_TYPES.LOGIN && (
+              {modal.type === MODAL_TYPES.LOGIN && (
                 <SignIn toggleModal={toggleModal} />
               )}
               {
-                modal === MODAL_TYPES.SIGNUP && ""
+                modal.type === MODAL_TYPES.SIGNUP && ""
                 // <SignUp toggleModal={toggleModal} />
               }
-              {modal === MODAL_TYPES.UPLOAD_ABI && <UploadABI />}
+              {modal.type === MODAL_TYPES.UPLOAD_ABI && (
+                <UploadABI {...modal.props} />
+              )}
             </Suspense>
           </ModalBody>
         </ModalContent>

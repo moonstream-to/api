@@ -247,11 +247,11 @@ const NewDashboard = (props) => {
                                               m={0}
                                               isTruncated
                                               onClick={() => {
-                                                overlay.toggleModal(
-                                                  MODAL_TYPES.NEW_SUBSCRIPTON
-                                                );
-                                                overlay.setModalProps({
-                                                  initialValue: inputValue,
+                                                overlay.toggleModal({
+                                                  type: MODAL_TYPES.NEW_SUBSCRIPTON,
+                                                  props: {
+                                                    initialValue: inputValue,
+                                                  },
                                                 });
                                               }}
                                             >
@@ -299,7 +299,7 @@ const NewDashboard = (props) => {
                                                     size="sm"
                                                     placeSelf="self-end"
                                                     colorScheme={
-                                                      item.hasABI
+                                                      item.abi
                                                         ? "green"
                                                         : "gray"
                                                     }
@@ -334,9 +334,9 @@ const NewDashboard = (props) => {
                                             m={0}
                                             size="sm"
                                             onClick={() =>
-                                              overlay.toggleModal(
-                                                MODAL_TYPES.NEW_SUBSCRIPTON
-                                              )
+                                              overlay.toggleModal({
+                                                type: MODAL_TYPES.NEW_SUBSCRIPTON,
+                                              })
                                             }
                                           >
                                             New subscription
@@ -383,17 +383,20 @@ const NewDashboard = (props) => {
                         )}
                     </Td>
                     <Td w="90px">
-                      {subscibedItem.hasABI && subscibedItem.address && (
+                      {subscibedItem.abi && subscibedItem.address && (
                         <CheckCircleIcon color="green" />
                       )}
-                      {!subscibedItem.hasABI && (
+                      {!subscibedItem.abi && (
                         <Button
                           colorScheme="orange"
                           size="xs"
                           py={2}
                           disabled={!subscibedItem.address}
                           onClick={() =>
-                            overlay.toggleModal(MODAL_TYPES.UPLOAD_ABI)
+                            overlay.toggleModal({
+                              type: MODAL_TYPES.UPLOAD_ABI,
+                              props: { id: subscibedItem.id },
+                            })
                           }
                         >
                           Upload
@@ -404,7 +407,7 @@ const NewDashboard = (props) => {
                     <Td w="60px">
                       <Checkbox
                         isDisabled={
-                          !subscibedItem.address || !subscibedItem.hasABI
+                          !subscibedItem.address || !subscibedItem.abi
                         }
                         isChecked={subscibedItem.isMethods}
                       ></Checkbox>
@@ -412,7 +415,7 @@ const NewDashboard = (props) => {
                     <Td w="60px">
                       <Checkbox
                         isDisabled={
-                          !subscibedItem.address || !subscibedItem.hasABI
+                          !subscibedItem.address || !subscibedItem.abi
                         }
                         isChecked={subscibedItem.isEvents}
                       ></Checkbox>

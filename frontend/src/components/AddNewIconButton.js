@@ -45,7 +45,9 @@ const AddNewIconButton = (props) => {
             New Dashboard...
           </MenuItem>
           <MenuItem
-            onClick={() => modal.toggleModal(MODAL_TYPES.NEW_SUBSCRIPTON)}
+            onClick={() =>
+              modal.toggleModal({ type: MODAL_TYPES.NEW_SUBSCRIPTON })
+            }
           >
             New Subscription...
           </MenuItem>

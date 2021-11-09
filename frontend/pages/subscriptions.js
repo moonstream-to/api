@@ -34,7 +34,7 @@ const Subscriptions = () => {
   };
 
   const newSubscriptionClicked = () => {
-    modal.toggleModal(MODAL_TYPES.NEW_SUBSCRIPTON);
+    modal.toggleModal({ type: MODAL_TYPES.NEW_SUBSCRIPTON });
   };
   return (
     <Box w="100%" px="7%" pt={2}>

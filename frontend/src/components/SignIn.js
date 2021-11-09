@@ -26,7 +26,7 @@ const SignIn = ({ toggleModal }) => {
       return;
     }
 
-    toggleModal(MODAL_TYPES.OFF);
+    toggleModal({ type: MODAL_TYPES.OFF });
   }, [data, toggleModal]);
 
   return (
@@ -84,7 +84,7 @@ const SignIn = ({ toggleModal }) => {
           cursor="pointer"
           color="blue.800"
           as="span"
-          onClick={() => toggleModal(MODAL_TYPES.FORGOT)}
+          onClick={() => toggleModal({ type: MODAL_TYPES.FORGOT })}
         >
           Forgot your password?
         </Box>
