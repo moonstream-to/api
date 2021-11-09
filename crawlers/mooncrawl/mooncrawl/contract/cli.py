@@ -117,7 +117,7 @@ def run_crawler_desc(
 
 def handle_parser(args: argparse.Namespace):
     with yield_db_session_ctx() as session:
-        w3 = connect(AvailableBlockchainType(args.blockchain))
+        w3 = connect(AvailableBlockchainType.ETHEREUM)
         if args.order == "asc":
             run_crawler_asc(
                 w3=w3,
@@ -184,11 +184,6 @@ def generate_parser():
         type=int,
         default=3 * 60,
         help="time to sleep synzhronize mode waiting for new block crawled to db",
-    )
-    parser.add_argument(
-        "--blockchain",
-        required=True,
-        help=f"Available blockchain types: {[member.value for member in AvailableBlockchainType]}",
     )
     parser.set_defaults(func=handle_parser)
     return parser
