@@ -6,6 +6,7 @@ import uuid
 
 import boto3  # type: ignore
 from bugout.data import BugoutSearchResults
+from bugout.exceptions import BugoutResponseException
 from bugout.journal import SearchOrder
 from ens.utils import is_valid_ens_name  # type: ignore
 from eth_utils.address import is_address  # type: ignore
@@ -14,7 +15,10 @@ from moonstreamdb.models import (
 )
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+from web3._utils.validation import validate_abi
 
+
+from .middleware import MoonstreamHTTPException
 from . import data
 from .reporter import reporter
 from .middleware import MoonstreamHTTPException
@@ -26,6 +30,8 @@ from .settings import (
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_DATA_JOURNAL_ID,
+    AWS_S3_SMARTCONTRACTS_ABI_BUCKET,
+    AWS_S3_SMARTCONTRACTS_ABI_PREFIX,
 )
 from web3 import Web3
 
@@ -371,3 +377,55 @@ def dashboards_abi_validation(
                         )
                         raise MoonstreamHTTPException(status_code=400)
     return True
+
+
+def validate_abi_string(abi: str) -> None:
+    """
+    Transform string to json and run validation
+    """
+
+    try:
+        validate_abi(json.loads(abi))
+    except json.JSONDecodeError:
+        raise MoonstreamHTTPException(status_code=400, detail="Malformed abi body.")
+    except ValueError as e:
+        raise MoonstreamHTTPException(status_code=400, detail=e)
+    except:
+        raise MoonstreamHTTPException(
+            status_code=400, detail="Error on abi valiadation."
+        )
+
+
+def upload_abi_to_s3(
+    resource: BugoutResource,
+    abi: str,
+    update: Dict[str, Any],
+) -> Dict[str, Any]:
+    """
+    Uploading ABI to s3 bucket. Return object for updating resource.
+
+    """
+
+    s3_client = boto3.client("s3")
+
+    bucket = AWS_S3_SMARTCONTRACTS_ABI_BUCKET
+
+    result_bytes = abi.encode("utf-8")
+    result_key = f"{AWS_S3_SMARTCONTRACTS_ABI_PREFIX}/{resource.resource_data['address']}/{resource.id}/abi.json"
+
+    s3_client.put_object(
+        Body=result_bytes,
+        Bucket=bucket,
+        Key=result_key,
+        ContentType="application/json",
+        Metadata={"Moonstream": "Abi data"},
+    )
+
+    update["abi"] = True
+
+    update["bucket"] = AWS_S3_SMARTCONTRACTS_ABI_BUCKET
+    update[
+        "s3_path"
+    ] = f"{AWS_S3_SMARTCONTRACTS_ABI_PREFIX}/{resource.resource_data['address']}/{resource.id}/abi.json"
+
+    return update
