@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Union
 from enum import Enum
 import uuid
 
@@ -21,6 +21,7 @@ from web3._utils.validation import validate_abi
 from .middleware import MoonstreamHTTPException
 from . import data
 from .reporter import reporter
+from .middleware import MoonstreamHTTPException
 from .settings import ETHERSCAN_SMARTCONTRACTS_BUCKET
 from bugout.data import BugoutResource
 from .settings import (
@@ -269,6 +270,113 @@ def check_api_status():
             )
 
     return crawl_types_timestamp
+
+
+def json_type(evm_type: str) -> type:
+    if evm_type.startswith(("uint", "int")):
+        return int
+    elif evm_type.startswith("bytes") or evm_type == "string" or evm_type == "address":
+        return str
+    elif evm_type == "bool":
+        return bool
+    else:
+        raise ValueError(f"Cannot convert to python type {evm_type}")
+
+
+def dashboards_abi_validation(
+    dashboard_subscription: data.DashboardMeta,
+    abi: Any,
+    s3_path: str,
+):
+
+    """
+    Validate current dashboard subscription : https://github.com/bugout-dev/moonstream/issues/345#issuecomment-953052444
+    with contract abi on S3
+
+    """
+
+    # maybe its over but not found beter way
+    abi_functions = {
+        item["name"]: {inputs["name"]: inputs["type"] for inputs in item["inputs"]}
+        for item in abi
+        if item["type"] == "function"
+    }
+    if not dashboard_subscription.all_methods:
+        for method in dashboard_subscription.methods:
+
+            if method["name"] not in abi_functions:
+                # Method not exists
+                logger.error(
+                    f"Error on dashboard resource validation method:{method['name']}"
+                    f" of subscription: {dashboard_subscription.subscription_id}"
+                    f"does not exists in Abi {s3_path}"
+                )
+                raise MoonstreamHTTPException(status_code=400)
+            if method.get("filters") and isinstance(method["filters"], dict):
+
+                for input_argument_name, value in method["filters"].items():
+
+                    if input_argument_name not in abi_functions[method["name"]]:
+                        # Argument not exists
+                        logger.error(
+                            f"Error on dashboard resource validation type argument: {input_argument_name} of method:{method['name']} "
+                            f" of subscription: {dashboard_subscription.subscription_id} has incorrect"
+                            f"does not exists in Abi {s3_path}"
+                        )
+                        raise MoonstreamHTTPException(status_code=400)
+
+                    if not isinstance(
+                        value,
+                        json_type(abi_functions[method["name"]][input_argument_name]),
+                    ):
+                        # Argument has incorrect type
+                        logger.error(
+                            f"Error on dashboard resource validation type argument: {input_argument_name} of method:{method['name']} "
+                            f" of subscription: {dashboard_subscription.subscription_id} has incorrect type {type(value)}"
+                            f" when {abi_functions[method['name']][input_argument_name]} required."
+                        )
+                        raise MoonstreamHTTPException(status_code=400)
+    abi_events = {
+        item["name"]: {inputs["name"]: inputs["type"] for inputs in item["inputs"]}
+        for item in abi
+        if item["type"] == "event"
+    }
+
+    if not dashboard_subscription.all_events:
+        for event in dashboard_subscription.events:
+
+            if event["name"] not in abi_events:
+                logger.error(
+                    f"Error on dashboard resource validation event:{event['name']}"
+                    f" of subscription: {dashboard_subscription.subscription_id}"
+                    f"does not exists in Abi {s3_path}"
+                )
+                raise MoonstreamHTTPException(status_code=400)
+
+            if event.get("filters") and isinstance(event["filters"], dict):
+
+                for input_argument_name, value in event["filters"].items():
+
+                    if input_argument_name not in abi_events[event["name"]]:
+                        # Argument not exists
+                        logger.error(
+                            f"Error on dashboard resource validation type argument: {input_argument_name} of method:{event['name']} "
+                            f" of subscription: {dashboard_subscription.subscription_id} has incorrect"
+                            f"does not exists in Abi {s3_path}"
+                        )
+                        raise MoonstreamHTTPException(status_code=400)
+
+                    if not isinstance(
+                        value,
+                        json_type(abi_events[event["name"]][input_argument_name]),
+                    ):
+                        logger.error(
+                            f"Error on dashboard resource validation type argument: {input_argument_name} of method:{event['name']} "
+                            f" of subscription: {dashboard_subscription.subscription_id} has incorrect type {type(value)}"
+                            f" when {abi_events[event['name']][input_argument_name]} required."
+                        )
+                        raise MoonstreamHTTPException(status_code=400)
+    return True
 
 
 def validate_abi_string(abi: str) -> None:

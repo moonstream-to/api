@@ -5,6 +5,8 @@ from bugout.app import Bugout
 # Bugout
 BUGOUT_BROOD_URL = os.environ.get("BUGOUT_BROOD_URL", "https://auth.bugout.dev")
 BUGOUT_SPIRE_URL = os.environ.get("BUGOUT_SPIRE_URL", "https://spire.bugout.dev")
+
+
 bugout_client = Bugout(brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIRE_URL)
 
 BUGOUT_REQUEST_TIMEOUT_SECONDS = 5
@@ -30,6 +32,12 @@ if RAW_ORIGINS is None:
     raise ValueError(
         "MOONSTREAM_CORS_ALLOWED_ORIGINS environment variable must be set (comma-separated list of CORS allowed origins)"
     )
+SMARTCONTRACTS_ABI_BUCKET = os.environ.get("SMARTCONTRACTS_ABI_BUCKET")
+
+if SMARTCONTRACTS_ABI_BUCKET is None:
+    raise ValueError("SMARTCONTRACTS_ABI_BUCKET environment variable must be set")
+
+
 ORIGINS = RAW_ORIGINS.split(",")
 
 # OpenAPI
