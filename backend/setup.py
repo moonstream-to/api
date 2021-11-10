@@ -1,14 +1,14 @@
 from setuptools import find_packages, setup
 
-from moonstream.version import MOONSTREAM_VERSION
+from moonstreamapi.version import MOONSTREAMAPI_VERSION
 
 long_description = ""
 with open("README.md") as ifp:
     long_description = ifp.read()
 
 setup(
-    name="moonstream",
-    version=MOONSTREAM_VERSION,
+    name="moonstreamapi",
+    version=MOONSTREAMAPI_VERSION,
     packages=find_packages(),
     install_requires=[
         "appdirs~=1.4.4",
@@ -27,7 +27,7 @@ setup(
         "dev": ["black", "isort", "mypy", "types-requests", "types-python-dateutil"],
         "distribute": ["setuptools", "twine", "wheel"],
     },
-    package_data={"moonstream": ["py.typed"]},
+    package_data={"moonstreamapi": ["py.typed"]},
     zip_safe=False,
     description="The Bugout blockchain inspector API.",
     long_description=long_description,
@@ -41,5 +41,5 @@ setup(
         "Topic :: Software Development :: Libraries",
     ],
     url="https://github.com/bugout-dev/moonstream",
-    entry_points={"console_scripts": ["mnstr=moonstream.admin.cli:main"]},
+    entry_points={"console_scripts": ["mnstr=moonstreamapi.admin.cli:main"]},
 )

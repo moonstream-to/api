@@ -43,7 +43,8 @@ setup(
         "web3~=5.24.0",
     ],
     extras_require={
-        "dev": ["black", "isort", "mypy", "types-requests", "types-python-dateutil"]
+        "dev": ["black", "isort", "mypy", "types-requests", "types-python-dateutil"],
+        "distribute": ["setuptools", "twine", "wheel"],
     },
     entry_points={
         "console_scripts": [

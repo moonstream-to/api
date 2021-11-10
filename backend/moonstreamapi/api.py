@@ -19,7 +19,7 @@ from .routes.users import router as users_router
 from .routes.whales import router as whales_router
 from .middleware import BroodAuthMiddleware, MoonstreamHTTPException
 from .settings import DOCS_TARGET_PATH, ORIGINS
-from .version import MOONSTREAM_VERSION
+from .version import MOONSTREAMAPI_VERSION
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ tags_metadata = [
 app = FastAPI(
     title=f"Moonstream API",
     description="Moonstream API endpoints.",
-    version=MOONSTREAM_VERSION,
+    version=MOONSTREAMAPI_VERSION,
     openapi_tags=tags_metadata,
     openapi_url="/openapi.json",
     docs_url=None,
@@ -90,7 +90,7 @@ async def version_handler() -> data.VersionResponse:
     """
     Get server version.
     """
-    return data.VersionResponse(version=MOONSTREAM_VERSION)
+    return data.VersionResponse(version=MOONSTREAMAPI_VERSION)
 
 
 @app.get("/now", tags=["time"])

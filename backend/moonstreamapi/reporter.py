@@ -9,7 +9,7 @@ session_id = str(uuid.uuid4())
 client_id = "moonstream-backend"
 
 reporter = HumbugReporter(
-    name="moonstream",
+    name="moonstreamapi",
     consent=HumbugConsent(True),
     client_id=client_id,
     session_id=session_id,
