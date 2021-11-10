@@ -21,9 +21,11 @@ import { MdSettings } from "react-icons/md";
 import { HiAcademicCap } from "react-icons/hi";
 import { WHITE_LOGO_W_TEXT_URL } from "../core/constants";
 import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
+import useDashboard from "../core/hooks/useDashboard";
 
 const Sidebar = () => {
   const ui = useContext(UIContext);
+  const { dashboardsListCache } = useDashboard();
   return (
     <ProSidebar
       width="240px"
