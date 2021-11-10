@@ -111,7 +111,6 @@ const Footer = () => (
           </Stack>
         </Stack>
         {Object.values(FOOTER_COLUMNS).map((columnEnum) => {
-          console.log("colenum", columnEnum);
           return (
             <Stack align={"flex-start"} key={v4()}>
               {ALL_NAV_PATHES.filter(

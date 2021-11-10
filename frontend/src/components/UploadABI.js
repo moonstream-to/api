@@ -19,7 +19,6 @@ const ABIUPLoad = (props) => {
     try {
       return JSON.parse(raw);
     } catch (err) {
-      console.log("e", err.message);
       if (!toast.isActive("upload_json_fails")) {
         toast({
           id: "upload_json_fails",
@@ -60,7 +59,6 @@ const ABIUPLoad = (props) => {
   };
   const handleSubmit = () => {
     if (json) {
-      console.log("id:", props.id);
       updateSubscription.mutate({
         id: props.id,
         abi: JSON.stringify(json),

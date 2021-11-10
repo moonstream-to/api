@@ -245,7 +245,6 @@ const OverlayProvider = ({ children }) => {
                 const dashboardState = JSON.parse(
                   sessionStorage.getItem("new_dashboard")
                 );
-                console.log("dashboardState:", dashboardState);
                 createDashboard.mutate({
                   name: dashboardState.name,
                   subscriptions: dashboardState.subscriptions.map(
