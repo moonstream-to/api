@@ -1,6 +1,7 @@
 """
 Pydantic schemas for the Moonstream HTTP API
 """
+from _typeshed import OpenTextModeReading
 from enum import Enum
 from typing import List, Optional, Dict, Any, Union
 from uuid import UUID
@@ -238,12 +239,14 @@ class DashboardMeta(BaseModel):
     all_events: bool = False
     methods: List[Dict[str, Any]]
     events: List[Dict[str, Any]]
+    subscription_abi_hash: Optional[str]
 
 
 class DashboardResource(BaseModel):
     type: str
     user_id: str
     name: str
+    abi_hash
     dashboard_subscriptions: List[DashboardMeta]
 
 

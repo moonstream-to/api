@@ -1,5 +1,5 @@
+import hashlib
 import logging
-from os import read
 import json
 from typing import Any, List, Optional, Dict
 from uuid import UUID
@@ -8,6 +8,7 @@ import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Request, Query
+
 
 from .. import actions
 from .. import data
@@ -118,6 +119,12 @@ async def add_dashboard_handler(
             actions.dashboards_abi_validation(
                 dashboard_subscription, abi, s3_path=s3_path
             )
+
+            abi_string = json.dumps(abi, sort_keys=True, indent=2)
+
+            hash = hashlib.md5(abi_string.encode("utf-8")).hexdigest()
+
+            dashboard_subscription.subscription_abi_hash = hash
 
         else:
             logger.error(
@@ -385,17 +392,19 @@ async def get_dashboard_data_links_handler(
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
     # filter out dasboards
 
-    subscriptions_ids = [
-        UUID(subscription_meta["subscription_id"])
+    subscriptions_ids_hashes = {
+        UUID(subscription_meta["subscription_id"]): subscription_meta[
+            "subscription_abi_hash"
+        ]
         for subscription_meta in dashboard_resource.resource_data[
             "dashboard_subscriptions"
         ]
-    ]
+    }
 
     dashboard_subscriptions = [
         subscription
         for subscription in subscription_resources.resources
-        if subscription.id in subscriptions_ids
+        if subscription.id in subscriptions_ids_hashes
     ]
 
     # generate s3 links
@@ -410,7 +419,7 @@ async def get_dashboard_data_links_handler(
         stats[subscription.id] = {}
         for timescale in available_timescales:
             try:
-                result_key = f'contracts_data/{subscription.resource_data["address"]}/v1/{timescale}.json'
+                result_key = f'contracts_data/{subscription.resource_data["address"]}/{subscriptions_ids_hashes[subscription.id]}/v1/{timescale}.json'
                 stats_presigned_url = s3_client.generate_presigned_url(
                     "get_object",
                     Params={"Bucket": SMARTCONTRACTS_ABI_BUCKET, "Key": result_key},
