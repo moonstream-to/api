@@ -17,11 +17,10 @@ import {
   ArrowRightIcon,
   LockIcon,
 } from "@chakra-ui/icons";
-import { MdSettings } from "react-icons/md";
+import { MdTimeline, MdSettings } from "react-icons/md";
 import { HiAcademicCap } from "react-icons/hi";
-import { WHITE_LOGO_W_TEXT_URL } from "../core/constants";
-import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
-import useDashboard from "../core/hooks/useDashboard";
+import { WHITE_LOGO_W_TEXT_URL, ALL_NAV_PATHES } from "../core/constants";
+import { v4 } from "uuid";
 
 const Sidebar = () => {
   const ui = useContext(UIContext);
@@ -70,8 +69,12 @@ const Sidebar = () => {
       </SidebarHeader>
       {ui.isLoggedIn && (
         <SidebarContent>
-          <Menu iconShape="square"></Menu>
-          <Menu iconShape="square"></Menu>
+          <Menu iconShape="square">
+            <MenuItem icon={<MdTimeline />}>
+              {" "}
+              <RouterLink href="/stream">Stream</RouterLink>
+            </MenuItem>
+          </Menu>
           {ui.isMobileView && (
             <Menu iconShape="square">
               <MenuItem icon={<HiAcademicCap />}>
@@ -79,13 +82,23 @@ const Sidebar = () => {
                   Learn how to use Moonstream
                 </RouterLink>
               </MenuItem>
+              {ALL_NAV_PATHES.map((pathToLink) => {
+                return (
+                  <MenuItem key={v4()}>
+                    {" "}
+                    <RouterLink href={pathToLink.path}>
+                      {pathToLink.title}
+                    </RouterLink>
+                  </MenuItem>
+                );
+              })}
             </Menu>
           )}
         </SidebarContent>
       )}
       {!ui.isLoggedIn && (
         <SidebarContent>
-          {/* <Menu iconShape="square">
+          <Menu iconShape="square">
             <MenuItem
               onClick={() => {
                 ui.toggleModal("register");
@@ -94,8 +107,7 @@ const Sidebar = () => {
             >
               Sign up
             </MenuItem>
-          </Menu> */}
-          <Menu iconShape="square">
+
             <MenuItem
               onClick={() => {
                 ui.toggleModal({ type: MODAL_TYPES.LOGIN });
@@ -104,14 +116,16 @@ const Sidebar = () => {
             >
               Login
             </MenuItem>
-            <MenuItem>
-              {" "}
-              <RouterLink href="/product">Product </RouterLink>
-            </MenuItem>
-            <MenuItem>
-              {" "}
-              <RouterLink href="/team">Team </RouterLink>
-            </MenuItem>
+            {ALL_NAV_PATHES.map((pathToLink) => {
+              return (
+                <MenuItem key={v4()}>
+                  {" "}
+                  <RouterLink href={pathToLink.path}>
+                    {pathToLink.title}
+                  </RouterLink>
+                </MenuItem>
+              );
+            })}
           </Menu>
         </SidebarContent>
       )}
@@ -124,7 +138,6 @@ const Sidebar = () => {
               <RouterLink href="/account/tokens">API Tokens</RouterLink>
             </MenuItem>
             <MenuItem icon={<MdSettings />}>
-              {" "}
               <RouterLink href="/subscriptions">Subscriptions </RouterLink>
             </MenuItem>
           </Menu>

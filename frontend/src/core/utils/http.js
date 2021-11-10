@@ -1,7 +1,7 @@
 import enableMockupRequests from "./mockupRequests";
 let axios = require("axios");
 
-enableMockupRequests(axios);
+process.env.NODE_ENV !== "production" && enableMockupRequests(axios);
 
 const http = (config) => {
   const token = localStorage.getItem("MOONSTREAM_ACCESS_TOKEN");

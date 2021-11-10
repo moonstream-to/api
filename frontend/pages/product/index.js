@@ -129,7 +129,6 @@ const Product = () => {
       bgColor="transparent"
       backgroundImage={`url(${assets[`${background}`]})`}
       bgSize="cover"
-      // boxSize="full"
       minH="100vh"
       direction="column"
       alignItems="center"

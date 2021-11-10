@@ -17,13 +17,13 @@ const AccountIconButton = (props) => {
   const { logout } = useLogout();
 
   return (
-    <Menu>
+    <Menu {...props}>
       <MenuButton
-        {...props}
+        variant="inherit"
+        colorScheme="inherit"
         as={IconButton}
         aria-label="Account menu"
-        icon={<RiAccountCircleLine size="26px" />}
-        // variant="outline"
+        icon={<RiAccountCircleLine m={0} size="26px" />}
         color="gray.100"
       />
       <MenuList
