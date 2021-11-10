@@ -19,7 +19,7 @@ setup(
         "humbug~=0.2.7",
         "pydantic~=1.8.2",
         "python-dateutil~=2.8.2",
-        "python-multipart~=0.0.5"
+        "python-multipart~=0.0.5",
         "uvicorn~=0.15.0",
         "web3~=5.24.0",
     ],
