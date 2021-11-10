@@ -1,5 +1,6 @@
 import logging
 from os import read
+import json
 from typing import Any, List, Optional, Dict
 from uuid import UUID
 
@@ -31,11 +32,9 @@ BUGOUT_RESOURCE_TYPE_DASHBOARD = "dashboards"
 BUGOUT_RESOURCE_TYPE_SUBSCRIPTION = "subscription"
 
 
-@router.post("/", tags=["dashboards"], response_model=data.SubscriptionResourceData)
+@router.post("/", tags=["dashboards"], response_model=BugoutResource)
 async def add_dashboard_handler(
-    request: Request,
-    name: str,
-    subscriptions: List[data.DashboardMeta],
+    request: Request, dashboard: data.DashboardCreate
 ) -> BugoutResource:
     """
     Add subscription to blockchain stream data for user.
@@ -45,7 +44,7 @@ async def add_dashboard_handler(
 
     user = request.state.user
 
-    dashboard_subscriptions = subscriptions
+    dashboard_subscriptions = dashboard.subscriptions
 
     # Get all user subscriptions
     params = {
@@ -72,18 +71,18 @@ async def add_dashboard_handler(
     }
 
     for dashboard_subscription in dashboard_subscriptions:
-        if dashboard_subscription.subscription_id in available_subscriptions:
+        if dashboard_subscription.subscription_id in available_subscriptions.keys():
 
             # TODO(Andrey): Add some dedublication for get object from s3 for repeated subscription_id
 
             bucket = available_subscriptions[dashboard_subscription.subscription_id][
                 "bucket"
             ]
-            abi_path = available_subscriptions[dashboard_subscription.subscription_id][
-                "abi_path"
+            key = available_subscriptions[dashboard_subscription.subscription_id][
+                "s3_path"
             ]
 
-            if bucket is None or abi_path is None:
+            if bucket is None or key is None:
                 logger.error(
                     f"Error on dashboard resource {dashboard_subscription.subscription_id} does not have an abi"
                 )
@@ -91,13 +90,17 @@ async def add_dashboard_handler(
                     status_code=404,
                     detail=f"Error on dashboard resource {dashboard_subscription.subscription_id} does not have an abi",
                 )
-            s3_path = f"s3://{bucket}/{abi_path}"
+            s3_path = f"s3://{bucket}/{key}"
+
+            dashboard_subscription.subscription_id = str(
+                dashboard_subscription.subscription_id
+            )
 
             try:
 
                 response = s3_client.get_object(
                     Bucket=bucket,
-                    Key=abi_path,
+                    Key=key,
                 )
 
             except s3_client.exceptions.NoSuchKey as e:
@@ -110,7 +113,7 @@ async def add_dashboard_handler(
                     detail=f"We can't access the abi for subscription with id:{dashboard_subscription.subscription_id}.",
                 )
 
-            abi = data.DashboardMeta(**response["Body"].read().decode("utf-8"))
+            abi = json.loads(response["Body"].read())
 
             actions.dashboards_abi_validation(
                 dashboard_subscription, abi, s3_path=s3_path
@@ -124,8 +127,8 @@ async def add_dashboard_handler(
 
     dashboard_resource = data.DashboardResource(
         type=BUGOUT_RESOURCE_TYPE_DASHBOARD,
-        user_id=user.id,
-        name=name,
+        user_id=str(user.id),
+        name=dashboard.name,
         dashboard_subscriptions=dashboard_subscriptions,
     )
 
@@ -136,6 +139,7 @@ async def add_dashboard_handler(
             resource_data=dashboard_resource.dict(),
         )
     except BugoutResponseException as e:
+        logger.error(f"Error creating subscription resource: {str(e)}")
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
         logger.error(f"Error creating subscription resource: {str(e)}")
@@ -259,6 +263,7 @@ async def update_dashboard_handler(
     }
 
     for dashboard_subscription in dashboard_subscriptions:
+
         if dashboard_subscription.subscription_id in available_subscriptions:
 
             # TODO(Andrey): Add some dedublication for get object from s3 for repeated subscription_id
@@ -331,3 +336,91 @@ async def update_dashboard_handler(
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     return resource
+
+
+@router.get("/{dashboard_id}/data_links", tags=["dashboards"])
+async def get_dashboard_data_links_handler(
+    request: Request, dashboard_id: str
+) -> Dict[str, Any]:
+    """
+    Update dashboards mainly fully overwrite name and subscription metadata
+    """
+
+    token = request.state.token
+
+    user = request.state.user
+
+    try:
+        dashboard_resource: BugoutResource = bc.get_resource(
+            token=token, resource_id=dashboard_id
+        )
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        logger.error(
+            f"Error listing subscriptions for user ({request.user.id}) with token ({request.state.token}), error: {str(e)}"
+        )
+        reporter.error_report(e)
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    s3_client = boto3.client("s3")
+
+    # get subscriptions
+
+    params = {
+        "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
+        "user_id": str(user.id),
+    }
+    try:
+        subscription_resources: BugoutResources = bc.list_resources(
+            token=token, params=params
+        )
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        logger.error(
+            f"Error listing subscriptions for user ({request.user.id}) with token ({request.state.token}), error: {str(e)}"
+        )
+        reporter.error_report(e)
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+    # filter out dasboards
+
+    subscriptions_ids = [
+        UUID(subscription_meta["subscription_id"])
+        for subscription_meta in dashboard_resource.resource_data[
+            "dashboard_subscriptions"
+        ]
+    ]
+
+    dashboard_subscriptions = [
+        subscription
+        for subscription in subscription_resources.resources
+        if subscription.id in subscriptions_ids
+    ]
+
+    # generate s3 links
+
+    s3_client = boto3.client("s3")
+
+    stats: Dict[str, Any] = {}
+
+    for subscription in dashboard_subscriptions:
+
+        available_timescales = [timescale.value for timescale in data.TimeScale]
+        stats[subscription.id] = {}
+        for timescale in available_timescales:
+            try:
+                result_key = f'contracts_data/{subscription.resource_data["address"]}/v1/{timescale}.json'
+                stats_presigned_url = s3_client.generate_presigned_url(
+                    "get_object",
+                    Params={"Bucket": SMARTCONTRACTS_ABI_BUCKET, "Key": result_key},
+                    ExpiresIn=300,
+                    HttpMethod="GET",
+                )
+                stats[subscription.id][timescale] = stats_presigned_url
+            except Exception as err:
+                logger.warning(
+                    f"Can't generate S3 presigned url in stats endpoint for Bucket:{SMARTCONTRACTS_ABI_BUCKET}, Key:{result_key} get error:{err}"
+                )
+
+    return stats
