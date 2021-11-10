@@ -31,7 +31,7 @@ CHECKENV_PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.bash"
 CHECKENV_NODES_CONNECTIONS_SCRIPT="${SCRIPT_DIR}/nodes-connections.bash"
 
 # API server service file
-SERVICE_FILE="${SCRIPT_DIR}/moonstream.service"
+SERVICE_FILE="${SCRIPT_DIR}/moonstreamapi.service"
 
 set -eu
 
@@ -63,9 +63,9 @@ bash "${CHECKENV_NODES_CONNECTIONS_SCRIPT}" -v -f "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Replacing existing Moonstream service definition with ${SERVICE_FILE}"
+echo -e "${PREFIX_INFO} Replacing existing Moonstream API service definition with ${SERVICE_FILE}"
 chmod 644 "${SERVICE_FILE}"
-cp "${SERVICE_FILE}" /etc/systemd/system/moonstream.service
+cp "${SERVICE_FILE}" /etc/systemd/system/moonstreamapi.service
 systemctl daemon-reload
-systemctl restart moonstream.service
-systemctl status moonstream.service
+systemctl restart moonstreamapi.service
+systemctl status moonstreamapi.service

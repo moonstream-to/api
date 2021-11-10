@@ -23,7 +23,7 @@ jobs:
         run: pip install -r requirements.txt
       - name: Mypy type check
         working-directory: ./backend
-        run: mypy moonstream/
+        run: mypy moonstreamapi/
       - name: Black syntax check
         working-directory: ./backend
-        run: black --check moonstream/
+        run: black --check moonstreamapi/
