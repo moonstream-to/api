@@ -18,6 +18,7 @@ setup(
         "moonstreamdb==0.2.0",
         "humbug~=0.2.7",
         "pydantic~=1.8.2",
+        "pyevmasm~=0.2.3",
         "python-dateutil~=2.8.2",
         "python-multipart~=0.0.5",
         "uvicorn~=0.15.0",
