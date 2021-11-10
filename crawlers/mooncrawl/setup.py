@@ -33,14 +33,14 @@ setup(
     package_data={"mooncrawl": ["py.typed"]},
     zip_safe=False,
     install_requires=[
-        "boto3",
-        "bugout >= 0.1.17",
-        "moonstreamdb == 0.2.0",
-        "humbug",
-        "python-dateutil",
-        "requests",
-        "tqdm",
-        "web3",
+        "boto3~=1.20.2",
+        "bugout~=0.1.17",
+        "moonstreamdb==0.2.0",
+        "humbug~=0.2.7",
+        "python-dateutil~=2.8.2",
+        "requests~=2.26.0",
+        "tqdm~=4.62.3",
+        "web3~=5.24.0",
     ],
     extras_require={
         "dev": ["black", "isort", "mypy", "types-requests", "types-python-dateutil"]

@@ -24,10 +24,14 @@ SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/moonstream-secrets}"
 PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
 AWS_SSM_PARAMETER_PATH="${AWS_SSM_PARAMETER_PATH:-/moonstream/prod}"
 SCRIPT_DIR="$(realpath $(dirname $0))"
+
+# Parameters scripts
 PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.py"
-CHECKENV_REPO_URL="https://raw.githubusercontent.com/bugout-dev/checkenv/main/scripts"
-CHECKENV_PARAMETERS_SCRIPT_URL="${CHECKENV_REPO_URL}/parameters.bash"
-CHECKENV_NODES_CONNECTIONS_SCRIPT_URL="${CHECKENV_REPO_URL}/nodes-connections.bash"
+CHECKENV_PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.bash"
+CHECKENV_NODES_CONNECTIONS_SCRIPT="${SCRIPT_DIR}/nodes-connections.bash"
+
+# Crawlers server service file
+CRAWLERS_SERVICE_FILE="moonstreamcrawlers.service"
 
 # Ethereum service files
 ETHEREUM_SYNCHRONIZE_SERVICE="ethereum-synchronize.service"
@@ -37,9 +41,6 @@ ETHEREUM_TXPOOL_SERVICE_FILE="ethereum-txpool.service"
 
 # Polygon service file
 POLYGON_SYNCHRONIZE_SERVICE="polygon-synchronize.service"
-
-CRAWLERS_SERVICE_FILE="moonstreamcrawlers.service"
-
 
 
 set -eu
@@ -62,9 +63,13 @@ cd "${EXEC_DIR}"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Updating Python dependencies"
-"${PIP}" install --upgrade pip
-"${PIP}" install -r "${APP_CRAWLERS_DIR}/mooncrawl/requirements.txt"
+echo -e "${PREFIX_INFO} Upgrading Python pip and setuptools"
+"${PIP}" install --upgrade pip setuptools
+
+echo
+echo
+echo -e "${PREFIX_INFO} Installing Python dependencies"
+"${PIP}" install -e "${APP_CRAWLERS_DIR}/mooncrawl/"
 
 echo
 echo
@@ -75,12 +80,12 @@ AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" "${PYTHON}" "${PARAMETERS_SCRIPT}" ex
 echo
 echo
 echo -e "${PREFIX_INFO} Retrieving addition deployment parameters"
-curl -s "${CHECKENV_PARAMETERS_SCRIPT_URL}" | bash /dev/stdin -v -p "moonstream" -o "${PARAMETERS_ENV_PATH}"
+bash "${CHECKENV_PARAMETERS_SCRIPT}" -v -p "moonstream" -o "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
 echo -e "${PREFIX_INFO} Updating nodes connection parameters"
-curl -s "${CHECKENV_NODES_CONNECTIONS_SCRIPT_URL}" | bash /dev/stdin -v -f "${PARAMETERS_ENV_PATH}"
+bash "${CHECKENV_NODES_CONNECTIONS_SCRIPT}" -v -f "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
@@ -123,4 +128,3 @@ cp "${SCRIPT_DIR}/${CRAWLERS_SERVICE_FILE}" "/etc/systemd/system/${CRAWLERS_SERV
 systemctl daemon-reload
 systemctl restart "${CRAWLERS_SERVICE_FILE}"
 systemctl status "${CRAWLERS_SERVICE_FILE}"
-
