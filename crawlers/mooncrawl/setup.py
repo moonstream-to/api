@@ -35,6 +35,7 @@ setup(
     install_requires=[
         "boto3~=1.20.2",
         "bugout~=0.1.17",
+        "chardet~=4.0.0",
         "moonstreamdb==0.2.0",
         "humbug~=0.2.7",
         "python-dateutil~=2.8.2",
