@@ -246,7 +246,6 @@ class DashboardResource(BaseModel):
     type: str
     user_id: str
     name: str
-    abi_hash
     dashboard_subscriptions: List[DashboardMeta]
 
 
