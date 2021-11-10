@@ -17,10 +17,12 @@ import {
   ArrowRightIcon,
   LockIcon,
 } from "@chakra-ui/icons";
-import { MdTimeline, MdSettings } from "react-icons/md";
+import { MdSettings, MdDashboard } from "react-icons/md";
 import { HiAcademicCap } from "react-icons/hi";
 import { WHITE_LOGO_W_TEXT_URL, ALL_NAV_PATHES } from "../core/constants";
 import { v4 } from "uuid";
+import useDashboard from "../core/hooks/useDashboard";
+import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 
 const Sidebar = () => {
   const ui = useContext(UIContext);
@@ -56,24 +58,34 @@ const Sidebar = () => {
                 : ui.setSidebarCollapsed(!ui.sidebarCollapsed);
             }}
           />
-          <Image
-            // h="full"
-            // maxH="100%"
-            maxW="120px"
-            py="0.75rem"
-            pl={5}
-            src={WHITE_LOGO_W_TEXT_URL}
-            alt="bugout.dev"
-          />
+          <RouterLink href="/" passHref>
+            <Image
+              // h="full"
+              // maxH="100%"
+              maxW="120px"
+              py="0.75rem"
+              pl={5}
+              src={WHITE_LOGO_W_TEXT_URL}
+              alt="Moonstream To"
+            />
+          </RouterLink>
         </Flex>
       </SidebarHeader>
       {ui.isLoggedIn && (
         <SidebarContent>
           <Menu iconShape="square">
-            <MenuItem icon={<MdTimeline />}>
-              {" "}
-              <RouterLink href="/stream">Stream</RouterLink>
-            </MenuItem>
+            {dashboardsListCache.data &&
+              dashboardsListCache.data.data.resources.map((dashboard) => {
+                console.log("dashboard", dashboard);
+
+                return (
+                  <MenuItem icon={<MdDashboard />} key={v4()}>
+                    <RouterLink href={`/dashboard/${dashboard?.id}`}>
+                      {dashboard.resource_data.name}
+                    </RouterLink>
+                  </MenuItem>
+                );
+              })}
           </Menu>
           {ui.isMobileView && (
             <Menu iconShape="square">
