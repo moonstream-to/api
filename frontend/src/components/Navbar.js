@@ -4,8 +4,6 @@ import UIContext from "../core/providers/UIProvider/context";
 
 const LandingNavbar = React.lazy(() => import("./LandingNavbar"));
 const AppNavbar = React.lazy(() => import("./AppNavbar"));
-const HubspotForm = React.lazy(() => import("./HubspotForm"));
-const SignUp = React.lazy(() => import("./SignUp"));
 
 const Navbar = () => {
   const { isAppView, isLoggedIn } = useContext(UIContext);
