@@ -404,7 +404,7 @@ async def get_dashboard_data_links_handler(
     dashboard_subscriptions = [
         subscription
         for subscription in subscription_resources.resources
-        if subscription.id in subscriptions_ids_hashes
+        if subscription.id in subscriptions_ids_hashes.keys()
     ]
 
     # generate s3 links
