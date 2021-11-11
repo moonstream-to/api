@@ -29,7 +29,7 @@ const AddNewIconButton = (props) => {
         as={IconButton}
         // onClick={ui.addNewDrawerState.onOpen}
         aria-label="Account menu"
-        icon={<PlusSquareIcon />}
+        icon={<PlusSquareIcon m={0} size="26px" />}
         // variant="outline"
         color="gray.100"
       />

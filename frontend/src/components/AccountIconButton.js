@@ -21,8 +21,9 @@ const AccountIconButton = (props) => {
   const ui = useContext(UIContext);
 
   return (
-    <Menu {...props}>
+    <Menu>
       <MenuButton
+        {...props}
         variant="inherit"
         colorScheme="inherit"
         as={IconButton}

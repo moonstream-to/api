@@ -1,48 +1,48 @@
-import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { getLayout } from "../../src/layouts/AppLayout";
-import { Spinner, Flex, Heading, Stack, Text, Spacer } from "@chakra-ui/react";
+import {
+  Spinner,
+  Flex,
+  Heading,
+  Stack,
+  Text,
+  Spacer,
+  IconButton,
+} from "@chakra-ui/react";
 import Scrollable from "../../src/components/Scrollable";
 import RangeSelector from "../../src/components/RangeSelector";
-// import StatsCard from "../src/components/StatsCard";
-import useWindowSize from "../../src/core/hooks/useWindowSize";
-import useDashboard from "../../../src/core/hooks/useDashboard";
-// import NFTChart from "../src/components/NFTChart";
+import useDashboard from "../../src/core/hooks/useDashboard";
+import { useRouter } from "../../src/core/hooks";
+import { BiTrash } from "react-icons/bi";
+import OverlayContext from "../../src/core/providers/OverlayProvider/context";
 
 const HOUR_KEY = "Hourly";
 const DAY_KEY = "Daily";
-// const WEEK_KEY = "Weekly";
 let timeMap = {};
 timeMap[HOUR_KEY] = "hour";
 timeMap[DAY_KEY] = "day";
-// timeMap[WEEK_KEY] = "week";
 
 const Analytics = () => {
-  const windowSize = useWindowSize();
+  const { toggleAlert } = useContext(OverlayContext);
   useEffect(() => {
     if (typeof window !== "undefined") {
       document.title = `NFT Analytics`;
     }
   }, []);
 
-  const [nodesReady, setNodeReady] = useState({
-    ntx: false,
-    values: false,
-    mints: false,
-    NFTOwners: false,
-    minters: false,
-  });
+  // const [nodesReady, setNodeReady] = useState({
+  //   ntx: false,
+  //   values: false,
+  //   mints: false,
+  //   NFTOwners: false,
+  //   minters: false,
+  // });
 
-  const nTxRef_ = useRef();
-  const valueRef_ = useRef();
-  const mintsRef_ = useRef();
-  const uniqueNFTOwnersRef_ = useRef();
-  const mintersRef_ = useRef();
+  // const nTxRef_ = useRef();
+  // const valueRef_ = useRef();
+  // const mintsRef_ = useRef();
+  // const uniqueNFTOwnersRef_ = useRef();
+  // const mintersRef_ = useRef();
 
   //   const nTxRef = useCallback(
   //     (node) => {
@@ -93,7 +93,10 @@ const Analytics = () => {
   //   );
 
   const [timeRange, setTimeRange] = useState(HOUR_KEY);
-  const { dashboardCache } = useDashboard();
+  const router = useRouter();
+  const { dashboardId } = router.params;
+  console.log("router paras:", router.params, dashboardId);
+  const { dashboardCache, deleteDashboard } = useDashboard(dashboardId);
 
   //   useLayoutEffect(() => {
   //     const items = [
@@ -156,6 +159,13 @@ const Analytics = () => {
             ranges={Object.keys(timeMap)}
             size={["sm", "md", null]}
             onChange={(e) => setTimeRange(e)}
+          />
+          <IconButton
+            icon={<BiTrash />}
+            variant="ghost"
+            colorScheme="red"
+            size="sm"
+            onClick={() => toggleAlert(() => deleteDashboard.mutate())}
           />
         </Stack>
         <Stack
