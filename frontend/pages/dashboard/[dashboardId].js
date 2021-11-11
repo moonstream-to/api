@@ -5,13 +5,13 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { getLayout } from "../src/layouts/AppLayout";
+import { getLayout } from "../../src/layouts/AppLayout";
 import { Spinner, Flex, Heading, Stack, Text, Spacer } from "@chakra-ui/react";
-import Scrollable from "../src/components/Scrollable";
-import useNFTs from "../src/core/hooks/useNFTs";
-import RangeSelector from "../src/components/RangeSelector";
+import Scrollable from "../../src/components/Scrollable";
+import RangeSelector from "../../src/components/RangeSelector";
 // import StatsCard from "../src/components/StatsCard";
-import useWindowSize from "../src/core/hooks/useWindowSize";
+import useWindowSize from "../../src/core/hooks/useWindowSize";
+import useDashboard from "../../../src/core/hooks/useDashboard";
 // import NFTChart from "../src/components/NFTChart";
 
 const HOUR_KEY = "Hourly";
@@ -44,94 +44,94 @@ const Analytics = () => {
   const uniqueNFTOwnersRef_ = useRef();
   const mintersRef_ = useRef();
 
-  const nTxRef = useCallback(
-    (node) => {
-      if (node !== null && !nodesReady.ntx) {
-        setNodeReady({ ...nodesReady, ntx: true });
-        nTxRef_.current = node;
-      }
-    },
-    [nodesReady]
-  );
-  const valueRef = useCallback(
-    (node) => {
-      if (node !== null && !nodesReady.values) {
-        setNodeReady({ ...nodesReady, values: true });
-        valueRef_.current = node;
-      }
-    },
-    [nodesReady]
-  );
-  const mintsRef = useCallback(
-    (node) => {
-      if (node !== null && !nodesReady.mints) {
-        setNodeReady({ ...nodesReady, mints: true });
-        mintsRef_.current = node;
-      }
-    },
-    [nodesReady]
-  );
+  //   const nTxRef = useCallback(
+  //     (node) => {
+  //       if (node !== null && !nodesReady.ntx) {
+  //         setNodeReady({ ...nodesReady, ntx: true });
+  //         nTxRef_.current = node;
+  //       }
+  //     },
+  //     [nodesReady]
+  //   );
+  //   const valueRef = useCallback(
+  //     (node) => {
+  //       if (node !== null && !nodesReady.values) {
+  //         setNodeReady({ ...nodesReady, values: true });
+  //         valueRef_.current = node;
+  //       }
+  //     },
+  //     [nodesReady]
+  //   );
+  //   const mintsRef = useCallback(
+  //     (node) => {
+  //       if (node !== null && !nodesReady.mints) {
+  //         setNodeReady({ ...nodesReady, mints: true });
+  //         mintsRef_.current = node;
+  //       }
+  //     },
+  //     [nodesReady]
+  //   );
 
-  const uniqueNFTOwnersRef = useCallback(
-    (node) => {
-      if (node !== null && !nodesReady.NFTOwners) {
-        setNodeReady({ ...nodesReady, NFTOwners: true });
-        uniqueNFTOwnersRef_.current = node;
-      }
-    },
-    [nodesReady]
-  );
+  //   const uniqueNFTOwnersRef = useCallback(
+  //     (node) => {
+  //       if (node !== null && !nodesReady.NFTOwners) {
+  //         setNodeReady({ ...nodesReady, NFTOwners: true });
+  //         uniqueNFTOwnersRef_.current = node;
+  //       }
+  //     },
+  //     [nodesReady]
+  //   );
 
-  const mintersRef = useCallback(
-    (node) => {
-      if (node !== null && !nodesReady.minters) {
-        setNodeReady({ ...nodesReady, minters: true });
-        mintersRef_.current = node;
-      }
-    },
-    [nodesReady]
-  );
+  //   const mintersRef = useCallback(
+  //     (node) => {
+  //       if (node !== null && !nodesReady.minters) {
+  //         setNodeReady({ ...nodesReady, minters: true });
+  //         mintersRef_.current = node;
+  //       }
+  //     },
+  //     [nodesReady]
+  //   );
 
   const [timeRange, setTimeRange] = useState(HOUR_KEY);
-  const { nftCache } = useNFTs();
+  const { dashboardCache } = useDashboard();
 
-  useLayoutEffect(() => {
-    const items = [
-      nTxRef_,
-      valueRef_,
-      mintsRef_,
-      uniqueNFTOwnersRef_,
-      mintersRef_,
-    ];
-    console.log("useeffect fired");
-    if (items.some((item) => !!item.current)) {
-      console.log("brder fun");
-      var firstItemInCurrentRow = items[0];
-      items.forEach((item) => {
-        if (item.current) {
-          if (item !== firstItemInCurrentRow) {
-            // Check if the current item is at the same
-            // height as the first item in the current row.
-            if (
-              item.current.offsetTop === firstItemInCurrentRow.current.offsetTop
-            ) {
-              item.current.style.borderLeft =
-                "3px dashed var(--chakra-colors-gray-600)";
-            } else {
-              // This item was lower, it must be
-              // the first in a new row.
-              firstItemInCurrentRow = item;
-              item.current.style.borderLeft = "0px dashed black";
-            }
-          }
-        } else {
-          firstItemInCurrentRow = item;
-        }
-      });
-    }
-  }, [nodesReady, windowSize]);
+  //   useLayoutEffect(() => {
+  //     const items = [
+  //       nTxRef_,
+  //       valueRef_,
+  //       mintsRef_,
+  //       uniqueNFTOwnersRef_,
+  //       mintersRef_,
+  //     ];
+  //     console.log("useeffect fired");
+  //     if (items.some((item) => !!item.current)) {
+  //       console.log("brder fun");
+  //       var firstItemInCurrentRow = items[0];
+  //       items.forEach((item) => {
+  //         if (item.current) {
+  //           if (item !== firstItemInCurrentRow) {
+  //             // Check if the current item is at the same
+  //             // height as the first item in the current row.
+  //             if (
+  //               item.current.offsetTop === firstItemInCurrentRow.current.offsetTop
+  //             ) {
+  //               item.current.style.borderLeft =
+  //                 "3px dashed var(--chakra-colors-gray-600)";
+  //             } else {
+  //               // This item was lower, it must be
+  //               // the first in a new row.
+  //               firstItemInCurrentRow = item;
+  //               item.current.style.borderLeft = "0px dashed black";
+  //             }
+  //           }
+  //         } else {
+  //           firstItemInCurrentRow = item;
+  //         }
+  //       });
+  //     }
+  //   }, [nodesReady, windowSize]);
 
-  if (nftCache.isLoading) return <Spinner />;
+  if (dashboardCache.isLoading) return <Spinner />;
 
   const plotMinW = "500px";
 
