@@ -304,7 +304,6 @@ def days_stats(type, abi):
 
 
 def crawlers_start(db_session):
-    token = os.getenv("MOONSTREAM_ADMIN_ACCESS_TOKEN")
 
     # read all subscriptions
     required_subscriptions: BugoutResources = bc.list_resources(

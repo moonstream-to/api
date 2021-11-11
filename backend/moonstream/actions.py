@@ -379,15 +379,13 @@ def dashboards_abi_validation(
     return True
 
 
-def validate_abi_string(abi: str) -> None:
+def validate_abi_string(abi: Any) -> None:
     """
     Transform string to json and run validation
     """
 
     try:
-        validate_abi(json.loads(abi))
-    except json.JSONDecodeError:
-        raise MoonstreamHTTPException(status_code=400, detail="Malformed abi body.")
+        validate_abi(abi)
     except ValueError as e:
         raise MoonstreamHTTPException(status_code=400, detail=e)
     except:
