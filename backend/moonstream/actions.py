@@ -379,7 +379,7 @@ def dashboards_abi_validation(
     return True
 
 
-def validate_abi_string(abi: Any) -> None:
+def validate_abi_json(abi: Any) -> None:
     """
     Transform string to json and run validation
     """
