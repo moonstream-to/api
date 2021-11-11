@@ -12,9 +12,11 @@ import {
 import Scrollable from "../../src/components/Scrollable";
 import RangeSelector from "../../src/components/RangeSelector";
 import useDashboard from "../../src/core/hooks/useDashboard";
-import { useRouter } from "../../src/core/hooks";
+import { useRouter, useSubscriptions } from "../../src/core/hooks";
 import { BiTrash } from "react-icons/bi";
 import OverlayContext from "../../src/core/providers/OverlayProvider/context";
+import SubscriptionReport from "../../src/components/SubscriptionReport";
+import { v4 } from "uuid";
 
 const HOUR_KEY = "Hourly";
 const DAY_KEY = "Daily";
@@ -24,11 +26,6 @@ timeMap[DAY_KEY] = "day";
 
 const Analytics = () => {
   const { toggleAlert } = useContext(OverlayContext);
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      document.title = `NFT Analytics`;
-    }
-  }, []);
 
   // const [nodesReady, setNodeReady] = useState({
   //   ntx: false,
@@ -96,7 +93,20 @@ const Analytics = () => {
   const router = useRouter();
   const { dashboardId } = router.params;
   console.log("router paras:", router.params, dashboardId);
-  const { dashboardCache, deleteDashboard } = useDashboard(dashboardId);
+  const { dashboardCache, dashboardLinksCache, deleteDashboard } =
+    useDashboard(dashboardId);
+
+  const { subscriptionsCache } = useSubscriptions();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (dashboardCache?.data?.data?.resource_data?.name) {
+        document.title = dashboardCache?.data?.data?.resource_data?.name;
+      } else {
+        document.title = `Dashboard`;
+      }
+    }
+  }, [dashboardCache?.data?.data?.resource_data?.name]);
 
   //   useLayoutEffect(() => {
   //     const items = [
@@ -134,9 +144,19 @@ const Analytics = () => {
   //     }
   //   }, [nodesReady, windowSize]);
 
-  if (dashboardCache.isLoading) return <Spinner />;
+  if (
+    dashboardCache.isLoading ||
+    dashboardLinksCache.isLoading ||
+    subscriptionsCache.isLoading
+  )
+    return <Spinner />;
 
   const plotMinW = "500px";
+
+  console.log(
+    "db",
+    dashboardCache.data.data.resource_data.dashboard_subscriptions
+  );
 
   return (
     <Scrollable>
@@ -151,7 +171,7 @@ const Analytics = () => {
       >
         <Stack direction="row" w="100%" placeItems="center">
           <Heading as="h1" py={2} fontSize={["md", "xl"]}>
-            NFT market analysis
+            {dashboardCache.data.data.resource_data.name}
           </Heading>
           <Spacer />
           <RangeSelector
@@ -168,172 +188,47 @@ const Analytics = () => {
             onClick={() => toggleAlert(() => deleteDashboard.mutate())}
           />
         </Stack>
-        <Stack
-          w="100%"
-          wrap="wrap"
-          my={2}
-          h="auto"
-          direction="row"
-          minW="240px"
-          spacing={[0, 0, null]}
-          boxShadow="md"
-          borderRadius="lg"
-          bgColor="gray.100"
-        >
-          {/* <StatsCard
-            ref={(node) => nTxRef(node)}
-            labelKey="nft_transfers"
-            totalKey="num_transactions"
-            timeRange={timeMap[timeRange]}
-            netLabel="Ethereum mainnet"
-            label="Number of NFT purchases"
-          />
-          <StatsCard
-            ref={(node) => valueRef(node)}
-            labelKey="nft_transfer_value"
-            totalKey="total_value"
-            timeRange={timeMap[timeRange]}
-            netLabel="Ethereum mainnet"
-            label="Money spent"
-          />
-          <StatsCard
-            ref={(node) => mintsRef(node)}
-            labelKey="nft_mints"
-            timeRange={timeMap[timeRange]}
-            netLabel="Ethereum mainnet"
-            label="NFTs created"
-          />
-          <StatsCard
-            ref={(node) => uniqueNFTOwnersRef(node)}
-            labelKey="nft_owners"
-            timeRange={timeMap[timeRange]}
-            netLabel="Ethereum mainnet"
-            label="Number of buyers"
-          />
 
-          <StatsCard
-            ref={(node) => mintersRef(node)}
-            labelKey="nft_minters"
-            timeRange={timeMap[timeRange]}
-            netLabel="Ethereum mainnet"
-            label="Number of creators"
-          /> */}
-        </Stack>
-        <Flex w="100%" direction="row" flexWrap="wrap-reverse">
-          <Flex
-            flexBasis={plotMinW}
-            flexGrow={1}
-            minW={plotMinW}
-            minH="320px"
-            maxH="420px"
-            direction="column"
-            boxShadow="md"
-            m={2}
-          >
-            <Text
-              w="100%"
-              py={2}
-              bgColor="gray.50"
-              fontWeight="600"
-              textAlign="center"
-            >
-              New NFTs
-            </Text>
-            {/* <NFTChart keyPosition={`nft_mints`} timeRange={timeRange} /> */}
-          </Flex>
-          <Flex
-            flexBasis={plotMinW}
-            flexGrow={1}
-            minW={plotMinW}
-            minH="320px"
-            maxH="420px"
-            direction="column"
-            boxShadow="md"
-            m={2}
-          >
-            <Text
-              w="100%"
-              py={2}
-              bgColor="gray.50"
-              fontWeight="600"
-              textAlign="center"
-            >
-              NFT creators
-            </Text>
-            {/* <NFTChart keyPosition={`nft_minters`} timeRange={timeRange} /> */}
-          </Flex>
-          <Flex
-            flexBasis={plotMinW}
-            flexGrow={1}
-            minW={plotMinW}
-            minH="320px"
-            maxH="420px"
-            direction="column"
-            boxShadow="md"
-            m={2}
-          >
-            <Text
-              w="100%"
-              py={2}
-              bgColor="gray.50"
-              fontWeight="600"
-              textAlign="center"
-            >
-              NFT Buyers
-            </Text>
-            {/* <NFTChart keyPosition={`nft_owners`} timeRange={timeRange} /> */}
-          </Flex>
-          <Flex
-            flexBasis={plotMinW}
-            flexGrow={1}
-            minW={plotMinW}
-            minH="320px"
-            maxH="420px"
-            direction="column"
-            boxShadow="md"
-            m={2}
-          >
-            <Text
-              w="100%"
-              py={2}
-              bgColor="gray.50"
-              fontWeight="600"
-              textAlign="center"
-            >
-              Transaction volume
-            </Text>
-            {/* <NFTChart
-              keyPosition={`nft_transfers`}
-              keyTotal={`num_transactions`}
-              timeRange={timeRange}
-            /> */}
-          </Flex>
+        <Flex w="100%" direction="row" flexWrap="wrap-reverse" id="container">
+          {Object.keys(dashboardLinksCache.data.data).map((key) => {
+            const subscription = dashboardLinksCache.data.data[key];
+            const name = subscriptionsCache.data.subscriptions.find(
+              (subscription) => subscription.id === key
+            ).label;
+            const dashboard_subscription =
+              dashboardCache.data.data.resource_data.dashboard_subscriptions.find(
+                (subscription) => subscription.subscription_id === key
+              );
 
-          <Flex
-            flexBasis={plotMinW}
-            flexGrow={1}
-            minW={plotMinW}
-            minH="320px"
-            maxH="420px"
-            direction="column"
-            boxShadow="md"
-            m={2}
-          >
-            <Text
-              w="100%"
-              py={2}
-              bgColor="gray.50"
-              fontWeight="600"
-              textAlign="center"
-            >
-              Transaction value
-            </Text>
-            {/* <NFTChart
-              keyPosition={`nft_transfer_value`}
-              keyTotal={`total_value`}
-              timeRange={timeRange}
-            /> */}
-          </Flex>
+            return (
+              <Flex
+                key={v4()}
+                flexBasis={plotMinW}
+                flexGrow={1}
+                minW={plotMinW}
+                minH="320px"
+                direction="column"
+                boxShadow="md"
+                m={2}
+              >
+                <Text
+                  w="100%"
+                  py={2}
+                  bgColor="gray.50"
+                  fontWeight="600"
+                  textAlign="center"
+                >
+                  {name}
+                </Text>
+                <SubscriptionReport
+                  dashboard_subscripton={dashboard_subscription}
+                  url={subscription.week}
+                  id={v4()}
+                  type={v4()}
+                />
+              </Flex>
+            );
+          })}
         </Flex>
       </Flex>
     </Scrollable>

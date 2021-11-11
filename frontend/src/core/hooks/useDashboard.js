@@ -61,11 +61,24 @@ const useDashboard = (dashboardId) => {
     }
   );
 
+  const dashboardLinksCache = useQuery(
+    ["dashboardLinks", { dashboardId }],
+    () => DashboardService.getDashboardLinks(dashboardId),
+    {
+      ...queryCacheProps,
+      onError: (error) => {
+        toast(error, "error");
+      },
+      enabled: !!user && !!dashboardId,
+    }
+  );
+
   return {
     createDashboard,
     dashboardsListCache,
     dashboardCache,
     deleteDashboard,
+    dashboardLinksCache,
   };
 };
 
