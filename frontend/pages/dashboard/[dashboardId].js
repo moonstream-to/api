@@ -26,11 +26,6 @@ timeMap[DAY_KEY] = "day";
 
 const Analytics = () => {
   const { toggleAlert } = useContext(OverlayContext);
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      document.title = `NFT Analytics`;
-    }
-  }, []);
 
   // const [nodesReady, setNodeReady] = useState({
   //   ntx: false,
@@ -102,6 +97,16 @@ const Analytics = () => {
     useDashboard(dashboardId);
 
   const { subscriptionsCache } = useSubscriptions();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (dashboardCache?.data?.data?.resource_data?.name) {
+        document.title = dashboardCache?.data?.data?.resource_data?.name;
+      } else {
+        document.title = `Dashboard`;
+      }
+    }
+  }, [dashboardCache?.data?.data?.resource_data?.name]);
 
   //   useLayoutEffect(() => {
   //     const items = [
