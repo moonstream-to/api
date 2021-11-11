@@ -199,8 +199,7 @@ const AppNavbar = () => {
                   alignSelf="center"
                   // as={Link}
                   // to="/"
-                  h="2.5rem"
-                  minW="2.5rem"
+                  maxH="2.5rem"
                   src={WHITE_LOGO_W_TEXT_URL}
                   alt="Go to app root"
                 />
