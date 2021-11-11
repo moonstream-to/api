@@ -54,7 +54,6 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
 
   useEffect(() => {
     if (initialValue && initialValue !== "") {
-      console.log("iv:", initialValue, isAddress(initialValue));
       if (isAddress(initialValue)) {
         setAddress(initialValue);
       } else {
@@ -111,11 +110,7 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
 
   if (!errors) return "";
 
-  console.log("selected type", type);
-  console.log("pickerItems", pickerItems);
-
   const filterFn = (item, inputValue) => {
-    console.log("filterFN", item.name, inputValue);
     return (
       !inputValue || item.name.toUpperCase().includes(inputValue.toUpperCase())
     );
@@ -157,7 +152,6 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                     selectedItem,
                     getRootProps,
                   }) => {
-                    console.log("selected item,", selectedItem?.name);
                     return (
                       <Box pos="relative" w="100%">
                         <Box
@@ -179,8 +173,6 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                               isTruncated
                               fontSize="sm"
                               {...getInputProps()}
-                              // defaultValue={selectedItem.name ?? undefined}
-                              // value={selectedItem.name}
                             ></Input>
                             <InputRightAddon p={0}>
                               <Button
@@ -189,13 +181,7 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                                 m={0}
                                 p={0}
                                 colorScheme="gray"
-                                {...getToggleButtonProps({
-                                  // onClick: () =>
-                                  //   console.log(
-                                  //     "ref: ",
-                                  //     downshiftRef.current.clearSelection()
-                                  //   ),
-                                })}
+                                {...getToggleButtonProps({})}
                                 aria-label={"toggle menu"}
                               >
                                 &#8595;
@@ -203,21 +189,8 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                             </InputRightAddon>
                           </InputGroup>
                         </Box>
-                        {/* <Menu
-                        isOpen={isOpen}
-
-                        // style={menuStyles}
-                        // position="absolute"
-                        colorScheme="blue"
-                        bgColor="gray.300"
-                        inset="unset"
-                        // spacing={2}
-
-                        // p={2}
-                      > */}
                         {isOpen ? (
                           <Stack
-                            // display="flex"
                             direction="column"
                             className="menuListTim"
                             {...getMenuProps()}
@@ -290,34 +263,6 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                 </Downshift>
               </>
             )}
-            {/* {typesCache.data
-              .sort((a, b) =>
-                a?.name > b?.name ? 1 : b?.name > a?.name ? -1 : 0
-              )
-              .map((type) => {
-                const radio = getRadioProps({
-                  value: type.id,
-                  isDisabled:
-                    (initialAddress && initialType) ||
-                    !type.active ||
-                    (isFreeOption && type.id !== "ethereum_blockchain"),
-                });
-
-                return (
-                  <RadioCard
-                    px="8px"
-                    py="4px"
-                    mt="2px"
-                    w="190px"
-                    {...radio}
-                    key={`subscription_type_${type.id}`}
-                    label={type.description}
-                    iconURL={type.icon_url}
-                  >
-                    {type.name.slice(9, type.name.length)}
-                  </RadioCard>
-                );
-              })} */}
           </Stack>
         </Stack>
 

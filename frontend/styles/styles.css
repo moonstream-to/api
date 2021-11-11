@@ -1,3 +1,6 @@
+@import "~slick-carousel/slick/slick.css";
+@import "~slick-carousel/slick/slick-theme.css";
+
 .Resizer {
   background: #000;
   opacity: 0.2;
@@ -197,4 +200,70 @@ code {
   opacity: 1;
   transform: none;
   visibility: visible;
+}
+
+.slide img {
+  width: 20rem;
+  margin: 0 auto;
+}
+
+.slide {
+  transform: scale(0.6) translate3D(0, -200px, 0px);
+  transition: transform 6000ms;
+  /* opacity: 0.6; */
+  padding-bottom: 200px;
+  animation: off 2s ease-in-out forwards;
+  overflow: visible;
+}
+
+.activeSlide {
+  transform: scale(1.1);
+  transition: transform 2000ms;
+  animation: change 2s ease-in-out forwards;
+  /* opacity: 1; */
+}
+
+@keyframes change {
+  to {
+    opacity: 1
+  }
+}
+@keyframes off {
+  to {
+    opacity: 0.6
+  }
+}
+
+.arrow {
+  background-color: #fff;
+  position: absolute;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.arrow svg {
+  transition: color 300ms;
+}
+
+.arrow svg:hover {
+  color: #68edff;
+}
+
+.next {
+  right: 0%;
+  top: 50%;
+}
+
+.prev {
+  left: 0%;
+  top: 50%;
+}
+
+.bgGrid {
+  background-color: white;
+  background-size: 10px 10px, 60px 60px;
+  background-image: linear-gradient(to bottom, transparent 6px, white 6px),
+    linear-gradient(to right, #444 1px, transparent 1px),
+    linear-gradient(to right, transparent 6px, white 6px),
+    linear-gradient(to bottom, #444 1px, transparent 1px);
 }

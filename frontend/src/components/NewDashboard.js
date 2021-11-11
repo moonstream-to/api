@@ -39,9 +39,21 @@ const NewDashboard = (props) => {
       subscriptions: [
         {
           label: "",
-          id: null,
+          abi: false,
+          subscription_id: null,
           isMethods: false,
           isEvents: false,
+          generic: {
+            transactions: {
+              in: false,
+              out: false,
+            },
+            value: {
+              in: false,
+              out: false,
+              balance: false,
+            },
+          },
         },
       ],
     }
@@ -99,20 +111,54 @@ const NewDashboard = (props) => {
             // borderWidth="1px"
             variant="simple"
             colorScheme="blue"
-            justifyContent="center"
+            // justifyContent="center"
+            textAlign="center"
             borderBottomRadius="xl"
-            alignItems="baseline"
+            // alignItems="baseline"
             h="auto"
             size="sm"
             mt={0}
           >
             <Thead>
               <Tr>
-                <Th>Address</Th>
-                <Th w="90px">ABI State</Th>
-                <Th w="90px">Methods</Th>
-                <Th w="90px">Events</Th>
-                <Th w="60px"></Th>
+                <Th textAlign="center">Address</Th>
+                <Th textAlign="center" colSpan="3">
+                  ABI
+                </Th>
+
+                <Th textAlign="center" colSpan="2">
+                  Transactions
+                </Th>
+                <Th textAlign="center" colSpan="3">
+                  Value
+                </Th>
+              </Tr>
+              <Tr>
+                <Th></Th>
+                <Th p={1} textAlign="center">
+                  ABI
+                </Th>
+                <Th p={1} textAlign="center">
+                  Methods
+                </Th>
+                <Th p={1} textAlign="center">
+                  Events
+                </Th>
+                <Th p={1} textAlign="center">
+                  In
+                </Th>
+                <Th p={1} textAlign="center">
+                  Out
+                </Th>
+                <Th p={1} textAlign="center">
+                  In
+                </Th>
+                <Th p={1} textAlign="center">
+                  Out
+                </Th>
+                <Th p={1} textAlign="center">
+                  Balance
+                </Th>
               </Tr>
             </Thead>
             <Tbody>
@@ -127,7 +173,25 @@ const NewDashboard = (props) => {
                             <Downshift
                               onSelect={(selectedItem) => {
                                 const newState = { ...newDashboardForm };
-                                newState.subscriptions[idx] = selectedItem;
+                                newState.subscriptions[idx] = {
+                                  label: selectedItem.label,
+                                  address: selectedItem.address,
+                                  subscription_id: selectedItem.id,
+                                  abi: selectedItem.abi,
+                                  isMethods: false,
+                                  isEvents: false,
+                                  generic: {
+                                    transactions: {
+                                      in: false,
+                                      out: false,
+                                    },
+                                    value: {
+                                      in: false,
+                                      out: false,
+                                      balance: false,
+                                    },
+                                  },
+                                };
                                 setNewDashboardForm(newState);
                               }}
                               // isOpen={showSuggestions}
@@ -382,7 +446,7 @@ const NewDashboard = (props) => {
                           // </AutoComplete>
                         )}
                     </Td>
-                    <Td w="90px">
+                    <Td p={1} textAlign="center">
                       {subscibedItem.abi && subscibedItem.address && (
                         <CheckCircleIcon color="green" />
                       )}
@@ -404,24 +468,100 @@ const NewDashboard = (props) => {
                       )}
                     </Td>
 
-                    <Td w="60px">
+                    <Td p={1} textAlign="center">
                       <Checkbox
-                        isDisabled={
-                          !subscibedItem.address || !subscibedItem.abi
-                        }
+                        isDisabled={!subscibedItem.abi}
+                        onChange={() => {
+                          const newState = { ...newDashboardForm };
+                          newState.subscriptions[idx] = {
+                            ...newState.subscriptions[idx],
+                            isMethods: !newState.subscriptions[idx].isMethods,
+                          };
+                          setNewDashboardForm(newState);
+                        }}
                         isChecked={subscibedItem.isMethods}
                       ></Checkbox>
                     </Td>
-                    <Td w="60px">
+                    <Td p={1} textAlign="center">
                       <Checkbox
                         isDisabled={
                           !subscibedItem.address || !subscibedItem.abi
                         }
+                        onChange={() => {
+                          const newState = { ...newDashboardForm };
+                          newState.subscriptions[idx] = {
+                            ...newState.subscriptions[idx],
+                            isEvents: !newState.subscriptions[idx].isEvents,
+                          };
+                          setNewDashboardForm(newState);
+                        }}
                         isChecked={subscibedItem.isEvents}
                       ></Checkbox>
                     </Td>
+                    <Td p={1} textAlign="center">
+                      <Checkbox
+                        isDisabled={!subscibedItem.address}
+                        onChange={() => {
+                          const newState = { ...newDashboardForm };
+                          newState.subscriptions[idx].generic.transactions.in =
+                            !newState.subscriptions[idx].generic.transactions
+                              .in;
+                          setNewDashboardForm(newState);
+                        }}
+                        isChecked={subscibedItem.generic.transactions.in}
+                      ></Checkbox>
+                    </Td>
+                    <Td p={1} textAlign="center">
+                      <Checkbox
+                        isDisabled={!subscibedItem.address}
+                        onChange={() => {
+                          const newState = { ...newDashboardForm };
+                          newState.subscriptions[idx].generic.transactions.out =
+                            !newState.subscriptions[idx].generic.transactions
+                              .out;
+                          setNewDashboardForm(newState);
+                        }}
+                        isChecked={subscibedItem.generic.transactions.out}
+                      ></Checkbox>
+                    </Td>
+                    <Td p={1} textAlign="center">
+                      <Checkbox
+                        isDisabled={!subscibedItem.address}
+                        onChange={() => {
+                          const newState = { ...newDashboardForm };
+                          newState.subscriptions[idx].generic.value.in =
+                            !newState.subscriptions[idx].generic.value.in;
+                          setNewDashboardForm(newState);
+                        }}
+                        isChecked={subscibedItem.generic.value.in}
+                      ></Checkbox>
+                    </Td>
+                    <Td p={1} textAlign="center">
+                      <Checkbox
+                        isDisabled={!subscibedItem.address}
+                        onChange={() => {
+                          const newState = { ...newDashboardForm };
+                          newState.subscriptions[idx].generic.value.out =
+                            !newState.subscriptions[idx].generic.value.out;
+                          setNewDashboardForm(newState);
+                        }}
+                        isChecked={subscibedItem.generic.value.out}
+                      ></Checkbox>
+                    </Td>
+                    <Td p={1} textAlign="center">
+                      <Checkbox
+                        isDisabled={!subscibedItem.address}
+                        onChange={() => {
+                          const newState = { ...newDashboardForm };
+                          newState.subscriptions[idx].generic.balance =
+                            !newState.subscriptions[idx].generic.balance;
+                          setNewDashboardForm(newState);
+                        }}
+                        isChecked={subscibedItem.generic.balance}
+                      ></Checkbox>
+                    </Td>
 
-                    <Td>
+                    <Td p={1} textAlign="center">
                       {idx > 0 && (
                         <CloseButton
                           onClick={() => {
@@ -456,8 +596,21 @@ const NewDashboard = (props) => {
                 const newState = { ...newDashboardForm };
                 newState.subscriptions.push({
                   label: "",
-                  id: null,
+                  abi: false,
+                  subscription_id: null,
                   isMethods: false,
+                  isEvents: false,
+                  generic: {
+                    transactions: {
+                      in: false,
+                      out: false,
+                    },
+                    value: {
+                      in: false,
+                      out: false,
+                      balance: false,
+                    },
+                  },
                 });
                 setNewDashboardForm(newState);
               }}

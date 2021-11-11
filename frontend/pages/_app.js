@@ -4,8 +4,11 @@ import "/styles/nprogress.css";
 import "/styles/sidebar.css";
 import "highlight.js/styles/github.css";
 import "focus-visible/dist/focus-visible";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 import dynamic from "next/dynamic";
 import { QueryClient, QueryClientProvider } from "react-query";
+import { ReactQueryDevtools } from "react-query/devtools";
 import HeadLinks from "../src/components/HeadLinks";
 import HeadSEO from "../src/components/HeadSEO";
 const AppContext = dynamic(() => import("../src/AppContext"), {
@@ -22,6 +25,16 @@ export default function CachingApp({ Component, pageProps }) {
   const [queryClient] = useState(new QueryClient());
 
   const router = useRouter();
+
+  useEffect(() => {
+    if (
+      router.pathname !== "/entry-point" &&
+      window &&
+      localStorage.getItem("entry_point")
+    ) {
+      localStorage.removeItem("entry_point");
+    }
+  }, [router]);
 
   useEffect(() => {
     const handleStart = () => {
@@ -64,6 +77,7 @@ export default function CachingApp({ Component, pageProps }) {
       {pageProps.metaTags && <HeadSEO {...pageProps.metaTags} />}
       <HeadLinks links={headLinks} />
       <QueryClientProvider client={queryClient}>
+        <ReactQueryDevtools initialIsOpen={false} />
         <AppContext>{getLayout(<Component {...pageProps} />)}</AppContext>
       </QueryClientProvider>
     </>
