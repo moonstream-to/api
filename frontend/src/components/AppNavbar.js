@@ -171,9 +171,10 @@ const AppNavbar = () => {
               variant="link"
               justifyContent="space-evenly"
               alignContent="center"
-              h="32px"
               size={iconSize}
               colorScheme="blue"
+              m={0}
+              h="100%"
             />
             {!isSearchBarActive && (
               <IconButton
@@ -198,10 +199,7 @@ const AppNavbar = () => {
               <Link href="/" alignSelf="center">
                 <Image
                   alignSelf="center"
-                  // as={Link}
-                  // to="/"
-                  h="2.5rem"
-                  minW="2.5rem"
+                  maxH="2.5rem"
                   src={WHITE_LOGO_W_TEXT_URL}
                   alt="Go to app root"
                 />

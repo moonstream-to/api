@@ -28,6 +28,7 @@ import {
 } from "@chakra-ui/react";
 import UserContext from "../UserProvider/context";
 import UIContext from "../UIProvider/context";
+import useDashboard from "../../hooks/useDashboard";
 const ForgotPassword = React.lazy(() =>
   import("../../../components/ForgotPassword")
 );
@@ -43,6 +44,7 @@ const NewSubscription = React.lazy(() =>
 const UploadABI = React.lazy(() => import("../../../components/UploadABI"));
 
 const OverlayProvider = ({ children }) => {
+  const { createDashboard } = useDashboard();
   const ui = useContext(UIContext);
   const { user } = useContext(UserContext);
   const [modal, toggleModal] = useState({
@@ -227,15 +229,50 @@ const OverlayProvider = ({ children }) => {
             <Button
               variant="outline"
               mr={3}
-              onClick={() => toggleAlert(() => toggleDrawer(DRAWER_TYPES.OFF))}
+              onClick={() =>
+                toggleAlert(() => {
+                  toggleDrawer(DRAWER_TYPES.OFF);
+                  window.sessionStorage.removeItem("new_dashboard");
+                })
+              }
             >
               Cancel
             </Button>
             <Button
               colorScheme="blue"
+              isLoading={createDashboard.isLoading}
               onClick={() => {
-                //TODO: @Peersky Implement logic part
-                console.log("submit clicked");
+                const dashboardState = JSON.parse(
+                  sessionStorage.getItem("new_dashboard")
+                );
+                createDashboard.mutate({
+                  name: dashboardState.name,
+                  subscriptions: dashboardState.subscriptions.map(
+                    (pickedSubscription) => {
+                      const retval = {
+                        subscription_id: pickedSubscription.subscription_id,
+                        generic: [],
+                        all_methods: !!pickedSubscription.isMethods,
+                        all_events: !!pickedSubscription.isEvents,
+                      };
+
+                      pickedSubscription.generic.transactions.in &&
+                        retval.generic.push({ name: "transactions_in" });
+                      pickedSubscription.generic.transactions.out &&
+                        retval.generic.push({ name: "transactions_out" });
+                      pickedSubscription.generic.value.in &&
+                        retval.generic.push({ name: "value_in" });
+                      pickedSubscription.generic.value.out &&
+                        retval.generic.push({ name: "value_out" });
+                      pickedSubscription.generic.balance &&
+                        retval.generic.push({ name: "balance" });
+                      retval["methods"] = [];
+                      retval["events"] = [];
+
+                      return retval;
+                    }
+                  ),
+                });
               }}
             >
               Submit

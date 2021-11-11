@@ -1,8 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Flex, ButtonGroup, Button, useToast, Spinner } from "@chakra-ui/react";
 import { useSubscriptions } from "../core/hooks";
-// import hljs from "highlight.js";
-// import ReactQuill from "react-quill"; // ES6
 import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/theme-github";
 import "ace-builds/src-noconflict/mode-json";
@@ -21,7 +19,6 @@ const ABIUPLoad = (props) => {
     try {
       return JSON.parse(raw);
     } catch (err) {
-      console.log("e", err.message);
       if (!toast.isActive("upload_json_fails")) {
         toast({
           id: "upload_json_fails",
@@ -47,7 +44,7 @@ const ABIUPLoad = (props) => {
         status: "success",
         variant: "subtle",
       });
-  }, [updateSubscription.isSuccess, toggleModal]);
+  }, [updateSubscription.isSuccess, toggleModal, toast]);
 
   useEffect(() => {
     if (json === false) {
@@ -62,7 +59,6 @@ const ABIUPLoad = (props) => {
   };
   const handleSubmit = () => {
     if (json) {
-      console.log("id:", props.id);
       updateSubscription.mutate({
         id: props.id,
         abi: JSON.stringify(json),
