@@ -189,7 +189,6 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                             </InputRightAddon>
                           </InputGroup>
                         </Box>
-                        }
                         {isOpen ? (
                           <Stack
                             direction="column"
