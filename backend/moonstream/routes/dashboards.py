@@ -338,7 +338,7 @@ async def update_dashboard_handler(
     return resource
 
 
-@router.get("/{dashboard_id}/data_links", tags=["dashboards"])
+@router.get("/{dashboard_id}/stats", tags=["dashboards"])
 async def get_dashboard_data_links_handler(
     request: Request, dashboard_id: str
 ) -> Dict[str, Any]:
