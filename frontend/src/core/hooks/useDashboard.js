@@ -5,17 +5,9 @@ import { DashboardService } from "../services";
 import { useContext } from "react";
 import UserContext from "../providers/UserProvider/context";
 
-const useDashboard = () => {
+const useDashboard = (dashboardId) => {
   const toast = useToast();
   const { user } = useContext(UserContext);
-  const createDashboard = useMutation(DashboardService.createDashboard, {
-    onSuccess: () => {
-      toast("Created new dashboard", "success");
-    },
-    onError: (error) => {
-      toast(error.error, "error", "Fail");
-    },
-  });
 
   const dashboardsListCache = useQuery(
     ["dashboards-list"],
@@ -29,7 +21,52 @@ const useDashboard = () => {
     }
   );
 
-  return { createDashboard, dashboardsListCache };
+  const createDashboard = useMutation(DashboardService.createDashboard, {
+    onSuccess: () => {
+      toast("Created new dashboard", "success");
+    },
+    onError: (error) => {
+      toast(error.error, "error", "Fail");
+    },
+    onSettled: () => {
+      dashboardsListCache.refetch();
+    },
+  });
+
+  const deleteDashboard = useMutation(
+    () => DashboardService.deleteDashboard(dashboardId),
+    {
+      onSuccess: () => {
+        toast("Deleted dashboard", "success");
+      },
+      onError: (error) => {
+        toast(error.error, "error", "Fail");
+      },
+      onSettled: () => {
+        dashboardsListCache.refetch();
+      },
+    }
+  );
+
+  console.log("dashboardId in hook:", dashboardId, !!user && !!dashboardId);
+  const dashboardCache = useQuery(
+    ["dashboards", { dashboardId }],
+    () => DashboardService.getDashboard(dashboardId),
+    {
+      ...queryCacheProps,
+      onError: (error) => {
+        toast(error, "error");
+      },
+      enabled: !!user && !!dashboardId,
+    }
+  );
+
+  return {
+    createDashboard,
+    dashboardsListCache,
+    dashboardCache,
+    deleteDashboard,
+  };
 };
 
 export default useDashboard;
