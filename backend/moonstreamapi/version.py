@@ -2,4 +2,4 @@
 Moonstream library and API version.
 """
 
-MOONSTREAM_VERSION = "0.0.2"
+MOONSTREAMAPI_VERSION = "0.1.0"

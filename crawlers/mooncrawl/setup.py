@@ -34,8 +34,9 @@ setup(
     zip_safe=False,
     install_requires=[
         "boto3",
-        "bugout >= 0.1.17",
-        "moonstreamdb == 0.2.0",
+        "bugout",
+        "chardet",
+        "moonstreamdb",
         "humbug",
         "python-dateutil",
         "requests",
@@ -43,7 +44,8 @@ setup(
         "web3",
     ],
     extras_require={
-        "dev": ["black", "isort", "mypy", "types-requests", "types-python-dateutil"]
+        "dev": ["black", "isort", "mypy", "types-requests", "types-python-dateutil"],
+        "distribute": ["setuptools", "twine", "wheel"],
     },
     entry_points={
         "console_scripts": [
