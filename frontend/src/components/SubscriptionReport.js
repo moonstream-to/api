@@ -12,9 +12,7 @@ timeMap[HOUR_KEY] = "hour";
 timeMap[DAY_KEY] = "day";
 timeMap[WEEK_KEY] = "week";
 
-const SubscriptionReport = ({ url, id, type, dashboard_subscripton }) => {
-  console.log("dashboard_subscripton", dashboard_subscripton);
-  console.log("Report:", url, id, type);
+const SubscriptionReport = ({ url, id, type }) => {
   const { data, isLoading } = usePresignedURL({
     url: url,
     isEnabled: true,
@@ -24,8 +22,6 @@ const SubscriptionReport = ({ url, id, type, dashboard_subscripton }) => {
 
   const plotMinW = "500px";
   if (!data || isLoading) return <Spinner />;
-  // console.log("data is:", data.data.events.year);
-  console.log("data is:", data.data);
   return (
     <Flex w="100%" h="auto" flexGrow={1} flexBasis="420px" direction="column">
       {data.data?.events && Object.keys(data.data?.events) && (

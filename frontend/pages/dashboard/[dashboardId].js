@@ -92,7 +92,6 @@ const Analytics = () => {
   const [timeRange, setTimeRange] = useState(HOUR_KEY);
   const router = useRouter();
   const { dashboardId } = router.params;
-  console.log("router paras:", router.params, dashboardId);
   const { dashboardCache, dashboardLinksCache, deleteDashboard } =
     useDashboard(dashboardId);
 
@@ -153,11 +152,6 @@ const Analytics = () => {
 
   const plotMinW = "500px";
 
-  console.log(
-    "db",
-    dashboardCache.data.data.resource_data.dashboard_subscriptions
-  );
-
   return (
     <Scrollable>
       <Flex
@@ -191,15 +185,10 @@ const Analytics = () => {
 
         <Flex w="100%" direction="row" flexWrap="wrap-reverse" id="container">
           {Object.keys(dashboardLinksCache.data.data).map((key) => {
-            const subscription = dashboardLinksCache.data.data[key];
+            const s3PresignedURLs = dashboardLinksCache.data.data[key];
             const name = subscriptionsCache.data.subscriptions.find(
               (subscription) => subscription.id === key
             ).label;
-            const dashboard_subscription =
-              dashboardCache.data.data.resource_data.dashboard_subscriptions.find(
-                (subscription) => subscription.subscription_id === key
-              );
-
             return (
               <Flex
                 key={v4()}
@@ -221,8 +210,7 @@ const Analytics = () => {
                   {name}
                 </Text>
                 <SubscriptionReport
-                  dashboard_subscripton={dashboard_subscription}
-                  url={subscription.week}
+                  url={s3PresignedURLs.week}
                   id={v4()}
                   type={v4()}
                 />

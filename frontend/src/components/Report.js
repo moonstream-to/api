@@ -2,14 +2,10 @@ import React from "react";
 import { ResponsiveLineCanvas } from "@nivo/line";
 
 const Report = ({ data }) => {
-  //   console.log("Report:", url, id, type, data);
-
   const commonProperties = {
     animate: false,
     enableSlices: "x",
   };
-
-  console.log("data is:", data);
 
   const xyData = data.map((item) => {
     return { x: item.date, y: item.count };
@@ -19,7 +15,7 @@ const Report = ({ data }) => {
   return (
     <ResponsiveLineCanvas
       {...commonProperties}
-      data={plotData.reverse()}
+      data={plotData}
       isInteractive={true}
       xScale={{
         type: "time",
