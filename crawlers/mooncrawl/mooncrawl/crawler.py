@@ -165,11 +165,23 @@ def crawler_blocks_add_handler(args: argparse.Namespace) -> None:
 def crawler_blocks_missing_handler(args: argparse.Namespace) -> None:
     """
     Check missing blocks and missing transactions in each block.
+    If block range doesn't provided, get latest block from blockchain minus 50,
+    and check last 2000 blocks behind.
     """
     startTime = time.time()
 
     missing_blocks_numbers_total = []
-    for blocks_numbers_list in yield_blocks_numbers_lists(args.blocks):
+
+    block_range = args.blocks
+    if block_range is None:
+        confirmations = 50
+        shift = 2000
+        _, latest_block_number = get_latest_blocks(
+            AvailableBlockchainType(args.blockchain), confirmations
+        )
+        block_range = f"{latest_block_number-shift}-{latest_block_number}"
+
+    for blocks_numbers_list in yield_blocks_numbers_lists(block_range):
         logger.info(
             f"Checking missing blocks {blocks_numbers_list[-1]}-{blocks_numbers_list[0]} "
             f"with comparing transactions: {not args.notransactions}"
@@ -319,7 +331,6 @@ def main() -> None:
     parser_crawler_blocks_missing.add_argument(
         "-b",
         "--blocks",
-        required=True,
         help="List of blocks range in format {bottom_block}-{top_block}",
     )
     parser_crawler_blocks_missing.add_argument(
