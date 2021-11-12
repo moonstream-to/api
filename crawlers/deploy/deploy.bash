@@ -43,6 +43,8 @@ ETHEREUM_MISSING_TIMER_FILE="ethereum-missing.timer"
 
 # Polygon service file
 POLYGON_SYNCHRONIZE_SERVICE="polygon-synchronize.service"
+POLYGON_MISSING_SERVICE_FILE="polygon-missing.service"
+POLYGON_MISSING_TIMER_FILE="polygon-missing.timer"
 
 
 set -eu
