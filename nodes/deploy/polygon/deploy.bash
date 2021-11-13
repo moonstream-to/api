@@ -49,6 +49,12 @@ bash "${CHECKENV_NODES_CONNECTIONS_SCRIPT}" -v -f "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
+echo -e "${PREFIX_INFO} Replacing current node IP environment variable with local IP"
+LOCAL_IP="$(ec2metadata --local-ipv4)"
+sed -i "s|MOONSTREAM_NODE_POLYGON_IPC_ADDR=.*|MOONSTREAM_NODE_POLYGON_IPC_ADDR=\"$LOCAL_IP\"|" "${PARAMETERS_ENV_PATH}"
+
+echo
+echo
 echo -e "${PREFIX_INFO} Source extracted parameters"
 . "${PARAMETERS_ENV_PATH}"
 
@@ -56,5 +62,5 @@ echo
 echo
 echo -e "${PREFIX_INFO} Update heimdall config file with Ethereum URI"
 MOONSTREAM_NODE_ETHEREUM_IPC_URI="http://$MOONSTREAM_NODE_ETHEREUM_IPC_ADDR:$MOONSTREAM_NODE_ETHEREUM_IPC_PORT"
-sed -i "s|^eth_rpc_url =.*|eth_rpc_url = \"$MOONSTREAM_NODE_ETHEREUM_IPC_URI\"|" $HEIMDALL_HOME/config/heimdall-config.toml
+sed -i "s|^eth_rpc_url =.*|eth_rpc_url = \"$MOONSTREAM_NODE_ETHEREUM_IPC_URI\"|" "${HEIMDALL_HOME}/config/heimdall-config.toml"
 echo -e "${PREFIX_INFO} Updated ${C_GREEN}eth_rpc_url = $MOONSTREAM_NODE_ETHEREUM_IPC_URI${C_RESET} for heimdall"
