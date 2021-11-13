@@ -26,7 +26,7 @@ BLOCKCHAIN="ethereum"
 CHECKENV_PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.bash"
 CHECKENV_NODES_CONNECTIONS_SCRIPT="${SCRIPT_DIR}/nodes-connections.bash"
 
-# Crawlers server service file
+# Nodes server service file
 NODES_SERVER_SERVICE_FILE="moonstreamnodes.service"
 
 # Ethereum geth service file
