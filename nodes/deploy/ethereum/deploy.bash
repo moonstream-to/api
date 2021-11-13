@@ -56,8 +56,8 @@ bash "${CHECKENV_NODES_CONNECTIONS_SCRIPT}" -v -f "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Replacing current node IP environment variable with local IP"
 LOCAL_IP="$(ec2metadata --local-ipv4)"
+echo -e "${PREFIX_INFO} Replacing current node IP environment variable with local IP ${C_GREEN}${LOCAL_IP}${C_RESET}"
 sed -i "s|MOONSTREAM_NODE_ETHEREUM_IPC_ADDR=.*|MOONSTREAM_NODE_ETHEREUM_IPC_ADDR=\"$LOCAL_IP\"|" "${PARAMETERS_ENV_PATH}"
 
 echo
