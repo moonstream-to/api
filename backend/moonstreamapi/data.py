@@ -232,7 +232,7 @@ class OnboardingState(BaseModel):
 
 
 class DashboardMeta(BaseModel):
-    subscription_id: Union[UUID, str]
+    subscription_id: UUID
     generic: Optional[List[Dict[str, str]]]
     all_methods: bool = False
     all_events: bool = False

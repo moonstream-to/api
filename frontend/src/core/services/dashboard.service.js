@@ -26,13 +26,13 @@ export const deleteDashboard = (id) => {
 };
 
 export const getDashboard = (dashboardId) => {
-  console.log("get dashboard");
-  //   const dashboardId = query.queryKey[2].dashboardId;
-  //   console.assert(
-  //     dashboardId,
-  //     "No dashboard ID found in query object that was passed to service"
-  //   );
-  console.log("service", dashboardId);
+  return http({
+    method: "GET",
+    url: `${API_URL}/dashboards/${dashboardId}`,
+  });
+};
+
+export const getDashboardLinks = (dashboardId) => {
   return http({
     method: "GET",
     url: `${API_URL}/dashboards/${dashboardId}/data_links`,
