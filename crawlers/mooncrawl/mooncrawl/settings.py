@@ -66,16 +66,3 @@ if MOONSTREAM_ADMIN_ACCESS_TOKEN == "":
 MOONSTREAM_DATA_JOURNAL_ID = os.environ.get("MOONSTREAM_DATA_JOURNAL_ID", "")
 if MOONSTREAM_DATA_JOURNAL_ID == "":
     raise ValueError("MOONSTREAM_DATA_JOURNAL_ID env variable is not set")
-
-# AWS S3 bucket for ABI smartcontract settings
-AWS_S3_SMARTCONTRACTS_ABI_BUCKET = os.environ.get("AWS_S3_SMARTCONTRACTS_ABI_BUCKET")
-if AWS_S3_SMARTCONTRACTS_ABI_BUCKET is None:
-    raise ValueError(
-        "AWS_S3_SMARTCONTRACTS_ABI_BUCKET environment variable must be set"
-    )
-AWS_S3_SMARTCONTRACTS_ABI_PREFIX = os.environ.get("AWS_S3_SMARTCONTRACTS_ABI_PREFIX")
-if AWS_S3_SMARTCONTRACTS_ABI_PREFIX is None:
-    raise ValueError(
-        "AWS_S3_SMARTCONTRACTS_ABI_PREFIX environment variable must be set"
-    )
-AWS_S3_SMARTCONTRACTS_ABI_PREFIX = AWS_S3_SMARTCONTRACTS_ABI_PREFIX.rstrip("/")
