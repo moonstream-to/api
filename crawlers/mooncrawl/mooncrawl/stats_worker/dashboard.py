@@ -19,10 +19,11 @@ from sqlalchemy.orm import Query, Session
 from ..blockchain import get_block_model, get_label_model, get_transaction_model
 from ..data import AvailableBlockchainType
 from ..settings import (
+    AWS_S3_SMARTCONTRACTS_ABI_BUCKET,
     AWS_S3_SMARTCONTRACTS_ABI_PREFIX,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
-    bc,
 )
+from ..settings import bugout_client as bc
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

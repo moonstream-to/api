@@ -6,9 +6,20 @@ from bugout.app import Bugout
 # Bugout
 BUGOUT_BROOD_URL = os.environ.get("BUGOUT_BROOD_URL", "https://auth.bugout.dev")
 BUGOUT_SPIRE_URL = os.environ.get("BUGOUT_SPIRE_URL", "https://spire.bugout.dev")
-bc = Bugout(brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIRE_URL)
+bugout_client = Bugout(brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIRE_URL)
 
 HUMBUG_REPORTER_CRAWLERS_TOKEN = os.environ.get("HUMBUG_REPORTER_CRAWLERS_TOKEN")
+
+# Origin
+RAW_ORIGINS = os.environ.get("MOONSTREAM_CORS_ALLOWED_ORIGINS")
+if RAW_ORIGINS is None:
+    raise ValueError(
+        "MOONSTREAM_CORS_ALLOWED_ORIGINS environment variable must be set (comma-separated list of CORS allowed origins)"
+    )
+ORIGINS = RAW_ORIGINS.split(",")
+
+# OpenAPI
+DOCS_TARGET_PATH = "docs"
 
 # Geth connection address
 MOONSTREAM_NODE_ETHEREUM_IPC_ADDR = os.environ.get(
@@ -56,4 +67,15 @@ MOONSTREAM_DATA_JOURNAL_ID = os.environ.get("MOONSTREAM_DATA_JOURNAL_ID", "")
 if MOONSTREAM_DATA_JOURNAL_ID == "":
     raise ValueError("MOONSTREAM_DATA_JOURNAL_ID env variable is not set")
 
-AWS_S3_SMARTCONTRACTS_ABI_PREFIX = os.getenv("AWS_S3_SMARTCONTRACTS_ABI_PREFIX")
+# AWS S3 bucket for ABI smartcontract settings
+AWS_S3_SMARTCONTRACTS_ABI_BUCKET = os.environ.get("AWS_S3_SMARTCONTRACTS_ABI_BUCKET")
+if AWS_S3_SMARTCONTRACTS_ABI_BUCKET is None:
+    raise ValueError(
+        "AWS_S3_SMARTCONTRACTS_ABI_BUCKET environment variable must be set"
+    )
+AWS_S3_SMARTCONTRACTS_ABI_PREFIX = os.environ.get("AWS_S3_SMARTCONTRACTS_ABI_PREFIX")
+if AWS_S3_SMARTCONTRACTS_ABI_PREFIX is None:
+    raise ValueError(
+        "AWS_S3_SMARTCONTRACTS_ABI_PREFIX environment variable must be set"
+    )
+AWS_S3_SMARTCONTRACTS_ABI_PREFIX = AWS_S3_SMARTCONTRACTS_ABI_PREFIX.rstrip("/")
