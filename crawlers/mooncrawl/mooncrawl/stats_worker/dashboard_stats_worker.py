@@ -1,29 +1,21 @@
-import json
 import argparse
+from datetime import timedelta, datetime
 from enum import Enum
 import hashlib
-from datetime import timedelta, datetime
 import logging
-from typing import Any, Dict, List, Callable
+import json
 import os
+from typing import Any, Dict, List, Callable
 import time
-import pprint
-
 
 import boto3
-from bugout import data  # type: ignore
 from moonstreamdb.db import yield_db_session_ctx
 from moonstreamdb.models import EthereumLabel, EthereumTransaction, EthereumBlock
 from bugout.app import Bugout
 from bugout.data import BugoutResources
 
 from sqlalchemy.orm import Session, Query
-from sqlalchemy import func, text, and_, Date, cast, Column, desc
-from datetime import date
-
-
-from web3 import Web3, IPCProvider, HTTPProvider
-from web3.types import BlockData
+from sqlalchemy import func, text, and_, Date, Column
 
 
 logger = logging.getLogger(__name__)
@@ -207,7 +199,6 @@ def generate_metrics(
         )
 
         print("--- transactions_in %s seconds ---" % (time.time() - start_time))
-        pprint.pprint(results)
 
         start_time = time.time()
         results["value_out"] = make_query(
@@ -402,8 +393,6 @@ def crawlers_start(db_session):
         )
         abi_json = json.loads(abi["Body"].read())
 
-        # print(abi_json)
-
         abi_string = json.dumps(abi_json, sort_keys=True, indent=2)
 
         hash = hashlib.md5(abi_string.encode("utf-8")).hexdigest()
@@ -455,8 +444,6 @@ def crawlers_start(db_session):
                 abi_events_names,
                 start=start_date,
             )
-
-            pprint.pprint(s3_data_object)
 
             push_statistics(
                 statistics_data=s3_data_object,
