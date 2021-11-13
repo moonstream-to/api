@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "react-query";
-import { useToast } from ".";
+import { useRouter, useToast } from ".";
 import { queryCacheProps } from "./hookCommon";
 import { DashboardService } from "../services";
 import { useContext } from "react";
@@ -7,6 +7,7 @@ import UserContext from "../providers/UserProvider/context";
 
 const useDashboard = (dashboardId) => {
   const toast = useToast();
+  const router = useRouter();
   const { user } = useContext(UserContext);
 
   const dashboardsListCache = useQuery(
@@ -38,6 +39,7 @@ const useDashboard = (dashboardId) => {
     {
       onSuccess: () => {
         toast("Deleted dashboard", "success");
+        router.push("/welcome");
       },
       onError: (error) => {
         toast(error.error, "error", "Fail");
@@ -48,10 +50,21 @@ const useDashboard = (dashboardId) => {
     }
   );
 
-  console.log("dashboardId in hook:", dashboardId, !!user && !!dashboardId);
   const dashboardCache = useQuery(
     ["dashboards", { dashboardId }],
     () => DashboardService.getDashboard(dashboardId),
+    {
+      ...queryCacheProps,
+      onError: (error) => {
+        toast(error, "error");
+      },
+      enabled: !!user && !!dashboardId,
+    }
+  );
+
+  const dashboardLinksCache = useQuery(
+    ["dashboardLinks", { dashboardId }],
+    () => DashboardService.getDashboardLinks(dashboardId),
     {
       ...queryCacheProps,
       onError: (error) => {
@@ -66,6 +79,7 @@ const useDashboard = (dashboardId) => {
     dashboardsListCache,
     dashboardCache,
     deleteDashboard,
+    dashboardLinksCache,
   };
 };
 

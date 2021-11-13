@@ -1,23 +1,23 @@
 import argparse
 import codecs
 import csv
-from dataclasses import dataclass
-from datetime import datetime
 import json
 import logging
 import os
 import sys
 import time
-from typing import Any, List, Optional, Dict
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 import boto3  # type: ignore
+import requests
 from moonstreamdb.db import yield_db_session_ctx
 from moonstreamdb.models import EthereumLabel
-import requests
 from sqlalchemy.orm import Session
 
-from .version import MOONCRAWL_VERSION
 from .settings import MOONSTREAM_ETHERSCAN_TOKEN
+from .version import MOONCRAWL_VERSION
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

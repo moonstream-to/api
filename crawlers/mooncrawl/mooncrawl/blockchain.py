@@ -1,64 +1,118 @@
-from concurrent.futures import Future, ProcessPoolExecutor, ThreadPoolExecutor, wait
-from dataclasses import dataclass
-from datetime import datetime
 import logging
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from concurrent.futures import Future, ProcessPoolExecutor, ThreadPoolExecutor, wait
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
-from psycopg2.errors import UniqueViolation  # type: ignore
-from sqlalchemy import desc, Column
-from sqlalchemy import func
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session, Query
-from tqdm import tqdm
-from web3 import Web3, IPCProvider, HTTPProvider
-from web3.types import BlockData
-
-from .settings import MOONSTREAM_IPC_PATH, MOONSTREAM_CRAWL_WORKERS
 from moonstreamdb.db import yield_db_session, yield_db_session_ctx
 from moonstreamdb.models import (
     EthereumBlock,
     EthereumTransaction,
+    PolygonBlock,
+    PolygonTransaction,
+)
+from psycopg2.errors import UniqueViolation  # type: ignore
+from sqlalchemy import Column, desc, func
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Query, Session
+from tqdm import tqdm
+from web3 import HTTPProvider, IPCProvider, Web3
+from web3.middleware import geth_poa_middleware
+from web3.types import BlockData
+
+from .data import AvailableBlockchainType, DateRange
+from .settings import (
+    MOONSTREAM_CRAWL_WORKERS,
+    MOONSTREAM_ETHEREUM_IPC_PATH,
+    MOONSTREAM_POLYGON_IPC_PATH,
 )
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-class EthereumBlockCrawlError(Exception):
+class BlockCrawlError(Exception):
     """
-    Raised when there is a problem crawling Ethereum blocks.
+    Raised when there is a problem crawling blocks.
     """
 
 
-@dataclass
-class DateRange:
-    start_time: datetime
-    end_time: datetime
-    include_start: bool
-    include_end: bool
-
-
-def connect(web3_uri: Optional[str] = MOONSTREAM_IPC_PATH):
+def connect(blockchain_type: AvailableBlockchainType, web3_uri: Optional[str] = None):
     web3_provider: Union[IPCProvider, HTTPProvider] = Web3.IPCProvider()
-    if web3_uri is not None:
-        if web3_uri.startswith("http://") or web3_uri.startswith("https://"):
-            web3_provider = Web3.HTTPProvider(web3_uri)
+
+    if web3_uri is None:
+        if blockchain_type == AvailableBlockchainType.ETHEREUM:
+            web3_uri = MOONSTREAM_ETHEREUM_IPC_PATH
+        elif blockchain_type == AvailableBlockchainType.POLYGON:
+            web3_uri = MOONSTREAM_POLYGON_IPC_PATH
         else:
-            web3_provider = Web3.IPCProvider(web3_uri)
+            raise Exception("Wrong blockchain type provided for web3 URI")
+
+    if web3_uri.startswith("http://") or web3_uri.startswith("https://"):
+        web3_provider = Web3.HTTPProvider(web3_uri)
+    else:
+        web3_provider = Web3.IPCProvider(web3_uri)
     web3_client = Web3(web3_provider)
+
+    # Inject --dev middleware if it is not Ethereum mainnet
+    # Docs: https://web3py.readthedocs.io/en/stable/middleware.html#geth-style-proof-of-authority
+    if blockchain_type != AvailableBlockchainType.ETHEREUM:
+        web3_client.middleware_onion.inject(geth_poa_middleware, layer=0)
+
     return web3_client
 
 
-def add_block(db_session, block: Any) -> None:
+def get_block_model(
+    blockchain_type: AvailableBlockchainType,
+) -> Type[Union[EthereumBlock, PolygonBlock]]:
+    """
+    Depends on provided blockchain type: Ethereum or Polygon,
+    set proper blocks model: EthereumBlock or PolygonBlock.
+    """
+    block_model: Type[Union[EthereumBlock, PolygonBlock]]
+    if blockchain_type == AvailableBlockchainType.ETHEREUM:
+        block_model = EthereumBlock
+    elif blockchain_type == AvailableBlockchainType.POLYGON:
+        block_model = PolygonBlock
+    else:
+        raise Exception("Unsupported blockchain type provided")
+
+    return block_model
+
+
+def get_transaction_model(
+    blockchain_type: AvailableBlockchainType,
+) -> Type[Union[EthereumTransaction, PolygonTransaction]]:
+    """
+    Depends on provided blockchain type: Ethereum or Polygon,
+    set proper block transactions model: EthereumTransaction or PolygonTransaction.
+    """
+    transaction_model: Type[Union[EthereumTransaction, PolygonTransaction]]
+    if blockchain_type == AvailableBlockchainType.ETHEREUM:
+        transaction_model = EthereumTransaction
+    elif blockchain_type == AvailableBlockchainType.POLYGON:
+        transaction_model = PolygonTransaction
+    else:
+        raise Exception("Unsupported blockchain type provided")
+
+    return transaction_model
+
+
+def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) -> None:
     """
     Add block if doesn't presented in database.
 
     block: web3.types.BlockData
     """
-    block_obj = EthereumBlock(
+    block_model = get_block_model(blockchain_type)
+
+    # BlockData.extraData doesn't exist at Polygon mainnet
+    extra_data = None
+    if block.get("extraData", None) is not None:
+        extra_data = block.get("extraData").hex()
+
+    block_obj = block_model(
         block_number=block.number,
         difficulty=block.difficulty,
-        extra_data=block.extraData.hex(),
+        extra_data=extra_data,
         gas_limit=block.gasLimit,
         gas_used=block.gasUsed,
         base_fee_per_gas=block.get("baseFeePerGas", None),
@@ -78,14 +132,17 @@ def add_block(db_session, block: Any) -> None:
     db_session.add(block_obj)
 
 
-def add_block_transactions(db_session, block: Any) -> None:
+def add_block_transactions(
+    db_session, block: Any, blockchain_type: AvailableBlockchainType
+) -> None:
     """
     Add block transactions.
 
     block: web3.types.BlockData
     """
+    transaction_model = get_transaction_model(blockchain_type)
     for tx in block.transactions:
-        tx_obj = EthereumTransaction(
+        tx_obj = transaction_model(
             hash=tx.hash.hex(),
             block_number=block.number,
             from_address=tx["from"],
@@ -103,22 +160,25 @@ def add_block_transactions(db_session, block: Any) -> None:
         db_session.add(tx_obj)
 
 
-def get_latest_blocks(confirmations: int = 0) -> Tuple[Optional[int], int]:
+def get_latest_blocks(
+    blockchain_type: AvailableBlockchainType, confirmations: int = 0
+) -> Tuple[Optional[int], int]:
     """
-    Retrieve the latest block from the connected node (connection is created by the connect() method).
+    Retrieve the latest block from the connected node (connection is created by the connect(AvailableBlockchainType) method).
 
     If confirmations > 0, and the latest block on the node has block number N, this returns the block
     with block_number (N - confirmations)
     """
-    web3_client = connect()
+    web3_client = connect(blockchain_type)
     latest_block_number: int = web3_client.eth.block_number
     if confirmations > 0:
         latest_block_number -= confirmations
 
+    block_model = get_block_model(blockchain_type)
     with yield_db_session_ctx() as db_session:
         latest_stored_block_row = (
-            db_session.query(EthereumBlock.block_number)
-            .order_by(EthereumBlock.block_number.desc())
+            db_session.query(block_model.block_number)
+            .order_by(block_model.block_number.desc())
             .first()
         )
         latest_stored_block_number = (
@@ -128,11 +188,15 @@ def get_latest_blocks(confirmations: int = 0) -> Tuple[Optional[int], int]:
     return latest_stored_block_number, latest_block_number
 
 
-def crawl_blocks(blocks_numbers: List[int], with_transactions: bool = False) -> None:
+def crawl_blocks(
+    blockchain_type: AvailableBlockchainType,
+    blocks_numbers: List[int],
+    with_transactions: bool = False,
+) -> None:
     """
     Open database and geth sessions and fetch block data from blockchain.
     """
-    web3_client = connect()
+    web3_client = connect(blockchain_type)
     with yield_db_session_ctx() as db_session:
         pbar = tqdm(total=len(blocks_numbers))
         for block_number in blocks_numbers:
@@ -143,10 +207,10 @@ def crawl_blocks(blocks_numbers: List[int], with_transactions: bool = False) -> 
                 block: BlockData = web3_client.eth.get_block(
                     block_number, full_transactions=with_transactions
                 )
-                add_block(db_session, block)
+                add_block(db_session, block, blockchain_type)
 
                 if with_transactions:
-                    add_block_transactions(db_session, block)
+                    add_block_transactions(db_session, block, blockchain_type)
 
                 db_session.commit()
             except IntegrityError as err:
@@ -157,7 +221,7 @@ def crawl_blocks(blocks_numbers: List[int], with_transactions: bool = False) -> 
             except Exception as err:
                 db_session.rollback()
                 message = f"Error adding block (number={block_number}) to database:\n{repr(err)}"
-                raise EthereumBlockCrawlError(message)
+                raise BlockCrawlError(message)
             except:
                 db_session.rollback()
                 logger.error(
@@ -168,7 +232,11 @@ def crawl_blocks(blocks_numbers: List[int], with_transactions: bool = False) -> 
         pbar.close()
 
 
-def check_missing_blocks(blocks_numbers: List[int], notransactions=False) -> List[int]:
+def check_missing_blocks(
+    blockchain_type: AvailableBlockchainType,
+    blocks_numbers: List[int],
+    notransactions=False,
+) -> List[int]:
     """
     Query block from postgres. If block does not presented in database,
     add to missing blocks numbers list.
@@ -178,33 +246,35 @@ def check_missing_blocks(blocks_numbers: List[int], notransactions=False) -> Lis
     bottom_block = min(blocks_numbers[-1], blocks_numbers[0])
     top_block = max(blocks_numbers[-1], blocks_numbers[0])
 
+    block_model = get_block_model(blockchain_type)
+    transaction_model = get_transaction_model(blockchain_type)
     with yield_db_session_ctx() as db_session:
         if notransactions:
             blocks_exist_raw_query = (
-                db_session.query(EthereumBlock.block_number)
-                .filter(EthereumBlock.block_number >= bottom_block)
-                .filter(EthereumBlock.block_number <= top_block)
+                db_session.query(block_model.block_number)
+                .filter(block_model.block_number >= bottom_block)
+                .filter(block_model.block_number <= top_block)
             )
             blocks_exist = [[block[0]] for block in blocks_exist_raw_query.all()]
         else:
             corrupted_blocks = []
             blocks_exist_raw_query = (
                 db_session.query(
-                    EthereumBlock.block_number, func.count(EthereumTransaction.hash)
+                    block_model.block_number, func.count(transaction_model.hash)
                 )
                 .join(
-                    EthereumTransaction,
-                    EthereumTransaction.block_number == EthereumBlock.block_number,
+                    transaction_model,
+                    transaction_model.block_number == block_model.block_number,
                 )
-                .filter(EthereumBlock.block_number >= bottom_block)
-                .filter(EthereumBlock.block_number <= top_block)
-                .group_by(EthereumBlock.block_number)
+                .filter(block_model.block_number >= bottom_block)
+                .filter(block_model.block_number <= top_block)
+                .group_by(block_model.block_number)
             )
             blocks_exist = [
                 [block[0], block[1]] for block in blocks_exist_raw_query.all()
             ]
 
-            web3_client = connect()
+            web3_client = connect(blockchain_type)
 
             blocks_exist_len = len(blocks_exist)
             pbar = tqdm(total=blocks_exist_len)
@@ -218,8 +288,8 @@ def check_missing_blocks(blocks_numbers: List[int], notransactions=False) -> Lis
                     corrupted_blocks.append(block_in_db[0])
                     # Delete existing corrupted block and add to missing list
                     del_block = (
-                        db_session.query(EthereumBlock)
-                        .filter(EthereumBlock.block_number == block_in_db[0])
+                        db_session.query(block_model)
+                        .filter(block_model.block_number == block_in_db[0])
                         .one()
                     )
                     db_session.delete(del_block)
@@ -242,6 +312,7 @@ def check_missing_blocks(blocks_numbers: List[int], notransactions=False) -> Lis
 
 
 def crawl_blocks_executor(
+    blockchain_type: AvailableBlockchainType,
     block_numbers_list: List[int],
     with_transactions: bool = False,
     num_processes: int = MOONSTREAM_CRAWL_WORKERS,
@@ -272,13 +343,15 @@ def crawl_blocks_executor(
     results: List[Future] = []
     if num_processes == 1:
         logger.warning("Executing block crawler in lazy mod")
-        return crawl_blocks(block_numbers_list, with_transactions)
+        return crawl_blocks(blockchain_type, block_numbers_list, with_transactions)
     else:
         with ThreadPoolExecutor(max_workers=MOONSTREAM_CRAWL_WORKERS) as executor:
             for worker in worker_indices:
                 block_chunk = worker_job_lists[worker]
                 logger.info(f"Spawned process for {len(block_chunk)} blocks")
-                result = executor.submit(crawl_blocks, block_chunk, with_transactions)
+                result = executor.submit(
+                    crawl_blocks, blockchain_type, block_chunk, with_transactions
+                )
                 result.add_done_callback(record_error)
                 results.append(result)
 
@@ -286,7 +359,7 @@ def crawl_blocks_executor(
         if len(errors) > 0:
             error_messages = "\n".join([f"- {error}" for error in errors])
             message = f"Error processing blocks in list:\n{error_messages}"
-            raise EthereumBlockCrawlError(message)
+            raise BlockCrawlError(message)
 
 
 def trending(
