@@ -36,11 +36,15 @@ CRAWLERS_SERVICE_FILE="moonstreamcrawlers.service"
 # Ethereum service files
 ETHEREUM_SYNCHRONIZE_SERVICE="ethereum-synchronize.service"
 ETHEREUM_TRENDING_SERVICE_FILE="ethereum-trending.service"
-ETHEREUM_TRENDING_TIMER_FILE="ethereum-trending.service"
+ETHEREUM_TRENDING_TIMER_FILE="ethereum-trending.timer"
 ETHEREUM_TXPOOL_SERVICE_FILE="ethereum-txpool.service"
+ETHEREUM_MISSING_SERVICE_FILE="ethereum-missing.service"
+ETHEREUM_MISSING_TIMER_FILE="ethereum-missing.timer"
 
 # Polygon service file
 POLYGON_SYNCHRONIZE_SERVICE="polygon-synchronize.service"
+POLYGON_MISSING_SERVICE_FILE="polygon-missing.service"
+POLYGON_MISSING_TIMER_FILE="polygon-missing.timer"
 
 
 set -eu
@@ -114,6 +118,15 @@ systemctl restart "${ETHEREUM_TXPOOL_SERVICE_FILE}"
 
 echo
 echo
+echo -e "${PREFIX_INFO} Replacing existing Ethereum missing service and timer with: ${ETHEREUM_MISSING_SERVICE_FILE}, ${ETHEREUM_MISSING_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ETHEREUM_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${ETHEREUM_MISSING_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_MISSING_SERVICE_FILE}" "/etc/systemd/system/${ETHEREUM_MISSING_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_MISSING_TIMER_FILE}" "/etc/systemd/system/${ETHEREUM_MISSING_TIMER_FILE}"
+systemctl daemon-reload
+systemctl restart "${ETHEREUM_MISSING_TIMER_FILE}"
+
+echo
+echo
 echo -e "${PREFIX_INFO} Replacing existing Polygon block with transactions syncronizer service definition with ${POLYGON_SYNCHRONIZE_SERVICE}"
 chmod 644 "${SCRIPT_DIR}/${POLYGON_SYNCHRONIZE_SERVICE}"
 cp "${SCRIPT_DIR}/${POLYGON_SYNCHRONIZE_SERVICE}" "/etc/systemd/system/${POLYGON_SYNCHRONIZE_SERVICE}"
@@ -128,3 +141,12 @@ cp "${SCRIPT_DIR}/${CRAWLERS_SERVICE_FILE}" "/etc/systemd/system/${CRAWLERS_SERV
 systemctl daemon-reload
 systemctl restart "${CRAWLERS_SERVICE_FILE}"
 systemctl status "${CRAWLERS_SERVICE_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Polygon missing service and timer with: ${POLYGON_MISSING_SERVICE_FILE}, ${POLYGON_MISSING_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${POLYGON_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${POLYGON_MISSING_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${POLYGON_MISSING_SERVICE_FILE}" "/etc/systemd/system/${POLYGON_MISSING_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${POLYGON_MISSING_TIMER_FILE}" "/etc/systemd/system/${POLYGON_MISSING_TIMER_FILE}"
+systemctl daemon-reload
+systemctl restart "${POLYGON_MISSING_TIMER_FILE}"
