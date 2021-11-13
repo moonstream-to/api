@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	settings "github.com/bugout-dev/moonstream/crawlers/server/configs"
+	settings "github.com/bugout-dev/moonstream/nodes/server/configs"
 )
 
 func pingRoute(w http.ResponseWriter, req *http.Request) {
@@ -19,7 +19,7 @@ func pingRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 // Fetch latest block from Geth
-func pingGethRoute(w http.ResponseWriter, req *http.Request) {
+func (es *extendedServer) pingGethRoute(w http.ResponseWriter, req *http.Request) {
 	postBody, err := json.Marshal(map[string]interface{}{
 		"jsonrpc": "2.0",
 		"method":  "eth_blockNumber",
@@ -31,7 +31,17 @@ func pingGethRoute(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
-	gethResponse, err := http.Post(settings.MOONSTREAM_IPC_PATH, "application/json",
+	var IPC_PATH string
+	if es.blockchain == "ethereum" {
+		IPC_PATH = settings.MOONSTREAM_NODE_ETHEREUM_IPC_PATH
+	} else if es.blockchain == "polygon" {
+		IPC_PATH = settings.MOONSTREAM_NODE_POLYGON_IPC_PATH
+	} else {
+		log.Printf("Unaccepted blockchain type: %s", es.blockchain)
+		http.Error(w, http.StatusText(400), http.StatusBadRequest)
+		return
+	}
+	gethResponse, err := http.Post(IPC_PATH, "application/json",
 		bytes.NewBuffer(postBody))
 	if err != nil {
 		log.Printf("Unable to request geth, error: %s", err)
