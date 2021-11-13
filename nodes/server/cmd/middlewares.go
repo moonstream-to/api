@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	settings "github.com/bugout-dev/moonstream/crawlers/server/configs"
+	settings "github.com/bugout-dev/moonstream/nodes/server/configs"
 )
 
 // Handle panic errors to prevent server shutdown
