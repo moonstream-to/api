@@ -165,6 +165,7 @@ def generate_metrics(
             )
             .order_by(text("timeseries_points DESC"))
         )
+
         response_metric: List[Any] = []
 
         for created_date, count in metrics_time_series:
@@ -475,6 +476,9 @@ def main() -> None:
     )
 
     parser_statistics_generate.set_defaults(func=stats_generate_handler)
+
+    args = parser.parse_args()
+    args.func(args)
 
 
 if __name__ == "__main__":
