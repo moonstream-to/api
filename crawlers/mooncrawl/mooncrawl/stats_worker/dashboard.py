@@ -160,6 +160,7 @@ def generate_metrics(
             )
             .order_by(text("timeseries_points DESC"))
         )
+
         response_metric: List[Any] = []
 
         for created_date, count in metrics_time_series:
@@ -374,18 +375,10 @@ def stats_generate_handler(args: argparse.Namespace):
 
         s3_client = boto3.client("s3")
 
-        # already proccessd
-
+        # Already processed
         already_processed = []
 
         for subscription in required_subscriptions.resources:
-
-            if (
-                subscription.resource_data["address"]
-                != "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d"
-            ):
-                continue
-
             bucket = subscription.resource_data["bucket"]
             key = subscription.resource_data["s3_path"]
             address = subscription.resource_data["address"]
@@ -489,6 +482,9 @@ def main() -> None:
         help=f"Available blockchain types: {[member.value for member in AvailableBlockchainType]}",
     )
     parser_generate.set_defaults(func=stats_generate_handler)
+
+    args = parser.parse_args()
+    args.func(args)
 
     args = parser.parse_args()
     args.func(args)
