@@ -374,12 +374,6 @@ def crawlers_start(db_session):
 
     for subscription in required_subscriptions.resources:
 
-        if (
-            subscription.resource_data["address"]
-            != "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d"
-        ):
-            continue
-
         bucket = subscription.resource_data["bucket"]
         key = subscription.resource_data["s3_path"]
         address = subscription.resource_data["address"]
