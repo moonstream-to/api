@@ -165,7 +165,6 @@ def generate_metrics(
             )
             .order_by(text("timeseries_points DESC"))
         )
-
         response_metric: List[Any] = []
 
         for created_date, count in metrics_time_series:
@@ -371,7 +370,7 @@ def crawlers_start(db_session):
 
     # already proccessd
 
-    already_proccessd = []
+    already_processed = []
 
     for subscription in required_subscriptions.resources:
 
@@ -397,7 +396,7 @@ def crawlers_start(db_session):
 
         hash = hashlib.md5(abi_string.encode("utf-8")).hexdigest()
 
-        if f"{address}/{hash}" in already_proccessd:
+        if f"{address}/{hash}" in already_processed:
             continue
 
         s3_data_object = {}
@@ -452,7 +451,7 @@ def crawlers_start(db_session):
                 bucket=bucket,
                 hash=hash,
             )
-        already_proccessd.append(f"{address}/{hash}")
+        already_processed.append(f"{address}/{hash}")
 
     time.sleep(10)
 
