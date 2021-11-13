@@ -34,7 +34,7 @@ setup(
     zip_safe=False,
     install_requires=["alembic", "psycopg2-binary", "sqlalchemy"],
     extras_require={
-        "dev": ["black", "mypy"],
+        "dev": ["black", "isort", "mypy"],
         "distribute": ["setuptools", "twine", "wheel"],
     },
     entry_points={

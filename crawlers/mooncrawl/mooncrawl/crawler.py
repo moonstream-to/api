@@ -2,24 +2,25 @@
 Moonstream crawlers CLI.
 """
 import argparse
-from datetime import datetime, timedelta, timezone
-from enum import Enum
 import json
 import logging
 import os
 import sys
 import time
+from datetime import datetime, timedelta, timezone
+from enum import Enum
 from typing import Iterator, List
 
 import dateutil.parser
 
-from .ethereum import (
-    crawl_blocks_executor,
-    check_missing_blocks,
-    get_latest_blocks,
+from .blockchain import (
     DateRange,
+    check_missing_blocks,
+    crawl_blocks_executor,
+    get_latest_blocks,
     trending,
 )
+from .data import AvailableBlockchainType
 from .publish import publish_json
 from .settings import MOONSTREAM_CRAWL_WORKERS
 from .version import MOONCRAWL_VERSION
@@ -86,13 +87,13 @@ def yield_blocks_numbers_lists(
             current_block -= block_step
 
 
-def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
+def crawler_blocks_sync_handler(args: argparse.Namespace) -> None:
     """
-    Synchronize latest Ethereum blocks with database.
+    Synchronize latest Blockchain blocks with database.
     """
     while True:
         latest_stored_block_number, latest_block_number = get_latest_blocks(
-            args.confirmations
+            AvailableBlockchainType(args.blockchain), args.confirmations
         )
         if latest_stored_block_number is None:
             latest_stored_block_number = 0
@@ -132,6 +133,7 @@ def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
             )
             # TODO(kompotkot): Set num_processes argument based on number of blocks to synchronize.
             crawl_blocks_executor(
+                blockchain_type=AvailableBlockchainType(args.blockchain),
                 block_numbers_list=blocks_numbers_list,
                 with_transactions=True,
                 num_processes=args.jobs,
@@ -141,7 +143,7 @@ def ethcrawler_blocks_sync_handler(args: argparse.Namespace) -> None:
         )
 
 
-def ethcrawler_blocks_add_handler(args: argparse.Namespace) -> None:
+def crawler_blocks_add_handler(args: argparse.Namespace) -> None:
     """
     Add blocks to moonstream database.
     """
@@ -150,7 +152,9 @@ def ethcrawler_blocks_add_handler(args: argparse.Namespace) -> None:
     for blocks_numbers_list in yield_blocks_numbers_lists(args.blocks):
         logger.info(f"Adding blocks {blocks_numbers_list[-1]}-{blocks_numbers_list[0]}")
         crawl_blocks_executor(
-            block_numbers_list=blocks_numbers_list, with_transactions=True
+            blockchain_type=AvailableBlockchainType(args.blockchain),
+            block_numbers_list=blocks_numbers_list,
+            with_transactions=True,
         )
 
     logger.info(
@@ -158,19 +162,32 @@ def ethcrawler_blocks_add_handler(args: argparse.Namespace) -> None:
     )
 
 
-def ethcrawler_blocks_missing_handler(args: argparse.Namespace) -> None:
+def crawler_blocks_missing_handler(args: argparse.Namespace) -> None:
     """
     Check missing blocks and missing transactions in each block.
+    If block range doesn't provided, get latest block from blockchain minus 50,
+    and check last 2000 blocks behind.
     """
     startTime = time.time()
 
     missing_blocks_numbers_total = []
-    for blocks_numbers_list in yield_blocks_numbers_lists(args.blocks):
+
+    block_range = args.blocks
+    if block_range is None:
+        confirmations = 50
+        shift = 2000
+        _, latest_block_number = get_latest_blocks(
+            AvailableBlockchainType(args.blockchain), confirmations
+        )
+        block_range = f"{latest_block_number-shift}-{latest_block_number}"
+
+    for blocks_numbers_list in yield_blocks_numbers_lists(block_range):
         logger.info(
             f"Checking missing blocks {blocks_numbers_list[-1]}-{blocks_numbers_list[0]} "
             f"with comparing transactions: {not args.notransactions}"
         )
         missing_blocks_numbers = check_missing_blocks(
+            blockchain_type=AvailableBlockchainType(args.blockchain),
             blocks_numbers=blocks_numbers_list,
             notransactions=args.notransactions,
         )
@@ -185,7 +202,8 @@ def ethcrawler_blocks_missing_handler(args: argparse.Namespace) -> None:
     if (len(missing_blocks_numbers_total)) > 0:
         time.sleep(5)
         crawl_blocks_executor(
-            missing_blocks_numbers_total,
+            blockchain_type=AvailableBlockchainType(args.blockchain),
+            block_numbers_list=missing_blocks_numbers_total,
             with_transactions=True,
             num_processes=1 if args.lazy else MOONSTREAM_CRAWL_WORKERS,
         )
@@ -195,7 +213,7 @@ def ethcrawler_blocks_missing_handler(args: argparse.Namespace) -> None:
     )
 
 
-def ethcrawler_trending_handler(args: argparse.Namespace) -> None:
+def crawler_trending_handler(args: argparse.Namespace) -> None:
     date_range = DateRange(
         start_time=args.start,
         end_time=args.end,
@@ -228,15 +246,15 @@ def main() -> None:
 
     time_now = datetime.now(timezone.utc)
 
-    # Ethereum blocks parser
-    parser_ethcrawler_blocks = subcommands.add_parser(
-        "blocks", description="Ethereum blocks commands"
+    # Blockchain blocks parser
+    parser_crawler_blocks = subcommands.add_parser(
+        "blocks", description="Blockchain blocks commands"
     )
-    parser_ethcrawler_blocks.set_defaults(
-        func=lambda _: parser_ethcrawler_blocks.print_help()
+    parser_crawler_blocks.set_defaults(
+        func=lambda _: parser_crawler_blocks.print_help()
     )
-    subcommands_ethcrawler_blocks = parser_ethcrawler_blocks.add_subparsers(
-        description="Ethereum blocks commands"
+    subcommands_crawler_blocks = parser_crawler_blocks.add_subparsers(
+        description="Blockchain blocks commands"
     )
 
     valid_processing_orders = {
@@ -251,29 +269,29 @@ def main() -> None:
             f"Invalid processing order ({raw_order}). Valid choices: {valid_processing_orders.keys()}"
         )
 
-    parser_ethcrawler_blocks_sync = subcommands_ethcrawler_blocks.add_parser(
-        "synchronize", description="Synchronize to latest ethereum block commands"
+    parser_crawler_blocks_sync = subcommands_crawler_blocks.add_parser(
+        "synchronize", description="Synchronize to latest blockchain block commands"
     )
-    parser_ethcrawler_blocks_sync.add_argument(
+    parser_crawler_blocks_sync.add_argument(
         "-s",
         "--start",
         type=int,
-        help="(Optional) Block to start synchronization from. Default: None - current Ethereum block minus confirmations ",
+        help="(Optional) Block to start synchronization from. Default: None - current Blockchain block minus confirmations ",
     )
-    parser_ethcrawler_blocks_sync.add_argument(
+    parser_crawler_blocks_sync.add_argument(
         "-c",
         "--confirmations",
         type=int,
         default=0,
         help="Number of confirmations we require before storing a block in the database. (Default: 0)",
     )
-    parser_ethcrawler_blocks_sync.add_argument(
+    parser_crawler_blocks_sync.add_argument(
         "--order",
         type=processing_order,
         default=ProcessingOrder.ASCENDING,
         help="Order in which to process blocks (choices: desc, asc; default: asc)",
     )
-    parser_ethcrawler_blocks_sync.add_argument(
+    parser_crawler_blocks_sync.add_argument(
         "-j",
         "--jobs",
         type=int,
@@ -283,72 +301,85 @@ def main() -> None:
             " If you set to 1, the main process handles synchronization without spawning subprocesses."
         ),
     )
-    parser_ethcrawler_blocks_sync.set_defaults(func=ethcrawler_blocks_sync_handler)
-
-    parser_ethcrawler_blocks_add = subcommands_ethcrawler_blocks.add_parser(
-        "add", description="Add ethereum blocks commands"
+    parser_crawler_blocks_sync.add_argument(
+        "--blockchain",
+        required=True,
+        help=f"Available blockchain types: {[member.value for member in AvailableBlockchainType]}",
     )
-    parser_ethcrawler_blocks_add.add_argument(
+    parser_crawler_blocks_sync.set_defaults(func=crawler_blocks_sync_handler)
+
+    parser_crawler_blocks_add = subcommands_crawler_blocks.add_parser(
+        "add", description="Add blockchain blocks commands"
+    )
+    parser_crawler_blocks_add.add_argument(
         "-b",
         "--blocks",
         required=True,
         help="List of blocks range in format {bottom_block}-{top_block}",
     )
-    parser_ethcrawler_blocks_add.set_defaults(func=ethcrawler_blocks_add_handler)
-
-    parser_ethcrawler_blocks_missing = subcommands_ethcrawler_blocks.add_parser(
-        "missing", description="Add missing ethereum blocks with transactions commands"
+    parser_crawler_blocks_add.add_argument(
+        "--blockchain",
+        required=True,
+        help=f"Available blockchain types: {[member.value for member in AvailableBlockchainType]}",
     )
-    parser_ethcrawler_blocks_missing.add_argument(
+    parser_crawler_blocks_add.set_defaults(func=crawler_blocks_add_handler)
+
+    parser_crawler_blocks_missing = subcommands_crawler_blocks.add_parser(
+        "missing",
+        description="Add missing Blockchain blocks with transactions commands",
+    )
+    parser_crawler_blocks_missing.add_argument(
         "-b",
         "--blocks",
-        required=True,
         help="List of blocks range in format {bottom_block}-{top_block}",
     )
-    parser_ethcrawler_blocks_missing.add_argument(
+    parser_crawler_blocks_missing.add_argument(
         "-n",
         "--notransactions",
         action="store_true",
         help="Skip crawling block transactions",
     )
-    parser_ethcrawler_blocks_missing.add_argument(
+    parser_crawler_blocks_missing.add_argument(
         "-l",
         "--lazy",
         action="store_true",
         help="Lazy block adding one by one",
     )
-    parser_ethcrawler_blocks_missing.set_defaults(
-        func=ethcrawler_blocks_missing_handler
+    parser_crawler_blocks_missing.add_argument(
+        "--blockchain",
+        required=True,
+        help=f"Available blockchain types: {[member.value for member in AvailableBlockchainType]}",
     )
+    parser_crawler_blocks_missing.set_defaults(func=crawler_blocks_missing_handler)
 
-    parser_ethcrawler_trending = subcommands.add_parser(
-        "trending", description="Trending addresses on the Ethereum blockchain"
+    parser_crawler_trending = subcommands.add_parser(
+        "trending", description="Trending addresses on the Blockchain blockchain"
     )
-    parser_ethcrawler_trending.add_argument(
+    parser_crawler_trending.add_argument(
         "-s",
         "--start",
         type=dateutil.parser.parse,
         default=(time_now - timedelta(hours=1, minutes=0)).isoformat(),
         help=f"Start time for window to calculate trending addresses in (default: {(time_now - timedelta(hours=1,minutes=0)).isoformat()})",
     )
-    parser_ethcrawler_trending.add_argument(
+    parser_crawler_trending.add_argument(
         "--include-start",
         action="store_true",
         help="Set this flag if range should include start time",
     )
-    parser_ethcrawler_trending.add_argument(
+    parser_crawler_trending.add_argument(
         "-e",
         "--end",
         type=dateutil.parser.parse,
         default=time_now.isoformat(),
         help=f"End time for window to calculate trending addresses in (default: {time_now.isoformat()})",
     )
-    parser_ethcrawler_trending.add_argument(
+    parser_crawler_trending.add_argument(
         "--include-end",
         action="store_true",
         help="Set this flag if range should include end time",
     )
-    parser_ethcrawler_trending.add_argument(
+    parser_crawler_trending.add_argument(
         "--humbug",
         default=None,
         help=(
@@ -357,14 +388,14 @@ def main() -> None:
             "MOONSTREAM_HUMBUG_TOKEN environment variable)"
         ),
     )
-    parser_ethcrawler_trending.add_argument(
+    parser_crawler_trending.add_argument(
         "-o",
         "--outfile",
         type=argparse.FileType("w"),
         default=sys.stdout,
         help="Optional file to write output to. By default, prints to stdout.",
     )
-    parser_ethcrawler_trending.set_defaults(func=ethcrawler_trending_handler)
+    parser_crawler_trending.set_defaults(func=crawler_trending_handler)
 
     args = parser.parse_args()
     args.func(args)
