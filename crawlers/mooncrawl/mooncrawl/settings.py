@@ -1,7 +1,13 @@
 import os
 from typing import cast
 
+from bugout.app import Bugout
+
 # Bugout
+BUGOUT_BROOD_URL = os.environ.get("BUGOUT_BROOD_URL", "https://auth.bugout.dev")
+BUGOUT_SPIRE_URL = os.environ.get("BUGOUT_SPIRE_URL", "https://spire.bugout.dev")
+bc = Bugout(brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIRE_URL)
+
 HUMBUG_REPORTER_CRAWLERS_TOKEN = os.environ.get("HUMBUG_REPORTER_CRAWLERS_TOKEN")
 
 # Geth connection address
@@ -49,3 +55,5 @@ if MOONSTREAM_ADMIN_ACCESS_TOKEN == "":
 MOONSTREAM_DATA_JOURNAL_ID = os.environ.get("MOONSTREAM_DATA_JOURNAL_ID", "")
 if MOONSTREAM_DATA_JOURNAL_ID == "":
     raise ValueError("MOONSTREAM_DATA_JOURNAL_ID env variable is not set")
+
+AWS_S3_SMARTCONTRACTS_ABI_PREFIX = os.getenv("AWS_S3_SMARTCONTRACTS_ABI_PREFIX")
