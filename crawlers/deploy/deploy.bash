@@ -30,9 +30,6 @@ PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.py"
 CHECKENV_PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.bash"
 CHECKENV_NODES_CONNECTIONS_SCRIPT="${SCRIPT_DIR}/nodes-connections.bash"
 
-# Crawlers server service file
-CRAWLERS_SERVICE_FILE="moonstreamcrawlers.service"
-
 # Ethereum service files
 ETHEREUM_SYNCHRONIZE_SERVICE="ethereum-synchronize.service"
 ETHEREUM_TRENDING_SERVICE_FILE="ethereum-trending.service"
@@ -51,14 +48,6 @@ echo -e "${PREFIX_INFO} Building executable Ethereum transaction pool crawler sc
 EXEC_DIR=$(pwd)
 cd "${APP_CRAWLERS_DIR}/ethtxpool"
 HOME=/root /usr/local/go/bin/go build -o "${APP_CRAWLERS_DIR}/ethtxpool/ethtxpool" "${APP_CRAWLERS_DIR}/ethtxpool/main.go"
-cd "${EXEC_DIR}"
-
-echo
-echo
-echo -e "${PREFIX_INFO} Building executable server of moonstreamcrawlers with Go"
-EXEC_DIR=$(pwd)
-cd "${APP_CRAWLERS_DIR}/server"
-HOME=/root /usr/local/go/bin/go build -o "${APP_CRAWLERS_DIR}/server/moonstreamcrawlers" "${APP_CRAWLERS_DIR}/server/main.go"
 cd "${EXEC_DIR}"
 
 echo
@@ -119,12 +108,3 @@ chmod 644 "${SCRIPT_DIR}/${POLYGON_SYNCHRONIZE_SERVICE}"
 cp "${SCRIPT_DIR}/${POLYGON_SYNCHRONIZE_SERVICE}" "/etc/systemd/system/${POLYGON_SYNCHRONIZE_SERVICE}"
 systemctl daemon-reload
 systemctl restart "${POLYGON_SYNCHRONIZE_SERVICE}"
-
-echo
-echo
-echo -e "${PREFIX_INFO} Replacing existing moonstreamcrawlers service definition with ${CRAWLERS_SERVICE_FILE}"
-chmod 644 "${SCRIPT_DIR}/${CRAWLERS_SERVICE_FILE}"
-cp "${SCRIPT_DIR}/${CRAWLERS_SERVICE_FILE}" "/etc/systemd/system/${CRAWLERS_SERVICE_FILE}"
-systemctl daemon-reload
-systemctl restart "${CRAWLERS_SERVICE_FILE}"
-systemctl status "${CRAWLERS_SERVICE_FILE}"
