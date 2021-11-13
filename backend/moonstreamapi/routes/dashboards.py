@@ -92,10 +92,6 @@ async def add_dashboard_handler(
                 )
             s3_path = f"s3://{bucket}/{key}"
 
-            dashboard_subscription.subscription_id = str(
-                dashboard_subscription.subscription_id
-            )
-
             try:
 
                 response = s3_client.get_object(
@@ -105,12 +101,12 @@ async def add_dashboard_handler(
 
             except s3_client.exceptions.NoSuchKey as e:
                 logger.error(
-                    f"Error getting Abi for subscription {dashboard_subscription.subscription_id} S3 {s3_path} does not exist : {str(e)}"
+                    f"Error getting Abi for subscription {str(dashboard_subscription.subscription_id)} S3 {s3_path} does not exist : {str(e)}"
                 )
                 raise MoonstreamHTTPException(
                     status_code=500,
                     internal_error=e,
-                    detail=f"We can't access the abi for subscription with id:{dashboard_subscription.subscription_id}.",
+                    detail=f"We can't access the abi for subscription with id:{str(dashboard_subscription.subscription_id)}.",
                 )
 
             abi = json.loads(response["Body"].read())
@@ -121,7 +117,7 @@ async def add_dashboard_handler(
 
         else:
             logger.error(
-                f"Error subscription_id: {dashboard_subscription.subscription_id} not exists."
+                f"Error subscription_id: {str(dashboard_subscription.subscription_id)} not exists."
             )
             raise MoonstreamHTTPException(status_code=404)
 
@@ -341,7 +337,7 @@ async def update_dashboard_handler(
 @router.get("/{dashboard_id}/data_links", tags=["dashboards"])
 async def get_dashboard_data_links_handler(
     request: Request, dashboard_id: str
-) -> Dict[str, Any]:
+) -> Dict[UUID, Any]:
     """
     Update dashboards mainly fully overwrite name and subscription metadata
     """
@@ -402,7 +398,7 @@ async def get_dashboard_data_links_handler(
 
     s3_client = boto3.client("s3")
 
-    stats: Dict[str, Any] = {}
+    stats: Dict[UUID, Any] = {}
 
     for subscription in dashboard_subscriptions:
 
