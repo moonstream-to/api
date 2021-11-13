@@ -174,7 +174,7 @@ def crawler_blocks_missing_handler(args: argparse.Namespace) -> None:
 
     block_range = args.blocks
     if block_range is None:
-        confirmations = 50
+        confirmations = 150
         shift = 2000
         _, latest_block_number = get_latest_blocks(
             AvailableBlockchainType(args.blockchain), confirmations
