@@ -27,6 +27,12 @@ logger.setLevel(logging.INFO)
 lable_filters = {"Transfer": "nft_transfer"}
 
 
+subscription_id_by_blockchain = {
+    "ethereum": "ethereum_blockchain",
+    "polygon": "polygon_blockchain",
+}
+
+
 class TimeScale(Enum):
     year = "year"
     month = "month"
@@ -364,7 +370,11 @@ def stats_generate_handler(args: argparse.Namespace):
         # read all subscriptions
         required_subscriptions: BugoutResources = bc.list_resources(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-            params={"type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION, "abi": "true"},
+            params={
+                "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
+                "abi": "true",
+                "id": subscription_id_by_blockchain[blockchain_type],
+            },
             timeout=10,
         )
 

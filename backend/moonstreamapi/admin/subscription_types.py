@@ -27,6 +27,16 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         stripe_price_id=None,
         active=True,
     ),
+    "polygon_blockchain": SubscriptionTypeResourceData(
+        id="polygon_blockchain",
+        name="Polygon transactions",
+        choices=["input:address", "tag:erc721"],
+        description="Transactions that have been mined into the Polygon blockchain",
+        icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/matic-token-inverted-icon.png",
+        stripe_product_id=None,
+        stripe_price_id=None,
+        active=True,
+    ),
     "ethereum_whalewatch": SubscriptionTypeResourceData(
         id="ethereum_whalewatch",
         name="Ethereum whale watch",
