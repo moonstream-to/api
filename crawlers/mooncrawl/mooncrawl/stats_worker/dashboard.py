@@ -45,7 +45,7 @@ class TimeScale(Enum):
 
 timescales_params: Dict[str, Dict[str, str]] = {
     "year": {"timestep": "1 day", "timeformat": "YYYY-MM-DD"},
-    "month": {"timestep": "1 day", "timeformat": "YYYY-MM-DD"},
+    "month": {"timestep": "1 hours", "timeformat": "YYYY-MM-DD HH24"},
     "week": {"timestep": "1 hours", "timeformat": "YYYY-MM-DD HH24"},
     "day": {"timestep": "1 hours", "timeformat": "YYYY-MM-DD HH24"},
 }
@@ -171,13 +171,7 @@ def generate_metrics(
 
         for created_date, count in metrics_time_series:
 
-            if time_format == "YYYY-MM-DD HH24":
-                created_date, hour = created_date.split(" ")
-                response_metric.append(
-                    {"date": created_date, "hour": hour, "count": count}
-                )
-            else:
-                response_metric.append({"date": created_date, "count": count})
+            response_metric.append({"date": created_date, "count": count})
 
         return response_metric
 
@@ -355,21 +349,8 @@ def generate_data(
 
         if not response_labels.get(label):
             response_labels[label] = []
-            if time_format == "YYYY-MM-DD HH24":
-                created_date, hour = created_date.split(" ")
-                response_labels[label].append(
-                    {"date": created_date, "hour": hour, "count": count}
-                )
-            else:
-                response_labels[label].append({"date": created_date, "count": count})
-        else:
-            if time_format == "YYYY-MM-DD HH24":
-                created_date, hour = created_date.split(" ")
-                response_labels[label].append(
-                    {"date": created_date, "hour": hour, "count": count}
-                )
-            else:
-                response_labels[label].append({"date": created_date, "count": count})
+
+        response_labels[label].append({"date": created_date, "count": count})
 
     return response_labels
 
