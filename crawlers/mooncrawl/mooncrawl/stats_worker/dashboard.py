@@ -15,20 +15,29 @@ from bugout.data import BugoutResources
 from moonstreamdb.db import yield_db_session_ctx
 from sqlalchemy import Column, Date, and_, func, text
 from sqlalchemy.orm import Query, Session
+from sqlalchemy.sql.operators import in_op
 
 from ..blockchain import get_block_model, get_label_model, get_transaction_model
 from ..data import AvailableBlockchainType
-from ..settings import MOONSTREAM_ADMIN_ACCESS_TOKEN
+from ..settings import (
+    MOONSTREAM_ADMIN_ACCESS_TOKEN,
+    MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
+    CRAWLER_LABEL,
+)
 from ..settings import bugout_client as bc
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-lable_filters = {"Transfer": "nft_transfer"}
+
+subscription_id_by_blockchain = {
+    "ethereum": "ethereum_blockchain",
+    "polygon": "polygon_blockchain",
+}
 
 
 class TimeScale(Enum):
-    year = "year"
+    # year = "year"
     month = "month"
     week = "week"
     day = "day"
@@ -36,8 +45,8 @@ class TimeScale(Enum):
 
 timescales_params: Dict[str, Dict[str, str]] = {
     "year": {"timestep": "1 day", "timeformat": "YYYY-MM-DD"},
-    "month": {"timestep": "1 day", "timeformat": "YYYY-MM-DD"},
-    "week": {"timestep": "1 day", "timeformat": "YYYY-MM-DD"},
+    "month": {"timestep": "1 hours", "timeformat": "YYYY-MM-DD HH24"},
+    "week": {"timestep": "1 hours", "timeformat": "YYYY-MM-DD HH24"},
     "day": {"timestep": "1 hours", "timeformat": "YYYY-MM-DD HH24"},
 }
 
@@ -61,7 +70,7 @@ def push_statistics(
 ) -> None:
 
     result_bytes = json.dumps(statistics_data).encode("utf-8")
-    result_key = f'contracts_data/{subscription.resource_data["address"]}/{hash}/v1/{timescale}.json'
+    result_key = f'{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/contracts_data/{subscription.resource_data["address"]}/{hash}/v1/{timescale}.json'
 
     s3 = boto3.client("s3")
     s3.put_object(
@@ -162,13 +171,7 @@ def generate_metrics(
 
         for created_date, count in metrics_time_series:
 
-            if time_format == "YYYY-MM-DD HH24":
-                created_date, hour = created_date.split(" ")
-                response_metric.append(
-                    {"date": created_date, "hour": hour, "count": count}
-                )
-            else:
-                response_metric.append({"date": created_date, "count": count})
+            response_metric.append({"date": created_date, "count": count})
 
         return response_metric
 
@@ -223,6 +226,7 @@ def generate_data(
     timescale: str,
     functions: List[str],
     start: Any,
+    metric_type: str,
 ):
     label_model = get_label_model(blockchain_type)
 
@@ -243,16 +247,20 @@ def generate_data(
         ).label("timeseries_points")
     )
 
-    print(time_series_subquery.all())
-
     time_series_subquery = time_series_subquery.subquery(name="time_series_subquery")
 
     # get distinct tags labels in that range
 
     label_requested = (
-        db_session.query(label_model.label.label("label"))
+        db_session.query(label_model.label_data["name"].astext.label("label"))
         .filter(label_model.address == address)
-        .filter(label_model.label.in_(functions))
+        .filter(label_model.label == CRAWLER_LABEL)
+        .filter(
+            and_(
+                label_model.label_data["type"].astext == metric_type,
+                in_op(label_model.label_data["name"].astext, functions),
+            )
+        )
         .distinct()
     )
 
@@ -286,10 +294,16 @@ def generate_data(
                 func.to_timestamp(label_model.block_timestamp).cast(Date), time_format
             ).label("timeseries_points"),
             func.count(label_model.id).label("count"),
-            label_model.label.label("label"),
+            label_model.label_data["name"].astext.label("label"),
         )
-        .filter(label_model.label.in_(functions))
         .filter(label_model.address == address)
+        .filter(label_model.label == CRAWLER_LABEL)
+        .filter(
+            and_(
+                label_model.label_data["type"].astext == metric_type,
+                in_op(label_model.label_data["name"].astext, functions),
+            )
+        )
     )
 
     if start is not None:
@@ -304,7 +318,7 @@ def generate_data(
     label_counts_subquery = (
         label_counts.group_by(
             text("timeseries_points"),
-            label_model.label,
+            label_model.label_data["name"].astext,
         )
         .order_by(text("timeseries_points desc"))
         .subquery(name="label_counts")
@@ -335,21 +349,8 @@ def generate_data(
 
         if not response_labels.get(label):
             response_labels[label] = []
-            if time_format == "YYYY-MM-DD HH24":
-                created_date, hour = created_date.split(" ")
-                response_labels[label].append(
-                    {"date": created_date, "hour": hour, "count": count}
-                )
-            else:
-                response_labels[label].append({"date": created_date, "count": count})
-        else:
-            if time_format == "YYYY-MM-DD HH24":
-                created_date, hour = created_date.split(" ")
-                response_labels[label].append(
-                    {"date": created_date, "hour": hour, "count": count}
-                )
-            else:
-                response_labels[label].append({"date": created_date, "count": count})
+
+        response_labels[label].append({"date": created_date, "count": count})
 
     return response_labels
 
@@ -364,7 +365,11 @@ def stats_generate_handler(args: argparse.Namespace):
         # read all subscriptions
         required_subscriptions: BugoutResources = bc.list_resources(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-            params={"type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION, "abi": "true"},
+            params={
+                "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
+                "abi": "true",
+                "subscription_type_id": subscription_id_by_blockchain[args.blockchain],
+            },
             timeout=10,
         )
 
@@ -417,17 +422,13 @@ def stats_generate_handler(args: argparse.Namespace):
                     timescale=timescale,
                     functions=abi_functions_names,
                     start=start_date,
+                    metric_type="tx_call",
                 )
 
                 s3_data_object["functions"] = functions_calls_data
                 # generate data
 
-                abi_events_names = [
-                    item["name"]
-                    if item["name"] not in lable_filters
-                    else lable_filters[item["name"]]
-                    for item in abi_events
-                ]
+                abi_events_names = [item["name"] for item in abi_events]
 
                 events_data = generate_data(
                     db_session=db_session,
@@ -436,11 +437,12 @@ def stats_generate_handler(args: argparse.Namespace):
                     timescale=timescale,
                     functions=abi_events_names,
                     start=start_date,
+                    metric_type="event",
                 )
 
                 s3_data_object["events"] = events_data
 
-                s3_data_object["metrics"] = generate_metrics(
+                s3_data_object["generic"] = generate_metrics(
                     db_session=db_session,
                     blockchain_type=blockchain_type,
                     address=address,

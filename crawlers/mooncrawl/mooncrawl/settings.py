@@ -21,6 +21,10 @@ ORIGINS = RAW_ORIGINS.split(",")
 # OpenAPI
 DOCS_TARGET_PATH = "docs"
 
+
+# Crawler label
+CRAWLER_LABEL = "moonworm"
+
 # Geth connection address
 MOONSTREAM_NODE_ETHEREUM_IPC_ADDR = os.environ.get(
     "MOONSTREAM_NODE_ETHEREUM_IPC_ADDR", "127.0.0.1"
@@ -66,3 +70,12 @@ if MOONSTREAM_ADMIN_ACCESS_TOKEN == "":
 MOONSTREAM_DATA_JOURNAL_ID = os.environ.get("MOONSTREAM_DATA_JOURNAL_ID", "")
 if MOONSTREAM_DATA_JOURNAL_ID == "":
     raise ValueError("MOONSTREAM_DATA_JOURNAL_ID env variable is not set")
+
+
+MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX = os.environ.get(
+    "MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX"
+)
+if MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX is None:
+    raise ValueError(
+        "MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX environment variable must be set"
+    )
