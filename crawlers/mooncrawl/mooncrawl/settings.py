@@ -21,6 +21,10 @@ ORIGINS = RAW_ORIGINS.split(",")
 # OpenAPI
 DOCS_TARGET_PATH = "docs"
 
+
+# Crawler label
+CRAWLER_LABEL = "moonworm"
+
 # Geth connection address
 MOONSTREAM_NODE_ETHEREUM_IPC_ADDR = os.environ.get(
     "MOONSTREAM_NODE_ETHEREUM_IPC_ADDR", "127.0.0.1"
