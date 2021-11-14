@@ -1,7 +1,7 @@
 import React from "react";
 import { ResponsiveLineCanvas } from "@nivo/line";
 
-const Report = ({ data }) => {
+const Report = ({ data, metric }) => {
   const commonProperties = {
     animate: false,
     enableSlices: "x",
@@ -11,16 +11,20 @@ const Report = ({ data }) => {
     return { x: item.date, y: item.count };
   });
 
+  xyData.reverse();
+
   // Cumulative sum calculation inspired by: https://stackoverflow.com/a/55261098
   function generateCumulativeSum(sum) {
     function cumulativeSum(item) {
-      sum += item.count;
-      return { x: item.date, y: sum };
+      sum += item.y;
+      return { x: item.x, y: sum };
     }
     return cumulativeSum;
   }
 
-  xyCumulativeData = xyData.map(generateCumulativeSum(0));
+  const xyCumulativeData = xyData.map(generateCumulativeSum(0));
+
+  console.log(`metric ${metric} \n xyCumulativeData: `, xyCumulativeData);
 
   const plotData = [{ id: "1", data: xyCumulativeData }];
 
@@ -52,7 +56,8 @@ const Report = ({ data }) => {
         tickValues: "every 7 day",
         tickRotation: 90,
       }}
-      curve="step"
+      curve="linear"
+      enableArea={true}
       enablePointLabel={false}
       pointSize={0}
       colors="#fd671b"

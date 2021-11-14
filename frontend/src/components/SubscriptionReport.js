@@ -55,7 +55,7 @@ const SubscriptionReport = ({ url, id, type }) => {
                 >
                   {key}
                 </Text>
-                <Report data={data.events[key]} />
+                <Report data={data.events[key]} metric={key} />
               </Flex>
             );
           })}
@@ -92,7 +92,7 @@ const SubscriptionReport = ({ url, id, type }) => {
                 >
                   {key}
                 </Text>
-                <Report data={data.functions[key]} />
+                <Report data={data.functions[key]} metric={key} />
               </Flex>
             );
           })}
@@ -129,7 +129,7 @@ const SubscriptionReport = ({ url, id, type }) => {
                 >
                   {key}
                 </Text>
-                <Report data={data.generic[key]} />
+                <Report data={data.generic[key]} metric={key} />
               </Flex>
             );
           })}
