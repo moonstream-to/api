@@ -11,6 +11,7 @@ const Report = ({ data }) => {
     return { x: item.date, y: item.count };
   });
 
+  // Cumulative sum calculation inspired by: https://stackoverflow.com/a/55261098
   function generateCumulativeSum(sum) {
     function cumulativeSum(item) {
       sum += item.count;
