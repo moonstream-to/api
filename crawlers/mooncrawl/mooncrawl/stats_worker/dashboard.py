@@ -441,7 +441,7 @@ def stats_generate_handler(args: argparse.Namespace):
                     timescale=timescale,
                     functions=abi_functions_names,
                     start=start_date,
-                    metric_type="function",
+                    metric_type="tx_call",
                 )
 
                 s3_data_object["functions"] = functions_calls_data
