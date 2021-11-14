@@ -24,8 +24,8 @@ from ..reporter import reporter
 from ..settings import (
     MOONSTREAM_APPLICATION_ID,
     bugout_client as bc,
-    AWS_S3_SMARTCONTRACTS_ABI_BUCKET,
-    AWS_S3_SMARTCONTRACTS_ABI_PREFIX,
+    MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
+    MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
 )
 from ..web3_provider import yield_web3_provider
 

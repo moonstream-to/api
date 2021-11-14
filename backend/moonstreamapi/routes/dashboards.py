@@ -16,10 +16,11 @@ from ..reporter import reporter
 from ..settings import (
     MOONSTREAM_APPLICATION_ID,
     bugout_client as bc,
-    SMARTCONTRACTS_ABI_BUCKET,
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
-    SMARTCONTRACTS_ABI_BUCKET,
+    MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
+    MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
 )
+import pprint
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +68,7 @@ async def add_dashboard_handler(
     s3_client = boto3.client("s3")
 
     available_subscriptions = {
-        resource.id: resource.resource_data for resource in resources.resources
+        str(resource.id): resource.resource_data for resource in resources.resources
     }
 
     for dashboard_subscription in dashboard_subscriptions:
@@ -135,10 +136,10 @@ async def add_dashboard_handler(
             resource_data=dashboard_resource.dict(),
         )
     except BugoutResponseException as e:
-        logger.error(f"Error creating subscription resource: {str(e)}")
+        logger.error(f"Error creating dashboard resource: {str(e)}")
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
-        logger.error(f"Error creating subscription resource: {str(e)}")
+        logger.error(f"Error creating dashboard resource: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     return resource
@@ -407,17 +408,20 @@ async def get_dashboard_data_links_handler(
         stats[subscription.id] = {}
         for timescale in available_timescales:
             try:
-                result_key = f'contracts_data/{subscription.resource_data["address"]}/{hash}/v1/{timescale}.json'
+                result_key = f'{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/contracts_data/{subscription.resource_data["address"]}/{hash}/v1/{timescale}.json'
                 stats_presigned_url = s3_client.generate_presigned_url(
                     "get_object",
-                    Params={"Bucket": SMARTCONTRACTS_ABI_BUCKET, "Key": result_key},
+                    Params={
+                        "Bucket": MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
+                        "Key": result_key,
+                    },
                     ExpiresIn=300,
                     HttpMethod="GET",
                 )
                 stats[subscription.id][timescale] = stats_presigned_url
             except Exception as err:
                 logger.warning(
-                    f"Can't generate S3 presigned url in stats endpoint for Bucket:{SMARTCONTRACTS_ABI_BUCKET}, Key:{result_key} get error:{err}"
+                    f"Can't generate S3 presigned url in stats endpoint for Bucket:{MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET}, Key:{result_key} get error:{err}"
                 )
 
     return stats
