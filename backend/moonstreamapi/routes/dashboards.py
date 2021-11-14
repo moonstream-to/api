@@ -68,7 +68,7 @@ async def add_dashboard_handler(
     s3_client = boto3.client("s3")
 
     available_subscriptions = {
-        str(resource.id): resource.resource_data for resource in resources.resources
+        resource.id: resource.resource_data for resource in resources.resources
     }
 
     for dashboard_subscription in dashboard_subscriptions:
@@ -130,10 +130,12 @@ async def add_dashboard_handler(
     )
 
     try:
+        # json.loads(dashboard_resource.json())
+        # Necessary because the UUIDs inside dashboard_resources do not get serialized into string if we directly convert to ".dict()"
         resource: BugoutResource = bc.create_resource(
             token=token,
             application_id=MOONSTREAM_APPLICATION_ID,
-            resource_data=dashboard_resource.dict(),
+            resource_data=json.loads(dashboard_resource.json()),
         )
     except BugoutResponseException as e:
         logger.error(f"Error creating dashboard resource: {str(e)}")
