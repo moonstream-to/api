@@ -35,6 +35,6 @@ export const getDashboard = (dashboardId) => {
 export const getDashboardLinks = (dashboardId) => {
   return http({
     method: "GET",
-    url: `${API_URL}/dashboards/${dashboardId}/data_links`,
+    url: `${API_URL}/dashboards/${dashboardId}/stats`,
   });
 };

@@ -24,7 +24,7 @@ const SubscriptionReport = ({ url, id, type }) => {
   if (!data || isLoading) return <Spinner />;
   return (
     <Flex w="100%" h="auto" flexGrow={1} flexBasis="420px" direction="column">
-      {data.data?.events && Object.keys(data.data?.events) && (
+      {data?.events && Object.keys(data?.events) && (
         <Flex
           w="100%"
           h="auto"
@@ -33,7 +33,7 @@ const SubscriptionReport = ({ url, id, type }) => {
           direction="column"
         >
           <Heading size="sm">Events</Heading>
-          {Object.keys(data.data.events.year).map((key) => {
+          {Object.keys(data.events).map((key) => {
             return (
               <Flex
                 key={v4()}
@@ -55,13 +55,13 @@ const SubscriptionReport = ({ url, id, type }) => {
                 >
                   {key}
                 </Text>
-                <Report data={data.data.events.year[key]} />
+                <Report data={data.events[key]} metric={key} />
               </Flex>
             );
           })}
         </Flex>
       )}
-      {data.data?.methods && Object.keys(data.data?.methods) && (
+      {data?.functions && Object.keys(data?.functions) && (
         <Flex
           w="100%"
           h="auto"
@@ -69,8 +69,8 @@ const SubscriptionReport = ({ url, id, type }) => {
           flexBasis="420px"
           direction="column"
         >
-          <Heading size="sm">Methods</Heading>
-          {Object.keys(data.data.methods.year).map((key) => {
+          <Heading size="sm">functions</Heading>
+          {Object.keys(data.functions).map((key) => {
             return (
               <Flex
                 key={v4()}
@@ -92,13 +92,13 @@ const SubscriptionReport = ({ url, id, type }) => {
                 >
                   {key}
                 </Text>
-                <Report data={data.data.methods.year[key]} />
+                <Report data={data.functions[key]} metric={key} />
               </Flex>
             );
           })}
         </Flex>
       )}
-      {data.data?.generic && Object.keys(data.data?.generic) && (
+      {data?.generic && Object.keys(data?.generic) && (
         <Flex
           w="100%"
           h="auto"
@@ -107,7 +107,7 @@ const SubscriptionReport = ({ url, id, type }) => {
           direction="column"
         >
           <Heading size="sm">Account generic</Heading>
-          {Object.keys(data.data.generic.year).map((key) => {
+          {Object.keys(data.generic).map((key) => {
             return (
               <Flex
                 key={v4()}
@@ -129,7 +129,7 @@ const SubscriptionReport = ({ url, id, type }) => {
                 >
                   {key}
                 </Text>
-                <Report data={data.data.generic.year[key]} />
+                <Report data={data.generic[key]} metric={key} />
               </Flex>
             );
           })}
