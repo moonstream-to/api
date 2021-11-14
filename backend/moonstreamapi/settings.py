@@ -32,12 +32,6 @@ if RAW_ORIGINS is None:
     raise ValueError(
         "MOONSTREAM_CORS_ALLOWED_ORIGINS environment variable must be set (comma-separated list of CORS allowed origins)"
     )
-SMARTCONTRACTS_ABI_BUCKET = os.environ.get("SMARTCONTRACTS_ABI_BUCKET")
-
-if SMARTCONTRACTS_ABI_BUCKET is None:
-    raise ValueError("SMARTCONTRACTS_ABI_BUCKET environment variable must be set")
-
-
 ORIGINS = RAW_ORIGINS.split(",")
 
 # OpenAPI
