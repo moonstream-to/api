@@ -13,7 +13,6 @@ USER_ONBOARDING_STATE = "onboarding_state"
 
 
 class TimeScale(Enum):
-    year = "year"
     month = "month"
     week = "week"
     day = "day"

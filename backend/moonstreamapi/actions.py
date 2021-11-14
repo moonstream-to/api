@@ -30,8 +30,8 @@ from .settings import (
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_DATA_JOURNAL_ID,
-    AWS_S3_SMARTCONTRACTS_ABI_BUCKET,
-    AWS_S3_SMARTCONTRACTS_ABI_PREFIX,
+    MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
+    MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
 )
 from web3 import Web3
 
@@ -406,10 +406,10 @@ def upload_abi_to_s3(
 
     s3_client = boto3.client("s3")
 
-    bucket = AWS_S3_SMARTCONTRACTS_ABI_BUCKET
+    bucket = MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET
 
     result_bytes = abi.encode("utf-8")
-    result_key = f"{AWS_S3_SMARTCONTRACTS_ABI_PREFIX}/{resource.resource_data['address']}/{resource.id}/abi.json"
+    result_key = f"{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/abi/{resource.resource_data['address']}/{resource.id}/abi.json"
 
     s3_client.put_object(
         Body=result_bytes,
@@ -421,9 +421,7 @@ def upload_abi_to_s3(
 
     update["abi"] = True
 
-    update["bucket"] = AWS_S3_SMARTCONTRACTS_ABI_BUCKET
-    update[
-        "s3_path"
-    ] = f"{AWS_S3_SMARTCONTRACTS_ABI_PREFIX}/{resource.resource_data['address']}/{resource.id}/abi.json"
+    update["bucket"] = MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET
+    update["s3_path"] = result_key
 
     return update
