@@ -36,11 +36,14 @@ setup(
         "boto3",
         "bugout",
         "chardet",
+        "fastapi",
         "moonstreamdb",
         "humbug",
+        "pydantic",
         "python-dateutil",
         "requests",
         "tqdm",
+        "uvicorn",
         "web3",
     ],
     extras_require={
@@ -50,11 +53,12 @@ setup(
     entry_points={
         "console_scripts": [
             "crawler=mooncrawl.crawler:main",
-            "esd=mooncrawl.esd:main",
-            "identity=mooncrawl.identity:main",
-            "etherscan=mooncrawl.etherscan:main",
-            "nft=mooncrawl.nft.cli:main",
             "contractcrawler=mooncrawl.contract.cli:main",
+            "esd=mooncrawl.esd:main",
+            "etherscan=mooncrawl.etherscan:main",
+            "identity=mooncrawl.identity:main",
+            "nft=mooncrawl.nft.cli:main",
+            "statistics=mooncrawl.stats_worker.dashboard:main",
         ]
     },
 )

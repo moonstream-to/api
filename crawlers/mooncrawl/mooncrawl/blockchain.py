@@ -5,8 +5,10 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 from moonstreamdb.db import yield_db_session, yield_db_session_ctx
 from moonstreamdb.models import (
     EthereumBlock,
+    EthereumLabel,
     EthereumTransaction,
     PolygonBlock,
+    PolygonLabel,
     PolygonTransaction,
 )
 from psycopg2.errors import UniqueViolation  # type: ignore
@@ -76,6 +78,24 @@ def get_block_model(
         raise Exception("Unsupported blockchain type provided")
 
     return block_model
+
+
+def get_label_model(
+    blockchain_type: AvailableBlockchainType,
+) -> Type[Union[EthereumLabel, PolygonLabel]]:
+    """
+    Depends on provided blockchain type: Ethereum or Polygon,
+    set proper block label model: EthereumLabel or PolygonLabel.
+    """
+    label_model: Type[Union[EthereumLabel, PolygonLabel]]
+    if blockchain_type == AvailableBlockchainType.ETHEREUM:
+        label_model = EthereumLabel
+    elif blockchain_type == AvailableBlockchainType.POLYGON:
+        label_model = PolygonLabel
+    else:
+        raise Exception("Unsupported blockchain type provided")
+
+    return label_model
 
 
 def get_transaction_model(
