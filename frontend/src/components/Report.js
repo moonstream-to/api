@@ -10,7 +10,18 @@ const Report = ({ data }) => {
   const xyData = data.map((item) => {
     return { x: item.date, y: item.count };
   });
-  const plotData = [{ id: "1", data: xyData }];
+
+  function generateCumulativeSum(sum) {
+    function cumulativeSum(item) {
+      sum += item.count;
+      return { x: item.date, y: sum };
+    }
+    return cumulativeSum;
+  }
+
+  xyCumulativeData = xyData.map(generateCumulativeSum(0));
+
+  const plotData = [{ id: "1", data: xyCumulativeData }];
 
   return (
     <ResponsiveLineCanvas
