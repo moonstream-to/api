@@ -334,7 +334,7 @@ async def update_dashboard_handler(
     return resource
 
 
-@router.get("/{dashboard_id}/data_links", tags=["dashboards"])
+@router.get("/{dashboard_id}/stats", tags=["dashboards"])
 async def get_dashboard_data_links_handler(
     request: Request, dashboard_id: str
 ) -> Dict[UUID, Any]:
@@ -402,11 +402,12 @@ async def get_dashboard_data_links_handler(
 
     for subscription in dashboard_subscriptions:
 
+        hash = subscription.resource_data["abi_hash"]
         available_timescales = [timescale.value for timescale in data.TimeScale]
         stats[subscription.id] = {}
         for timescale in available_timescales:
             try:
-                result_key = f'contracts_data/{subscription.resource_data["address"]}/v1/{timescale}.json'
+                result_key = f'contracts_data/{subscription.resource_data["address"]}/{hash}/v1/{timescale}.json'
                 stats_presigned_url = s3_client.generate_presigned_url(
                     "get_object",
                     Params={"Bucket": SMARTCONTRACTS_ABI_BUCKET, "Key": result_key},

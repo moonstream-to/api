@@ -1,6 +1,7 @@
 """
 The Moonstream subscriptions HTTP API
 """
+import hashlib
 import logging
 import json
 from typing import List, Optional, Dict, Any
@@ -13,7 +14,7 @@ from fastapi import APIRouter, Depends, Request, Form
 from web3 import Web3
 
 from ..actions import (
-    validate_abi_string,
+    validate_abi_json,
     upload_abi_to_s3,
 )
 from ..admin import subscription_types
@@ -112,9 +113,20 @@ async def add_subscription_handler(
 
     if abi:
 
-        validate_abi_string(abi=abi)
+        try:
+            json_abi = json.loads(abi)
+        except json.JSONDecodeError:
+            raise MoonstreamHTTPException(status_code=400, detail="Malformed abi body.")
+
+        validate_abi_json(json_abi)
 
         update_resource = upload_abi_to_s3(resource=resource, abi=abi, update={})
+
+        abi_string = json.dumps(json_abi, sort_keys=True, indent=2)
+
+        hash = hashlib.md5(abi_string.encode("utf-8")).hexdigest()
+
+        update_resource["abi_hash"] = hash
 
         try:
             updated_resource: BugoutResource = bc.update_resource(
@@ -241,7 +253,16 @@ async def update_subscriptions_handler(
 
     if abi:
 
-        validate_abi_string(abi=abi)
+        try:
+            json_abi = json.loads(abi)
+        except json.JSONDecodeError:
+            raise MoonstreamHTTPException(status_code=400, detail="Malformed abi body.")
+
+        validate_abi_json(json_abi)
+
+        abi_string = json.dumps(json_abi, sort_keys=True, indent=2)
+
+        hash = hashlib.md5(abi_string.encode("utf-8")).hexdigest()
 
         try:
             subscription_resource: BugoutResource = bc.get_resource(
@@ -263,6 +284,8 @@ async def update_subscriptions_handler(
         update = upload_abi_to_s3(
             resource=subscription_resource, abi=abi, update=update
         )
+
+        update["abi_hash"] = hash
 
     try:
         resource: BugoutResource = bc.update_resource(
