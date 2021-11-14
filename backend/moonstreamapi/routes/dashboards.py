@@ -147,7 +147,7 @@ async def add_dashboard_handler(
 @router.delete(
     "/{dashboard_id}",
     tags=["subscriptions"],
-    response_model=data.SubscriptionResourceData,
+    response_model=BugoutResource,
 )
 async def delete_subscription_handler(request: Request, dashboard_id: str):
     """
