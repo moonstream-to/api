@@ -18,7 +18,10 @@ from sqlalchemy.orm import Query, Session
 
 from ..blockchain import get_block_model, get_label_model, get_transaction_model
 from ..data import AvailableBlockchainType
-from ..settings import MOONSTREAM_ADMIN_ACCESS_TOKEN
+from ..settings import (
+    MOONSTREAM_ADMIN_ACCESS_TOKEN,
+    MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
+)
 from ..settings import bugout_client as bc
 
 logger = logging.getLogger(__name__)
@@ -34,7 +37,7 @@ subscription_id_by_blockchain = {
 
 
 class TimeScale(Enum):
-    year = "year"
+    # year = "year"
     month = "month"
     week = "week"
     day = "day"
@@ -67,7 +70,7 @@ def push_statistics(
 ) -> None:
 
     result_bytes = json.dumps(statistics_data).encode("utf-8")
-    result_key = f'contracts_data/{subscription.resource_data["address"]}/{hash}/v1/{timescale}.json'
+    result_key = f'{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/contracts_data/{subscription.resource_data["address"]}/{hash}/v1/{timescale}.json'
 
     s3 = boto3.client("s3")
     s3.put_object(
@@ -373,7 +376,7 @@ def stats_generate_handler(args: argparse.Namespace):
             params={
                 "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
                 "abi": "true",
-                "id": subscription_id_by_blockchain[blockchain_type],
+                "subscription_type_id": subscription_id_by_blockchain[args.blockchain],
             },
             timeout=10,
         )
