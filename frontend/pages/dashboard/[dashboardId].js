@@ -210,7 +210,7 @@ const Analytics = () => {
                   {name}
                 </Text>
                 <SubscriptionReport
-                  url={s3PresignedURLs.month}
+                  url={s3PresignedURLs.week}
                   id={v4()}
                   type={v4()}
                 />

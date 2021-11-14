@@ -19,11 +19,11 @@ const Report = ({ data }) => {
       isInteractive={true}
       xScale={{
         type: "time",
-        format: "%Y-%m-%d",
+        format: "%Y-%m-%d %H",
         useUTC: false,
-        precision: "day",
+        precision: "hour",
       }}
-      xFormat="time:%Y-%m-%d"
+      xFormat="time:%Y-%m-%d %H"
       yScale={{
         type: "linear",
       }}
