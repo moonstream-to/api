@@ -9,8 +9,6 @@ import time
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Callable, Dict, List
-from pprint import pprint
-import traceback
 
 from web3.datastructures import T
 
@@ -35,9 +33,7 @@ from ..settings import (
 )
 from ..settings import bugout_client as bc
 
-from web3 import HTTPProvider, IPCProvider, Web3
-from web3.middleware import geth_poa_middleware
-from web3.types import BlockData
+from web3 import Web3
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -132,6 +128,7 @@ def generate_metrics(
         db_session: Session,
         identifying_column: Column,
         statistic_column: Column,
+        aggregate_func: Callable,
     ) -> Query:
 
         unformated_time_series_subquery = db_session.query(
@@ -154,7 +151,7 @@ def generate_metrics(
 
         metric_count_subquery = (
             db_session.query(
-                func.count(statistic_column).label("count"),
+                aggregate_func(statistic_column).label("count"),
                 func.to_char(
                     func.to_timestamp(block_model.timestamp).cast(Date), time_format
                 ).label("timeseries_points"),
@@ -189,6 +186,8 @@ def generate_metrics(
 
         for created_date, count in metrics_time_series:
 
+            if not isinstance(count, int):
+                count = int(count)
             response_metric.append({"date": created_date, "count": count})
 
         return response_metric
@@ -200,6 +199,7 @@ def generate_metrics(
             db_session,
             transaction_model.from_address,
             transaction_model.hash,
+            func.count,
         )
 
         print("--- transactions_out %s seconds ---" % (time.time() - start_time))
@@ -209,6 +209,7 @@ def generate_metrics(
             db_session,
             transaction_model.to_address,
             transaction_model.hash,
+            func.count,
         )
 
         print("--- transactions_in %s seconds ---" % (time.time() - start_time))
@@ -218,6 +219,7 @@ def generate_metrics(
             db_session,
             transaction_model.from_address,
             transaction_model.value,
+            func.sum,
         )
         print("--- value_out %s seconds ---" % (time.time() - start_time))
 
@@ -226,6 +228,7 @@ def generate_metrics(
             db_session,
             transaction_model.to_address,
             transaction_model.value,
+            func.sum,
         )
 
         print("--- value_in %s seconds ---" % (time.time() - start_time))
@@ -388,6 +391,22 @@ def cast_to_python_type(evm_type: str) -> Callable:
         raise ValueError(f"Cannot convert to python type {evm_type}")
 
 
+def get_unique_address(
+    db_session: Session, blockchain_type: AvailableBlockchainType, address: str
+):
+    label_model = get_label_model(blockchain_type)
+
+    return (
+        db_session.query(label_model.label_data["args"]["to"])
+        .filter(label_model.address == address)
+        .filter(label_model.label == CRAWLER_LABEL)
+        .filter(label_model.label_data["type"].astext == "event")
+        .filter(label_model.label_data["name"].astext == "Transfer")
+        .distinct()
+        .count()
+    )
+
+
 def stats_generate_handler(args: argparse.Namespace):
     """
     Start crawler with generate.
@@ -514,6 +533,17 @@ def stats_generate_handler(args: argparse.Namespace):
                     )
                 except Exception as e:
                     print(f"Failed to call {extcall['name']} error: {e}")
+
+            extention_data.append(
+                {
+                    "display_name": "Overall unique token owners.",
+                    "value": get_unique_address(
+                        db_session=db_session,
+                        blockchain_type=blockchain_type,
+                        address=address,
+                    ),
+                }
+            )
 
             for timescale in [timescale.value for timescale in TimeScale]:
 
