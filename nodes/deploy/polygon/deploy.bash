@@ -22,7 +22,6 @@ PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
 SCRIPT_DIR="$(realpath $(dirname $0))"
 BLOCKCHAIN="polygon"
 HEIMDALL_HOME="/mnt/disks/nodes/${BLOCKCHAIN}/.heimdalld"
-HEIMDALL_CONFIG_FILE="${HEIMDALL_HOME}/config/heimdall-config.toml"
 
 # Parameters scripts
 CHECKENV_PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.bash"
@@ -83,14 +82,7 @@ echo -e "${PREFIX_INFO} Source extracted parameters"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Copy file if not exist to prevent script fail"
-if [ ! -f "${HEIMDALL_CONFIG_FILE}" ]; then
-    aws s3 cp s3://moonstream-nodes/polygon/snapshots-matic-today/.heimdalld/config/heimdall-config.toml "${HEIMDALL_CONFIG_FILE}"
-fi
-
-echo
-echo
 MOONSTREAM_NODE_ETHEREUM_IPC_URI="http://$MOONSTREAM_NODE_ETHEREUM_IPC_ADDR:$MOONSTREAM_NODE_ETHEREUM_IPC_PORT"
 echo -e "${PREFIX_INFO} Update heimdall config file with Ethereum URI ${C_GREEN}${MOONSTREAM_NODE_ETHEREUM_IPC_URI}${C_RESET}"
-sed -i "s|^eth_rpc_url =.*|eth_rpc_url = \"$MOONSTREAM_NODE_ETHEREUM_IPC_URI\"|" "${HEIMDALL_CONFIG_FILE}"
+sed -i "s|^eth_rpc_url =.*|eth_rpc_url = \"$MOONSTREAM_NODE_ETHEREUM_IPC_URI\"|" "${HEIMDALL_HOME}/config/heimdall-config.toml"
 echo -e "${PREFIX_INFO} Updated ${C_GREEN}eth_rpc_url = $MOONSTREAM_NODE_ETHEREUM_IPC_URI${C_RESET} for heimdall"
