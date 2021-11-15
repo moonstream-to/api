@@ -8,7 +8,7 @@ import logging
 import time
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List
+from typing import Any, Dict, List
 
 import boto3  # type: ignore
 from bugout.data import BugoutResources
@@ -33,6 +33,11 @@ logger.setLevel(logging.INFO)
 subscription_id_by_blockchain = {
     "ethereum": "ethereum_blockchain",
     "polygon": "polygon_blockchain",
+}
+
+blockchain_by_subscription_id = {
+    "ethereum_blockchain": "ethereum",
+    "polygon_blockchain": "polygon",
 }
 
 
@@ -70,7 +75,7 @@ def push_statistics(
 ) -> None:
 
     result_bytes = json.dumps(statistics_data).encode("utf-8")
-    result_key = f'{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/contracts_data/{subscription.resource_data["address"]}/{hash}/v1/{timescale}.json'
+    result_key = f'{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/{blockchain_by_subscription_id[subscription.resource_data["subscription_type_id"]]}/contracts_data/{subscription.resource_data["address"]}/{hash}/v1/{timescale}.json'
 
     s3 = boto3.client("s3")
     s3.put_object(
@@ -459,8 +464,6 @@ def stats_generate_handler(args: argparse.Namespace):
                     hash=hash,
                 )
             already_processed.append(f"{address}/{hash}")
-
-        time.sleep(10)
 
 
 def main() -> None:

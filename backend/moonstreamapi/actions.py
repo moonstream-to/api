@@ -38,6 +38,12 @@ from web3 import Web3
 logger = logging.getLogger(__name__)
 
 
+blockchain_by_subscription_id = {
+    "ethereum_blockchain": "ethereum",
+    "polygon_blockchain": "polygon",
+}
+
+
 class StatusAPIException(Exception):
     """
     Raised during checking Moonstream API statuses.
@@ -409,7 +415,7 @@ def upload_abi_to_s3(
     bucket = MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET
 
     result_bytes = abi.encode("utf-8")
-    result_key = f"{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/abi/{resource.resource_data['address']}/{resource.id}/abi.json"
+    result_key = f"{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/{blockchain_by_subscription_id[resource.resource_data['subscription_type_id']]}/abi/{resource.resource_data['address']}/{resource.id}/abi.json"
 
     s3_client.put_object(
         Body=result_bytes,
