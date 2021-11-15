@@ -8,7 +8,7 @@ import logging
 import time
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List
+from typing import Any, Dict, List
 
 import boto3  # type: ignore
 from bugout.data import BugoutResources
@@ -464,8 +464,6 @@ def stats_generate_handler(args: argparse.Namespace):
                     hash=hash,
                 )
             already_processed.append(f"{address}/{hash}")
-
-        time.sleep(10)
 
 
 def main() -> None:
