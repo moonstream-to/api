@@ -33,6 +33,12 @@ BUGOUT_RESOURCE_TYPE_DASHBOARD = "dashboards"
 BUGOUT_RESOURCE_TYPE_SUBSCRIPTION = "subscription"
 
 
+blockchain_by_subscription_id = {
+    "ethereum_blockchain": "ethereum",
+    "polygon_blockchain": "polygon",
+}
+
+
 @router.post("/", tags=["dashboards"], response_model=BugoutResource)
 async def add_dashboard_handler(
     request: Request, dashboard: data.DashboardCreate
@@ -410,7 +416,7 @@ async def get_dashboard_data_links_handler(
         stats[subscription.id] = {}
         for timescale in available_timescales:
             try:
-                result_key = f'{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/contracts_data/{subscription.resource_data["address"]}/{hash}/v1/{timescale}.json'
+                result_key = f'{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/{blockchain_by_subscription_id[subscription.resource_data["subscription_type_id"]]}/contracts_data/{subscription.resource_data["address"]}/{hash}/v1/{timescale}.json'
                 stats_presigned_url = s3_client.generate_presigned_url(
                     "get_object",
                     Params={

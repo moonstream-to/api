@@ -35,6 +35,11 @@ subscription_id_by_blockchain = {
     "polygon": "polygon_blockchain",
 }
 
+blockchain_by_subscription_id = {
+    "ethereum_blockchain": "ethereum",
+    "polygon_blockchain": "polygon",
+}
+
 
 class TimeScale(Enum):
     # year = "year"
@@ -70,7 +75,7 @@ def push_statistics(
 ) -> None:
 
     result_bytes = json.dumps(statistics_data).encode("utf-8")
-    result_key = f'{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/contracts_data/{subscription.resource_data["address"]}/{hash}/v1/{timescale}.json'
+    result_key = f'{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/{blockchain_by_subscription_id[subscription.resource_data["subscription_type_id"]]}/contracts_data/{subscription.resource_data["address"]}/{hash}/v1/{timescale}.json'
 
     s3 = boto3.client("s3")
     s3.put_object(
