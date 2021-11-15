@@ -441,7 +441,6 @@ def stats_generate_handler(args: argparse.Namespace):
             abi_external_calls = [
                 item for item in abi_json if item["type"] == "external_call"
             ]
-            pprint(abi_external_calls)
 
             external_calls = []
 
@@ -501,7 +500,6 @@ def stats_generate_handler(args: argparse.Namespace):
             # }
 
             extention_data = []
-            pprint(external_calls)
             for extcall in external_calls:
                 try:
                     contract = web3_client.eth.contract(
@@ -515,7 +513,6 @@ def stats_generate_handler(args: argparse.Namespace):
                         {"display_name": extcall["display_name"], "value": response}
                     )
                 except Exception as e:
-                    traceback.print_exc()
                     print(f"Failed to call {extcall['name']} error: {e}")
 
             for timescale in [timescale.value for timescale in TimeScale]:
