@@ -59,7 +59,7 @@ timescales_params: Dict[str, Dict[str, str]] = {
     "year": {"timestep": "1 day", "timeformat": "YYYY-MM-DD"},
     "month": {"timestep": "1 hours", "timeformat": "YYYY-MM-DD HH24"},
     "week": {"timestep": "1 hours", "timeformat": "YYYY-MM-DD HH24"},
-    "day": {"timestep": "1 hours", "timeformat": "YYYY-MM-DD HH24"},
+    "day": {"timestep": "1 minutes", "timeformat": "YYYY-MM-DD HH24 MI"},
 }
 
 timescales_delta: Dict[str, Dict[str, timedelta]] = {
@@ -151,7 +151,7 @@ def generate_metrics(
             db_session.query(
                 aggregate_func(statistic_column).label("count"),
                 func.to_char(
-                    func.to_timestamp(block_model.timestamp).cast(Date), time_format
+                    func.to_timestamp(block_model.timestamp), time_format
                 ).label("timeseries_points"),
             )
             .join(
@@ -285,11 +285,11 @@ def generate_data(
 
     if start is not None:
         label_requested = label_requested.filter(
-            func.to_timestamp(label_model.block_timestamp).cast(Date) > start
+            func.to_timestamp(label_model.block_timestamp) > start
         )
     if end is not None:
         label_requested = label_requested.filter(
-            func.to_timestamp(label_model.block_timestamp).cast(Date) < end
+            func.to_timestamp(label_model.block_timestamp) < end
         )
 
     label_requested = label_requested.subquery(name="label_requested")
@@ -310,7 +310,7 @@ def generate_data(
     label_counts = (
         db_session.query(
             func.to_char(
-                func.to_timestamp(label_model.block_timestamp).cast(Date), time_format
+                func.to_timestamp(label_model.block_timestamp), time_format
             ).label("timeseries_points"),
             func.count(label_model.id).label("count"),
             label_model.label_data["name"].astext.label("label"),
@@ -327,11 +327,11 @@ def generate_data(
 
     if start is not None:
         label_counts = label_counts.filter(
-            func.to_timestamp(label_model.block_timestamp).cast(Date) > start
+            func.to_timestamp(label_model.block_timestamp) > start
         )
     if end is not None:
         label_counts = label_counts.filter(
-            func.to_timestamp(label_model.block_timestamp).cast(Date) < end
+            func.to_timestamp(label_model.block_timestamp) < end
         )
 
     label_counts_subquery = (

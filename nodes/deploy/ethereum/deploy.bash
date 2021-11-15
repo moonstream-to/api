@@ -71,16 +71,9 @@ systemctl status "${NODES_SERVER_SERVICE_FILE}"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Updating Ethereum Geth service"
-if systemctl is-active --quiet "${ETHEREUM_GETH_SERVICE_FILE}"
-then
-    echo -e "${PREFIX_WARN} Ethereum Geth service ${ETHEREUM_GETH_SERVICE_FILE} already running"
-else
-    echo -e "${PREFIX_INFO} Restart Geth service ${ETHEREUM_GETH_SERVICE_FILE}"
-    chmod 644 "${SCRIPT_DIR}/${ETHEREUM_GETH_SERVICE_FILE}"
-    cp "${SCRIPT_DIR}/${ETHEREUM_GETH_SERVICE_FILE}" "/etc/systemd/system/${ETHEREUM_GETH_SERVICE_FILE}"
-    systemctl daemon-reload
-    systemctl disable "${ETHEREUM_GETH_SERVICE_FILE}"
-    systemctl restart "${ETHEREUM_GETH_SERVICE_FILE}"
-    sleep 10
-fi
+echo -e "${PREFIX_INFO} Replacing existing Ethereum Geth service definition with ${ETHEREUM_GETH_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ETHEREUM_GETH_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_GETH_SERVICE_FILE}" "/etc/systemd/system/${ETHEREUM_GETH_SERVICE_FILE}"
+systemctl daemon-reload
+systemctl disable "${ETHEREUM_GETH_SERVICE_FILE}"
+systemctl status "${ETHEREUM_GETH_SERVICE_FILE}"
