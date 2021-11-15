@@ -5,7 +5,7 @@ const API_URL = process.env.NEXT_PUBLIC_MOONSTREAM_API_URL;
 export const createDashboard = (data) => {
   return http({
     method: "POST",
-    url: `${API_URL}/dashboards`,
+    url: `${API_URL}/dashboards/`,
     data,
   });
 };
@@ -13,7 +13,7 @@ export const createDashboard = (data) => {
 export const getDashboardsList = () => {
   return http({
     method: "GET",
-    url: `${API_URL}/dashboards`,
+    url: `${API_URL}/dashboards/`,
   });
 };
 
@@ -35,6 +35,6 @@ export const getDashboard = (dashboardId) => {
 export const getDashboardLinks = (dashboardId) => {
   return http({
     method: "GET",
-    url: `${API_URL}/dashboards/${dashboardId}/data_links`,
+    url: `${API_URL}/dashboards/${dashboardId}/stats`,
   });
 };

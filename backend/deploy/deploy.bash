@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Deployment script - intended to run on Moonstream servers
+# Deployment script - intended to run on Moonstream API server
 
 # Colors
 C_RESET='\033[0m'
@@ -21,24 +21,29 @@ PYTHON_ENV_DIR="${PYTHON_ENV_DIR:-/home/ubuntu/moonstream-env}"
 PYTHON="${PYTHON_ENV_DIR}/bin/python"
 PIP="${PYTHON_ENV_DIR}/bin/pip"
 SCRIPT_DIR="$(realpath $(dirname $0))"
-PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.py"
-PARAMETERS_BASH_SCRIPT="${SCRIPT_DIR}/parameters.bash"
 SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/moonstream-secrets}"
 PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
 AWS_SSM_PARAMETER_PATH="${AWS_SSM_PARAMETER_PATH:-/moonstream/prod}"
-SERVICE_FILE="${SCRIPT_DIR}/moonstream.service"
+
+# Parameters scripts
+PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.py"
+CHECKENV_PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.bash"
+CHECKENV_NODES_CONNECTIONS_SCRIPT="${SCRIPT_DIR}/nodes-connections.bash"
+
+# API server service file
+SERVICE_FILE="${SCRIPT_DIR}/moonstreamapi.service"
 
 set -eu
 
 echo
 echo
-echo -e "${PREFIX_INFO} Updating pip and setuptools"
-"${PIP}" install -U pip setuptools
+echo -e "${PREFIX_INFO} Upgrading Python pip and setuptools"
+"${PIP}" install --upgrade pip setuptools
 
 echo
 echo
-echo -e "${PREFIX_INFO} Updating Python dependencies"
-"${PIP}" install -r "${APP_BACKEND_DIR}/requirements.txt"
+echo -e "${PREFIX_INFO} Installing Python dependencies"
+"${PIP}" install -e "${APP_BACKEND_DIR}/"
 
 echo
 echo
@@ -49,13 +54,18 @@ AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" "${PYTHON}" "${PARAMETERS_SCRIPT}" "$
 echo
 echo
 echo -e "${PREFIX_INFO} Retrieving addition deployment parameters"
-bash "${PARAMETERS_BASH_SCRIPT}" -p "moonstream" -o "${PARAMETERS_ENV_PATH}"
+bash "${CHECKENV_PARAMETERS_SCRIPT}" -v -p "moonstream" -o "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Replacing existing Moonstream service definition with ${SERVICE_FILE}"
+echo -e "${PREFIX_INFO} Updating nodes connection parameters"
+bash "${CHECKENV_NODES_CONNECTIONS_SCRIPT}" -v -f "${PARAMETERS_ENV_PATH}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Moonstream API service definition with ${SERVICE_FILE}"
 chmod 644 "${SERVICE_FILE}"
-cp "${SERVICE_FILE}" /etc/systemd/system/moonstream.service
+cp "${SERVICE_FILE}" /etc/systemd/system/moonstreamapi.service
 systemctl daemon-reload
-systemctl restart moonstream.service
-systemctl status moonstream.service
+systemctl restart moonstreamapi.service
+systemctl status moonstreamapi.service

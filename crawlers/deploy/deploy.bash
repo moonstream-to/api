@@ -24,15 +24,27 @@ SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/moonstream-secrets}"
 PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
 AWS_SSM_PARAMETER_PATH="${AWS_SSM_PARAMETER_PATH:-/moonstream/prod}"
 SCRIPT_DIR="$(realpath $(dirname $0))"
+
+# Parameters scripts
 PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.py"
-CHECKENV_REPO_URL="https://raw.githubusercontent.com/bugout-dev/checkenv/main/scripts"
-CHECKENV_PARAMETERS_SCRIPT_URL="${CHECKENV_REPO_URL}/parameters.bash"
-CHECKENV_NODES_CONNECTIONS_SCRIPT_URL="${CHECKENV_REPO_URL}/nodes-connections.bash"
+CHECKENV_PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.bash"
+CHECKENV_NODES_CONNECTIONS_SCRIPT="${SCRIPT_DIR}/nodes-connections.bash"
+
+# Ethereum service files
 ETHEREUM_SYNCHRONIZE_SERVICE="ethereum-synchronize.service"
-ETHEREUM_TRENDING_SERVICE="ethereum-trending.service"
-ETHEREUM_TRENDING_TIMER="ethereum-trending.service"
-ETHEREUM_TXPOOL_SERVICE="ethereum-txpool.service"
-ETHEREUM_CRAWLERS_SERVICE_FILE="moonstreamcrawlers.service"
+ETHEREUM_TRENDING_SERVICE_FILE="ethereum-trending.service"
+ETHEREUM_TRENDING_TIMER_FILE="ethereum-trending.timer"
+ETHEREUM_TXPOOL_SERVICE_FILE="ethereum-txpool.service"
+ETHEREUM_MISSING_SERVICE_FILE="ethereum-missing.service"
+ETHEREUM_MISSING_TIMER_FILE="ethereum-missing.timer"
+
+# Polygon service file
+POLYGON_SYNCHRONIZE_SERVICE="polygon-synchronize.service"
+POLYGON_MISSING_SERVICE_FILE="polygon-missing.service"
+POLYGON_MISSING_TIMER_FILE="polygon-missing.timer"
+POLYGON_STATISTICS_SERVICE_FILE="polygon-statistics.service"
+POLYGON_STATISTICS_TIMER_FILE="polygon-statistics.timer"
+
 
 set -eu
 
@@ -46,17 +58,13 @@ cd "${EXEC_DIR}"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Building executable server of moonstreamcrawlers with Go"
-EXEC_DIR=$(pwd)
-cd "${APP_CRAWLERS_DIR}/server"
-HOME=/root /usr/local/go/bin/go build -o "${APP_CRAWLERS_DIR}/server/moonstreamcrawlers" "${APP_CRAWLERS_DIR}/server/main.go"
-cd "${EXEC_DIR}"
+echo -e "${PREFIX_INFO} Upgrading Python pip and setuptools"
+"${PIP}" install --upgrade pip setuptools
 
 echo
 echo
-echo -e "${PREFIX_INFO} Updating Python dependencies"
-"${PIP}" install --upgrade pip
-"${PIP}" install -r "${APP_CRAWLERS_DIR}/mooncrawl/requirements.txt"
+echo -e "${PREFIX_INFO} Installing Python dependencies"
+"${PIP}" install -e "${APP_CRAWLERS_DIR}/mooncrawl/"
 
 echo
 echo
@@ -67,12 +75,12 @@ AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" "${PYTHON}" "${PARAMETERS_SCRIPT}" ex
 echo
 echo
 echo -e "${PREFIX_INFO} Retrieving addition deployment parameters"
-curl -s "${CHECKENV_PARAMETERS_SCRIPT_URL}" | bash /dev/stdin -v -p "moonstream" -o "${PARAMETERS_ENV_PATH}"
+bash "${CHECKENV_PARAMETERS_SCRIPT}" -v -p "moonstream" -o "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
 echo -e "${PREFIX_INFO} Updating nodes connection parameters"
-curl -s "${CHECKENV_NODES_CONNECTIONS_SCRIPT_URL}" | bash /dev/stdin -v -f "${PARAMETERS_ENV_PATH}"
+bash "${CHECKENV_NODES_CONNECTIONS_SCRIPT}" -v -f "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
@@ -84,27 +92,52 @@ systemctl restart "${ETHEREUM_SYNCHRONIZE_SERVICE}"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Replacing existing Ethereum trending service and timer with: ${ETHEREUM_TRENDING_SERVICE}, ${ETHEREUM_TRENDING_TIMER}"
-chmod 644 "${SCRIPT_DIR}/${ETHEREUM_TRENDING_SERVICE}" "${SCRIPT_DIR}/${ETHEREUM_TRENDING_TIMER}"
-cp "${SCRIPT_DIR}/${ETHEREUM_TRENDING_SERVICE}" "/etc/systemd/system/${ETHEREUM_TRENDING_SERVICE}"
-cp "${SCRIPT_DIR}/${ETHEREUM_TRENDING_TIMER}" "/etc/systemd/system/${ETHEREUM_TRENDING_TIMER}"
+echo -e "${PREFIX_INFO} Replacing existing Ethereum trending service and timer with: ${ETHEREUM_TRENDING_SERVICE_FILE}, ${ETHEREUM_TRENDING_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ETHEREUM_TRENDING_SERVICE_FILE}" "${SCRIPT_DIR}/${ETHEREUM_TRENDING_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_TRENDING_SERVICE_FILE}" "/etc/systemd/system/${ETHEREUM_TRENDING_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_TRENDING_TIMER_FILE}" "/etc/systemd/system/${ETHEREUM_TRENDING_TIMER_FILE}"
 systemctl daemon-reload
-systemctl restart "${ETHEREUM_TRENDING_TIMER}"
+systemctl restart "${ETHEREUM_TRENDING_TIMER_FILE}"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Replacing existing Ethereum transaction pool crawler service definition with ${ETHEREUM_TXPOOL_SERVICE}"
-chmod 644 "${SCRIPT_DIR}/${ETHEREUM_TXPOOL_SERVICE}"
-cp "${SCRIPT_DIR}/${ETHEREUM_TXPOOL_SERVICE}" "/etc/systemd/system/${ETHEREUM_TXPOOL_SERVICE}"
+echo -e "${PREFIX_INFO} Replacing existing Ethereum transaction pool crawler service definition with ${ETHEREUM_TXPOOL_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ETHEREUM_TXPOOL_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_TXPOOL_SERVICE_FILE}" "/etc/systemd/system/${ETHEREUM_TXPOOL_SERVICE_FILE}"
 systemctl daemon-reload
-systemctl restart "${ETHEREUM_TXPOOL_SERVICE}"
+systemctl restart "${ETHEREUM_TXPOOL_SERVICE_FILE}"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Replacing existing moonstreamcrawlers service definition with ${ETHEREUM_CRAWLERS_SERVICE_FILE}"
-chmod 644 "${SCRIPT_DIR}/${ETHEREUM_CRAWLERS_SERVICE_FILE}"
-cp "${SCRIPT_DIR}/${ETHEREUM_CRAWLERS_SERVICE_FILE}" "/etc/systemd/system/${ETHEREUM_CRAWLERS_SERVICE_FILE}"
+echo -e "${PREFIX_INFO} Replacing existing Ethereum missing service and timer with: ${ETHEREUM_MISSING_SERVICE_FILE}, ${ETHEREUM_MISSING_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ETHEREUM_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${ETHEREUM_MISSING_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_MISSING_SERVICE_FILE}" "/etc/systemd/system/${ETHEREUM_MISSING_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_MISSING_TIMER_FILE}" "/etc/systemd/system/${ETHEREUM_MISSING_TIMER_FILE}"
 systemctl daemon-reload
-systemctl restart "${ETHEREUM_CRAWLERS_SERVICE_FILE}"
-systemctl status "${ETHEREUM_CRAWLERS_SERVICE_FILE}"
+systemctl restart "${ETHEREUM_MISSING_TIMER_FILE}"
 
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Polygon block with transactions syncronizer service definition with ${POLYGON_SYNCHRONIZE_SERVICE}"
+chmod 644 "${SCRIPT_DIR}/${POLYGON_SYNCHRONIZE_SERVICE}"
+cp "${SCRIPT_DIR}/${POLYGON_SYNCHRONIZE_SERVICE}" "/etc/systemd/system/${POLYGON_SYNCHRONIZE_SERVICE}"
+systemctl daemon-reload
+systemctl restart "${POLYGON_SYNCHRONIZE_SERVICE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Polygon missing service and timer with: ${POLYGON_MISSING_SERVICE_FILE}, ${POLYGON_MISSING_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${POLYGON_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${POLYGON_MISSING_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${POLYGON_MISSING_SERVICE_FILE}" "/etc/systemd/system/${POLYGON_MISSING_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${POLYGON_MISSING_TIMER_FILE}" "/etc/systemd/system/${POLYGON_MISSING_TIMER_FILE}"
+systemctl daemon-reload
+systemctl restart "${POLYGON_MISSING_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Polygon statistics dashbord service and timer with: ${POLYGON_STATISTICS_SERVICE_FILE}, ${POLYGON_STATISTICS_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${POLYGON_STATISTICS_SERVICE_FILE}" "${SCRIPT_DIR}/${POLYGON_STATISTICS_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${POLYGON_STATISTICS_SERVICE_FILE}" "/etc/systemd/system/${POLYGON_STATISTICS_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${POLYGON_STATISTICS_TIMER_FILE}" "/etc/systemd/system/${POLYGON_STATISTICS_TIMER_FILE}"
+systemctl daemon-reload
+systemctl restart "${POLYGON_STATISTICS_TIMER_FILE}"

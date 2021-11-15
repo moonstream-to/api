@@ -1,13 +1,13 @@
 import unittest
 
-from . import ethcrawler
+from . import crawler
 
 
 class TestYieldBlockNumbersLists(unittest.TestCase):
     def test_yield_descending_10_6_step_4(self):
         partition = [
             block_numbers_list
-            for block_numbers_list in ethcrawler.yield_blocks_numbers_lists(
+            for block_numbers_list in crawler.yield_blocks_numbers_lists(
                 "10-6", block_step=4
             )
         ]
@@ -16,7 +16,7 @@ class TestYieldBlockNumbersLists(unittest.TestCase):
     def test_yield_descending_10_6_step_3(self):
         partition = [
             block_numbers_list
-            for block_numbers_list in ethcrawler.yield_blocks_numbers_lists(
+            for block_numbers_list in crawler.yield_blocks_numbers_lists(
                 "10-6", block_step=3
             )
         ]
@@ -25,8 +25,8 @@ class TestYieldBlockNumbersLists(unittest.TestCase):
     def test_yield_descending_10_6_descending_step_3(self):
         partition = [
             block_numbers_list
-            for block_numbers_list in ethcrawler.yield_blocks_numbers_lists(
-                "10-6", ethcrawler.ProcessingOrder.DESCENDING, 3
+            for block_numbers_list in crawler.yield_blocks_numbers_lists(
+                "10-6", crawler.ProcessingOrder.DESCENDING, 3
             )
         ]
         self.assertListEqual(partition, [[10, 9, 8], [7, 6]])
@@ -34,8 +34,8 @@ class TestYieldBlockNumbersLists(unittest.TestCase):
     def test_yield_descending_10_6_descending_step_10(self):
         partition = [
             block_numbers_list
-            for block_numbers_list in ethcrawler.yield_blocks_numbers_lists(
-                "10-6", ethcrawler.ProcessingOrder.DESCENDING, 10
+            for block_numbers_list in crawler.yield_blocks_numbers_lists(
+                "10-6", crawler.ProcessingOrder.DESCENDING, 10
             )
         ]
         self.assertListEqual(partition, [[10, 9, 8, 7, 6]])
@@ -43,7 +43,7 @@ class TestYieldBlockNumbersLists(unittest.TestCase):
     def test_yield_descending_6_10_step_4(self):
         partition = [
             block_numbers_list
-            for block_numbers_list in ethcrawler.yield_blocks_numbers_lists(
+            for block_numbers_list in crawler.yield_blocks_numbers_lists(
                 "6-10", block_step=4
             )
         ]
@@ -52,7 +52,7 @@ class TestYieldBlockNumbersLists(unittest.TestCase):
     def test_yield_descending_6_10_step_3(self):
         partition = [
             block_numbers_list
-            for block_numbers_list in ethcrawler.yield_blocks_numbers_lists(
+            for block_numbers_list in crawler.yield_blocks_numbers_lists(
                 "6-10", block_step=3
             )
         ]
@@ -61,8 +61,8 @@ class TestYieldBlockNumbersLists(unittest.TestCase):
     def test_yield_descending_6_10_descending_step_3(self):
         partition = [
             block_numbers_list
-            for block_numbers_list in ethcrawler.yield_blocks_numbers_lists(
-                "6-10", ethcrawler.ProcessingOrder.DESCENDING, 3
+            for block_numbers_list in crawler.yield_blocks_numbers_lists(
+                "6-10", crawler.ProcessingOrder.DESCENDING, 3
             )
         ]
         self.assertListEqual(partition, [[10, 9, 8], [7, 6]])
@@ -70,8 +70,8 @@ class TestYieldBlockNumbersLists(unittest.TestCase):
     def test_yield_descending_6_10_descending_step_10(self):
         partition = [
             block_numbers_list
-            for block_numbers_list in ethcrawler.yield_blocks_numbers_lists(
-                "6-10", ethcrawler.ProcessingOrder.DESCENDING, 10
+            for block_numbers_list in crawler.yield_blocks_numbers_lists(
+                "6-10", crawler.ProcessingOrder.DESCENDING, 10
             )
         ]
         self.assertListEqual(partition, [[10, 9, 8, 7, 6]])
@@ -79,8 +79,8 @@ class TestYieldBlockNumbersLists(unittest.TestCase):
     def test_yield_ascending_10_6_ascending_step_3(self):
         partition = [
             block_numbers_list
-            for block_numbers_list in ethcrawler.yield_blocks_numbers_lists(
-                "10-6", ethcrawler.ProcessingOrder.ASCENDING, 3
+            for block_numbers_list in crawler.yield_blocks_numbers_lists(
+                "10-6", crawler.ProcessingOrder.ASCENDING, 3
             )
         ]
         self.assertListEqual(partition, [[6, 7, 8], [9, 10]])
@@ -88,8 +88,8 @@ class TestYieldBlockNumbersLists(unittest.TestCase):
     def test_yield_ascending_10_6_ascending_step_10(self):
         partition = [
             block_numbers_list
-            for block_numbers_list in ethcrawler.yield_blocks_numbers_lists(
-                "10-6", ethcrawler.ProcessingOrder.ASCENDING, 10
+            for block_numbers_list in crawler.yield_blocks_numbers_lists(
+                "10-6", crawler.ProcessingOrder.ASCENDING, 10
             )
         ]
         self.assertListEqual(partition, [[6, 7, 8, 9, 10]])
@@ -97,8 +97,8 @@ class TestYieldBlockNumbersLists(unittest.TestCase):
     def test_yield_ascending_6_10_ascending_step_4(self):
         partition = [
             block_numbers_list
-            for block_numbers_list in ethcrawler.yield_blocks_numbers_lists(
-                "6-10", ethcrawler.ProcessingOrder.ASCENDING, 4
+            for block_numbers_list in crawler.yield_blocks_numbers_lists(
+                "6-10", crawler.ProcessingOrder.ASCENDING, 4
             )
         ]
         self.assertListEqual(partition, [[6, 7, 8, 9], [10]])
@@ -106,8 +106,8 @@ class TestYieldBlockNumbersLists(unittest.TestCase):
     def test_yield_ascending_6_10_ascending_step_10(self):
         partition = [
             block_numbers_list
-            for block_numbers_list in ethcrawler.yield_blocks_numbers_lists(
-                "6-10", ethcrawler.ProcessingOrder.ASCENDING, 10
+            for block_numbers_list in crawler.yield_blocks_numbers_lists(
+                "6-10", crawler.ProcessingOrder.ASCENDING, 10
             )
         ]
         self.assertListEqual(partition, [[6, 7, 8, 9, 10]])

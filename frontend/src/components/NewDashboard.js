@@ -80,7 +80,8 @@ const NewDashboard = (props) => {
   ]);
 
   const filterFn = (item, inputValue) =>
-    item.subscription_type_id === "ethereum_blockchain" &&
+    (item.subscription_type_id === "ethereum_blockchain" ||
+      item.subscription_type_id === "polygon_blockchain") &&
     (!inputValue ||
       item.address.toUpperCase().includes(inputValue.toUpperCase()) ||
       item.label.toUpperCase().includes(inputValue.toUpperCase()));
