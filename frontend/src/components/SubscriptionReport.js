@@ -1,7 +1,7 @@
 import React from "react";
 import { usePresignedURL } from "../core/hooks";
 import Report from "./Report";
-import { Spinner, Flex, Heading, Text } from "@chakra-ui/react";
+import { Spinner, Flex, Heading, Text, Stack } from "@chakra-ui/react";
 import { v4 } from "uuid";
 
 const HOUR_KEY = "Hourly";
@@ -24,6 +24,37 @@ const SubscriptionReport = ({ url, id, type }) => {
   if (!data || isLoading) return <Spinner />;
   return (
     <Flex w="100%" h="auto" flexGrow={1} flexBasis="420px" direction="column">
+      <Stack
+        bgColor="blue.50"
+        direction={["column", "row", null]}
+        spacing={4}
+        flexGrow={1}
+      >
+        {data?.web3_metric.map((metric) => {
+          return (
+            <Flex
+              flexGrow={1}
+              flexBasis="75px"
+              placeSelf="center"
+              p={2}
+              bgColor="blue.100"
+              m={4}
+              key={v4()}
+              size="sm"
+              fontWeight="600"
+              boxShadow="sm"
+              w="75px"
+              maxH="150px"
+              direction="column"
+            >
+              <Text placeSelf="center">{metric.display_name}</Text>
+              <Text p={2} fontSize="42px" placeSelf="center">
+                {metric.value}
+              </Text>
+            </Flex>
+          );
+        })}
+      </Stack>
       {data?.events && Object.keys(data?.events) && (
         <Flex
           w="100%"
