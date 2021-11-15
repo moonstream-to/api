@@ -456,13 +456,21 @@ def stats_generate_handler(args: argparse.Namespace):
                         input_args.append(
                             cast_to_python_type(func_input["type"])(func_input["value"])
                         )
-                    func_input_abi.extend(external_call["outputs"])
+
+                    func_abi = [
+                        {
+                            "name": external_call["name"],
+                            "inputs": func_input_abi,
+                            "outputs": external_call["outputs"],
+                        }
+                    ]
+
                     external_calls.append(
                         {
                             "display_name": external_call["display_name"],
                             "address": Web3.toChecksumAddress(external_call["address"]),
                             "name": external_call["name"],
-                            "abi": func_input_abi,
+                            "abi": func_abi,
                             "input_args": input_args,
                         }
                     )
