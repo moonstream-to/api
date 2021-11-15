@@ -451,7 +451,7 @@ def stats_generate_handler(args: argparse.Namespace):
                     input_args = []
                     for func_input in external_call["inputs"]:
                         func_input_abi.append(
-                            {"name": func_input["name"], "input": func_input["type"]}
+                            {"name": func_input["name"], "type": func_input["type"]}
                         )
                         input_args.append(
                             cast_to_python_type(func_input["type"])(func_input["value"])
