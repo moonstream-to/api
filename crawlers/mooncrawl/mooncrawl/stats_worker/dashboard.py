@@ -9,6 +9,8 @@ import time
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Callable, Dict, List
+from pprint import pprint
+import traceback
 
 from web3.datastructures import T
 
@@ -19,7 +21,12 @@ from sqlalchemy import Column, Date, and_, func, text
 from sqlalchemy.orm import Query, Session
 from sqlalchemy.sql.operators import in_op
 
-from ..blockchain import get_block_model, get_label_model, get_transaction_model, connect
+from ..blockchain import (
+    get_block_model,
+    get_label_model,
+    get_transaction_model,
+    connect,
+)
 from ..data import AvailableBlockchainType
 from ..settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -365,6 +372,7 @@ def generate_data(
 
     return response_labels
 
+
 def cast_to_python_type(evm_type: str) -> Callable:
     if evm_type.startswith(("uint", "int")):
         return int
@@ -402,8 +410,6 @@ def stats_generate_handler(args: argparse.Namespace):
 
         s3_client = boto3.client("s3")
 
-
-
         # Already processed
         already_processed = []
 
@@ -432,30 +438,37 @@ def stats_generate_handler(args: argparse.Namespace):
             abi_functions = [item for item in abi_json if item["type"] == "function"]
             abi_events = [item for item in abi_json if item["type"] == "event"]
 
-            abi_external_calls = [item for item in abi_json if item["type"] == "external_call"]
+            abi_external_calls = [
+                item for item in abi_json if item["type"] == "external_call"
+            ]
+            pprint(abi_external_calls)
 
             external_calls = []
 
             for external_call in abi_external_calls:
                 try:
-                    func_abi = []
+                    func_input_abi = []
                     input_args = []
                     for func_input in external_call["inputs"]:
-                        func_abi.append({"name":func_input["name"], "input": func_input["type"]})
-                        input_args.append(cast_to_python_type(func_input["type"])(func_input["value"]))
-                    func_abi["outputs"] = external_call["outputs"]
+                        func_input_abi.append(
+                            {"name": func_input["name"], "input": func_input["type"]}
+                        )
+                        input_args.append(
+                            cast_to_python_type(func_input["type"])(func_input["value"])
+                        )
+                    func_input_abi.extend(external_call["outputs"])
                     external_calls.append(
-                        {   
+                        {
                             "display_name": external_call["display_name"],
                             "address": Web3.toChecksumAddress(external_call["address"]),
                             "name": external_call["name"],
-                            "abi": func_abi,
+                            "abi": func_input_abi,
                             "input_args": input_args,
                         }
                     )
                 except Exception as e:
                     print(f"Error processing external call: {e}")
-            
+
             web3_client = connect(blockchain_type)
             # {
             #   "type": "external_call"
@@ -477,15 +490,23 @@ def stats_generate_handler(args: argparse.Namespace):
             #   }
             # }
 
-            extention_data =  []
+            extention_data = []
+            pprint(external_calls)
             for extcall in external_calls:
                 try:
-                    contract = web3_client.eth.contract(address=extcall['address'], abi=extcall['abi'])
-                    response = contract.functions[extcall['name']](*extcall['inputs']).call()
-                    extention_data.append({"display_name" : extcall['display_name'], "value": response})
-                except Exception as e:
-                    print(f"Failed to call {extcall['name']}")
+                    contract = web3_client.eth.contract(
+                        address=extcall["address"], abi=extcall["abi"]
+                    )
+                    response = contract.functions[extcall["name"]](
+                        *extcall["input_args"]
+                    ).call()
 
+                    extention_data.append(
+                        {"display_name": extcall["display_name"], "value": response}
+                    )
+                except Exception as e:
+                    traceback.print_exc()
+                    print(f"Failed to call {extcall['name']} error: {e}")
 
             for timescale in [timescale.value for timescale in TimeScale]:
 
