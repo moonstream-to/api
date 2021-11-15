@@ -35,6 +35,7 @@ import {
 import UserContext from "../UserProvider/context";
 import UIContext from "../UIProvider/context";
 import useDashboard from "../../hooks/useDashboard";
+import SignUp from "../../../components/SignUp";
 const ForgotPassword = React.lazy(() =>
   import("../../../components/ForgotPassword")
 );
@@ -206,10 +207,9 @@ const OverlayProvider = ({ children }) => {
               {modal.type === MODAL_TYPES.LOGIN && (
                 <SignIn toggleModal={toggleModal} />
               )}
-              {
-                modal.type === MODAL_TYPES.SIGNUP && ""
-                // <SignUp toggleModal={toggleModal} />
-              }
+              {modal.type === MODAL_TYPES.SIGNUP && (
+                <SignUp toggleModal={toggleModal} />
+              )}
               {modal.type === MODAL_TYPES.UPLOAD_ABI && (
                 <UploadABI {...modal.props} />
               )}

@@ -500,7 +500,7 @@ const Homepage = () => {
                         mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
                           [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer txpool button`,
                         });
-                      toggleModal(MODAL_TYPES.HUBSPOT);
+                      toggleModal({ type: MODAL_TYPES.HUBSPOT });
                     },
                   }}
                   elementName={"element1"}
@@ -559,7 +559,7 @@ const Homepage = () => {
                         mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
                           [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer exchanges button`,
                         });
-                      toggleModal(MODAL_TYPES.HUBSPOT);
+                      toggleModal({ type: MODAL_TYPES.HUBSPOT });
                     },
                   }}
                   elementName={"element2"}
@@ -620,7 +620,7 @@ const Homepage = () => {
                         mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
                           [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer smartDeveloper button`,
                         });
-                      toggleModal(MODAL_TYPES.HUBSPOT);
+                      toggleModal({ type: MODAL_TYPES.HUBSPOT });
                     },
                   }}
                   elementName={"element3"}
@@ -674,7 +674,7 @@ const Homepage = () => {
                         mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
                           [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer analytics button`,
                         });
-                      toggleModal(MODAL_TYPES.HUBSPOT);
+                      toggleModal({ type: MODAL_TYPES.HUBSPOT });
                     },
                   }}
                   elementName={"element3"}

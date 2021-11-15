@@ -89,7 +89,7 @@ const Sidebar = () => {
             <>
               <MenuItem
                 onClick={() => {
-                  ui.toggleModal(MODAL_TYPES.SIGNUP);
+                  ui.toggleModal({ type: MODAL_TYPES.SIGNUP });
                   ui.setSidebarToggled(false);
                 }}
               >

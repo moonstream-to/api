@@ -1,7 +1,4 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-import { jsx } from "@emotion/react";
-import { useContext, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {
   Text,
@@ -17,19 +14,17 @@ import {
 import CustomIcon from "./CustomIcon";
 import { useSignUp } from "../core/hooks";
 import PasswordInput from "./PasswordInput";
-import UIContext from "../core/providers/UIProvider/context";
 import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 
 const SignUp = ({ toggleModal }) => {
   const { handleSubmit, errors, register } = useForm();
   const { signUp, isLoading, isSuccess } = useSignUp();
-  const ui = useContext(UIContext);
 
   useEffect(() => {
     if (isSuccess) {
-      ui.toggleModal({ type: MODAL_TYPES.OFF });
+      toggleModal({ type: MODAL_TYPES.OFF });
     }
-  }, [isSuccess, toggleModal, ui]);
+  }, [isSuccess, toggleModal]);
 
   return (
     <>
@@ -95,7 +90,7 @@ const SignUp = ({ toggleModal }) => {
         </Button>
       </form>
       <Box height="1px" width="100%" background="#eaebf8" mb="1.875rem" />
-      <Text textAlign="center" fontSize="md" color="gray.1200">
+      <Text textAlign="center" fontSize="md" color="gray.1200" pb={8}>
         Already have an account?{" "}
         <Box
           cursor="pointer"
