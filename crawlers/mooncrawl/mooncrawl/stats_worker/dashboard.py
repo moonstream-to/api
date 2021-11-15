@@ -10,8 +10,6 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Callable, Dict, List
 
-from web3.datastructures import T
-
 import boto3  # type: ignore
 from bugout.data import BugoutResources
 from moonstreamdb.db import yield_db_session_ctx
