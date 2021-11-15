@@ -207,9 +207,9 @@ const OverlayProvider = ({ children }) => {
                 <SignIn toggleModal={toggleModal} />
               )}
               {
-                modal.type === MODAL_TYPES.SIGNUP && ""
-                // <SignUp toggleModal={toggleModal} />
-              }
+                modal.type === MODAL_TYPES.SIGNUP && (
+                <SignUp toggleModal={toggleModal} />
+              )}
               {modal.type === MODAL_TYPES.UPLOAD_ABI && (
                 <UploadABI {...modal.props} />
               )}
