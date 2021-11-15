@@ -7,7 +7,6 @@ User=ubuntu
 Group=www-data
 EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
 ExecStart=/usr/bin/geth --syncmode snap --cache 4096 \
-    --port "${MOONSTREAM_NODE_ETHEREUM_LISTENING_PORT}" \
     --datadir /mnt/disks/nodes/ethereum \
     --txpool.globalslots 153600 --txpool.globalqueue 3072 \
     --http --http.api eth,web3,txpool \
