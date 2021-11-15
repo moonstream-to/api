@@ -462,6 +462,8 @@ def stats_generate_handler(args: argparse.Namespace):
                             "name": external_call["name"],
                             "inputs": func_input_abi,
                             "outputs": external_call["outputs"],
+                            "type": "function",
+                            "stateMutability": "view",
                         }
                     ]
 
