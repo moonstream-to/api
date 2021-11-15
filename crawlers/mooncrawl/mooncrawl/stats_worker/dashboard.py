@@ -8,7 +8,9 @@ import logging
 import time
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List
+
+from web3.datastructures import T
 
 import boto3  # type: ignore
 from bugout.data import BugoutResources
@@ -363,6 +365,20 @@ def generate_data(
 
     return response_labels
 
+def cast_to_python_type(evm_type: str) -> Callable:
+    if evm_type.startswith(("uint", "int")):
+        return int
+    elif evm_type.startswith("bytes"):
+        return bytes
+    elif evm_type == "string":
+        return str
+    elif evm_type == "address":
+        return Web3.toChecksumAddress
+    elif evm_type == "bool":
+        return bool
+    else:
+        raise ValueError(f"Cannot convert to python type {evm_type}")
+
 
 def stats_generate_handler(args: argparse.Namespace):
     """
@@ -415,11 +431,61 @@ def stats_generate_handler(args: argparse.Namespace):
 
             abi_functions = [item for item in abi_json if item["type"] == "function"]
             abi_events = [item for item in abi_json if item["type"] == "event"]
-            abi_extentions = [item for item in abi_json if item["type"] == "extention"]
 
-            web3_client = connect(blockchain_type)
+            abi_external_calls = [item for item in abi_json if item["type"] == "external_call"]
+
+            external_calls = []
+
+            for external_call in abi_external_calls:
+                try:
+                    func_abi = []
+                    input_args = []
+                    for func_input in external_call["inputs"]:
+                        func_abi.append({"name":func_input["name"], "input": func_input["type"]})
+                        input_args.append(cast_to_python_type(func_input["type"])(func_input["value"]))
+                    func_abi["outputs"] = external_call["outputs"]
+                    external_calls.append(
+                        {   
+                            "display_name": external_call["display_name"],
+                            "address": Web3.toChecksumAddress(external_call["address"]),
+                            "name": external_call["name"],
+                            "abi": func_abi,
+                            "input_args": input_args,
+                        }
+                    )
+                except Exception as e:
+                    print(f"Error processing external call: {e}")
             
-            extention = web3_client
+            web3_client = connect(blockchain_type)
+            # {
+            #   "type": "external_call"
+            #   "display_name": "Total weth earned"
+            #   "address": "0x0d1d4e623D10F9FBA5Db95830F7d3839406C6AF2",
+            #   "name": "balanceOf",
+            #   "inputs": [
+            #     {
+            #       "name": "owner",
+            #       "type": "address"
+            #       "value": "0x123fsdaf9432jrejfr9u9"
+            #     }
+            #   ],
+            #   "outputs": [
+            #   {
+            #       "internalType": "uint256",
+            #       "name": "",
+            #       "type": "uint256"
+            #   }
+            # }
+
+            extention_data =  []
+            for extcall in external_calls:
+                try:
+                    contract = web3_client.eth.contract(address=extcall['address'], abi=extcall['abi'])
+                    response = contract.functions[extcall['name']](*extcall['inputs']).call()
+                    extention_data.append({"display_name" : extcall['display_name'], "value": response})
+                except Exception as e:
+                    print(f"Failed to call {extcall['name']}")
+
 
             for timescale in [timescale.value for timescale in TimeScale]:
 
@@ -429,7 +495,7 @@ def stats_generate_handler(args: argparse.Namespace):
 
                 print(f"Timescale: {timescale}")
 
-                s3_data_object["web3_metric"] = extention
+                s3_data_object["web3_metric"] = extention_data
 
                 abi_functions_names = [item["name"] for item in abi_functions]
 
