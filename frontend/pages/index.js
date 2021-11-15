@@ -783,7 +783,7 @@ const Homepage = () => {
                     isExternal
                     w={["100%", "100%", "fit-content", null]}
                     maxW={["250px", null, "fit-content"]}
-                    onClick={() => toggleModal("register")}
+                    onClick={() => toggleModal({ type: MODAL_TYPES.SIGNUP })}
                     size="lg"
                     variant="solid"
                     colorScheme="orange"
