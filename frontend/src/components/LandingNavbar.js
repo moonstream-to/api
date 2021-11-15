@@ -89,7 +89,7 @@ const LandingNavbar = () => {
               <Button
                 colorScheme="orange"
                 variant="solid"
-                onClick={() => toggleModal("register")}
+                onClick={() => toggleModal(MODAL_TYPES.SIGNUP)}
                 size="sm"
                 fontWeight="400"
                 borderRadius="2xl"

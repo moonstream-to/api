@@ -38,6 +38,7 @@ import SchematicPlayground from "../src/components/SchematicPlayground";
 import { v4 as uuidv4 } from "uuid";
 import RouteButton from "../src/components/RouteButton";
 import { FaDiscord } from "react-icons/fa";
+import { MODAL_TYPES } from "../src/core/providers/OverlayProvider/constants";
 const SplitWithImage = dynamic(
   () => import("../src/components/SplitWithImage"),
   {
@@ -499,7 +500,7 @@ const Homepage = () => {
                         mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
                           [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer txpool button`,
                         });
-                      toggleModal("hubspot-developer");
+                      toggleModal(MODAL_TYPES.HUBSPOT);
                     },
                   }}
                   elementName={"element1"}
@@ -558,7 +559,7 @@ const Homepage = () => {
                         mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
                           [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer exchanges button`,
                         });
-                      toggleModal("hubspot-developer");
+                      toggleModal(MODAL_TYPES.HUBSPOT);
                     },
                   }}
                   elementName={"element2"}
@@ -619,7 +620,7 @@ const Homepage = () => {
                         mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
                           [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer smartDeveloper button`,
                         });
-                      toggleModal("hubspot-developer");
+                      toggleModal(MODAL_TYPES.HUBSPOT);
                     },
                   }}
                   elementName={"element3"}
@@ -673,7 +674,7 @@ const Homepage = () => {
                         mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
                           [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer analytics button`,
                         });
-                      toggleModal("hubspot-developer");
+                      toggleModal(MODAL_TYPES.HUBSPOT);
                     },
                   }}
                   elementName={"element3"}
