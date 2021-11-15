@@ -130,73 +130,7 @@ const Welcome = () => {
                 borderRadius="xl"
                 boxShadow="xl"
                 py={4}
-              >
-                <Accordion allowToggle>
-                  <AccordionItem borderWidth={0}>
-                    <h2>
-                      <AccordionButton borderWidth={0}>
-                        <Heading as="h4" size="md">
-                          UI navigation basics
-                        </Heading>
-                        <AccordionIcon />
-                      </AccordionButton>
-                    </h2>
-                    <AccordionPanel pb={4} borderWidth={0}>
-                      <Stack dir="column">
-                        <Text fontWeight="semibold" pl={2}>
-                          Use the sidebar on the left for navigation:
-                        </Text>
-                        <chakra.span fontWeight="semibold" pl={2}>
-                          <Text fontWeight="bold" display="inline">
-                            Subscriptions
-                          </Text>
-                          Set up addresses you would like to monitor.{" "}
-                          <i>
-                            NB: Without any subscriptions, Moonstream will feel
-                            quite empty!
-                          </i>{" "}
-                          No worries, we will help you set up your
-                          subscriptions.
-                          <i>
-                            NB: Without setting up subscriptions moonstream will
-                            have quite empty feel!{" "}
-                          </i>{" "}
-                          No worries, we will help you to set up your
-                          subscriptions in the next steps!
-                        </chakra.span>
-                        <chakra.span fontWeight="semibold" pl={2}>
-                          <Text fontWeight="bold" display="inline">
-                            Stream
-                          </Text>{" "}
-                          This view is similar to a bank statement. You can
-                          define a date range and see what happened with your
-                          subscriptions during that time. You can also apply
-                          filters to it.
-                        </chakra.span>
-
-                        <chakra.span fontWeight="semibold" pl={2}>
-                          <Text fontWeight="bold" display="inline">
-                            Stream Entry
-                          </Text>{" "}
-                          - See a detailed view of stream cards with specific
-                          and essential data, like methods called in smart
-                          contracts etc
-                        </chakra.span>
-
-                        <chakra.span fontWeight="semibold" pl={2}>
-                          <Text fontWeight="bold" display="inline">
-                            Analytics
-                          </Text>{" "}
-                          - This section is under construction. Soon you will be
-                          able to create dashboards there. Right now you can
-                          fill out a form to tell us what analytical tools you’d
-                          want to see. We’d really appreciate that :)
-                        </chakra.span>
-                      </Stack>
-                    </AccordionPanel>
-                  </AccordionItem>
-                </Accordion>
-              </Stack>
+              ></Stack>
             </Stack>
           </Fade>
         )}

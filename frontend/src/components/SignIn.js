@@ -95,7 +95,7 @@ const SignIn = ({ toggleModal }) => {
           cursor="pointer"
           color="blue.800"
           as="span"
-          onClick={() => toggleModal(MODAL_TYPES.SIGNUP)}
+          onClick={() => toggleModal({ type: MODAL_TYPES.SIGNUP })}
         >
           Register
         </Box>
