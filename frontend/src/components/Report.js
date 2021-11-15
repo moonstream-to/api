@@ -32,6 +32,7 @@ const Report = ({ data, metric }) => {
     <ResponsiveLineCanvas
       {...commonProperties}
       data={plotData}
+      margin={{ top: 50, right: 110, bottom: 70, left: 60 }}
       isInteractive={true}
       xScale={{
         type: "time",
@@ -42,21 +43,27 @@ const Report = ({ data, metric }) => {
       xFormat="time:%Y-%m-%d %H"
       yScale={{
         type: "linear",
+        max: "auto",
+        min: 0,
       }}
       axisLeft={{
         orient: "left",
         tickSize: 5,
         tickPadding: 5,
         tickRotation: 0,
-        legendOffset: -40,
+        legendOffset: -45,
         legendPosition: "middle",
+        legend: "count",
       }}
       axisBottom={{
-        format: "%b %d",
-        tickValues: "every 7 day",
-        tickRotation: 90,
+        format: "%Y-%m-%d",
+        tickValues: "every 1 day",
+        legend: "time",
+        tickRotation: 0,
+        legendOffset: 35,
+        legendPosition: "middle",
       }}
-      curve="linear"
+      curve={"basis"}
       enableArea={true}
       enablePointLabel={false}
       pointSize={0}
