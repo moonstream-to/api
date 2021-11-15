@@ -17,7 +17,7 @@ from sqlalchemy import Column, Date, and_, func, text
 from sqlalchemy.orm import Query, Session
 from sqlalchemy.sql.operators import in_op
 
-from ..blockchain import get_block_model, get_label_model, get_transaction_model
+from ..blockchain import get_block_model, get_label_model, get_transaction_model, connect
 from ..data import AvailableBlockchainType
 from ..settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -25,6 +25,10 @@ from ..settings import (
     CRAWLER_LABEL,
 )
 from ..settings import bugout_client as bc
+
+from web3 import HTTPProvider, IPCProvider, Web3
+from web3.middleware import geth_poa_middleware
+from web3.types import BlockData
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -382,6 +386,8 @@ def stats_generate_handler(args: argparse.Namespace):
 
         s3_client = boto3.client("s3")
 
+
+
         # Already processed
         already_processed = []
 
@@ -409,6 +415,11 @@ def stats_generate_handler(args: argparse.Namespace):
 
             abi_functions = [item for item in abi_json if item["type"] == "function"]
             abi_events = [item for item in abi_json if item["type"] == "event"]
+            abi_extentions = [item for item in abi_json if item["type"] == "extention"]
+
+            web3_client = connect(blockchain_type)
+            
+            extention = web3_client
 
             for timescale in [timescale.value for timescale in TimeScale]:
 
@@ -417,6 +428,8 @@ def stats_generate_handler(args: argparse.Namespace):
                 )
 
                 print(f"Timescale: {timescale}")
+
+                s3_data_object["web3_metric"] = extention
 
                 abi_functions_names = [item["name"] for item in abi_functions]
 
