@@ -460,13 +460,13 @@ def stats_generate_handler(args: argparse.Namespace):
             # {
             #   "type": "external_call"
             #   "display_name": "Total weth earned"
-            #   "address": "0x0d1d4e623D10F9FBA5Db95830F7d3839406C6AF2",
+            #   "address": "0xdf2811b6432cae65212528f0a7186b71adaec03a",
             #   "name": "balanceOf",
             #   "inputs": [
             #     {
             #       "name": "owner",
             #       "type": "address"
-            #       "value": "0x123fsdaf9432jrejfr9u9"
+            #       "value": "0xA993c4759B731f650dfA011765a6aedaC91a4a88"
             #     }
             #   ],
             #   "outputs": [
