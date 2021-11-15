@@ -1,10 +1,6 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-import { jsx } from "@emotion/react";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {
-  Heading,
   Text,
   Stack,
   Box,
@@ -18,7 +14,7 @@ import {
 import CustomIcon from "./CustomIcon";
 import { useLogin } from "../core/hooks";
 import PasswordInput from "./PasswordInput";
-import Modal from "./Modal";
+import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 
 const SignIn = ({ toggleModal }) => {
   const { handleSubmit, errors, register } = useForm();
@@ -29,14 +25,11 @@ const SignIn = ({ toggleModal }) => {
       return;
     }
 
-    toggleModal(null);
+    toggleModal({ type: MODAL_TYPES.OFF });
   }, [data, toggleModal]);
 
   return (
-    <Modal onClose={() => toggleModal(null)}>
-      <Heading mt={2} size="md">
-        Login now
-      </Heading>
+    <>
       <Text color="gray.1200" fontSize="md">
         To your Moonstream account
       </Text>
@@ -90,7 +83,7 @@ const SignIn = ({ toggleModal }) => {
           cursor="pointer"
           color="blue.800"
           as="span"
-          onClick={() => toggleModal("forgot")}
+          onClick={() => toggleModal({ type: MODAL_TYPES.FORGOT })}
         >
           Forgot your password?
         </Box>
@@ -107,7 +100,7 @@ const SignIn = ({ toggleModal }) => {
           Register
         </Box>
       </Text>
-    </Modal>
+    </>
   );
 };
 

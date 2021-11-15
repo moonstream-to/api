@@ -1,0 +1,14 @@
+[Unit]
+Description=moonstreamapi-service
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/moonstream/backend
+EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
+ExecStart=/home/ubuntu/moonstream-env/bin/uvicorn --host 0.0.0.0 --port 7481 --workers 8 moonstreamapi.api:app
+SyslogIdentifier=moonstreamapi
+
+[Install]
+WantedBy=multi-user.target

@@ -11,9 +11,11 @@ const useToast = () => {
       const userTitle = title ?? message?.response?.statusText ?? type;
 
       const userMessage =
-        message?.response?.data?.detail ??
-        message ??
-        (userTitle === type ? "" : type);
+        message?.response?.data?.detail ?? typeof message === "string"
+          ? message
+          : userTitle === type
+          ? ""
+          : type;
 
       if (mixpanel.get_distinct_id() && type === "error") {
         mixpanel.track(`${MIXPANEL_EVENTS.TOAST_ERROR_DISPLAYED}`, {
@@ -24,11 +26,12 @@ const useToast = () => {
       }
 
       chakraToast({
+        id: `${userTitle}${userMessage}${type}`,
         position: "bottom",
         title: userTitle,
         description: userMessage,
         status: type,
-        duration: 3000,
+        // duration: 3000,
       });
     },
     [chakraToast]

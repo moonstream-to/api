@@ -8,7 +8,14 @@ import {
 } from "react-pro-sidebar";
 import { useContext } from "react";
 import RouterLink from "next/link";
-import { Flex, Image, IconButton, Divider } from "@chakra-ui/react";
+import {
+  Flex,
+  Image,
+  IconButton,
+  Divider,
+  Text,
+  Button,
+} from "@chakra-ui/react";
 import UIContext from "../core/providers/UIProvider/context";
 import React from "react";
 import {
@@ -17,13 +24,20 @@ import {
   ArrowRightIcon,
   LockIcon,
 } from "@chakra-ui/icons";
-import { MdTimeline, MdSettings } from "react-icons/md";
-import { HiAcademicCap } from "react-icons/hi";
+import { MdSettings, MdDashboard } from "react-icons/md";
 import { WHITE_LOGO_W_TEXT_URL, ALL_NAV_PATHES } from "../core/constants";
 import { v4 } from "uuid";
+import useDashboard from "../core/hooks/useDashboard";
+import {
+  DRAWER_TYPES,
+  MODAL_TYPES,
+} from "../core/providers/OverlayProvider/constants";
+import OverlayContext from "../core/providers/OverlayProvider/context";
 
 const Sidebar = () => {
   const ui = useContext(UIContext);
+  const { dashboardsListCache } = useDashboard();
+  const overlay = useContext(OverlayContext);
   return (
     <ProSidebar
       width="240px"
@@ -55,79 +69,103 @@ const Sidebar = () => {
                 : ui.setSidebarCollapsed(!ui.sidebarCollapsed);
             }}
           />
-          <Image
-            // h="full"
-            // maxH="100%"
-            maxW="120px"
-            py="0.75rem"
-            pl={5}
-            src={WHITE_LOGO_W_TEXT_URL}
-            alt="bugout.dev"
-          />
+          <RouterLink href="/" passHref>
+            <Image
+              // h="full"
+              // maxH="100%"
+              maxW="120px"
+              py="0.75rem"
+              pl={5}
+              src={WHITE_LOGO_W_TEXT_URL}
+              alt="Moonstream To"
+            />
+          </RouterLink>
         </Flex>
       </SidebarHeader>
-      {ui.isLoggedIn && (
-        <SidebarContent>
-          <Menu iconShape="square">
-            <MenuItem icon={<MdTimeline />}>
-              {" "}
-              <RouterLink href="/stream">Stream</RouterLink>
-            </MenuItem>
-          </Menu>
-          {ui.isMobileView && (
-            <Menu iconShape="square">
-              <MenuItem icon={<HiAcademicCap />}>
-                <RouterLink href="/welcome">
-                  Learn how to use Moonstream
-                </RouterLink>
+      <SidebarContent>
+        <Divider borderColor="blue.600" />
+        <Menu iconShape="square">
+          {!ui.isLoggedIn && (
+            <>
+              <MenuItem
+                onClick={() => {
+                  ui.toggleModal("register");
+                  ui.setSidebarToggled(false);
+                }}
+              >
+                Sign up
               </MenuItem>
-              {ALL_NAV_PATHES.map((pathToLink) => {
-                return (
-                  <MenuItem key={v4()}>
-                    {" "}
-                    <RouterLink href={pathToLink.path}>
-                      {pathToLink.title}
-                    </RouterLink>
-                  </MenuItem>
-                );
-              })}
-            </Menu>
-          )}
-        </SidebarContent>
-      )}
-      {!ui.isLoggedIn && (
-        <SidebarContent>
-          <Menu iconShape="square">
-            <MenuItem
-              onClick={() => {
-                ui.toggleModal("register");
-                ui.setSidebarToggled(false);
-              }}
-            >
-              Sign up
-            </MenuItem>
 
-            <MenuItem
-              onClick={() => {
-                ui.toggleModal("login");
-                ui.setSidebarToggled(false);
-              }}
-            >
-              Login
-            </MenuItem>
-            {ALL_NAV_PATHES.map((pathToLink) => {
-              return (
-                <MenuItem key={v4()}>
-                  {" "}
-                  <RouterLink href={pathToLink.path}>
-                    {pathToLink.title}
-                  </RouterLink>
+              <MenuItem
+                onClick={() => {
+                  ui.toggleModal({ type: MODAL_TYPES.LOGIN });
+                  ui.setSidebarToggled(false);
+                }}
+              >
+                Login
+              </MenuItem>
+              {ui.isMobileView &&
+                ALL_NAV_PATHES.map((pathToLink) => {
+                  return (
+                    <MenuItem key={v4()}>
+                      <RouterLink href={pathToLink.path}>
+                        {pathToLink.title}
+                      </RouterLink>
+                    </MenuItem>
+                  );
+                })}
+            </>
+          )}
+          {ui.isLoggedIn && (
+            <>
+              <Text
+                textColor="gray.300"
+                size="sm"
+                justifyContent="center"
+                fontWeight="600"
+                pl={8}
+                pt={3}
+              >
+                Dashboards
+              </Text>
+              <Menu iconShape="square">
+                <>
+                  {dashboardsListCache.data &&
+                    dashboardsListCache.data.data.resources.map((dashboard) => {
+                      return (
+                        <MenuItem icon={<MdDashboard />} key={v4()}>
+                          <RouterLink href={`/dashboard/${dashboard?.id}`}>
+                            {dashboard.resource_data.name}
+                          </RouterLink>
+                        </MenuItem>
+                      );
+                    })}
+                </>
+                <MenuItem>
+                  <Button
+                    variant="solid"
+                    colorScheme="orange"
+                    size="sm"
+                    onClick={() =>
+                      overlay.toggleDrawer(DRAWER_TYPES.NEW_DASHBOARD)
+                    }
+                    // w="100%"
+                    // borderRadius={0}
+                  >
+                    New dashboard
+                  </Button>
                 </MenuItem>
-              );
-            })}
-          </Menu>
-        </SidebarContent>
-      )}
+              </Menu>
+            </>
+          )}
+          <Divider
+            colorScheme="blue"
+            bgColor="gray.300"
+            color="blue.700"
+            borderColor="blue.700"
+          />
+        </Menu>
+      </SidebarContent>
 
       <SidebarFooter style={{ paddingBottom: "3rem" }}>
         <Divider color="gray.300" w="100%" />
@@ -139,6 +177,15 @@ const Sidebar = () => {
             <MenuItem icon={<MdSettings />}>
               <RouterLink href="/subscriptions">Subscriptions </RouterLink>
             </MenuItem>
+            <Divider />
+            <Text
+              pt={4}
+              fontSize={"sm"}
+              textColor="gray.700"
+              textAlign="center"
+            >
+              © 2021 Moonstream.to
+            </Text>
           </Menu>
         )}
       </SidebarFooter>

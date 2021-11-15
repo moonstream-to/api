@@ -1,0 +1,25 @@
+{
+  "id": "20211108",
+  "match": {
+    "type": "subscription"
+  },
+  "description": "Add abi to subscription as flag if subscription has abi of contract. Add bucket and s3_path for get abi from S3.",
+  "upgrade": {
+    "update": {
+      "abi": null,
+      "bucket": null,
+      "s3_path": null,
+      "resources_version": 1
+    },
+    "drop_keys": []
+  },
+  "downgrade": {
+    "update": {},
+    "drop_keys": [
+      "abi",
+      "bucket",
+      "s3_path",
+      "resources_version"
+    ]
+  }
+}

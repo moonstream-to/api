@@ -9,7 +9,6 @@ import { useBreakpointValue } from "@chakra-ui/react";
 import { useStorage, useQuery, useRouter } from "../../hooks";
 import UIContext from "./context";
 import UserContext from "../UserProvider/context";
-import ModalContext from "../ModalProvider/context";
 import { v4 as uuid4 } from "uuid";
 import { PreferencesService } from "../../services";
 
@@ -41,7 +40,6 @@ const UIProvider = ({ children }) => {
   });
   // const isMobileView = true;
 
-  const { modal, toggleModal } = useContext(ModalContext);
   const [searchTerm, setSearchTerm] = useQuery("q", "", true, false);
 
   const [searchBarActive, setSearchBarActive] = useState(false);
@@ -56,22 +54,6 @@ const UIProvider = ({ children }) => {
   const [isLoggingIn, setLoggingIn] = useState(false);
   const [isAppReady, setAppReady] = useState(false);
   const [isAppView, setAppView] = useState(false);
-
-  useLayoutEffect(() => {
-    if (
-      isAppView &&
-      isInit &&
-      !user?.username &&
-      !isLoggingOut &&
-      !isLoggingIn &&
-      !modal
-    ) {
-      toggleModal("login");
-    } else if (user || isLoggingOut) {
-      toggleModal(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAppView, isAppReady, user, isLoggingOut, modal]);
 
   useEffect(() => {
     if (isLoggingOut && !isAppView && user) {
@@ -269,8 +251,6 @@ const UIProvider = ({ children }) => {
     // eslint-disable-next-line
   }, [onboardingStep, router.nextRouter.pathname, user, isAppReady]);
 
-  // ********************************************************
-
   useEffect(() => {
     if (
       isInit &&
@@ -293,6 +273,14 @@ const UIProvider = ({ children }) => {
     onboardingRedirectCheckPassed,
   ]);
 
+  //***************Overlay's states  ************************/
+  // const [newDashboardForm, setNewDashboardForm] = useStorage(
+  //   window.sessionStorage,
+  //   "newDashboardForm",
+  //   null
+  // );
+  const [newDashboardForm, setNewDashboardForm] = useState();
+
   return (
     <UIContext.Provider
       value={{
@@ -314,8 +302,6 @@ const UIProvider = ({ children }) => {
         isAppReady,
         entriesViewMode,
         setEntryDetailView,
-        modal,
-        toggleModal,
         sessionId,
         currentTransaction,
         setCurrentTransaction,
@@ -329,6 +315,8 @@ const UIProvider = ({ children }) => {
         isLoggingOut,
         isLoggingIn,
         setLoggingIn,
+        newDashboardForm,
+        setNewDashboardForm,
       }}
     >
       {children}

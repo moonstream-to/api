@@ -1,5 +1,5 @@
 import { getLayout } from "../src/layouts/AppLayout";
-import React, { useState } from "react";
+import React, { useContext } from "react";
 import SubscriptionsList from "../src/components/SubscriptionsList";
 import { useSubscriptions } from "../src/core/hooks";
 import {
@@ -10,21 +10,14 @@ import {
   Heading,
   Flex,
   Button,
-  Modal,
-  useDisclosure,
-  ModalHeader,
-  ModalCloseButton,
-  ModalBody,
-  ModalOverlay,
-  ModalContent,
 } from "@chakra-ui/react";
-import NewSubscription from "../src/components/NewSubscription";
 import { AiOutlinePlusCircle } from "react-icons/ai";
+import OverlayContext from "../src/core/providers/OverlayProvider/context";
+import { MODAL_TYPES } from "../src/core/providers/OverlayProvider/constants";
 
 const Subscriptions = () => {
   const { subscriptionsCache } = useSubscriptions();
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const [isAddingFreeSubscription, setIsAddingFreeSubscription] = useState();
+  const modal = useContext(OverlayContext);
 
   document.title = `My Subscriptions`;
 
@@ -40,32 +33,11 @@ const Subscriptions = () => {
     borderBottomWidth: "2px",
   };
 
-  const newSubscriptionClicked = (isForFree) => {
-    setIsAddingFreeSubscription(isForFree);
-    onOpen();
+  const newSubscriptionClicked = () => {
+    modal.toggleModal({ type: MODAL_TYPES.NEW_SUBSCRIPTON });
   };
   return (
     <Box w="100%" px="7%" pt={2}>
-      <Modal
-        isOpen={isOpen}
-        onClose={onClose}
-        size="2xl"
-        scrollBehavior="outside"
-      >
-        <ModalOverlay />
-
-        <ModalContent>
-          <ModalHeader>Subscribe to a new address</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <NewSubscription
-              isFreeOption={isAddingFreeSubscription}
-              onClose={onClose}
-              isModal={true}
-            />
-          </ModalBody>
-        </ModalContent>
-      </Modal>
       {subscriptionsCache.isLoading ? (
         <Center>
           <Spinner
