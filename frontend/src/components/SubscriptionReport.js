@@ -12,14 +12,13 @@ timeMap[HOUR_KEY] = "hour";
 timeMap[DAY_KEY] = "day";
 timeMap[WEEK_KEY] = "week";
 
-const SubscriptionReport = ({ url, id, type }) => {
+const SubscriptionReport = ({ timeRange, url, id, type }) => {
   const { data, isLoading } = usePresignedURL({
     url: url,
     isEnabled: true,
     id: id,
     type: type,
   });
-
   const plotMinW = "500px";
   if (!data || isLoading) return <Spinner />;
   return (
@@ -86,7 +85,11 @@ const SubscriptionReport = ({ url, id, type }) => {
                 >
                   {key}
                 </Text>
-                <Report data={data.events[key]} metric={key} />
+                <Report
+                  data={data.events[key]}
+                  metric={key}
+                  timeRange={timeRange}
+                />
               </Flex>
             );
           })}
@@ -123,7 +126,11 @@ const SubscriptionReport = ({ url, id, type }) => {
                 >
                   {key}
                 </Text>
-                <Report data={data.functions[key]} metric={key} />
+                <Report
+                  data={data.functions[key]}
+                  metric={key}
+                  timeRange={timeRange}
+                />
               </Flex>
             );
           })}
@@ -160,7 +167,11 @@ const SubscriptionReport = ({ url, id, type }) => {
                 >
                   {key}
                 </Text>
-                <Report data={data.generic[key]} metric={key} />
+                <Report
+                  data={data.generic[key]}
+                  metric={key}
+                  timeRange={timeRange}
+                />
               </Flex>
             );
           })}
