@@ -20,9 +20,11 @@ import { v4 } from "uuid";
 
 const HOUR_KEY = "Hourly";
 const DAY_KEY = "Daily";
+const MINUTE_KEY = "Minutes";
 let timeMap = {};
-timeMap[HOUR_KEY] = "hour";
-timeMap[DAY_KEY] = "day";
+timeMap[DAY_KEY] = "month";
+timeMap[HOUR_KEY] = "week";
+timeMap[MINUTE_KEY] = "day";
 
 const Analytics = () => {
   const { toggleAlert } = useContext(OverlayContext);
@@ -89,7 +91,7 @@ const Analytics = () => {
   //     [nodesReady]
   //   );
 
-  const [timeRange, setTimeRange] = useState(HOUR_KEY);
+  const [timeRange, setTimeRange] = useState(timeMap[MINUTE_KEY]);
   const router = useRouter();
   const { dashboardId } = router.params;
   const { dashboardCache, dashboardLinksCache, deleteDashboard } =
@@ -169,10 +171,12 @@ const Analytics = () => {
           </Heading>
           <Spacer />
           <RangeSelector
-            initialRange={timeRange}
+            initialRange={MINUTE_KEY}
             ranges={Object.keys(timeMap)}
             size={["sm", "md", null]}
-            onChange={(e) => setTimeRange(e)}
+            onChange={(e) => {
+              setTimeRange(timeMap[e]);
+            }}
           />
           <IconButton
             icon={<BiTrash />}
@@ -210,7 +214,8 @@ const Analytics = () => {
                   {name}
                 </Text>
                 <SubscriptionReport
-                  url={s3PresignedURLs.week}
+                  timeRange={timeRange}
+                  url={s3PresignedURLs[timeRange]}
                   id={v4()}
                   type={v4()}
                 />

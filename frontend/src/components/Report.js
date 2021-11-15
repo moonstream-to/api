@@ -1,7 +1,7 @@
 import React from "react";
 import { ResponsiveLineCanvas } from "@nivo/line";
 
-const Report = ({ data, metric }) => {
+const Report = ({ data, metric, timeRange }) => {
   const commonProperties = {
     animate: false,
     enableSlices: "x",
@@ -24,7 +24,29 @@ const Report = ({ data, metric }) => {
 
   const xyCumulativeData = xyData.map(generateCumulativeSum(0));
 
-  console.log(`metric ${metric} \n xyCumulativeData: `, xyCumulativeData);
+  const timeformat_scale = {
+    month: "%Y-%m-%d %H",
+    week: "%Y-%m-%d %H",
+    day: "%Y-%m-%d %H %M",
+  };
+
+  const timeformat_xformat = {
+    month: "time:%Y-%m-%d %H",
+    week: "time:%Y-%m-%d %H",
+    day: "time:%Y-%m-%d %H %M",
+  };
+
+  const axis_format = {
+    month: "%m-%d",
+    week: "%d",
+    day: "%H:%M",
+  };
+
+  const tickValues_format = {
+    month: "every 1 days",
+    week: "every 1 days",
+    day: "every 1 hours",
+  };
 
   const plotData = [{ id: "1", data: xyCumulativeData }];
 
@@ -32,31 +54,38 @@ const Report = ({ data, metric }) => {
     <ResponsiveLineCanvas
       {...commonProperties}
       data={plotData}
+      margin={{ top: 50, right: 110, bottom: 70, left: 60 }}
       isInteractive={true}
       xScale={{
         type: "time",
-        format: "%Y-%m-%d %H",
+        format: timeformat_scale[timeRange],
         useUTC: false,
-        precision: "hour",
+        precision: "minute",
       }}
-      xFormat="time:%Y-%m-%d %H"
+      xFormat={timeformat_xformat[timeRange]}
       yScale={{
         type: "linear",
+        max: "auto",
+        min: 0,
       }}
       axisLeft={{
         orient: "left",
         tickSize: 5,
         tickPadding: 5,
         tickRotation: 0,
-        legendOffset: -40,
+        legendOffset: -45,
         legendPosition: "middle",
+        legend: "count",
       }}
       axisBottom={{
-        format: "%b %d",
-        tickValues: "every 7 day",
-        tickRotation: 90,
+        format: axis_format[timeRange],
+        tickValues: tickValues_format[timeRange],
+        legend: "time",
+        tickRotation: 0,
+        legendOffset: 35,
+        legendPosition: "middle",
       }}
-      curve="linear"
+      curve={"monotoneY"}
       enableArea={true}
       enablePointLabel={false}
       pointSize={0}
