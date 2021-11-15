@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import RouterLink from "next/link";
 import {
   Menu,
@@ -12,13 +12,18 @@ import {
 } from "@chakra-ui/react";
 import { RiAccountCircleLine } from "react-icons/ri";
 import useLogout from "../core/hooks/useLogout";
+import UIContext from "../core/providers/UIProvider/context";
+import { ALL_NAV_PATHES } from "../core/constants";
+import { v4 } from "uuid";
 
 const AccountIconButton = (props) => {
   const { logout } = useLogout();
+  const ui = useContext(UIContext);
 
   return (
-    <Menu {...props}>
+    <Menu>
       <MenuButton
+        {...props}
         variant="inherit"
         colorScheme="inherit"
         as={IconButton}
@@ -39,6 +44,17 @@ const AccountIconButton = (props) => {
             <MenuItem>API tokens</MenuItem>
           </RouterLink>
         </MenuGroup>
+        <MenuDivider />
+        {ui.isMobileView &&
+          ALL_NAV_PATHES.map((pathToLink) => {
+            return (
+              <MenuItem key={v4()}>
+                <RouterLink href={pathToLink.path}>
+                  {pathToLink.title}
+                </RouterLink>
+              </MenuItem>
+            );
+          })}
         <MenuDivider />
         <MenuItem
           onClick={() => {

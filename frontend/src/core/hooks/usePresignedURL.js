@@ -7,7 +7,7 @@ import { useEffect } from "react";
 const usePresignedURL = ({
   url,
   cacheType,
-  journalId,
+  id,
   requestNewURLCallback,
   isEnabled,
 }) => {
@@ -16,13 +16,15 @@ const usePresignedURL = ({
   const getFromPresignedURL = async () => {
     const response = await axios({
       url: url,
+      // You can uncomment this to use mockupsLibrary in development
+      // url: `https://example.com/s3`,
       method: "GET",
     });
     return response.data;
   };
 
   const { data, isLoading, error, refetch } = useQuery(
-    [`${cacheType}`, { journalId }],
+    [`${cacheType}`, { id }],
     getFromPresignedURL,
     {
       ...queryCacheProps,

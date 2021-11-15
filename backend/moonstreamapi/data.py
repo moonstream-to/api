@@ -1,13 +1,21 @@
 """
 Pydantic schemas for the Moonstream HTTP API
 """
-from typing import List, Optional, Dict, Any
+from enum import Enum
+from typing import List, Optional, Dict, Any, Union
+from uuid import UUID
 
 
 from pydantic import BaseModel, Field
 from datetime import datetime
 
 USER_ONBOARDING_STATE = "onboarding_state"
+
+
+class TimeScale(Enum):
+    month = "month"
+    week = "week"
+    day = "day"
 
 
 class SubscriptionTypeResourceData(BaseModel):
@@ -28,6 +36,7 @@ class SubscriptionTypesListResponse(BaseModel):
 class SubscriptionResourceData(BaseModel):
     id: str
     address: str
+    abi: Optional[str]
     color: Optional[str]
     label: Optional[str]
     user_id: str
@@ -219,3 +228,24 @@ class AddressListLabelsResponse(BaseModel):
 class OnboardingState(BaseModel):
     is_complete: bool
     steps: Dict[str, int]
+
+
+class DashboardMeta(BaseModel):
+    subscription_id: UUID
+    generic: Optional[List[Dict[str, str]]]
+    all_methods: bool = False
+    all_events: bool = False
+    methods: List[Dict[str, Any]]
+    events: List[Dict[str, Any]]
+
+
+class DashboardResource(BaseModel):
+    type: str
+    user_id: str
+    name: str
+    dashboard_subscriptions: List[DashboardMeta]
+
+
+class DashboardCreate(BaseModel):
+    name: str
+    subscriptions: List[DashboardMeta]

@@ -50,10 +50,11 @@ export const createSubscription =
 
 export const modifySubscription =
   () =>
-  ({ id, label, color }) => {
+  ({ id, label, color, abi }) => {
     const data = new FormData();
     color && data.append("color", color);
     label && data.append("label", label);
+    abi && data.append("abi", abi);
     return http({
       method: "PUT",
       url: `${API}/subscriptions/${id}`,

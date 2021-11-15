@@ -1,72 +1,32 @@
-import React, { useContext, useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { getLayout } from "../src/layouts/AppLayout";
-import UIContext from "../src/core/providers/UIProvider/context";
 import {
   Heading,
   Text,
-  Button,
   Stack,
-  ButtonGroup,
-  Spacer,
-  UnorderedList,
-  ListItem,
   Fade,
   chakra,
-  useBoolean,
-  Flex,
-  IconButton,
-  Tooltip,
   Accordion,
   AccordionItem,
   AccordionButton,
   AccordionPanel,
   AccordionIcon,
-  Divider,
 } from "@chakra-ui/react";
-import StepProgress from "../src/components/StepProgress";
-import { ArrowLeftIcon, ArrowRightIcon } from "@chakra-ui/icons";
 import Scrollable from "../src/components/Scrollable";
-import NewSubscription from "../src/components/NewSubscription";
-import StreamEntry from "../src/components/StreamEntry";
-import SubscriptionsList from "../src/components/SubscriptionsList";
-import { useSubscriptions } from "../src/core/hooks";
-import router from "next/router";
-import { FaFilter } from "react-icons/fa";
 
 const Welcome = () => {
-  const { subscriptionsCache } = useSubscriptions();
-  const ui = useContext(UIContext);
-  const [showSubscriptionForm, setShowSubscriptionForm] = useBoolean(true);
-
   useEffect(() => {
     if (typeof window !== "undefined") {
       document.title = `Welcome to moonstream.to!`;
     }
   }, []);
 
-  const progressButtonCallback = (index) => {
-    ui.setOnboardingStep(index);
-  };
-
-  const SubscriptonCreatedCallback = () => {
-    setShowSubscriptionForm.off();
-  };
-
   const scrollRef = useRef();
-  const handleNextClick = () => {
-    if (ui.onboardingStep < ui.onboardingSteps.length - 1) {
-      ui.setOnboardingStep(ui.onboardingStep + 1);
-      scrollRef?.current?.scrollIntoView();
-    } else {
-      ui.setOnboardingComplete(true);
-      router.push("/stream");
-    }
-  };
 
   return (
     <Scrollable>
       <Stack px="7%" pt={4} w="100%" spacing={4} ref={scrollRef}>
-        <StepProgress
+        {/* <StepProgress
           numSteps={ui.onboardingSteps.length}
           currentStep={ui.onboardingStep}
           colorScheme="blue"
@@ -77,11 +37,11 @@ const Welcome = () => {
             "How to read stream",
           ]}
           style="arrows"
-        />
+        /> */}
 
-        {ui.onboardingStep === 0 && (
+        {true && (
           <Fade in>
-            <Stack spacing={4}>
+            <Stack spacing={4} pb={14}>
               <Stack
                 px={[0, 12, null]}
                 // mt={24}
@@ -240,192 +200,8 @@ const Welcome = () => {
             </Stack>
           </Fade>
         )}
-        {ui.onboardingStep === 1 && (
-          <Fade in>
-            <Stack px="7%">
-              <Stack
-                px={[0, 12, null]}
-                // mt={24}
-                bgColor="gray.50"
-                borderRadius="xl"
-                boxShadow="xl"
-                py={4}
-                my={2}
-              >
-                <Heading as="h4" size="md">
-                  Subscriptions
-                </Heading>
-                <chakra.span fontWeight="semibold" pl={2}>
-                  Subscriptions are an essential tool of Moonstream. We gather
-                  data for you based on addresses you have subscribed to.
-                  <br />
-                  Subscribe to any address you are interested in and it will
-                  become part of your stream.
-                  <br />
-                  Name of subscription (you can change it later).
-                  <UnorderedList>
-                    <ListItem>
-                      Color - you can set colors to easily identify a
-                      subscription in your stream
-                    </ListItem>
-                    <ListItem>Address - the address you subscribe to</ListItem>
-                    <ListItem>
-                      Label - we recommend using a human-readable name that
-                      represents the subscription
-                    </ListItem>
-                    <ListItem>
-                      Source - In Alpha we’re only supporting Ethereum
-                      blockchain, but more sources are coming soon!
-                    </ListItem>
-                  </UnorderedList>
-                </chakra.span>
-              </Stack>
-              {subscriptionsCache.data.subscriptions.length > 0 &&
-                !subscriptionsCache.isLoading && (
-                  <>
-                    <Heading>
-                      {" "}
-                      You already have some subscriptions set up
-                    </Heading>
-                  </>
-                )}
-              <SubscriptionsList />
-              {showSubscriptionForm && (
-                <Flex direction="column" pt={6}>
-                  <Divider bgColor="gray.500" borderWidth="2px" />
-                  <Heading
-                    size="md"
-                    pt={2}
-                  >{`Let's add new subscription!`}</Heading>
 
-                  <NewSubscription
-                    isFreeOption={false}
-                    onClose={SubscriptonCreatedCallback}
-                  />
-                </Flex>
-              )}
-              {!showSubscriptionForm && (
-                <Button
-                  colorScheme="green"
-                  variant="solid"
-                  onClick={() => setShowSubscriptionForm.on()}
-                >
-                  Add another subscription
-                </Button>
-              )}
-            </Stack>
-          </Fade>
-        )}
-        {ui.onboardingStep === 2 && (
-          <Fade in>
-            <Stack>
-              <Stack
-                px={[0, 12, null]}
-                // mt={24}
-                bgColor="gray.50"
-                borderRadius="xl"
-                boxShadow="xl"
-                py={4}
-                my={2}
-              >
-                <Heading as="h4" size="md">
-                  Stream
-                </Heading>
-                <chakra.span fontWeight="semibold" pl={2}>
-                  We are almost done!
-                  <br />
-                  {`Stream is where you can read data you've subscribed to. There are different cards for different subscription types.`}
-                  <br />
-                  If the card has some extra details, there will be an orange
-                  button on the right hand side inviting you to see more!
-                  <br />
-                  Below is a typical card for an Ethereum blockchain event.
-                  Useful information right on the card:
-                  <UnorderedList py={2}>
-                    <ListItem>Hash - Unique ID of the event</ListItem>
-                    <ListItem>
-                      From - Sender address. If it is one of your subscription
-                      addresses, it will appear in color with a label
-                    </ListItem>
-                    <ListItem>
-                      To - Receiver address. If it is one of your subscription
-                      addresses, it will appear in color with a label
-                    </ListItem>
-                    <ListItem>
-                      Nonce - Counter how many transaction addresses have been
-                      sent. It also determines the sequence of transactions!
-                    </ListItem>
-                    <ListItem>
-                      Gas Price - This is how much ether is being paid per gas
-                      unit
-                    </ListItem>
-                    <ListItem>Gas - Amount of gas this event consumes</ListItem>
-                  </UnorderedList>
-                </chakra.span>
-              </Stack>
-              <Stack
-                pb={ui.isMobileView ? 24 : 8}
-                w={ui.isMobileView ? "100%" : "calc(100% - 300px)"}
-                alignSelf="center"
-              >
-                <Flex h="3rem" w="100%" bgColor="gray.100" alignItems="center">
-                  <Flex maxW="90%"></Flex>
-                  <Spacer />
-                  <Tooltip
-                    variant="onboarding"
-                    placement={ui.isMobileView ? "bottom" : "right"}
-                    label="Filtering menu"
-                    isOpen={true}
-                    maxW="150px"
-                    hasArrow
-                  >
-                    <IconButton
-                      mr={4}
-                      // onClick={onOpen}
-                      colorScheme="blue"
-                      variant="ghost"
-                      icon={<FaFilter />}
-                    />
-                  </Tooltip>
-                </Flex>
-                <StreamEntry
-                  mt={20}
-                  entry={{
-                    event_type: "ethereum_blockchain",
-                    event_data: {
-                      from: "this is address from",
-                      to: "this is to address",
-                      hash: "this is hash",
-                    },
-                  }}
-                  showOnboardingTooltips={true}
-                />
-              </Stack>
-              <Stack
-                px={12}
-                // mt={24}
-                bgColor="gray.50"
-                borderRadius="xl"
-                boxShadow="xl"
-                py={4}
-                my={2}
-              >
-                <Heading as="h4" size="md">
-                  Applying filters
-                </Heading>
-                <chakra.span fontWeight="semibold" pl={2}>
-                  You can apply various filters by clicking the filter menu
-                  button.
-                  <br />
-                  {`Right now you can use it to select addresses from and to, and we are adding more complex queries soon — stay tuned!`}
-                  <br />
-                </chakra.span>
-              </Stack>
-            </Stack>
-          </Fade>
-        )}
-
-        <ButtonGroup>
+        {/* <ButtonGroup>
           <Button
             colorScheme="orange"
             leftIcon={<ArrowLeftIcon />}
@@ -462,7 +238,7 @@ const Welcome = () => {
               ? `Next`
               : `Finish and move to stream`}
           </Button>
-        </ButtonGroup>
+        </ButtonGroup> */}
       </Stack>
     </Scrollable>
   );

@@ -5,6 +5,8 @@ from bugout.app import Bugout
 # Bugout
 BUGOUT_BROOD_URL = os.environ.get("BUGOUT_BROOD_URL", "https://auth.bugout.dev")
 BUGOUT_SPIRE_URL = os.environ.get("BUGOUT_SPIRE_URL", "https://spire.bugout.dev")
+
+
 bugout_client = Bugout(brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIRE_URL)
 
 BUGOUT_REQUEST_TIMEOUT_SECONDS = 5
@@ -46,7 +48,6 @@ ETHERSCAN_SMARTCONTRACTS_BUCKET = os.environ.get("AWS_S3_SMARTCONTRACT_BUCKET")
 if ETHERSCAN_SMARTCONTRACTS_BUCKET is None:
     raise ValueError("AWS_S3_SMARTCONTRACT_BUCKET is not set")
 
-# Web3 provider
 MOONSTREAM_INTERNAL_HOSTED_ZONE_ID = os.environ.get(
     "MOONSTREAM_INTERNAL_HOSTED_ZONE_ID", ""
 )
@@ -54,6 +55,7 @@ if MOONSTREAM_INTERNAL_HOSTED_ZONE_ID == "":
     raise ValueError(
         "MOONSTREAM_INTERNAL_HOSTED_ZONE_ID environment variable must be set"
     )
+
 MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI = os.environ.get(
     "MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI", ""
 )
@@ -63,4 +65,22 @@ if MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI == "":
     )
 MOONSTREAM_NODE_ETHEREUM_IPC_PORT = os.environ.get(
     "MOONSTREAM_NODE_ETHEREUM_IPC_PORT", 8545
+)
+
+MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET = os.environ.get(
+    "MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET"
+)
+if MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET is None:
+    raise ValueError(
+        "MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET environment variable must be set"
+    )
+MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX = os.environ.get(
+    "MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX"
+)
+if MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX is None:
+    raise ValueError(
+        "MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX environment variable must be set"
+    )
+MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX = (
+    MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX.rstrip("/")
 )

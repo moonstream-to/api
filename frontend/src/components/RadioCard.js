@@ -41,9 +41,10 @@ const RadioCard = (props) => {
           py={props.py}
           w={props.w}
           fontWeight="600"
+          fontSize="18px"
         >
           {props.iconURL && (
-            <Image display="inline-block" w="16px" src={props.iconURL} />
+            <Image display="inline-block" h="18px" src={props.iconURL} />
           )}{" "}
           {props.children}
         </Box>

@@ -42,6 +42,8 @@ ETHEREUM_MISSING_TIMER_FILE="ethereum-missing.timer"
 POLYGON_SYNCHRONIZE_SERVICE="polygon-synchronize.service"
 POLYGON_MISSING_SERVICE_FILE="polygon-missing.service"
 POLYGON_MISSING_TIMER_FILE="polygon-missing.timer"
+POLYGON_STATISTICS_SERVICE_FILE="polygon-statistics.timer"
+POLYGON_STATISTICS_TIMER_FILE="polygon-statistics.timer"
 
 
 set -eu
@@ -130,3 +132,12 @@ cp "${SCRIPT_DIR}/${POLYGON_MISSING_SERVICE_FILE}" "/etc/systemd/system/${POLYGO
 cp "${SCRIPT_DIR}/${POLYGON_MISSING_TIMER_FILE}" "/etc/systemd/system/${POLYGON_MISSING_TIMER_FILE}"
 systemctl daemon-reload
 systemctl restart "${POLYGON_MISSING_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Polygon statistics dashbord service and timer with: ${POLYGON_STATISTICS_SERVICE_FILE}, ${POLYGON_STATISTICS_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${POLYGON_STATISTICS_SERVICE_FILE}" "${SCRIPT_DIR}/${POLYGON_STATISTICS_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${POLYGON_STATISTICS_SERVICE_FILE}" "/etc/systemd/system/${POLYGON_STATISTICS_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${POLYGON_STATISTICS_TIMER_FILE}" "/etc/systemd/system/${POLYGON_STATISTICS_TIMER_FILE}"
+systemctl daemon-reload
+systemctl restart "${POLYGON_STATISTICS_TIMER_FILE}"
