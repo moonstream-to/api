@@ -49,7 +49,9 @@ const SubscriptionReport = ({ timeRange, url, id, type }) => {
               <Text placeSelf="center">{metric.display_name}</Text>
               <Text p={2} fontSize="42px" placeSelf="center">
                 {metric.display_name == "Total weth earned"
-                  ? Number.parseFloat(Number.parseFloat(metric.value) / 1e18)
+                  ? Number.parseFloat(
+                      Number.parseFloat(metric.value) / 1e18
+                    ).toString()
                   : metric.value}
               </Text>
             </Flex>
