@@ -218,6 +218,7 @@ const Analytics = () => {
                   url={s3PresignedURLs[timeRange]}
                   id={v4()}
                   type={v4()}
+                  refetchLinks={dashboardLinksCache.refetch}
                 />
               </Flex>
             );

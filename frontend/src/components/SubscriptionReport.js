@@ -12,12 +12,13 @@ timeMap[HOUR_KEY] = "hour";
 timeMap[DAY_KEY] = "day";
 timeMap[WEEK_KEY] = "week";
 
-const SubscriptionReport = ({ timeRange, url, id, type }) => {
+const SubscriptionReport = ({ timeRange, url, id, type, refetchLinks }) => {
   const { data, isLoading } = usePresignedURL({
     url: url,
     isEnabled: true,
     id: id,
     type: type,
+    requestNewURLCallback: refetchLinks,
   });
   const plotMinW = "500px";
   if (!data || isLoading) return <Spinner />;
