@@ -225,7 +225,7 @@ const OverlayProvider = ({ children }) => {
         size="xl"
         // w="80%"
         initialFocusRef={firstField}
-        onClose={() => toggleAlert(() => toggleDrawer(DRAWER_TYPES.OFF))}
+        onClose={() => toggleAlert(() => finishNewDashboard())}
       >
         <DrawerOverlay />
         <DrawerContent overflowY="scroll">
