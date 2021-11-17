@@ -11,8 +11,10 @@ import {
   AccordionButton,
   AccordionPanel,
   AccordionIcon,
+  Link,
 } from "@chakra-ui/react";
 import Scrollable from "../src/components/Scrollable";
+import RouterLink from "next/link";
 
 const Welcome = () => {
   useEffect(() => {
@@ -54,7 +56,7 @@ const Welcome = () => {
                   Greetings traveler!
                 </Heading>
                 <Text fontWeight="semibold" pl={2}>
-                  We are very excited to see you onboard!
+                  We are very excited welcome you on board!
                 </Text>
 
                 <Text fontWeight="semibold" pl={2}>
@@ -121,16 +123,84 @@ const Welcome = () => {
                       </Stack>
                     </AccordionPanel>
                   </AccordionItem>
+                  <AccordionItem borderWidth={0}>
+                    <h2>
+                      <AccordionButton borderWidth={0}>
+                        <Heading as="h4" size="md">
+                          How do I build my smart contract dashboard?
+                        </Heading>
+                        <AccordionIcon />
+                      </AccordionButton>
+                    </h2>
+                    <AccordionPanel pb={4} borderWidth={0}>
+                      <Stack direction="column">
+                        <chakra.span fontWeight="semibold" pl={2}>
+                          <Text fontWeight="bold" display="inline">
+                            1. Subscribe
+                          </Text>{" "}
+                          - Tell us what addresses you want Moonstream to track
+                          the activity of. You can do this at{" "}
+                          <RouterLink passHref href="/subscriptions">
+                            <Link color="orange.500">subscriptions page</Link>
+                          </RouterLink>{" "}
+                          or simply by just clicking + on navigation bar of this
+                          page.
+                        </chakra.span>
+                        <chakra.span fontWeight="semibold" pl={2}>
+                          <Text fontWeight="bold" display="inline">
+                            2. Provide ABI to subscription
+                          </Text>{" "}
+                          - If that address is a smart contract, provide an{" "}
+                          <Link
+                            color="orange.500"
+                            href="https://docs.soliditylang.org/en/develop/abi-spec.html"
+                          >
+                            ABI
+                          </Link>{" "}
+                          for that contract. You can upload one at{" "}
+                          <RouterLink passHref href="/subscriptions">
+                            <Link color="orange.500">subscriptions page</Link>
+                          </RouterLink>
+                          . If you are not sure what an ABI is, ask us on{" "}
+                          <Link
+                            color="orange.500"
+                            isExternal
+                            href={"https://discord.gg/K56VNUQGvA"}
+                          >
+                            Discord
+                          </Link>{" "}
+                          . <br />
+                          Your dashboard will contain analytics for all the
+                          interfaces listed in your ABI. Customization is coming
+                          soon.
+                        </chakra.span>
+
+                        <chakra.span fontWeight="semibold" pl={2}>
+                          <Text fontWeight="bold" display="inline">
+                            3. Create your dashboard
+                          </Text>{" "}
+                          - Press {`"New dashboard"`} on sidebar, or from + on
+                          navbar menu. Fill in name, select subscriptons you
+                          like to track to and checkbox what are you interested
+                          in. If there is no ABI - tracking contract specific
+                          elements {`won't`} be available.
+                        </chakra.span>
+
+                        <chakra.span fontWeight="semibold" pl={2}>
+                          <Text fontWeight="bold" display="inline">
+                            4. Get some coffee -
+                          </Text>{" "}
+                          Your dashboard will appear on sidebar right away after
+                          successful creation. However, populating initially
+                          with data will take some time. Our crawlers run in a 5
+                          minute cycle, they will start from newest block and
+                          will move down till genesis block.
+                        </chakra.span>
+                      </Stack>
+                    </AccordionPanel>
+                  </AccordionItem>
                 </Accordion>
               </Stack>
-              <Stack
-                px={[0, 12, null]}
-                // mt={24}
-                bgColor="gray.50"
-                borderRadius="xl"
-                boxShadow="xl"
-                py={4}
-              ></Stack>
             </Stack>
           </Fade>
         )}

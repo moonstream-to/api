@@ -3,7 +3,6 @@ import { usePresignedURL } from "../core/hooks";
 import Report from "./Report";
 import { Spinner, Flex, Heading, Text, Stack } from "@chakra-ui/react";
 import { v4 } from "uuid";
-import Scrollable from "./Scrollable";
 
 const HOUR_KEY = "Hourly";
 const DAY_KEY = "Daily";
@@ -21,171 +20,175 @@ const SubscriptionReport = ({ timeRange, url, id, type, refetchLinks }) => {
     type: type,
     requestNewURLCallback: refetchLinks,
   });
-  const plotMinW = "500px";
+  const plotMinW = "250px";
   if (!data || isLoading) return <Spinner />;
   return (
-    <Scrollable>
-      <Flex w="100%" h="auto" flexGrow={1} flexBasis="420px" direction="column">
-        <Stack
-          bgColor="blue.50"
-          direction={["column", "row", null]}
-          spacing={4}
+    <Flex
+      w="100%"
+      h="auto"
+      flexGrow={1}
+      flexBasis={plotMinW}
+      direction="column"
+    >
+      <Stack
+        bgColor="blue.50"
+        direction={["column", "row", null]}
+        spacing={4}
+        flexGrow={1}
+        flexBasis={plotMinW}
+        m={1}
+        p={2}
+      >
+        {data?.web3_metric.map((metric) => {
+          return (
+            <Flex
+              flexGrow={1}
+              flexBasis="75px"
+              placeSelf="center"
+              p={2}
+              bgColor="blue.100"
+              key={v4()}
+              size="sm"
+              fontWeight="600"
+              boxShadow="sm"
+              direction="column"
+            >
+              <Text placeSelf="center">{metric.display_name}</Text>
+              <Text p={2} fontSize="42px" placeSelf="center">
+                {metric.display_name == "Total weth earned"
+                  ? Number.parseFloat(
+                      Number.parseFloat(metric.value) / 1e18
+                    ).toString()
+                  : metric.value}
+              </Text>
+            </Flex>
+          );
+        })}
+      </Stack>
+      {data?.events && Object.keys(data?.events) && (
+        <Flex
+          w="100%"
+          h="auto"
           flexGrow={1}
+          flexBasis={plotMinW}
+          direction="column"
         >
-          {data?.web3_metric.map((metric) => {
+          <Heading size="sm">Events</Heading>
+          {Object.keys(data.events).map((key) => {
             return (
               <Flex
-                flexGrow={1}
-                flexBasis="75px"
-                placeSelf="center"
-                p={2}
-                bgColor="blue.100"
-                m={4}
                 key={v4()}
-                size="sm"
-                fontWeight="600"
-                boxShadow="sm"
-                w="75px"
-                maxH="150px"
+                flexBasis={plotMinW}
+                flexGrow={1}
+                minW={plotMinW}
+                minH="320px"
+                maxH="420px"
                 direction="column"
+                boxShadow="md"
+                m={2}
               >
-                <Text placeSelf="center">{metric.display_name}</Text>
-                <Text p={2} fontSize="42px" placeSelf="center">
-                  {metric.display_name == "Total weth earned"
-                    ? Number.parseFloat(
-                        Number.parseFloat(metric.value) / 1e18
-                      ).toString()
-                    : metric.value}
+                <Text
+                  w="100%"
+                  py={2}
+                  bgColor="gray.50"
+                  fontWeight="600"
+                  textAlign="center"
+                >
+                  {key}
                 </Text>
+                <Report
+                  data={data.events[key]}
+                  metric={key}
+                  timeRange={timeRange}
+                />
               </Flex>
             );
           })}
-        </Stack>
-        {data?.events && Object.keys(data?.events) && (
-          <Flex
-            w="100%"
-            h="auto"
-            flexGrow={1}
-            flexBasis="420px"
-            direction="column"
-          >
-            <Heading size="sm">Events</Heading>
-            {Object.keys(data.events).map((key) => {
-              return (
-                <Flex
-                  key={v4()}
-                  flexBasis={plotMinW}
-                  flexGrow={1}
-                  minW={plotMinW}
-                  minH="320px"
-                  maxH="420px"
-                  direction="column"
-                  boxShadow="md"
-                  m={2}
+        </Flex>
+      )}
+      {data?.functions && Object.keys(data?.functions) && (
+        <Flex
+          w="100%"
+          h="auto"
+          flexGrow={1}
+          flexBasis="420px"
+          direction="column"
+        >
+          <Heading size="sm">functions</Heading>
+          {Object.keys(data.functions).map((key) => {
+            return (
+              <Flex
+                key={v4()}
+                flexBasis={plotMinW}
+                flexGrow={1}
+                minW={plotMinW}
+                minH="320px"
+                maxH="420px"
+                direction="column"
+                boxShadow="md"
+                m={2}
+              >
+                <Text
+                  w="100%"
+                  py={2}
+                  bgColor="gray.50"
+                  fontWeight="600"
+                  textAlign="center"
                 >
-                  <Text
-                    w="100%"
-                    py={2}
-                    bgColor="gray.50"
-                    fontWeight="600"
-                    textAlign="center"
-                  >
-                    {key}
-                  </Text>
-                  <Report
-                    data={data.events[key]}
-                    metric={key}
-                    timeRange={timeRange}
-                  />
-                </Flex>
-              );
-            })}
-          </Flex>
-        )}
-        {data?.functions && Object.keys(data?.functions) && (
-          <Flex
-            w="100%"
-            h="auto"
-            flexGrow={1}
-            flexBasis="420px"
-            direction="column"
-          >
-            <Heading size="sm">functions</Heading>
-            {Object.keys(data.functions).map((key) => {
-              return (
-                <Flex
-                  key={v4()}
-                  flexBasis={plotMinW}
-                  flexGrow={1}
-                  minW={plotMinW}
-                  minH="320px"
-                  maxH="420px"
-                  direction="column"
-                  boxShadow="md"
-                  m={2}
+                  {key}
+                </Text>
+                <Report
+                  data={data.functions[key]}
+                  metric={key}
+                  timeRange={timeRange}
+                />
+              </Flex>
+            );
+          })}
+        </Flex>
+      )}
+      {data?.generic && Object.keys(data?.generic) && (
+        <Flex
+          w="100%"
+          h="auto"
+          flexGrow={1}
+          flexBasis="420px"
+          direction="column"
+        >
+          <Heading size="sm">Account generic</Heading>
+          {Object.keys(data.generic).map((key) => {
+            return (
+              <Flex
+                key={v4()}
+                flexBasis={plotMinW}
+                flexGrow={1}
+                minW={plotMinW}
+                minH="320px"
+                maxH="420px"
+                direction="column"
+                boxShadow="md"
+                m={2}
+              >
+                <Text
+                  w="100%"
+                  py={2}
+                  bgColor="gray.50"
+                  fontWeight="600"
+                  textAlign="center"
                 >
-                  <Text
-                    w="100%"
-                    py={2}
-                    bgColor="gray.50"
-                    fontWeight="600"
-                    textAlign="center"
-                  >
-                    {key}
-                  </Text>
-                  <Report
-                    data={data.functions[key]}
-                    metric={key}
-                    timeRange={timeRange}
-                  />
-                </Flex>
-              );
-            })}
-          </Flex>
-        )}
-        {data?.generic && Object.keys(data?.generic) && (
-          <Flex
-            w="100%"
-            h="auto"
-            flexGrow={1}
-            flexBasis="420px"
-            direction="column"
-          >
-            <Heading size="sm">Account generic</Heading>
-            {Object.keys(data.generic).map((key) => {
-              return (
-                <Flex
-                  key={v4()}
-                  flexBasis={plotMinW}
-                  flexGrow={1}
-                  minW={plotMinW}
-                  minH="320px"
-                  maxH="420px"
-                  direction="column"
-                  boxShadow="md"
-                  m={2}
-                >
-                  <Text
-                    w="100%"
-                    py={2}
-                    bgColor="gray.50"
-                    fontWeight="600"
-                    textAlign="center"
-                  >
-                    {key}
-                  </Text>
-                  <Report
-                    data={data.generic[key]}
-                    metric={key}
-                    timeRange={timeRange}
-                  />
-                </Flex>
-              );
-            })}
-          </Flex>
-        )}
-      </Flex>
-    </Scrollable>
+                  {key}
+                </Text>
+                <Report
+                  data={data.generic[key]}
+                  metric={key}
+                  timeRange={timeRange}
+                />
+              </Flex>
+            );
+          })}
+        </Flex>
+      )}
+    </Flex>
   );
 };
 

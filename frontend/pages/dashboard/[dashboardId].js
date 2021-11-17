@@ -152,7 +152,7 @@ const Analytics = () => {
   )
     return <Spinner />;
 
-  const plotMinW = "500px";
+  const plotMinW = "250px";
 
   return (
     <Scrollable>
@@ -160,7 +160,7 @@ const Analytics = () => {
         h="100%"
         w="100%"
         m={0}
-        px="7%"
+        px={["10px", "20px", "7%", null]}
         direction="column"
         alignItems="center"
         minH="100vh"
@@ -202,7 +202,7 @@ const Analytics = () => {
                 minH="320px"
                 direction="column"
                 boxShadow="md"
-                m={2}
+                m={["1px", 2]}
               >
                 <Text
                   w="100%"

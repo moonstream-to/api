@@ -24,7 +24,7 @@ import {
   ArrowRightIcon,
   LockIcon,
 } from "@chakra-ui/icons";
-import { MdSettings, MdDashboard } from "react-icons/md";
+import { MdSettings, MdDashboard, MdTimeline } from "react-icons/md";
 import { WHITE_LOGO_W_TEXT_URL, ALL_NAV_PATHES } from "../core/constants";
 import { v4 } from "uuid";
 import useDashboard from "../core/hooks/useDashboard";
@@ -89,7 +89,7 @@ const Sidebar = () => {
             <>
               <MenuItem
                 onClick={() => {
-                  ui.toggleModal({ type: MODAL_TYPES.SIGNUP });
+                  overlay.toggleModal({ type: MODAL_TYPES.SIGNUP });
                   ui.setSidebarToggled(false);
                 }}
               >
@@ -98,7 +98,7 @@ const Sidebar = () => {
 
               <MenuItem
                 onClick={() => {
-                  ui.toggleModal({ type: MODAL_TYPES.LOGIN });
+                  overlay.toggleModal({ type: MODAL_TYPES.LOGIN });
                   ui.setSidebarToggled(false);
                 }}
               >
@@ -176,6 +176,9 @@ const Sidebar = () => {
             </MenuItem>
             <MenuItem icon={<MdSettings />}>
               <RouterLink href="/subscriptions">Subscriptions </RouterLink>
+            </MenuItem>
+            <MenuItem icon={<MdTimeline />}>
+              <RouterLink href="/stream">Stream</RouterLink>
             </MenuItem>
             <Divider />
             <Text
