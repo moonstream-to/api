@@ -1,7 +1,7 @@
 import React from "react";
 import { usePresignedURL } from "../core/hooks";
 import Report from "./Report";
-import { Spinner, Flex, Heading, Text, Stack } from "@chakra-ui/react";
+import { Spinner, Flex, Heading, Text } from "@chakra-ui/react";
 import { v4 } from "uuid";
 
 const HOUR_KEY = "Hourly";
@@ -30,31 +30,34 @@ const SubscriptionReport = ({ timeRange, url, id, type, refetchLinks }) => {
       flexBasis={plotMinW}
       direction="column"
     >
-      <Stack
+      <Flex
         bgColor="blue.50"
         direction={["column", "row", null]}
-        spacing={4}
-        flexGrow={1}
-        flexBasis={plotMinW}
-        m={1}
-        p={2}
+        flexWrap="wrap"
+        alignContent={["inherit", "flex-start", null]}
       >
         {data?.web3_metric.map((metric) => {
           return (
             <Flex
               flexGrow={1}
-              flexBasis="75px"
+              flexBasis="100px"
               placeSelf="center"
               p={2}
+              m={1}
               bgColor="blue.100"
               key={v4()}
               size="sm"
               fontWeight="600"
               boxShadow="sm"
               direction="column"
+              alignSelf="stretch"
             >
               <Text placeSelf="center">{metric.display_name}</Text>
-              <Text p={2} fontSize="42px" placeSelf="center">
+              <Text
+                p={2}
+                fontSize={["24px", "24px", "42px", null]}
+                placeSelf="center"
+              >
                 {metric.display_name == "Total weth earned"
                   ? Number.parseFloat(
                       Number.parseFloat(metric.value) / 1e18
@@ -64,7 +67,7 @@ const SubscriptionReport = ({ timeRange, url, id, type, refetchLinks }) => {
             </Flex>
           );
         })}
-      </Stack>
+      </Flex>
       {data?.events && Object.keys(data?.events) && (
         <Flex
           w="100%"
@@ -73,7 +76,9 @@ const SubscriptionReport = ({ timeRange, url, id, type, refetchLinks }) => {
           flexBasis={plotMinW}
           direction="column"
         >
-          <Heading size="sm">Events</Heading>
+          <Heading size="md" pt={4}>
+            Events
+          </Heading>
           {Object.keys(data.events).map((key) => {
             return (
               <Flex
@@ -114,7 +119,9 @@ const SubscriptionReport = ({ timeRange, url, id, type, refetchLinks }) => {
           flexBasis="420px"
           direction="column"
         >
-          <Heading size="sm">functions</Heading>
+          <Heading size="md" pt={4}>
+            functions
+          </Heading>
           {Object.keys(data.functions).map((key) => {
             return (
               <Flex
@@ -155,7 +162,9 @@ const SubscriptionReport = ({ timeRange, url, id, type, refetchLinks }) => {
           flexBasis="420px"
           direction="column"
         >
-          <Heading size="sm">Account generic</Heading>
+          <Heading size="md" pt={4}>
+            Account generic
+          </Heading>
           {Object.keys(data.generic).map((key) => {
             return (
               <Flex
