@@ -138,8 +138,8 @@ const Welcome = () => {
                           <Text fontWeight="bold" display="inline">
                             1. Subscribe
                           </Text>{" "}
-                          - First step is to tell us what addresses you want
-                          moonstream to track activity at. You can do this at{" "}
+                          - Tell us what addresses you want Moonstream to track
+                          the activity of. You can do this at{" "}
                           <RouterLink passHref href="/subscriptions">
                             <Link color="orange.500">subscriptions page</Link>
                           </RouterLink>{" "}
@@ -150,14 +150,18 @@ const Welcome = () => {
                           <Text fontWeight="bold" display="inline">
                             2. Provide ABI to subscription
                           </Text>{" "}
-                          - In order for us to know what data to track, you need
-                          to provide an ABI to subscription. You can upload one
-                          at{" "}
+                          - If that address is a smart contract, provide an{" "}
+                          <Link
+                            color="orange.500"
+                            href="https://docs.soliditylang.org/en/develop/abi-spec.html"
+                          >
+                            ABI
+                          </Link>{" "}
+                          for that contract. You can upload one at{" "}
                           <RouterLink passHref href="/subscriptions">
                             <Link color="orange.500">subscriptions page</Link>
                           </RouterLink>
-                          . If you are not sure what is abi ABI or which is
-                          correct for you - ask us on{" "}
+                          . If you are not sure what an ABI is, ask us on{" "}
                           <Link
                             color="orange.500"
                             isExternal
@@ -166,14 +170,9 @@ const Welcome = () => {
                             Discord
                           </Link>{" "}
                           . <br />
-                          <i>
-                            N.B: Right now we have automatic dashboards only
-                            availible. This means that dashboard will contain
-                            analytics for ALL interfaces listed in ABI that was
-                            provided. I you need only fraction of it - leave
-                            these interfaces of interest in ABI when uploading
-                            and remove rest.
-                          </i>
+                          Your dashboard will contain analytics for all the
+                          interfaces listed in your ABI. Customization is coming
+                          soon.
                         </chakra.span>
 
                         <chakra.span fontWeight="semibold" pl={2}>
@@ -184,7 +183,7 @@ const Welcome = () => {
                           navbar menu. Fill in name, select subscriptons you
                           like to track to and checkbox what are you interested
                           in. If there is no ABI - tracking contract specific
-                          elements {`won't`} be availible.
+                          elements {`won't`} be available.
                         </chakra.span>
 
                         <chakra.span fontWeight="semibold" pl={2}>
@@ -192,12 +191,10 @@ const Welcome = () => {
                             4. Get some coffee -
                           </Text>{" "}
                           Your dashboard will appear on sidebar right away after
-                          succesfull creation. However, populating initially
-                          with data will take some time. Crawlers usually run in
-                          5 minutes cycle, they will start from newest block and
-                          will move down till genesis block. While you can make
-                          your favorite drink of choice and get back to see the
-                          dashboard!
+                          successful creation. However, populating initially
+                          with data will take some time. Our crawlers run in a 5
+                          minute cycle, they will start from newest block and
+                          will move down till genesis block.
                         </chakra.span>
                       </Stack>
                     </AccordionPanel>
