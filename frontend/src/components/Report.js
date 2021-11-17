@@ -54,7 +54,7 @@ const Report = ({ data, timeRange }) => {
     <ResponsiveLineCanvas
       {...commonProperties}
       data={plotData}
-      margin={{ top: 50, right: 110, bottom: 70, left: 60 }}
+      margin={{ top: 50, right: 5, bottom: 70, left: 60 }}
       isInteractive={true}
       xScale={{
         type: "time",

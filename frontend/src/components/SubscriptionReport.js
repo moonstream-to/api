@@ -20,15 +20,24 @@ const SubscriptionReport = ({ timeRange, url, id, type, refetchLinks }) => {
     type: type,
     requestNewURLCallback: refetchLinks,
   });
-  const plotMinW = "500px";
+  const plotMinW = "250px";
   if (!data || isLoading) return <Spinner />;
   return (
-    <Flex w="100%" h="auto" flexGrow={1} flexBasis="420px" direction="column">
+    <Flex
+      w="100%"
+      h="auto"
+      flexGrow={1}
+      flexBasis={plotMinW}
+      direction="column"
+    >
       <Stack
         bgColor="blue.50"
         direction={["column", "row", null]}
         spacing={4}
         flexGrow={1}
+        flexBasis={plotMinW}
+        m={1}
+        p={2}
       >
         {data?.web3_metric.map((metric) => {
           return (
@@ -38,13 +47,10 @@ const SubscriptionReport = ({ timeRange, url, id, type, refetchLinks }) => {
               placeSelf="center"
               p={2}
               bgColor="blue.100"
-              m={4}
               key={v4()}
               size="sm"
               fontWeight="600"
               boxShadow="sm"
-              w="75px"
-              maxH="150px"
               direction="column"
             >
               <Text placeSelf="center">{metric.display_name}</Text>
@@ -64,7 +70,7 @@ const SubscriptionReport = ({ timeRange, url, id, type, refetchLinks }) => {
           w="100%"
           h="auto"
           flexGrow={1}
-          flexBasis="420px"
+          flexBasis={plotMinW}
           direction="column"
         >
           <Heading size="sm">Events</Heading>
