@@ -26,15 +26,15 @@ const RangeSelector_ = ({
         return (
           <Container
             key={`date-range-${className}-${idx}`}
-            bgColor={isActive ? "secondary.900" : "primary.50"}
-            color={!isActive ? "primary.900" : "primary.50"}
+            bgColor={isActive ? "orange.900" : "blue.50"}
+            color={!isActive ? "blue.900" : "blue.50"}
             boxShadow="sm"
             borderRadius="md"
             fontSize={size}
             fontWeight="600"
             onClick={() => setRange(item)}
             _hover={{
-              bgColor: isActive ? "secondary.900" : "secondary.50",
+              bgColor: isActive ? "orange.900" : "orange.50",
             }}
             cursor="pointer"
             py="2px"
