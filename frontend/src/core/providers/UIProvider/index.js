@@ -207,7 +207,8 @@ const UIProvider = ({ children }) => {
   useEffect(() => {
     //redirect to welcome page if yet not completed onboarding
     if (isLoggedIn && onboardingState && !onboardingState?.is_complete) {
-      router.replace("/welcome", undefined, { shallow: true });
+      //shortcircuit this experience for now since /welcome is now default landing in the app screen
+      // router.replace("/welcome", undefined, { shallow: true });
     }
     if (isLoggedIn) {
       setOnboardingRedirectCheckPassed(true);
