@@ -89,7 +89,7 @@ const Sidebar = () => {
             <>
               <MenuItem
                 onClick={() => {
-                  ui.toggleModal({ type: MODAL_TYPES.SIGNUP });
+                  overlay.toggleModal({ type: MODAL_TYPES.SIGNUP });
                   ui.setSidebarToggled(false);
                 }}
               >
@@ -98,7 +98,7 @@ const Sidebar = () => {
 
               <MenuItem
                 onClick={() => {
-                  ui.toggleModal({ type: MODAL_TYPES.LOGIN });
+                  overlay.toggleModal({ type: MODAL_TYPES.LOGIN });
                   ui.setSidebarToggled(false);
                 }}
               >
