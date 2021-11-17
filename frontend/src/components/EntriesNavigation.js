@@ -114,6 +114,9 @@ const EntriesNavigation = () => {
       loadPreviousEventHandler();
       setFirstLoading(false);
     }
+    //TODO @AAndrey Dolgolev This useeffect produces lint warning, please review and
+    //Either add dependencies and remove comment line below, or add dependencies
+    //eslint-disable-next-line
   }, [
     streamBoundary,
     initialized,
