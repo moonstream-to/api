@@ -1,7 +1,7 @@
 import React from "react";
 import { ResponsiveLineCanvas } from "@nivo/line";
 
-const Report = ({ data, metric, timeRange }) => {
+const Report = ({ data, timeRange }) => {
   const commonProperties = {
     animate: false,
     enableSlices: "x",
