@@ -165,9 +165,16 @@ const Analytics = () => {
         alignItems="center"
         minH="100vh"
       >
-        <Stack direction="row" w="100%" placeItems="center">
+        <Stack direction={["column", "row", null]} w="100%" placeItems="center">
           <Heading as="h1" py={2} fontSize={["md", "xl"]}>
             {dashboardCache.data.data.resource_data.name}
+            <IconButton
+              icon={<BiTrash />}
+              variant="ghost"
+              colorScheme="red"
+              size="sm"
+              onClick={() => toggleAlert(() => deleteDashboard.mutate())}
+            />
           </Heading>
           <Spacer />
           <RangeSelector
@@ -177,13 +184,6 @@ const Analytics = () => {
             onChange={(e) => {
               setTimeRange(timeMap[e]);
             }}
-          />
-          <IconButton
-            icon={<BiTrash />}
-            variant="ghost"
-            colorScheme="red"
-            size="sm"
-            onClick={() => toggleAlert(() => deleteDashboard.mutate())}
           />
         </Stack>
 
