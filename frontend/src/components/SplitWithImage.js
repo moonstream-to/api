@@ -122,6 +122,7 @@ const SplitWithImage = ({
               src={imgURL}
               objectFit={"contain"}
               boxShadow={imgBoxShadow ?? "inherit"}
+              height="auto"
             />
           </Flex>
         )}
@@ -212,7 +213,7 @@ const SplitWithImage = ({
               alt={"feature image"}
               src={imgURL}
               objectFit={"contain"}
-              h="fit-content"
+              h="auto"
               boxShadow={imgBoxShadow ?? "inherit"}
             />
           </Flex>
