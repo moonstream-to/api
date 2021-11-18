@@ -171,14 +171,14 @@ const Sidebar = () => {
         <Divider color="gray.300" w="100%" />
         {ui.isLoggedIn && (
           <Menu iconShape="square">
-            <MenuItem icon={<LockIcon />}>
-              <RouterLink href="/account/tokens">API Tokens</RouterLink>
-            </MenuItem>
             <MenuItem icon={<MdSettings />}>
               <RouterLink href="/subscriptions">Subscriptions </RouterLink>
             </MenuItem>
             <MenuItem icon={<MdTimeline />}>
               <RouterLink href="/stream">Stream</RouterLink>
+            </MenuItem>
+            <MenuItem icon={<LockIcon />}>
+              <RouterLink href="/account/tokens">API Tokens</RouterLink>
             </MenuItem>
             <Divider />
             <Text
