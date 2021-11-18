@@ -1,7 +1,7 @@
 import React from "react";
 import { useStatus } from "../../src/core/hooks";
 import { Heading, Text, Flex, Spacer, chakra, Spinner } from "@chakra-ui/react";
-import { getLayout } from "../../src/layouts/InfoPageLayout";
+import { getLayout, getLayoutProps } from "../../src/layouts/InfoPageLayout";
 
 const Status = () => {
   const healthyStatusText = "Available";
@@ -135,4 +135,17 @@ const Status = () => {
 };
 
 Status.getLayout = getLayout;
+
+export async function getStaticProps() {
+  const metaTags = {
+    title: "Moonstream: Status page",
+    description: "Status of moonstream.to services",
+    keywords:
+      "blockchain, crypto, data, trading, smart contracts, ethereum, solana, transactions, defi, finance, decentralized, analytics, product, whitepapers",
+    url: "https://www.moonstream.to/status",
+  };
+  const layoutProps = getLayoutProps();
+  layoutProps.props.metaTags = { ...layoutProps.props.metaTags, ...metaTags };
+  return { ...layoutProps };
+}
 export default Status;
