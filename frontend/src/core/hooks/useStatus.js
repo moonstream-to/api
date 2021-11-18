@@ -30,28 +30,34 @@ const useStatus = () => {
 
   const apiServerStatusCache = useQuery("apiServer", getAPIServerStatus, {
     ...queryCacheProps,
+    retry: 0,
   });
   const ethereumClusterServerStatusCache = useQuery(
     "ethereumClusterServer",
     getEthereumClusterServerStatus,
     {
       ...queryCacheProps,
+      retry: 0,
     }
   );
   const gethStatusCache = useQuery("geth", getGethStatus, {
     ...queryCacheProps,
+    retry: 0,
   });
   const crawlersStatusCache = useQuery("crawlers", getCrawlersStatus, {
     ...queryCacheProps,
+    retry: 0,
   });
   const dbServerStatusCache = useQuery("dbServer", getDBServerStatus, {
     ...queryCacheProps,
+    retry: 0,
   });
   const latestBlockDBStatusCache = useQuery(
     "latestBlockDB",
     getLatestBlockDBStatus,
     {
       ...queryCacheProps,
+      retry: 0,
     }
   );
 
