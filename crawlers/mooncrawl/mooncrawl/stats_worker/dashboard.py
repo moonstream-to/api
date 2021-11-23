@@ -549,9 +549,6 @@ def stats_generate_handler(args: argparse.Namespace):
 
         s3_client = boto3.client("s3")
 
-        # # Already processed
-        already_processed = []
-
         for dashboard in dashboard_resources.resources:
 
             for dashboard_subscription_filters in dashboard.resource_data[
@@ -675,7 +672,6 @@ def stats_generate_handler(args: argparse.Namespace):
                         bucket=bucket,
                         dashboard_id=dashboard.id,
                     )
-                already_processed.append(f"{address}/{hash}")
 
 
 def main() -> None:
