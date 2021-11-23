@@ -346,6 +346,7 @@ def latest_events(
 
     # Instruction order_by makes sql query speed unacceptable,
     # so it was replaced to sorted() function.
+    # TODO(kompotkot): Revert back work with order_by when database will be optimized
     ethereum_transactions = query_ethereum_transactions(
         db_session, stream_boundary, parsed_filters
     )
