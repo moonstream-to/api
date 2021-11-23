@@ -5,7 +5,6 @@ import argparse
 import hashlib
 import json
 import logging
-from os import name
 import time
 from datetime import datetime, timedelta
 from enum import Enum
@@ -14,7 +13,7 @@ from typing import Any, Callable, Dict, List
 import boto3  # type: ignore
 from bugout.data import BugoutResources
 from moonstreamdb.db import yield_db_session_ctx
-from sqlalchemy import Column, Date, and_, func, text
+from sqlalchemy import Column, and_, func, text
 from sqlalchemy.orm import Query, Session
 from sqlalchemy.sql.operators import in_op
 
