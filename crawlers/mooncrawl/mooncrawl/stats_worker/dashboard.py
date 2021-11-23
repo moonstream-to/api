@@ -524,6 +524,8 @@ def stats_generate_handler(args: argparse.Namespace):
             timeout=10,
         )
 
+        print(f"Amount of dashboards: {len(dashboard_resources.resources)}")
+
         # Create subscriptions dict for get subscriptions by id.
         blockchain_subscriptions: BugoutResources = bc.list_resources(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -534,8 +536,12 @@ def stats_generate_handler(args: argparse.Namespace):
             timeout=10,
         )
 
+        print(
+            f"Amount of blockchain subscriptions: {len(blockchain_subscriptions.resources)}"
+        )
+
         subscription_by_id = {
-            blockchain_subscription.id: blockchain_subscription
+            str(blockchain_subscription.id): blockchain_subscription
             for blockchain_subscription in blockchain_subscriptions.resources
         }
 
@@ -553,6 +559,8 @@ def stats_generate_handler(args: argparse.Namespace):
             ]:
 
                 subscription_id = dashboard_subscription_filters["subscription_id"]
+
+                print(subscription_id)
 
                 if subscription_id not in subscription_by_id:
                     # Meen it's are different blockchain type
@@ -585,14 +593,14 @@ def stats_generate_handler(args: argparse.Namespace):
                     methods = generate_list_of_names(
                         type="methods",
                         subscription_filters=dashboard_subscription_filters,
-                        read_abi=dashboard_subscription_filters.all_methods,
+                        read_abi=dashboard_subscription_filters["all_methods"],
                         abi_json=abi_json,
                     )
 
                     events = generate_list_of_names(
                         type="events",
                         subscription_filters=dashboard_subscription_filters,
-                        read_abi=dashboard_subscription_filters.all_methods,
+                        read_abi=dashboard_subscription_filters["all_events"],
                         abi_json=abi_json,
                     )
 
