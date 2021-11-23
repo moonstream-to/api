@@ -5,6 +5,7 @@ import argparse
 import hashlib
 import json
 import logging
+from os import name
 import time
 from datetime import datetime, timedelta
 from enum import Enum
@@ -405,6 +406,28 @@ def get_unique_address(
     )
 
 
+def get_count(
+    name: str,
+    type: str,
+    db_session: Session,
+    blockchain_type: AvailableBlockchainType,
+    address: str,
+):
+    """
+    Return count of event from database.
+    """
+    label_model = get_label_model(blockchain_type)
+
+    return (
+        db_session.query(label_model)
+        .filter(label_model.address == address)
+        .filter(label_model.label == CRAWLER_LABEL)
+        .filter(label_model.label_data["type"].astext == type)
+        .filter(label_model.label_data["name"].astext == name)
+        .count()
+    )
+
+
 def stats_generate_handler(args: argparse.Namespace):
     """
     Start crawler with generate.
@@ -543,6 +566,40 @@ def stats_generate_handler(args: argparse.Namespace):
                 }
             )
 
+            abi_functions_names = [item["name"] for item in abi_functions]
+
+            abi_events_names = [item["name"] for item in abi_events]
+
+            if "HatchStartedEvent" in abi_events_names:
+
+                extention_data.append(
+                    {
+                        "display_name": "Number of hatches started.",
+                        "value": get_count(
+                            name="HatchStartedEvent",
+                            type="event",
+                            db_session=db_session,
+                            blockchain_type=blockchain_type,
+                            address=address,
+                        ),
+                    }
+                )
+
+            if "HatchFinishedEvent" in abi_events_names:
+
+                extention_data.append(
+                    {
+                        "display_name": "Number of hatches finished.",
+                        "value": get_count(
+                            name="HatchFinishedEvent",
+                            type="event",
+                            db_session=db_session,
+                            blockchain_type=blockchain_type,
+                            address=address,
+                        ),
+                    }
+                )
+
             for timescale in [timescale.value for timescale in TimeScale]:
 
                 start_date = (
@@ -552,8 +609,6 @@ def stats_generate_handler(args: argparse.Namespace):
                 print(f"Timescale: {timescale}")
 
                 s3_data_object["web3_metric"] = extention_data
-
-                abi_functions_names = [item["name"] for item in abi_functions]
 
                 functions_calls_data = generate_data(
                     db_session=db_session,
@@ -567,8 +622,6 @@ def stats_generate_handler(args: argparse.Namespace):
 
                 s3_data_object["functions"] = functions_calls_data
                 # generate data
-
-                abi_events_names = [item["name"] for item in abi_events]
 
                 events_data = generate_data(
                     db_session=db_session,
