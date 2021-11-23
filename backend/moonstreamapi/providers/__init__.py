@@ -24,17 +24,17 @@ if the order does not matter and you would rather emphasize speed. Only availabl
 lists of events. (Default: True)
 """
 
-from concurrent.futures import Future, ThreadPoolExecutor
 import logging
+from concurrent.futures import Future, ThreadPoolExecutor
 from typing import Any, Dict, List, Optional, Tuple
 
 from bugout.app import Bugout
 from bugout.data import BugoutResource
 from sqlalchemy.orm import Session
 
-from . import bugout, ethereum_blockchain
 from .. import data
 from ..stream_queries import StreamQuery
+from . import bugout, ethereum_blockchain
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARN)
@@ -132,7 +132,14 @@ def latest_events(
     with ThreadPoolExecutor(
         max_workers=max_threads, thread_name_prefix="event_providers_"
     ) as executor:
-        for provider_name, provider in event_providers.items():
+        # Filter our not queried event_types
+        event_providers_filtered = {
+            key: value
+            for (key, value) in event_providers.items()
+            if value.event_type in query.subscription_types
+        }
+
+        for provider_name, provider in event_providers_filtered.items():
             futures[provider_name] = executor.submit(
                 provider.latest_events,
                 db_session,
