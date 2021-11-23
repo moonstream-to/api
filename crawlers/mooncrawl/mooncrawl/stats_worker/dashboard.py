@@ -284,15 +284,6 @@ def generate_data(
         .distinct()
     )
 
-    if start is not None:
-        label_requested = label_requested.filter(
-            func.to_timestamp(label_model.block_timestamp) > start
-        )
-    if end is not None:
-        label_requested = label_requested.filter(
-            func.to_timestamp(label_model.block_timestamp) < end
-        )
-
     label_requested = label_requested.subquery(name="label_requested")
 
     # empty timeseries with tags
