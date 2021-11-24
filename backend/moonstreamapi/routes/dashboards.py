@@ -7,7 +7,7 @@ from uuid import UUID
 import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
-from fastapi import APIRouter, Request, Query
+from fastapi import APIRouter, Request, Query, Body
 
 from .. import actions
 from .. import data
@@ -41,7 +41,7 @@ blockchain_by_subscription_id = {
 
 @router.post("/", tags=["dashboards"], response_model=BugoutResource)
 async def add_dashboard_handler(
-    request: Request, dashboard: data.DashboardCreate
+    request: Request, dashboard: data.DashboardCreate = Body(...)
 ) -> BugoutResource:
     """
     Add subscription to blockchain stream data for user.
@@ -231,9 +231,7 @@ async def get_dashboard_handler(
 
 @router.put("/{dashboard_id}", tags=["dashboards"], response_model=BugoutResource)
 async def update_dashboard_handler(
-    request: Request,
-    dashboard_id: str,
-    dashboard: data.DashboardUpdate
+    request: Request, dashboard_id: str, dashboard: data.DashboardUpdate = Body(...)
 ) -> BugoutResource:
     """
     Update dashboards mainly fully overwrite name and subscription metadata
