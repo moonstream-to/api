@@ -457,25 +457,6 @@ def process_external(abi_external_calls, blockchain):
             print(f"Error processing external call: {e}")
 
     web3_client = connect(blockchain)
-    # {
-    #   "type": "external_call"
-    #   "display_name": "Total weth earned"
-    #   "address": "0xdf2811b6432cae65212528f0a7186b71adaec03a",
-    #   "name": "balanceOf",
-    #   "inputs": [
-    #     {
-    #       "name": "owner",
-    #       "type": "address"
-    #       "value": "0xA993c4759B731f650dfA011765a6aedaC91a4a88"
-    #     }
-    #   ],
-    #   "outputs": [
-    #   {
-    #       "internalType": "uint256",
-    #       "name": "",
-    #       "type": "uint256"
-    #   }
-    # }
 
     for extcall in external_calls:
         try:
@@ -535,8 +516,6 @@ def stats_generate_handler(args: argparse.Namespace):
             str(blockchain_subscription.id): blockchain_subscription
             for blockchain_subscription in blockchain_subscriptions.resources
         }
-
-        # print(f"Subscriptions for processing: {len(required_subscriptions.resources)}")
 
         s3_client = boto3.client("s3")
 
