@@ -249,3 +249,9 @@ class DashboardResource(BaseModel):
 class DashboardCreate(BaseModel):
     name: str
     subscriptions: List[DashboardMeta]
+
+
+class DashboardUpdate(BaseModel):
+    dashboard_id: Union[str,UUID]
+    name: str
+    subscriptions: List[DashboardMeta]

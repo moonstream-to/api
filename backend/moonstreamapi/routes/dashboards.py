@@ -232,9 +232,7 @@ async def get_dashboard_handler(
 @router.put("/{dashboard_id}", tags=["dashboards"], response_model=BugoutResource)
 async def update_dashboard_handler(
     request: Request,
-    dashboard_id: str,
-    name: Optional[str],
-    subscriptions: List[data.DashboardMeta],
+    dashboard: data.DashboardUpdate
 ) -> BugoutResource:
     """
     Update dashboards mainly fully overwrite name and subscription metadata
@@ -244,7 +242,7 @@ async def update_dashboard_handler(
 
     user = request.state.user
 
-    dashboard_subscriptions = subscriptions
+    dashboard_subscriptions = dashboard.subscriptions
 
     params = {
         "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
@@ -321,17 +319,17 @@ async def update_dashboard_handler(
 
     dashboard_resource: Dict[str, Any] = {}
 
-    if subscriptions:
+    if dashboard_subscriptions:
 
-        dashboard_resource["subscriptions"] = subscriptions
+        dashboard_resource["subscriptions"] = dashboard_subscriptions
 
-    if name is not None:
-        dashboard_resource["name"] = name
+    if dashboard.name is not None:
+        dashboard_resource["name"] = dashboard.name
 
     try:
         resource: BugoutResource = bc.update_resource(
             token=token,
-            resource_id=dashboard_id,
+            resource_id=dashboard.dashboard_id,
             resource_data=dashboard_resource,
         )
     except BugoutResponseException as e:
