@@ -319,8 +319,6 @@ async def update_dashboard_handler(
 
     if dashboard_subscriptions:
 
-        json.loads(dashboard.json())
-
         dashboard_resource["dashboard_subscriptions"] = json.loads(dashboard.json())[
             "subscriptions"
         ]
