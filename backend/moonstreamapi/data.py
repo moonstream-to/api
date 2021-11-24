@@ -252,6 +252,5 @@ class DashboardCreate(BaseModel):
 
 
 class DashboardUpdate(BaseModel):
-    dashboard_id: Union[str, UUID]
     name: Optional[str]
     subscriptions: List[DashboardMeta] = Field(default_factory=list)

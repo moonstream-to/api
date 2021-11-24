@@ -232,6 +232,7 @@ async def get_dashboard_handler(
 @router.put("/{dashboard_id}", tags=["dashboards"], response_model=BugoutResource)
 async def update_dashboard_handler(
     request: Request,
+    dashboard_id: str,
     dashboard: data.DashboardUpdate
 ) -> BugoutResource:
     """
