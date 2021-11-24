@@ -12,9 +12,9 @@ from typing import Any, Callable, Dict, List, Union
 from uuid import UUID
 
 import boto3  # type: ignore
-from bugout.data import BugoutResource, BugoutResources
+from bugout.data import BugoutResources
 from moonstreamdb.db import yield_db_session_ctx
-from sqlalchemy import Column, Date, and_, func, text
+from sqlalchemy import Column, and_, func, text, distinct
 from sqlalchemy.orm import Query, Session
 from sqlalchemy.sql.operators import in_op
 
@@ -50,6 +50,8 @@ blockchain_by_subscription_id = {
 
 
 class TimeScale(Enum):
+    # TODO(Andrey) Unlock when we be sure about perfomanse of agregation on transactions table.
+    # Right now it can be hungs
     # year = "year"
     month = "month"
     week = "week"
@@ -476,6 +478,29 @@ def process_external(abi_external_calls, blockchain):
     return extention_data
 
 
+def get_count(
+    name: str,
+    type: str,
+    db_session: Session,
+    select_expression: Any,
+    blockchain_type: AvailableBlockchainType,
+    address: str,
+):
+    """
+    Return count of event from database.
+    """
+    label_model = get_label_model(blockchain_type)
+
+    return (
+        db_session.query(select_expression)
+        .filter(label_model.address == address)
+        .filter(label_model.label == CRAWLER_LABEL)
+        .filter(label_model.label_data["type"].astext == type)
+        .filter(label_model.label_data["name"].astext == name)
+        .count()
+    )
+
+
 def stats_generate_handler(args: argparse.Namespace):
     """
     Start crawler with generate.
@@ -580,6 +605,42 @@ def stats_generate_handler(args: argparse.Namespace):
                         blockchain=blockchain_type,
                     )
 
+                if "HatchStartedEvent" in events:
+
+                    extention_data.append(
+                        {
+                            "display_name": "Number of hatches started.",
+                            "value": get_count(
+                                name="HatchStartedEvent",
+                                type="event",
+                                db_session=db_session,
+                                select_expression=get_label_model(blockchain_type),
+                                blockchain_type=blockchain_type,
+                                address=address,
+                            ),
+                        }
+                    )
+
+                if "HatchFinishedEvent" in events:
+
+                    extention_data.append(
+                        {
+                            "display_name": "Number of hatches finished.",
+                            "value": get_count(
+                                name="HatchFinishedEvent",
+                                type="event",
+                                db_session=db_session,
+                                select_expression=distinct(
+                                    get_label_model(blockchain_type).label_data["args"][
+                                        "tokenId"
+                                    ]
+                                ),
+                                blockchain_type=blockchain_type,
+                                address=address,
+                            ),
+                        }
+                    )
+
                 extention_data.append(
                     {
                         "display_name": "Overall unique token owners.",
@@ -612,7 +673,6 @@ def stats_generate_handler(args: argparse.Namespace):
                     )
 
                     s3_data_object["functions"] = functions_calls_data
-                    # generate data
 
                     events_data = generate_data(
                         db_session=db_session,
