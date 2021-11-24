@@ -274,7 +274,7 @@ async def update_dashboard_handler(
                 "bucket"
             ]
             abi_path = available_subscriptions[dashboard_subscription.subscription_id][
-                "abi_path"
+                "s3_path"
             ]
 
             if bucket is None or abi_path is None:
@@ -303,8 +303,7 @@ async def update_dashboard_handler(
                     internal_error=e,
                     detail=f"We can't access the abi for subscription with id:{dashboard_subscription.subscription_id}.",
                 )
-
-            abi = data.DashboardMeta(**response["Body"].read().decode("utf-8"))
+            abi = json.loads(response["Body"].read())
 
             actions.dashboards_abi_validation(
                 dashboard_subscription, abi, s3_path=s3_path
@@ -320,7 +319,11 @@ async def update_dashboard_handler(
 
     if dashboard_subscriptions:
 
-        dashboard_resource["subscriptions"] = dashboard_subscriptions
+        json.loads(dashboard.json())
+
+        dashboard_resource["dashboard_subscriptions"] = json.loads(dashboard.json())[
+            "subscriptions"
+        ]
 
     if dashboard.name is not None:
         dashboard_resource["name"] = dashboard.name
