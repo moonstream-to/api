@@ -329,12 +329,12 @@ async def update_dashboard_handler(
         resource: BugoutResource = bc.update_resource(
             token=token,
             resource_id=dashboard_id,
-            resource_data=dashboard_resource,
+            resource_data=data.SubscriptionUpdate(update=dashboard_resource).dict(),
         )
     except BugoutResponseException as e:
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
-        logger.error(f"Error creating subscription resource: {str(e)}")
+        logger.error(f"Error updating subscription resource: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     return resource
