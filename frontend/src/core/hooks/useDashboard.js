@@ -34,6 +34,18 @@ const useDashboard = (dashboardId) => {
     },
   });
 
+  const updateDashboard = useMutation(DashboardService.updateDashboard, {
+    onSuccess: () => {
+      toast("Updated new dashboard", "success");
+    },
+    onError: (error) => {
+      toast(error.error, "error", "Fail");
+    },
+    onSettled: () => {
+      dashboardsListCache.refetch();
+    },
+  });
+
   const deleteDashboard = useMutation(
     () => DashboardService.deleteDashboard(dashboardId),
     {
@@ -80,6 +92,7 @@ const useDashboard = (dashboardId) => {
     dashboardCache,
     deleteDashboard,
     dashboardLinksCache,
+    updateDashboard,
   };
 };
 

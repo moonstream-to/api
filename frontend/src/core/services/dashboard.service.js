@@ -1,3 +1,4 @@
+import { identify } from "mixpanel-browser";
 import { http } from "../utils";
 
 const API_URL = process.env.NEXT_PUBLIC_MOONSTREAM_API_URL;
@@ -7,6 +8,18 @@ export const createDashboard = (data) => {
     method: "POST",
     url: `${API_URL}/dashboards/`,
     data,
+  });
+};
+
+export const updateDashboard = ({ dashboard, id }) => {
+  return http({
+    method: "PUT",
+    url: `${API_URL}/dashboards/${id}`,
+    data: {
+      ...dashboard,
+      dashboard_id: id,
+      subscriptions: dashboard.dashboard_subscriptions,
+    },
   });
 };
 

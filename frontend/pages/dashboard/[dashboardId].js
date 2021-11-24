@@ -8,6 +8,9 @@ import {
   Text,
   Spacer,
   IconButton,
+  Editable,
+  EditableInput,
+  EditablePreview,
 } from "@chakra-ui/react";
 import Scrollable from "../../src/components/Scrollable";
 import RangeSelector from "../../src/components/RangeSelector";
@@ -94,8 +97,12 @@ const Analytics = () => {
   const [timeRange, setTimeRange] = useState(timeMap[MINUTE_KEY]);
   const router = useRouter();
   const { dashboardId } = router.params;
-  const { dashboardCache, dashboardLinksCache, deleteDashboard } =
-    useDashboard(dashboardId);
+  const {
+    dashboardCache,
+    dashboardLinksCache,
+    deleteDashboard,
+    updateDashboard,
+  } = useDashboard(dashboardId);
 
   const { subscriptionsCache } = useSubscriptions();
 
@@ -145,6 +152,12 @@ const Analytics = () => {
   //     }
   //   }, [nodesReady, windowSize]);
 
+  const updateCallback = ({ name }) => {
+    const dashboard = { ...dashboardCache.data.data.resource_data };
+    dashboard.name = name;
+    updateDashboard.mutate({ id: dashboardCache.data.data.id, dashboard });
+  };
+
   if (
     dashboardCache.isLoading ||
     dashboardLinksCache.isLoading ||
@@ -166,16 +179,28 @@ const Analytics = () => {
         minH="100vh"
       >
         <Stack direction={["column", "row", null]} w="100%" placeItems="center">
-          <Heading as="h1" py={2} fontSize={["md", "xl"]}>
-            {dashboardCache.data.data.resource_data.name}
-            <IconButton
-              icon={<BiTrash />}
-              variant="ghost"
-              colorScheme="red"
-              size="sm"
-              onClick={() => toggleAlert(() => deleteDashboard.mutate())}
-            />
-          </Heading>
+          <Editable
+            as={Heading}
+            colorScheme="blue"
+            placeholder="enter note here"
+            defaultValue={dashboardCache.data.data.resource_data.name}
+            onSubmit={(nextValue) =>
+              updateCallback({
+                name: nextValue,
+              })
+            }
+          >
+            <EditablePreview maxW="40rem" _placeholder={{ color: "black" }} />
+            <EditableInput maxW="40rem" />
+          </Editable>
+          <Heading as="h1" py={2} fontSize={["md", "xl"]}></Heading>
+          <IconButton
+            icon={<BiTrash />}
+            variant="ghost"
+            colorScheme="red"
+            size="sm"
+            onClick={() => toggleAlert(() => deleteDashboard.mutate())}
+          />
           <Spacer />
           <RangeSelector
             initialRange={MINUTE_KEY}
