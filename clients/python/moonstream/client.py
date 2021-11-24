@@ -1,19 +1,17 @@
-from dataclasses import dataclass, field
 import logging
 import os
+from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 import requests
+
+from .version import MOONSTREAM_CLIENT_VERSION
 
 logger = logging.getLogger(__name__)
 log_level = logging.INFO
 if os.environ.get("DEBUG", "").lower() in ["true", "1"]:
     log_level = logging.DEBUG
 logger.setLevel(log_level)
-
-
-# Keep this synchronized with the version in setup.py
-CLIENT_VERSION = "0.0.2"
 
 ENDPOINT_PING = "/ping"
 ENDPOINT_VERSION = "/version"
@@ -100,7 +98,7 @@ class Moonstream:
         self.timeout = timeout
         self._session = requests.Session()
         self._session.headers.update(
-            {"User-Agent": f"Moonstream Python client (version {CLIENT_VERSION})"}
+            {"User-Agent": f"Moonstream Python client (version {MOONSTREAM_CLIENT_VERSION})"}
         )
 
     def ping(self) -> Dict[str, Any]:

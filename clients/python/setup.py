@@ -1,12 +1,14 @@
 from setuptools import find_packages, setup
 
+from moonstream.version import MOONSTREAM_CLIENT_VERSION
+
 long_description = ""
 with open("README.md") as ifp:
     long_description = ifp.read()
 
 setup(
     name="moonstream",
-    version="0.0.2",
+    version=MOONSTREAM_CLIENT_VERSION,
     packages=find_packages(),
     package_data={"moonstream": ["py.typed"]},
     install_requires=["requests", "dataclasses; python_version=='3.6'"],
@@ -14,6 +16,7 @@ setup(
         "dev": [
             "black",
             "mypy",
+            "isort",
             "wheel",
             "types-requests",
             "types-dataclasses",
