@@ -1,24 +1,17 @@
-from dataclasses import dataclass, field
 import logging
-from typing import cast, Dict, Any, List, Optional, Tuple
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 from bugout.app import Bugout
 from bugout.data import BugoutResource
-
-from moonstreamdb.models import (
-    EthereumBlock,
-    EthereumTransaction,
-    EthereumLabel,
-)
-from sqlalchemy import or_, and_, text
-from sqlalchemy.orm import Session, Query
+from moonstreamdb.models import EthereumBlock, EthereumLabel, EthereumTransaction
+from sqlalchemy import and_, or_, text
+from sqlalchemy.orm import Query, Session
 from sqlalchemy.sql.functions import user
-
 
 from .. import data
 from ..stream_boundaries import validate_stream_boundary
 from ..stream_queries import StreamQuery
-
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARN)
@@ -59,7 +52,9 @@ def validate_subscription(
     return True, errors
 
 
-def stream_boundary_validator(stream_boundary: data.StreamBoundary) -> None:
+def stream_boundary_validator(
+    stream_boundary: data.StreamBoundary,
+) -> data.StreamBoundary:
     """
     Stream boundary validator for the ethereum_blockchain event provider.
 
@@ -68,9 +63,10 @@ def stream_boundary_validator(stream_boundary: data.StreamBoundary) -> None:
     Raises an error for invalid stream boundaries, else returns None.
     """
     valid_period_seconds = 2 * 60 * 60
-    validate_stream_boundary(
+    _, stream_boundary = validate_stream_boundary(
         stream_boundary, valid_period_seconds, raise_when_invalid=True
     )
+    return stream_boundary
 
 
 @dataclass
@@ -298,7 +294,7 @@ def get_events(
 
     If the query does not require any data from this provider, returns None.
     """
-    stream_boundary_validator(stream_boundary)
+    stream_boundary = stream_boundary_validator(stream_boundary)
 
     parsed_filters = parse_filters(query, user_subscriptions)
     if parsed_filters is None:

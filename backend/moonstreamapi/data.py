@@ -1,13 +1,12 @@
 """
 Pydantic schemas for the Moonstream HTTP API
 """
+from datetime import datetime
 from enum import Enum
-from typing import List, Optional, Dict, Any, Union
+from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
-
 from pydantic import BaseModel, Field
-from datetime import datetime
 
 USER_ONBOARDING_STATE = "onboarding_state"
 
@@ -154,6 +153,7 @@ class StreamBoundary(BaseModel):
     end_time: Optional[int] = None
     include_start: bool = False
     include_end: bool = False
+    reversed_time: bool = False
 
 
 class Event(BaseModel):
