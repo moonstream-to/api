@@ -328,7 +328,7 @@ async def update_dashboard_handler(
     try:
         resource: BugoutResource = bc.update_resource(
             token=token,
-            resource_id=dashboard.dashboard_id,
+            resource_id=dashboard_id,
             resource_data=dashboard_resource,
         )
     except BugoutResponseException as e:
