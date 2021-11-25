@@ -290,6 +290,15 @@ def generate_data(
         .distinct()
     )
 
+    if start is not None:
+        label_requested = label_requested.filter(
+            func.to_timestamp(label_model.block_timestamp) > start
+        )
+    if end is not None:
+        label_requested = label_requested.filter(
+            func.to_timestamp(label_model.block_timestamp) < end
+        )
+
     label_requested = label_requested.subquery(name="label_requested")
 
     # empty timeseries with tags
@@ -334,9 +343,7 @@ def generate_data(
 
     label_counts_subquery = (
         label_counts.group_by(
-            text("timeseries_points"),
-            label_model.label_data["name"].astext,
-            label_model.label_data["name"].astext,
+            text("timeseries_points"), label_model.label_data["name"].astext
         )
         .order_by(text("timeseries_points desc"))
         .subquery(name="label_counts")
@@ -623,6 +630,17 @@ def stats_generate_handler(args: argparse.Namespace):
                             blockchain=blockchain_type,
                         )
 
+                    extention_data.append(
+                        {
+                            "display_name": "Overall unique token owners.",
+                            "value": get_unique_address(
+                                db_session=db_session,
+                                blockchain_type=blockchain_type,
+                                address=address,
+                            ),
+                        }
+                    )
+
                     if "HatchStartedEvent" in events:
 
                         extention_data.append(
@@ -658,17 +676,6 @@ def stats_generate_handler(args: argparse.Namespace):
                                 ),
                             }
                         )
-
-                    extention_data.append(
-                        {
-                            "display_name": "Overall unique token owners.",
-                            "value": get_unique_address(
-                                db_session=db_session,
-                                blockchain_type=blockchain_type,
-                                address=address,
-                            ),
-                        }
-                    )
 
                     for timescale in [timescale.value for timescale in TimeScale]:
 
