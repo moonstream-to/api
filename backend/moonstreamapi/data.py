@@ -249,3 +249,8 @@ class DashboardResource(BaseModel):
 class DashboardCreate(BaseModel):
     name: str
     subscriptions: List[DashboardMeta]
+
+
+class DashboardUpdate(BaseModel):
+    name: Optional[str]
+    subscriptions: List[DashboardMeta] = Field(default_factory=list)
