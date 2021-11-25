@@ -30,6 +30,7 @@ from ..settings import (
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
     CRAWLER_LABEL,
 )
+from .reporter import reporter
 from ..settings import bugout_client as bc
 
 from web3 import Web3
@@ -71,6 +72,9 @@ timescales_delta: Dict[str, Dict[str, timedelta]] = {
     "week": {"timedelta": timedelta(days=6)},
     "day": {"timedelta": timedelta(hours=24)},
 }
+
+
+abi_type_to_dashboards_type = {"function": "methods", "event": "events"}
 
 BUGOUT_RESOURCE_TYPE_SUBSCRIPTION = "subscription"
 BUGOUT_RESOURCE_TYPE_DASHBOARD = "dashboards"
@@ -407,10 +411,15 @@ def generate_list_of_names(
     """
     Generate list of names for select from database by name field
     """
+
     if read_abi:
         names = [item["name"] for item in abi_json if item["type"] == type]
     else:
-        names = [item["name"] for item in subscription_filters[type]]
+
+        names = [
+            item["name"]
+            for item in subscription_filters[abi_type_to_dashboards_type[type]]
+        ]
 
     return names
 
@@ -515,6 +524,7 @@ def stats_generate_handler(args: argparse.Namespace):
 
         # ethereum_blockchain
 
+        start_time = time.time()
         blockchain_type = AvailableBlockchainType(args.blockchain)
 
         # polygon_blockchain
@@ -553,156 +563,181 @@ def stats_generate_handler(args: argparse.Namespace):
                 "dashboard_subscriptions"
             ]:
 
-                subscription_id = dashboard_subscription_filters["subscription_id"]
+                try:
+                    subscription_id = dashboard_subscription_filters["subscription_id"]
 
-                if subscription_id not in subscription_by_id:
-                    # Meen it's are different blockchain type
-                    continue
+                    if subscription_id not in subscription_by_id:
+                        # Meen it's are different blockchain type
+                        continue
 
-                s3_data_object = {}
+                    s3_data_object = {}
 
-                extention_data = []
+                    extention_data = []
 
-                address = subscription_by_id[subscription_id].resource_data["address"]
-
-                generic = dashboard_subscription_filters["generic"]
-
-                if not subscription_by_id[subscription_id].resource_data["abi"]:
-
-                    methods = []
-                    events = []
-
-                else:
-
-                    bucket = subscription_by_id[subscription_id].resource_data["bucket"]
-                    key = subscription_by_id[subscription_id].resource_data["s3_path"]
-
-                    abi = s3_client.get_object(
-                        Bucket=bucket,
-                        Key=key,
-                    )
-                    abi_json = json.loads(abi["Body"].read())
-
-                    methods = generate_list_of_names(
-                        type="methods",
-                        subscription_filters=dashboard_subscription_filters,
-                        read_abi=dashboard_subscription_filters["all_methods"],
-                        abi_json=abi_json,
-                    )
-
-                    events = generate_list_of_names(
-                        type="events",
-                        subscription_filters=dashboard_subscription_filters,
-                        read_abi=dashboard_subscription_filters["all_events"],
-                        abi_json=abi_json,
-                    )
-
-                    abi_external_calls = [
-                        item for item in abi_json if item["type"] == "external_call"
+                    address = subscription_by_id[subscription_id].resource_data[
+                        "address"
                     ]
 
-                    extention_data = process_external(
-                        abi_external_calls=abi_external_calls,
-                        blockchain=blockchain_type,
-                    )
+                    generic = dashboard_subscription_filters["generic"]
 
-                if "HatchStartedEvent" in events:
+                    if not subscription_by_id[subscription_id].resource_data["abi"]:
 
-                    extention_data.append(
-                        {
-                            "display_name": "Number of hatches started.",
-                            "value": get_count(
-                                name="HatchStartedEvent",
-                                type="event",
-                                db_session=db_session,
-                                select_expression=get_label_model(blockchain_type),
-                                blockchain_type=blockchain_type,
-                                address=address,
-                            ),
-                        }
-                    )
+                        methods = []
+                        events = []
 
-                if "HatchFinishedEvent" in events:
+                    else:
 
-                    extention_data.append(
-                        {
-                            "display_name": "Number of hatches finished.",
-                            "value": get_count(
-                                name="HatchFinishedEvent",
-                                type="event",
-                                db_session=db_session,
-                                select_expression=distinct(
-                                    get_label_model(blockchain_type).label_data["args"][
-                                        "tokenId"
-                                    ]
+                        bucket = subscription_by_id[subscription_id].resource_data[
+                            "bucket"
+                        ]
+                        key = subscription_by_id[subscription_id].resource_data[
+                            "s3_path"
+                        ]
+
+                        abi = s3_client.get_object(
+                            Bucket=bucket,
+                            Key=key,
+                        )
+                        abi_json = json.loads(abi["Body"].read())
+
+                        methods = generate_list_of_names(
+                            type="function",
+                            subscription_filters=dashboard_subscription_filters,
+                            read_abi=dashboard_subscription_filters["all_methods"],
+                            abi_json=abi_json,
+                        )
+
+                        events = generate_list_of_names(
+                            type="event",
+                            subscription_filters=dashboard_subscription_filters,
+                            read_abi=dashboard_subscription_filters["all_events"],
+                            abi_json=abi_json,
+                        )
+
+                        abi_external_calls = [
+                            item for item in abi_json if item["type"] == "external_call"
+                        ]
+
+                        extention_data = process_external(
+                            abi_external_calls=abi_external_calls,
+                            blockchain=blockchain_type,
+                        )
+
+                    if "HatchStartedEvent" in events:
+
+                        extention_data.append(
+                            {
+                                "display_name": "Number of hatches started.",
+                                "value": get_count(
+                                    name="HatchStartedEvent",
+                                    type="event",
+                                    db_session=db_session,
+                                    select_expression=get_label_model(blockchain_type),
+                                    blockchain_type=blockchain_type,
+                                    address=address,
                                 ),
+                            }
+                        )
+
+                    if "HatchFinishedEvent" in events:
+
+                        extention_data.append(
+                            {
+                                "display_name": "Number of hatches finished.",
+                                "value": get_count(
+                                    name="HatchFinishedEvent",
+                                    type="event",
+                                    db_session=db_session,
+                                    select_expression=distinct(
+                                        get_label_model(blockchain_type).label_data[
+                                            "args"
+                                        ]["tokenId"]
+                                    ),
+                                    blockchain_type=blockchain_type,
+                                    address=address,
+                                ),
+                            }
+                        )
+
+                    extention_data.append(
+                        {
+                            "display_name": "Overall unique token owners.",
+                            "value": get_unique_address(
+                                db_session=db_session,
                                 blockchain_type=blockchain_type,
                                 address=address,
                             ),
                         }
                     )
 
-                extention_data.append(
-                    {
-                        "display_name": "Overall unique token owners.",
-                        "value": get_unique_address(
+                    for timescale in [timescale.value for timescale in TimeScale]:
+
+                        start_date = (
+                            datetime.utcnow() - timescales_delta[timescale]["timedelta"]
+                        )
+
+                        print(f"Timescale: {timescale}")
+
+                        s3_data_object["web3_metric"] = extention_data
+
+                        functions_calls_data = generate_data(
                             db_session=db_session,
                             blockchain_type=blockchain_type,
                             address=address,
-                        ),
-                    }
-                )
+                            timescale=timescale,
+                            functions=methods,
+                            start=start_date,
+                            metric_type="tx_call",
+                        )
 
-                for timescale in [timescale.value for timescale in TimeScale]:
+                        s3_data_object["functions"] = functions_calls_data
 
-                    start_date = (
-                        datetime.utcnow() - timescales_delta[timescale]["timedelta"]
+                        events_data = generate_data(
+                            db_session=db_session,
+                            blockchain_type=blockchain_type,
+                            address=address,
+                            timescale=timescale,
+                            functions=events,
+                            start=start_date,
+                            metric_type="event",
+                        )
+
+                        s3_data_object["events"] = events_data
+
+                        s3_data_object["generic"] = generate_metrics(
+                            db_session=db_session,
+                            blockchain_type=blockchain_type,
+                            address=address,
+                            timescale=timescale,
+                            metrics=generic,
+                            start=start_date,
+                        )
+
+                        push_statistics(
+                            statistics_data=s3_data_object,
+                            subscription=subscription_by_id[subscription_id],
+                            timescale=timescale,
+                            bucket=bucket,
+                            dashboard_id=dashboard.id,
+                        )
+                except Exception as err:
+                    reporter.error_report(
+                        err,
+                        [
+                            "dashboard",
+                            "statistics",
+                            f"blockchain:{args.blockchain}"
+                            f"subscriptions:{subscription_id}",
+                            f"dashboard:{dashboard.id}",
+                        ],
                     )
+                    print(err)
 
-                    print(f"Timescale: {timescale}")
-
-                    s3_data_object["web3_metric"] = extention_data
-
-                    functions_calls_data = generate_data(
-                        db_session=db_session,
-                        blockchain_type=blockchain_type,
-                        address=address,
-                        timescale=timescale,
-                        functions=methods,
-                        start=start_date,
-                        metric_type="tx_call",
-                    )
-
-                    s3_data_object["functions"] = functions_calls_data
-
-                    events_data = generate_data(
-                        db_session=db_session,
-                        blockchain_type=blockchain_type,
-                        address=address,
-                        timescale=timescale,
-                        functions=events,
-                        start=start_date,
-                        metric_type="event",
-                    )
-
-                    s3_data_object["events"] = events_data
-
-                    s3_data_object["generic"] = generate_metrics(
-                        db_session=db_session,
-                        blockchain_type=blockchain_type,
-                        address=address,
-                        timescale=timescale,
-                        metrics=generic,
-                        start=start_date,
-                    )
-
-                    push_statistics(
-                        statistics_data=s3_data_object,
-                        subscription=subscription_by_id[subscription_id],
-                        timescale=timescale,
-                        bucket=bucket,
-                        dashboard_id=dashboard.id,
-                    )
+        reporter.custom_report(
+            title=f"Dashboard stats generated.",
+            content=f"Generate statistics for {args.blockchain}. \n Generation time: {time.time() - start_time}.",
+            tags=["dashboard", "statistics", f"blockchain:{args.blockchain}"],
+        )
 
 
 def main() -> None:
