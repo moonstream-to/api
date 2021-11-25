@@ -58,9 +58,9 @@ In this case we will be receiving events from bottom of history to recent time i
 # Continuing...
 ```
 
-**From timestamp to timestamp, from bottom to top**
+**From timestamp to timestamp, from top to bottom**
 
-When `start_time` is less then `end_time`.
+When `start_time` is greater then `end_time`.
 
 ```python
 for events in mc.create_stream(
@@ -80,9 +80,9 @@ Stream of event packs will be generating from recent timestamp to older and inne
 [1637832676, ..., 1637830903]
 ```
 
-**From timestamp to timestamp, from top to bottom**
+**From timestamp to timestamp, from bottom to top**
 
-When `start_time` is greater then `end_time`.
+When `start_time` is less then `end_time`.
 
 ```python
 for events in mc.create_stream(
