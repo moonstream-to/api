@@ -31,7 +31,7 @@ mc.authorize(access_token)
 
 Return a stream of event for time range.
 
-**From timestamp to None**
+**From timestamp to None, from bottom to top**
 
 When `end_time` is not set.
 

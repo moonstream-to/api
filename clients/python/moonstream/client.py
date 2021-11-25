@@ -405,6 +405,7 @@ class Moonstream:
 
         Returns: A dictionary stream representing the results of your query.
         """
+        # TODO(kompotkot): Add tests
         shift_two_hours = 2 * 60 * 60  # 2 hours
         shift_half_hour = 1 * 30 * 30  # 30 min
 
