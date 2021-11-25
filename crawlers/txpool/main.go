@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"math/big"
 	"os"
+	"strings"
 	"time"
 
 	humbug "github.com/bugout-dev/humbug/go/pkg"
@@ -83,7 +84,7 @@ func generateChunks(xs []humbug.Report, chunkSize int) [][]humbug.Report {
 }
 
 // Fetch list of transactions form Ethereum TxPool
-func PollTxpoolContent(gethClient *rpc.Client, interval int, reporter *humbug.HumbugReporter) {
+func PollTxpoolContent(gethClient *rpc.Client, interval int, reporter *humbug.HumbugReporter, blockchain string) {
 	initPoll := true
 	currentTransactions := make(map[common.Hash]bool)
 
@@ -121,7 +122,7 @@ func PollTxpoolContent(gethClient *rpc.Client, interval int, reporter *humbug.Hu
 						continue
 					}
 
-					ReportTitle := "Ethereum: Pending transaction: " + transactionHash.String()
+					ReportTitle := fmt.Sprintf("%s: Pending transaction: ", strings.Title(blockchain)) + transactionHash.String()
 					ReportTags := []string{
 						"hash:" + transactionHash.String(),
 						"from_address:" + fromAddress,
@@ -131,7 +132,7 @@ func PollTxpoolContent(gethClient *rpc.Client, interval int, reporter *humbug.Hu
 						fmt.Sprintf("max_fee_per_gas:%d", pendingTx.Transaction.MaxFeePerGas.ToInt()),
 						fmt.Sprintf("gas:%d", pendingTx.Transaction.Gas),
 						fmt.Sprintf("value:%d", new(big.Float).Quo(new(big.Float).SetInt(transaction.Value.ToInt()), big.NewFloat(params.Ether))),
-						"crawl_type:ethereum_txpool",
+						fmt.Sprintf("crawl_type:%s_txpool", blockchain),
 					}
 					report := humbug.Report{
 						Title:   ReportTitle,
@@ -175,13 +176,17 @@ func PollTxpoolContent(gethClient *rpc.Client, interval int, reporter *humbug.Hu
 }
 
 func main() {
+	var blockchain string
 	var intervalSeconds int
+	flag.StringVar(&blockchain, "blockchain", "ethereum", "Blockchain to crawl")
 	flag.IntVar(&intervalSeconds, "interval", 1, "Number of seconds to wait between RPC calls to query the transaction pool (default: 1)")
 	flag.Parse()
 
-	var MOONSTREAM_NODE_ETHEREUM_IPC_ADDR = os.Getenv("MOONSTREAM_NODE_ETHEREUM_IPC_ADDR")
-	var MOONSTREAM_NODE_ETHEREUM_IPC_PORT = os.Getenv("MOONSTREAM_NODE_ETHEREUM_IPC_PORT")
-	var MOONSTREAM_IPC_PATH = fmt.Sprintf("http://%s:%s", MOONSTREAM_NODE_ETHEREUM_IPC_ADDR, MOONSTREAM_NODE_ETHEREUM_IPC_PORT)
+	var MOONSTREAM_NODE_IPC_ADDR = os.Getenv(fmt.Sprintf("MOONSTREAM_NODE_%s_IPC_ADDR", strings.ToUpper(blockchain)))
+	var MOONSTREAM_NODE_IPC_PORT = os.Getenv(fmt.Sprintf("MOONSTREAM_NODE_%s_IPC_PORT", strings.ToUpper(blockchain)))
+	var MOONSTREAM_IPC_PATH = fmt.Sprintf("http://%s:%s", MOONSTREAM_NODE_IPC_ADDR, MOONSTREAM_NODE_IPC_PORT)
+
+	fmt.Println(MOONSTREAM_IPC_PATH)
 
 	sessionID := uuid.New().String()
 
@@ -213,5 +218,5 @@ func main() {
 		panic(fmt.Sprintf("Invalid Humbug configuration: %s", err.Error()))
 	}
 
-	PollTxpoolContent(gethClient, intervalSeconds, reporter)
+	PollTxpoolContent(gethClient, intervalSeconds, reporter, blockchain)
 }

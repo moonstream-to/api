@@ -1,5 +1,5 @@
 [Unit]
-Description=Ethereum txpool crawler
+Description=Polygon txpool crawler
 After=network.target
 
 [Service]
@@ -7,8 +7,8 @@ User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/moonstream/crawlers/txpool
 EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
-ExecStart=/home/ubuntu/moonstream/crawlers/txpool/txpool -blockchain ethereum
-SyslogIdentifier=ethereum-txpool
+ExecStart=/home/ubuntu/moonstream/crawlers/txpool/txpool -blockchain polygon
+SyslogIdentifier=polygon-txpool
 
 [Install]
 WantedBy=multi-user.target
