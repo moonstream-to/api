@@ -8,7 +8,7 @@ import logging
 import time
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Union
+from typing import Any, Callable, Dict, List
 from uuid import UUID
 
 import boto3  # type: ignore
@@ -32,7 +32,7 @@ from ..settings import (
 )
 from ..settings import bugout_client as bc
 
-from web3 import Web3, method
+from web3 import Web3
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -332,6 +332,7 @@ def generate_data(
         label_counts.group_by(
             text("timeseries_points"),
             label_model.label_data["name"].astext,
+            label_model.label_data["name"].astext,
         )
         .order_by(text("timeseries_points desc"))
         .subquery(name="label_counts")
@@ -414,7 +415,9 @@ def generate_list_of_names(
     return names
 
 
-def process_external(abi_external_calls, blockchain):
+def process_external(
+    abi_external_calls: List[Dict[str, Any]], blockchain: AvailableBlockchainType
+):
     """
     Request all required external data
     TODO:(Andrey) Check posibility do it via AsyncHttpProvider(not supported for some of middlewares).
@@ -551,8 +554,6 @@ def stats_generate_handler(args: argparse.Namespace):
             ]:
 
                 subscription_id = dashboard_subscription_filters["subscription_id"]
-
-                print(subscription_id)
 
                 if subscription_id not in subscription_by_id:
                     # Meen it's are different blockchain type
