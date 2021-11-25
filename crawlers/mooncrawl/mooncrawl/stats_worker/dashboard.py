@@ -30,7 +30,7 @@ from ..settings import (
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
     CRAWLER_LABEL,
 )
-from .reporter import reporter
+from ..reporter import reporter
 from ..settings import bugout_client as bc
 
 from web3 import Web3
