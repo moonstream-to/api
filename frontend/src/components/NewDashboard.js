@@ -66,6 +66,30 @@ const NewDashboard = (props) => {
   );
 
   useEffect(() => {
+    newDashboardForm.subscriptions.forEach((element, idx) => {
+      const subscription =
+        subscriptions.subscriptionsCache.data?.subscriptions.find(
+          (subscription_item) =>
+            element.subscription_id === subscription_item.id
+        );
+
+      if (
+        element.subscription_id &&
+        subscription &&
+        newDashboardForm.subscriptions[idx].abi !== subscription?.abi
+      ) {
+        const newestDashboardForm = { ...newDashboardForm };
+        newestDashboardForm.subscriptions[idx].abi = subscription.abi;
+        setNewDashboardForm(newestDashboardForm);
+      }
+    });
+  }, [
+    subscriptions.subscriptionsCache.data,
+    newDashboardForm,
+    setNewDashboardForm,
+  ]);
+
+  useEffect(() => {
     if (!subscriptions.subscriptionsCache.isLoading) {
       const massaged = subscriptions.subscriptionsCache.data?.subscriptions.map(
         (item) => {
@@ -195,7 +219,6 @@ const NewDashboard = (props) => {
                                 };
                                 setNewDashboardForm(newState);
                               }}
-                              // isOpen={showSuggestions}
                               itemToString={(item) => (item ? item.label : "")}
                               initialSelectedItem={subscibedItem ?? undefined}
                             >
@@ -208,7 +231,6 @@ const NewDashboard = (props) => {
                                 isOpen,
                                 inputValue,
                                 highlightedIndex,
-                                // selectedItem,
                                 getRootProps,
                               }) => {
                                 const labelColor =
@@ -217,7 +239,6 @@ const NewDashboard = (props) => {
                                 return (
                                   <Box pos="relative">
                                     <Box
-                                      // style={comboboxStyles}
                                       {...getRootProps(
                                         {},
                                         { suppressRefError: true }
@@ -252,9 +273,6 @@ const NewDashboard = (props) => {
                                           placeholder="Subscription to use in dashboard"
                                           isTruncated
                                           fontSize="sm"
-                                          // defaultValue={
-                                          //   subscibedItem?.label ?? "yoyoy"
-                                          // }
                                           {...getInputProps({
                                             defaultValue:
                                               subscibedItem?.label ?? "iha",
@@ -271,18 +289,6 @@ const NewDashboard = (props) => {
                                         </InputRightAddon>
                                       </InputGroup>
                                     </Box>
-                                    {/* <Menu
-                                          isOpen={isOpen}
-
-                                          // style={menuStyles}
-                                          // position="absolute"
-                                          colorScheme="blue"
-                                          bgColor="gray.300"
-                                          inset="unset"
-                                          // spacing={2}
-
-                                          // p={2}
-                                        > */}
                                     {isOpen ? (
                                       <Stack
                                         // display="flex"
@@ -416,35 +422,6 @@ const NewDashboard = (props) => {
                               }}
                             </Downshift>
                           </>
-                          // <AutoComplete
-                          //   openOnFocus
-                          //   creatable
-                          //   suggestWhenEmpty
-                          // >
-                          //   <AutoCompleteInput variant="filled" />
-                          //   <AutoCompleteList>
-                          //     {pickerItems?.map((subscription, oid) => (
-                          //       <AutoCompleteItem
-                          //         key={`row-${idx}-option-${oid}`}
-                          //         value={subscription.address}
-                          //         textTransform="capitalize"
-                          //         align="center"
-                          //       >
-                          //         {/* <Avatar
-                          //       size="sm"
-                          //       // name={person.name}
-                          //       // src={person.image}
-                          //     /> */}
-                          //         <Text ml="4">{subscription.label}</Text>
-                          //       </AutoCompleteItem>
-                          //     ))}
-                          //     {/* <AutoCompleteCreatable>
-                          //     {({ value }) => (
-                          //       <span>New Subscription: {value}</span>
-                          //     )}
-                          //   </AutoCompleteCreatable> */}
-                          //   </AutoCompleteList>
-                          // </AutoComplete>
                         )}
                     </Td>
                     <Td p={1} textAlign="center">
@@ -460,7 +437,7 @@ const NewDashboard = (props) => {
                           onClick={() =>
                             overlay.toggleModal({
                               type: MODAL_TYPES.UPLOAD_ABI,
-                              props: { id: subscibedItem.id },
+                              props: { id: subscibedItem.subscription_id },
                             })
                           }
                         >
@@ -620,14 +597,6 @@ const NewDashboard = (props) => {
             </Button>
           </Center>
         </Box>
-
-        {/* <Box>
-                <FormLabel htmlFor="desc">ABI</FormLabel>
-                <Textarea
-                  id="desc"
-                  placeholder="ABI Upload element should be here instead"
-                />
-              </Box> */}
       </Stack>
     </>
   );
