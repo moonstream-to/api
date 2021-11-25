@@ -216,8 +216,7 @@ const Analytics = () => {
                 <SubscriptionReport
                   timeRange={timeRange}
                   url={s3PresignedURLs[timeRange]}
-                  id={v4()}
-                  type={v4()}
+                  id={dashboardId}
                   refetchLinks={dashboardLinksCache.refetch}
                 />
               </Flex>
