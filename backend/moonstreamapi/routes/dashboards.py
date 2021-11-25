@@ -411,12 +411,11 @@ async def get_dashboard_data_links_handler(
 
     for subscription in dashboard_subscriptions:
 
-        hash = subscription.resource_data["abi_hash"]
         available_timescales = [timescale.value for timescale in data.TimeScale]
         stats[subscription.id] = {}
         for timescale in available_timescales:
             try:
-                result_key = f'{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/{blockchain_by_subscription_id[subscription.resource_data["subscription_type_id"]]}/contracts_data/{subscription.resource_data["address"]}/{hash}/v1/{timescale}.json'
+                result_key = f'{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/{blockchain_by_subscription_id[subscription.resource_data["subscription_type_id"]]}/contracts_data/{subscription.resource_data["address"]}/{dashboard_id}/v1/{timescale}.json'
                 stats_presigned_url = s3_client.generate_presigned_url(
                     "get_object",
                     Params={
