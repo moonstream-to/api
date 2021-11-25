@@ -12,12 +12,12 @@ timeMap[HOUR_KEY] = "hour";
 timeMap[DAY_KEY] = "day";
 timeMap[WEEK_KEY] = "week";
 
-const SubscriptionReport = ({ timeRange, url, id, type, refetchLinks }) => {
+const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
   const { data, isLoading } = usePresignedURL({
     url: url,
     isEnabled: true,
     id: id,
-    type: type,
+    cacheType: timeRange,
     requestNewURLCallback: refetchLinks,
   });
   const plotMinW = "250px";

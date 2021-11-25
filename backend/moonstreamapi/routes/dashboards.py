@@ -7,7 +7,7 @@ from uuid import UUID
 import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
-from fastapi import APIRouter, Request, Query
+from fastapi import APIRouter, Request, Query, Body
 
 from .. import actions
 from .. import data
@@ -41,7 +41,7 @@ blockchain_by_subscription_id = {
 
 @router.post("/", tags=["dashboards"], response_model=BugoutResource)
 async def add_dashboard_handler(
-    request: Request, dashboard: data.DashboardCreate
+    request: Request, dashboard: data.DashboardCreate = Body(...)
 ) -> BugoutResource:
     """
     Add subscription to blockchain stream data for user.
@@ -231,10 +231,7 @@ async def get_dashboard_handler(
 
 @router.put("/{dashboard_id}", tags=["dashboards"], response_model=BugoutResource)
 async def update_dashboard_handler(
-    request: Request,
-    dashboard_id: str,
-    name: Optional[str],
-    subscriptions: List[data.DashboardMeta],
+    request: Request, dashboard_id: str, dashboard: data.DashboardUpdate = Body(...)
 ) -> BugoutResource:
     """
     Update dashboards mainly fully overwrite name and subscription metadata
@@ -244,7 +241,7 @@ async def update_dashboard_handler(
 
     user = request.state.user
 
-    dashboard_subscriptions = subscriptions
+    dashboard_subscriptions = dashboard.subscriptions
 
     params = {
         "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
@@ -277,7 +274,7 @@ async def update_dashboard_handler(
                 "bucket"
             ]
             abi_path = available_subscriptions[dashboard_subscription.subscription_id][
-                "abi_path"
+                "s3_path"
             ]
 
             if bucket is None or abi_path is None:
@@ -306,8 +303,7 @@ async def update_dashboard_handler(
                     internal_error=e,
                     detail=f"We can't access the abi for subscription with id:{dashboard_subscription.subscription_id}.",
                 )
-
-            abi = data.DashboardMeta(**response["Body"].read().decode("utf-8"))
+            abi = json.loads(response["Body"].read())
 
             actions.dashboards_abi_validation(
                 dashboard_subscription, abi, s3_path=s3_path
@@ -321,23 +317,25 @@ async def update_dashboard_handler(
 
     dashboard_resource: Dict[str, Any] = {}
 
-    if subscriptions:
+    if dashboard_subscriptions:
 
-        dashboard_resource["subscriptions"] = subscriptions
+        dashboard_resource["dashboard_subscriptions"] = json.loads(dashboard.json())[
+            "subscriptions"
+        ]
 
-    if name is not None:
-        dashboard_resource["name"] = name
+    if dashboard.name is not None:
+        dashboard_resource["name"] = dashboard.name
 
     try:
         resource: BugoutResource = bc.update_resource(
             token=token,
             resource_id=dashboard_id,
-            resource_data=dashboard_resource,
+            resource_data=data.SubscriptionUpdate(update=dashboard_resource).dict(),
         )
     except BugoutResponseException as e:
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
-        logger.error(f"Error creating subscription resource: {str(e)}")
+        logger.error(f"Error updating subscription resource: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     return resource
@@ -411,12 +409,11 @@ async def get_dashboard_data_links_handler(
 
     for subscription in dashboard_subscriptions:
 
-        hash = subscription.resource_data["abi_hash"]
         available_timescales = [timescale.value for timescale in data.TimeScale]
         stats[subscription.id] = {}
         for timescale in available_timescales:
             try:
-                result_key = f'{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/{blockchain_by_subscription_id[subscription.resource_data["subscription_type_id"]]}/contracts_data/{subscription.resource_data["address"]}/{hash}/v1/{timescale}.json'
+                result_key = f'{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/{blockchain_by_subscription_id[subscription.resource_data["subscription_type_id"]]}/contracts_data/{subscription.resource_data["address"]}/{dashboard_id}/v1/{timescale}.json'
                 stats_presigned_url = s3_client.generate_presigned_url(
                     "get_object",
                     Params={
