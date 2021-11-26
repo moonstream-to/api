@@ -38,8 +38,6 @@ const usePresignedURL = ({
         ) {
           requestNewURLCallback();
         } else {
-          console.log(e.code);
-          //console.log(Object.prototype.getType(error));
           toast(error, "error");
         }
       },
