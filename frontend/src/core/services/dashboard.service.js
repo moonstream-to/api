@@ -1,4 +1,3 @@
-import { identify } from "mixpanel-browser";
 import { http } from "../utils";
 
 const API_URL = process.env.NEXT_PUBLIC_MOONSTREAM_API_URL;
