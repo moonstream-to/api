@@ -230,6 +230,10 @@ class OnboardingState(BaseModel):
     steps: Dict[str, int]
 
 
+class SubdcriptionsAbiResponse(BaseModel):
+    url: str
+
+
 class DashboardMeta(BaseModel):
     subscription_id: UUID
     generic: Optional[List[Dict[str, str]]]

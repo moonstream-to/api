@@ -315,6 +315,51 @@ async def update_subscriptions_handler(
 
 
 @router.get(
+    "/{subscription_id}/abi",
+    tags=["subscriptions"],
+    response_model=data.SubdcriptionsAbiResponse,
+)
+async def get_subscription_abi_handler(
+    request: Request,
+    subscription_id: str,
+) -> data.SubscriptionResourceData:
+
+    token = request.state.token
+
+    try:
+        subscription_resource: BugoutResource = bc.get_resource(
+            token=token,
+            resource_id=subscription_id,
+        )
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        logger.error(f"Error creating subscription resource: {str(e)}")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    if subscription_resource.resource_data["abi"] is None:
+        raise MoonstreamHTTPException(
+            status_code=404,
+            detail="Subscription abi not exists.",
+        )
+
+    s3_client = boto3.client("s3")
+
+    result_key = f"{subscription_resource.resource_data['bucket']}/{subscription_resource.resource_data['s3_path']}"
+    presigned_url = s3_client.generate_presigned_url(
+        "get_object",
+        Params={
+            "Bucket": MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
+            "Key": result_key,
+        },
+        ExpiresIn=300,
+        HttpMethod="GET",
+    )
+
+    return data.SubdcriptionsAbiResponse(url=presigned_url)
+
+
+@router.get(
     "/types", tags=["subscriptions"], response_model=data.SubscriptionTypesListResponse
 )
 async def list_subscription_types() -> data.SubscriptionTypesListResponse:
