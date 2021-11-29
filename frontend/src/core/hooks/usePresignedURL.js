@@ -30,6 +30,7 @@ const usePresignedURL = ({
     {
       ...queryCacheProps,
       enabled: isEnabled && url ? true : false,
+      retry: 3,
       onError: (e) => {
         if (
           e?.response?.data?.includes("Request has expired") ||
@@ -38,7 +39,6 @@ const usePresignedURL = ({
           requestNewURLCallback();
         } else if (e.code === "ECONNABORTED") {
           // Called when the response timeout expires
-          refetch();
         } else {
           toast(error, "error");
         }
