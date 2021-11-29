@@ -19,7 +19,7 @@ const usePresignedURL = ({
       // You can uncomment this to use mockupsLibrary in development
       // url: `https://example.com/s3`,
       method: "GET",
-      timeout: 15 * 1000,
+      timeout: 15 * 1000, // response await timeout
     });
     return response.data;
   };
@@ -33,10 +33,12 @@ const usePresignedURL = ({
       onError: (e) => {
         if (
           e?.response?.data?.includes("Request has expired") ||
-          e?.response?.status === 403 ||
-          e.code === "ECONNABORTED"
+          e?.response?.status === 403
         ) {
           requestNewURLCallback();
+        } else if (e.code === "ECONNABORTED") {
+          // Called when the response timeout expires
+          refetch();
         } else {
           toast(error, "error");
         }
