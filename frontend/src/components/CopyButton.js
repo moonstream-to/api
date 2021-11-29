@@ -11,8 +11,10 @@ import {
 import { BiCopy } from "react-icons/bi";
 
 const CopyButton = (props) => {
+  console.log(props.copyString);
   const children = props.children ? props.children : "";
-  const copyString = props.prefix ? props.prefix + children : children;
+  const copyString =
+    props.copyString ?? (props.prefix ? props.prefix + children : children);
 
   const { onCopy } = useClipboard(copyString);
 
@@ -31,7 +33,7 @@ const CopyButton = (props) => {
                   icon={<BiCopy />}
                   colorScheme="orange"
                   variant="ghost"
-                  size="sm"
+                  size={props.size ?? "sm"}
                 />
               </PopoverTrigger>
               <PopoverContent
