@@ -11,7 +11,6 @@ import {
 import { BiCopy } from "react-icons/bi";
 
 const CopyButton = (props) => {
-  console.log(props.copyString);
   const children = props.children ? props.children : "";
   const copyString =
     props.copyString ?? (props.prefix ? props.prefix + children : children);
