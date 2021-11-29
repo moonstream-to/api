@@ -322,7 +322,7 @@ async def update_subscriptions_handler(
 async def get_subscription_abi_handler(
     request: Request,
     subscription_id: str,
-) -> data.SubscriptionResourceData:
+) -> data.SubdcriptionsAbiResponse:
 
     token = request.state.token
 
@@ -345,11 +345,11 @@ async def get_subscription_abi_handler(
 
     s3_client = boto3.client("s3")
 
-    result_key = f"{subscription_resource.resource_data['bucket']}/{subscription_resource.resource_data['s3_path']}"
+    result_key = f"{subscription_resource.resource_data['s3_path']}"
     presigned_url = s3_client.generate_presigned_url(
         "get_object",
         Params={
-            "Bucket": MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
+            "Bucket": subscription_resource.resource_data["bucket"],
             "Key": result_key,
         },
         ExpiresIn=300,
