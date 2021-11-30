@@ -160,9 +160,21 @@ cython_debug/
 
 # End of https://www.toptal.com/developers/gitignore/api/python,visualstudiocode
 
-# Custom
+# Envionments
+.moonstream/
+.moonstreamapi/
+.venv/
+.env/
+
+# Environment variables
 dev.env
+test.env
 prod.env
-.moonstream
-.venv
-.secrets
+moonstreamapi.env
+docker.env
+docker.dev.env
+docker.test.dev
+docker.prod.env
+docker.moonstreamapi.env
+
+.secrets/
