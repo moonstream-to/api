@@ -54,6 +54,28 @@ This monorepo contains the following components:
    [Bugout](https://bugout.dev). For more information on how that data is processed, check how the API
    inserts events from those sources into a stream.
 
+### Installation and setup
+
+#### Run server with Docker Compose
+
+If you want to deploy Moonstream in isolation against live services, then docker compose is your choice!
+
+- Run script `backend/configs/docker_generate_env.sh` which prepare for you:
+  - `backend/configs/docker.moonstreamapi.env` with environment variables
+- Run script `db/configs/docker_generate_env.sh` which prepare for you:
+  - `db/configs/alembic.moonstreamdb.ini` with postgresql uri
+
+```bash
+./backend/configs/docker_generate_env.sh
+./db/configs/docker_generate_env.sh
+```
+
+- Run local setup
+
+```bash
+docker-compose up --build
+```
+
 ## Contributing
 
 If you would like to contribute to Moonstream, please reach out to @zomglings on the [Moonstream Discord](https://discord.gg/pYE65FuNSz).
