@@ -60,14 +60,14 @@ This monorepo contains the following components:
 
 If you want to deploy Moonstream in isolation against live services, then docker compose is your choice!
 
-- Run script `backend/configs/docker_generate_env.sh` which prepare for you:
+- Run script `backend/configs/docker_generate_env.bash` which prepare for you:
   - `backend/configs/docker.moonstreamapi.env` with environment variables
-- Run script `db/configs/docker_generate_env.sh` which prepare for you:
+- Run script `db/configs/docker_generate_env.bash` which prepare for you:
   - `db/configs/alembic.moonstreamdb.ini` with postgresql uri
 
 ```bash
-./backend/configs/docker_generate_env.sh
-./db/configs/docker_generate_env.sh
+./backend/configs/docker_generate_env.bash
+./db/configs/docker_generate_env.bash
 ```
 
 - Run local setup
