@@ -44,6 +44,7 @@ POLYGON_MISSING_SERVICE_FILE="polygon-missing.service"
 POLYGON_MISSING_TIMER_FILE="polygon-missing.timer"
 POLYGON_STATISTICS_SERVICE_FILE="polygon-statistics.service"
 POLYGON_STATISTICS_TIMER_FILE="polygon-statistics.timer"
+POLYGON_TXPOOL_SERVICE_FILE="polygon-txpool.service"
 
 
 set -eu
@@ -52,8 +53,8 @@ echo
 echo
 echo -e "${PREFIX_INFO} Building executable Ethereum transaction pool crawler script with Go"
 EXEC_DIR=$(pwd)
-cd "${APP_CRAWLERS_DIR}/ethtxpool"
-HOME=/root /usr/local/go/bin/go build -o "${APP_CRAWLERS_DIR}/ethtxpool/ethtxpool" "${APP_CRAWLERS_DIR}/ethtxpool/main.go"
+cd "${APP_CRAWLERS_DIR}/txpool"
+HOME=/root /usr/local/go/bin/go build -o "${APP_CRAWLERS_DIR}/txpool/txpool" "${APP_CRAWLERS_DIR}/txpool/main.go"
 cd "${EXEC_DIR}"
 
 echo
@@ -141,3 +142,11 @@ cp "${SCRIPT_DIR}/${POLYGON_STATISTICS_SERVICE_FILE}" "/etc/systemd/system/${POL
 cp "${SCRIPT_DIR}/${POLYGON_STATISTICS_TIMER_FILE}" "/etc/systemd/system/${POLYGON_STATISTICS_TIMER_FILE}"
 systemctl daemon-reload
 systemctl restart "${POLYGON_STATISTICS_TIMER_FILE}"
+
+# echo
+# echo
+# echo -e "${PREFIX_INFO} Replacing existing Polygon transaction pool crawler service definition with ${POLYGON_TXPOOL_SERVICE_FILE}"
+# chmod 644 "${SCRIPT_DIR}/${POLYGON_TXPOOL_SERVICE_FILE}"
+# cp "${SCRIPT_DIR}/${POLYGON_TXPOOL_SERVICE_FILE}" "/etc/systemd/system/${POLYGON_TXPOOL_SERVICE_FILE}"
+# systemctl daemon-reload
+# systemctl restart "${POLYGON_TXPOOL_SERVICE_FILE}"

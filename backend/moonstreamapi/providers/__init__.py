@@ -24,17 +24,17 @@ if the order does not matter and you would rather emphasize speed. Only availabl
 lists of events. (Default: True)
 """
 
-from concurrent.futures import Future, ThreadPoolExecutor
 import logging
+from concurrent.futures import Future, ThreadPoolExecutor
 from typing import Any, Dict, List, Optional, Tuple
 
 from bugout.app import Bugout
 from bugout.data import BugoutResource
 from sqlalchemy.orm import Session
 
-from . import bugout, ethereum_blockchain
 from .. import data
 from ..stream_queries import StreamQuery
+from . import bugout, ethereum_blockchain
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARN)
@@ -74,7 +74,14 @@ def get_events(
     with ThreadPoolExecutor(
         max_workers=max_threads, thread_name_prefix="event_providers_"
     ) as executor:
-        for provider_name, provider in event_providers.items():
+        # Filter our not queried event_types
+        event_providers_filtered = {
+            key: value
+            for (key, value) in event_providers.items()
+            if value.event_type in query.subscription_types
+        }
+
+        for provider_name, provider in event_providers_filtered.items():
             futures[provider_name] = executor.submit(
                 provider.get_events,
                 db_session,
@@ -100,9 +107,15 @@ def get_events(
             else:
                 raise ReceivingEventsException(e)
 
+    stream_boundary = [boundary for boundary, _ in results.values()][0]
     events = [event for _, event_list in results.values() for event in event_list]
     if sort_events:
-        events.sort(key=lambda event: event.event_timestamp, reverse=True)
+        # If stream_boundary time was reversed, so do not reverse by timestamp,
+        # it is already in correct oreder
+        events.sort(
+            key=lambda event: event.event_timestamp,
+            reverse=not stream_boundary.reversed_time,
+        )
 
     return (stream_boundary, events)
 
@@ -132,7 +145,14 @@ def latest_events(
     with ThreadPoolExecutor(
         max_workers=max_threads, thread_name_prefix="event_providers_"
     ) as executor:
-        for provider_name, provider in event_providers.items():
+        # Filter our not queried event_types
+        event_providers_filtered = {
+            key: value
+            for (key, value) in event_providers.items()
+            if value.event_type in query.subscription_types
+        }
+
+        for provider_name, provider in event_providers_filtered.items():
             futures[provider_name] = executor.submit(
                 provider.latest_events,
                 db_session,
@@ -157,7 +177,6 @@ def latest_events(
                 )
             else:
                 raise ReceivingEventsException(e)
-
     events = [event for event_list in results.values() for event in event_list]
     if sort_events:
         events.sort(key=lambda event: event.event_timestamp, reverse=True)
@@ -185,7 +204,14 @@ def next_event(
     with ThreadPoolExecutor(
         max_workers=max_threads, thread_name_prefix="event_providers_"
     ) as executor:
-        for provider_name, provider in event_providers.items():
+        # Filter our not queried event_types
+        event_providers_filtered = {
+            key: value
+            for (key, value) in event_providers.items()
+            if value.event_type in query.subscription_types
+        }
+
+        for provider_name, provider in event_providers_filtered.items():
             futures[provider_name] = executor.submit(
                 provider.next_event,
                 db_session,
@@ -241,7 +267,14 @@ def previous_event(
     with ThreadPoolExecutor(
         max_workers=max_threads, thread_name_prefix="event_providers_"
     ) as executor:
-        for provider_name, provider in event_providers.items():
+        # Filter our not queried event_types
+        event_providers_filtered = {
+            key: value
+            for (key, value) in event_providers.items()
+            if value.event_type in query.subscription_types
+        }
+
+        for provider_name, provider in event_providers_filtered.items():
             futures[provider_name] = executor.submit(
                 provider.previous_event,
                 db_session,

@@ -1,4 +1,4 @@
-module github.com/bugout-dev/moonstream/crawlers/ethtxpool
+module github.com/bugout-dev/moonstream/crawlers/txpool
 
 go 1.16
 
