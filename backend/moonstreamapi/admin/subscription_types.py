@@ -17,6 +17,26 @@ from ..settings import (
 from ..settings import bugout_client as bc
 
 CANONICAL_SUBSCRIPTION_TYPES = {
+    "ethereum_smartcontract": SubscriptionTypeResourceData(
+        id="ethereum_smartcontract",
+        name="Ethereum smartcontracts",
+        choices=["input:address", "tag:erc721"],
+        description="Contracts events and tx_calls of contract of Ethereum blockchain",
+        icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/ethereum/eth-diamond-purple.png",
+        stripe_product_id=None,
+        stripe_price_id=None,
+        active=True,
+    ),
+    "polygon_smartcontract": SubscriptionTypeResourceData(
+        id="polygon_smartcontract",
+        name="Polygon smartcontracts",
+        choices=["input:address", "tag:erc721"],
+        description="Contracts events and tx_calls of contract of Polygon blockchain",
+        icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/ethereum/eth-diamond-purple.png",
+        stripe_product_id=None,
+        stripe_price_id=None,
+        active=True,
+    ),
     "ethereum_blockchain": SubscriptionTypeResourceData(
         id="ethereum_blockchain",
         name="Ethereum transactions",

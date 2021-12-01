@@ -10,7 +10,7 @@ from moonstreamdb.blockchain import (
     AvailableBlockchainType,
 )
 from sqlalchemy import or_, and_, text
-from sqlalchemy.orm import Session, Query
+from sqlalchemy.orm import Session, Query, query_expression
 from sqlalchemy.sql.expression import label
 
 
@@ -259,19 +259,19 @@ class MoonwormProvider:
         for address_filter in parsed_filters.addresses:
             labels_filters = []
             for label_filter in address_filter.labels:
-                args_filters = []
-                for arg in label.args:
-                    args_filters.append(
-                        Labels.label_data["args"][arg.name]
-                        == python_type(arg.type)(arg.value)
-                    )
+                # args_filters = []
+                # for arg in label.args:
+                #     args_filters.append(
+                #         Labels.label_data["args"][arg.name]
+                #         == python_type(arg.type)(arg.value)
+                #     )
 
                 labels_filters.append(
                     and_(
                         *(
                             Labels.label_data["type"] == label_filter.type,
                             Labels.label_data["name"] == label_filter.name,
-                            or_(*args_filters),
+                            # or_(*args_filters),
                         )
                     )
                 )
@@ -279,18 +279,20 @@ class MoonwormProvider:
                 and_(
                     *(
                         Labels.address == address_filter.address,
-                        or_(*args_filters),
+                        or_(*labels_filters),
                     )
                 )
             )
-        query = query.filters(or_(*addresses_filters))
+
+        query = query.filter(or_(*addresses_filters))
+
+        print(query)
 
         return query
 
     def get_events(
         self,
         db_session: Session,
-        blockchain: AvailableBlockchainType,
         bugout_client: Bugout,
         data_journal_id: str,
         data_access_token: str,
@@ -314,7 +316,9 @@ class MoonwormProvider:
             db_session, stream_boundary, parsed_filters
         )
 
-        ethereum_transactions = ethereum_transactions.order_by(text("timestamp desc"))
+        ethereum_transactions = ethereum_transactions.order_by(
+            text("block_timestamp desc")
+        )
 
         # TODO(zomglings): Catch the operational error denoting that the statement timed out here
         # and wrap it in an error that tells the API to return the appropriate 400 response. Currently,
@@ -356,7 +360,7 @@ class MoonwormProvider:
             return None
         ethereum_transactions = (
             self.query_events(db_session, stream_boundary, parsed_filters)
-            .order_by(text("timestamp desc"))
+            .order_by(text("block_timestamp desc"))
             .limit(num_events)
         )
 
@@ -393,7 +397,7 @@ class MoonwormProvider:
 
         maybe_ethereum_transaction = (
             self.query_events(db_session, next_stream_boundary, parsed_filters)
-            .order_by(text("timestamp asc"))
+            .order_by(text("block_timestamp asc"))
             .limit(1)
         ).one_or_none()
 
@@ -431,7 +435,7 @@ class MoonwormProvider:
             return None
         maybe_ethereum_transaction = (
             self.query_events(db_session, previous_stream_boundary, parsed_filters)
-            .order_by(text("timestamp desc"))
+            .order_by(text("block_timestamp desc"))
             .limit(1)
         ).one_or_none()
         if maybe_ethereum_transaction is None:
@@ -440,14 +444,14 @@ class MoonwormProvider:
 
 
 EthereumMoonwormProvider = MoonwormProvider(
-    event_type="ethereum_blockchain",
+    event_type="ethereum_smartcontract",
     blockchain=AvailableBlockchainType("ethereum"),
     description="Provider for resiving transactions from Ethereum tables.",
     streamboaundary_range_limit=2 * 60 * 60,
 )
 
 PolygonMoonwormProvider = MoonwormProvider(
-    event_type="polygon_blockchain",
+    event_type="polygon_smartcontract",
     blockchain=AvailableBlockchainType("polygon"),
     description="Provider for resiving transactions from Polygon tables.",
     streamboaundary_range_limit=2 * 60 * 60,

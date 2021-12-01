@@ -185,7 +185,6 @@ class TransactionsProvider:
         db_session: Session,
         stream_boundary: data.StreamBoundary,
         parsed_filters: Filters,
-        blockchain: AvailableBlockchainType,
     ) -> Query:
         """
         Builds a database query for Ethereum transactions that occurred within the window of time that
@@ -297,7 +296,6 @@ class TransactionsProvider:
     def get_events(
         self,
         db_session: Session,
-        blockchain: AvailableBlockchainType,
         bugout_client: Bugout,
         data_journal_id: str,
         data_access_token: str,
@@ -318,7 +316,7 @@ class TransactionsProvider:
             return None
 
         ethereum_transactions = self.query_transactions(
-            db_session, stream_boundary, parsed_filters, blockchain
+            db_session, stream_boundary, parsed_filters
         )
 
         ethereum_transactions = ethereum_transactions.order_by(text("timestamp desc"))
@@ -342,7 +340,6 @@ class TransactionsProvider:
     def latest_events(
         self,
         db_session: Session,
-        blockchain: AvailableBlockchainType,
         bugout_client: Bugout,
         data_journal_id: str,
         data_access_token: str,
@@ -365,9 +362,7 @@ class TransactionsProvider:
         if parsed_filters is None:
             return None
         ethereum_transactions = (
-            self.query_transactions(
-                db_session, stream_boundary, parsed_filters, blockchain
-            )
+            self.query_transactions(db_session, stream_boundary, parsed_filters)
             .order_by(text("timestamp desc"))
             .limit(num_events)
         )
@@ -377,7 +372,6 @@ class TransactionsProvider:
     def next_event(
         self,
         db_session: Session,
-        blockchain: AvailableBlockchainType,
         bugout_client: Bugout,
         data_journal_id: str,
         data_access_token: str,
@@ -405,9 +399,7 @@ class TransactionsProvider:
             return None
 
         maybe_ethereum_transaction = (
-            self.query_transactions(
-                db_session, next_stream_boundary, parsed_filters, blockchain
-            )
+            self.query_transactions(db_session, next_stream_boundary, parsed_filters)
             .order_by(text("timestamp asc"))
             .limit(1)
         ).one_or_none()
@@ -419,7 +411,6 @@ class TransactionsProvider:
     def previous_event(
         self,
         db_session: Session,
-        blockchain: AvailableBlockchainType,
         bugout_client: Bugout,
         data_journal_id: str,
         data_access_token: str,
@@ -447,7 +438,7 @@ class TransactionsProvider:
             return None
         maybe_ethereum_transaction = (
             self.query_transactions(
-                db_session, previous_stream_boundary, parsed_filters, blockchain
+                db_session, previous_stream_boundary, parsed_filters
             )
             .order_by(text("timestamp desc"))
             .limit(1)
