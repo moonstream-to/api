@@ -32,7 +32,7 @@ from bugout.app import Bugout
 from bugout.data import BugoutResource
 from sqlalchemy.orm import Session
 
-from . import bugout, ethereum_blockchain
+from . import bugout, transactions, moonworm_provider
 from .. import data
 from ..stream_queries import StreamQuery
 
@@ -47,8 +47,13 @@ class ReceivingEventsException(Exception):
 
 
 event_providers: Dict[str, Any] = {
-    ethereum_blockchain.event_type: ethereum_blockchain,
-    bugout.whalewatch_provider.event_type: bugout.whalewatch_provider,
+    moonworm_provider.EthereumMoonwormProvider.event_type: moonworm_provider.EthereumMoonwormProvider,
+    moonworm_provider.PolygonMoonwormProvider.event_type: moonworm_provider.PolygonMoonwormProvider,
+    transactions.ErhereumTransactions.event_type: transactions.ErhereumTransactions,
+    transactions.PolygonTransactions.event_type: transactions.PolygonTransactions,
+    bugout.polygon_whalewatch_provider.event_type: bugout.polygon_whalewatch_provider,
+    bugout.ethereum_txpool_provider.event_type: bugout.ethereum_txpool_provider,
+    bugout.ethereum_whalewatch_provider.event_type: bugout.ethereum_whalewatch_provider,
     bugout.ethereum_txpool_provider.event_type: bugout.ethereum_txpool_provider,
 }
 
@@ -75,6 +80,7 @@ def get_events(
         max_workers=max_threads, thread_name_prefix="event_providers_"
     ) as executor:
         for provider_name, provider in event_providers.items():
+
             futures[provider_name] = executor.submit(
                 provider.get_events,
                 db_session,
@@ -132,7 +138,9 @@ def latest_events(
     with ThreadPoolExecutor(
         max_workers=max_threads, thread_name_prefix="event_providers_"
     ) as executor:
+
         for provider_name, provider in event_providers.items():
+
             futures[provider_name] = executor.submit(
                 provider.latest_events,
                 db_session,
@@ -242,6 +250,7 @@ def previous_event(
         max_workers=max_threads, thread_name_prefix="event_providers_"
     ) as executor:
         for provider_name, provider in event_providers.items():
+
             futures[provider_name] = executor.submit(
                 provider.previous_event,
                 db_session,

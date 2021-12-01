@@ -278,7 +278,7 @@ class BugoutEventProvider:
         return self.entry_event(search_results.results[0])
 
 
-class EthereumTXPoolProvider(BugoutEventProvider):
+class TXPoolProvider(BugoutEventProvider):
     def __init__(
         self,
         event_type: str,
@@ -364,7 +364,7 @@ Shows the top 10 addresses active on the Ethereum blockchain over the last hour 
 4. Amount (in WEI) received
 
 To restrict your queries to this provider, add a filter of \"type:ethereum_whalewatch\" to your query (query parameter: \"q\") on the /streams endpoint."""
-whalewatch_provider = PublicDataProvider(
+ethereum_whalewatch_provider = PublicDataProvider(
     event_type="ethereum_whalewatch",
     description=whalewatch_description,
     default_time_interval_seconds=310,
@@ -372,17 +372,33 @@ whalewatch_provider = PublicDataProvider(
     tags=["crawl_type:ethereum_trending"],
 )
 
+polygon_whalewatch_provider = PublicDataProvider(
+    event_type="polygon_whalewatch",
+    description=whalewatch_description,
+    default_time_interval_seconds=310,
+    estimated_events_per_time_interval=1,
+    tags=["crawl_type:polygon_trending"],
+)
+
 ethereum_txpool_description = """Event provider for Ethereum transaction pool.
 
 Shows the latest events (from the previous hour) in the Ethereum transaction pool.
 
 To restrict your queries to this provider, add a filter of \"type:ethereum_txpool\" to your query (query parameter: \"q\") on the /streams endpoint."""
-ethereum_txpool_provider = EthereumTXPoolProvider(
+ethereum_txpool_provider = TXPoolProvider(
     event_type="ethereum_txpool",
     description=ethereum_txpool_description,
     default_time_interval_seconds=5,
     estimated_events_per_time_interval=50,
     tags=[f"client:{ETHTXPOOL_HUMBUG_CLIENT_ID}"],
+)
+
+polygon_txpool_provider = TXPoolProvider(
+    event_type="polygon_txpool",
+    description=ethereum_txpool_description,
+    default_time_interval_seconds=5,
+    estimated_events_per_time_interval=50,
+    tags=[f"client:polygon_HUMBUG_CLIENT_ID"],
 )
 
 nft_summary_description = """Event provider for NFT market summaries.
