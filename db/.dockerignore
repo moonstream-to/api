@@ -213,9 +213,13 @@ configs/docker.env
 configs/docker.dev.env
 configs/docker.test.env
 configs/docker.prod.env
-configs/docker.moonstreamdb.env
 
 .secrets/
+
+# Alembic migrations
+configs/alembic.test.ini
+configs/alembic.dev.ini
+configs/alembic.prod.ini
 
 Dockerfile
 docker-compose.yml

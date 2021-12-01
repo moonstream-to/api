@@ -213,7 +213,6 @@ configs/docker.env
 configs/docker.dev.env
 configs/docker.test.env
 configs/docker.prod.env
-configs/docker.moonstreamapi.env
 
 .secrets/
 
