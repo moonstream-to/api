@@ -336,7 +336,7 @@ Shows the top 10 addresses active on the Ethereum blockchain over the last hour 
 4. Amount (in WEI) received
 
 To restrict your queries to this provider, add a filter of \"type:ethereum_whalewatch\" to your query (query parameter: \"q\") on the /streams endpoint."""
-whalewatch_provider = BugoutEventProvider(
+ethereum_whalewatch_provider = BugoutEventProvider(
     event_type="ethereum_whalewatch",
     description=whalewatch_description,
     default_time_interval_seconds=310,
