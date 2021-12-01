@@ -207,7 +207,9 @@ class MoonwormProvider:
 
         return parsed_filters
 
-    def stream_boundary_validator(self, stream_boundary: data.StreamBoundary) -> None:
+    def stream_boundary_validator(
+        self, stream_boundary: data.StreamBoundary
+    ) -> data.StreamBoundary:
         """
         Stream boundary validator for the events provider.
 
@@ -216,9 +218,11 @@ class MoonwormProvider:
         Raises an error for invalid stream boundaries, else returns None.
         """
         valid_period_seconds = 24 * 60 * 60
-        validate_stream_boundary(
+
+        _, stream_boundary = validate_stream_boundary(
             stream_boundary, valid_period_seconds, raise_when_invalid=True
         )
+        return stream_boundary
 
     def query_events(
         self,
@@ -259,19 +263,12 @@ class MoonwormProvider:
         for address_filter in parsed_filters.addresses:
             labels_filters = []
             for label_filter in address_filter.labels:
-                # args_filters = []
-                # for arg in label.args:
-                #     args_filters.append(
-                #         Labels.label_data["args"][arg.name]
-                #         == python_type(arg.type)(arg.value)
-                #     )
 
                 labels_filters.append(
                     and_(
                         *(
                             Labels.label_data["type"] == label_filter.type,
                             Labels.label_data["name"] == label_filter.name,
-                            # or_(*args_filters),
                         )
                     )
                 )
@@ -285,8 +282,6 @@ class MoonwormProvider:
             )
 
         query = query.filter(or_(*addresses_filters))
-
-        print(query)
 
         return query
 
@@ -306,7 +301,7 @@ class MoonwormProvider:
 
         If the query does not require any data from this provider, returns None.
         """
-        self.stream_boundary_validator(stream_boundary)
+        stream_boundary = self.stream_boundary_validator(stream_boundary)
 
         parsed_filters = self.parse_filters(query, user_subscriptions)
         if parsed_filters is None:
