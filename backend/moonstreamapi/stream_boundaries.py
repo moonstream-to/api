@@ -2,6 +2,7 @@
 Utilities to work with stream boundaries.
 """
 import time
+from typing import Tuple
 
 from .data import StreamBoundary
 
@@ -16,7 +17,7 @@ def validate_stream_boundary(
     stream_boundary: StreamBoundary,
     time_difference_seconds: int,
     raise_when_invalid: bool = False,
-) -> bool:
+) -> Tuple[bool, StreamBoundary]:
     """
     This function can be used by event providers to check if a stream boundary is valid according to their
     requirements.
@@ -33,6 +34,16 @@ def validate_stream_boundary(
                 f"Stream boundary start and end times must not differ by more than {time_difference_seconds} seconds:\n{stream_boundary.json()}"
             )
         else:
-            return False
+            return False, stream_boundary
 
-    return True
+    # If required reversed time stream of events
+    if start_time > end_time:
+        include_start = stream_boundary.include_start
+        include_end = stream_boundary.include_end
+        stream_boundary.start_time = end_time
+        stream_boundary.end_time = start_time
+        stream_boundary.include_start = include_end
+        stream_boundary.include_end = include_start
+        stream_boundary.reversed_time = True
+
+    return True, stream_boundary

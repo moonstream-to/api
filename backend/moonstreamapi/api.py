@@ -11,7 +11,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from . import actions
 from . import data
 from .routes.address_info import router as addressinfo_router
-from .routes.nft import router as nft_router
 from .routes.streams import router as streams_router
 from .routes.subscriptions import router as subscriptions_router
 from .routes.txinfo import router as txinfo_router
@@ -32,7 +31,6 @@ tags_metadata = [
         "name": "labels",
         "description": "Labels for transactions, addresses with additional information.",
     },
-    {"name": "nft", "description": "NFT market summaries."},
     {"name": "streams", "description": "Operations with data streams and filters."},
     {"name": "subscriptions", "description": "Operations with user subscriptions."},
     {"name": "time", "description": "Server timestamp endpoints."},
@@ -124,7 +122,6 @@ async def status_handler() -> data.StatusResponse:
 
 
 app.include_router(addressinfo_router)
-app.include_router(nft_router)
 app.include_router(streams_router)
 app.include_router(subscriptions_router)
 app.include_router(txinfo_router)

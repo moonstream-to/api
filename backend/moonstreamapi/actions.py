@@ -6,7 +6,6 @@ import uuid
 
 import boto3  # type: ignore
 from bugout.data import BugoutSearchResults
-from bugout.exceptions import BugoutResponseException
 from bugout.journal import SearchOrder
 from ens.utils import is_valid_ens_name  # type: ignore
 from eth_utils.address import is_address  # type: ignore

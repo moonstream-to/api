@@ -78,7 +78,9 @@ class TransactionsProvider:
             return False, errors
         return True, errors
 
-    def stream_boundary_validator(self, stream_boundary: data.StreamBoundary) -> None:
+    def stream_boundary_validator(
+        self, stream_boundary: data.StreamBoundary
+    ) -> data.StreamBoundary:
         """
         Stream boundary validator for the transactions provider.
 
@@ -87,9 +89,10 @@ class TransactionsProvider:
         Raises an error for invalid stream boundaries, else returns None.
         """
         valid_period_seconds = self.valid_period_seconds
-        validate_stream_boundary(
+        _, stream_boundary = validate_stream_boundary(
             stream_boundary, valid_period_seconds, raise_when_invalid=True
         )
+        return stream_boundary
 
     def default_filters(self, subscriptions: List[BugoutResource]) -> Filters:
         """
@@ -309,7 +312,7 @@ class TransactionsProvider:
 
         If the query does not require any data from this provider, returns None.
         """
-        self.stream_boundary_validator(stream_boundary)
+        stream_boundary = self.stream_boundary_validator(stream_boundary)
 
         parsed_filters = self.parse_filters(query, user_subscriptions)
         if parsed_filters is None:
