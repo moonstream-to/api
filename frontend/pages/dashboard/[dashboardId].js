@@ -11,6 +11,7 @@ import {
   Editable,
   EditableInput,
   EditablePreview,
+  Button,
 } from "@chakra-ui/react";
 import Scrollable from "../../src/components/Scrollable";
 import RangeSelector from "../../src/components/RangeSelector";
@@ -19,7 +20,9 @@ import { useRouter, useSubscriptions } from "../../src/core/hooks";
 import { BiTrash } from "react-icons/bi";
 import OverlayContext from "../../src/core/providers/OverlayProvider/context";
 import SubscriptionReport from "../../src/components/SubscriptionReport";
+import { AiOutlinePlusCircle } from "react-icons/ai";
 import { v4 } from "uuid";
+import { DRAWER_TYPES } from "../../src/core/providers/OverlayProvider/constants";
 
 const HOUR_KEY = "Hourly";
 const DAY_KEY = "Daily";
@@ -96,6 +99,7 @@ const Analytics = () => {
 
   const [timeRange, setTimeRange] = useState(timeMap[MINUTE_KEY]);
   const router = useRouter();
+  const overlay = useContext(OverlayContext);
   const { dashboardId } = router.params;
   const {
     dashboardCache,
@@ -156,6 +160,8 @@ const Analytics = () => {
     const dashboard = { ...dashboardCache.data.data.resource_data };
     dashboard.name = name;
     updateDashboard.mutate({ id: dashboardCache.data.data.id, dashboard });
+  const addReportClicked = () => {
+    console.log("click");
   };
 
   if (
@@ -210,6 +216,18 @@ const Analytics = () => {
               setTimeRange(timeMap[e]);
             }}
           />
+          <Button
+            onClick={() =>
+              overlay.toggleDrawer(DRAWER_TYPES.NEW_DASHBOARD_ITEM)
+            }
+            mr={8}
+            colorScheme="blue"
+            variant="solid"
+            size="sm"
+            rightIcon={<AiOutlinePlusCircle />}
+          >
+            Add Report
+          </Button>
         </Stack>
 
         <Flex w="100%" direction="row" flexWrap="wrap-reverse" id="container">

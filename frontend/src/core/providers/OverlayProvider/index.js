@@ -36,6 +36,7 @@ import UserContext from "../UserProvider/context";
 import UIContext from "../UIProvider/context";
 import useDashboard from "../../hooks/useDashboard";
 import SignUp from "../../../components/SignUp";
+import NewDashboardElement from "../../../components/NewDashboardElement";
 const ForgotPassword = React.lazy(() =>
   import("../../../components/ForgotPassword")
 );
@@ -121,6 +122,39 @@ const OverlayProvider = ({ children }) => {
     window.sessionStorage.removeItem("new_dashboard");
   };
 
+  const submitNewDashboard = () => {
+    const dashboardState = JSON.parse(sessionStorage.getItem("new_dashboard"));
+    createDashboard.mutate({
+      name: dashboardState.name,
+      subscriptions: dashboardState.subscriptions.map((pickedSubscription) => {
+        const retval = {
+          subscription_id: pickedSubscription.subscription_id,
+          generic: [],
+          all_methods: !!pickedSubscription.isMethods,
+          all_events: !!pickedSubscription.isEvents,
+        };
+
+        pickedSubscription.generic.transactions.in &&
+          retval.generic.push({ name: "transactions_in" });
+        pickedSubscription.generic.transactions.out &&
+          retval.generic.push({ name: "transactions_out" });
+        pickedSubscription.generic.value.in &&
+          retval.generic.push({ name: "value_in" });
+        pickedSubscription.generic.value.out &&
+          retval.generic.push({ name: "value_out" });
+        pickedSubscription.generic.balance &&
+          retval.generic.push({ name: "balance" });
+        retval["methods"] = [];
+        retval["events"] = [];
+
+        return retval;
+      }),
+    });
+  };
+
+  const submitNewDashboardItem = () => {
+    console.log("submit new dashboard item");
+  };
   useEffect(() => {
     if (createDashboard.isSuccess) {
       finishNewDashboard();
@@ -232,12 +266,18 @@ const OverlayProvider = ({ children }) => {
           <DrawerCloseButton />
           <DrawerHeader borderBottomWidth="1px">
             {DRAWER_TYPES.NEW_DASHBOARD && "New dashboard"}
+            {DRAWER_TYPES.NEW_DASHBOARD_ITEM && "New dashboard element"}
           </DrawerHeader>
 
           <DrawerBody h="auto">
             {DRAWER_TYPES.NEW_DASHBOARD && (
               <Suspense fallback={<Spinner />}>
                 <NewDashboard firstField={firstField} />
+              </Suspense>
+            )}
+            {DRAWER_TYPES.NEW_DASHBOARD_ITEM && (
+              <Suspense fallback={<Spinner />}>
+                <NewDashboardElement firstField={firstField} />
               </Suspense>
             )}
           </DrawerBody>
@@ -253,37 +293,8 @@ const OverlayProvider = ({ children }) => {
               colorScheme="blue"
               isLoading={createDashboard.isLoading}
               onClick={() => {
-                const dashboardState = JSON.parse(
-                  sessionStorage.getItem("new_dashboard")
-                );
-                createDashboard.mutate({
-                  name: dashboardState.name,
-                  subscriptions: dashboardState.subscriptions.map(
-                    (pickedSubscription) => {
-                      const retval = {
-                        subscription_id: pickedSubscription.subscription_id,
-                        generic: [],
-                        all_methods: !!pickedSubscription.isMethods,
-                        all_events: !!pickedSubscription.isEvents,
-                      };
-
-                      pickedSubscription.generic.transactions.in &&
-                        retval.generic.push({ name: "transactions_in" });
-                      pickedSubscription.generic.transactions.out &&
-                        retval.generic.push({ name: "transactions_out" });
-                      pickedSubscription.generic.value.in &&
-                        retval.generic.push({ name: "value_in" });
-                      pickedSubscription.generic.value.out &&
-                        retval.generic.push({ name: "value_out" });
-                      pickedSubscription.generic.balance &&
-                        retval.generic.push({ name: "balance" });
-                      retval["methods"] = [];
-                      retval["events"] = [];
-
-                      return retval;
-                    }
-                  ),
-                });
+                DRAWER_TYPES.NEW_DASHBOARD && submitNewDashboard();
+                DRAWER_TYPES.NEW_DASHBOARD_ITEM && submitNewDashboardItem();
               }}
             >
               Submit
