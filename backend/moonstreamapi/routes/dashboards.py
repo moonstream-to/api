@@ -51,7 +51,7 @@ async def add_dashboard_handler(
 
     user = request.state.user
 
-    dashboard_subscriptions = dashboard.dashboard_subscriptions
+    subscription_settings = dashboard.subscription_settings
 
     # Get all user subscriptions
     params = {
@@ -77,7 +77,7 @@ async def add_dashboard_handler(
         resource.id: resource.resource_data for resource in resources.resources
     }
 
-    for dashboard_subscription in dashboard_subscriptions:
+    for dashboard_subscription in subscription_settings:
         if dashboard_subscription.subscription_id in available_subscriptions.keys():
 
             # TODO(Andrey): Add some dedublication for get object from s3 for repeated subscription_id
@@ -132,7 +132,7 @@ async def add_dashboard_handler(
         type=BUGOUT_RESOURCE_TYPE_DASHBOARD,
         user_id=str(user.id),
         name=dashboard.name,
-        dashboard_subscriptions=dashboard_subscriptions,
+        subscription_settings=subscription_settings,
     )
 
     try:
@@ -241,7 +241,7 @@ async def update_dashboard_handler(
 
     user = request.state.user
 
-    dashboard_subscriptions = dashboard.dashboard_subscriptions
+    subscription_settings = dashboard.subscription_settings
 
     params = {
         "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
@@ -264,7 +264,7 @@ async def update_dashboard_handler(
         resource.id: resource.resource_data for resource in resources.resources
     }
 
-    for dashboard_subscription in dashboard_subscriptions:
+    for dashboard_subscription in subscription_settings:
 
         if dashboard_subscription.subscription_id in available_subscriptions:
 
@@ -317,10 +317,10 @@ async def update_dashboard_handler(
 
     dashboard_resource: Dict[str, Any] = {}
 
-    if dashboard_subscriptions:
+    if subscription_settings:
 
-        dashboard_resource["dashboard_subscriptions"] = json.loads(dashboard.json())[
-            "dashboard_subscriptions"
+        dashboard_resource["subscription_settings"] = json.loads(dashboard.json())[
+            "subscription_settings"
         ]
 
     if dashboard.name is not None:

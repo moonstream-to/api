@@ -572,7 +572,7 @@ def stats_generate_handler(args: argparse.Namespace):
         for dashboard in dashboard_resources.resources:
 
             for dashboard_subscription_filters in dashboard.resource_data[
-                "dashboard_subscriptions"
+                "subscription_settings"
             ]:
 
                 try:
