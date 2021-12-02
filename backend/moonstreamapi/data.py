@@ -247,14 +247,14 @@ class DashboardResource(BaseModel):
     type: str
     user_id: str
     name: str
-    dashboard_subscriptions: List[DashboardMeta]
+    subscription_settings: List[DashboardMeta]
 
 
 class DashboardCreate(BaseModel):
     name: str
-    dashboard_subscriptions: List[DashboardMeta]
+    subscription_settings: List[DashboardMeta]
 
 
 class DashboardUpdate(BaseModel):
     name: Optional[str]
-    dashboard_subscriptions: List[DashboardMeta] = Field(default_factory=list)
+    subscription_settings: List[DashboardMeta] = Field(default_factory=list)
