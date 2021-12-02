@@ -51,7 +51,7 @@ async def add_dashboard_handler(
 
     user = request.state.user
 
-    dashboard_subscriptions = dashboard.subscriptions
+    dashboard_subscriptions = dashboard.dashboard_subscriptions
 
     # Get all user subscriptions
     params = {
@@ -241,7 +241,7 @@ async def update_dashboard_handler(
 
     user = request.state.user
 
-    dashboard_subscriptions = dashboard.subscriptions
+    dashboard_subscriptions = dashboard.dashboard_subscriptions
 
     params = {
         "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
@@ -320,7 +320,7 @@ async def update_dashboard_handler(
     if dashboard_subscriptions:
 
         dashboard_resource["dashboard_subscriptions"] = json.loads(dashboard.json())[
-            "subscriptions"
+            "dashboard_subscriptions"
         ]
 
     if dashboard.name is not None:
