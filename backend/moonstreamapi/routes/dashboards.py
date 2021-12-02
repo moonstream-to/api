@@ -391,7 +391,7 @@ async def get_dashboard_data_links_handler(
     subscriptions_ids = [
         UUID(subscription_meta["subscription_id"])
         for subscription_meta in dashboard_resource.resource_data[
-            "dashboard_subscriptions"
+            "subscription_settings"
         ]
     ]
 
