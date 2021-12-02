@@ -32,7 +32,7 @@ def fetch_web3_provider_ip():
     return record_value
 
 
-if not MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI.replace(".", "").isnumeric():
+if not MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI.startswith("http"):
     web3_provider_ip = fetch_web3_provider_ip()
     if web3_provider_ip is None:
         raise ValueError("Unable to extract web3 provider IP")
