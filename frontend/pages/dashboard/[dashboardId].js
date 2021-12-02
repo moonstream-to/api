@@ -160,6 +160,7 @@ const Analytics = () => {
     const dashboard = { ...dashboardCache.data.data.resource_data };
     dashboard.name = name;
     updateDashboard.mutate({ id: dashboardCache.data.data.id, dashboard });
+  };
   const addReportClicked = () => {
     console.log("click");
   };
@@ -218,7 +219,10 @@ const Analytics = () => {
           />
           <Button
             onClick={() =>
-              overlay.toggleDrawer(DRAWER_TYPES.NEW_DASHBOARD_ITEM)
+              overlay.toggleDrawer({
+                type: DRAWER_TYPES.NEW_DASHBOARD_ITEM,
+                props: { dashboardId: dashboardId },
+              })
             }
             mr={8}
             colorScheme="blue"

@@ -68,7 +68,8 @@ export const deleteSubscription = () => (id) => {
   });
 };
 
-export const getSubscriptionABI = () => (id) => {
+export const getSubscriptionABI = (id) => () => {
+  console.log("service", id);
   return http({
     method: "GET",
     url: `${API}/subscriptions/${id}/abi`,

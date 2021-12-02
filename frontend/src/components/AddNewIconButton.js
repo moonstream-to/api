@@ -40,7 +40,9 @@ const AddNewIconButton = (props) => {
       >
         <MenuGroup>
           <MenuItem
-            onClick={() => modal.toggleDrawer(DRAWER_TYPES.NEW_DASHBOARD)}
+            onClick={() =>
+              modal.toggleDrawer({ type: DRAWER_TYPES.NEW_DASHBOARD })
+            }
           >
             New Dashboard...
           </MenuItem>

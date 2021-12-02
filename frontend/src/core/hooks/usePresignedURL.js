@@ -11,6 +11,7 @@ const usePresignedURL = ({
   requestNewURLCallback,
   isEnabled,
 }) => {
+  console.log("usePresignedURL:", url, id, isEnabled);
   const toast = useToast();
 
   const getFromPresignedURL = async () => {
@@ -20,15 +21,17 @@ const usePresignedURL = ({
       // url: `https://example.com/s3`,
       method: "GET",
     });
+    console.log("getFromPresignedURL", response);
     return response.data;
   };
 
   const { data, isLoading, error, refetch } = useQuery(
-    [`${cacheType}`, { id }],
+    ["presignedURL", cacheType, id],
     getFromPresignedURL,
     {
       ...queryCacheProps,
       enabled: isEnabled && url ? true : false,
+      keepPreviousData: true,
       onError: (e) => {
         if (
           e?.response?.data?.includes("Request has expired") ||
@@ -44,9 +47,10 @@ const usePresignedURL = ({
 
   useEffect(() => {
     if (url && isEnabled) {
+      console.log("useeffect:", url, isEnabled);
       refetch();
     }
-  }, [url, refetch, isEnabled]);
+  }, [url, isEnabled, refetch]);
 
   return {
     data,

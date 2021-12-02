@@ -36,7 +36,7 @@ import UserContext from "../UserProvider/context";
 import UIContext from "../UIProvider/context";
 import useDashboard from "../../hooks/useDashboard";
 import SignUp from "../../../components/SignUp";
-import NewDashboardElement from "../../../components/NewDashboardElement";
+import NewDashboardElement from "../../../components/NewDashboardChart";
 const ForgotPassword = React.lazy(() =>
   import("../../../components/ForgotPassword")
 );
@@ -59,7 +59,10 @@ const OverlayProvider = ({ children }) => {
     type: MODAL_TYPES.OFF,
     props: undefined,
   });
-  const [drawer, toggleDrawer] = useState(DRAWER_TYPES.OFF);
+  const [drawer, toggleDrawer] = useState({
+    type: DRAWER_TYPES.OFF,
+    props: undefined,
+  });
   const [alertCallback, setAlertCallback] = useState(null);
   const drawerDisclosure = useDisclosure();
   const modalDisclosure = useDisclosure();
@@ -74,9 +77,9 @@ const OverlayProvider = ({ children }) => {
   }, [modal.type, modalDisclosure]);
 
   useLayoutEffect(() => {
-    if (drawer === DRAWER_TYPES.OFF && drawerDisclosure.isOpen) {
+    if (drawer.type === DRAWER_TYPES.OFF && drawerDisclosure.isOpen) {
       drawerDisclosure.onClose();
-    } else if (drawer !== DRAWER_TYPES.OFF && !drawerDisclosure.isOpen) {
+    } else if (drawer.type !== DRAWER_TYPES.OFF && !drawerDisclosure.isOpen) {
       drawerDisclosure.onOpen();
     }
   }, [drawer, drawerDisclosure]);
@@ -92,7 +95,7 @@ const OverlayProvider = ({ children }) => {
   };
 
   console.assert(
-    Object.values(DRAWER_TYPES).some((element) => element === drawer)
+    Object.values(DRAWER_TYPES).some((element) => element === drawer.type)
   );
   console.assert(
     Object.values(MODAL_TYPES).some((element) => element === modal.type)
@@ -118,7 +121,7 @@ const OverlayProvider = ({ children }) => {
   }, [ui.isAppView, ui.isAppReady, user, ui.isLoggingOut, modal.type]);
 
   const finishNewDashboard = () => {
-    toggleDrawer(DRAWER_TYPES.OFF);
+    toggleDrawer({ type: DRAWER_TYPES.OFF, props: undefined });
     window.sessionStorage.removeItem("new_dashboard");
   };
 
@@ -265,19 +268,23 @@ const OverlayProvider = ({ children }) => {
         <DrawerContent overflowY="scroll">
           <DrawerCloseButton />
           <DrawerHeader borderBottomWidth="1px">
-            {DRAWER_TYPES.NEW_DASHBOARD && "New dashboard"}
-            {DRAWER_TYPES.NEW_DASHBOARD_ITEM && "New dashboard element"}
+            {drawer.type === DRAWER_TYPES.NEW_DASHBOARD && "New dashboard"}
+            {drawer.type === DRAWER_TYPES.NEW_DASHBOARD_ITEM &&
+              "New dashboard element"}
           </DrawerHeader>
 
           <DrawerBody h="auto">
-            {DRAWER_TYPES.NEW_DASHBOARD && (
+            {drawer.type === DRAWER_TYPES.NEW_DASHBOARD && (
               <Suspense fallback={<Spinner />}>
-                <NewDashboard firstField={firstField} />
+                <NewDashboard firstField={firstField} props={drawer.props} />
               </Suspense>
             )}
-            {DRAWER_TYPES.NEW_DASHBOARD_ITEM && (
+            {drawer.type === DRAWER_TYPES.NEW_DASHBOARD_ITEM && (
               <Suspense fallback={<Spinner />}>
-                <NewDashboardElement firstField={firstField} />
+                <NewDashboardElement
+                  firstField={firstField}
+                  props={drawer.props}
+                />
               </Suspense>
             )}
           </DrawerBody>
@@ -285,7 +292,17 @@ const OverlayProvider = ({ children }) => {
             <Button
               variant="outline"
               mr={3}
-              onClick={() => toggleAlert(() => finishNewDashboard())}
+              onClick={() => {
+                console.log("cancel click on drawer", drawer.type);
+                if (drawer.type === DRAWER_TYPES.NEW_DASHBOARD) {
+                  toggleAlert(() => finishNewDashboard());
+                }
+                if (drawer.type === DRAWER_TYPES.NEW_DASHBOARD_ITEM) {
+                  toggleAlert(() =>
+                    toggleDrawer({ type: DRAWER_TYPES.OFF, props: undefined })
+                  );
+                }
+              }}
             >
               Cancel
             </Button>
@@ -293,8 +310,10 @@ const OverlayProvider = ({ children }) => {
               colorScheme="blue"
               isLoading={createDashboard.isLoading}
               onClick={() => {
-                DRAWER_TYPES.NEW_DASHBOARD && submitNewDashboard();
-                DRAWER_TYPES.NEW_DASHBOARD_ITEM && submitNewDashboardItem();
+                drawer.type === DRAWER_TYPES.NEW_DASHBOARD &&
+                  submitNewDashboard();
+                drawer.type === DRAWER_TYPES.NEW_DASHBOARD_ITEM &&
+                  submitNewDashboardItem();
               }}
             >
               Submit

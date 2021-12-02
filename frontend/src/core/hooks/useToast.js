@@ -24,15 +24,17 @@ const useToast = () => {
           detail: userMessage,
         });
       }
-
-      chakraToast({
-        id: `${userTitle}${userMessage}${type}`,
-        position: "bottom",
-        title: userTitle,
-        description: userMessage,
-        status: type,
-        // duration: 3000,
-      });
+      const id = `${userTitle}${userMessage}${type}`;
+      if (!chakraToast.isActive(id)) {
+        chakraToast({
+          id: id,
+          position: "bottom",
+          title: userTitle,
+          description: userMessage,
+          status: type,
+          // duration: 3000,
+        });
+      }
     },
     [chakraToast]
   );

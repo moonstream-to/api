@@ -147,7 +147,7 @@ const Sidebar = () => {
                     colorScheme="orange"
                     size="sm"
                     onClick={() =>
-                      overlay.toggleDrawer(DRAWER_TYPES.NEW_DASHBOARD)
+                      overlay.toggleDrawer({ type: DRAWER_TYPES.NEW_DASHBOARD })
                     }
                     // w="100%"
                     // borderRadius={0}

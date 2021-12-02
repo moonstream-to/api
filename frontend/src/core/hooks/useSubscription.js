@@ -9,9 +9,10 @@ const useSubscription = ({ id }) => {
   const toast = useToast();
   const user = useContext(UserContext);
 
+  console.log("useSubscription:", id, user);
   const subscriptionLinksCache = useQuery(
-    ["dashboardLinks", { id }],
-    SubscriptionsService.getSubscriptionABI,
+    ["dashboardLinks", id],
+    SubscriptionsService.getSubscriptionABI(id),
     {
       ...queryCacheProps,
       onError: (error) => {
@@ -20,6 +21,7 @@ const useSubscription = ({ id }) => {
       enabled: !!user && !!id,
     }
   );
+  return { subscriptionLinksCache };
 };
 
 export default useSubscription;

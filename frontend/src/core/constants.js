@@ -71,3 +71,9 @@ export const TIME_RANGE_SECONDS = {
   week: 86400 * 7,
   month: 86400 * 28,
 };
+
+export const CHART_METRICS = {
+  GENERIC: "genetic",
+  FUNCTIONS: "function",
+  EVENTS: "event",
+};
