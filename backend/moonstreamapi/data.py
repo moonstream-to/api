@@ -237,8 +237,8 @@ class SubdcriptionsAbiResponse(BaseModel):
 class DashboardMeta(BaseModel):
     subscription_id: UUID
     generic: Optional[List[Dict[str, str]]]
-    all_methods: bool = False
-    all_events: bool = False
+    all_methods: bool = True
+    all_events: bool = True
     methods: List[Dict[str, Any]]
     events: List[Dict[str, Any]]
 
