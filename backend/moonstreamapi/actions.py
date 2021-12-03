@@ -442,13 +442,29 @@ def get_all_entries_from_search(
     """
     Get all required entries from journal using search interface
     """
-    skips = 0
     offset = 0
 
     results: List[Any] = []
 
-    while skips < 3:
-        try:
+    try:
+        existing_metods = bc.search(
+            token=token,
+            journal_id=journal_id,
+            query=search_query,
+            content=False,
+            timeout=10.0,
+            limit=limit,
+            offset=offset,
+        )
+        results.extend(existing_metods.results)
+
+    except:
+
+        pass
+
+    if len(results) != existing_metods.total_results:
+
+        for offset in range(limit, existing_metods.total_results, limit):
             existing_metods = bc.search(
                 token=token,
                 journal_id=journal_id,
@@ -458,18 +474,8 @@ def get_all_entries_from_search(
                 limit=limit,
                 offset=offset,
             )
-            results.extend(existing_metods.results)
+        results.extend(existing_metods.results)
 
-        except:
-            time.sleep(0.5)
-            skips += 1
-            continue
-
-        if len(results) == existing_metods.total_results:
-            break
-        else:
-            offset += limit
-            continue
     return results
 
 
