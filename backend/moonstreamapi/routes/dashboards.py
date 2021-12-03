@@ -7,7 +7,7 @@ from uuid import UUID
 import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
-from fastapi import APIRouter, Request, Query, Body
+from fastapi import APIRouter, Request, Query, Body, BackgroundTasks
 
 from .. import actions
 from .. import data
@@ -20,7 +20,6 @@ from ..settings import (
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
 )
-import pprint
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +40,9 @@ blockchain_by_subscription_id = {
 
 @router.post("/", tags=["dashboards"], response_model=BugoutResource)
 async def add_dashboard_handler(
-    request: Request, dashboard: data.DashboardCreate = Body(...)
+    request: Request,
+    background_tasks: BackgroundTasks,
+    dashboard: data.DashboardCreate = Body(...),
 ) -> BugoutResource:
     """
     Add subscription to blockchain stream data for user.
@@ -73,7 +74,7 @@ async def add_dashboard_handler(
 
     s3_client = boto3.client("s3")
 
-    available_subscriptions = {
+    available_subscriptions: Dict[UUID, Dict[str, Any]] = {
         resource.id: resource.resource_data for resource in resources.resources
     }
 
@@ -150,6 +151,14 @@ async def add_dashboard_handler(
         logger.error(f"Error creating dashboard resource: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
+    # Generate tasks for moonworm
+
+    background_tasks.add_task(
+        actions.apply_moonworm_tasks,
+        s3_client,
+        dashboard_subscriptions,
+        available_subscriptions,
+    )
     return resource
 
 
@@ -231,7 +240,10 @@ async def get_dashboard_handler(
 
 @router.put("/{dashboard_id}", tags=["dashboards"], response_model=BugoutResource)
 async def update_dashboard_handler(
-    request: Request, dashboard_id: str, dashboard: data.DashboardUpdate = Body(...)
+    request: Request,
+    dashboard_id: str,
+    background_tasks: BackgroundTasks,
+    dashboard: data.DashboardUpdate = Body(...),
 ) -> BugoutResource:
     """
     Update dashboards mainly fully overwrite name and subscription metadata
@@ -337,6 +349,13 @@ async def update_dashboard_handler(
     except Exception as e:
         logger.error(f"Error updating subscription resource: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    background_tasks.add_task(
+        actions.apply_moonworm_tasks,
+        s3_client,
+        dashboard_subscriptions,
+        available_subscriptions,
+    )
 
     return resource
 
