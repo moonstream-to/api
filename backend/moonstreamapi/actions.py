@@ -25,7 +25,7 @@ from . import data
 from .reporter import reporter
 from .middleware import MoonstreamHTTPException
 from .settings import ETHERSCAN_SMARTCONTRACTS_BUCKET
-from bugout.data import BugoutResource, DashboardMeta
+from bugout.data import BugoutResource
 from .settings import (
     MOONSTREAM_APPLICATION_ID,
     bugout_client as bc,
@@ -475,7 +475,7 @@ def get_all_entries_from_search(
 
 def apply_moonworm_tasks(
     s3_client: Any,
-    dashboard_subscriptions: List[DashboardMeta],
+    dashboard_subscriptions: List[data.DashboardMeta],
     available_subscriptions: Dict[uuid.UUID, Dict[str, Any]],
 ) -> None:
     """
