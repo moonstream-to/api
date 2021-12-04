@@ -411,6 +411,60 @@ def get_unique_address(
     )
 
 
+def get_blocks_state(
+    db_session: Session, blockchain_type: AvailableBlockchainType, address: str
+):
+
+    """
+    Generate meta information about
+    """
+
+    blocks_state = {
+        "blocks_state": {
+            "latest_block": {"address": 0, "labels": 0, "transactions": 0},
+            "earliest_block": {"address": 0},
+        }
+    }
+
+    label_model = get_label_model(blockchain_type)
+
+    transactions_model = get_transaction_model(blockchain_type)
+
+    max_transactions_number = db_session.query(
+        func.max(transactions_model.label("block_number"))
+    ).subquery(name="max_transactions_block")
+
+    max_labels_block = db_session.query(
+        func.max(label_model.block_number.label("block_number"))
+    ).subquery(name="max_transactions_block")
+
+    result = (
+        db_session.query(
+            func.min(label_model.block_number),
+            func.max(label_model.block_number),
+            max_transactions_number.c.block_number,
+            max_labels_block.c.block_number,
+        )
+        .filter(label_model.address == address)
+        .filter(label_model.label == CRAWLER_LABEL)
+    ).one_or_none()
+
+    if result:
+        min_address, max_address, max_transactions, max_labels = result
+        blocks_state = {
+            "blocks_state": {
+                "latest_block": {
+                    "address": max_address,
+                    "labels": max_labels,
+                    "transactions": max_transactions,
+                },
+                "earliest_block": {"address": min_address},
+            }
+        }
+
+    return blocks_state
+
+
 def generate_list_of_names(
     type: str, subscription_filters: Dict[str, Any], read_abi: bool, abi_json: Any
 ):
@@ -677,6 +731,12 @@ def stats_generate_handler(args: argparse.Namespace):
                             }
                         )
 
+                    current_blocks_state = get_blocks_state(
+                        db_session=db_session,
+                        blockchain_type=blockchain_type,
+                        address=address,
+                    )
+
                     for timescale in [timescale.value for timescale in TimeScale]:
 
                         start_date = (
@@ -684,6 +744,8 @@ def stats_generate_handler(args: argparse.Namespace):
                         )
 
                         print(f"Timescale: {timescale}")
+
+                        s3_data_object["blocks_state"] = current_blocks_state
 
                         s3_data_object["web3_metric"] = extention_data
 
