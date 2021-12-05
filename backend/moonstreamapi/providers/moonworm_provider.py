@@ -236,7 +236,7 @@ class MoonwormProvider:
 
         return query
 
-    def get_events(
+    def generate_events_query(
         self,
         db_session: Session,
         bugout_client: Bugout,
