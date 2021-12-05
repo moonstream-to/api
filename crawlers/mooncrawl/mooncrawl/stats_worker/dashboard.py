@@ -8,7 +8,7 @@ import logging
 import time
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Union
 from uuid import UUID
 
 import boto3  # type: ignore
@@ -617,7 +617,7 @@ def stats_generate_handler(args: argparse.Namespace):
                         # Meen it's are different blockchain type
                         continue
 
-                    s3_data_object = {}
+                    s3_data_object: Dict[str, Any] = {}
 
                     extention_data = []
 
