@@ -56,28 +56,13 @@ class LabelsFilters:
 class AddressFilters:
 
     address: str
-    labels: List[LabelsFilters] = field(default_factory=list)
+    label_filters: List[LabelsFilters] = field(default_factory=list)
 
 
 @dataclass
 class Filters:
 
     addresses: List[AddressFilters] = field(default_factory=list)
-
-
-def python_type(expected_type: str) -> Any:
-    if expected_type.startswith("int"):
-        return int
-    elif expected_type.startswith("str"):
-        return str
-    elif expected_type == "float":
-        return float
-    elif expected_type == "bool":
-        return bool
-    elif expected_type == "tuple":
-        return list
-    else:
-        raise ValueError(f"Cannot convert to python type {expected_type}")
 
 
 class MoonwormProvider:
@@ -106,13 +91,16 @@ class MoonwormProvider:
 
                 # How apply labels?
                 filters.addresses.append(
-                    AddressFilters(address=subscription_address, labels=[])
+                    AddressFilters(address=subscription_address, label_filters=[])
                 )
             else:
                 logger.warn(
                     f"Could not find subscription address for subscription with resource id: {subscription.id}"
                 )
         return filters
+
+    def apply_query_filters(self, filters: Filters, query_filters: StreamQuery):
+        raise NotImplementedError
 
     def events(self, row: Tuple) -> data.Event:
         """
@@ -149,14 +137,7 @@ class MoonwormProvider:
         """
         Passes raw filter strings into a Filters object which is used to construct a database query
         for ethereum transactions.
-
-        Filter syntax is:
-        - "from:<address>" - specifies that we want to include all transactions with "<address>" as a source
-        - "to:<address>" - specifies that we want to include all transactions with "<address>" as a destination
-        - "<address>" - specifies that we want to include all transactions with "<address>" as a source AND all transactions with "<address>" as a destination
-
-        If the given StreamQuery induces filters on this provider, returns those filters. Otherwise, returns
-        None indicating that the StreamQuery does not require any data from this provider.
+        Right now support only addresses query.
         """
         if query.subscription_types and not any(
             subtype == self.event_type for subtype in query.subscription_types
@@ -170,37 +151,7 @@ class MoonwormProvider:
             return None
         parsed_filters = self.default_filters(provider_subscriptions)
 
-        # from_prefix_length = len("from:")
-        # to_prefix_length = len("to:")
-
-        # subscribed_addresses = {
-        #     subscription.resource_data.get("address")
-        #     for subscription in provider_subscriptions
-        #     if subscription.resource_data.get("address") is not None
-        # }
-
-        # Need check that we can expand logic of parsef filters from query params but it will difficult
-
-        # if query.subscriptions:
-        #     parsed_filters.from_addresses = []
-        #     parsed_filters.to_addresses = []
-        #     for provider_type, raw_filter in query.subscriptions:
-        #         if provider_type != event_type:
-        #             continue
-
-        #         if raw_filter.startswith("from:"):
-        #             address = raw_filter[from_prefix_length:]
-        #             if address in subscribed_addresses:
-        #                 parsed_filters.from_addresses.append(address)
-        #         elif raw_filter.startswith("to:"):
-        #             address = raw_filter[to_prefix_length:]
-        #             if address in subscribed_addresses:
-        #                 parsed_filters.to_addresses.append(address)
-        #         else:
-        #             address = raw_filter
-        #             if address in subscribed_addresses:
-        #                 parsed_filters.from_addresses.append(address)
-        #                 parsed_filters.to_addresses.append(address)
+        self.apply_query_filters(parsed_filters, query)
 
         if not (parsed_filters.addresses):
             return None
@@ -217,7 +168,7 @@ class MoonwormProvider:
 
         Raises an error for invalid stream boundaries, else returns None.
         """
-        valid_period_seconds = 24 * 60 * 60
+        valid_period_seconds = self.valid_period_seconds
 
         _, stream_boundary = validate_stream_boundary(
             stream_boundary, valid_period_seconds, raise_when_invalid=True
@@ -262,7 +213,7 @@ class MoonwormProvider:
 
         for address_filter in parsed_filters.addresses:
             labels_filters = []
-            for label_filter in address_filter.labels:
+            for label_filter in address_filter.label_filters:
 
                 labels_filters.append(
                     and_(

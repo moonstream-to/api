@@ -278,7 +278,7 @@ class BugoutEventProvider:
         return self.entry_event(search_results.results[0])
 
 
-class TXPoolProvider(BugoutEventProvider):
+class EthereumTXPoolProvider(BugoutEventProvider):
     def __init__(
         self,
         event_type: str,
@@ -357,7 +357,7 @@ ethereum_txpool_description = """Event provider for Ethereum transaction pool.
 Shows the latest events (from the previous hour) in the Ethereum transaction pool.
 
 To restrict your queries to this provider, add a filter of \"type:ethereum_txpool\" to your query (query parameter: \"q\") on the /streams endpoint."""
-ethereum_txpool_provider = TXPoolProvider(
+ethereum_txpool_provider = EthereumTXPoolProvider(
     event_type="ethereum_txpool",
     description=ethereum_txpool_description,
     default_time_interval_seconds=5,
