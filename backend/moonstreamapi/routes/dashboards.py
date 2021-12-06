@@ -149,7 +149,7 @@ async def add_dashboard_handler(
     except Exception as e:
         logger.error(f"Error creating dashboard resource: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
-    
+
     return resource
 
 
