@@ -258,31 +258,32 @@ const OverlayProvider = ({ children }) => {
                 );
                 createDashboard.mutate({
                   name: dashboardState.name,
-                  subscriptions: dashboardState.subscriptions.map(
-                    (pickedSubscription) => {
-                      const retval = {
-                        subscription_id: pickedSubscription.subscription_id,
-                        generic: [],
-                        all_methods: !!pickedSubscription.isMethods,
-                        all_events: !!pickedSubscription.isEvents,
-                      };
+                  subscription_settings:
+                    dashboardState.subscription_settings.map(
+                      (pickedSubscription) => {
+                        const retval = {
+                          subscription_id: pickedSubscription.subscription_id,
+                          generic: [],
+                          all_methods: !!pickedSubscription.isMethods,
+                          all_events: !!pickedSubscription.isEvents,
+                        };
 
-                      pickedSubscription.generic.transactions.in &&
-                        retval.generic.push({ name: "transactions_in" });
-                      pickedSubscription.generic.transactions.out &&
-                        retval.generic.push({ name: "transactions_out" });
-                      pickedSubscription.generic.value.in &&
-                        retval.generic.push({ name: "value_in" });
-                      pickedSubscription.generic.value.out &&
-                        retval.generic.push({ name: "value_out" });
-                      pickedSubscription.generic.balance &&
-                        retval.generic.push({ name: "balance" });
-                      retval["methods"] = [];
-                      retval["events"] = [];
+                        pickedSubscription.generic.transactions.in &&
+                          retval.generic.push({ name: "transactions_in" });
+                        pickedSubscription.generic.transactions.out &&
+                          retval.generic.push({ name: "transactions_out" });
+                        pickedSubscription.generic.value.in &&
+                          retval.generic.push({ name: "value_in" });
+                        pickedSubscription.generic.value.out &&
+                          retval.generic.push({ name: "value_out" });
+                        pickedSubscription.generic.balance &&
+                          retval.generic.push({ name: "balance" });
+                        retval["methods"] = [];
+                        retval["events"] = [];
 
-                      return retval;
-                    }
-                  ),
+                        return retval;
+                      }
+                    ),
                 });
               }}
             >
