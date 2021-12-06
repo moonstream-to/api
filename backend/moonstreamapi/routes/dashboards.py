@@ -7,7 +7,7 @@ from uuid import UUID
 import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
-from fastapi import APIRouter, Request, Query, Body, BackgroundTasks
+from fastapi import APIRouter, Request, Query, Body
 
 from .. import actions
 from .. import data
@@ -41,7 +41,6 @@ blockchain_by_subscription_id = {
 @router.post("/", tags=["dashboards"], response_model=BugoutResource)
 async def add_dashboard_handler(
     request: Request,
-    background_tasks: BackgroundTasks,
     dashboard: data.DashboardCreate = Body(...),
 ) -> BugoutResource:
     """
@@ -150,15 +149,7 @@ async def add_dashboard_handler(
     except Exception as e:
         logger.error(f"Error creating dashboard resource: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
-
-    # Generate tasks for moonworm
-
-    background_tasks.add_task(
-        actions.apply_moonworm_tasks,
-        s3_client,
-        dashboard_subscriptions,
-        available_subscriptions,
-    )
+    
     return resource
 
 
@@ -242,7 +233,6 @@ async def get_dashboard_handler(
 async def update_dashboard_handler(
     request: Request,
     dashboard_id: str,
-    background_tasks: BackgroundTasks,
     dashboard: data.DashboardUpdate = Body(...),
 ) -> BugoutResource:
     """
@@ -349,13 +339,6 @@ async def update_dashboard_handler(
     except Exception as e:
         logger.error(f"Error updating subscription resource: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
-
-    background_tasks.add_task(
-        actions.apply_moonworm_tasks,
-        s3_client,
-        dashboard_subscriptions,
-        available_subscriptions,
-    )
 
     return resource
 

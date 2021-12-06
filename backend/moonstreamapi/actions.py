@@ -480,8 +480,8 @@ def get_all_entries_from_search(
 
 def apply_moonworm_tasks(
     s3_client: Any,
-    dashboard_subscriptions: List[data.DashboardMeta],
-    available_subscriptions: Dict[uuid.UUID, Dict[str, Any]],
+    abi: Any,
+    address: str,
 ) -> None:
     """
     Get list of subscriptions loads abi and apply them as moonworm tasks if it not exist
@@ -489,78 +489,45 @@ def apply_moonworm_tasks(
 
     entries_pack = []
 
-    for dashboard_subscription in dashboard_subscriptions:
-        if dashboard_subscription.subscription_id in available_subscriptions.keys():
+    try:
+        entries = get_all_entries_from_search(
+            journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+            search_query=f"tag:address:{address}",
+            limit=100,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        )
 
-            try:
-                bucket = available_subscriptions[
-                    dashboard_subscription.subscription_id
-                ]["bucket"]
-                key = available_subscriptions[dashboard_subscription.subscription_id][
-                    "s3_path"
-                ]
+        existing_tags = [entry.tags for entry in entries]
 
-                if bucket is None or key is None:
-                    logger.error(
-                        f"Error on dashboard resource {dashboard_subscription.subscription_id} does not have an abi"
-                    )
+        existing_hashes = [
+            tag.split(":")[-1]
+            for tag in chain(*existing_tags)
+            if "abi_metod_hash" in tag
+        ]
 
-                s3_path = f"s3://{bucket}/{key}"
+        abi_hashes_dict = {
+            hashlib.md5(json.dumps(method).encode("utf-8")).hexdigest(): method
+            for method in abi
+            if (method["type"] in ("event", "function"))
+            and (method.get("stateMutability", "") != "view")
+        }
 
-                try:
-
-                    response = s3_client.get_object(
-                        Bucket=bucket,
-                        Key=key,
-                    )
-
-                except s3_client.exceptions.NoSuchKey as e:
-                    logger.error(
-                        f"Error getting Abi for subscription {str(dashboard_subscription.subscription_id)} S3 {s3_path} does not exist : {str(e)}"
-                    )
-
-                abi = json.loads(response["Body"].read())
-
-                entries = get_all_entries_from_search(
-                    journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
-                    search_query=f"tag:address:{available_subscriptions[dashboard_subscription.subscription_id]['address']}",
-                    limit=100,
-                    token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        for hash in abi_hashes_dict:
+            if hash not in existing_hashes:
+                entries_pack.append(
+                    {
+                        "title": address,
+                        "content": json.dumps(abi_hashes_dict[hash], indent=4),
+                        "tags": [
+                            f"address:{address}",
+                            f"type:{abi_hashes_dict[hash]['type']}",
+                            f"abi_metod_hash:{hash}",
+                            f"status:active",
+                        ],
+                    }
                 )
-
-                existing_tags = [entry.tags for entry in entries]
-
-                existing_hashes = [
-                    tag.split(":")[-1]
-                    for tag in chain(*existing_tags)
-                    if "abi_metod_hash" in tag
-                ]
-
-                abi_hashes_dict = {
-                    hashlib.md5(json.dumps(method).encode("utf-8")).hexdigest(): method
-                    for method in abi
-                    if (method["type"] in ("event", "function"))
-                    and (method.get("stateMutability", "") != "view")
-                }
-
-                for hash in abi_hashes_dict:
-                    if hash not in existing_hashes:
-                        entries_pack.append(
-                            {
-                                "title": available_subscriptions[
-                                    dashboard_subscription.subscription_id
-                                ]["address"],
-                                "content": json.dumps(abi_hashes_dict[hash], indent=4),
-                                "tags": [
-                                    f"address:{available_subscriptions[dashboard_subscription.subscription_id]['address']}",
-                                    f"type:{abi_hashes_dict[hash]['type']}",
-                                    f"abi_metod_hash:{hash}",
-                                    f"status:active",
-                                ],
-                            }
-                        )
-            except Exception as e:
-                reporter.error_report(e)
+    except Exception as e:
+        reporter.error_report(e)
 
     if len(entries_pack) > 0:
         bc.create_entries_pack(
