@@ -91,6 +91,19 @@ const Status = () => {
 
         <br />
 
+        <StatusRow title="Crawlers server" cache={crawlersStatusCache}>
+          <Text
+            color={
+              moonstreamCrawlersStatus?.status.body.status == "ok"
+                ? healthyStatusColor
+                : downStatusColor
+            }
+          >
+            {moonstreamCrawlersStatus?.status.body.status == "ok"
+              ? healthyStatusText
+              : downStatusText}
+          </Text>
+        </StatusRow>
         <StatusRow title="Txpool latest record ts" cache={crawlersStatusCache}>
           <Text>
             {crawlersStatusCache?.data?.ethereum_txpool_timestamp
