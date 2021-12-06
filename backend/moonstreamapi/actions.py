@@ -458,7 +458,8 @@ def get_all_entries_from_search(
         )
         results.extend(existing_metods.results)
 
-    except:
+    except Exception as e:
+        print(e)
 
         pass
 
@@ -540,9 +541,7 @@ def apply_moonworm_tasks(
                 hashlib.md5(json.dumps(method).encode("utf-8")).hexdigest(): method
                 for method in abi
                 if (method["type"] in ("event", "function"))
-                and (
-                    "stateMutability" in method and method["stateMutability"] == "view"
-                )
+                and (method.get("stateMutability", "") != "view")
             }
 
             for hash in abi_hashes_dict:
