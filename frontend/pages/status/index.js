@@ -128,7 +128,7 @@ const Status = () => {
               : downStatusText}
           </Text>
         </StatusRow>
-        <StatusRow title="Node Ethereum A block" cache={serverListStatusCache}>
+        <StatusRow title="Current block" cache={serverListStatusCache}>
           <Text>
             {nodeEthereumAGeth?.status.body.current_block
               ? nodeEthereumAGeth.status.body.current_block
@@ -149,7 +149,7 @@ const Status = () => {
               : downStatusText}
           </Text>
         </StatusRow>
-        <StatusRow title="Node Ethereum B block" cache={serverListStatusCache}>
+        <StatusRow title="Current block" cache={serverListStatusCache}>
           <Text>
             {nodeEthereumBGeth?.status.body.current_block
               ? nodeEthereumBGeth.status.body.current_block
@@ -170,7 +170,7 @@ const Status = () => {
               : downStatusText}
           </Text>
         </StatusRow>
-        <StatusRow title="Node Polygon A block" cache={serverListStatusCache}>
+        <StatusRow title="Current block" cache={serverListStatusCache}>
           <Text>
             {nodePolygonAGeth?.status.body.current_block
               ? nodePolygonAGeth.status.body.current_block
@@ -191,7 +191,7 @@ const Status = () => {
               : downStatusText}
           </Text>
         </StatusRow>
-        <StatusRow title="Node Polygon B block" cache={serverListStatusCache}>
+        <StatusRow title="Current block" cache={serverListStatusCache}>
           <Text>
             {nodePolygonBGeth?.status.body.current_block
               ? nodePolygonBGeth.status.body.current_block
