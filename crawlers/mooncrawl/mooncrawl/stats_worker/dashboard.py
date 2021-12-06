@@ -420,9 +420,9 @@ def get_blocks_state(
     """
 
     blocks_state = {
-        "latest_available_block": 0,
-        "latest_crawled_block": 0,
-        "earliest_crawled_block": 0,
+        "latest_stored_block": 0,
+        "latest_labelled_block": 0,
+        "earliest_labelled_block": 0,
     }
 
     label_model = get_label_model(blockchain_type)
@@ -431,22 +431,22 @@ def get_blocks_state(
 
     max_transactions_number = db_session.query(
         func.max(transactions_model.label("block_number"))
-    ).subquery(name="max_transactions_block")
+    ).subquery(name="latest_stored_block")
 
     result = (
         db_session.query(
-            func.min(label_model.block_number).label("earliest_crawled_block"),
-            func.max(label_model.block_number).label("latest_crawled_block"),
-            max_transactions_number.c.block_number.label("latest_available_block"),
+            func.min(label_model.block_number).label("earliest_labelled_block"),
+            func.max(label_model.block_number).label("latest_labelled_block"),
+            max_transactions_number.c.block_number.label("latest_stored_block"),
         ).filter(label_model.label == CRAWLER_LABEL)
     ).one_or_none()
 
     if result:
-        earliest_crawled_block, latest_crawled_block, latest_available_block = result
+        earliest_labelled_block, latest_labelled_block, latest_stored_block = result
         blocks_state = {
-            "latest_available_block": latest_available_block,
-            "latest_crawled_block": latest_crawled_block,
-            "earliest_crawled_block": earliest_crawled_block,
+            "latest_stored_block": latest_stored_block,
+            "latest_labelled_block": latest_labelled_block,
+            "earliest_labelled_block": earliest_labelled_block,
         }
     return blocks_state
 
