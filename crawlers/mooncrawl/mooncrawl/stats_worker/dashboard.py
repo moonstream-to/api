@@ -198,45 +198,49 @@ def generate_metrics(
         return response_metric
 
     try:
-        start_time = time.time()
 
-        results["transactions_out"] = make_query(
-            db_session,
-            transaction_model.from_address,
-            transaction_model.hash,
-            func.count,
-        )
+        if "transactions_out" in metrics:
+            start_time = time.time()
+            results["transactions_out"] = make_query(
+                db_session,
+                transaction_model.from_address,
+                transaction_model.hash,
+                func.count,
+            )
 
-        print("--- transactions_out %s seconds ---" % (time.time() - start_time))
+            print("--- transactions_out %s seconds ---" % (time.time() - start_time))
 
-        start_time = time.time()
-        results["transactions_in"] = make_query(
-            db_session,
-            transaction_model.to_address,
-            transaction_model.hash,
-            func.count,
-        )
+        if "transactions_in" in metrics:
+            start_time = time.time()
+            results["transactions_in"] = make_query(
+                db_session,
+                transaction_model.to_address,
+                transaction_model.hash,
+                func.count,
+            )
 
-        print("--- transactions_in %s seconds ---" % (time.time() - start_time))
+            print("--- transactions_in %s seconds ---" % (time.time() - start_time))
 
-        start_time = time.time()
-        results["value_out"] = make_query(
-            db_session,
-            transaction_model.from_address,
-            transaction_model.value,
-            func.sum,
-        )
-        print("--- value_out %s seconds ---" % (time.time() - start_time))
+        if "value_out" in metrics:
+            start_time = time.time()
+            results["value_out"] = make_query(
+                db_session,
+                transaction_model.from_address,
+                transaction_model.value,
+                func.sum,
+            )
+            print("--- value_out %s seconds ---" % (time.time() - start_time))
 
-        start_time = time.time()
-        results["value_in"] = make_query(
-            db_session,
-            transaction_model.to_address,
-            transaction_model.value,
-            func.sum,
-        )
+        if "value_in" in metrics:
+            start_time = time.time()
+            results["value_in"] = make_query(
+                db_session,
+                transaction_model.to_address,
+                transaction_model.value,
+                func.sum,
+            )
 
-        print("--- value_in %s seconds ---" % (time.time() - start_time))
+            print("--- value_in %s seconds ---" % (time.time() - start_time))
 
     except Exception as err:
         print(err)
@@ -340,6 +344,8 @@ def generate_data(
         label_counts = label_counts.filter(
             func.to_timestamp(label_model.block_timestamp) < end
         )
+
+    # split grafics
 
     label_counts_subquery = (
         label_counts.group_by(
@@ -529,12 +535,9 @@ def stats_generate_handler(args: argparse.Namespace):
     with yield_db_session_ctx() as db_session:
         # read all subscriptions
 
-        # ethereum_blockchain
-
         start_time = time.time()
         blockchain_type = AvailableBlockchainType(args.blockchain)
 
-        # polygon_blockchain
         dashboard_resources: BugoutResources = bc.list_resources(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             params={"type": BUGOUT_RESOURCE_TYPE_DASHBOARD},
@@ -564,10 +567,12 @@ def stats_generate_handler(args: argparse.Namespace):
 
         s3_client = boto3.client("s3")
 
+        subscriptions_count = 0
+
         for dashboard in dashboard_resources.resources:
 
             for dashboard_subscription_filters in dashboard.resource_data[
-                "dashboard_subscriptions"
+                "subscription_settings"
             ]:
 
                 try:
@@ -577,6 +582,7 @@ def stats_generate_handler(args: argparse.Namespace):
                         # Meen it's are different blockchain type
                         continue
 
+                    subscriptions_count += 1
                     s3_data_object = {}
 
                     extention_data = []
@@ -586,6 +592,8 @@ def stats_generate_handler(args: argparse.Namespace):
                     ]
 
                     generic = dashboard_subscription_filters["generic"]
+
+                    generic_metrics_names = [item["name"] for item in generic]
 
                     if not subscription_by_id[subscription_id].resource_data["abi"]:
 
@@ -716,7 +724,7 @@ def stats_generate_handler(args: argparse.Namespace):
                             blockchain_type=blockchain_type,
                             address=address,
                             timescale=timescale,
-                            metrics=generic,
+                            metrics=generic_metrics_names,
                             start=start_date,
                         )
 
@@ -742,7 +750,7 @@ def stats_generate_handler(args: argparse.Namespace):
 
         reporter.custom_report(
             title=f"Dashboard stats generated.",
-            content=f"Generate statistics for {args.blockchain}. \n Generation time: {time.time() - start_time}.",
+            content=f"Generate statistics for {args.blockchain}. \n Generation time: {time.time() - start_time}. \n Total amount of dashboards: {len(dashboard_resources.resources)}. Generate stats for {subscriptions_count}.",
             tags=["dashboard", "statistics", f"blockchain:{args.blockchain}"],
         )
 
