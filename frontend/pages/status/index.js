@@ -1,11 +1,14 @@
-import React from "react";
+import React, { useContext } from "react";
 import { useStatus } from "../../src/core/hooks";
 import { Heading, Text, Flex, Spacer, chakra, Spinner } from "@chakra-ui/react";
 import { getLayout, getLayoutProps } from "../../src/layouts/InfoPageLayout";
+import UserContext from "../../src/core/providers/UserProvider/context";
 
 const Status = () => {
+  const user = useContext(UserContext);
   const healthyStatusText = "Available";
   const downStatusText = "Unavailable";
+  const unauthorizedText = "Please login";
   const healthyStatusColor = "green.900";
   const downStatusColor = "red.600";
 
@@ -106,11 +109,13 @@ const Status = () => {
         </StatusRow>
         <StatusRow title="Txpool latest record ts" cache={crawlersStatusCache}>
           <Text>
-            {crawlersStatusCache?.data?.ethereum_txpool_timestamp
-              ? shortTimestamp(
-                  crawlersStatusCache?.data?.ethereum_txpool_timestamp
-                )
-              : downStatusText}
+            {!user
+              ? crawlersStatusCache?.data?.ethereum_txpool_timestamp
+                ? shortTimestamp(
+                    crawlersStatusCache?.data?.ethereum_txpool_timestamp
+                  )
+                : downStatusText
+              : unauthorizedText}
           </Text>
         </StatusRow>
         <StatusRow
@@ -118,11 +123,13 @@ const Status = () => {
           cache={crawlersStatusCache}
         >
           <Text>
-            {crawlersStatusCache?.data?.ethereum_trending_timestamp
-              ? shortTimestamp(
-                  crawlersStatusCache?.data?.ethereum_trending_timestamp
-                )
-              : downStatusText}
+            {!user
+              ? crawlersStatusCache?.data?.ethereum_trending_timestamp
+                ? shortTimestamp(
+                    crawlersStatusCache?.data?.ethereum_trending_timestamp
+                  )
+                : downStatusText
+              : unauthorizedText}
           </Text>
         </StatusRow>
 
