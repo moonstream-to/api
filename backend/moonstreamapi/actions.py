@@ -536,54 +536,11 @@ def apply_moonworm_tasks(
                     if "abi_metod_hash" in tag
                 ]
 
-                filtered_abi = []
-
-                # TODO(Andrey) : Try simplify that apply filters block
-                # Apply events filters if they specified in dashbord resource
-                if (
-                    not dashboard_subscription.all_events
-                    and dashboard_subscription.events
-                ):
-                    filtered_abi.extend(
-                        [
-                            method
-                            for method in abi
-                            if (method["type"] == "event")
-                            and (method["name"] in dashboard_subscription.events)
-                        ]
-                    )
-                else:
-                    filtered_abi.extend(
-                        [method for method in abi if method["type"] == "event"]
-                    )
-
-                # Apply functions call filters if they specified in dashbord resource
-                if (
-                    not dashboard_subscription.all_methods
-                    and dashboard_subscription.methods
-                ):
-                    filtered_abi.extend(
-                        [
-                            method
-                            for method in abi
-                            if (method["type"] == "function")
-                            and (method["name"] in dashboard_subscription.methods)
-                            and (method.get("stateMutability", "") != "view")
-                        ]
-                    )
-                else:
-                    filtered_abi.extend(
-                        [
-                            method
-                            for method in abi
-                            if method["type"] == "function"
-                            and (method.get("stateMutability", "") != "view")
-                        ]
-                    )
-
                 abi_hashes_dict = {
                     hashlib.md5(json.dumps(method).encode("utf-8")).hexdigest(): method
-                    for method in filtered_abi
+                    for method in abi
+                    if (method["type"] in ("event", "function"))
+                    and (method.get("stateMutability", "") != "view")
                 }
 
                 for hash in abi_hashes_dict:
