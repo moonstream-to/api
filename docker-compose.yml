@@ -1,0 +1,57 @@
+# Compose version
+version: "3"
+
+services:
+  # Moonstream API application
+  moonstreamapi:
+    build:
+      context: ./backend/
+      dockerfile: ./Dockerfile
+    image: moonstreamapi:latest
+    ports:
+      - "127.0.0.1:7481:7481"
+    # Specify environment file for compose setup
+    env_file: ./backend/configs/docker.moonstreamapi.env
+    environment:
+      MOONSTREAMAPI_HOST: 0.0.0.0
+      MOONSTREAMAPI_PORT: 7481
+      MOONSTREAMAPI_UVICORN_WORKERS: 1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://moonstreamapi:7481/ping"]
+      interval: 5s
+      timeout: 1s
+      retries: 2
+      start_period: 2s
+    depends_on:
+      db:
+        condition: service_healthy
+  
+  # Moonstream DB application
+  moonstreamdb:
+    build:
+      context: ./db/
+      dockerfile: ./Dockerfile
+    image: moonstreamdb:latest
+    # Specify environment file for compose setup
+    env_file: ./db/configs/docker.moonstreamdb.env
+    environment:
+      ALEMBIC_CONFIG: ./configs/alembic.moonstreamdb.ini
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # DB postgres application
+  db:
+    image: postgres:13
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: moonstream_dev
+    healthcheck:
+      test: ["CMD", "psql", "-U", "postgres", "-c", "SELECT 1;"]
+      interval: 5s
+      timeout: 1s
+      retries: 3
+      start_period: 2s
