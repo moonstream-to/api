@@ -8,7 +8,7 @@ import logging
 import time
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Union
 from uuid import UUID
 
 import boto3  # type: ignore
@@ -411,6 +411,46 @@ def get_unique_address(
     )
 
 
+def get_blocks_state(
+    db_session: Session, blockchain_type: AvailableBlockchainType
+) -> Dict[str, int]:
+
+    """
+    Generate meta information about
+    """
+
+    blocks_state = {
+        "latest_stored_block": 0,
+        "latest_labelled_block": 0,
+        "earliest_labelled_block": 0,
+    }
+
+    label_model = get_label_model(blockchain_type)
+
+    transactions_model = get_transaction_model(blockchain_type)
+
+    max_transactions_number = db_session.query(
+        func.max(transactions_model.block_number).label("block_number")
+    ).scalar()
+
+    result = (
+        db_session.query(
+            func.min(label_model.block_number).label("earliest_labelled_block"),
+            func.max(label_model.block_number).label("latest_labelled_block"),
+            max_transactions_number,
+        ).filter(label_model.label == CRAWLER_LABEL)
+    ).one_or_none()
+
+    if result:
+        earliest_labelled_block, latest_labelled_block, latest_stored_block = result
+        blocks_state = {
+            "latest_stored_block": latest_stored_block,
+            "latest_labelled_block": latest_labelled_block,
+            "earliest_labelled_block": earliest_labelled_block,
+        }
+    return blocks_state
+
+
 def generate_list_of_names(
     type: str, subscription_filters: Dict[str, Any], read_abi: bool, abi_json: Any
 ):
@@ -577,7 +617,7 @@ def stats_generate_handler(args: argparse.Namespace):
                         # Meen it's are different blockchain type
                         continue
 
-                    s3_data_object = {}
+                    s3_data_object: Dict[str, Any] = {}
 
                     extention_data = []
 
@@ -677,6 +717,10 @@ def stats_generate_handler(args: argparse.Namespace):
                             }
                         )
 
+                    current_blocks_state = get_blocks_state(
+                        db_session=db_session, blockchain_type=blockchain_type
+                    )
+
                     for timescale in [timescale.value for timescale in TimeScale]:
 
                         start_date = (
@@ -684,6 +728,8 @@ def stats_generate_handler(args: argparse.Namespace):
                         )
 
                         print(f"Timescale: {timescale}")
+
+                        s3_data_object["blocks_state"] = current_blocks_state
 
                         s3_data_object["web3_metric"] = extention_data
 
