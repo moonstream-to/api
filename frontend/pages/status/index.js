@@ -1,11 +1,14 @@
-import React from "react";
+import React, { useContext } from "react";
 import { useStatus } from "../../src/core/hooks";
 import { Heading, Text, Flex, Spacer, chakra, Spinner } from "@chakra-ui/react";
 import { getLayout, getLayoutProps } from "../../src/layouts/InfoPageLayout";
+import UserContext from "../../src/core/providers/UserProvider/context";
 
 const Status = () => {
+  const user = useContext(UserContext);
   const healthyStatusText = "Available";
   const downStatusText = "Unavailable";
+  const unauthorizedText = "Please login";
   const healthyStatusColor = "green.900";
   const downStatusColor = "red.600";
 
@@ -14,13 +17,42 @@ const Status = () => {
   };
 
   const {
-    apiServerStatusCache,
-    ethereumClusterServerStatusCache,
-    gethStatusCache,
+    serverListStatusCache,
     crawlersStatusCache,
     dbServerStatusCache,
     latestBlockDBStatusCache,
   } = useStatus();
+
+  const moonstreamapiStatus = serverListStatusCache?.data?.filter(
+    (i) => i.status.name === "moonstreamapi"
+  )[0];
+  const moonstreamCrawlersStatus = serverListStatusCache?.data?.filter(
+    (i) => i.status.name === "moonstream_crawlers"
+  )[0];
+  const nodeEthereumAStatus = serverListStatusCache?.data?.filter(
+    (i) => i.status.name === "node_ethereum_a"
+  )[0];
+  const nodeEthereumAGeth = serverListStatusCache?.data?.filter(
+    (i) => i.status.name === "node_ethereum_a_geth"
+  )[0];
+  const nodeEthereumBStatus = serverListStatusCache?.data?.filter(
+    (i) => i.status.name === "node_ethereum_b"
+  )[0];
+  const nodeEthereumBGeth = serverListStatusCache?.data?.filter(
+    (i) => i.status.name === "node_ethereum_b_geth"
+  )[0];
+  const nodePolygonAStatus = serverListStatusCache?.data?.filter(
+    (i) => i.status.name === "node_polygon_a"
+  )[0];
+  const nodePolygonAGeth = serverListStatusCache?.data?.filter(
+    (i) => i.status.name === "node_polygon_a_geth"
+  )[0];
+  const nodePolygonBStatus = serverListStatusCache?.data?.filter(
+    (i) => i.status.name === "node_polygon_b"
+  )[0];
+  const nodePolygonBGeth = serverListStatusCache?.data?.filter(
+    (i) => i.status.name === "node_polygon_b_geth"
+  )[0];
 
   const StatusRow = (props) => {
     console.log(props.cache.data);
@@ -46,50 +78,44 @@ const Status = () => {
         {`Status page`}
       </Heading>
       <chakra.span pl={2} px={12} py={2} width="400px">
-        <StatusRow title="Backend server" cache={apiServerStatusCache}>
+        <StatusRow title="Backend server" cache={serverListStatusCache}>
           <Text
             color={
-              apiServerStatusCache?.data?.status == "ok"
+              moonstreamapiStatus?.status.body.status == "ok"
                 ? healthyStatusColor
                 : downStatusColor
             }
           >
-            {apiServerStatusCache?.data?.status == "ok"
+            {moonstreamapiStatus?.status.body.status == "ok"
               ? healthyStatusText
               : downStatusText}
           </Text>
         </StatusRow>
+
         <br />
-        <StatusRow
-          title="Crawlers server"
-          cache={ethereumClusterServerStatusCache}
-        >
+
+        <StatusRow title="Crawlers server" cache={crawlersStatusCache}>
           <Text
             color={
-              ethereumClusterServerStatusCache?.data?.status == "ok"
+              moonstreamCrawlersStatus?.status.body.status == "ok"
                 ? healthyStatusColor
                 : downStatusColor
             }
           >
-            {ethereumClusterServerStatusCache?.data
+            {moonstreamCrawlersStatus?.status.body.status == "ok"
               ? healthyStatusText
               : downStatusText}
-          </Text>
-        </StatusRow>
-        <StatusRow title="Latest block in Geth" cache={gethStatusCache}>
-          <Text>
-            {gethStatusCache?.data?.current_block
-              ? gethStatusCache.data.current_block
-              : 0}
           </Text>
         </StatusRow>
         <StatusRow title="Txpool latest record ts" cache={crawlersStatusCache}>
           <Text>
-            {crawlersStatusCache?.data?.ethereum_txpool_timestamp
-              ? shortTimestamp(
-                  crawlersStatusCache?.data?.ethereum_txpool_timestamp
-                )
-              : downStatusText}
+            {!user
+              ? crawlersStatusCache?.data?.ethereum_txpool_timestamp
+                ? shortTimestamp(
+                    crawlersStatusCache?.data?.ethereum_txpool_timestamp
+                  )
+                : downStatusText
+              : unauthorizedText}
           </Text>
         </StatusRow>
         <StatusRow
@@ -97,15 +123,104 @@ const Status = () => {
           cache={crawlersStatusCache}
         >
           <Text>
-            {crawlersStatusCache?.data?.ethereum_trending_timestamp
-              ? shortTimestamp(
-                  crawlersStatusCache?.data?.ethereum_trending_timestamp
-                )
-              : downStatusText}
+            {!user
+              ? crawlersStatusCache?.data?.ethereum_trending_timestamp
+                ? shortTimestamp(
+                    crawlersStatusCache?.data?.ethereum_trending_timestamp
+                  )
+                : downStatusText
+              : unauthorizedText}
           </Text>
         </StatusRow>
 
         <br />
+
+        <StatusRow title="Node Ethereum A" cache={serverListStatusCache}>
+          <Text
+            color={
+              nodeEthereumAStatus?.status.body.status == "ok"
+                ? healthyStatusColor
+                : downStatusColor
+            }
+          >
+            {nodeEthereumAStatus?.status.body.status == "ok"
+              ? healthyStatusText
+              : downStatusText}
+          </Text>
+        </StatusRow>
+        <StatusRow title="Current block" cache={serverListStatusCache}>
+          <Text>
+            {nodeEthereumAGeth?.status.body.current_block
+              ? nodeEthereumAGeth.status.body.current_block
+              : 0}
+          </Text>
+        </StatusRow>
+        <br />
+        <StatusRow title="Node Ethereum B" cache={serverListStatusCache}>
+          <Text
+            color={
+              nodeEthereumBStatus?.status.body.status == "ok"
+                ? healthyStatusColor
+                : downStatusColor
+            }
+          >
+            {nodeEthereumBStatus?.status.body.status == "ok"
+              ? healthyStatusText
+              : downStatusText}
+          </Text>
+        </StatusRow>
+        <StatusRow title="Current block" cache={serverListStatusCache}>
+          <Text>
+            {nodeEthereumBGeth?.status.body.current_block
+              ? nodeEthereumBGeth.status.body.current_block
+              : 0}
+          </Text>
+        </StatusRow>
+        <br />
+        <StatusRow title="Node Polygon A" cache={serverListStatusCache}>
+          <Text
+            color={
+              nodePolygonAStatus?.status.body.status == "ok"
+                ? healthyStatusColor
+                : downStatusColor
+            }
+          >
+            {nodePolygonAStatus?.status.body.status == "ok"
+              ? healthyStatusText
+              : downStatusText}
+          </Text>
+        </StatusRow>
+        <StatusRow title="Current block" cache={serverListStatusCache}>
+          <Text>
+            {nodePolygonAGeth?.status.body.current_block
+              ? nodePolygonAGeth.status.body.current_block
+              : 0}
+          </Text>
+        </StatusRow>
+        <br />
+        <StatusRow title="Node Polygon B" cache={serverListStatusCache}>
+          <Text
+            color={
+              nodePolygonBStatus?.status.body.status == "ok"
+                ? healthyStatusColor
+                : downStatusColor
+            }
+          >
+            {nodePolygonBStatus?.status.body.status == "ok"
+              ? healthyStatusText
+              : downStatusText}
+          </Text>
+        </StatusRow>
+        <StatusRow title="Current block" cache={serverListStatusCache}>
+          <Text>
+            {nodePolygonBGeth?.status.body.current_block
+              ? nodePolygonBGeth.status.body.current_block
+              : 0}
+          </Text>
+        </StatusRow>
+
+        <br />
+
         <StatusRow title="Database server" cache={dbServerStatusCache}>
           <Text
             color={

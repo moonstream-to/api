@@ -29,9 +29,9 @@ BASE_API_URL = "https://api.etherscan.io/api?module=contract&action=getsourcecod
 
 ETHERSCAN_SMARTCONTRACTS_LABEL_NAME = "etherscan_smartcontract"
 
-bucket = os.environ.get("AWS_S3_SMARTCONTRACT_BUCKET")
+bucket = os.environ.get("MOONSTREAM_S3_SMARTCONTRACTS_BUCKET")
 if bucket is None:
-    raise ValueError("AWS_S3_SMARTCONTRACT_BUCKET must be set")
+    raise ValueError("MOONSTREAM_S3_SMARTCONTRACTS_BUCKET must be set")
 
 
 @dataclass

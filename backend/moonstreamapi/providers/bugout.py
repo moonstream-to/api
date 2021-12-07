@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 from .. import data
 from ..stream_queries import StreamQuery
 
-from ..settings import ETHTXPOOL_HUMBUG_CLIENT_ID
+from ..settings import HUMBUG_TXPOOL_CLIENT_ID
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARN)
@@ -362,5 +362,5 @@ ethereum_txpool_provider = EthereumTXPoolProvider(
     description=ethereum_txpool_description,
     default_time_interval_seconds=5,
     estimated_events_per_time_interval=50,
-    tags=[f"client:{ETHTXPOOL_HUMBUG_CLIENT_ID}"],
+    tags=[f"client:{HUMBUG_TXPOOL_CLIENT_ID}"],
 )
