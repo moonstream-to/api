@@ -1,6 +1,9 @@
+import hashlib
 import json
+from itertools import chain
 import logging
-from typing import Optional, Dict, Any, Union
+from typing import List, Optional, Dict, Any, Union
+import time
 from enum import Enum
 import uuid
 
@@ -31,6 +34,7 @@ from .settings import (
     MOONSTREAM_DATA_JOURNAL_ID,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
+    MOONSTREAM_MOONWORM_TASKS_JOURNAL,
 )
 from web3 import Web3
 
@@ -430,3 +434,107 @@ def upload_abi_to_s3(
     update["s3_path"] = result_key
 
     return update
+
+
+def get_all_entries_from_search(
+    journal_id: str, search_query: str, limit: int, token: str
+) -> List[Any]:
+    """
+    Get all required entries from journal using search interface
+    """
+    offset = 0
+
+    results: List[Any] = []
+
+    try:
+        existing_metods = bc.search(
+            token=token,
+            journal_id=journal_id,
+            query=search_query,
+            content=False,
+            timeout=10.0,
+            limit=limit,
+            offset=offset,
+        )
+        results.extend(existing_metods.results)
+
+    except Exception as e:
+        reporter.error_report(e)
+
+    if len(results) != existing_metods.total_results:
+
+        for offset in range(limit, existing_metods.total_results, limit):
+            existing_metods = bc.search(
+                token=token,
+                journal_id=journal_id,
+                query=search_query,
+                content=False,
+                timeout=10.0,
+                limit=limit,
+                offset=offset,
+            )
+        results.extend(existing_metods.results)
+
+    return results
+
+
+def apply_moonworm_tasks(
+    subscription_type: str,
+    abi: Any,
+    address: str,
+) -> None:
+    """
+    Get list of subscriptions loads abi and apply them as moonworm tasks if it not exist
+    """
+
+    entries_pack = []
+
+    try:
+        entries = get_all_entries_from_search(
+            journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+            search_query=f"tag:address:{address} tag:subscription_type:{subscription_type}",
+            limit=100,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        )
+
+        existing_tags = [entry.tags for entry in entries]
+
+        existing_hashes = [
+            tag.split(":")[-1]
+            for tag in chain(*existing_tags)
+            if "abi_metod_hash" in tag
+        ]
+
+        abi_hashes_dict = {
+            hashlib.md5(json.dumps(method).encode("utf-8")).hexdigest(): method
+            for method in abi
+            if (method["type"] in ("event", "function"))
+            and (method.get("stateMutability", "") != "view")
+        }
+
+        for hash in abi_hashes_dict:
+            if hash not in existing_hashes:
+                entries_pack.append(
+                    {
+                        "title": address,
+                        "content": json.dumps(abi_hashes_dict[hash], indent=4),
+                        "tags": [
+                            f"address:{address}",
+                            f"type:{abi_hashes_dict[hash]['type']}",
+                            f"abi_metod_hash:{hash}",
+                            f"subscription_type:{subscription_type}",
+                            f"abi_name:{abi_hashes_dict[hash]['name']}",
+                            f"status:active",
+                        ],
+                    }
+                )
+    except Exception as e:
+        reporter.error_report(e)
+
+    if len(entries_pack) > 0:
+        bc.create_entries_pack(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+            entries=entries_pack,
+            timeout=15,
+        )

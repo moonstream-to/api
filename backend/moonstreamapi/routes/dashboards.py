@@ -20,7 +20,6 @@ from ..settings import (
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
 )
-import pprint
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +40,8 @@ blockchain_by_subscription_id = {
 
 @router.post("/", tags=["dashboards"], response_model=BugoutResource)
 async def add_dashboard_handler(
-    request: Request, dashboard: data.DashboardCreate = Body(...)
+    request: Request,
+    dashboard: data.DashboardCreate = Body(...),
 ) -> BugoutResource:
     """
     Add subscription to blockchain stream data for user.
@@ -73,7 +73,7 @@ async def add_dashboard_handler(
 
     s3_client = boto3.client("s3")
 
-    available_subscriptions = {
+    available_subscriptions: Dict[UUID, Dict[str, Any]] = {
         resource.id: resource.resource_data for resource in resources.resources
     }
 
@@ -231,7 +231,9 @@ async def get_dashboard_handler(
 
 @router.put("/{dashboard_id}", tags=["dashboards"], response_model=BugoutResource)
 async def update_dashboard_handler(
-    request: Request, dashboard_id: str, dashboard: data.DashboardUpdate = Body(...)
+    request: Request,
+    dashboard_id: str,
+    dashboard: data.DashboardUpdate = Body(...),
 ) -> BugoutResource:
     """
     Update dashboards mainly fully overwrite name and subscription metadata
