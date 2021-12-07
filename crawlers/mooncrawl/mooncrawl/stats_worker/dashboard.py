@@ -430,14 +430,14 @@ def get_blocks_state(
     transactions_model = get_transaction_model(blockchain_type)
 
     max_transactions_number = db_session.query(
-        func.max(transactions_model.label("block_number"))
-    ).subquery(name="latest_stored_block")
+        func.max(transactions_model.block_number).label("block_number")
+    ).scalar()
 
     result = (
         db_session.query(
             func.min(label_model.block_number).label("earliest_labelled_block"),
             func.max(label_model.block_number).label("latest_labelled_block"),
-            max_transactions_number.c.block_number.label("latest_stored_block"),
+            max_transactions_number,
         ).filter(label_model.label == CRAWLER_LABEL)
     ).one_or_none()
 
