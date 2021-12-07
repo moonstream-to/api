@@ -479,7 +479,6 @@ def get_all_entries_from_search(
 
 
 def apply_moonworm_tasks(
-    s3_client: Any,
     abi: Any,
     address: str,
 ) -> None:
