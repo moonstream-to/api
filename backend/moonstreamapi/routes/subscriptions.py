@@ -143,6 +143,7 @@ async def add_subscription_handler(
 
         background_tasks.add_task(
             apply_moonworm_tasks,
+            subscription_type_id,
             json_abi,
             address,
         )
@@ -309,6 +310,7 @@ async def update_subscriptions_handler(
     if abi:
         background_tasks.add_task(
             apply_moonworm_tasks,
+            subscription_resource.resource_data["subscription_type_id"],
             json_abi,
             subscription_resource.resource_data["address"],
         )

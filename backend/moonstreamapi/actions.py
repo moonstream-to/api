@@ -479,6 +479,7 @@ def get_all_entries_from_search(
 
 
 def apply_moonworm_tasks(
+    subscription_type: str,
     abi: Any,
     address: str,
 ) -> None:
@@ -491,7 +492,7 @@ def apply_moonworm_tasks(
     try:
         entries = get_all_entries_from_search(
             journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
-            search_query=f"tag:address:{address}",
+            search_query=f"tag:address:{address} tag:subscription_type:{subscription_type}",
             limit=100,
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
         )
@@ -521,6 +522,8 @@ def apply_moonworm_tasks(
                             f"address:{address}",
                             f"type:{abi_hashes_dict[hash]['type']}",
                             f"abi_metod_hash:{hash}",
+                            f"subscription_type:{subscription_type}",
+                            f"abi_name:{abi_hashes_dict[hash]['name']}",
                             f"status:active",
                         ],
                     }
