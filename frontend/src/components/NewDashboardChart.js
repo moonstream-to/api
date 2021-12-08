@@ -2,51 +2,21 @@ import React, { useContext, useEffect, useState } from "react";
 import {
   chakra,
   FormLabel,
-  Input,
   Stack,
-  InputGroup,
-  Box,
   Button,
-  Table,
-  Th,
-  Td,
-  Tr,
-  Thead,
-  Tbody,
-  Center,
-  Checkbox,
-  CloseButton,
-  InputRightAddon,
   Badge,
-  InputLeftAddon,
-  Heading,
   Spinner,
-  Text,
-  ButtonGroup,
 } from "@chakra-ui/react";
-import { CheckCircleIcon } from "@chakra-ui/icons";
 import { useSubscriptions } from "../core/hooks";
-import Downshift from "downshift";
 import color from "color";
 import OverlayContext from "../core/providers/OverlayProvider/context";
 import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
-import UIContext from "../core/providers/UIProvider/context";
 import SuggestABI from "./SuggestABI";
-import { v4 } from "uuid";
 import AutoCompleter from "./AutoCompleter";
-import { CHART_METRICS } from "../core/constants";
+import CheckboxGrouped from "./CheckboxGroupped";
 
-const NewDashboardChart = (props) => {
-  const [metric, setMetric] = useState();
-  const ui = useContext(UIContext);
+const NewDashboardChart = ({ drawerState, setDrawerState }) => {
   const overlay = useContext(OverlayContext);
-  const [newChartForm, setNewChartForm] = useState([
-    {
-      subscription: undefined, //subscription
-      type: undefined, // generic | events | transactions
-      name: undefined, // transactions_in | transactions_out | value_in | value_out | balance | abi.events.some() | abi.methods.some()
-    },
-  ]);
 
   const [pickerItems, setPickerItems] = useState();
 
@@ -61,8 +31,7 @@ const NewDashboardChart = (props) => {
 
   const { subscriptionsCache } = useSubscriptions();
 
-  if (subscriptionsCache.isLoading) return <Spinner />;
-  console.log("newChartForm:", newChartForm);
+  if (subscriptionsCache.isLoading || !pickerItems) return <Spinner />;
 
   const filterFn = (item, inputValue) =>
     (item.subscription_type_id === "ethereum_blockchain" ||
@@ -74,35 +43,72 @@ const NewDashboardChart = (props) => {
   return (
     <>
       <Stack spacing="24px">
-        {newChartForm.map((subscibedItem, idx) => {
-          const onAbiSuggestionSelect = ({ type, value }) => {
-            setNewChartForm((currentValue) => {
-              const newValue = [...currentValue];
-              newValue[idx].type = type;
-              newValue[idx].name = value;
-              return newValue;
+        {drawerState.map((subscribedItem, idx) => {
+          const setGeneric = (callbackFn) => {
+            setDrawerState((currentDrawerState) => {
+              const newDrawerState = [...currentDrawerState];
+              newDrawerState[idx].generic = callbackFn(
+                newDrawerState[idx].generic
+              );
+              return newDrawerState;
             });
           };
-          const onMetricSelect = ({ type, value }) => {
-            setNewChartForm((currentValue) => {
-              const newValue = [...currentValue];
-              newValue[idx].type = type;
-              newValue[idx].name = "";
-              return newValue;
-            });
+          const setDrawerAtHead = (arg) => {
+            let newDrawerState = [...drawerState];
+            if (typeof arg === "function") {
+              console.log("setDrawerAtHead is fn - running");
+              newDrawerState[idx] = arg(newDrawerState[idx]);
+            } else {
+              newDrawerState[idx] = [...arg];
+            }
+            console.log("setDrawerAtHead newstate:", newDrawerState);
+            setDrawerState(newDrawerState);
           };
+          console.log("subscribed item mapped is", subscribedItem);
           return (
-            <Stack key={v4()}>
+            <Stack key={`new-chart-component-${idx}`}>
               <FormLabel pb={0}>Subscription:</FormLabel>
               <AutoCompleter
                 itemIdx={idx}
                 pickerItems={pickerItems}
-                initialSelectedItem={newChartForm[idx].subscription}
+                initialSelectedItem={drawerState[idx].subscription}
                 itemToString={(item) => item.label}
                 onSelect={(selectedItem) =>
-                  setNewChartForm((currentValue) => {
+                  setDrawerState((currentValue) => {
                     const newValue = [...currentValue];
-                    newValue[idx].subscription = selectedItem;
+                    newValue[idx] = {
+                      subscription: selectedItem,
+                      generic: {
+                        transactions_in: {
+                          value: "transactions_in",
+                          name: "transactions in",
+                          checked: false,
+                        },
+                        transactions_out: {
+                          value: "transactions_out",
+                          name: "transactions out",
+                          checked: false,
+                        },
+                        value_in: {
+                          value: "value_in",
+                          name: "value in",
+                          checked: false,
+                        },
+                        value_out: {
+                          value: "value_out",
+                          name: "value out",
+                          checked: false,
+                        },
+                        balance: {
+                          value: "balance",
+                          name: "balance",
+                          checked: false,
+                        },
+                      },
+                      events: {},
+                      methods: {},
+                    };
+
                     return newValue;
                   })
                 }
@@ -166,64 +172,47 @@ const NewDashboardChart = (props) => {
                   );
                 }}
               />
-              {subscibedItem?.subscription?.id && (
+              {subscribedItem?.subscription?.id && (
                 <Stack spacing={1}>
                   <FormLabel pb={0}>Metric:</FormLabel>
-                  <ButtonGroup spacing={0} display="flex">
-                    <Button
-                      flexGrow="1"
-                      flexBasis="50px"
-                      m={0}
-                      colorScheme="orange"
-                      bgColor="orange.600"
-                      _active={{ bgColor: "orange.900" }}
-                      borderRightRadius={0}
-                      onClick={() =>
-                        onMetricSelect({ type: CHART_METRICS.GENERIC })
-                      }
-                      isActive={
-                        newChartForm[idx].type === CHART_METRICS.GENERIC
-                      }
-                    >
-                      Balance
-                    </Button>
-                    <Button
-                      m={0}
-                      flexGrow="1"
-                      flexBasis="50px"
-                      borderRadius={0}
-                      colorScheme="orange"
-                      bgColor="orange.600"
-                      _active={{ bgColor: "orange.900" }}
-                      onClick={() =>
-                        onMetricSelect({ type: CHART_METRICS.EVENTS })
-                      }
-                      isActive={newChartForm[idx].type === CHART_METRICS.EVENTS}
-                    >
-                      Events
-                    </Button>
-                    <Button
-                      flexGrow="1"
-                      flexBasis="50px"
-                      m={0}
-                      borderLeftRadius={0}
-                      colorScheme="orange"
-                      bgColor="orange.600"
-                      _active={{ bgColor: "orange.900" }}
-                      onClick={() =>
-                        onMetricSelect({ type: CHART_METRICS.FUNCTIONS })
-                      }
-                      isActive={
-                        newChartForm[idx].type === CHART_METRICS.FUNCTIONS
-                      }
-                    >
-                      Functions
-                    </Button>
-                  </ButtonGroup>
+                  <CheckboxGrouped
+                    groupName="generic metrics:"
+                    list={Object.values(drawerState[idx].generic)}
+                    isItemChecked={(item) => item.checked}
+                    isAllChecked={Object.values(drawerState[idx].generic).every(
+                      (item) => !!item.checked
+                    )}
+                    isIndeterminate={
+                      Object.values(drawerState[idx].generic).some(
+                        (item) => item.checked
+                      ) &&
+                      !Object.values(drawerState[idx].generic).every(
+                        (item) => item.checked
+                      )
+                    }
+                    setItemChecked={(item, isChecked) =>
+                      setGeneric((currentState) => {
+                        const newState = { ...currentState };
+                        newState[item.value].checked = isChecked;
+                        return newState;
+                      })
+                    }
+                    setAll={(isChecked) =>
+                      setGeneric((currentState) => {
+                        const newState = { ...currentState };
+                        Object.keys(newState).forEach(
+                          (key) => (newState[key].checked = isChecked)
+                        );
+                        return newState;
+                      })
+                    }
+                  />
+
                   <SuggestABI
-                    stateContainer={newChartForm[idx]}
-                    subscriptionId={subscibedItem.subscription.id}
-                    onSelect={onAbiSuggestionSelect}
+                    subscriptionId={subscribedItem.subscription.id}
+                    drawerState={drawerState[idx]}
+                    setState={setDrawerAtHead}
+                    idx={idx}
                   />
                 </Stack>
               )}

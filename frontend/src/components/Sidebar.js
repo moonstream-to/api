@@ -28,10 +28,7 @@ import { MdSettings, MdDashboard, MdTimeline } from "react-icons/md";
 import { WHITE_LOGO_W_TEXT_URL, ALL_NAV_PATHES } from "../core/constants";
 import { v4 } from "uuid";
 import useDashboard from "../core/hooks/useDashboard";
-import {
-  DRAWER_TYPES,
-  MODAL_TYPES,
-} from "../core/providers/OverlayProvider/constants";
+import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 import OverlayContext from "../core/providers/OverlayProvider/context";
 
 const Sidebar = () => {
@@ -147,7 +144,9 @@ const Sidebar = () => {
                     colorScheme="orange"
                     size="sm"
                     onClick={() =>
-                      overlay.toggleDrawer({ type: DRAWER_TYPES.NEW_DASHBOARD })
+                      overlay.toggleModal({
+                        type: MODAL_TYPES.NEW_DASHBOARD_FLOW,
+                      })
                     }
                     // w="100%"
                     // borderRadius={0}

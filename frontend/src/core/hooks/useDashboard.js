@@ -4,6 +4,12 @@ import { queryCacheProps } from "./hookCommon";
 import { DashboardService } from "../services";
 import { useContext } from "react";
 import UserContext from "../providers/UserProvider/context";
+import {
+  uniqueNamesGenerator,
+  adjectives,
+  colors,
+  starWars,
+} from "unique-names-generator";
 
 const useDashboard = (dashboardId) => {
   const toast = useToast();
@@ -22,9 +28,23 @@ const useDashboard = (dashboardId) => {
     }
   );
 
-  const createDashboard = useMutation(DashboardService.createDashboard, {
+  const _createDashboard = async (dashboard) => {
+    const _dashboard = { ...dashboard };
+    console.log("dashboard", _dashboard);
+    if (!_dashboard.name || _dashboard.name === "")
+      _dashboard.name = uniqueNamesGenerator({
+        dictionaries: [colors, adjectives, starWars],
+      });
+    if (!_dashboard.subscription_settings) {
+      _dashboard.subscription_settings = [];
+    }
+    DashboardService.createDashboard(_dashboard);
+  };
+
+  const createDashboard = useMutation(_createDashboard, {
     onSuccess: () => {
       toast("Created new dashboard", "success");
+      sessionStorage.removeItem("new_dashboard");
     },
     onError: (error) => {
       toast(error.error, "error", "Fail");

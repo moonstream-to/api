@@ -11,11 +11,12 @@ const useToast = () => {
       const userTitle = title ?? message?.response?.statusText ?? type;
 
       const userMessage =
-        message?.response?.data?.detail ?? typeof message === "string"
+        message?.response?.data?.detail ??
+        (typeof message === "string"
           ? message
           : userTitle === type
           ? ""
-          : type;
+          : type);
 
       if (mixpanel.get_distinct_id() && type === "error") {
         mixpanel.track(`${MIXPANEL_EVENTS.TOAST_ERROR_DISPLAYED}`, {

@@ -40,11 +40,19 @@ const AddNewIconButton = (props) => {
       >
         <MenuGroup>
           <MenuItem
+            onClick={
+              () => console.log("creating new empty dasbhoard...")
+              // modal.toggleDrawer({ type: DRAWER_TYPES.NEW_DASHBOARD })
+            }
+          >
+            New Empty dashboard...
+          </MenuItem>
+          <MenuItem
             onClick={() =>
               modal.toggleDrawer({ type: DRAWER_TYPES.NEW_DASHBOARD })
             }
           >
-            New Dashboard...
+            New ABI defined dashboard...
           </MenuItem>
           <MenuItem
             onClick={() =>

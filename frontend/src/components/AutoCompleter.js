@@ -13,8 +13,6 @@ import {
 import UIContext from "../core/providers/UIProvider/context";
 
 const AutoCompleter = ({
-  form,
-  setForm,
   pickerItems,
   initialSelectedItem,
   itemToString,

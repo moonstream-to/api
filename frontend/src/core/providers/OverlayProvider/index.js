@@ -36,7 +36,11 @@ import UserContext from "../UserProvider/context";
 import UIContext from "../UIProvider/context";
 import useDashboard from "../../hooks/useDashboard";
 import SignUp from "../../../components/SignUp";
-import NewDashboardElement from "../../../components/NewDashboardChart";
+import NewDashboardChart from "../../../components/NewDashboardChart";
+import { useRouter } from "../../hooks";
+const DasbhboardFlowSelector = React.lazy(() =>
+  import("../../../components/DasbhboardFlowSelector")
+);
 const ForgotPassword = React.lazy(() =>
   import("../../../components/ForgotPassword")
 );
@@ -52,7 +56,9 @@ const NewSubscription = React.lazy(() =>
 const UploadABI = React.lazy(() => import("../../../components/UploadABI"));
 
 const OverlayProvider = ({ children }) => {
-  const { createDashboard } = useDashboard();
+  const { createDashboard, updateDashboard } = useDashboard();
+  const { params } = useRouter();
+  const { dashboardId } = params;
   const ui = useContext(UIContext);
   const { user } = useContext(UserContext);
   const [modal, toggleModal] = useState({
@@ -67,6 +73,30 @@ const OverlayProvider = ({ children }) => {
   const drawerDisclosure = useDisclosure();
   const modalDisclosure = useDisclosure();
   const alertDisclosure = useDisclosure();
+  const [drawerState, setDrawerState] = useState([
+    {
+      subscription: undefined,
+      generic: {
+        transactions_in: {
+          value: "transactions_in",
+          name: "transactions in",
+          checked: false,
+        },
+        transactions_out: {
+          value: "transactions_out",
+          name: "transactions out",
+          checked: false,
+        },
+        value_in: { value: "value_in", name: "value in", checked: false },
+        value_out: { value: "value_out", name: "value out", checked: false },
+        balance: { value: "balance", name: "balance", checked: false },
+      },
+      events: {},
+      methods: {},
+    },
+  ]);
+
+  console.log("drawerState", drawerState);
 
   useLayoutEffect(() => {
     if (modal.type === MODAL_TYPES.OFF && modalDisclosure.isOpen) {
@@ -127,42 +157,177 @@ const OverlayProvider = ({ children }) => {
 
   const submitNewDashboard = () => {
     const dashboardState = JSON.parse(sessionStorage.getItem("new_dashboard"));
-    createDashboard.mutate({
-      name: dashboardState.name,
-      subscriptions: dashboardState.subscriptions.map((pickedSubscription) => {
-        const retval = {
-          subscription_id: pickedSubscription.subscription_id,
-          generic: [],
-          all_methods: !!pickedSubscription.isMethods,
-          all_events: !!pickedSubscription.isEvents,
-        };
+    if (dashboardState) {
+      //creating ABI defined dashboard
+      createDashboard.mutate({
+        name: dashboardState.name,
+        subscription_settings: dashboardState.subscription_settings.map(
+          (pickedSubscription) => {
+            const retval = {
+              subscription_id: pickedSubscription.subscription_id,
+              generic: [],
+              all_methods: !!pickedSubscription.isMethods,
+              all_events: !!pickedSubscription.isEvents,
+            };
 
-        pickedSubscription.generic.transactions.in &&
-          retval.generic.push({ name: "transactions_in" });
-        pickedSubscription.generic.transactions.out &&
-          retval.generic.push({ name: "transactions_out" });
-        pickedSubscription.generic.value.in &&
-          retval.generic.push({ name: "value_in" });
-        pickedSubscription.generic.value.out &&
-          retval.generic.push({ name: "value_out" });
-        pickedSubscription.generic.balance &&
-          retval.generic.push({ name: "balance" });
-        retval["methods"] = [];
-        retval["events"] = [];
+            pickedSubscription.generic.transactions.in &&
+              retval.generic.push({ name: "transactions_in" });
+            pickedSubscription.generic.transactions.out &&
+              retval.generic.push({ name: "transactions_out" });
+            pickedSubscription.generic.value.in &&
+              retval.generic.push({ name: "value_in" });
+            pickedSubscription.generic.value.out &&
+              retval.generic.push({ name: "value_out" });
+            pickedSubscription.generic.balance &&
+              retval.generic.push({ name: "balance" });
+            retval["methods"] = [];
+            retval["events"] = [];
 
-        return retval;
-      }),
-    });
+            return retval;
+          }
+        ),
+      });
+    } else {
+      //creating empty dashboard
+      createDashboard.mutate();
+    }
   };
 
   const submitNewDashboardItem = () => {
-    console.log("submit new dashboard item");
+    console.log("submit new dashboard item", drawerState);
+    const newDashboard = { ...drawer.props };
+    // console.log("newDashboard,", newDashboard);
+    drawerState.forEach((drawerSubscriptionSetting) => {
+      let index = newDashboard.subscription_settings.findIndex(
+        (subscriptionSetting) =>
+          subscriptionSetting.subscription_id ===
+          drawerSubscriptionSetting.subscription.id
+      );
+      if (index === -1) {
+        newDashboard.subscription_settings.push({
+          subscription_id: drawerSubscriptionSetting.subscription.id,
+          events: [],
+          generic: [],
+          methods: [],
+        });
+        index = newDashboard.subscription_settings.length - 1;
+      }
+
+      let temp = [];
+      Object.values(drawerSubscriptionSetting.generic).forEach(
+        (drawerGenericItem) => {
+          if (
+            drawerGenericItem.checked &&
+            !newDashboard.subscription_settings[index].generic.some(
+              (metric) => metric === drawerGenericItem.value
+            )
+          ) {
+            temp.push({ name: drawerGenericItem.value });
+          }
+        }
+      );
+      console.log("temp,", temp);
+      newDashboard.subscription_settings[index].generic = [
+        ...newDashboard.subscription_settings[index].generic,
+        ...temp,
+      ];
+      temp = [];
+
+      Object.values(drawerSubscriptionSetting.events).forEach(
+        (drawerEventItem) => {
+          const isSome = newDashboard.subscription_settings[index].events.some(
+            (metric) => metric === drawerEventItem.name
+          );
+          console.log("debug Submit drawerEventItem", drawerEventItem);
+          console.log(
+            "debug Submit isChecked:",
+            drawerEventItem.checked,
+            "isSome:",
+            isSome,
+            "current list:",
+            newDashboard.subscription_settings[index].events
+          );
+          if (drawerEventItem.checked && !isSome) {
+            console.log("pushing:", drawerEventItem);
+            temp.push({ name: drawerEventItem.name });
+          }
+        }
+      );
+      console.log("temp,", temp);
+      newDashboard.subscription_settings[index].events = [
+        ...newDashboard.subscription_settings[index].events,
+        ...temp,
+      ];
+      temp = [];
+
+      Object.values(drawerSubscriptionSetting.methods).forEach(
+        (drawerFunctionItem) => {
+          const isSome = newDashboard.subscription_settings[index].methods.some(
+            (metric) => metric === drawerFunctionItem.name
+          );
+          console.log("debug Submit drawerEventItem", drawerFunctionItem);
+          console.log(
+            "debug Submit isChecked:",
+            drawerFunctionItem.checked,
+            "isSome:",
+            isSome,
+            "current list:",
+            newDashboard.subscription_settings[index].methods
+          );
+          if (drawerFunctionItem.checked && !isSome) {
+            console.log("pushing:", drawerFunctionItem);
+            temp.push({ name: drawerFunctionItem.name });
+          }
+        }
+      );
+      console.log("temp,", temp);
+      newDashboard.subscription_settings[index].methods = [
+        ...newDashboard.subscription_settings[index].methods,
+        ...temp,
+      ];
+    });
+    updateDashboard.mutate({ dashboard: newDashboard, id: dashboardId });
   };
   useEffect(() => {
     if (createDashboard.isSuccess) {
       finishNewDashboard();
     }
   }, [createDashboard.isSuccess]);
+
+  useEffect(() => {
+    if (
+      createDashboard.isSuccess &&
+      drawer.type === DRAWER_TYPES.NEW_DASHBOARD_ITEM
+    ) {
+      setDrawerState([
+        {
+          subscription: undefined,
+          generic: {
+            transactions_in: {
+              value: "transactions_in",
+              name: "transactions in",
+              checked: false,
+            },
+            transactions_out: {
+              value: "transactions_out",
+              name: "transactions out",
+              checked: false,
+            },
+            value_in: { value: "value_in", name: "value in", checked: false },
+            value_out: {
+              value: "value_out",
+              name: "value out",
+              checked: false,
+            },
+            balance: { value: "balance", name: "balance", checked: false },
+          },
+          events: {},
+          methods: {},
+        },
+      ]);
+      toggleDrawer({ type: DRAWER_TYPES.OFF, props: undefined });
+    }
+  }, [createDashboard.isSuccess, drawer.type]);
   return (
     <OverlayContext.Provider
       value={{ modal, toggleModal, drawer, toggleDrawer, toggleAlert }}
@@ -216,6 +381,8 @@ const OverlayProvider = ({ children }) => {
             {modal.type === MODAL_TYPES.LOGIN && "Login now"}
             {modal.type === MODAL_TYPES.SIGNUP && "Create an account"}
             {modal.type === MODAL_TYPES.UPLOAD_ABI && "Assign ABI"}
+            {modal.type === MODAL_TYPES.NEW_DASHBOARD_FLOW &&
+              "How would you like to define new dashboard?"}
           </ModalHeader>
           <Divider />
           <ModalCloseButton />
@@ -250,6 +417,9 @@ const OverlayProvider = ({ children }) => {
               {modal.type === MODAL_TYPES.UPLOAD_ABI && (
                 <UploadABI {...modal.props} />
               )}
+              {modal.type === MODAL_TYPES.NEW_DASHBOARD_FLOW && (
+                <DasbhboardFlowSelector {...modal.props} />
+              )}
             </Suspense>
           </ModalBody>
         </ModalContent>
@@ -281,9 +451,11 @@ const OverlayProvider = ({ children }) => {
             )}
             {drawer.type === DRAWER_TYPES.NEW_DASHBOARD_ITEM && (
               <Suspense fallback={<Spinner />}>
-                <NewDashboardElement
+                <NewDashboardChart
                   firstField={firstField}
                   props={drawer.props}
+                  drawerState={drawerState}
+                  setDrawerState={setDrawerState}
                 />
               </Suspense>
             )}
@@ -298,9 +470,43 @@ const OverlayProvider = ({ children }) => {
                   toggleAlert(() => finishNewDashboard());
                 }
                 if (drawer.type === DRAWER_TYPES.NEW_DASHBOARD_ITEM) {
-                  toggleAlert(() =>
-                    toggleDrawer({ type: DRAWER_TYPES.OFF, props: undefined })
-                  );
+                  toggleAlert(() => {
+                    toggleDrawer({ type: DRAWER_TYPES.OFF, props: undefined });
+                    setDrawerState([
+                      {
+                        subscription: undefined,
+                        generic: {
+                          transactions_in: {
+                            value: "transactions_in",
+                            name: "transactions in",
+                            checked: false,
+                          },
+                          transactions_out: {
+                            value: "transactions_out",
+                            name: "transactions out",
+                            checked: false,
+                          },
+                          value_in: {
+                            value: "value_in",
+                            name: "value in",
+                            checked: false,
+                          },
+                          value_out: {
+                            value: "value_out",
+                            name: "value out",
+                            checked: false,
+                          },
+                          balance: {
+                            value: "balance",
+                            name: "balance",
+                            checked: false,
+                          },
+                        },
+                        events: {},
+                        functions: {},
+                      },
+                    ]);
+                  });
                 }
               }}
             >

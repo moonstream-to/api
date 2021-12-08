@@ -157,12 +157,15 @@ const Analytics = () => {
   //   }, [nodesReady, windowSize]);
 
   const updateCallback = ({ name }) => {
-    const dashboard = { ...dashboardCache.data.data.resource_data };
-    dashboard.name = name;
-    updateDashboard.mutate({ id: dashboardCache.data.data.id, dashboard });
-  };
-  const addReportClicked = () => {
-    console.log("click");
+    updateDashboard.mutate({
+      id: dashboardCache.data.data.id,
+      dashboard: {
+        dashboard_id: dashboardCache.data.data.id,
+        name: name,
+        subscription_cache:
+          dashboardCache.data.data.resource_data.subscription_setting,
+      },
+    });
   };
 
   if (
@@ -221,7 +224,7 @@ const Analytics = () => {
             onClick={() =>
               overlay.toggleDrawer({
                 type: DRAWER_TYPES.NEW_DASHBOARD_ITEM,
-                props: { dashboardId: dashboardId },
+                props: dashboardCache.data.data.resource_data,
               })
             }
             mr={8}
@@ -235,40 +238,59 @@ const Analytics = () => {
         </Stack>
 
         <Flex w="100%" direction="row" flexWrap="wrap-reverse" id="container">
-          {Object.keys(dashboardLinksCache.data.data).map((key) => {
-            const s3PresignedURLs = dashboardLinksCache.data.data[key];
-            const name = subscriptionsCache.data.subscriptions.find(
-              (subscription) => subscription.id === key
-            ).label;
-            return (
-              <Flex
-                key={v4()}
-                flexBasis={plotMinW}
-                flexGrow={1}
-                minW={plotMinW}
-                minH="320px"
-                direction="column"
-                boxShadow="md"
-                m={["1px", 2]}
-              >
-                <Text
-                  w="100%"
-                  py={2}
-                  bgColor="gray.50"
-                  fontWeight="600"
-                  textAlign="center"
+          <>
+            {Object.keys(dashboardLinksCache.data.data).map((key) => {
+              const s3PresignedURLs = dashboardLinksCache.data.data[key];
+              const name = subscriptionsCache.data.subscriptions.find(
+                (subscription) => subscription.id === key
+              ).label;
+              return (
+                <Flex
+                  key={v4()}
+                  flexBasis={plotMinW}
+                  flexGrow={1}
+                  minW={plotMinW}
+                  minH="320px"
+                  direction="column"
+                  boxShadow="md"
+                  m={["1px", 2]}
                 >
-                  {name}
-                </Text>
-                <SubscriptionReport
-                  timeRange={timeRange}
-                  url={s3PresignedURLs[timeRange]}
-                  id={dashboardId}
-                  refetchLinks={dashboardLinksCache.refetch}
-                />
+                  <Text
+                    w="100%"
+                    py={2}
+                    bgColor="gray.50"
+                    fontWeight="600"
+                    textAlign="center"
+                  >
+                    {name}
+                  </Text>
+                  <SubscriptionReport
+                    timeRange={timeRange}
+                    url={s3PresignedURLs[timeRange]}
+                    id={dashboardId}
+                    refetchLinks={dashboardLinksCache.refetch}
+                  />
+                </Flex>
+              );
+            })}
+            {dashboardCache.data.data.resource_data.subscription_settings[0] ===
+              undefined && (
+              <Flex pt="220px" w="100%" placeContent="center">
+                <Button
+                  size="lg"
+                  colorScheme="orange"
+                  onClick={() =>
+                    overlay.toggleDrawer({
+                      type: DRAWER_TYPES.NEW_DASHBOARD_ITEM,
+                      props: dashboardCache.data.data.resource_data,
+                    })
+                  }
+                >
+                  Populate dashboard
+                </Button>
               </Flex>
-            );
-          })}
+            )}
+          </>
         </Flex>
       </Flex>
     </Scrollable>

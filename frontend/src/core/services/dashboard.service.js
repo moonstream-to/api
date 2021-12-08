@@ -11,14 +11,11 @@ export const createDashboard = (data) => {
 };
 
 export const updateDashboard = ({ dashboard, id }) => {
+  console.log("das", dashboard);
   return http({
     method: "PUT",
     url: `${API_URL}/dashboards/${id}`,
-    data: {
-      ...dashboard,
-      dashboard_id: id,
-      subscriptions: dashboard.dashboard_subscriptions,
-    },
+    data: dashboard,
   });
 };
 

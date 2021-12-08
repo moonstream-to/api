@@ -1,50 +1,10 @@
-import React, { useContext, useEffect, useState } from "react";
-import {
-  chakra,
-  FormLabel,
-  Input,
-  Stack,
-  InputGroup,
-  Box,
-  Button,
-  Table,
-  Th,
-  Td,
-  Tr,
-  Thead,
-  Tbody,
-  Center,
-  Checkbox,
-  CloseButton,
-  InputRightAddon,
-  Badge,
-  InputLeftAddon,
-  Spinner,
-  Heading,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  MenuGroup,
-  MenuDivider,
-  ButtonGroup,
-  Text,
-} from "@chakra-ui/react";
-import { CheckCircleIcon } from "@chakra-ui/icons";
+import React, { useEffect } from "react";
+import { chakra, Stack, Spinner } from "@chakra-ui/react";
 import { useSubscription, usePresignedURL } from "../core/hooks";
-import Downshift from "downshift";
-import color from "color";
-import OverlayContext from "../core/providers/OverlayProvider/context";
-import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
-import UIContext from "../core/providers/UIProvider/context";
-import { v4 } from "uuid";
-import AutoCompleter from "./AutoCompleter";
-import { CHART_METRICS } from "../core/constants";
+import CheckboxGroupped from "./CheckboxGroupped";
+import massageAbi from "../core/utils/massageAbi";
 
-const SuggestABI = ({ subscriptionId, onSelect, stateContainer }) => {
-  const ui = useContext(UIContext);
-  const overlay = useContext(OverlayContext);
-
+const SuggestABI = ({ subscriptionId, drawerState, setState }) => {
   const { subscriptionLinksCache } = useSubscription({
     id: subscriptionId,
   });
@@ -57,146 +17,107 @@ const SuggestABI = ({ subscriptionId, onSelect, stateContainer }) => {
     requestNewURLCallback: subscriptionLinksCache.refetch,
   });
 
-  const [pickerItems, setPickerItems] = React.useState();
+  const setFunctions = (arg) => {
+    setState((currentHeadState) => {
+      const newHeadState = { ...currentHeadState };
+      if (typeof arg === "function") {
+        newHeadState.methods = arg(newHeadState.methods);
+      } else {
+        newHeadState.methods = { ...arg };
+      }
+      return newHeadState;
+    });
+  };
 
-  // useEffect(() => {
-  //   newDashboardForm.subscriptions.forEach((element, idx) => {
-  //     const subscription =
-  //       subscriptions.subscriptionsCache.data?.subscriptions.find(
-  //         (subscription_item) =>
-  //           element.subscription_id === subscription_item.id
-  //       );
-
-  //     if (
-  //       element.subscription_id &&
-  //       subscription &&
-  //       newDashboardForm.subscriptions[idx].abi !== subscription?.abi
-  //     ) {
-  //       const newestDashboardForm = { ...newDashboardForm };
-  //       newestDashboardForm.subscriptions[idx].abi = subscription.abi;
-  //       setNewDashboardForm(newestDashboardForm);
-  //     }
-  //   });
-  // }, [
-  //   subscriptions.subscriptionsCache.data,
-  //   newDashboardForm,
-  //   setNewDashboardForm,
-  // ]);
+  const setEvents = (arg) => {
+    setState((currentHeadState) => {
+      const newHeadState = { ...currentHeadState };
+      if (typeof arg === "function") {
+        newHeadState.events = arg(newHeadState.events);
+      } else {
+        newHeadState.events = { ...arg };
+      }
+      return newHeadState;
+    });
+  };
 
   useEffect(() => {
-    if (!isLoading) {
-      const massaged = data?.map((item) => {
-        return { value: item.name ?? item.type, ...item };
+    if (data && !isLoading) {
+      const { fnsObj, eventsObj } = massageAbi(data);
+      setState((currentHeadState) => {
+        const newHeadState = { ...currentHeadState };
+        newHeadState.methods = fnsObj;
+        newHeadState.events = eventsObj;
+        return newHeadState;
       });
-      setPickerItems(
-        massaged?.filter((item) => item.type === stateContainer.type)
-      );
     }
-  }, [data, isLoading, stateContainer]);
+    //eslint-disable-next-line
+  }, [data, isLoading]);
 
-  const filterFn = (item, inputValue) =>
-    !inputValue || item.value.toUpperCase().includes(inputValue.toUpperCase());
+  if (isLoading || !data) return <Spinner />;
 
-  if (isLoading || !pickerItems) return <Spinner />;
-
-  console.log("pickerItems", pickerItems);
+  console.debug("list", drawerState);
 
   return (
     <>
-      <Stack spacing={1}>
-        {stateContainer.type === CHART_METRICS.EVENTS && (
-          <Stack>
-            <FormLabel pb={0}>Event:</FormLabel>
-            <AutoCompleter
-              itemIdx={""}
-              pickerItems={pickerItems.filter((item) => item.type === "event")}
-              initialSelectedItem={stateContainer}
-              itemToString={(item) => item.name}
-              onSelect={onSelect}
-              getLeftAddonColor={(item) => item?.color ?? "inherit"}
-              getLabelColor={() => undefined}
-              placeholder="Select metric"
-              getDefaultValue={(item) => (item?.value ? item.value : "")}
-              filterFn={filterFn}
-              empyListCTA={() => (
-                <Text alignSelf="center">No Events found {`>_<`}</Text>
-              )}
-              dropdownItem={(item) => {
-                console.log("dropdownItem,", item);
-                return (
-                  <>
-                    <chakra.span whiteSpace="nowrap">{item.value}</chakra.span>
-                    <Badge isTruncated size="sm" placeSelf="self-end">
-                      {item.type}
-                    </Badge>
-                  </>
-                );
-              }}
-            />
-          </Stack>
-        )}
-        {stateContainer.type === CHART_METRICS.FUNCTIONS && (
-          <Stack>
-            <FormLabel pb={0}>Function:</FormLabel>
-            <AutoCompleter
-              itemIdx={""}
-              pickerItems={pickerItems.filter(
-                (item) => item.type === "function"
-              )}
-              initialSelectedItem={stateContainer}
-              itemToString={(item) => item.name}
-              onSelect={onSelect}
-              getLeftAddonColor={(item) => item?.color ?? "inherit"}
-              getLabelColor={() => undefined}
-              placeholder="Select metric"
-              getDefaultValue={(item) => (item?.value ? item.value : "")}
-              filterFn={filterFn}
-              empyListCTA={() => (
-                <Text alignSelf="center">No Functions found {`>_<`}</Text>
-              )}
-              dropdownItem={(item) => {
-                console.log("dropdownItem,", item);
-                return (
-                  <>
-                    <chakra.span whiteSpace="nowrap">{item.value}</chakra.span>
-                    <Badge isTruncated size="sm" placeSelf="self-end">
-                      {item.type}
-                    </Badge>
-                  </>
-                );
-              }}
-            />
-          </Stack>
-        )}
-        {stateContainer.type === CHART_METRICS.GENERIC && (
-          <Stack>
-            <FormLabel pb={0}>Balance:</FormLabel>
-            <AutoCompleter
-              itemIdx={""}
-              pickerItems={pickerItems}
-              initialSelectedItem={stateContainer}
-              itemToString={(item) => item.name}
-              onSelect={onSelect}
-              getLeftAddonColor={(item) => item?.color ?? "inherit"}
-              getLabelColor={() => undefined}
-              placeholder="Select metric"
-              getDefaultValue={(item) => (item?.value ? item.value : "")}
-              filterFn={filterFn}
-              empyListCTA={() => ""}
-              dropdownItem={(item) => {
-                console.log("dropdownItem,", item);
-                return (
-                  <>
-                    <chakra.span whiteSpace="nowrap">{item.value}</chakra.span>
-                    <Badge isTruncated size="sm" placeSelf="self-end">
-                      {item.type}
-                    </Badge>
-                  </>
-                );
-              }}
-            />
-          </Stack>
-        )}
+      <Stack>
+        <CheckboxGroupped
+          groupName="events"
+          list={Object.values(drawerState.events)}
+          isItemChecked={(item) => item.checked}
+          isAllChecked={Object.values(drawerState.events).every(
+            (item) => !!item.checked
+          )}
+          isIndeterminate={
+            Object.values(drawerState.events).some((item) => item.checked) &&
+            !Object.values(drawerState.events).every((item) => item.checked)
+          }
+          setItemChecked={(item, isChecked) =>
+            setEvents((currentState) => {
+              const newState = { ...currentState };
+              newState[item.signature].checked = isChecked;
+              return newState;
+            })
+          }
+          setAll={(isChecked) =>
+            setEvents((currentEvents) => {
+              console.log("setAll", isChecked);
+              const newEvents = { ...currentEvents };
+              Object.keys(newEvents).forEach(
+                (key) => (newEvents[key].checked = isChecked)
+              );
+              return newEvents;
+            })
+          }
+        />
+        <CheckboxGroupped
+          groupName="functions"
+          list={Object.values(drawerState.methods)}
+          isItemChecked={(item) => item.checked}
+          isAllChecked={Object.values(drawerState.methods).every(
+            (item) => !!item.checked
+          )}
+          isIndeterminate={
+            Object.values(drawerState.methods).some((item) => item.checked) &&
+            !Object.values(drawerState.methods).every((item) => item.checked)
+          }
+          setItemChecked={(item, isChecked) =>
+            setFunctions((currentState) => {
+              const newState = { ...currentState };
+              newState[item.signature].checked = isChecked;
+              return newState;
+            })
+          }
+          setAll={(isChecked) =>
+            setFunctions((currentFunctions) => {
+              const newFunctions = { ...currentFunctions };
+              Object.keys(newFunctions).forEach(
+                (key) => (newFunctions[key].checked = isChecked)
+              );
+              return newFunctions;
+            })
+          }
+        />
       </Stack>
     </>
   );
@@ -205,3 +126,101 @@ const SuggestABI = ({ subscriptionId, onSelect, stateContainer }) => {
 const ChakraSuggestABI = chakra(SuggestABI);
 
 export default ChakraSuggestABI;
+
+{
+  /* <Stack pl={6} spacing={0}>
+{getEvents(pickerItems).map((event, idx) => {
+  const pickedEvents = getEvents(pickedItems);
+  return (
+    <Stack
+      px={2}
+      key={v4()}
+      direction="row"
+      bgColor={idx % 2 == 0 ? "gray.50" : "gray.100"}
+    >
+      <Checkbox
+        isChecked={pickedEvents.some(
+          (pickedEvent) => pickedEvent.value === event.value
+        )}
+        onChange={() => {
+          const changedIndex = pickedItems.findIndex(
+            (pickedItem) =>
+              event.type === "event" &&
+              pickedItem.value === event.value
+          );
+          if (changedIndex === -1) {
+            setPickedItems((currentlyPicked) => {
+              const newPicked = [...currentlyPicked];
+              newPicked.push(event);
+              return newPicked;
+            });
+          } else {
+            setPickedItems((currentlyPicked) => {
+              const newPicked = [...currentlyPicked];
+              newPicked.splice(changedIndex, 1);
+              return newPicked;
+            });
+          }
+        }}
+      >
+        {event.value}
+      </Checkbox>
+      <Spacer />
+      {event.stateMutability === "view" && (
+        <Badge variant="solid" colorScheme="orange" size="sm">
+          View
+        </Badge>
+      )}
+      {event.stateMutability === "payable" && (
+        <Badge variant="solid" colorScheme="blue" size="sm">
+          Payable
+        </Badge>
+      )}
+      {event.stateMutability === "nonpayable" && (
+        <Badge variant="solid" colorScheme="green" size="sm">
+          Non-Payable
+        </Badge>
+      )}
+    </Stack>
+  );
+})}
+{pickerItems
+  ?.filter((unfilteredItem) => unfilteredItem.type === "function")
+  .map((item, idx) => {
+    return (
+      <Stack
+        px={2}
+        key={v4()}
+        direction="row"
+        bgColor={idx % 2 == 0 ? "gray.50" : "gray.100"}
+      >
+        <Checkbox
+          isChecked={pickedItems.some(
+            (pickedItem) =>
+              item.type === "function" &&
+              pickedItem.value === item.value
+          )}
+        >
+          {item.value}
+        </Checkbox>
+        <Spacer />
+        {item.stateMutability === "view" && (
+          <Badge variant="solid" colorScheme="orange" size="sm">
+            View
+          </Badge>
+        )}
+        {item.stateMutability === "payable" && (
+          <Badge variant="solid" colorScheme="blue" size="sm">
+            Payable
+          </Badge>
+        )}
+        {item.stateMutability === "nonpayable" && (
+          <Badge variant="solid" colorScheme="green" size="sm">
+            Non-Payable
+          </Badge>
+        )}
+      </Stack>
+    );
+  })}
+</Stack> */
+}

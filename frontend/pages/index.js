@@ -755,7 +755,6 @@ const Homepage = () => {
                   <Flex direction="row" flexWrap="wrap" placeContent="center">
                     <RouteButton
                       placeSelf="center"
-                      isExternal
                       href={`https://github.com/bugout-dev/moonstream`}
                       size="md"
                       variant="outline"
@@ -767,7 +766,6 @@ const Homepage = () => {
                     </RouteButton>
                     <RouteButton
                       placeSelf="center"
-                      isExternal
                       href={"https://discord.gg/K56VNUQGvA"}
                       size="md"
                       variant="outline"
@@ -780,7 +778,6 @@ const Homepage = () => {
                   </Flex>
                   <Button
                     placeSelf="center"
-                    isExternal
                     w={["100%", "100%", "fit-content", null]}
                     maxW={["250px", null, "fit-content"]}
                     onClick={() => toggleModal({ type: MODAL_TYPES.SIGNUP })}
