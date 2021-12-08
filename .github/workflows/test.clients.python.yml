@@ -31,8 +31,8 @@ jobs:
       - name: Check that versions are synchronized
         working-directory: ./clients/python
         run: |
-          CLIENT_VERSION=$(python -c "from moonstream.client import CLIENT_VERSION; print(CLIENT_VERSION)")
+          MOONSTREAM_CLIENT_VERSION=$(python -c "from moonstream.client import MOONSTREAM_CLIENT_VERSION; print(MOONSTREAM_CLIENT_VERSION)")
           SETUP_PY_VERSION=$(python setup.py --version)
-          echo "Client version: $CLIENT_VERSION"
+          echo "Client version: $MOONSTREAM_CLIENT_VERSION"
           echo "setup.py version: $SETUP_PY_VERSION"
-          test "$CLIENT_VERSION" = "$SETUP_PY_VERSION"
+          test "$MOONSTREAM_CLIENT_VERSION" = "$SETUP_PY_VERSION"
