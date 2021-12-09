@@ -44,8 +44,6 @@ const SmartcontractCard_ = ({ entry, showOnboardingTooltips, className }) => {
   const [showFullView] = useMediaQuery(["(min-width: 420px)"]);
   if (subscriptionsCache.isLoading) return <Spinner />;
 
-  console.log(entry.event_data);
-
   const transaction = {
     ...entry.event_data,
   };

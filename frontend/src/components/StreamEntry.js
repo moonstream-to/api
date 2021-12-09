@@ -10,6 +10,13 @@ import SmartcontractCard from "./stream-cards/Smartcontract";
 const StreamEntry_ = ({ entry, showOnboardingTooltips, className }) => {
   const ui = useContext(UIContext);
 
+  const eventCategories = {
+    blockchain: "_blockchain",
+    whalewatch: "_whalewatch",
+    txpool: "_txpool",
+    smartcontract: "_smartcontract",
+  };
+
   return (
     <Flex
       className={className}
@@ -37,28 +44,28 @@ const StreamEntry_ = ({ entry, showOnboardingTooltips, className }) => {
         h="100%"
         spacing={0}
       >
-        {entry.event_type.includes("_blockchain") && (
+        {entry.event_type.includes(eventCategories.blockchain) && (
           <BlockchainCard
             entry={entry}
             showOnboardingTooltips={showOnboardingTooltips}
           />
         )}
 
-        {entry.event_type.includes("_whalewatch") && (
+        {entry.event_type.includes(eventCategories.whalewatch) && (
           <WhalewatchCard
             entry={entry}
             showOnboardingTooltips={showOnboardingTooltips}
           />
         )}
 
-        {entry.event_type.includes("_txpool") && (
+        {entry.event_type.includes(eventCategories.txpool) && (
           <TXPoolCard
             entry={entry}
             showOnboardingTooltips={showOnboardingTooltips}
           />
         )}
 
-        {entry.event_type.includes("_smartcontract") && (
+        {entry.event_type.includes(eventCategories.smartcontract) && (
           <SmartcontractCard
             entry={entry}
             showOnboardingTooltips={showOnboardingTooltips}
