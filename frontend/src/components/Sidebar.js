@@ -120,7 +120,7 @@ const Sidebar = () => {
                 size="sm"
                 justifyContent="center"
                 fontWeight="600"
-                pl={8}
+                pl={2}
                 pt={3}
               >
                 Dashboards
@@ -128,15 +128,20 @@ const Sidebar = () => {
               <Menu iconShape="square">
                 <>
                   {dashboardsListCache.data &&
-                    dashboardsListCache.data.data.resources.map((dashboard) => {
-                      return (
-                        <MenuItem icon={<MdDashboard />} key={v4()}>
-                          <RouterLink href={`/dashboard/${dashboard?.id}`}>
-                            {dashboard.resource_data.name}
-                          </RouterLink>
-                        </MenuItem>
-                      );
-                    })}
+                    dashboardsListCache.data.data.resources.map(
+                      (dashboard, idx) => {
+                        return (
+                          <MenuItem
+                            icon={<MdDashboard />}
+                            key={`dashboard-link-${idx}`}
+                          >
+                            <RouterLink href={`/dashboard/${dashboard?.id}`}>
+                              {dashboard.resource_data.name}
+                            </RouterLink>
+                          </MenuItem>
+                        );
+                      }
+                    )}
                 </>
                 <MenuItem>
                   <Button
