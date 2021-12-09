@@ -14,26 +14,25 @@ from uuid import UUID
 import boto3  # type: ignore
 from bugout.data import BugoutResources
 from moonstreamdb.db import yield_db_session_ctx
-from sqlalchemy import Column, and_, func, text, distinct
+from sqlalchemy import Column, and_, distinct, func, text
 from sqlalchemy.orm import Query, Session
 from sqlalchemy.sql.operators import in_op
+from web3 import Web3
 
 from ..blockchain import (
+    connect,
     get_block_model,
     get_label_model,
     get_transaction_model,
-    connect,
 )
 from ..data import AvailableBlockchainType
+from ..reporter import reporter
 from ..settings import (
+    CRAWLER_LABEL,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
-    CRAWLER_LABEL,
 )
-from ..reporter import reporter
 from ..settings import bugout_client as bc
-
-from web3 import Web3
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
