@@ -25,7 +25,7 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/ethereum/eth-diamond-purple.png",
         stripe_product_id=None,
         stripe_price_id=None,
-        active=True,
+        active=False,
     ),
     "polygon_smartcontract": SubscriptionTypeResourceData(
         id="polygon_smartcontract",
