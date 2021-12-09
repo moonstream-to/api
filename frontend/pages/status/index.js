@@ -45,13 +45,13 @@ const Status = () => {
     (i) => i.status.name === "node_polygon_a"
   )[0];
   const nodePolygonAGeth = serverListStatusCache?.data?.filter(
-    (i) => i.status.name === "node_polygon_a_geth"
+    (i) => i.status.name === "node_polygon_a_bor"
   )[0];
   const nodePolygonBStatus = serverListStatusCache?.data?.filter(
     (i) => i.status.name === "node_polygon_b"
   )[0];
   const nodePolygonBGeth = serverListStatusCache?.data?.filter(
-    (i) => i.status.name === "node_polygon_b_geth"
+    (i) => i.status.name === "node_polygon_b_bor"
   )[0];
 
   const StatusRow = (props) => {
