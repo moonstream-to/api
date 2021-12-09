@@ -100,7 +100,10 @@ class MoonwormProvider:
         return filters
 
     def apply_query_filters(self, filters: Filters, query_filters: StreamQuery):
-        raise NotImplementedError
+        """
+        Required to implement filters wich depends on procider
+        """
+        pass
 
     def events(self, row: Tuple) -> data.Event:
         """
@@ -175,7 +178,7 @@ class MoonwormProvider:
         )
         return stream_boundary
 
-    def query_events(
+    def generate_events_query(
         self,
         db_session: Session,
         stream_boundary: data.StreamBoundary,
@@ -236,7 +239,7 @@ class MoonwormProvider:
 
         return query
 
-    def generate_events_query(
+    def get_events(
         self,
         db_session: Session,
         bugout_client: Bugout,
@@ -247,7 +250,7 @@ class MoonwormProvider:
         user_subscriptions: Dict[str, List[BugoutResource]],
     ) -> Optional[Tuple[data.StreamBoundary, List[data.Event]]]:
         """
-        Returns ethereum_blockchain events for the given addresses in the time period represented
+        Returns blockchain events for the given addresses in the time period represented
         by stream_boundary.
 
         If the query does not require any data from this provider, returns None.
@@ -258,7 +261,7 @@ class MoonwormProvider:
         if parsed_filters is None:
             return None
 
-        ethereum_transactions = self.query_events(
+        ethereum_transactions = self.generate_events_query(
             db_session, stream_boundary, parsed_filters
         )
 
@@ -305,7 +308,7 @@ class MoonwormProvider:
         if parsed_filters is None:
             return None
         ethereum_transactions = (
-            self.query_events(db_session, stream_boundary, parsed_filters)
+            self.generate_events_query(db_session, stream_boundary, parsed_filters)
             .order_by(text("block_timestamp desc"))
             .limit(num_events)
         )
@@ -342,7 +345,7 @@ class MoonwormProvider:
             return None
 
         maybe_ethereum_transaction = (
-            self.query_events(db_session, next_stream_boundary, parsed_filters)
+            self.generate_events_query(db_session, next_stream_boundary, parsed_filters)
             .order_by(text("block_timestamp asc"))
             .limit(1)
         ).one_or_none()
@@ -379,8 +382,11 @@ class MoonwormProvider:
         parsed_filters = self.parse_filters(query, user_subscriptions)
         if parsed_filters is None:
             return None
+
         maybe_ethereum_transaction = (
-            self.query_events(db_session, previous_stream_boundary, parsed_filters)
+            self.generate_events_query(
+                db_session, previous_stream_boundary, parsed_filters
+            )
             .order_by(text("block_timestamp desc"))
             .limit(1)
         ).one_or_none()

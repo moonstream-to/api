@@ -22,6 +22,10 @@ const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
     setStreamBoundary(defaultBoundary);
   };
 
+  function isEmpty(obj) {
+    return Object.keys(obj).length === 0;
+  }
+
   const updateStreamBoundaryWith = (
     extensionBoundary,
     { ignoreStart, ignoreEnd }
@@ -107,7 +111,6 @@ const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
               setEvents(newEvents.events.slice(0, newEvents.events.length));
             }
           }
-
           updateStreamBoundaryWith(newEvents.stream_boundary, {});
         }
       },
@@ -122,7 +125,7 @@ const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
     useQuery(
       "stream-older-events",
       () => {
-        if (olderEvent) {
+        if (olderEvent && !isEmpty(olderEvent)) {
           const newStreamBoundary = {
             // 5 minutes before the previous event
             start_time: olderEvent.event_timestamp - 5 * 60,
@@ -165,7 +168,7 @@ const useStream = (q, streamCache, setStreamCache, cursor, setCursor) => {
     useQuery(
       "stream-newest-events",
       () => {
-        if (newerEvent) {
+        if (newerEvent && !isEmpty(newerEvent)) {
           const newStreamBoundary = {
             // TODO(zomglings): This is a workaround to what seems to be a filter bug on `created_at:>=...` filters
             // on Bugout journals. Please look into it.
