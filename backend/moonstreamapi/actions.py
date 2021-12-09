@@ -502,7 +502,7 @@ def apply_moonworm_tasks(
         existing_hashes = [
             tag.split(":")[-1]
             for tag in chain(*existing_tags)
-            if "abi_metod_hash" in tag
+            if "abi_method_hash" in tag
         ]
 
         abi_hashes_dict = {
@@ -521,7 +521,7 @@ def apply_moonworm_tasks(
                         "tags": [
                             f"address:{address}",
                             f"type:{abi_hashes_dict[hash]['type']}",
-                            f"abi_metod_hash:{hash}",
+                            f"abi_method_hash:{hash}",
                             f"subscription_type:{subscription_type}",
                             f"abi_name:{abi_hashes_dict[hash]['name']}",
                             f"status:active",
