@@ -23,57 +23,36 @@ const Status = () => {
     latestBlockDBStatusCache,
   } = useStatus();
 
-  const moonstreamapiStatus = serverListStatusCache.isLoading
-    ? undefined
-    : serverListStatusCache?.data?.filter(
-        (i) => i.status.name === "moonstreamapi"
-      )[0];
-
-  const moonstreamCrawlersStatus = serverListStatusCache.isLoading
-    ? undefined
-    : serverListStatusCache?.data?.filter(
-        (i) => i.status.name === "moonstream_crawlers"
-      )[0];
-  const nodeEthereumAStatus = serverListStatusCache.isLoading
-    ? undefined
-    : serverListStatusCache?.data?.filter(
-        (i) => i.status.name === "node_ethereum_a"
-      )[0];
-  const nodeEthereumAGeth = serverListStatusCache.isLoading
-    ? undefined
-    : serverListStatusCache?.data?.filter(
-        (i) => i.status.name === "node_ethereum_a_geth"
-      )[0];
-  const nodeEthereumBStatus = serverListStatusCache.isLoading
-    ? undefined
-    : serverListStatusCache?.data?.filter(
-        (i) => i.status.name === "node_ethereum_b"
-      )[0];
-  const nodeEthereumBGeth = serverListStatusCache.isLoading
-    ? undefined
-    : serverListStatusCache?.data?.filter(
-        (i) => i.status.name === "node_ethereum_b_geth"
-      )[0];
-  const nodePolygonAStatus = serverListStatusCache.isLoading
-    ? undefined
-    : serverListStatusCache?.data?.filter(
-        (i) => i.status.name === "node_polygon_a"
-      )[0];
-  const nodePolygonAGeth = serverListStatusCache.isLoading
-    ? undefined
-    : serverListStatusCache?.data?.filter(
-        (i) => i.status.name === "node_polygon_a_geth"
-      )[0];
-  const nodePolygonBStatus = serverListStatusCache.isLoading
-    ? undefined
-    : serverListStatusCache?.data?.filter(
-        (i) => i.status.name === "node_polygon_b"
-      )[0];
-  const nodePolygonBGeth = serverListStatusCache.isLoading
-    ? undefined
-    : serverListStatusCache?.data?.filter(
-        (i) => i.status.name === "node_polygon_b_geth"
-      )[0];
+  const moonstreamapiStatus = serverListStatusCache?.data?.filter(
+    (i) => i.status.name === "moonstreamapi"
+  )[0];
+  const moonstreamCrawlersStatus = serverListStatusCache?.data?.filter(
+    (i) => i.status.name === "moonstream_crawlers"
+  )[0];
+  const nodeEthereumAStatus = serverListStatusCache?.data?.filter(
+    (i) => i.status.name === "node_ethereum_a"
+  )[0];
+  const nodeEthereumAGeth = serverListStatusCache?.data?.filter(
+    (i) => i.status.name === "node_ethereum_a_geth"
+  )[0];
+  const nodeEthereumBStatus = serverListStatusCache?.data?.filter(
+    (i) => i.status.name === "node_ethereum_b"
+  )[0];
+  const nodeEthereumBGeth = serverListStatusCache?.data?.filter(
+    (i) => i.status.name === "node_ethereum_b_geth"
+  )[0];
+  const nodePolygonAStatus = serverListStatusCache?.data?.filter(
+    (i) => i.status.name === "node_polygon_a"
+  )[0];
+  const nodePolygonAGeth = serverListStatusCache?.data?.filter(
+    (i) => i.status.name === "node_polygon_a_geth"
+  )[0];
+  const nodePolygonBStatus = serverListStatusCache?.data?.filter(
+    (i) => i.status.name === "node_polygon_b"
+  )[0];
+  const nodePolygonBGeth = serverListStatusCache?.data?.filter(
+    (i) => i.status.name === "node_polygon_b_geth"
+  )[0];
 
   const StatusRow = (props) => {
     console.log(props.cache.data);
