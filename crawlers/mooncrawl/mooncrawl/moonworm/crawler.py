@@ -1,12 +1,12 @@
-from datetime import datetime
-from enum import Enum
 import json
 import logging
 import time
 from dataclasses import dataclass
+from datetime import datetime
+from enum import Enum
 from typing import Any, Dict, List, cast
-from bugout.data import BugoutSearchResult
 
+from bugout.data import BugoutSearchResult
 from eth_typing.evm import ChecksumAddress
 from moonstreamdb.models import Base
 from sqlalchemy.orm.session import Session
@@ -136,7 +136,7 @@ def make_event_crawl_jobs(entries: List[BugoutSearchResult]) -> List[EventCrawlJ
 
     for entry in entries:
         # TODO in entries there is misspelling of 'abi_method_hash'
-        abi_hash = _get_tag(entry, "abi_metod_hash")
+        abi_hash = _get_tag(entry, "abi_method_hash")
         contract_address = Web3().toChecksumAddress(_get_tag(entry, "address"))
 
         existing_crawl_job = crawl_job_by_hash.get(abi_hash)
@@ -186,7 +186,7 @@ def _get_heartbeat_entry_id(
     entries = bugout_client.search(
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
         journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
-        query=f"#{crawler_type} #heartbeat #{blockchain_type.value}",
+        query=f"#{crawler_type} #heartbeat #{blockchain_type.value} !#dead",
         limit=1,
     )
     if entries.results:
@@ -207,6 +207,7 @@ def heartbeat(
     crawler_type: str,
     blockchain_type: AvailableBlockchainType,
     crawler_status: Dict[str, Any],
+    is_dead: bool = False,
 ) -> None:
     """
     Periodically crawler will update the status in bugout entry:
@@ -227,6 +228,13 @@ def heartbeat(
         title=f"{crawler_type} Heartbeat - {blockchain_type.value}",
         content=f"{json.dumps(crawler_status, indent=2)}",
     )
+    if is_dead:
+        bugout_client.update_tags(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+            entry_id=heartbeat_entry_id,
+            tags=[crawler_type, "heartbeat", blockchain_type.value, "dead"],
+        )
 
 
 def save_labels(db_session: Session, labels: List[Base]) -> None:

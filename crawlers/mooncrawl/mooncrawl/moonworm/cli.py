@@ -1,9 +1,10 @@
 import web3
-from .crawler import *
-from .event_crawler import continious_event_crawler
-from ..settings import MOONSTREAM_MOONWORM_TASKS_JOURNAL, bugout_client
 from moonstreamdb.db import yield_db_session_ctx
 from web3.middleware import geth_poa_middleware
+
+from ..settings import MOONSTREAM_MOONWORM_TASKS_JOURNAL, bugout_client
+from .crawler import *
+from .event_crawler import continuous_event_crawler
 
 
 def crawl_events():
@@ -23,7 +24,7 @@ def crawl_events():
         )
         web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-        continious_event_crawler(
+        continuous_event_crawler(
             db_session=session,
             blockchain_type=AvailableBlockchainType.POLYGON,
             web3=web3,
