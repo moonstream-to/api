@@ -170,6 +170,7 @@ class GetEventsResponse(BaseModel):
 class TxinfoEthereumBlockchainRequest(BaseModel):
     tx: EthereumTransaction
 
+
 class EthereumSmartContractSourceInfo(BaseModel):
     name: str
     source_code: str
