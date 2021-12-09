@@ -58,7 +58,8 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
               href={"https://discord.gg/K56VNUQGvA"}
             >
               Discord
-            </Link>{"."}
+            </Link>
+            {"."}
           </Text>
         </chakra.span>
         <br />
