@@ -10,6 +10,7 @@ const usePresignedURL = ({
   id,
   requestNewURLCallback,
   isEnabled,
+  hideToastOn404,
 }) => {
   const toast = useToast();
 
@@ -23,7 +24,7 @@ const usePresignedURL = ({
     return response.data;
   };
 
-  const { data, isLoading, error, refetch } = useQuery(
+  const { data, isLoading, error, refetch, failureCount } = useQuery(
     ["presignedURL", cacheType, id],
     getFromPresignedURL,
     {
@@ -37,7 +38,7 @@ const usePresignedURL = ({
         ) {
           requestNewURLCallback();
         } else {
-          toast(error, "error");
+          !hideToastOn404 && toast(error, "error");
         }
       },
     }
@@ -53,6 +54,7 @@ const usePresignedURL = ({
     data,
     isLoading,
     error,
+    failureCount,
   };
 };
 
