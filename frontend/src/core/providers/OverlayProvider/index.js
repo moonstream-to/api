@@ -38,6 +38,7 @@ import useDashboard from "../../hooks/useDashboard";
 import SignUp from "../../../components/SignUp";
 import NewDashboardChart from "../../../components/NewDashboardChart";
 import { useRouter } from "../../hooks";
+import { emptySubscriptionSettingItem } from "../../utils/massageAbi";
 const NewDashboardName = React.lazy(() =>
   import("../../../components/NewDashboardName")
 );
@@ -75,26 +76,7 @@ const OverlayProvider = ({ children }) => {
   const modalDisclosure = useDisclosure();
   const alertDisclosure = useDisclosure();
   const [drawerState, setDrawerState] = useState([
-    {
-      subscription: undefined,
-      generic: {
-        transactions_in: {
-          value: "transactions_in",
-          name: "transactions in",
-          checked: false,
-        },
-        transactions_out: {
-          value: "transactions_out",
-          name: "transactions out",
-          checked: false,
-        },
-        value_in: { value: "value_in", name: "value in", checked: false },
-        value_out: { value: "value_out", name: "value out", checked: false },
-        balance: { value: "balance", name: "balance", checked: false },
-      },
-      events: {},
-      methods: {},
-    },
+    emptySubscriptionSettingItem,
   ]);
 
   useLayoutEffect(() => {
@@ -287,71 +269,13 @@ const OverlayProvider = ({ children }) => {
       createDashboard.isSuccess &&
       drawer.type === DRAWER_TYPES.NEW_DASHBOARD_ITEM
     ) {
-      setDrawerState([
-        {
-          subscription: undefined,
-          generic: {
-            transactions_in: {
-              value: "transactions_in",
-              name: "transactions in",
-              checked: false,
-            },
-            transactions_out: {
-              value: "transactions_out",
-              name: "transactions out",
-              checked: false,
-            },
-            value_in: { value: "value_in", name: "value in", checked: false },
-            value_out: {
-              value: "value_out",
-              name: "value out",
-              checked: false,
-            },
-            balance: { value: "balance", name: "balance", checked: false },
-          },
-          events: {},
-          methods: {},
-        },
-      ]);
+      setDrawerState([emptySubscriptionSettingItem]);
       toggleDrawer({ type: DRAWER_TYPES.OFF, props: undefined });
     }
   }, [createDashboard.isSuccess, drawer.type]);
 
   const cancelDashboardItem = () => {
-    setDrawerState([
-      {
-        subscription: undefined,
-        generic: {
-          transactions_in: {
-            value: "transactions_in",
-            name: "transactions in",
-            checked: false,
-          },
-          transactions_out: {
-            value: "transactions_out",
-            name: "transactions out",
-            checked: false,
-          },
-          value_in: {
-            value: "value_in",
-            name: "value in",
-            checked: false,
-          },
-          value_out: {
-            value: "value_out",
-            name: "value out",
-            checked: false,
-          },
-          balance: {
-            value: "balance",
-            name: "balance",
-            checked: false,
-          },
-        },
-        events: {},
-        functions: {},
-      },
-    ]);
+    setDrawerState([emptySubscriptionSettingItem]);
     toggleDrawer({ type: DRAWER_TYPES.OFF, props: undefined });
   };
   return (

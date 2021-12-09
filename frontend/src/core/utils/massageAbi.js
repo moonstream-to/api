@@ -48,4 +48,27 @@ const massageAbi = (abi) => {
   return { fnsObj, eventsObj };
 };
 
+export const emptySubscriptionSettingItem = {
+  all_methods: false,
+  all_events: false,
+  subscription: undefined,
+  generic: {
+    transactions_in: {
+      value: "transactions_in",
+      name: "transactions in",
+      checked: false,
+    },
+    transactions_out: {
+      value: "transactions_out",
+      name: "transactions out",
+      checked: false,
+    },
+    value_in: { value: "value_in", name: "value in", checked: false },
+    value_out: { value: "value_out", name: "value out", checked: false },
+    balance: { value: "balance", name: "balance", checked: false },
+  },
+  events: {},
+  methods: {},
+};
+
 export default massageAbi;

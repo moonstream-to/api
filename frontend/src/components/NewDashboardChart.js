@@ -14,6 +14,7 @@ import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 import CheckboxABI from "./CheckboxABI";
 import AutoCompleter from "./AutoCompleter";
 import CheckboxGrouped from "./CheckboxGrouped";
+import { emptySubscriptionSettingItem } from "../core/utils/massageAbi";
 
 const NewDashboardChart = ({ drawerState, setDrawerState }) => {
   const overlay = useContext(OverlayContext);
@@ -73,36 +74,8 @@ const NewDashboardChart = ({ drawerState, setDrawerState }) => {
                   setDrawerState((currentValue) => {
                     const newValue = [...currentValue];
                     newValue[idx] = {
+                      ...emptySubscriptionSettingItem,
                       subscription: selectedItem,
-                      generic: {
-                        transactions_in: {
-                          value: "transactions_in",
-                          name: "transactions in",
-                          checked: false,
-                        },
-                        transactions_out: {
-                          value: "transactions_out",
-                          name: "transactions out",
-                          checked: false,
-                        },
-                        value_in: {
-                          value: "value_in",
-                          name: "value in",
-                          checked: false,
-                        },
-                        value_out: {
-                          value: "value_out",
-                          name: "value out",
-                          checked: false,
-                        },
-                        balance: {
-                          value: "balance",
-                          name: "balance",
-                          checked: false,
-                        },
-                      },
-                      events: {},
-                      methods: {},
                     };
 
                     return newValue;
