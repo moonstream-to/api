@@ -11,7 +11,6 @@ export const createDashboard = (data) => {
 };
 
 export const updateDashboard = ({ dashboard, id }) => {
-  console.log("das", dashboard);
   return http({
     method: "PUT",
     url: `${API_URL}/dashboards/${id}`,
@@ -27,7 +26,6 @@ export const getDashboardsList = () => {
 };
 
 export const deleteDashboard = (id) => {
-  console.log("delete:", id);
   return http({
     method: "DELETE",
     url: `${API_URL}/dashboards/${id}`,

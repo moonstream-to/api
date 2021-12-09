@@ -13,14 +13,11 @@ import { PlusSquareIcon } from "@chakra-ui/icons";
 import UIContext from "../core/providers/UIProvider/context";
 import OverlayContext from "../core/providers/OverlayProvider/context";
 
-import {
-  DRAWER_TYPES,
-  MODAL_TYPES,
-} from "../core/providers/OverlayProvider/constants";
+import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 
 const AddNewIconButton = (props) => {
   const ui = useContext(UIContext);
-  const modal = useContext(OverlayContext);
+  const overlay = useContext(OverlayContext);
 
   return (
     <Menu>
@@ -40,23 +37,21 @@ const AddNewIconButton = (props) => {
       >
         <MenuGroup>
           <MenuItem
-            onClick={
-              () => console.log("creating new empty dasbhoard...")
-              // modal.toggleDrawer({ type: DRAWER_TYPES.NEW_DASHBOARD })
+            onClick={() =>
+              overlay.toggleModal({
+                type: MODAL_TYPES.NEW_DASHBOARD_FLOW,
+                props: undefined,
+              })
             }
           >
-            New Empty dashboard...
+            New Dashboard...
           </MenuItem>
           <MenuItem
             onClick={() =>
-              modal.toggleDrawer({ type: DRAWER_TYPES.NEW_DASHBOARD })
-            }
-          >
-            New ABI defined dashboard...
-          </MenuItem>
-          <MenuItem
-            onClick={() =>
-              modal.toggleModal({ type: MODAL_TYPES.NEW_SUBSCRIPTON })
+              overlay.toggleModal({
+                type: MODAL_TYPES.NEW_SUBSCRIPTON,
+                props: undefined,
+              })
             }
           >
             New Subscription...

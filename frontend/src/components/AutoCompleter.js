@@ -19,7 +19,6 @@ const AutoCompleter = ({
   onSelect,
   getLabelColor,
   placeholder,
-  getDefaultValue,
   filterFn,
   empyListCTA,
   dropdownItem,
@@ -47,7 +46,6 @@ const AutoCompleter = ({
       }) => {
         const labelColor = getLabelColor(selectedItem);
         const inputLeftBgColor = getLeftAddonColor(selectedItem);
-        console.log("inputLeftBgColor", inputLeftBgColor);
         return (
           <Box pos="relative">
             <Box {...getRootProps({}, { suppressRefError: true })}>
@@ -77,7 +75,7 @@ const AutoCompleter = ({
                   isTruncated
                   fontSize="sm"
                   {...getInputProps({
-                    defaultValue: getDefaultValue(selectedItem),
+                    // defaultValue: getDefaultValue(selectedItem),
                   })}
                 ></Input>
                 <InputRightAddon>

@@ -23,7 +23,6 @@ const Status = () => {
   } = useStatus();
 
   const StatusRow = (props) => {
-    console.log(props.cache.data);
     return (
       <Flex mb={3}>
         <Text>{props.title}</Text>

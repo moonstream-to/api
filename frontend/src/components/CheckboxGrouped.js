@@ -10,6 +10,7 @@ const CheckboxGroupped = ({
   isAllChecked,
   setAll,
   isIndeterminate,
+  getName,
 }) => {
   return (
     <Stack>
@@ -17,6 +18,7 @@ const CheckboxGroupped = ({
         isChecked={isAllChecked}
         isIndeterminate={isIndeterminate}
         onChange={() => setAll(!isAllChecked)}
+        borderColor="gray.500"
       >
         {groupName}
       </Checkbox>
@@ -32,8 +34,10 @@ const CheckboxGroupped = ({
               <Checkbox
                 isChecked={isItemChecked(listItem)}
                 onChange={(e) => setItemChecked(listItem, e.target.checked)}
+                colorScheme="blue"
+                borderColor="gray.500"
               >
-                {listItem.name}
+                {getName(listItem)}
               </Checkbox>
             </Stack>
           );

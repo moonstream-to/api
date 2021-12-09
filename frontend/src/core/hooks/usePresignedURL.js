@@ -11,7 +11,6 @@ const usePresignedURL = ({
   requestNewURLCallback,
   isEnabled,
 }) => {
-  console.log("usePresignedURL:", url, id, isEnabled);
   const toast = useToast();
 
   const getFromPresignedURL = async () => {
@@ -21,7 +20,6 @@ const usePresignedURL = ({
       // url: `https://example.com/s3`,
       method: "GET",
     });
-    console.log("getFromPresignedURL", response);
     return response.data;
   };
 
@@ -47,7 +45,6 @@ const usePresignedURL = ({
 
   useEffect(() => {
     if (url && isEnabled) {
-      console.log("useeffect:", url, isEnabled);
       refetch();
     }
   }, [url, isEnabled, refetch]);

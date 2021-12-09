@@ -110,8 +110,6 @@ const NewDashboard = (props) => {
       item.address.toUpperCase().includes(inputValue.toUpperCase()) ||
       item.label.toUpperCase().includes(inputValue.toUpperCase()));
 
-  console.log("dbg", newDashboardForm);
-
   return (
     <>
       <Stack spacing="24px">

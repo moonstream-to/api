@@ -11,25 +11,24 @@ import { useSubscriptions } from "../core/hooks";
 import color from "color";
 import OverlayContext from "../core/providers/OverlayProvider/context";
 import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
-import SuggestABI from "./SuggestABI";
+import CheckboxABI from "./CheckboxABI";
 import AutoCompleter from "./AutoCompleter";
-import CheckboxGrouped from "./CheckboxGroupped";
+import CheckboxGrouped from "./CheckboxGrouped";
 
 const NewDashboardChart = ({ drawerState, setDrawerState }) => {
   const overlay = useContext(OverlayContext);
 
   const [pickerItems, setPickerItems] = useState();
 
+  const { subscriptionsCache } = useSubscriptions();
   useEffect(() => {
-    if (!subscriptionsCache.isLoading) {
+    if (!subscriptionsCache.isLoading && subscriptionsCache.data) {
       const massaged = subscriptionsCache.data?.subscriptions.map((item) => {
         return { value: item.address, ...item };
       });
       setPickerItems(massaged);
     }
-  }, [subscriptionsCache]);
-
-  const { subscriptionsCache } = useSubscriptions();
+  }, [subscriptionsCache.isLoading, subscriptionsCache.data]);
 
   if (subscriptionsCache.isLoading || !pickerItems) return <Spinner />;
 
@@ -56,23 +55,20 @@ const NewDashboardChart = ({ drawerState, setDrawerState }) => {
           const setDrawerAtHead = (arg) => {
             let newDrawerState = [...drawerState];
             if (typeof arg === "function") {
-              console.log("setDrawerAtHead is fn - running");
               newDrawerState[idx] = arg(newDrawerState[idx]);
             } else {
               newDrawerState[idx] = [...arg];
             }
-            console.log("setDrawerAtHead newstate:", newDrawerState);
             setDrawerState(newDrawerState);
           };
-          console.log("subscribed item mapped is", subscribedItem);
           return (
             <Stack key={`new-chart-component-${idx}`}>
               <FormLabel pb={0}>Subscription:</FormLabel>
               <AutoCompleter
                 itemIdx={idx}
                 pickerItems={pickerItems}
-                initialSelectedItem={drawerState[idx].subscription}
-                itemToString={(item) => item.label}
+                initialSelectedItem={undefined}
+                itemToString={(item) => item?.label}
                 onSelect={(selectedItem) =>
                   setDrawerState((currentValue) => {
                     const newValue = [...currentValue];
@@ -141,7 +137,6 @@ const NewDashboardChart = ({ drawerState, setDrawerState }) => {
                   </Button>
                 )}
                 dropdownItem={(item) => {
-                  console.log("dropdownItem,", item);
                   const badgeColor = color(`${item.color}`);
                   return (
                     <>
@@ -177,6 +172,7 @@ const NewDashboardChart = ({ drawerState, setDrawerState }) => {
                   <FormLabel pb={0}>Metric:</FormLabel>
                   <CheckboxGrouped
                     groupName="generic metrics:"
+                    getName={(item) => item.name}
                     list={Object.values(drawerState[idx].generic)}
                     isItemChecked={(item) => item.checked}
                     isAllChecked={Object.values(drawerState[idx].generic).every(
@@ -208,7 +204,7 @@ const NewDashboardChart = ({ drawerState, setDrawerState }) => {
                     }
                   />
 
-                  <SuggestABI
+                  <CheckboxABI
                     subscriptionId={subscribedItem.subscription.id}
                     drawerState={drawerState[idx]}
                     setState={setDrawerAtHead}

@@ -1,14 +1,11 @@
 const massageAbi = (abi) => {
   const coder = require("web3-eth-abi");
   const getSignature = (item) => {
-    console.log("getting key for:", item);
     if (item.type === `function`) {
       const retval = coder.encodeFunctionSignature(item);
-      console.log("retval:", retval);
       return retval;
     } else if (item.type === `event`) {
       const retval = coder.encodeEventSignature(item);
-      console.log("retval:", retval);
       return retval;
     }
     console.error("item passed to getKay was neither fn neither event!");
@@ -35,8 +32,6 @@ const massageAbi = (abi) => {
 
   const keyEv = {};
   const keyFn = {};
-  console.log("functions:", functions);
-  console.log("events:", events);
   const eventsObj =
     events.length > 0
       ? events.reduce(

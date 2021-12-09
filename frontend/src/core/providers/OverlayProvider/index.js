@@ -38,8 +38,8 @@ import useDashboard from "../../hooks/useDashboard";
 import SignUp from "../../../components/SignUp";
 import NewDashboardChart from "../../../components/NewDashboardChart";
 import { useRouter } from "../../hooks";
-const DasbhboardFlowSelector = React.lazy(() =>
-  import("../../../components/DasbhboardFlowSelector")
+const NewDashboardName = React.lazy(() =>
+  import("../../../components/NewDashboardName")
 );
 const ForgotPassword = React.lazy(() =>
   import("../../../components/ForgotPassword")
@@ -56,9 +56,10 @@ const NewSubscription = React.lazy(() =>
 const UploadABI = React.lazy(() => import("../../../components/UploadABI"));
 
 const OverlayProvider = ({ children }) => {
-  const { createDashboard, updateDashboard } = useDashboard();
   const { params } = useRouter();
   const { dashboardId } = params;
+  const { createDashboard, updateDashboard, dashboardCache } =
+    useDashboard(dashboardId);
   const ui = useContext(UIContext);
   const { user } = useContext(UserContext);
   const [modal, toggleModal] = useState({
@@ -95,8 +96,6 @@ const OverlayProvider = ({ children }) => {
       methods: {},
     },
   ]);
-
-  console.log("drawerState", drawerState);
 
   useLayoutEffect(() => {
     if (modal.type === MODAL_TYPES.OFF && modalDisclosure.isOpen) {
@@ -151,7 +150,10 @@ const OverlayProvider = ({ children }) => {
   }, [ui.isAppView, ui.isAppReady, user, ui.isLoggingOut, modal.type]);
 
   const finishNewDashboard = () => {
-    toggleDrawer({ type: DRAWER_TYPES.OFF, props: undefined });
+    toggleDrawer({
+      type: DRAWER_TYPES.OFF,
+      props: dashboardCache.data.data.resource_data,
+    });
     window.sessionStorage.removeItem("new_dashboard");
   };
 
@@ -166,8 +168,8 @@ const OverlayProvider = ({ children }) => {
             const retval = {
               subscription_id: pickedSubscription.subscription_id,
               generic: [],
-              all_methods: !!pickedSubscription.isMethods,
-              all_events: !!pickedSubscription.isEvents,
+              all_methods: false,
+              all_events: false,
             };
 
             pickedSubscription.generic.transactions.in &&
@@ -194,9 +196,7 @@ const OverlayProvider = ({ children }) => {
   };
 
   const submitNewDashboardItem = () => {
-    console.log("submit new dashboard item", drawerState);
     const newDashboard = { ...drawer.props };
-    // console.log("newDashboard,", newDashboard);
     drawerState.forEach((drawerSubscriptionSetting) => {
       let index = newDashboard.subscription_settings.findIndex(
         (subscriptionSetting) =>
@@ -226,7 +226,6 @@ const OverlayProvider = ({ children }) => {
           }
         }
       );
-      console.log("temp,", temp);
       newDashboard.subscription_settings[index].generic = [
         ...newDashboard.subscription_settings[index].generic,
         ...temp,
@@ -238,22 +237,11 @@ const OverlayProvider = ({ children }) => {
           const isSome = newDashboard.subscription_settings[index].events.some(
             (metric) => metric === drawerEventItem.name
           );
-          console.log("debug Submit drawerEventItem", drawerEventItem);
-          console.log(
-            "debug Submit isChecked:",
-            drawerEventItem.checked,
-            "isSome:",
-            isSome,
-            "current list:",
-            newDashboard.subscription_settings[index].events
-          );
           if (drawerEventItem.checked && !isSome) {
-            console.log("pushing:", drawerEventItem);
             temp.push({ name: drawerEventItem.name });
           }
         }
       );
-      console.log("temp,", temp);
       newDashboard.subscription_settings[index].events = [
         ...newDashboard.subscription_settings[index].events,
         ...temp,
@@ -265,22 +253,11 @@ const OverlayProvider = ({ children }) => {
           const isSome = newDashboard.subscription_settings[index].methods.some(
             (metric) => metric === drawerFunctionItem.name
           );
-          console.log("debug Submit drawerEventItem", drawerFunctionItem);
-          console.log(
-            "debug Submit isChecked:",
-            drawerFunctionItem.checked,
-            "isSome:",
-            isSome,
-            "current list:",
-            newDashboard.subscription_settings[index].methods
-          );
           if (drawerFunctionItem.checked && !isSome) {
-            console.log("pushing:", drawerFunctionItem);
             temp.push({ name: drawerFunctionItem.name });
           }
         }
       );
-      console.log("temp,", temp);
       newDashboard.subscription_settings[index].methods = [
         ...newDashboard.subscription_settings[index].methods,
         ...temp,
@@ -288,10 +265,21 @@ const OverlayProvider = ({ children }) => {
     });
     updateDashboard.mutate({ dashboard: newDashboard, id: dashboardId });
   };
+
+  useEffect(() => {
+    if (
+      drawer.type === DRAWER_TYPES.NEW_DASHBOARD_ITEM &&
+      updateDashboard.isSuccess
+    ) {
+      toggleDrawer({ type: DRAWER_TYPES.OFF, props: undefined });
+    }
+  }, [updateDashboard.isSuccess, drawer.type]);
+
   useEffect(() => {
     if (createDashboard.isSuccess) {
       finishNewDashboard();
     }
+    //eslint-disable-next-line
   }, [createDashboard.isSuccess]);
 
   useEffect(() => {
@@ -328,6 +316,44 @@ const OverlayProvider = ({ children }) => {
       toggleDrawer({ type: DRAWER_TYPES.OFF, props: undefined });
     }
   }, [createDashboard.isSuccess, drawer.type]);
+
+  const cancelDashboardItem = () => {
+    setDrawerState([
+      {
+        subscription: undefined,
+        generic: {
+          transactions_in: {
+            value: "transactions_in",
+            name: "transactions in",
+            checked: false,
+          },
+          transactions_out: {
+            value: "transactions_out",
+            name: "transactions out",
+            checked: false,
+          },
+          value_in: {
+            value: "value_in",
+            name: "value in",
+            checked: false,
+          },
+          value_out: {
+            value: "value_out",
+            name: "value out",
+            checked: false,
+          },
+          balance: {
+            value: "balance",
+            name: "balance",
+            checked: false,
+          },
+        },
+        events: {},
+        functions: {},
+      },
+    ]);
+    toggleDrawer({ type: DRAWER_TYPES.OFF, props: undefined });
+  };
   return (
     <OverlayContext.Provider
       value={{ modal, toggleModal, drawer, toggleDrawer, toggleAlert }}
@@ -382,7 +408,7 @@ const OverlayProvider = ({ children }) => {
             {modal.type === MODAL_TYPES.SIGNUP && "Create an account"}
             {modal.type === MODAL_TYPES.UPLOAD_ABI && "Assign ABI"}
             {modal.type === MODAL_TYPES.NEW_DASHBOARD_FLOW &&
-              "How would you like to define new dashboard?"}
+              "Would you like to give it a name?"}
           </ModalHeader>
           <Divider />
           <ModalCloseButton />
@@ -418,7 +444,7 @@ const OverlayProvider = ({ children }) => {
                 <UploadABI {...modal.props} />
               )}
               {modal.type === MODAL_TYPES.NEW_DASHBOARD_FLOW && (
-                <DasbhboardFlowSelector {...modal.props} />
+                <NewDashboardName {...modal.props} />
               )}
             </Suspense>
           </ModalBody>
@@ -430,9 +456,17 @@ const OverlayProvider = ({ children }) => {
         isOpen={drawerDisclosure.isOpen}
         placement="right"
         size="xl"
-        // w="80%"
         initialFocusRef={firstField}
-        onClose={() => toggleAlert(() => finishNewDashboard())}
+        onClose={() => {
+          switch (drawer.type) {
+            case DRAWER_TYPES.NEW_DASHBOARD:
+              toggleAlert(() => finishNewDashboard());
+              break;
+            case DRAWER_TYPES.NEW_DASHBOARD_ITEM:
+              cancelDashboardItem();
+              break;
+          }
+        }}
       >
         <DrawerOverlay />
         <DrawerContent overflowY="scroll">
@@ -450,7 +484,9 @@ const OverlayProvider = ({ children }) => {
               </Suspense>
             )}
             {drawer.type === DRAWER_TYPES.NEW_DASHBOARD_ITEM && (
-              <Suspense fallback={<Spinner />}>
+              <Suspense
+                fallback={<Spinner id={"new dashboard element fallback"} />}
+              >
                 <NewDashboardChart
                   firstField={firstField}
                   props={drawer.props}
@@ -470,43 +506,7 @@ const OverlayProvider = ({ children }) => {
                   toggleAlert(() => finishNewDashboard());
                 }
                 if (drawer.type === DRAWER_TYPES.NEW_DASHBOARD_ITEM) {
-                  toggleAlert(() => {
-                    toggleDrawer({ type: DRAWER_TYPES.OFF, props: undefined });
-                    setDrawerState([
-                      {
-                        subscription: undefined,
-                        generic: {
-                          transactions_in: {
-                            value: "transactions_in",
-                            name: "transactions in",
-                            checked: false,
-                          },
-                          transactions_out: {
-                            value: "transactions_out",
-                            name: "transactions out",
-                            checked: false,
-                          },
-                          value_in: {
-                            value: "value_in",
-                            name: "value in",
-                            checked: false,
-                          },
-                          value_out: {
-                            value: "value_out",
-                            name: "value out",
-                            checked: false,
-                          },
-                          balance: {
-                            value: "balance",
-                            name: "balance",
-                            checked: false,
-                          },
-                        },
-                        events: {},
-                        functions: {},
-                      },
-                    ]);
-                  });
+                  cancelDashboardItem();
                 }
               }}
             >
@@ -514,13 +514,17 @@ const OverlayProvider = ({ children }) => {
             </Button>
             <Button
               colorScheme="blue"
-              isLoading={createDashboard.isLoading}
               onClick={() => {
                 drawer.type === DRAWER_TYPES.NEW_DASHBOARD &&
                   submitNewDashboard();
                 drawer.type === DRAWER_TYPES.NEW_DASHBOARD_ITEM &&
                   submitNewDashboardItem();
               }}
+              isLoading={
+                drawer.type === DRAWER_TYPES.NEW_DASHBOARD_ITEM
+                  ? updateDashboard.isLoading
+                  : createDashboard.isLoading
+              }
             >
               Submit
             </Button>

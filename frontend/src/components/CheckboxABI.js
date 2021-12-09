@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { chakra, Stack, Spinner } from "@chakra-ui/react";
 import { useSubscription, usePresignedURL } from "../core/hooks";
-import CheckboxGroupped from "./CheckboxGroupped";
+import CheckboxGrouped from "./CheckboxGrouped";
 import massageAbi from "../core/utils/massageAbi";
 
 const SuggestABI = ({ subscriptionId, drawerState, setState }) => {
@@ -56,12 +56,10 @@ const SuggestABI = ({ subscriptionId, drawerState, setState }) => {
 
   if (isLoading || !data) return <Spinner />;
 
-  console.debug("list", drawerState);
-
   return (
     <>
       <Stack>
-        <CheckboxGroupped
+        <CheckboxGrouped
           groupName="events"
           list={Object.values(drawerState.events)}
           isItemChecked={(item) => item.checked}
@@ -81,7 +79,6 @@ const SuggestABI = ({ subscriptionId, drawerState, setState }) => {
           }
           setAll={(isChecked) =>
             setEvents((currentEvents) => {
-              console.log("setAll", isChecked);
               const newEvents = { ...currentEvents };
               Object.keys(newEvents).forEach(
                 (key) => (newEvents[key].checked = isChecked)
@@ -89,8 +86,17 @@ const SuggestABI = ({ subscriptionId, drawerState, setState }) => {
               return newEvents;
             })
           }
+          getName={(item) => {
+            const args = item.inputs.map((input) => input.internalType);
+            let name = item.name + ` (`;
+            name += args.map((argument, idx) =>
+              idx === 0 ? `${argument}` : ` ${argument}`
+            );
+            name += `)`;
+            return name;
+          }}
         />
-        <CheckboxGroupped
+        <CheckboxGrouped
           groupName="functions"
           list={Object.values(drawerState.methods)}
           isItemChecked={(item) => item.checked}
@@ -117,6 +123,15 @@ const SuggestABI = ({ subscriptionId, drawerState, setState }) => {
               return newFunctions;
             })
           }
+          getName={(item) => {
+            const args = item.inputs.map((input) => input.internalType);
+            let name = item.name + ` (`;
+            name += args.map((argument, idx) =>
+              idx === 0 ? `${argument}` : ` ${argument}`
+            );
+            name += `)`;
+            return name;
+          }}
         />
       </Stack>
     </>
