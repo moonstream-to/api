@@ -14,12 +14,7 @@ import {
   MODAL_TYPES,
 } from "../core/providers/OverlayProvider/constants";
 import { useDashboard, useRouter } from "../core/hooks";
-import {
-  uniqueNamesGenerator,
-  adjectives,
-  colors,
-  starWars,
-} from "unique-names-generator";
+import { uniqueNamesGenerator, colors, starWars } from "unique-names-generator";
 
 const NewDashboardName = (props) => {
   const overlay = useContext(OverlayContext);
@@ -27,7 +22,8 @@ const NewDashboardName = (props) => {
   const [name, setName] = useState(props.initialName);
   const [placeholder] = useState(
     uniqueNamesGenerator({
-      dictionaries: [colors, adjectives, starWars],
+      dictionaries: [colors, starWars],
+      separator: ` `,
     })
   );
 
