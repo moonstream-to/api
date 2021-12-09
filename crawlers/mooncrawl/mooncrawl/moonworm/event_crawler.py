@@ -1,36 +1,30 @@
-import time
-from typing import Any, Dict, List, Optional, Union
-from dataclasses import dataclass
 import logging
+import time
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Union
 
+from moonstreamdb.models import Base
+from eth_typing.evm import ChecksumAddress
 from moonworm.crawler.log_scanner import _fetch_events_chunk
 from sqlalchemy.orm.session import Session
+from sqlalchemy.sql.expression import and_
 from web3 import Web3
-from eth_typing.evm import ChecksumAddress
 
-from ..settings import CRAWLER_LABEL
-
-from db.moonstreamdb.models import Base
-
-from ..blockchain import (
-    get_block_model,
-    get_label_model,
-    connect,
-)
-
+from ..blockchain import connect, get_block_model, get_label_model
 from ..data import AvailableBlockchainType
-from .crawler import save_labels
+from ..settings import CRAWLER_LABEL
+from .crawler import (
+    EventCrawlJob,
+    get_crawl_job_entries,
+    heartbeat,
+    make_event_crawl_jobs,
+    save_labels,
+    blockchain_type_to_subscription_type,
+    merge_event_crawl_jobs,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class EventCrawlJob:
-    event_abi_hash: str
-    event_abi: Dict[str, Any]
-    contracts: List[ChecksumAddress]
-    created_at: int
 
 
 @dataclass
@@ -77,6 +71,7 @@ def _get_block_timestamp_from_web3(web3: Web3, block_number: int) -> int:
 # and support one cashe for both tx_call and event_crawler
 def get_block_timestamp(
     db_session: Session,
+    web3: Web3,
     blockchain_type: AvailableBlockchainType,
     block_number: int,
     blocks_cache: Dict[int, int],
@@ -105,8 +100,12 @@ def get_block_timestamp(
 
     blocks = (
         db_session.query(block_model)
-        .filter_by(block_model.block_number >= block_number)
-        .filter_by(block_model.block_number <= block_number + max_blocks_batch - 1)
+        .filter(
+            and_(
+                block_model.block_number >= block_number,
+                block_model.block_number <= block_number + max_blocks_batch - 1,
+            )
+        )
         .order_by(block_model.block_number.asc())
         .all()
     )
@@ -116,9 +115,7 @@ def get_block_timestamp(
         target_block_timestamp = blocks[0].timestamp
 
     if target_block_timestamp is None:
-        target_block_timestamp = _get_block_timestamp_from_web3(
-            connect(blockchain_type), block_number
-        )
+        target_block_timestamp = _get_block_timestamp_from_web3(web3, block_number)
 
     if len(blocks_cache) > max_blocks_batch * 2:
         blocks_cache.clear()
@@ -155,6 +152,7 @@ def _crawl_events(
         for raw_event in raw_events:
             raw_event["blockTimestamp"] = get_block_timestamp(
                 db_session,
+                web3,
                 blockchain_type,
                 raw_event["blockNumber"],
                 blocks_cache,
@@ -174,21 +172,37 @@ def _crawl_events(
     return all_events
 
 
+def _get_max_created_at_of_jobs(jobs: List[EventCrawlJob]) -> int:
+    return max(job.created_at for job in jobs)
+
+
+# FIx type
 def continious_event_crawler(
     db_session: Session,
     blockchain_type: AvailableBlockchainType,
     web3: Web3,
-    initial_jobs: List[EventCrawlJob],
+    crawl_jobs: List[EventCrawlJob],
     start_block: int,
     max_blocks_batch: int = 100,
     min_blocks_batch: int = 10,
     confirmations: int = 60,
-    min_sleep_time: float = 0.1,
+    min_sleep_time: float = 1,
 ):
 
     assert min_blocks_batch < max_blocks_batch
 
     crawl_start_time = int(time.time())
+
+    heartbeat_template = {
+        "status": "crawling",
+        "start_block": start_block,
+        "last_block": start_block,
+        "crawl_start_time": crawl_start_time,
+        "current_time": time.time(),
+        "current_jobs_length": len(crawl_jobs),
+        # "current_jobs": crawl_jobs,
+    }
+
     blocks_cache: Dict[int, int] = {}
 
     while True:
@@ -204,18 +218,50 @@ def continious_event_crawler(
         if start_block + min_blocks_batch > end_block:
             min_sleep_time *= 2
             continue
-
         min_sleep_time /= 2
 
         all_events = _crawl_events(
             db_session=db_session,
             blockchain_type=blockchain_type,
             web3=web3,
-            jobs=initial_jobs,
+            jobs=crawl_jobs,
             from_block=start_block,
             to_block=end_block,
             blocks_cache=blocks_cache,
             db_block_query_batch=min_blocks_batch * 2,
         )
 
-        # TODO ask for new jobs
+        logger.info(
+            f"Crawled {len(all_events)} events from {start_block} to {end_block}."
+        )
+
+        if all_events:
+            save_labels(
+                db_session,
+                [_event_to_label(blockchain_type, event) for event in all_events],
+            )
+
+        old_jobs_length = len(crawl_jobs)
+
+        new_entries = get_crawl_job_entries(
+            subscription_type=blockchain_type_to_subscription_type(blockchain_type),
+            crawler_type="event",
+            created_at_filter=_get_max_created_at_of_jobs(crawl_jobs),
+        )
+        new_jobs = make_event_crawl_jobs(new_entries)
+        crawl_jobs = merge_event_crawl_jobs(crawl_jobs, new_jobs)
+
+        logger.info(f"Found {len(crawl_jobs) - old_jobs_length} new crawl jobs. ")
+
+        # Update heartbeat and send to humbug
+        heartbeat_template["last_block"] = end_block
+        heartbeat_template["current_time"] = time.time()
+        heartbeat_template["current_jobs_length"] = len(crawl_jobs)
+        # heartbeat_template["current_jobs"] = crawl_jobs
+        heartbeat(
+            crawler_type="event",
+            blockchain_type=blockchain_type,
+            crawler_status=heartbeat_template,
+        )
+
+        start_block = end_block + 1
