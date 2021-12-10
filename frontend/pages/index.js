@@ -780,7 +780,6 @@ const Homepage = () => {
                   </Flex>
                   <Button
                     placeSelf="center"
-                    isExternal
                     w={["100%", "100%", "fit-content", null]}
                     maxW={["250px", null, "fit-content"]}
                     onClick={() => toggleModal({ type: MODAL_TYPES.SIGNUP })}
