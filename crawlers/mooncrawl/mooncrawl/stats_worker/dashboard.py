@@ -40,13 +40,13 @@ logger.setLevel(logging.INFO)
 
 
 subscription_id_by_blockchain = {
-    "ethereum": "ethereum_smartcontract",
-    "polygon": "polygon_smartcontract",
+    "ethereum": "ethereum_blockchain",
+    "polygon": "polygon_blockchain",
 }
 
 blockchain_by_subscription_id = {
-    "ethereum_smartcontract": "ethereum",
-    "polygon_smartcontract": "polygon",
+    "ethereum_blockchain": "ethereum",
+    "polygon_blockchain": "polygon",
 }
 
 

@@ -20,7 +20,6 @@ from ..settings import (
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
 )
-import pprint
 
 logger = logging.getLogger(__name__)
 

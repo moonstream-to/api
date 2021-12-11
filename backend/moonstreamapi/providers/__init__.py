@@ -49,7 +49,7 @@ class ReceivingEventsException(Exception):
 event_providers: Dict[str, Any] = {
     moonworm_provider.EthereumMoonwormProvider.event_type: moonworm_provider.EthereumMoonwormProvider,
     moonworm_provider.PolygonMoonwormProvider.event_type: moonworm_provider.PolygonMoonwormProvider,
-    transactions.ErhereumTransactions.event_type: transactions.ErhereumTransactions,
+    transactions.EthereumTransactions.event_type: transactions.EthereumTransactions,
     transactions.PolygonTransactions.event_type: transactions.PolygonTransactions,
     bugout.polygon_whalewatch_provider.event_type: bugout.polygon_whalewatch_provider,
     bugout.ethereum_txpool_provider.event_type: bugout.ethereum_txpool_provider,

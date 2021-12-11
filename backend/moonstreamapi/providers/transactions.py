@@ -451,7 +451,7 @@ class TransactionsProvider:
         return self.ethereum_transaction_event(maybe_ethereum_transaction)
 
 
-ErhereumTransactions = TransactionsProvider(
+EthereumTransactions = TransactionsProvider(
     event_type="ethereum_blockchain",
     blockchain=AvailableBlockchainType("ethereum"),
     description="Provider for resiving transactions from Ethereum tables.",
