@@ -12,7 +12,7 @@ from typing import Any, Callable, Dict, List, Union
 from uuid import UUID
 
 import boto3  # type: ignore
-from bugout.data import BugoutResources
+from bugout.data import BugoutResource, BugoutResources
 from moonstreamdb.db import yield_db_session_ctx
 from sqlalchemy import Column, and_, func, text, distinct
 from sqlalchemy.orm import Query, Session
@@ -39,14 +39,16 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-subscription_id_by_blockchain = {
-    "ethereum": "ethereum_blockchain",
-    "polygon": "polygon_blockchain",
+subscription_ids_by_blockchain = {
+    "ethereum": ["ethereum_blockchain", "ethereum_smartcontract"],
+    "polygon": ["polygon_blockchain", "polygon_smartcontract"],
 }
 
 blockchain_by_subscription_id = {
     "ethereum_blockchain": "ethereum",
     "polygon_blockchain": "polygon",
+    "ethereum_smartcontract": "ethereum",
+    "polygon_smartcontract": "polygon",
 }
 
 
@@ -583,24 +585,29 @@ def stats_generate_handler(args: argparse.Namespace):
 
         print(f"Amount of dashboards: {len(dashboard_resources.resources)}")
 
-        # Create subscriptions dict for get subscriptions by id.
-        blockchain_subscriptions: BugoutResources = bc.list_resources(
-            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-            params={
-                "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
-                "subscription_type_id": subscription_id_by_blockchain[args.blockchain],
-            },
-            timeout=10,
-        )
+        # get all subscriptions
 
-        print(
-            f"Amount of blockchain subscriptions: {len(blockchain_subscriptions.resources)}"
-        )
+        available_subscriptions: List[BugoutResource] = []
+
+        for subscription_type in subscription_ids_by_blockchain[args.blockchain]:
+
+            # Create subscriptions dict for get subscriptions by id.
+            blockchain_subscriptions: BugoutResources = bc.list_resources(
+                token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                params={
+                    "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
+                    "subscription_type_id": subscription_type,
+                },
+                timeout=10,
+            )
+            available_subscriptions.extend(blockchain_subscriptions.resources)
 
         subscription_by_id = {
             str(blockchain_subscription.id): blockchain_subscription
-            for blockchain_subscription in blockchain_subscriptions.resources
+            for blockchain_subscription in available_subscriptions
         }
+
+        print(f"Amount of blockchain subscriptions: {len(subscription_by_id)}")
 
         s3_client = boto3.client("s3")
 
