@@ -117,19 +117,26 @@ const OverlayProvider = ({ children }) => {
 
   useLayoutEffect(() => {
     if (
+      modal.type !== MODAL_TYPES.LOGIN &&
+      !modalDisclosure.isOpen &&
       ui.isAppView &&
-      ui.isInit &&
-      !user?.username &&
-      !ui.isLoggingOut &&
-      !ui.isLoggingIn &&
-      !modal.type
+      !ui.isLoggedIn &&
+      !ui.isLoggingOut
     ) {
       toggleModal({ type: MODAL_TYPES.LOGIN });
-    } else if (user && ui.isLoggingOut) {
+    } else if (
+      (modal.type === MODAL_TYPES.LOGIN || modal.type === MODAL_TYPES.SIGNUP) &&
+      ui.isLoggedIn
+    ) {
       toggleModal({ type: MODAL_TYPES.OFF });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ui.isAppView, ui.isAppReady, user, ui.isLoggingOut, modal.type]);
+  }, [
+    modal.type,
+    modalDisclosure,
+    ui.isAppView,
+    ui.isLoggedIn,
+    ui.isLoggingOut,
+  ]);
 
   const finishNewDashboard = () => {
     toggleDrawer({
