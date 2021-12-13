@@ -118,7 +118,7 @@ def migrations_run(args: argparse.Namespace) -> None:
 
 def moonworm_tasks_list_handler(args: argparse.Namespace) -> None:
 
-    moonworm_tasks.get_list_of_tags(args.query, args.tag)
+    moonworm_tasks.get_list_of_address()
 
 
 def moonworm_tasks_add_subscription_handler(args: argparse.Namespace) -> None:
@@ -358,23 +358,7 @@ This CLI is configured to work with the following API URLs:
         "list", description="Return list of addresses in moonworm journal."
     )
 
-    parser_moonworm_tasks_list.add_argument(
-        "-q",
-        "--query",
-        type=str,
-        help="query filter.",
-    )
-
-    parser_moonworm_tasks_list.add_argument(
-        "-t",
-        "--tag",
-        default="address",
-        choices=["address"],
-        type=str,
-        help="Tag for wich we fetch and return values.",
-    )
-
-    parser_moonworm_tasks.set_defaults(func=moonworm_list_handler)
+    parser_moonworm_tasks_list.set_defaults(func=moonworm_tasks_list_handler)
 
     parser_moonworm_tasks_add = subcommands_moonworm_tasks.add_parser(
         "add_subscription", description="Manage tasks for moonworm journal."
@@ -387,7 +371,7 @@ This CLI is configured to work with the following API URLs:
         help="Id of subscription for add to moonworm tasks.",
     )
 
-    parser_moonworm_tasks.set_defaults(func=moonworm_task)
+    parser_moonworm_tasks_add.set_defaults(func=moonworm_tasks_add_subscription_handler)
 
     args = parser.parse_args()
     args.func(args)
