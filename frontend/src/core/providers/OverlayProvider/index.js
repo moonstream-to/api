@@ -32,7 +32,6 @@ import {
   Spinner,
   Divider,
 } from "@chakra-ui/react";
-import UserContext from "../UserProvider/context";
 import UIContext from "../UIProvider/context";
 import useDashboard from "../../hooks/useDashboard";
 import SignUp from "../../../components/SignUp";
@@ -62,7 +61,6 @@ const OverlayProvider = ({ children }) => {
   const { createDashboard, updateDashboard, dashboardCache } =
     useDashboard(dashboardId);
   const ui = useContext(UIContext);
-  const { user } = useContext(UserContext);
   const [modal, toggleModal] = useState({
     type: MODAL_TYPES.OFF,
     props: undefined,
