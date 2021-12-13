@@ -1,7 +1,7 @@
 import logging
 import json
 
-import boto3
+import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
 
