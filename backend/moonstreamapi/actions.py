@@ -40,6 +40,8 @@ logger = logging.getLogger(__name__)
 blockchain_by_subscription_id = {
     "ethereum_blockchain": "ethereum",
     "polygon_blockchain": "polygon",
+    "ethereum_smartcontract": "ethereum",
+    "polygon_smartcontract": "polygon",
 }
 
 
