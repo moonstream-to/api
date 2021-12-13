@@ -8,11 +8,9 @@ import json
 import os
 from posix import listdir
 from typing import Optional
-from moonstreamapi.providers import moonworm_provider
 
 
 from moonstreamdb.db import SessionLocal
-from sqlalchemy.orm import with_expression
 
 from ..settings import BUGOUT_BROOD_URL, BUGOUT_SPIRE_URL, MOONSTREAM_APPLICATION_ID
 from ..web3_provider import yield_web3_provider
@@ -118,7 +116,7 @@ def migrations_run(args: argparse.Namespace) -> None:
 
 def moonworm_tasks_list_handler(args: argparse.Namespace) -> None:
 
-    moonworm_tasks.get_list_of_address()
+    moonworm_tasks.get_list_of_addresses()
 
 
 def moonworm_tasks_add_subscription_handler(args: argparse.Namespace) -> None:

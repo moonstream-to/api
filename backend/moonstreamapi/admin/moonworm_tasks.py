@@ -20,7 +20,7 @@ def get_list_of_addresses():
 
     entries = get_all_entries_from_search(
         journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
-        search_query=f"",
+        search_query=f"?tag:type:event ?tag:type:function",
         limit=100,
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
     )
@@ -53,7 +53,6 @@ def add_subscription(id: str):
     s3_client = boto3.client("s3")
 
     if subscription_resource.resource_data["abi"] is not None:
-        logger.error(f"Resource don't have abi.")
 
         bucket = subscription_resource.resource_data["bucket"]
         key = subscription_resource.resource_data["s3_path"]
@@ -72,7 +71,7 @@ def add_subscription(id: str):
 
         except s3_client.exceptions.NoSuchKey as e:
             logger.error(
-                f"Error getting Abi for subscription {str(subscription_resource.subscription_id)} S3 {s3_path} does not exist : {str(e)}"
+                f"Error getting Abi for subscription {str(id)} S3 {s3_path} does not exist : {str(e)}"
             )
 
         abi = json.loads(response["Body"].read())
