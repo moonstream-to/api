@@ -32,9 +32,9 @@ from bugout.app import Bugout
 from bugout.data import BugoutResource
 from sqlalchemy.orm import Session
 
+from . import bugout, transactions, moonworm_provider
 from .. import data
 from ..stream_queries import StreamQuery
-from . import bugout, ethereum_blockchain
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARN)
@@ -47,8 +47,13 @@ class ReceivingEventsException(Exception):
 
 
 event_providers: Dict[str, Any] = {
-    ethereum_blockchain.event_type: ethereum_blockchain,
-    bugout.whalewatch_provider.event_type: bugout.whalewatch_provider,
+    moonworm_provider.EthereumMoonwormProvider.event_type: moonworm_provider.EthereumMoonwormProvider,
+    moonworm_provider.PolygonMoonwormProvider.event_type: moonworm_provider.PolygonMoonwormProvider,
+    transactions.EthereumTransactions.event_type: transactions.EthereumTransactions,
+    transactions.PolygonTransactions.event_type: transactions.PolygonTransactions,
+    bugout.polygon_whalewatch_provider.event_type: bugout.polygon_whalewatch_provider,
+    bugout.ethereum_txpool_provider.event_type: bugout.ethereum_txpool_provider,
+    bugout.ethereum_whalewatch_provider.event_type: bugout.ethereum_whalewatch_provider,
     bugout.ethereum_txpool_provider.event_type: bugout.ethereum_txpool_provider,
 }
 

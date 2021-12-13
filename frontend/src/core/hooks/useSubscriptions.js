@@ -11,6 +11,7 @@ const useSubscriptions = () => {
   const stripe = useStripe();
 
   const [subscriptionTypeIcons, setSubscriptionTypeIcons] = useState({});
+  const [subscriptionTypeNames, setSubscriptionTypeNames] = useState({});
 
   const getSubscriptions = async () => {
     const response = await SubscriptionsService.getSubscriptions();
@@ -42,11 +43,13 @@ const useSubscriptions = () => {
 
   useEffect(() => {
     let icons = {};
+    let display_names = {};
     if (typesCache.data) {
-      typesCache.data.forEach(
-        (subscriptionType) =>
-          (icons[subscriptionType.id] = subscriptionType.icon_url)
-      );
+      typesCache.data.forEach((subscriptionType) => {
+        icons[subscriptionType.id] = subscriptionType.icon_url;
+        display_names[subscriptionType.id] = subscriptionType.name;
+      });
+      setSubscriptionTypeNames(display_names);
       setSubscriptionTypeIcons(icons);
     }
   }, [typesCache.data]);
@@ -95,6 +98,7 @@ const useSubscriptions = () => {
     updateSubscription,
     deleteSubscription,
     subscriptionTypeIcons,
+    subscriptionTypeNames,
   };
 };
 

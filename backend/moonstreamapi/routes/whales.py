@@ -11,7 +11,7 @@ from moonstreamdb import db
 from sqlalchemy.orm import Session
 
 from .. import data
-from ..providers.bugout import whalewatch_provider
+from ..providers.bugout import ethereum_whalewatch_provider
 from ..settings import (
     bugout_client,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -47,14 +47,14 @@ async def stream_handler(
         include_end=include_end,
     )
 
-    result = whalewatch_provider.get_events(
+    result = ethereum_whalewatch_provider.get_events(
         db_session=db_session,
         bugout_client=bugout_client,
         data_journal_id=MOONSTREAM_DATA_JOURNAL_ID,
         data_access_token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
         stream_boundary=stream_boundary,
-        user_subscriptions={whalewatch_provider.event_type: []},
-        query=StreamQuery(subscription_types=[whalewatch_provider.event_type]),
+        user_subscriptions={ethereum_whalewatch_provider.event_type: []},
+        query=StreamQuery(subscription_types=[ethereum_whalewatch_provider.event_type]),
     )
 
     if result is None:
