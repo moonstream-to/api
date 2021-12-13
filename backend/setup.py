@@ -13,7 +13,7 @@ setup(
     install_requires=[
         "appdirs",
         "boto3",
-        "bugout",
+        "bugout>=0.1.19",
         "fastapi",
         "moonstreamdb>=0.2.2",
         "humbug",
