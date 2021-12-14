@@ -1,10 +1,12 @@
 import json
 import logging
+import re
 import time
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, cast
+from os import SEEK_CUR
+from typing import Any, Callable, Dict, List, Optional, cast
 
 from bugout.data import BugoutSearchResult
 from eth_typing.evm import ChecksumAddress
@@ -14,8 +16,10 @@ from web3.main import Web3
 
 from mooncrawl.data import AvailableBlockchainType
 
-from ..blockchain import connect
+from ..blockchain import connect, get_block_model, get_label_model
+from ..reporter import reporter
 from ..settings import (
+    CRAWLER_LABEL,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_MOONWORM_TASKS_JOURNAL,
     bugout_client,
@@ -28,6 +32,24 @@ logger = logging.getLogger(__name__)
 class SubscriptionTypes(Enum):
     POLYGON_BLOCKCHAIN = "polygon_blockchain"
     ETHEREUM_BLOCKCHAIN = "ethereum_blockchain"
+
+
+def _generate_reporter_callback(
+    crawler_type: str, blockchain_type: AvailableBlockchainType
+) -> Callable[[Exception], None]:
+    def reporter_callback(error: Exception) -> None:
+        reporter.error_report(
+            error,
+            [
+                "moonworm",
+                "crawler",
+                "decode_error",
+                crawler_type,
+                blockchain_type.value,
+            ],
+        )
+
+    return reporter_callback
 
 
 def blockchain_type_to_subscription_type(
@@ -46,6 +68,13 @@ class EventCrawlJob:
     event_abi_hash: str
     event_abi: Dict[str, Any]
     contracts: List[ChecksumAddress]
+    created_at: int
+
+
+@dataclass
+class FunctionCallCrawlJob:
+    contract_abi: List[Dict[str, Any]]
+    contract_address: ChecksumAddress
     created_at: int
 
 
@@ -121,21 +150,21 @@ def get_crawl_job_entries(
     return entries
 
 
+def _get_tag(entry: BugoutSearchResult, tag: str) -> str:
+    for entry_tag in entry.tags:
+        if entry_tag.startswith(tag):
+            return entry_tag.split(":")[1]
+    raise ValueError(f"Tag {tag} not found in {entry}")
+
+
 def make_event_crawl_jobs(entries: List[BugoutSearchResult]) -> List[EventCrawlJob]:
     """
     Create EventCrawlJob objects from bugout entries.
     """
 
-    def _get_tag(entry: BugoutSearchResult, tag: str) -> str:
-        for entry_tag in entry.tags:
-            if entry_tag.startswith(tag):
-                return entry_tag.split(":")[1]
-        raise ValueError(f"Tag {tag} not found in {entry}")
-
     crawl_job_by_hash: Dict[str, EventCrawlJob] = {}
 
     for entry in entries:
-        # TODO in entries there is misspelling of 'abi_method_hash'
         abi_hash = _get_tag(entry, "abi_method_hash")
         contract_address = Web3().toChecksumAddress(_get_tag(entry, "address"))
 
@@ -156,6 +185,30 @@ def make_event_crawl_jobs(entries: List[BugoutSearchResult]) -> List[EventCrawlJ
     return [crawl_job for crawl_job in crawl_job_by_hash.values()]
 
 
+def make_function_call_crawl_jobs(
+    entries: List[BugoutSearchResult],
+) -> List[FunctionCallCrawlJob]:
+    """
+    Create FunctionCallCrawlJob objects from bugout entries.
+    """
+
+    crawl_job_by_address: Dict[str, FunctionCallCrawlJob] = {}
+
+    for entry in entries:
+        contract_address = Web3().toChecksumAddress(_get_tag(entry, "address"))
+        abi = cast(str, entry.content)
+        if contract_address not in crawl_job_by_address:
+            crawl_job_by_address[contract_address] = FunctionCallCrawlJob(
+                contract_abi=[json.loads(abi)],
+                contract_address=contract_address,
+                created_at=int(datetime.fromisoformat(entry.created_at).timestamp()),
+            )
+        else:
+            crawl_job_by_address[contract_address].contract_abi.append(json.loads(abi))
+
+    return [crawl_job for crawl_job in crawl_job_by_address.values()]
+
+
 def merge_event_crawl_jobs(
     old_crawl_jobs: List[EventCrawlJob], new_event_crawl_jobs: List[EventCrawlJob]
 ) -> List[EventCrawlJob]:
@@ -174,6 +227,31 @@ def merge_event_crawl_jobs(
         for old_crawl_job in old_crawl_jobs:
             if new_crawl_job.event_abi_hash == old_crawl_job.event_abi_hash:
                 old_crawl_job.contracts.extend(new_crawl_job.contracts)
+                break
+        else:
+            old_crawl_jobs.append(new_crawl_job)
+    return old_crawl_jobs
+
+
+def merge_function_call_crawl_jobs(
+    old_crawl_jobs: List[FunctionCallCrawlJob],
+    new_function_call_crawl_jobs: List[FunctionCallCrawlJob],
+) -> List[FunctionCallCrawlJob]:
+    """
+    Merge new function call crawl jobs with old ones.
+    If there is a new function call crawl job with the same contract_address
+    then we will merge the contracts to one job.
+    Othervise new job will be created
+
+    Important:
+        old_crawl_jobs will be modified
+    Returns:
+        Merged list of function call crawl jobs
+    """
+    for new_crawl_job in new_function_call_crawl_jobs:
+        for old_crawl_job in old_crawl_jobs:
+            if new_crawl_job.contract_address == old_crawl_job.contract_address:
+                old_crawl_job.contract_abi.extend(new_crawl_job.contract_abi)
                 break
         else:
             old_crawl_jobs.append(new_crawl_job)
@@ -235,6 +313,21 @@ def heartbeat(
             entry_id=heartbeat_entry_id,
             tags=[crawler_type, "heartbeat", blockchain_type.value, "dead"],
         )
+
+
+def get_last_labeled_block_number(
+    db_session: Session, blockchain_type: AvailableBlockchainType
+) -> Optional[int]:
+    label_model = get_label_model(blockchain_type)
+    block_number = (
+        db_session.query(label_model.block_number)
+        .filter(label_model.label == CRAWLER_LABEL)
+        .order_by(label_model.block_number.desc())
+        .limit(1)
+        .one_or_none()
+    )
+
+    return block_number[0] if block_number else None
 
 
 def save_labels(db_session: Session, labels: List[Base]) -> None:

@@ -23,7 +23,7 @@ DOCS_TARGET_PATH = "docs"
 
 
 # Crawler label
-CRAWLER_LABEL = "moonworm-test"
+CRAWLER_LABEL = "moonworm"
 
 # Geth connection address
 MOONSTREAM_NODE_ETHEREUM_IPC_ADDR = os.environ.get(
