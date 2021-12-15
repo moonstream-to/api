@@ -24,6 +24,7 @@ import { AiOutlinePlusCircle } from "react-icons/ai";
 import { v4 } from "uuid";
 import { DRAWER_TYPES } from "../../src/core/providers/OverlayProvider/constants";
 import Page404 from "../../src/components/FourOFour";
+import { BsGear } from "react-icons/bs";
 
 const HOUR_KEY = "Hourly";
 const DAY_KEY = "Daily";
@@ -196,7 +197,12 @@ const Analytics = () => {
         alignItems="center"
         minH="100vh"
       >
-        <Stack direction={["column", "row", null]} w="100%" placeItems="center">
+        <Stack
+          direction={["column", "row", null]}
+          w="100%"
+          placeItems="center"
+          pt={2}
+        >
           <Editable
             as={Heading}
             colorScheme="blue"
@@ -228,21 +234,18 @@ const Analytics = () => {
               setTimeRange(timeMap[e]);
             }}
           />
-          <Button
+          <IconButton
             onClick={() =>
               overlay.toggleDrawer({
                 type: DRAWER_TYPES.NEW_DASHBOARD_ITEM,
                 props: dashboardCache.data.resource_data,
               })
             }
-            mr={8}
+            size="md"
             colorScheme="blue"
-            variant="solid"
-            size="sm"
-            rightIcon={<AiOutlinePlusCircle />}
-          >
-            Add Report
-          </Button>
+            variant="outline"
+            icon={<BsGear />}
+          />
         </Stack>
 
         <Flex w="100%" direction="row" flexWrap="wrap-reverse" id="container">
