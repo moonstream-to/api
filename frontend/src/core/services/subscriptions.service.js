@@ -74,3 +74,9 @@ export const getSubscriptionABI = (id) => () => {
     url: `${API}/subscriptions/${id}/abi`,
   });
 };
+
+export const getSubscription = (id) =>
+  http({
+    method: "GET",
+    url: `${API}/subscriptions/${id}`,
+  });

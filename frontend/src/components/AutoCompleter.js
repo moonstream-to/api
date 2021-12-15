@@ -24,13 +24,18 @@ const AutoCompleter = ({
   dropdownItem,
   getLeftAddonColor,
   itemIdx,
+  selectedItem,
+  initialIsOpen,
 }) => {
   const ui = useContext(UIContext);
+
   return (
     <Downshift
       onSelect={onSelect}
       itemToString={itemToString}
-      initialSelectedItem={initialSelectedItem ?? undefined}
+      initialInputValue={itemToString(initialSelectedItem)}
+      selectedItem={selectedItem}
+      initialIsOpen={initialIsOpen}
     >
       {({
         getInputProps,

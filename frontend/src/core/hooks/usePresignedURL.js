@@ -2,7 +2,6 @@ import { useQuery } from "react-query";
 import { queryCacheProps } from "./hookCommon";
 import { useToast } from ".";
 import axios from "axios";
-import { useEffect } from "react";
 
 const usePresignedURL = ({
   url,
@@ -24,11 +23,15 @@ const usePresignedURL = ({
     return response.data;
   };
 
-  const { data, isLoading, error, refetch, failureCount } = useQuery(
-    ["presignedURL", cacheType, id],
+  const { data, isLoading, error, failureCount } = useQuery(
+    ["presignedURL", cacheType, id, url],
     getFromPresignedURL,
     {
       ...queryCacheProps,
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      staleTime: Infinity,
       enabled: isEnabled && url ? true : false,
       keepPreviousData: true,
       onError: (e) => {
@@ -43,12 +46,6 @@ const usePresignedURL = ({
       },
     }
   );
-
-  useEffect(() => {
-    if (url && isEnabled) {
-      refetch();
-    }
-  }, [url, isEnabled, refetch]);
 
   return {
     data,

@@ -20,9 +20,12 @@ import {
   colors,
   animals,
 } from "unique-names-generator";
+import UIContext from "../core/providers/UIProvider/context";
+import { DASHBOARD_UPDATE_ACTIONS } from "../core/constants";
 
 const NewDashboardName = (props) => {
   const overlay = useContext(OverlayContext);
+  const { dispatchDashboardUpdate } = useContext(UIContext);
   const { createDashboard } = useDashboard();
   const [name, setName] = useState(props.initialName);
   const [placeholder] = useState(
@@ -35,6 +38,10 @@ const NewDashboardName = (props) => {
   const router = useRouter();
   useEffect(() => {
     if (createDashboard.isSuccess && createDashboard.data) {
+      createDashboard.reset();
+      dispatchDashboardUpdate({
+        type: DASHBOARD_UPDATE_ACTIONS.RESET_TO_DEFAULT,
+      });
       router.push({
         pathname: "/dashboard/[dashboardId]",
         query: { dashboardId: createDashboard.data.id },
@@ -45,7 +52,7 @@ const NewDashboardName = (props) => {
         props: createDashboard.data.resource_data,
       });
     }
-  }, [createDashboard, router, overlay]);
+  }, [createDashboard, router, overlay, dispatchDashboardUpdate]);
 
   return (
     <>

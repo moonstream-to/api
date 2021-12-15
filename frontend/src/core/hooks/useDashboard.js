@@ -22,6 +22,22 @@ const useDashboard = (dashboardId) => {
     }
   );
 
+  // const dashboardUpdateState = useQuery(
+  //   ["DashboardUpdateState", { dashboardId: dashboardId }],
+  //   () =>
+  //     new Promise((resolve, reject) =>
+  //       reject("Dashboard Update State has no network functionality")
+  //     ),
+  //   {
+  //     ...queryCacheProps,
+  //     staleTime: Infinity,
+  //     onError: (error) => {
+  //       toast(error, "error");
+  //     },
+  //     enabled: false,
+  //   }
+  // );
+
   const _createDashboard = async (dashboard) => {
     const _dashboard = { ...dashboard };
     if (!_dashboard.subscription_settings) {
@@ -74,9 +90,14 @@ const useDashboard = (dashboardId) => {
     }
   );
 
+  const _getDashboard = async (dashboardId) => {
+    const response = await DashboardService.getDashboard(dashboardId);
+    return response.data;
+  };
+
   const dashboardCache = useQuery(
-    ["dashboards", { dashboardId }],
-    () => DashboardService.getDashboard(dashboardId),
+    ["dashboards", { dashboardId: dashboardId }],
+    () => _getDashboard(dashboardId),
     {
       ...queryCacheProps,
       onError: (error) => {
@@ -87,7 +108,7 @@ const useDashboard = (dashboardId) => {
   );
 
   const dashboardLinksCache = useQuery(
-    ["dashboardLinks", { dashboardId }],
+    ["dashboardLinks", { dashboardId: dashboardId }],
     () => DashboardService.getDashboardLinks(dashboardId),
     {
       ...queryCacheProps,

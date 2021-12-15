@@ -6,6 +6,13 @@ import {
   Button,
   Badge,
   Spinner,
+  Accordion,
+  AccordionItem,
+  AccordionButton,
+  AccordionPanel,
+  AccordionIcon,
+  Box,
+  IconButton,
 } from "@chakra-ui/react";
 import { useSubscriptions } from "../core/hooks";
 import color from "color";
@@ -14,10 +21,17 @@ import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 import CheckboxABI from "./CheckboxABI";
 import AutoCompleter from "./AutoCompleter";
 import CheckboxGrouped from "./CheckboxGrouped";
-import { emptySubscriptionSettingItem } from "../core/utils/massageAbi";
+import { GENERIC_METRICS } from "../core/constants";
+import UIContext from "../core/providers/UIProvider/context";
+import {
+  DASHBOARD_UPDATE_ACTIONS,
+  DASHBOARD_CONFIGURE_SETTING_SCOPES,
+} from "../core/constants";
+import { BiTrash } from "react-icons/bi";
 
-const NewDashboardChart = ({ drawerState, setDrawerState }) => {
+const NewDashboardChart = () => {
   const overlay = useContext(OverlayContext);
+  const ui = useContext(UIContext);
 
   const [pickerItems, setPickerItems] = useState();
 
@@ -32,164 +46,255 @@ const NewDashboardChart = ({ drawerState, setDrawerState }) => {
   }, [subscriptionsCache.isLoading, subscriptionsCache.data]);
 
   if (subscriptionsCache.isLoading || !pickerItems) return <Spinner />;
-
   const filterFn = (item, inputValue) =>
-    (item.subscription_type_id === "ethereum_blockchain" ||
-      item.subscription_type_id === "polygon_blockchain") &&
+    !item.subscription_type_id.includes("_whalewatch") &&
     (!inputValue ||
       item.address.toUpperCase().includes(inputValue.toUpperCase()) ||
       item.label.toUpperCase().includes(inputValue.toUpperCase()));
 
   return (
-    <>
-      <Stack spacing="24px">
-        {drawerState.map((subscribedItem, idx) => {
-          const setGeneric = (callbackFn) => {
-            setDrawerState((currentDrawerState) => {
-              const newDrawerState = [...currentDrawerState];
-              newDrawerState[idx].generic = callbackFn(
-                newDrawerState[idx].generic
-              );
-              return newDrawerState;
-            });
-          };
-          const setDrawerAtHead = (arg) => {
-            let newDrawerState = [...drawerState];
-            if (typeof arg === "function") {
-              newDrawerState[idx] = arg(newDrawerState[idx]);
-            } else {
-              newDrawerState[idx] = [...arg];
-            }
-            setDrawerState(newDrawerState);
-          };
-          return (
-            <Stack key={`new-chart-component-${idx}`}>
-              <FormLabel pb={0}>Subscription:</FormLabel>
-              <AutoCompleter
-                itemIdx={idx}
-                pickerItems={pickerItems}
-                initialSelectedItem={undefined}
-                itemToString={(item) => item?.label}
-                onSelect={(selectedItem) =>
-                  setDrawerState((currentValue) => {
-                    const newValue = [...currentValue];
-                    newValue[idx] = {
-                      ...emptySubscriptionSettingItem,
-                      subscription: selectedItem,
-                    };
-
-                    return newValue;
-                  })
-                }
-                getLeftAddonColor={(item) => item?.color ?? "inherit"}
-                getLabelColor={(item) =>
-                  item?.color ? color(item.color) : undefined
-                }
-                placeholder="Select subcription"
-                getDefaultValue={(item) => (item?.label ? item.label : "")}
-                filterFn={filterFn}
-                empyListCTA={(inputValue) => (
-                  <Button
-                    colorScheme="orange"
-                    variant="outline"
-                    size="sm"
-                    fontSize="sm"
-                    w="100%"
-                    m={0}
-                    isTruncated
-                    onClick={() => {
-                      overlay.toggleModal({
-                        type: MODAL_TYPES.NEW_SUBSCRIPTON,
-                        props: {
-                          initialValue: inputValue,
-                        },
-                      });
-                    }}
-                  >
-                    Subscribe to: {inputValue}{" "}
-                  </Button>
-                )}
-                dropdownItem={(item) => {
-                  const badgeColor = color(`${item.color}`);
-                  return (
-                    <>
-                      <chakra.span whiteSpace="nowrap">
-                        {item.label}
-                      </chakra.span>
-                      <Badge
-                        size="sm"
-                        placeSelf="self-end"
-                        colorScheme={item.abi ? "green" : "gray"}
-                      >
-                        ABI
-                      </Badge>
-                      <Badge
-                        isTruncated
-                        size="sm"
-                        placeSelf="self-end"
-                        bgColor={item.color}
-                        color={
-                          badgeColor.isDark()
-                            ? badgeColor.lighten(100).hex()
-                            : badgeColor.darken(0.6).hex()
-                        }
-                      >
-                        {item.address}
-                      </Badge>
-                    </>
+    <Stack spacing="24px" pb="100px">
+      {ui.dashboardUpdate.subscription_settings.length > 0 && (
+        <>
+          <FormLabel pb={0}>Subscriptions:</FormLabel>
+          <Accordion allowToggle allowMultiple defaultIndex={[0]}>
+            {ui.dashboardUpdate.subscription_settings.map(
+              (subscribedItem, idx) => {
+                const subscriptionItem =
+                  subscriptionsCache.data.subscriptions.find(
+                    (subscription) =>
+                      subscription.id === subscribedItem?.subscription_id
                   );
-                }}
-              />
-              {subscribedItem?.subscription?.id && (
-                <Stack spacing={1}>
-                  <FormLabel pb={0}>Metric:</FormLabel>
-                  <CheckboxGrouped
-                    groupName="generic metrics:"
-                    getName={(item) => item.name}
-                    list={Object.values(drawerState[idx].generic)}
-                    isItemChecked={(item) => item.checked}
-                    isAllChecked={Object.values(drawerState[idx].generic).every(
-                      (item) => !!item.checked
-                    )}
-                    isIndeterminate={
-                      Object.values(drawerState[idx].generic).some(
-                        (item) => item.checked
-                      ) &&
-                      !Object.values(drawerState[idx].generic).every(
-                        (item) => item.checked
-                      )
-                    }
-                    setItemChecked={(item, isChecked) =>
-                      setGeneric((currentState) => {
-                        const newState = { ...currentState };
-                        newState[item.value].checked = isChecked;
-                        return newState;
-                      })
-                    }
-                    setAll={(isChecked) =>
-                      setGeneric((currentState) => {
-                        const newState = { ...currentState };
-                        Object.keys(newState).forEach(
-                          (key) => (newState[key].checked = isChecked)
-                        );
-                        return newState;
-                      })
-                    }
-                  />
+                return (
+                  <AccordionItem key={`new-chart-component-${idx}`}>
+                    {subscribedItem?.subscription_id && (
+                      <>
+                        <h2>
+                          <AccordionButton>
+                            <Box flex="1" textAlign="left">
+                              <FormLabel>{`${subscriptionItem.label} (${subscriptionItem.address})`}</FormLabel>
+                            </Box>
+                            <AccordionIcon />
+                          </AccordionButton>
+                        </h2>
 
-                  <CheckboxABI
-                    subscriptionId={subscribedItem.subscription.id}
-                    drawerState={drawerState[idx]}
-                    setState={setDrawerAtHead}
-                    idx={idx}
-                  />
-                </Stack>
-              )}
-            </Stack>
-          );
-        })}
-      </Stack>
-    </>
+                        <AccordionPanel pb={4}>
+                          <Stack>
+                            {subscribedItem?.subscription_id && (
+                              <Stack spacing={1}>
+                                <IconButton
+                                  icon={<BiTrash />}
+                                  variant="ghost"
+                                  colorScheme="red"
+                                  size="sm"
+                                  onClick={() =>
+                                    ui.dispatchDashboardUpdate({
+                                      type: DASHBOARD_UPDATE_ACTIONS.DROP_SUBSCRIPTION,
+                                      payload: {
+                                        subscriptionId:
+                                          subscribedItem.subscription_id,
+                                      },
+                                    })
+                                  }
+                                />
+                                <FormLabel pb={0}>Metric:</FormLabel>
+                                <CheckboxGrouped
+                                  groupName="generic metrics:"
+                                  getName={(item) => item}
+                                  list={GENERIC_METRICS}
+                                  isItemChecked={(item) =>
+                                    subscribedItem.generic.some(
+                                      (subscribedGenericItem) =>
+                                        subscribedGenericItem.name === item
+                                    )
+                                  }
+                                  isAllChecked={GENERIC_METRICS.some((item) =>
+                                    subscribedItem.generic.some(
+                                      (subscribedGenericItem) =>
+                                        subscribedGenericItem.name === item
+                                    )
+                                  )}
+                                  isIndeterminate={GENERIC_METRICS.some(
+                                    (item) =>
+                                      subscribedItem.generic.some(
+                                        (subscribedGenericItem) =>
+                                          subscribedGenericItem.name == item
+                                      )
+                                  )}
+                                  setItemChecked={(item, isChecked) =>
+                                    ui.dispatchDashboardUpdate({
+                                      type: isChecked
+                                        ? DASHBOARD_UPDATE_ACTIONS.APPEND_METRIC
+                                        : DASHBOARD_UPDATE_ACTIONS.DROP_METRIC,
+                                      scope:
+                                        DASHBOARD_CONFIGURE_SETTING_SCOPES.METRIC_NAME,
+                                      payload: {
+                                        subscriptionId:
+                                          subscribedItem.subscription_id,
+                                        data: item,
+                                        propertyName: "generic",
+                                      },
+                                    })
+                                  }
+                                  setAll={(isChecked) =>
+                                    ui.dispatchDashboardUpdate({
+                                      type: isChecked
+                                        ? DASHBOARD_UPDATE_ACTIONS.APPEND_METRIC
+                                        : DASHBOARD_UPDATE_ACTIONS.DROP_METRIC,
+                                      scope:
+                                        DASHBOARD_CONFIGURE_SETTING_SCOPES.METRICS_ARRAY,
+                                      payload: {
+                                        subscriptionId:
+                                          subscribedItem.subscription_id,
+                                        data: GENERIC_METRICS.map(
+                                          (genericMetricName) => {
+                                            return { name: genericMetricName };
+                                          }
+                                        ),
+                                        propertyName: "generic",
+                                      },
+                                    })
+                                  }
+                                />
+
+                                <CheckboxABI
+                                  subscriptionId={
+                                    subscribedItem.subscription_id
+                                  }
+                                  state={subscribedItem}
+                                  idx={idx}
+                                />
+                              </Stack>
+                            )}
+                          </Stack>
+                        </AccordionPanel>
+                      </>
+                    )}
+                    {subscribedItem?.subscription_id === undefined && (
+                      <>
+                        <AutoCompleter
+                          initialIsOpen={true}
+                          itemIdx={
+                            ui.dashboardUpdate.subscription_settings.length
+                          }
+                          pickerItems={pickerItems.filter(
+                            (pickerItem) =>
+                              !ui.dashboardUpdate.subscription_settings.some(
+                                (subscriptiponSetting) =>
+                                  pickerItem.id ===
+                                  subscriptiponSetting.subscription_id
+                              ) && pickerItem.abi === "True"
+                          )}
+                          itemToString={(item) => item?.label}
+                          onSelect={(selectedItem) => {
+                            ui.dispatchDashboardUpdate({
+                              type: DASHBOARD_UPDATE_ACTIONS.OVERRIDE_SUBSCRIPTION,
+                              payload: {
+                                subscriptionId: selectedItem.id,
+                                index: idx,
+                              },
+                            });
+                          }}
+                          getLeftAddonColor={(item) => item?.color ?? "inherit"}
+                          getLabelColor={(item) =>
+                            item?.color ? color(item.color) : undefined
+                          }
+                          placeholder="Select subcription"
+                          getDefaultValue={(item) =>
+                            item?.label ? item.label : ""
+                          }
+                          filterFn={filterFn}
+                          empyListCTA={(inputValue) => (
+                            <Button
+                              colorScheme="orange"
+                              variant="outline"
+                              size="sm"
+                              fontSize="sm"
+                              w="100%"
+                              m={0}
+                              isTruncated
+                              onClick={() => {
+                                overlay.toggleModal({
+                                  type: MODAL_TYPES.NEW_SUBSCRIPTON,
+                                  props: {
+                                    initialValue: inputValue,
+                                  },
+                                });
+                              }}
+                            >
+                              Subscribe to: {inputValue}{" "}
+                            </Button>
+                          )}
+                          dropdownItem={(item) => {
+                            const badgeColor = color(`${item.color}`);
+                            return (
+                              <>
+                                <chakra.span whiteSpace="nowrap">
+                                  {item.label}
+                                </chakra.span>
+                                <Badge
+                                  size="sm"
+                                  placeSelf="self-end"
+                                  colorScheme={item.abi ? "green" : "gray"}
+                                >
+                                  ABI
+                                </Badge>
+                                <Badge
+                                  isTruncated
+                                  size="sm"
+                                  placeSelf="self-end"
+                                  bgColor={item.color}
+                                  color={
+                                    badgeColor.isDark()
+                                      ? badgeColor.lighten(100).hex()
+                                      : badgeColor.darken(0.6).hex()
+                                  }
+                                >
+                                  {item.address}
+                                </Badge>
+                              </>
+                            );
+                          }}
+                        />
+                        <Button
+                          onClick={() => {
+                            ui.dispatchDashboardUpdate({
+                              type: DASHBOARD_UPDATE_ACTIONS.DROP_SUBSCRIPTION,
+                              payload: {
+                                subscriptionId: undefined,
+                              },
+                            });
+                          }}
+                          colorScheme="blue"
+                          variant="outline"
+                        >
+                          Remove
+                        </Button>
+                      </>
+                    )}
+                  </AccordionItem>
+                );
+              }
+            )}
+          </Accordion>
+        </>
+      )}
+
+      <Button
+        colorScheme="green"
+        size="md"
+        onClick={() =>
+          ui.dispatchDashboardUpdate({
+            type: DASHBOARD_UPDATE_ACTIONS.APPEND_SUBSCRIPTION,
+            payload: {
+              subscriptionId: undefined,
+            },
+          })
+        }
+      >
+        Add subscription to dashboard:
+      </Button>
+    </Stack>
   );
 };
 

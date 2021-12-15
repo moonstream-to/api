@@ -23,6 +23,7 @@ import SubscriptionReport from "../../src/components/SubscriptionReport";
 import { AiOutlinePlusCircle } from "react-icons/ai";
 import { v4 } from "uuid";
 import { DRAWER_TYPES } from "../../src/core/providers/OverlayProvider/constants";
+import Page404 from "../../src/components/FourOFour";
 
 const HOUR_KEY = "Hourly";
 const DAY_KEY = "Daily";
@@ -158,12 +159,12 @@ const Analytics = () => {
 
   const updateCallback = ({ name }) => {
     updateDashboard.mutate({
-      id: dashboardCache.data.data.id,
+      id: dashboardCache.data.id,
       dashboard: {
-        dashboard_id: dashboardCache.data.data.id,
+        dashboard_id: dashboardCache.data.id,
         name: name,
         subscription_cache:
-          dashboardCache.data.data.resource_data.subscription_setting,
+          dashboardCache.data.resource_data.subscription_setting,
       },
     });
   };
@@ -174,6 +175,13 @@ const Analytics = () => {
     subscriptionsCache.isLoading
   )
     return <Spinner />;
+
+  if (
+    dashboardCache.isLoadingError &&
+    dashboardCache?.error?.response?.status === 404
+  ) {
+    return <Page404 />;
+  }
 
   const plotMinW = "250px";
 
@@ -193,7 +201,7 @@ const Analytics = () => {
             as={Heading}
             colorScheme="blue"
             placeholder="enter note here"
-            defaultValue={dashboardCache.data.data.resource_data.name}
+            defaultValue={dashboardCache.data.resource_data.name}
             onSubmit={(nextValue) =>
               updateCallback({
                 name: nextValue,
@@ -224,7 +232,7 @@ const Analytics = () => {
             onClick={() =>
               overlay.toggleDrawer({
                 type: DRAWER_TYPES.NEW_DASHBOARD_ITEM,
-                props: dashboardCache.data.data.resource_data,
+                props: dashboardCache.data.resource_data,
               })
             }
             mr={8}
@@ -273,7 +281,7 @@ const Analytics = () => {
                 </Flex>
               );
             })}
-            {dashboardCache.data.data.resource_data.subscription_settings[0] ===
+            {dashboardCache.data.resource_data.subscription_settings[0] ===
               undefined && (
               <Flex pt="220px" w="100%" placeContent="center">
                 <Button
@@ -282,7 +290,7 @@ const Analytics = () => {
                   onClick={() =>
                     overlay.toggleDrawer({
                       type: DRAWER_TYPES.NEW_DASHBOARD_ITEM,
-                      props: dashboardCache.data.data.resource_data,
+                      props: dashboardCache.data.resource_data,
                     })
                   }
                 >

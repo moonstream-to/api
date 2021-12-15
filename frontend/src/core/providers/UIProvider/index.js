@@ -4,13 +4,18 @@ import React, {
   useEffect,
   useCallback,
   useLayoutEffect,
+  useReducer,
 } from "react";
 import { useBreakpointValue } from "@chakra-ui/react";
-import { useStorage, useQuery, useRouter } from "../../hooks";
+import { useStorage, useQuery, useRouter, useDashboard } from "../../hooks";
 import UIContext from "./context";
 import UserContext from "../UserProvider/context";
 import { v4 as uuid4 } from "uuid";
 import { PreferencesService } from "../../services";
+import {
+  DASHBOARD_CONFIGURE_SETTING_SCOPES,
+  DASHBOARD_UPDATE_ACTIONS,
+} from "../../constants";
 
 const onboardingSteps = [
   {
@@ -29,6 +34,8 @@ const onboardingSteps = [
 
 const UIProvider = ({ children }) => {
   const router = useRouter();
+  const { dashboardId } = router.params;
+  const { dashboardCache } = useDashboard(dashboardId);
   const { user, isInit } = useContext(UserContext);
   const isMobileView = useBreakpointValue({
     base: true,
@@ -274,12 +281,187 @@ const UIProvider = ({ children }) => {
     onboardingRedirectCheckPassed,
   ]);
 
-  //***************Overlay's states  ************************/
-  // const [newDashboardForm, setNewDashboardForm] = useStorage(
-  //   window.sessionStorage,
-  //   "newDashboardForm",
-  //   null
-  // );
+  //***************New chart item 's state  ************************/
+  const dashboardUpdateReducer = useCallback(
+    (state, command) => {
+      let newState = undefined;
+      let index = -1;
+      switch (command.type) {
+        case DASHBOARD_UPDATE_ACTIONS.RESET_TO_DEFAULT:
+          newState = { ...state };
+          if (!dashboardCache.isLoading && dashboardCache.data?.resource_data) {
+            newState = { ...dashboardCache.data.resource_data };
+          }
+          return newState;
+        case DASHBOARD_UPDATE_ACTIONS.RENAME_DASHBOARD:
+          return { ...state, name: command.payload };
+        case DASHBOARD_UPDATE_ACTIONS.OVERRIDE_DASHBOARD:
+          return { ...command.payload };
+        case DASHBOARD_UPDATE_ACTIONS.APPEND_SUBSCRIPTION:
+          newState = { ...state };
+
+          if (
+            state.subscription_settings.every(
+              (subscriptionSetting) =>
+                subscriptionSetting.subscription_id !==
+                command.payload.subscriptionId
+            )
+          ) {
+            newState.subscription_settings.push({
+              subscription_id: command.payload.subscriptionId,
+              all_methods: false,
+              all_events: false,
+              generic: [],
+              methods: [],
+              events: [],
+            });
+          }
+          return newState;
+        case DASHBOARD_UPDATE_ACTIONS.OVERRIDE_SUBSCRIPTION:
+          newState = { ...state };
+          index =
+            dashboardCache.data?.resource_data?.subscription_settings?.findIndex(
+              (subscriptionSetting) =>
+                subscriptionSetting.subscription_id ===
+                command.payload.subscriptionId
+            );
+
+          newState.subscription_settings[command.payload.index] =
+            index !== -1
+              ? JSON.parse(
+                  JSON.stringify(
+                    dashboardCache.data?.resource_data?.subscription_settings[
+                      index
+                    ]
+                  )
+                )
+              : {
+                  subscription_id: command.payload.subscriptionId,
+                  all_methods: false,
+                  all_events: false,
+                  generic: [],
+                  methods: [],
+                  events: [],
+                };
+          return newState;
+        case DASHBOARD_UPDATE_ACTIONS.DROP_SUBSCRIPTION:
+          newState = { ...state };
+          newState.subscription_settings =
+            newState.subscription_settings.filter(
+              (subscriptionSetting) =>
+                subscriptionSetting.subscription_id !==
+                command.payload.subscriptionId
+            );
+          return newState;
+        case DASHBOARD_UPDATE_ACTIONS.APPEND_METRIC:
+          switch (command.scope) {
+            case DASHBOARD_CONFIGURE_SETTING_SCOPES.METRICS_ARRAY:
+              newState = { ...state };
+              index = state.subscription_settings.findIndex(
+                (subscriptionSetting) =>
+                  subscriptionSetting.subscription_id ===
+                  command.payload.subscriptionId
+              );
+              if (index !== -1) {
+                newState.subscription_settings[index][
+                  command.payload.propertyName
+                ] = [...command.payload.data];
+              }
+              return newState;
+
+            case DASHBOARD_CONFIGURE_SETTING_SCOPES.METRIC_NAME:
+              newState = { ...state };
+              index = state.subscription_settings.findIndex(
+                (subscriptionSetting) =>
+                  subscriptionSetting.subscription_id ===
+                  command.payload.subscriptionId
+              );
+              if (index !== -1) {
+                if (
+                  !newState.subscription_settings[index][
+                    command.payload.propertyName
+                  ].some((method) => method.name === command.payload.data.name)
+                ) {
+                  newState.subscription_settings[index][
+                    command.payload.propertyName
+                  ].push({
+                    name: command.payload.data,
+                  });
+                }
+              }
+              return newState;
+
+            default:
+              throw new Error();
+          }
+        case DASHBOARD_UPDATE_ACTIONS.DROP_METRIC:
+          switch (command.scope) {
+            case DASHBOARD_CONFIGURE_SETTING_SCOPES.METRICS_ARRAY:
+              newState = { ...state };
+              index = state.subscription_settings.findIndex(
+                (subscriptionSetting) =>
+                  subscriptionSetting.subscription_id ===
+                  command.payload.subscriptionId
+              );
+              newState.subscription_settings[index][
+                command.payload.propertyName
+              ] = [];
+              return newState;
+
+            case DASHBOARD_CONFIGURE_SETTING_SCOPES.METRIC_NAME:
+              newState = { ...state };
+              index = state.subscription_settings.findIndex(
+                (subscriptionSetting) =>
+                  subscriptionSetting.subscription_id ===
+                  command.payload.subscriptionId
+              );
+              newState.subscription_settings[index][
+                command.payload.propertyName
+              ] = newState.subscription_settings[index][
+                command.payload.propertyName
+              ].filter((metric) => metric.name !== command.payload.data);
+              return newState;
+
+            default:
+              throw new Error(`unhandled case command.scope: ${command.scope}`);
+          }
+        default:
+          throw new Error(`unhandled case command.type: ${command.type}`);
+      }
+    },
+    [dashboardCache.data, dashboardCache.isLoading]
+  );
+  const [dashboardUpdate, dispatchDashboardUpdate] = useReducer(
+    dashboardUpdateReducer,
+    {
+      name: undefined,
+      subscription_settings: [
+        {
+          subscription_id: undefined,
+          all_methods: false,
+          all_events: false,
+          generic: [],
+          methods: [],
+          events: [],
+        },
+      ],
+    }
+  );
+
+  useEffect(() => {
+    if (!dashboardCache.isLoading && dashboardCache.data?.resource_data) {
+      const dashboardCachedData = JSON.parse(
+        JSON.stringify({ ...dashboardCache.data.resource_data })
+      );
+      dispatchDashboardUpdate({
+        type: DASHBOARD_UPDATE_ACTIONS.OVERRIDE_DASHBOARD,
+        payload: dashboardCachedData,
+      });
+    }
+  }, [dashboardId, dashboardCache.isLoading, dashboardCache.data]);
+
+  //***************New dashboard state  ************************/
+
   const [newDashboardForm, setNewDashboardForm] = useState();
 
   return (
@@ -318,6 +500,8 @@ const UIProvider = ({ children }) => {
         setLoggingIn,
         newDashboardForm,
         setNewDashboardForm,
+        dashboardUpdate,
+        dispatchDashboardUpdate,
       }}
     >
       {children}

@@ -1,13 +1,19 @@
-import React, { useEffect } from "react";
+import React, { useContext, useMemo } from "react";
 import { chakra, Stack, Spinner } from "@chakra-ui/react";
 import { useSubscription, usePresignedURL } from "../core/hooks";
 import CheckboxGrouped from "./CheckboxGrouped";
-import massageAbi from "../core/utils/massageAbi";
+import UIContext from "../core/providers/UIProvider/context";
+import {
+  DASHBOARD_CONFIGURE_SETTING_SCOPES,
+  DASHBOARD_UPDATE_ACTIONS,
+} from "../core/constants";
 
-const SuggestABI = ({ subscriptionId, drawerState, setState }) => {
+const SuggestABI = ({ subscriptionId, state }) => {
   const { subscriptionLinksCache } = useSubscription({
     id: subscriptionId,
   });
+
+  const { dispatchDashboardUpdate } = useContext(UIContext);
 
   const { data, isLoading } = usePresignedURL({
     url: subscriptionLinksCache?.data?.data?.url,
@@ -17,73 +23,58 @@ const SuggestABI = ({ subscriptionId, drawerState, setState }) => {
     requestNewURLCallback: subscriptionLinksCache.refetch,
   });
 
-  const setFunctions = (arg) => {
-    setState((currentHeadState) => {
-      const newHeadState = { ...currentHeadState };
-      if (typeof arg === "function") {
-        newHeadState.methods = arg(newHeadState.methods);
-      } else {
-        newHeadState.methods = { ...arg };
-      }
-      return newHeadState;
-    });
-  };
-
-  const setEvents = (arg) => {
-    setState((currentHeadState) => {
-      const newHeadState = { ...currentHeadState };
-      if (typeof arg === "function") {
-        newHeadState.events = arg(newHeadState.events);
-      } else {
-        newHeadState.events = { ...arg };
-      }
-      return newHeadState;
-    });
-  };
-
-  useEffect(() => {
-    if (data && !isLoading) {
-      const { fnsObj, eventsObj } = massageAbi(data);
-      setState((currentHeadState) => {
-        const newHeadState = { ...currentHeadState };
-        newHeadState.methods = fnsObj;
-        newHeadState.events = eventsObj;
-        return newHeadState;
-      });
-    }
-    //eslint-disable-next-line
-  }, [data, isLoading]);
-
-  if (isLoading || !data) return <Spinner />;
+  const abiEvents = useMemo(
+    () => data && data.filter((abiItem) => abiItem.type === "event"),
+    [data]
+  );
+  const abiMethods = useMemo(
+    () => data && data.filter((abiItem) => abiItem.type === "function"),
+    [data]
+  );
+  if (isLoading) return <Spinner />;
+  if (!data) return "";
 
   return (
     <>
       <Stack>
         <CheckboxGrouped
           groupName="events"
-          list={Object.values(drawerState.events)}
-          isItemChecked={(item) => item.checked}
-          isAllChecked={Object.values(drawerState.events).every(
-            (item) => !!item.checked
+          list={abiEvents}
+          isItemChecked={(item) => {
+            return state.events.some((event) => event.name === item.name);
+          }}
+          isAllChecked={abiEvents.every((abiEvent) => {
+            return state.events.some((event) => abiEvent.name === event.name);
+          })}
+          isIndeterminate={state.events.some((event) =>
+            abiEvents.some((abiEvent) => abiEvent.name === event.name)
           )}
-          isIndeterminate={
-            Object.values(drawerState.events).some((item) => item.checked) &&
-            !Object.values(drawerState.events).every((item) => item.checked)
-          }
           setItemChecked={(item, isChecked) =>
-            setEvents((currentState) => {
-              const newState = { ...currentState };
-              newState[item.signature].checked = isChecked;
-              return newState;
+            dispatchDashboardUpdate({
+              type: isChecked
+                ? DASHBOARD_UPDATE_ACTIONS.APPEND_METRIC
+                : DASHBOARD_UPDATE_ACTIONS.DROP_METRIC,
+              scope: DASHBOARD_CONFIGURE_SETTING_SCOPES.METRIC_NAME,
+              payload: {
+                subscriptionId: subscriptionId,
+                data: item.name,
+                propertyName: "events",
+              },
             })
           }
           setAll={(isChecked) =>
-            setEvents((currentEvents) => {
-              const newEvents = { ...currentEvents };
-              Object.keys(newEvents).forEach(
-                (key) => (newEvents[key].checked = isChecked)
-              );
-              return newEvents;
+            dispatchDashboardUpdate({
+              type: isChecked
+                ? DASHBOARD_UPDATE_ACTIONS.APPEND_METRIC
+                : DASHBOARD_UPDATE_ACTIONS.DROP_METRIC,
+              scope: DASHBOARD_CONFIGURE_SETTING_SCOPES.METRICS_ARRAY,
+              payload: {
+                subscriptionId: subscriptionId,
+                data: abiEvents.map((abiEvent) => {
+                  return { name: abiEvent.name };
+                }),
+                propertyName: "events",
+              },
             })
           }
           getName={(item) => {
@@ -97,30 +88,43 @@ const SuggestABI = ({ subscriptionId, drawerState, setState }) => {
           }}
         />
         <CheckboxGrouped
-          groupName="functions"
-          list={Object.values(drawerState.methods)}
-          isItemChecked={(item) => item.checked}
-          isAllChecked={Object.values(drawerState.methods).every(
-            (item) => !!item.checked
-          )}
-          isIndeterminate={
-            Object.values(drawerState.methods).some((item) => item.checked) &&
-            !Object.values(drawerState.methods).every((item) => item.checked)
+          groupName="methods"
+          list={abiMethods}
+          isItemChecked={(item) =>
+            state.methods.some((fn) => fn.name === item.name)
           }
+          isAllChecked={abiMethods.every((abiMethod) => {
+            return state.methods.some((fn) => abiMethod.name === fn.name);
+          })}
+          isIndeterminate={state.methods.some((fn) =>
+            abiMethods.some((abiMethod) => abiMethod.name === fn.name)
+          )}
           setItemChecked={(item, isChecked) =>
-            setFunctions((currentState) => {
-              const newState = { ...currentState };
-              newState[item.signature].checked = isChecked;
-              return newState;
+            dispatchDashboardUpdate({
+              type: isChecked
+                ? DASHBOARD_UPDATE_ACTIONS.APPEND_METRIC
+                : DASHBOARD_UPDATE_ACTIONS.DROP_METRIC,
+              scope: DASHBOARD_CONFIGURE_SETTING_SCOPES.METRIC_NAME,
+              payload: {
+                subscriptionId: subscriptionId,
+                data: item.name,
+                propertyName: "methods",
+              },
             })
           }
           setAll={(isChecked) =>
-            setFunctions((currentFunctions) => {
-              const newFunctions = { ...currentFunctions };
-              Object.keys(newFunctions).forEach(
-                (key) => (newFunctions[key].checked = isChecked)
-              );
-              return newFunctions;
+            dispatchDashboardUpdate({
+              type: isChecked
+                ? DASHBOARD_UPDATE_ACTIONS.APPEND_METRIC
+                : DASHBOARD_UPDATE_ACTIONS.DROP_METRIC,
+              scope: DASHBOARD_CONFIGURE_SETTING_SCOPES.METRICS_ARRAY,
+              payload: {
+                subscriptionId: subscriptionId,
+                data: abiMethods.map((abiMethod) => {
+                  return { name: abiMethod.name };
+                }),
+                propertyName: "methods",
+              },
             })
           }
           getName={(item) => {

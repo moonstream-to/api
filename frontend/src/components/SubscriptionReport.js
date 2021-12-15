@@ -25,7 +25,7 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
     url: url,
     isEnabled: true,
     id: id,
-    cacheType: timeRange,
+    cacheType: `${timeRange} subscription_report`,
     requestNewURLCallback: refetchLinks,
     hideToastOn404: true,
   });
