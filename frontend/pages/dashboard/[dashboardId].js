@@ -20,7 +20,6 @@ import { useRouter, useSubscriptions } from "../../src/core/hooks";
 import { BiTrash } from "react-icons/bi";
 import OverlayContext from "../../src/core/providers/OverlayProvider/context";
 import SubscriptionReport from "../../src/components/SubscriptionReport";
-import { AiOutlinePlusCircle } from "react-icons/ai";
 import { v4 } from "uuid";
 import { DRAWER_TYPES } from "../../src/core/providers/OverlayProvider/constants";
 import Page404 from "../../src/components/FourOFour";
