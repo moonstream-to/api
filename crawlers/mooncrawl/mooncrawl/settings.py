@@ -23,7 +23,7 @@ DOCS_TARGET_PATH = "docs"
 
 
 # Crawler label
-CRAWLER_LABEL = "moonworm"
+CRAWLER_LABEL = "moonworm-alpha"
 
 # Geth connection address
 MOONSTREAM_NODE_ETHEREUM_IPC_ADDR = os.environ.get(
@@ -78,4 +78,12 @@ MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX = os.environ.get(
 if MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX is None:
     raise ValueError(
         "MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX environment variable must be set"
+    )
+
+MOONSTREAM_MOONWORM_TASKS_JOURNAL = os.environ.get(
+    "MOONSTREAM_MOONWORM_TASKS_JOURNAL", ""
+)
+if MOONSTREAM_MOONWORM_TASKS_JOURNAL == "":
+    raise ValueError(
+        "MOONSTREAM_MOONWORM_TASKS_JOURNAL environment variable must be set"
     )
