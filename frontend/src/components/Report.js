@@ -81,8 +81,8 @@ const Report = ({ data, timeRange }) => {
         format: axis_format[timeRange],
         tickValues: tickValues_format[timeRange],
         legend: "time",
-        tickRotation: 0,
-        legendOffset: 35,
+        tickRotation: 65,
+        legendOffset: 45,
         legendPosition: "middle",
       }}
       curve={"monotoneY"}

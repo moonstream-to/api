@@ -17,9 +17,17 @@ const UserProvider = ({ children }) => {
     const headers = { Authorization: `Bearer ${token}` };
     http
       .get(`${AUTH_URL}/`, { headers })
-      .then((response) => {
-        setUser(response.data);
-      })
+      .then(
+        (response) => {
+          setUser(response.data);
+        },
+        (reason) => {
+          if (reason.response.data === "Access token not found") {
+            localStorage.removeItem("MOONSTREAM_ACCESS_TOKEN");
+            setUser(null);
+          }
+        }
+      )
       .catch(() => setUser(null))
       .finally(() => setInit(true));
   }, []);

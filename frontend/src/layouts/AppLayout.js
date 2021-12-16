@@ -30,7 +30,7 @@ const AppLayout = ({ children }) => {
           left="50%"
           size="xl"
           speed="1s"
-          zIndex={100001}
+          zIndex={1011}
         />
       )}
       {(!ui.isAppReady || !ui.isLoggedIn) && (
@@ -41,7 +41,7 @@ const AppLayout = ({ children }) => {
           left={0}
           right={0}
           bg="rgba(0,0,0,0.7)"
-          zIndex={100000}
+          zIndex={1010}
         />
       )}
 

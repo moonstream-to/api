@@ -10,8 +10,8 @@ import {
   Tooltip,
   Editable,
   EditableInput,
-  Image,
   EditablePreview,
+  Image,
   Button,
 } from "@chakra-ui/react";
 import { CheckIcon, DeleteIcon } from "@chakra-ui/icons";
