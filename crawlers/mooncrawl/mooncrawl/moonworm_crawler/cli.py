@@ -79,7 +79,7 @@ def handle_crawl(args: argparse.Namespace) -> None:
                 logger.info(
                     "No last labeled block found, using  start block (web3.eth.blockNumber - 300)"
                 )
-                start_block = web3.eth.blockNumber - 300
+                start_block = web3.eth.blockNumber - 10000
                 logger.info(f"Starting from block: {start_block}")
         elif last_labeled_block is not None:
             if start_block < last_labeled_block and not args.force:
