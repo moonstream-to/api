@@ -8,7 +8,7 @@ from web3.middleware import geth_poa_middleware
 
 from ..blockchain import AvailableBlockchainType
 from ..settings import MOONSTREAM_MOONWORM_TASKS_JOURNAL, bugout_client
-from .continuous_crawler import continuous_crawler, _retry_connect_web3
+from .continuous_crawler import _retry_connect_web3, continuous_crawler
 from .crawler import (
     SubscriptionTypes,
     get_crawl_job_entries,
@@ -42,15 +42,19 @@ def handle_crawl(args: argparse.Namespace) -> None:
     logger.info(
         f"Initial function call crawl jobs count: {len(initial_function_call_jobs)}"
     )
-    print(initial_function_call_jobs)
+
+    # Couldn't figure out how to convert from string to AvailableBlockchainType
+    # AvailableBlockchainType(args.blockchain_type) is not working
     blockchain_type = AvailableBlockchainType(args.blockchain_type)
+
+    logger.info(f"Blockchain type: {blockchain_type.value}")
     with yield_db_session_ctx() as db_session:
         web3: Optional[Web3] = None
         if args.web3 is None:
             logger.info(
                 "No web3 provider URL provided, using default (blockchan.py: connect())"
             )
-            web3 = _retry_connect_web3(args.blockchain_type)
+            web3 = _retry_connect_web3(blockchain_type)
         else:
             logger.info(f"Using web3 provider URL: {args.web3}")
             web3 = Web3(
@@ -65,7 +69,7 @@ def handle_crawl(args: argparse.Namespace) -> None:
         last_labeled_block = get_last_labeled_block_number(db_session, blockchain_type)
         logger.info(f"Last labeled block: {last_labeled_block}")
 
-        start_block = args.start_block
+        start_block = args.start
         if start_block is None:
             logger.info("No start block provided")
             if last_labeled_block is not None:
@@ -75,7 +79,7 @@ def handle_crawl(args: argparse.Namespace) -> None:
                 logger.info(
                     "No last labeled block found, using  start block (web3.eth.blockNumber - 300)"
                 )
-                start_block = web3.eth.blockNumber - 300
+                start_block = web3.eth.blockNumber - 10000
                 logger.info(f"Starting from block: {start_block}")
         elif last_labeled_block is not None:
             if start_block < last_labeled_block and not args.force:

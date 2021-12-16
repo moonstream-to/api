@@ -17,7 +17,6 @@ from mooncrawl.data import AvailableBlockchainType
 
 from ..reporter import reporter
 from ..settings import (
-    CRAWLER_LABEL,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_MOONWORM_TASKS_JOURNAL,
     bugout_client,
@@ -28,8 +27,8 @@ logger = logging.getLogger(__name__)
 
 
 class SubscriptionTypes(Enum):
-    POLYGON_BLOCKCHAIN = "polygon_blockchain"
-    ETHEREUM_BLOCKCHAIN = "ethereum_blockchain"
+    POLYGON_BLOCKCHAIN = "polygon_smartcontract"
+    ETHEREUM_BLOCKCHAIN = "ethereum_smartcontract"
 
 
 def _generate_reporter_callback(

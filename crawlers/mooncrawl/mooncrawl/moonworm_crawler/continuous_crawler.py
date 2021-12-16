@@ -173,6 +173,7 @@ def continuous_crawler(
     last_heartbeat_time = datetime.utcnow()
     blocks_cache: Dict[int, int] = {}
 
+    failed_count = 0
     try:
         while True:
             try:
@@ -242,25 +243,38 @@ def continuous_crawler(
                 if current_time - last_heartbeat_time > timedelta(
                     seconds=heartbeat_interval
                 ):
-                    # Update heartbeat and send to humbug
+                    # Update heartbeat
                     heartbeat_template["last_block"] = end_block
-                    heartbeat_template["current_time"] = current_time
+                    heartbeat_template["current_time"] = _date_to_str(current_time)
                     heartbeat_template["current_event_jobs_length"] = len(
                         event_crawl_jobs
                     )
-                    heartbeat_template["jobs_last_refetched_at"] = jobs_refetchet_time
+                    heartbeat_template["jobs_last_refetched_at"] = _date_to_str(
+                        jobs_refetchet_time
+                    )
+                    heartbeat_template["current_function_call_jobs_length"] = len(
+                        function_call_crawl_jobs
+                    )
+                    heartbeat_template[
+                        "function_call metrics"
+                    ] = ethereum_state_provider.metrics
                     heartbeat(
                         crawler_type="event",
                         blockchain_type=blockchain_type,
                         crawler_status=heartbeat_template,
                     )
-                    logger.info("Sending heartbeat to humbug.", heartbeat_template)
+                    logger.info("Sending heartbeat.", heartbeat_template)
                     last_heartbeat_time = datetime.utcnow()
 
                 start_block = end_block + 1
+                failed_count = 0
             except Exception as e:
                 logger.error(f"Internal error: {e}")
                 logger.exception(e)
+                failed_count += 1
+                if failed_count > 10:
+                    logger.error("Too many failures, exiting")
+                    raise e
                 try:
                     web3 = _retry_connect_web3(blockchain_type)
                 except Exception as err:
@@ -292,6 +306,7 @@ def continuous_crawler(
             crawler_type="event",
             blockchain_type=blockchain_type,
             crawler_status=heartbeat_template,
+            is_dead=True,
         )
 
         logger.exception(e)
