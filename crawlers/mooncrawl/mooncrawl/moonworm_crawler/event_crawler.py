@@ -1,12 +1,10 @@
 import logging
-
-from dataclasses import dataclass
-
 import traceback
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Union, cast
 
-from moonstreamdb.models import Base
 from eth_typing.evm import ChecksumAddress
+from moonstreamdb.models import Base
 from moonworm.crawler.log_scanner import _fetch_events_chunk  # type: ignore
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import and_
@@ -32,25 +30,7 @@ class Event:
     log_index: int
 
 
-def _event_to_label(blockchain_type: AvailableBlockchainType, event: Event) -> Base:
-    """
-    Creates a label model.
-    """
-    label_model = get_label_model(blockchain_type)
-    label = label_model(
-        label=CRAWLER_LABEL,
-        label_data={
-            "type": "event",
-            "name": event.event_name,
-            "args": event.args,
-        },
-        address=event.address,
-        block_number=event.block_number,
-        block_timestamp=event.block_timestamp,
-        transaction_hash=event.transaction_hash,
-        log_index=event.log_index,
-    )
-    return label
+
 
 
 def _get_block_timestamp_from_web3(

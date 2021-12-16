@@ -2,15 +2,16 @@ import logging
 import time
 import traceback
 from datetime import datetime, timedelta
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from moonworm.crawler.moonstream_ethereum_state_provider import (
     MoonstreamEthereumStateProvider,
 )
+from moonworm.crawler.networks import Network
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import and_
 from web3 import Web3
-
+from ..blockchain import connect
 from ..data import AvailableBlockchainType
 from .crawler import (
     EventCrawlJob,
@@ -19,14 +20,14 @@ from .crawler import (
     get_crawl_job_entries,
     heartbeat,
     make_event_crawl_jobs,
-    merge_event_crawl_jobs,
-    save_labels,
-    merge_function_call_crawl_jobs,
     make_function_call_crawl_jobs,
+    merge_event_crawl_jobs,
+    merge_function_call_crawl_jobs,
 )
-from .event_crawler import _event_to_label, _crawl_events
-from .function_call_crawler import _crawl_functions, _function_call_to_label
-from moonworm.crawler.networks import Network
+
+from .event_crawler import _crawl_events
+from .function_call_crawler import _crawl_functions
+from .db import save_events, save_function_calls
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -81,10 +82,37 @@ def _refetch_new_jobs(
     return event_crawl_jobs, function_call_crawl_jobs
 
 
+def _retry_connect_web3(
+    blockchain_type: AvailableBlockchainType,
+    retry_count: int = 10,
+    sleep_time: float = 5,
+) -> Web3:
+    """
+    Retry connecting to the blockchain.
+    """
+    while retry_count > 0:
+        retry_count -= 1
+        try:
+            web3 = connect(blockchain_type)
+            web3.eth.block_number
+            logger.info(f"Connected to {blockchain_type}")
+            return web3
+        except Exception as e:
+            if retry_count == 0:
+                error = e
+                break
+            logger.error(f"Failed to connect to {blockchain_type} blockchain: {e}")
+            logger.info(f"Retrying in {sleep_time} seconds")
+            time.sleep(sleep_time)
+    raise Exception(
+        f"Failed to connect to {blockchain_type} blockchain after {retry_count} retries: {error}"
+    )
+
+
 def continuous_crawler(
     db_session: Session,
     blockchain_type: AvailableBlockchainType,
-    web3: Web3,
+    web3: Optional[Web3],
     event_crawl_jobs: List[EventCrawlJob],
     function_call_crawl_jobs: List[FunctionCallCrawlJob],
     start_block: int,
@@ -111,6 +139,8 @@ def continuous_crawler(
     crawl_start_time = datetime.utcnow()
 
     jobs_refetchet_time = crawl_start_time
+    if web3 is None:
+        web3 = _retry_connect_web3(blockchain_type)
 
     network = (
         Network.ethereum
@@ -146,92 +176,99 @@ def continuous_crawler(
 
     try:
         while True:
-            # query db  with limit 1, to avoid session closing
-            db_session.execute("SELECT 1")
-            time.sleep(min_sleep_time)
+            try:
+                # query db  with limit 1, to avoid session closing
+                db_session.execute("SELECT 1")
+                time.sleep(min_sleep_time)
 
-            end_block = min(
-                web3.eth.blockNumber - confirmations,
-                start_block + max_blocks_batch,
-            )
-
-            if start_block + min_blocks_batch > end_block:
-                min_sleep_time *= 2
-                continue
-            min_sleep_time /= 2
-
-            logger.info(f"Crawling events from {start_block} to {end_block}")
-            all_events = _crawl_events(
-                db_session=db_session,
-                blockchain_type=blockchain_type,
-                web3=web3,
-                jobs=event_crawl_jobs,
-                from_block=start_block,
-                to_block=end_block,
-                blocks_cache=blocks_cache,
-                db_block_query_batch=min_blocks_batch * 2,
-            )
-            logger.info(
-                f"Crawled {len(all_events)} events from {start_block} to {end_block}."
-            )
-
-            if all_events:
-                save_labels(
-                    db_session,
-                    [_event_to_label(blockchain_type, event) for event in all_events],
+                end_block = min(
+                    web3.eth.blockNumber - confirmations,
+                    start_block + max_blocks_batch,
                 )
 
-            logger.info(f"Crawling function calls from {start_block} to {end_block}")
-            all_function_calls = _crawl_functions(
-                blockchain_type,
-                ethereum_state_provider,
-                function_call_crawl_jobs,
-                start_block,
-                end_block,
-            )
-            logger.info(
-                f"Crawled {len(all_function_calls)} function calls from {start_block} to {end_block}."
-            )
+                if start_block + min_blocks_batch > end_block:
+                    min_sleep_time *= 2
+                    logger.info(
+                        f"Sleeping for {min_sleep_time} seconds because of low block count"
+                    )
+                    continue
+                min_sleep_time = max(min_sleep_time, min_sleep_time / 2)
 
-            if all_function_calls:
-                save_labels(
-                    db_session,
-                    [
-                        _function_call_to_label(blockchain_type, function_call)
-                        for function_call in all_function_calls
-                    ],
-                )
-
-            current_time = datetime.utcnow()
-
-            if current_time - jobs_refetchet_time > timedelta(
-                seconds=new_jobs_refetch_interval
-            ):
-                logger.info(
-                    f"Refetching new jobs from bugout journal since {jobs_refetchet_time}"
-                )
-                event_crawl_jobs, function_call_crawl_jobs = _refetch_new_jobs(
-                    event_crawl_jobs, function_call_crawl_jobs, blockchain_type
-                )
-                jobs_refetchet_time = current_time
-
-            if current_time - last_heartbeat_time > timedelta(
-                seconds=heartbeat_interval
-            ):
-                # Update heartbeat and send to humbug
-                heartbeat_template["last_block"] = end_block
-                heartbeat_template["current_time"] = current_time
-                heartbeat_template["current_event_jobs_length"] = len(event_crawl_jobs)
-                heartbeat_template["jobs_last_refetched_at"] = jobs_refetchet_time
-                heartbeat(
-                    crawler_type="event",
+                logger.info(f"Crawling events from {start_block} to {end_block}")
+                all_events = _crawl_events(
+                    db_session=db_session,
                     blockchain_type=blockchain_type,
-                    crawler_status=heartbeat_template,
+                    web3=web3,
+                    jobs=event_crawl_jobs,
+                    from_block=start_block,
+                    to_block=end_block,
+                    blocks_cache=blocks_cache,
+                    db_block_query_batch=min_blocks_batch * 2,
                 )
-                logger.info("Sending heartbeat to humbug.", heartbeat_template)
-                last_heartbeat_time = datetime.utcnow()
+                logger.info(
+                    f"Crawled {len(all_events)} events from {start_block} to {end_block}."
+                )
 
-            start_block = end_block + 1
+                save_events(db_session, all_events, blockchain_type)
+
+                logger.info(
+                    f"Crawling function calls from {start_block} to {end_block}"
+                )
+                all_function_calls = _crawl_functions(
+                    blockchain_type,
+                    ethereum_state_provider,
+                    function_call_crawl_jobs,
+                    start_block,
+                    end_block,
+                )
+                logger.info(
+                    f"Crawled {len(all_function_calls)} function calls from {start_block} to {end_block}."
+                )
+
+                save_function_calls(db_session, all_function_calls, blockchain_type)
+
+                current_time = datetime.utcnow()
+
+                if current_time - jobs_refetchet_time > timedelta(
+                    seconds=new_jobs_refetch_interval
+                ):
+                    logger.info(
+                        f"Refetching new jobs from bugout journal since {jobs_refetchet_time}"
+                    )
+                    event_crawl_jobs, function_call_crawl_jobs = _refetch_new_jobs(
+                        event_crawl_jobs, function_call_crawl_jobs, blockchain_type
+                    )
+                    jobs_refetchet_time = current_time
+
+                if current_time - last_heartbeat_time > timedelta(
+                    seconds=heartbeat_interval
+                ):
+                    # Update heartbeat and send to humbug
+                    heartbeat_template["last_block"] = end_block
+                    heartbeat_template["current_time"] = current_time
+                    heartbeat_template["current_event_jobs_length"] = len(
+                        event_crawl_jobs
+                    )
+                    heartbeat_template["jobs_last_refetched_at"] = jobs_refetchet_time
+                    heartbeat(
+                        crawler_type="event",
+                        blockchain_type=blockchain_type,
+                        crawler_status=heartbeat_template,
+                    )
+                    logger.info("Sending heartbeat to humbug.", heartbeat_template)
+                    last_heartbeat_time = datetime.utcnow()
+
+                start_block = end_block + 1
+            except Exception as e:
+                logger.error(f"Internal error: {e}")
+                logger.exception(e)
+                try:
+                    web3 = _retry_connect_web3(blockchain_type)
+                except Exception as err:
+                    logger.error(f"Failed to reconnect: {err}")
+                    logger.exception(err)
+                    raise err
+
     except BaseException as e:
         logger.error(f"!!!!Crawler Died!!!!")
         heartbeat_template["status"] = "dead"

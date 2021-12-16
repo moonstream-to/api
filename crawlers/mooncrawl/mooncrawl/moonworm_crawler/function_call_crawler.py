@@ -5,6 +5,7 @@ from eth_typing.evm import ChecksumAddress
 from hexbytes.main import HexBytes
 from moonstreamdb.db import yield_db_session_ctx
 from moonstreamdb.models import (
+    Base,
     EthereumLabel,
     EthereumTransaction,
     PolygonLabel,
@@ -17,45 +18,18 @@ from moonworm.crawler.function_call_crawler import (
 from moonworm.crawler.moonstream_ethereum_state_provider import (
     MoonstreamEthereumStateProvider,
 )
-from moonworm.cu_watch import MockState
 from moonworm.crawler.networks import Network
+from moonworm.cu_watch import MockState
 from sqlalchemy.orm import Session
 from web3 import Web3
-from moonstreamdb.models import Base
 
-from ..data import AvailableBlockchainType
-from .crawler import FunctionCallCrawlJob, _generate_reporter_callback
 from ..blockchain import connect, get_block_model, get_label_model
+from ..data import AvailableBlockchainType
 from ..settings import CRAWLER_LABEL
+from .crawler import FunctionCallCrawlJob, _generate_reporter_callback
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-def _function_call_to_label(
-    blockchain_type: AvailableBlockchainType, function_call: ContractFunctionCall
-) -> Base:
-    """
-    Creates a label model.
-    """
-    label_model = get_label_model(blockchain_type)
-    label = label_model(
-        label=CRAWLER_LABEL,
-        label_data={
-            "type": "tx_call",
-            "name": function_call.function_name,
-            "caller": function_call.caller_address,
-            "args": function_call.function_args,
-            "status": function_call.status,
-            "gasUsed": function_call.gas_used,
-        },
-        address=function_call.contract_address,
-        block_number=function_call.block_number,
-        transaction_hash=function_call.transaction_hash,
-        block_timestamp=function_call.block_timestamp,
-    )
-
-    return label
 
 
 def _crawl_functions(

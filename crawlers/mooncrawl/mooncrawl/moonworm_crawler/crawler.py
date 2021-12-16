@@ -315,29 +315,9 @@ def heartbeat(
         )
 
 
-def get_last_labeled_block_number(
-    db_session: Session, blockchain_type: AvailableBlockchainType
-) -> Optional[int]:
-    label_model = get_label_model(blockchain_type)
-    block_number = (
-        db_session.query(label_model.block_number)
-        .filter(label_model.label == CRAWLER_LABEL)
-        .order_by(label_model.block_number.desc())
-        .limit(1)
-        .one_or_none()
-    )
-
-    return block_number[0] if block_number else None
 
 
-def save_labels(db_session: Session, labels: List[Base]) -> None:
-    """
-    Save labels in the database.
-    """
-    try:
-        db_session.add_all(labels)
-        db_session.commit()
-    except Exception as e:
-        logger.error(f"Failed to save labels: {e}")
-        db_session.rollback()
-        raise e
+
+    
+
+
