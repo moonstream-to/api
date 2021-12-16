@@ -815,7 +815,7 @@ def stats_generate_api_task(token: UUID, timescale: str, dashboard_id: str):
         # get all user subscriptions
 
         blockchain_subscriptions: BugoutResources = bc.list_resources(
-            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            token=token,
             params={"type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION},
             timeout=10,
         )
@@ -832,7 +832,7 @@ def stats_generate_api_task(token: UUID, timescale: str, dashboard_id: str):
         s3_client = boto3.client("s3")
 
         for dashboard_subscription_filters in dashboard.resource_data[
-            "dashboard_subscriptions"
+            "subscription_settings"
         ]:
 
             try:
@@ -840,8 +840,10 @@ def stats_generate_api_task(token: UUID, timescale: str, dashboard_id: str):
                 subscription_id = dashboard_subscription_filters["subscription_id"]
 
                 blockchain_type = AvailableBlockchainType(
-                    subscription_by_id[subscription_id].resource_data[
-                        "subscription_type_id"
+                    blockchain_by_subscription_id[
+                        subscription_by_id[subscription_id].resource_data[
+                            "subscription_type_id"
+                        ]
                     ]
                 )
 
