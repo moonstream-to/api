@@ -457,15 +457,22 @@ def get_blocks_state(
     return blocks_state
 
 
-def generate_list_of_names(type: str, subscription_filters: Dict[str, Any]):
+def generate_list_of_names(
+    type: str, subscription_filters: Dict[str, Any], read_abi: bool, abi_json: Any
+):
 
     """
     Generate list of names for select from database by name field
     """
 
-    names = [
-        item["name"] for item in subscription_filters[abi_type_to_dashboards_type[type]]
-    ]
+    if read_abi:
+        names = [item["name"] for item in abi_json if item["type"] == type]
+    else:
+
+        names = [
+            item["name"]
+            for item in subscription_filters[abi_type_to_dashboards_type[type]]
+        ]
 
     return names
 
@@ -652,11 +659,15 @@ def stats_generate_handler(args: argparse.Namespace):
                         methods = generate_list_of_names(
                             type="function",
                             subscription_filters=dashboard_subscription_filters,
+                            read_abi=dashboard_subscription_filters["all_methods"],
+                            abi_json=abi_json,
                         )
 
                         events = generate_list_of_names(
                             type="event",
                             subscription_filters=dashboard_subscription_filters,
+                            read_abi=dashboard_subscription_filters["all_events"],
+                            abi_json=abi_json,
                         )
 
                         abi_external_calls = [
