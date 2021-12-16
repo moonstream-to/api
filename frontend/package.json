@@ -50,7 +50,9 @@
     "showdown-highlight": "^2.1.8",
     "slick-carousel": "^1.8.1",
     "styled-components": "^5.3.3",
+    "unique-names-generator": "^4.6.0",
     "uuid": "^8.3.2",
+    "web3-eth-abi": "^1.6.1",
     "web3-utils": "^1.6.0"
   },
   "devDependencies": {

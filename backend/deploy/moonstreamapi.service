@@ -7,7 +7,7 @@ User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/moonstream/backend
 EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
-ExecStart=/home/ubuntu/moonstream-env/bin/uvicorn --host 0.0.0.0 --port 7481 --workers 8 moonstreamapi.api:app
+ExecStart=/home/ubuntu/moonstream-env/bin/uvicorn --proxy-headers --forwarded-allow-ips='127.0.0.1' --host 127.0.0.1 --port 7481 --workers 8 moonstreamapi.api:app
 SyslogIdentifier=moonstreamapi
 
 [Install]

@@ -2,12 +2,20 @@ import React, { useContext } from "react";
 import { Flex, IconButton, Stack, Tooltip, chakra } from "@chakra-ui/react";
 import { ArrowRightIcon } from "@chakra-ui/icons";
 import UIContext from "../core/providers/UIProvider/context";
-import EthereumBlockchainCard from "./stream-cards/EthereumBlockchain";
-import EthereumTXPoolCard from "./stream-cards/EthereumTXPool";
-import EthereumWhalewatchCard from "./stream-cards/EthereumWhalewatch";
+import BlockchainCard from "./stream-cards/Blockchain";
+import TXPoolCard from "./stream-cards/TXPool";
+import WhalewatchCard from "./stream-cards/Whalewatch";
+import SmartcontractCard from "./stream-cards/Smartcontract";
 
 const StreamEntry_ = ({ entry, showOnboardingTooltips, className }) => {
   const ui = useContext(UIContext);
+
+  const eventCategories = {
+    blockchain: "_blockchain",
+    whalewatch: "_whalewatch",
+    txpool: "_txpool",
+    smartcontract: "_smartcontract",
+  };
 
   return (
     <Flex
@@ -36,22 +44,29 @@ const StreamEntry_ = ({ entry, showOnboardingTooltips, className }) => {
         h="100%"
         spacing={0}
       >
-        {entry.event_type === "ethereum_blockchain" && (
-          <EthereumBlockchainCard
+        {entry.event_type.includes(eventCategories.blockchain) && (
+          <BlockchainCard
             entry={entry}
             showOnboardingTooltips={showOnboardingTooltips}
           />
         )}
 
-        {entry.event_type === "ethereum_whalewatch" && (
-          <EthereumWhalewatchCard
+        {entry.event_type.includes(eventCategories.whalewatch) && (
+          <WhalewatchCard
             entry={entry}
             showOnboardingTooltips={showOnboardingTooltips}
           />
         )}
 
-        {entry.event_type === "ethereum_txpool" && (
-          <EthereumTXPoolCard
+        {entry.event_type.includes(eventCategories.txpool) && (
+          <TXPoolCard
+            entry={entry}
+            showOnboardingTooltips={showOnboardingTooltips}
+          />
+        )}
+
+        {entry.event_type.includes(eventCategories.smartcontract) && (
+          <SmartcontractCard
             entry={entry}
             showOnboardingTooltips={showOnboardingTooltips}
           />

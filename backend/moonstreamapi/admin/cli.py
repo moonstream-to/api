@@ -14,8 +14,10 @@ from moonstreamdb.db import SessionLocal
 
 from ..settings import BUGOUT_BROOD_URL, BUGOUT_SPIRE_URL, MOONSTREAM_APPLICATION_ID
 from ..web3_provider import yield_web3_provider
+
 from . import subscription_types, subscriptions, moonworm_tasks
-from .migrations import checksum_address
+from .migrations import checksum_address, update_dashboard_subscription_key
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -73,6 +75,8 @@ def migrations_run(args: argparse.Namespace) -> None:
             checksum_address.checksum_all_subscription_addresses(web3_session)
             logger.info("Starting update of ethereum_labels in database...")
             checksum_address.checksum_all_labels_addresses(db_session, web3_session)
+        elif args.id == 20211202:
+            update_dashboard_subscription_key.update_dashboard_resources_key()
         else:
             drop_keys = []
 

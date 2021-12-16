@@ -2,7 +2,6 @@ import { useQuery } from "react-query";
 import { queryCacheProps } from "./hookCommon";
 import { useToast } from ".";
 import axios from "axios";
-import { useEffect } from "react";
 
 const usePresignedURL = ({
   url,
@@ -10,6 +9,7 @@ const usePresignedURL = ({
   id,
   requestNewURLCallback,
   isEnabled,
+  hideToastOn404,
 }) => {
   const toast = useToast();
 
@@ -23,12 +23,17 @@ const usePresignedURL = ({
     return response.data;
   };
 
-  const { data, isLoading, error, refetch } = useQuery(
-    [`${cacheType}`, { id }],
+  const { data, isLoading, error, failureCount } = useQuery(
+    ["presignedURL", cacheType, id, url],
     getFromPresignedURL,
     {
       ...queryCacheProps,
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      staleTime: Infinity,
       enabled: isEnabled && url ? true : false,
+      keepPreviousData: true,
       onError: (e) => {
         if (
           e?.response?.data?.includes("Request has expired") ||
@@ -36,22 +41,17 @@ const usePresignedURL = ({
         ) {
           requestNewURLCallback();
         } else {
-          toast(error, "error");
+          !hideToastOn404 && toast(error, "error");
         }
       },
     }
   );
 
-  useEffect(() => {
-    if (url && isEnabled) {
-      refetch();
-    }
-  }, [url, refetch, isEnabled]);
-
   return {
     data,
     isLoading,
     error,
+    failureCount,
   };
 };
 
