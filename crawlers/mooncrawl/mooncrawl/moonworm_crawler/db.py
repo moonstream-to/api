@@ -11,10 +11,7 @@ from moonstreamdb.models import (
     PolygonLabel,
     PolygonTransaction,
 )
-from moonworm.crawler.function_call_crawler import (
-    ContractFunctionCall,
-)
-
+from moonworm.crawler.function_call_crawler import ContractFunctionCall  # type: ignore
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import label
 

@@ -5,7 +5,6 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from os import SEEK_CUR
 from typing import Any, Callable, Dict, List, Optional, cast
 
 from bugout.data import BugoutSearchResult
@@ -16,7 +15,6 @@ from web3.main import Web3
 
 from mooncrawl.data import AvailableBlockchainType
 
-from ..blockchain import connect, get_block_model, get_label_model
 from ..reporter import reporter
 from ..settings import (
     CRAWLER_LABEL,
@@ -76,33 +74,6 @@ class FunctionCallCrawlJob:
     contract_abi: List[Dict[str, Any]]
     contract_address: ChecksumAddress
     created_at: int
-
-
-def _retry_connect_web3(
-    blockchain_type: AvailableBlockchainType,
-    retry_count: int = 10,
-    sleep_time: float = 5,
-) -> Web3:
-    """
-    Retry connecting to the blockchain.
-    """
-    while retry_count > 0:
-        retry_count -= 1
-        try:
-            web3 = connect(blockchain_type)
-            web3.eth.block_number
-            logger.info(f"Connected to {blockchain_type}")
-            return web3
-        except Exception as e:
-            if retry_count == 0:
-                error = e
-                break
-            logger.error(f"Failed to connect to {blockchain_type} blockchain: {e}")
-            logger.info(f"Retrying in {sleep_time} seconds")
-            time.sleep(sleep_time)
-    raise Exception(
-        f"Failed to connect to {blockchain_type} blockchain after {retry_count} retries: {error}"
-    )
 
 
 def get_crawl_job_entries(
@@ -313,11 +284,3 @@ def heartbeat(
             entry_id=heartbeat_entry_id,
             tags=[crawler_type, "heartbeat", blockchain_type.value, "dead"],
         )
-
-
-
-
-
-    
-
-

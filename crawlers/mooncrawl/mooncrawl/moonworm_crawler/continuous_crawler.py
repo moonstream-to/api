@@ -4,13 +4,13 @@ import traceback
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 
-from moonworm.crawler.moonstream_ethereum_state_provider import (
+from moonworm.crawler.moonstream_ethereum_state_provider import (  # type: ignore
     MoonstreamEthereumStateProvider,
 )
-from moonworm.crawler.networks import Network
+from moonworm.crawler.networks import Network  # type: ignore
 from sqlalchemy.orm.session import Session
-from sqlalchemy.sql.expression import and_
 from web3 import Web3
+
 from ..blockchain import connect
 from ..data import AvailableBlockchainType
 from .crawler import (
@@ -24,10 +24,9 @@ from .crawler import (
     merge_event_crawl_jobs,
     merge_function_call_crawl_jobs,
 )
-
+from .db import save_events, save_function_calls
 from .event_crawler import _crawl_events
 from .function_call_crawler import _crawl_functions
-from .db import save_events, save_function_calls
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

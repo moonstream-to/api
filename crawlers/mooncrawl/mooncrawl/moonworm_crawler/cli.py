@@ -1,20 +1,19 @@
-import logging
 import argparse
+import logging
 
-from web3 import Web3
 from moonstreamdb.db import yield_db_session_ctx
+from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
+from ..blockchain import AvailableBlockchainType
 from ..settings import MOONSTREAM_MOONWORM_TASKS_JOURNAL, bugout_client
+from .continuous_crawler import continuous_crawler
 from .crawler import (
+    SubscriptionTypes,
+    get_crawl_job_entries,
     make_event_crawl_jobs,
     make_function_call_crawl_jobs,
-    get_crawl_job_entries,
-    SubscriptionTypes,
 )
-from ..blockchain import AvailableBlockchainType
-from .continuous_crawler import continuous_crawler
-
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
