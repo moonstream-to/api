@@ -99,7 +99,7 @@ def get_crawl_job_entries(
         #       (in the last query bugout didn't return all of by last created_at)
         # On the other hand, we may have multiple same jobs that will be filtered out
         #
-        query += f" #created_at:>={created_at_filter}"
+        query += f" created_at:>={created_at_filter}"
 
     current_offset = 0
     entries = []
