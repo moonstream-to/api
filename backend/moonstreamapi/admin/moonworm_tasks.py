@@ -77,7 +77,9 @@ def add_subscription(id: str):
         abi = json.loads(response["Body"].read())
 
         apply_moonworm_tasks(
-            subscription_type=subscription_resource.resource_data["subscription_type_id"],
+            subscription_type=subscription_resource.resource_data[
+                "subscription_type_id"
+            ],
             abi=abi,
             address=subscription_resource.resource_data["address"],
         )
