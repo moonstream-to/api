@@ -35,6 +35,7 @@ const SubscriptionsList = ({ emptyCTA }) => {
     updateSubscription,
     deleteSubscription,
     subscriptionTypeIcons,
+    subscriptionTypeNames,
   } = useSubscriptions();
 
   const updateCallback = ({ id, label, color }) => {
@@ -79,7 +80,12 @@ const SubscriptionsList = ({ emptyCTA }) => {
             return (
               <Tr key={`token-row-${subscription.id}`}>
                 <Td>
-                  <Tooltip label="Ethereum blockchain" fontSize="md">
+                  <Tooltip
+                    label={`${
+                      subscriptionTypeNames[subscription.subscription_type_id]
+                    }`}
+                    fontSize="md"
+                  >
                     <Image h="32px" src={iconLink} alt="pool icon" />
                   </Tooltip>
                 </Td>

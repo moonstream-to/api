@@ -20,7 +20,6 @@ from ..settings import (
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
 )
-import pprint
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +35,8 @@ BUGOUT_RESOURCE_TYPE_SUBSCRIPTION = "subscription"
 blockchain_by_subscription_id = {
     "ethereum_blockchain": "ethereum",
     "polygon_blockchain": "polygon",
+    "ethereum_smartcontract": "ethereum",
+    "polygon_smartcontract": "polygon",
 }
 
 

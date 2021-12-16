@@ -14,6 +14,7 @@ import {
 } from "@chakra-ui/react";
 import { DEFAULT_METATAGS, AWS_ASSETS_PATH } from "../../src/core/constants";
 import UIContext from "../../src/core/providers/UIProvider/context";
+import TeamCard from "../../src/components/TeamCard";
 
 const assets = {
   background720: `${AWS_ASSETS_PATH}/blog-background-720x405.png`,
@@ -21,6 +22,14 @@ const assets = {
   background2880: `${AWS_ASSETS_PATH}/blog-background-720x405.png`,
   background3840: `${AWS_ASSETS_PATH}/blog-background-720x405.png`,
   team: `${AWS_ASSETS_PATH}/Team-page-illustration.png`,
+  dragonfly: `${AWS_ASSETS_PATH}/dragonfly.jpg`,
+  ladybird: `${AWS_ASSETS_PATH}/ladybird.jpg`,
+  locust: `${AWS_ASSETS_PATH}/locust.jpg`,
+  mantis: `${AWS_ASSETS_PATH}/mantis.jpg`,
+  centipede: `${AWS_ASSETS_PATH}/centipede.jpg`,
+  spider: `${AWS_ASSETS_PATH}/spider.jpg`,
+  ant: `${AWS_ASSETS_PATH}/ant.jpg`,
+  firefly: `${AWS_ASSETS_PATH}/firefly.jpg`,
 };
 
 const Product = () => {
@@ -204,62 +213,86 @@ const Product = () => {
         <Heading as="h2" size="md" w="100%" px={12} py={2} borderTopRadius="xl">
           Our engineering team
         </Heading>
-        <chakra.span pl={2} px={12} py={2}>
-          <UnorderedList w="75%" pl={4} spacing={2}>
-            <ListItem>
-              <b>zomglings{". "}</b> Founder. Number theorist. Loves playing
-              chess while programming. Fan of GO, backgammon, and video games.
-            </ListItem>
-            <ListItem>
-              <b>kompotkot{". "}</b>Keeper of Secrets. Likes information
-              security since childhood, loves mountains and goes hiking from
-              time to time. Had a close call with a wild bear in a forest once.
-            </ListItem>
-            <ListItem>
-              <b>wizarikus{". "}</b>Wizard. Loves mountains, bicycling, and
-              hiking. A practicing Python wizard. Also likes to cook and play
-              the guitar in between data witchcraft.
-            </ListItem>
-            <ListItem>
-              <b>peersky{". "}</b>
-              {`Spectral hopper. Perceives the world as a
-                spectrum interacting with and within the observer's mind. Loves
-                to shift in time domain to spend some of it doing fire
-                performances, surfing, and connecting with nature.`}
-            </ListItem>
-            <ListItem>
-              <b>yhtyyar{". "}</b>
-              {`Wunderkind. Interested in Math, NLP. Loves
-                programming language parsing and Algorithms & Data structures.
-                Implementing his own dialect of LISP programming language for
-                scientific calculations.`}
-            </ListItem>
-          </UnorderedList>
-        </chakra.span>
+        <Stack
+          w="100%"
+          direction={"row"}
+          flexWrap="wrap"
+          spacing={4}
+          justifyContent="space-between"
+          px={12}
+          placeContent={"center"}
+        >
+          <TeamCard
+            avatarURL={assets["ant"]}
+            name={"Neeraj Kashyap"}
+            atName={"@zomglings"}
+            content={` Founder. Number theorist. Loves playing chess while programming. Fan of GO, backgammon, and video games.`}
+          />
+          <TeamCard
+            avatarURL={assets["spider"]}
+            name={"Sergei Sumarokov"}
+            atName={"@kompotkot"}
+            content={`Keeper of Secrets. Likes information
+            security since childhood, loves mountains and goes hiking from
+            time to time. Had a close call with a wild bear in a forest once.`}
+          />
+          <TeamCard
+            avatarURL={assets["locust"]}
+            name={"Andrey Dolgolev"}
+            atName={"@Andrei-Dolgolev"}
+            content={`Wizard. Loves mountains, bicycling, and
+            hiking. A practicing Python wizard. Also likes to cook and play
+            the guitar in between data witchcraft.`}
+          />
+          <TeamCard
+            avatarURL={assets["dragonfly"]}
+            name={"Tim Pechersky"}
+            atName={"@peersky"}
+            content={`Spectral hopper. Hes special ability to precieve world trough spectral domain. Occasionaly
+            shifts in to time domain to spend some in doing flow
+            arts, surfing, and connecting with nature.`}
+          />
+          <TeamCard
+            avatarURL={assets["centipede"]}
+            name={"yhtyyar"}
+            atName={"@Yhtiyar"}
+            content={`Wunderkind. Interested in Math, NLP. Loves
+            programming language parsing and Algorithms & Data structures.
+            Implementing his own dialect of LISP programming language for
+            scientific calculations.`}
+          />
+        </Stack>
       </Stack>
       <Stack mx={margin} mb={12} maxW="1700px" w="100%">
         <Heading as="h2" size="md" w="100%" px={12} py={2} borderTopRadius="xl">
           Our marketing and growth team
         </Heading>
-        <chakra.span pl={2} px={12} py={2}>
-          <UnorderedList w="75%" pl={4} spacing={2}>
-            <ListItem>
-              <b>pahita{". "}</b> Dreamer. An alien who pretends to be a human.
-              So far so good. Loves ecstatic dance, being alone in nature and
-              dreaming.
-            </ListItem>
-            <ListItem>
-              <b>in_technicolor{". "}</b>Mediator. Loves stand-up comedy and
-              crying at nights. Volunteered at a horse farm once. Portrait
-              artist, puts the pain in painting.
-            </ListItem>
-            <ListItem>
-              <b>nanaland{". "}</b>Progress and Enthusiasm. Traveled to the
-              North Korean border at the age of 19. Half German. Counseling
-              psychologist who switched to tech marketing and sales.
-            </ListItem>
-          </UnorderedList>
-        </chakra.span>
+        <Stack
+          w="100%"
+          direction={"row"}
+          flexWrap="wrap"
+          spacing={4}
+          justifyContent="space-between"
+          px={12}
+          placeContent={"center"}
+        >
+          <TeamCard
+            avatarURL={assets["ladybird"]}
+            name={"Sophia Aryan"}
+            atName={"@pahita"}
+            content={`Dreamer. An alien who pretends to be a human.
+            So far so good. Loves ecstatic dance, being alone in nature and
+            dreaming.`}
+          />
+          <TeamCard
+            avatarURL={assets["mantis"]}
+            name={"Daria Navoloshnikova"}
+            atName={"@in_technicolor"}
+            content={`Mediator. Loves stand-up comedy and
+            crying at nights. Volunteered at a horse farm once. Portrait
+            artist, puts the pain in painting.`}
+          />
+        </Stack>
       </Stack>
     </Flex>
   );
