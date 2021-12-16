@@ -30,9 +30,6 @@ class Event:
     log_index: int
 
 
-
-
-
 def _get_block_timestamp_from_web3(
     web3: Web3,
     block_number: int,
