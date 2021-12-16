@@ -310,3 +310,4 @@ def continuous_crawler(
         )
 
         logger.exception(e)
+        raise e

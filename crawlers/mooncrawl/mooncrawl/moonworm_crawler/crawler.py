@@ -31,6 +31,49 @@ class SubscriptionTypes(Enum):
     ETHEREUM_BLOCKCHAIN = "ethereum_smartcontract"
 
 
+def abi_input_signature(input_abi: Dict[str, Any]) -> str:
+    """
+    Stringifies a function ABI input object according to the ABI specification:
+    https://docs.soliditylang.org/en/v0.5.3/abi-spec.html
+    """
+    input_type = input_abi["type"]
+    if input_type.startswith("tuple"):
+        component_types = [
+            abi_input_signature(component) for component in input_abi["components"]
+        ]
+        input_type = f"({','.join(component_types)}){input_type[len('tuple'):]}"
+    return input_type
+
+
+def abi_function_signature(function_abi: Dict[str, Any]) -> str:
+    """
+    Stringifies a function ABI according to the ABI specification:
+    https://docs.soliditylang.org/en/v0.5.3/abi-spec.html
+    """
+    function_name = function_abi["name"]
+    function_arg_types = [
+        abi_input_signature(input_item) for input_item in function_abi["inputs"]
+    ]
+    function_signature = f"{function_name}({','.join(function_arg_types)})"
+    return function_signature
+
+
+def encode_function_signature(function_abi: Dict[str, Any]) -> Optional[str]:
+    """
+    Encodes the given function (from ABI) with arguments arg_1, ..., arg_n into its 4 byte signature
+    by calculating:
+    keccak256("<function_name>(<arg_1_type>,...,<arg_n_type>")
+
+    If function_abi is not actually a function ABI (detected by checking if function_abi["type"] == "function),
+    returns None.
+    """
+    if function_abi["type"] != "function":
+        return None
+    function_signature = abi_function_signature(function_abi)
+    encoded_signature = Web3.keccak(text=function_signature)[:4]
+    return encoded_signature.hex()
+
+
 def _generate_reporter_callback(
     crawler_type: str, blockchain_type: AvailableBlockchainType
 ) -> Callable[[Exception], None]:
@@ -196,7 +239,13 @@ def merge_event_crawl_jobs(
     for new_crawl_job in new_event_crawl_jobs:
         for old_crawl_job in old_crawl_jobs:
             if new_crawl_job.event_abi_hash == old_crawl_job.event_abi_hash:
-                old_crawl_job.contracts.extend(new_crawl_job.contracts)
+                old_crawl_job.contracts.extend(
+                    [
+                        contract
+                        for contract in new_crawl_job.contracts
+                        if contract not in old_crawl_job.contracts
+                    ]
+                )
                 break
         else:
             old_crawl_jobs.append(new_crawl_job)
@@ -221,7 +270,17 @@ def merge_function_call_crawl_jobs(
     for new_crawl_job in new_function_call_crawl_jobs:
         for old_crawl_job in old_crawl_jobs:
             if new_crawl_job.contract_address == old_crawl_job.contract_address:
-                old_crawl_job.contract_abi.extend(new_crawl_job.contract_abi)
+                old_selectors = [
+                    encode_function_signature(function_abi)
+                    for function_abi in old_crawl_job.contract_abi
+                ]
+                old_crawl_job.contract_abi.extend(
+                    [
+                        function_abi
+                        for function_abi in new_crawl_job.contract_abi
+                        if encode_function_signature(function_abi) not in old_selectors
+                    ]
+                )
                 break
         else:
             old_crawl_jobs.append(new_crawl_job)
