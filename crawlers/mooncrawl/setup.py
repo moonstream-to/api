@@ -45,7 +45,7 @@ setup(
         "requests",
         "tqdm",
         "uvicorn",
-        "web3",
+        "web3[tester]",
     ],
     extras_require={
         "dev": ["black", "isort", "mypy", "types-requests", "types-python-dateutil"],
@@ -58,6 +58,7 @@ setup(
             "esd=mooncrawl.esd:main",
             "etherscan=mooncrawl.etherscan:main",
             "identity=mooncrawl.identity:main",
+            "moonworm-crawler=mooncrawl.moonworm_crawler.cli:main",
             "nft=mooncrawl.nft.cli:main",
             "statistics=mooncrawl.stats_worker.dashboard:main",
         ]
