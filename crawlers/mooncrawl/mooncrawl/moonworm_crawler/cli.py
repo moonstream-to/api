@@ -1,5 +1,6 @@
 import argparse
 import logging
+from typing import Optional
 
 from moonstreamdb.db import yield_db_session_ctx
 from web3 import Web3
@@ -7,13 +8,14 @@ from web3.middleware import geth_poa_middleware
 
 from ..blockchain import AvailableBlockchainType
 from ..settings import MOONSTREAM_MOONWORM_TASKS_JOURNAL, bugout_client
-from .continuous_crawler import continuous_crawler
+from .continuous_crawler import continuous_crawler, _retry_connect_web3
 from .crawler import (
     SubscriptionTypes,
     get_crawl_job_entries,
     make_event_crawl_jobs,
     make_function_call_crawl_jobs,
 )
+from .db import get_last_labeled_block_number
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -41,22 +43,43 @@ def handle_crawl(args: argparse.Namespace) -> None:
         f"Initial function call crawl jobs count: {len(initial_function_call_jobs)}"
     )
     print(initial_function_call_jobs)
-
+    blockchain_type = AvailableBlockchainType(args.blockchain_type)
     with yield_db_session_ctx() as db_session:
-        web3 = None
-        if args.web3 is not None:
+        web3: Optional[Web3] = None
+        if args.web3 is None:
+            logger.info(
+                "No web3 provider URL provided, using default (blockchan.py: connect())"
+            )
+            web3 = _retry_connect_web3(args.blockchain_type)
+        else:
+            logger.info(f"Using web3 provider URL: {args.web3}")
             web3 = Web3(
                 Web3.HTTPProvider(
                     args.web3,
                 )
             )
             if args.poa:
+                logger.info("Using PoA middleware")
                 web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
+        last_labeled_block = get_last_labeled_block_number(db_session, blockchain_type)
+        logger.info(f"Last labeled block: {last_labeled_block}")
+
         start_block = args.start_block
+        if start_block is None:
+            logger.info("No start block provided")
+            if last_labeled_block is not None:
+                start_block = last_labeled_block - 1
+                logger.info(f"Using last labeled block as start: {start_block}")
+            else:
+                logger.info(
+                    "No last labeled block found, using  start block (web3.eth.blockNumber - 300)"
+                )
+                start_block = web3.eth.blockNumber - 300
+                logger.info(f"Starting from block: {start_block}")
         continuous_crawler(
             db_session,
-            args.blockchain_type,
+            blockchain_type,
             web3,
             initial_event_jobs,
             initial_function_call_jobs,
@@ -70,7 +93,7 @@ def handle_crawl(args: argparse.Namespace) -> None:
         )
 
 
-def generate_parser() -> argparse.ArgumentParser:
+def main() -> None:
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
 
@@ -154,4 +177,10 @@ def generate_parser() -> argparse.ArgumentParser:
     )
 
     crawl_parser.set_defaults(func=handle_crawl)
-    return parser
+
+    args = parser.parse_args()
+    args.func(args)
+
+
+if __name__ == "__main__":
+    main()
