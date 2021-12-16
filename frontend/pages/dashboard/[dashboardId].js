@@ -36,68 +36,6 @@ timeMap[MINUTE_KEY] = "day";
 const Analytics = () => {
   const { toggleAlert } = useContext(OverlayContext);
 
-  // const [nodesReady, setNodeReady] = useState({
-  //   ntx: false,
-  //   values: false,
-  //   mints: false,
-  //   NFTOwners: false,
-  //   minters: false,
-  // });
-
-  // const nTxRef_ = useRef();
-  // const valueRef_ = useRef();
-  // const mintsRef_ = useRef();
-  // const uniqueNFTOwnersRef_ = useRef();
-  // const mintersRef_ = useRef();
-
-  //   const nTxRef = useCallback(
-  //     (node) => {
-  //       if (node !== null && !nodesReady.ntx) {
-  //         setNodeReady({ ...nodesReady, ntx: true });
-  //         nTxRef_.current = node;
-  //       }
-  //     },
-  //     [nodesReady]
-  //   );
-  //   const valueRef = useCallback(
-  //     (node) => {
-  //       if (node !== null && !nodesReady.values) {
-  //         setNodeReady({ ...nodesReady, values: true });
-  //         valueRef_.current = node;
-  //       }
-  //     },
-  //     [nodesReady]
-  //   );
-  //   const mintsRef = useCallback(
-  //     (node) => {
-  //       if (node !== null && !nodesReady.mints) {
-  //         setNodeReady({ ...nodesReady, mints: true });
-  //         mintsRef_.current = node;
-  //       }
-  //     },
-  //     [nodesReady]
-  //   );
-
-  //   const uniqueNFTOwnersRef = useCallback(
-  //     (node) => {
-  //       if (node !== null && !nodesReady.NFTOwners) {
-  //         setNodeReady({ ...nodesReady, NFTOwners: true });
-  //         uniqueNFTOwnersRef_.current = node;
-  //       }
-  //     },
-  //     [nodesReady]
-  //   );
-
-  //   const mintersRef = useCallback(
-  //     (node) => {
-  //       if (node !== null && !nodesReady.minters) {
-  //         setNodeReady({ ...nodesReady, minters: true });
-  //         mintersRef_.current = node;
-  //       }
-  //     },
-  //     [nodesReady]
-  //   );
-
   const [timeRange, setTimeRange] = useState(timeMap[MINUTE_KEY]);
   const router = useRouter();
   const overlay = useContext(OverlayContext);
@@ -120,42 +58,6 @@ const Analytics = () => {
       }
     }
   }, [dashboardCache?.data?.data?.resource_data?.name]);
-
-  //   useLayoutEffect(() => {
-  //     const items = [
-  //       nTxRef_,
-  //       valueRef_,
-  //       mintsRef_,
-  //       uniqueNFTOwnersRef_,
-  //       mintersRef_,
-  //     ];
-  //     console.log("useeffect fired");
-  //     if (items.some((item) => !!item.current)) {
-  //       console.log("brder fun");
-  //       var firstItemInCurrentRow = items[0];
-  //       items.forEach((item) => {
-  //         if (item.current) {
-  //           if (item !== firstItemInCurrentRow) {
-  //             // Check if the current item is at the same
-  //             // height as the first item in the current row.
-  //             if (
-  //               item.current.offsetTop === firstItemInCurrentRow.current.offsetTop
-  //             ) {
-  //               item.current.style.borderLeft =
-  //                 "3px dashed var(--chakra-colors-gray-600)";
-  //             } else {
-  //               // This item was lower, it must be
-  //               // the first in a new row.
-  //               firstItemInCurrentRow = item;
-  //               item.current.style.borderLeft = "0px dashed black";
-  //             }
-  //           }
-  //         } else {
-  //           firstItemInCurrentRow = item;
-  //         }
-  //       });
-  //     }
-  //   }, [nodesReady, windowSize]);
 
   const updateCallback = ({ name }) => {
     updateDashboard.mutate({
@@ -253,7 +155,7 @@ const Analytics = () => {
               const s3PresignedURLs = dashboardLinksCache.data.data[key];
               const name = subscriptionsCache.data.subscriptions.find(
                 (subscription) => subscription.id === key
-              ).label;
+              )?.label;
               return (
                 <Flex
                   key={v4()}
@@ -272,7 +174,7 @@ const Analytics = () => {
                     fontWeight="600"
                     textAlign="center"
                   >
-                    {name}
+                    {name ?? ""}
                   </Text>
                   <SubscriptionReport
                     timeRange={timeRange}

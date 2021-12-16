@@ -144,7 +144,6 @@ const AutoCompleter = ({
                         </Stack>
                       );
                     })}
-                {inputValue === "" && empyListCTA(inputValue)}
               </Stack>
             ) : null}
             {/* </Menu> */}
