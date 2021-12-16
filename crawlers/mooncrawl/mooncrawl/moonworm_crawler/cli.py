@@ -77,6 +77,21 @@ def handle_crawl(args: argparse.Namespace) -> None:
                 )
                 start_block = web3.eth.blockNumber - 300
                 logger.info(f"Starting from block: {start_block}")
+        elif last_labeled_block is not None:
+            if start_block < last_labeled_block and not args.force:
+                logger.info(
+                    f"Start block is less than last labeled block, using last labeled block: {last_labeled_block}"
+                )
+                logger.info(
+                    f"Use --force to override this and start from the start block: {start_block}"
+                )
+
+                start_block = last_labeled_block
+            else:
+                logger.info(f"Using start block: {start_block}")
+        else:
+            logger.info(f"Using start block: {start_block}")
+
         continuous_crawler(
             db_session,
             blockchain_type,
@@ -174,6 +189,13 @@ def main() -> None:
         type=float,
         default=120,
         help="Time to wait before refetching new jobs",
+    )
+
+    crawl_parser.add_argument(
+        "--force",
+        action="store_true",
+        default=False,
+        help="Force start from the start block",
     )
 
     crawl_parser.set_defaults(func=handle_crawl)
