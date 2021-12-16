@@ -252,7 +252,9 @@ def generate_data(
     functions: List[str],
     start: Any,
     metric_type: str,
+    crawler_label: str,
 ):
+
     label_model = get_label_model(blockchain_type)
 
     # create empty time series
@@ -279,7 +281,7 @@ def generate_data(
     label_requested = (
         db_session.query(label_model.label_data["name"].astext.label("label"))
         .filter(label_model.address == address)
-        .filter(label_model.label == CRAWLER_LABEL)
+        .filter(label_model.label == crawler_label)
         .filter(
             and_(
                 label_model.label_data["type"].astext == metric_type,
@@ -322,7 +324,7 @@ def generate_data(
             label_model.label_data["name"].astext.label("label"),
         )
         .filter(label_model.address == address)
-        .filter(label_model.label == CRAWLER_LABEL)
+        .filter(label_model.label == crawler_label)
         .filter(
             and_(
                 label_model.label_data["type"].astext == metric_type,
@@ -395,14 +397,17 @@ def cast_to_python_type(evm_type: str) -> Callable:
 
 
 def get_unique_address(
-    db_session: Session, blockchain_type: AvailableBlockchainType, address: str
+    db_session: Session,
+    blockchain_type: AvailableBlockchainType,
+    address: str,
+    crawler_label: str,
 ):
     label_model = get_label_model(blockchain_type)
 
     return (
         db_session.query(label_model.label_data["args"]["to"])
         .filter(label_model.address == address)
-        .filter(label_model.label == CRAWLER_LABEL)
+        .filter(label_model.label == crawler_label)
         .filter(label_model.label_data["type"].astext == "event")
         .filter(label_model.label_data["name"].astext == "Transfer")
         .distinct()
@@ -503,6 +508,7 @@ def get_count(
     select_expression: Any,
     blockchain_type: AvailableBlockchainType,
     address: str,
+    crawler_label: str,
 ):
     """
     Return count of event from database.
@@ -512,7 +518,7 @@ def get_count(
     return (
         db_session.query(select_expression)
         .filter(label_model.address == address)
-        .filter(label_model.label == CRAWLER_LABEL)
+        .filter(label_model.label == crawler_label)
         .filter(label_model.label_data["type"].astext == type)
         .filter(label_model.label_data["name"].astext == name)
         .count()
@@ -584,6 +590,14 @@ def stats_generate_handler(args: argparse.Namespace):
                         "address"
                     ]
 
+                    crawler_label = CRAWLER_LABEL
+
+                    if address in (
+                        "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+                        "0xA2a13cE1824F3916fC84C65e559391fc6674e6e8",
+                    ):
+                        crawler_label = "moonworm"
+
                     generic = dashboard_subscription_filters["generic"]
 
                     if not subscription_by_id[subscription_id].resource_data["abi"]:
@@ -636,6 +650,7 @@ def stats_generate_handler(args: argparse.Namespace):
                                 db_session=db_session,
                                 blockchain_type=blockchain_type,
                                 address=address,
+                                crawler_label=crawler_label,
                             ),
                         }
                     )
@@ -652,6 +667,7 @@ def stats_generate_handler(args: argparse.Namespace):
                                     select_expression=get_label_model(blockchain_type),
                                     blockchain_type=blockchain_type,
                                     address=address,
+                                    crawler_label=crawler_label,
                                 ),
                             }
                         )
@@ -672,6 +688,7 @@ def stats_generate_handler(args: argparse.Namespace):
                                     ),
                                     blockchain_type=blockchain_type,
                                     address=address,
+                                    crawler_label=crawler_label,
                                 ),
                             }
                         )
@@ -694,6 +711,7 @@ def stats_generate_handler(args: argparse.Namespace):
                             functions=methods,
                             start=start_date,
                             metric_type="tx_call",
+                            crawler_label=crawler_label,
                         )
 
                         s3_data_object["functions"] = functions_calls_data
@@ -706,6 +724,7 @@ def stats_generate_handler(args: argparse.Namespace):
                             functions=events,
                             start=start_date,
                             metric_type="event",
+                            crawler_label=crawler_label,
                         )
 
                         s3_data_object["events"] = events_data
