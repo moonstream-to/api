@@ -2,16 +2,15 @@
 Moonstream CLI
 """
 import argparse
-
-import logging
 import json
+import logging
 import os
 from posix import listdir
 from typing import Optional
 
+from sqlalchemy.orm import with_expression
 
 from moonstreamdb.db import SessionLocal
-from sqlalchemy.orm import with_expression
 
 from ..settings import BUGOUT_BROOD_URL, BUGOUT_SPIRE_URL, MOONSTREAM_APPLICATION_ID
 from ..web3_provider import yield_web3_provider

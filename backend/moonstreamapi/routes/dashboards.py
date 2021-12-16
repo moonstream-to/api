@@ -1,25 +1,26 @@
+import json
 import logging
 from os import read
-import json
-from typing import Any, List, Optional, Dict
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 import boto3  # type: ignore
+import requests
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
-from fastapi import APIRouter, Request, Query, Body
+from fastapi import APIRouter, Body, Query, Request
 
-from .. import actions
-from .. import data
+from .. import actions, data
 from ..middleware import MoonstreamHTTPException
 from ..reporter import reporter
 from ..settings import (
-    MOONSTREAM_APPLICATION_ID,
-    bugout_client as bc,
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
+    MOONSTREAM_APPLICATION_ID,
+    MOONSTREAM_CRAWLERS_INTERNAL,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
 )
+from ..settings import bugout_client as bc
 
 logger = logging.getLogger(__name__)
 
@@ -347,7 +348,7 @@ async def get_dashboard_data_links_handler(
     request: Request, dashboard_id: str
 ) -> Dict[UUID, Any]:
     """
-    Update dashboards mainly fully overwrite name and subscription metadata
+    Get s3 presign urls for dshaboard grafics
     """
 
     token = request.state.token
@@ -431,3 +432,25 @@ async def get_dashboard_data_links_handler(
                 )
 
     return stats
+
+
+@router.get("/{dashboard_id}/stats_update", tags=["dashboards"])
+async def update_dashbord_data_handler(
+    request: Request, dashboard_id: str, timescale: str
+) -> Dict[str, Any]:
+    """
+    Return journal statistics
+    journal.read permission required.
+    """
+
+    token = request.state.token
+
+    requests.get(
+        f"{MOONSTREAM_CRAWLERS_INTERNAL}/jobs/stats_update",
+        params={
+            "dashboard_id": dashboard_id,
+            "timescale": timescale,
+            "token": token,
+        },
+    )
+    return {"status": "task send"}

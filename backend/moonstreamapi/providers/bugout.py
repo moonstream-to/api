@@ -1,9 +1,9 @@
 """
 Event providers powered by Bugout journals.
 """
-from datetime import datetime
 import json
 import logging
+from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
 from bugout.app import Bugout
@@ -14,9 +14,8 @@ from dateutil.tz import UTC
 from sqlalchemy.orm import Session
 
 from .. import data
-from ..stream_queries import StreamQuery
-
 from ..settings import HUMBUG_TXPOOL_CLIENT_ID
+from ..stream_queries import StreamQuery
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARN)

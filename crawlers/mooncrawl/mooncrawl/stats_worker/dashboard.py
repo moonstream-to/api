@@ -574,7 +574,6 @@ def stats_generate_handler(args: argparse.Namespace):
         # ethereum_blockchain
 
         start_time = time.time()
-        blockchain_type = AvailableBlockchainType(args.blockchain)
 
         # polygon_blockchain
         dashboard_resources: BugoutResources = bc.list_resources(
@@ -798,6 +797,213 @@ def stats_generate_handler(args: argparse.Namespace):
             content=f"Generate statistics for {args.blockchain}. \n Generation time: {time.time() - start_time}.",
             tags=["dashboard", "statistics", f"blockchain:{args.blockchain}"],
         )
+
+
+def stats_generate_api_task(token: UUID, timescale: str, dashboard_id: str):
+    """
+    Start crawler with generate.
+    """
+
+    with yield_db_session_ctx() as db_session:
+
+        dashboard: BugoutResource = bc.get_resource(
+            token=token,
+            resource_id=dashboard_id,
+            timeout=10,
+        )
+
+        # get all user subscriptions
+
+        blockchain_subscriptions: BugoutResources = bc.list_resources(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            params={"type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION},
+            timeout=10,
+        )
+
+        # Create subscriptions dict for get subscriptions by id.
+
+        subscription_by_id = {
+            str(blockchain_subscription.id): blockchain_subscription
+            for blockchain_subscription in blockchain_subscriptions.resources
+        }
+
+        print(f"Amount of blockchain subscriptions: {len(subscription_by_id)}")
+
+        s3_client = boto3.client("s3")
+
+        for dashboard_subscription_filters in dashboard.resource_data[
+            "dashboard_subscriptions"
+        ]:
+
+            try:
+
+                subscription_id = dashboard_subscription_filters["subscription_id"]
+
+                blockchain_type = AvailableBlockchainType(
+                    subscription_by_id[subscription_id].resource_data[
+                        "subscription_type_id"
+                    ]
+                )
+
+                s3_data_object: Dict[str, Any] = {}
+
+                extention_data = []
+
+                address = subscription_by_id[subscription_id].resource_data["address"]
+
+                generic = dashboard_subscription_filters["generic"]
+
+                if not subscription_by_id[subscription_id].resource_data["abi"]:
+
+                    methods = []
+                    events = []
+
+                else:
+
+                    bucket = subscription_by_id[subscription_id].resource_data["bucket"]
+                    key = subscription_by_id[subscription_id].resource_data["s3_path"]
+
+                    abi = s3_client.get_object(
+                        Bucket=bucket,
+                        Key=key,
+                    )
+                    abi_json = json.loads(abi["Body"].read())
+
+                    methods = generate_list_of_names(
+                        type="function",
+                        subscription_filters=dashboard_subscription_filters,
+                        read_abi=dashboard_subscription_filters["all_methods"],
+                        abi_json=abi_json,
+                    )
+
+                    events = generate_list_of_names(
+                        type="event",
+                        subscription_filters=dashboard_subscription_filters,
+                        read_abi=dashboard_subscription_filters["all_events"],
+                        abi_json=abi_json,
+                    )
+
+                    abi_external_calls = [
+                        item for item in abi_json if item["type"] == "external_call"
+                    ]
+
+                    extention_data = process_external(
+                        abi_external_calls=abi_external_calls,
+                        blockchain=blockchain_type,
+                    )
+
+                extention_data.append(
+                    {
+                        "display_name": "Overall unique token owners.",
+                        "value": get_unique_address(
+                            db_session=db_session,
+                            blockchain_type=blockchain_type,
+                            address=address,
+                        ),
+                    }
+                )
+
+                if "HatchStartedEvent" in events:
+
+                    extention_data.append(
+                        {
+                            "display_name": "Number of hatches started.",
+                            "value": get_count(
+                                name="HatchStartedEvent",
+                                type="event",
+                                db_session=db_session,
+                                select_expression=get_label_model(blockchain_type),
+                                blockchain_type=blockchain_type,
+                                address=address,
+                            ),
+                        }
+                    )
+
+                if "HatchFinishedEvent" in events:
+
+                    extention_data.append(
+                        {
+                            "display_name": "Number of hatches finished.",
+                            "value": get_count(
+                                name="HatchFinishedEvent",
+                                type="event",
+                                db_session=db_session,
+                                select_expression=distinct(
+                                    get_label_model(blockchain_type).label_data["args"][
+                                        "tokenId"
+                                    ]
+                                ),
+                                blockchain_type=blockchain_type,
+                                address=address,
+                            ),
+                        }
+                    )
+
+                current_blocks_state = get_blocks_state(
+                    db_session=db_session, blockchain_type=blockchain_type
+                )
+
+                start_date = (
+                    datetime.utcnow() - timescales_delta[timescale]["timedelta"]
+                )
+
+                print(f"Timescale: {timescale}")
+
+                s3_data_object["blocks_state"] = current_blocks_state
+
+                s3_data_object["web3_metric"] = extention_data
+
+                functions_calls_data = generate_data(
+                    db_session=db_session,
+                    blockchain_type=blockchain_type,
+                    address=address,
+                    timescale=timescale,
+                    functions=methods,
+                    start=start_date,
+                    metric_type="tx_call",
+                )
+
+                s3_data_object["functions"] = functions_calls_data
+
+                events_data = generate_data(
+                    db_session=db_session,
+                    blockchain_type=blockchain_type,
+                    address=address,
+                    timescale=timescale,
+                    functions=events,
+                    start=start_date,
+                    metric_type="event",
+                )
+
+                s3_data_object["events"] = events_data
+
+                s3_data_object["generic"] = generate_metrics(
+                    db_session=db_session,
+                    blockchain_type=blockchain_type,
+                    address=address,
+                    timescale=timescale,
+                    metrics=generic,
+                    start=start_date,
+                )
+
+                push_statistics(
+                    statistics_data=s3_data_object,
+                    subscription=subscription_by_id[subscription_id],
+                    timescale=timescale,
+                    bucket=bucket,
+                    dashboard_id=dashboard.id,
+                )
+            except Exception as err:
+                reporter.error_report(
+                    err,
+                    [
+                        "dashboard",
+                        "statistics",
+                        f"subscriptions:{subscription_id}",
+                        f"dashboard:{dashboard.id}",
+                    ],
+                )
+                print(err)
 
 
 def main() -> None:

@@ -5,13 +5,14 @@ import logging
 import time
 from typing import Dict
 
-from fastapi import FastAPI
+from fastapi import FastAPI, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import data
 from .middleware import MoonstreamHTTPException
 from .settings import DOCS_TARGET_PATH, ORIGINS
 from .version import MOONCRAWL_VERSION
+from .stats_worker import dashboard
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -66,14 +67,21 @@ async def now_handler() -> data.NowResponse:
 
 
 @app.get("/jobs/stats_update", tags=["jobs"])
-async def status_handler():
+async def status_handler(
+    dashboard_id: str, timescale: str, token: str, background_tasks: BackgroundTasks
+):
     """
-    Find latest crawlers records with creation timestamp:
-    - ethereum_txpool
-    - ethereum_trending
+    Update dashboard endpoint create are tasks for update.
     """
     try:
-        pass
+
+        background_tasks.add_task(
+            dashboard.stats_generate_api_task,
+            token=token,
+            timescale=timescale,
+            dashboard_id=dashboard_id,
+        )
+
     except Exception as e:
         logger.error(f"Unhandled status exception, error: {e}")
         raise MoonstreamHTTPException(status_code=500)
