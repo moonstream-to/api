@@ -254,7 +254,7 @@ const Product = () => {
           />
           <TeamCard
             avatarURL={assets["centipede"]}
-            name={"yhtyyar"}
+            name={"Yhtyyar Sahatov"}
             atName={"@Yhtiyar"}
             content={`Wunderkind. Interested in Math, NLP. Loves
             programming language parsing and Algorithms & Data structures.
