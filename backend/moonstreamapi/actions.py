@@ -8,7 +8,7 @@ from enum import Enum
 import uuid
 
 import boto3  # type: ignore
-from bugout.data import BugoutSearchResults
+from bugout.data import BugoutSearchResults, BugoutSearchResult
 from bugout.journal import SearchOrder
 from ens.utils import is_valid_ens_name  # type: ignore
 from eth_utils.address import is_address  # type: ignore
@@ -44,6 +44,8 @@ logger = logging.getLogger(__name__)
 blockchain_by_subscription_id = {
     "ethereum_blockchain": "ethereum",
     "polygon_blockchain": "polygon",
+    "ethereum_smartcontract": "ethereum",
+    "polygon_smartcontract": "polygon",
 }
 
 
@@ -438,13 +440,13 @@ def upload_abi_to_s3(
 
 def get_all_entries_from_search(
     journal_id: str, search_query: str, limit: int, token: str
-) -> List[Any]:
+) -> List[BugoutSearchResult]:
     """
     Get all required entries from journal using search interface
     """
     offset = 0
 
-    results: List[Any] = []
+    results: List[BugoutSearchResult] = []
 
     try:
         existing_metods = bc.search(

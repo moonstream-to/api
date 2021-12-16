@@ -304,7 +304,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  padding: 8px 35px 8px 20px;
+  padding: 8px 35px 8px 12px;
   cursor: pointer;
 }
 .pro-sidebar .pro-menu .pro-menu-item > .pro-inner-item:focus {
@@ -312,12 +312,12 @@
   color: #d8d8d8;
 }
 .pro-sidebar .pro-menu .pro-menu-item > .pro-inner-item > .pro-icon-wrapper {
-  margin-right: 10px;
+  margin-right: 4px;
   font-size: 14px;
-  width: 35px;
-  min-width: 35px;
-  height: 35px;
-  line-height: 35px;
+  width: 14px;
+  min-width: 14px;
+  height: 14px;
+  line-height: 14px;
   text-align: center;
   display: inline-block;
 }
@@ -331,11 +331,12 @@
   height: 100%;
   align-items: center;
   justify-content: center;
-  color: white
+  color: white;
 }
 .pro-sidebar .pro-menu .pro-menu-item > .pro-inner-item > .pro-item-content {
   flex-grow: 1;
   flex-shrink: 1;
+  font-size: 14px;
 }
 .pro-sidebar .pro-menu .pro-menu-item > .pro-inner-item:hover {
   color: #d8d8d8;
@@ -347,7 +348,7 @@
   .pro-icon-wrapper
   .pro-icon {
   animation: swing ease-in-out 0.5s 1 alternate;
-  color: white
+  color: white;
 }
 .pro-sidebar .pro-menu .pro-menu-item.pro-sub-menu > .pro-inner-item:before {
   background: #adadad;

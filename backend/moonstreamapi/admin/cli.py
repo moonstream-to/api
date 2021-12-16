@@ -11,12 +11,13 @@ from typing import Optional
 
 
 from moonstreamdb.db import SessionLocal
-from sqlalchemy.orm import with_expression
 
 from ..settings import BUGOUT_BROOD_URL, BUGOUT_SPIRE_URL, MOONSTREAM_APPLICATION_ID
 from ..web3_provider import yield_web3_provider
-from . import subscription_types, subscriptions
-from .migrations import checksum_address
+
+from . import subscription_types, subscriptions, moonworm_tasks
+from .migrations import checksum_address, update_dashboard_subscription_key
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -74,6 +75,8 @@ def migrations_run(args: argparse.Namespace) -> None:
             checksum_address.checksum_all_subscription_addresses(web3_session)
             logger.info("Starting update of ethereum_labels in database...")
             checksum_address.checksum_all_labels_addresses(db_session, web3_session)
+        elif args.id == 20211202:
+            update_dashboard_subscription_key.update_dashboard_resources_key()
         else:
             drop_keys = []
 
@@ -113,6 +116,16 @@ def migrations_run(args: argparse.Namespace) -> None:
                 return
     finally:
         db_session.close()
+
+
+def moonworm_tasks_list_handler(args: argparse.Namespace) -> None:
+
+    moonworm_tasks.get_list_of_addresses()
+
+
+def moonworm_tasks_add_subscription_handler(args: argparse.Namespace) -> None:
+
+    moonworm_tasks.add_subscription(args.id)
 
 
 def main() -> None:
@@ -334,6 +347,33 @@ This CLI is configured to work with the following API URLs:
         help="Command for migration",
     )
     parser_migrations_run.set_defaults(func=migrations_run)
+
+    parser_moonworm_tasks = subcommands.add_parser(
+        "moonworm-tasks", description="Manage tasks for moonworm journal."
+    )
+
+    parser_moonworm_tasks.set_defaults(func=lambda _: parser_migrations.print_help())
+    subcommands_moonworm_tasks = parser_moonworm_tasks.add_subparsers(
+        description="Moonworm taks commands"
+    )
+    parser_moonworm_tasks_list = subcommands_moonworm_tasks.add_parser(
+        "list", description="Return list of addresses in moonworm journal."
+    )
+
+    parser_moonworm_tasks_list.set_defaults(func=moonworm_tasks_list_handler)
+
+    parser_moonworm_tasks_add = subcommands_moonworm_tasks.add_parser(
+        "add_subscription", description="Manage tasks for moonworm journal."
+    )
+
+    parser_moonworm_tasks_add.add_argument(
+        "-i",
+        "--id",
+        type=str,
+        help="Id of subscription for add to moonworm tasks.",
+    )
+
+    parser_moonworm_tasks_add.set_defaults(func=moonworm_tasks_add_subscription_handler)
 
     args = parser.parse_args()
     args.func(args)
