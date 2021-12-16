@@ -45,7 +45,7 @@ POLYGON_MISSING_TIMER_FILE="polygon-missing.timer"
 POLYGON_STATISTICS_SERVICE_FILE="polygon-statistics.service"
 POLYGON_STATISTICS_TIMER_FILE="polygon-statistics.timer"
 POLYGON_TXPOOL_SERVICE_FILE="polygon-txpool.service"
-
+POLYGON_MOONWORM_CRAWLER_SERVICE_FILE="polygon-moonworm-crawler.service"
 
 set -eu
 
@@ -150,3 +150,11 @@ systemctl restart "${POLYGON_STATISTICS_TIMER_FILE}"
 # cp "${SCRIPT_DIR}/${POLYGON_TXPOOL_SERVICE_FILE}" "/etc/systemd/system/${POLYGON_TXPOOL_SERVICE_FILE}"
 # systemctl daemon-reload
 # systemctl restart "${POLYGON_TXPOOL_SERVICE_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Polygon moonworm crawler service definition with ${POLYGON_MOONWORM_CRAWLER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${POLYGON_MOONWORM_CRAWLER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${POLYGON_MOONWORM_CRAWLER_SERVICE_FILE}" "/etc/systemd/system/${POLYGON_MOONWORM_CRAWLER_SERVICE_FILE}"
+systemctl daemon-reload
+systemctl restart "${POLYGON_MOONWORM_CRAWLER_SERVICE_FILE}"
