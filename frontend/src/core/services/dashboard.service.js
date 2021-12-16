@@ -18,7 +18,6 @@ export const getDashboardsList = () => {
 };
 
 export const deleteDashboard = (id) => {
-  console.log("delete:", id);
   return http({
     method: "DELETE",
     url: `${API_URL}/dashboards/${id}`,

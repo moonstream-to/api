@@ -19,11 +19,9 @@ const SchematicPlayground = () => {
   const ref5 = useRef(null);
   if (!gridCellSize) return "";
   return (
-    // <CanvasWidget engine={engine} />
     <>
       <Box
         h={`${(gridCellSize * 5 + 1).toString()}` + `px`}
-        // h={`301px`}
         w="100%"
         bgColor="white"
         bgSize={`${(gridCellSize / 6).toString() + "px"}  ${
@@ -72,7 +70,6 @@ const SchematicPlayground = () => {
               bg="blue.900"
               color="white"
               textAlign="center"
-              // zIndex={10}
               src={`https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/Logo.png`}
             ></Image>
           </Box>
@@ -109,7 +106,6 @@ const SchematicPlayground = () => {
               bg="red.900"
               color="white"
               textAlign="center"
-              // zIndex={10}
               src={`https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/NFT.png`}
             ></Image>
           </Box>
@@ -146,7 +142,6 @@ const SchematicPlayground = () => {
               bg="orange.900"
               color="white"
               textAlign="center"
-              // zIndex={10}
               src={`https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/DAO .png`}
             ></Image>
           </Box>
@@ -183,7 +178,6 @@ const SchematicPlayground = () => {
               bg="green.900"
               color="white"
               textAlign="center"
-              // zIndex={10}
               src={`https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/ERC 20.png`}
             ></Image>
           </Box>
@@ -220,7 +214,6 @@ const SchematicPlayground = () => {
               bg="gray.900"
               color="white"
               textAlign="center"
-              // zIndex={10}
               src={`https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/crypto+traders.png`}
             ></Image>
           </Box>
@@ -236,8 +229,8 @@ const SchematicPlayground = () => {
         path="grid"
         gridBreak={(gridCellSize * 0.5).toString() + "px"}
         showHead={false}
-        start={ref1} //can be react ref
-        end={ref2} //or an id
+        start={ref1}
+        end={ref2}
       />
       <Xarrow
         dashness={{
@@ -249,8 +242,8 @@ const SchematicPlayground = () => {
         gridBreak={(gridCellSize * 0.5).toString() + "px"}
         path="grid"
         showHead={false}
-        start={ref1} //can be react ref
-        end={ref3} //or an id
+        start={ref1}
+        end={ref3}
       />
       <Xarrow
         dashness={{
@@ -261,10 +254,9 @@ const SchematicPlayground = () => {
         color="#92D0F0"
         gridBreak={(gridCellSize * 0.5).toString() + "px"}
         path="grid"
-        //   startAnchor={"top"}
         showHead={false}
-        start={ref1} //can be react ref
-        end={ref4} //or an id
+        start={ref1}
+        end={ref4}
       />
       <Xarrow
         dashness={{
@@ -275,10 +267,9 @@ const SchematicPlayground = () => {
         color="#92D0F0"
         gridBreak={(gridCellSize * 0.5).toString() + "px"}
         path="grid"
-        //   startAnchor={"top"}
         showHead={false}
-        start={ref1} //can be react ref
-        end={ref5} //or an id
+        start={ref1}
+        end={ref5}
       />
     </>
   );

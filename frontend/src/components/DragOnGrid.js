@@ -26,11 +26,8 @@ const DragOnGrid = React.forwardRef((props, ref) => {
     setPosition({ x: position.x + eData.deltaX, y: position.y + eData.deltaY });
   };
 
-  console.log("position:", position);
-
   return (
     <Draggable
-      // offsetParent={}
       nodeRef={ref}
       axis="both"
       handle=".handle"
@@ -39,7 +36,6 @@ const DragOnGrid = React.forwardRef((props, ref) => {
       scale={1}
       onDrag={handleDrag}
     >
-      {/* <div ref={ref}>Example Target</div> */}
       {props.children}
     </Draggable>
   );
