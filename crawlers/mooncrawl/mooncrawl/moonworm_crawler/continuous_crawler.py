@@ -24,7 +24,7 @@ from .crawler import (
     merge_event_crawl_jobs,
     merge_function_call_crawl_jobs,
 )
-from .db import save_events, save_function_calls
+from .db import add_events_to_session, add_function_calls_to_session, commit_session
 from .event_crawler import _crawl_events
 from .function_call_crawler import _crawl_functions
 
@@ -122,7 +122,7 @@ def continuous_crawler(
     heartbeat_interval: float = 60,
     new_jobs_refetch_interval: float = 120,
 ):
-
+    crawler_type = "continuous"
     assert (
         min_blocks_batch < max_blocks_batch
     ), "min_blocks_batch must be less than max_blocks_batch"
@@ -166,7 +166,7 @@ def continuous_crawler(
     logger.info(f"Starting continuous event crawler start_block={start_block}")
     logger.info("Sending initial heartbeat")
     heartbeat(
-        crawler_type="event",
+        crawler_type=crawler_type,
         blockchain_type=blockchain_type,
         crawler_status=heartbeat_template,
     )
@@ -209,7 +209,7 @@ def continuous_crawler(
                     f"Crawled {len(all_events)} events from {start_block} to {end_block}."
                 )
 
-                save_events(db_session, all_events, blockchain_type)
+                add_events_to_session(db_session, all_events, blockchain_type)
 
                 logger.info(
                     f"Crawling function calls from {start_block} to {end_block}"
@@ -225,7 +225,9 @@ def continuous_crawler(
                     f"Crawled {len(all_function_calls)} function calls from {start_block} to {end_block}."
                 )
 
-                save_function_calls(db_session, all_function_calls, blockchain_type)
+                add_function_calls_to_session(
+                    db_session, all_function_calls, blockchain_type
+                )
 
                 current_time = datetime.utcnow()
 
@@ -243,6 +245,9 @@ def continuous_crawler(
                 if current_time - last_heartbeat_time > timedelta(
                     seconds=heartbeat_interval
                 ):
+                    # Commiting to db
+                    commit_session(db_session)
+
                     # Update heartbeat
                     heartbeat_template["last_block"] = end_block
                     heartbeat_template["current_time"] = _date_to_str(current_time)
@@ -259,7 +264,7 @@ def continuous_crawler(
                         "function_call metrics"
                     ] = ethereum_state_provider.metrics
                     heartbeat(
-                        crawler_type="event",
+                        crawler_type=crawler_type,
                         blockchain_type=blockchain_type,
                         crawler_status=heartbeat_template,
                     )
@@ -303,7 +308,7 @@ def continuous_crawler(
         ] = f"{e.__class__.__name__}: {e}\n error_summary: {error_summary}\n error_traceback: {error_traceback}"
         heartbeat_template["last_block"] = end_block
         heartbeat(
-            crawler_type="event",
+            crawler_type=crawler_type,
             blockchain_type=blockchain_type,
             crawler_status=heartbeat_template,
             is_dead=True,

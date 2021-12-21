@@ -87,12 +87,12 @@ def get_last_labeled_block_number(
     return block_number[0] if block_number else None
 
 
-def save_labels(db_session: Session, labels: List[Base]) -> None:
+def commit_session(db_session: Session) -> None:
     """
     Save labels in the database.
     """
     try:
-        db_session.add_all(labels)
+        logger.info("Committing session to database")
         db_session.commit()
     except Exception as e:
         logger.error(f"Failed to save labels: {e}")
@@ -100,7 +100,7 @@ def save_labels(db_session: Session, labels: List[Base]) -> None:
         raise e
 
 
-def save_events(
+def add_events_to_session(
     db_session: Session, events: List[Event], blockchain_type: AvailableBlockchainType
 ) -> None:
     label_model = get_label_model(blockchain_type)
@@ -134,10 +134,11 @@ def save_events(
         ):
             labels_to_save.append(_event_to_label(blockchain_type, event))
 
-    save_labels(db_session, labels_to_save)
+    logger.info(f"Saving {len(labels_to_save)} labels to session")
+    db_session.add_all(labels_to_save)
 
 
-def save_function_calls(
+def add_function_calls_to_session(
     db_session: Session,
     function_calls: List[ContractFunctionCall],
     blockchain_type: AvailableBlockchainType,
@@ -166,4 +167,5 @@ def save_function_calls(
         if function_call.transaction_hash not in existing_labels_transactions
     ]
 
-    save_labels(db_session, labels_to_save)
+    logger.info(f"Saving {len(labels_to_save)} labels to session")
+    db_session.add_all(labels_to_save)
