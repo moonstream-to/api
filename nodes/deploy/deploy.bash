@@ -23,10 +23,7 @@ SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/moonstream-secrets}"
 PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
 AWS_SSM_PARAMETER_PATH="${AWS_SSM_PARAMETER_PATH:-/moonstream/prod}"
 SCRIPT_DIR="$(realpath $(dirname $0))"
-
-# Parameters scripts
 PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.py"
-CHECKENV_NODES_CONNECTIONS_SCRIPT="${SCRIPT_DIR}/nodes-connections.bash"
 
 # Service file
 NODE_BALANCER_SERVICE_FILE="node-balancer.service"
@@ -48,11 +45,6 @@ echo
 echo
 echo -e "${PREFIX_INFO} Retrieving addition deployment parameters"
 HOME=/root AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" $HOME/go/bin/checkenv show aws_ssm+Product:moonstream >> "${PARAMETERS_ENV_PATH}"
-
-echo
-echo
-echo -e "${PREFIX_INFO} Updating nodes connection parameters"
-bash "${CHECKENV_NODES_CONNECTIONS_SCRIPT}" -v -f "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
