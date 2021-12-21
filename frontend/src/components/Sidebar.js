@@ -26,7 +26,6 @@ import {
 } from "@chakra-ui/icons";
 import { MdSettings, MdDashboard, MdTimeline } from "react-icons/md";
 import { WHITE_LOGO_W_TEXT_URL, ALL_NAV_PATHES } from "../core/constants";
-import { v4 } from "uuid";
 import useDashboard from "../core/hooks/useDashboard";
 import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 import OverlayContext from "../core/providers/OverlayProvider/context";

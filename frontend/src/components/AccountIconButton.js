@@ -14,7 +14,6 @@ import { RiAccountCircleLine } from "react-icons/ri";
 import useLogout from "../core/hooks/useLogout";
 import UIContext from "../core/providers/UIProvider/context";
 import { ALL_NAV_PATHES } from "../core/constants";
-import { v4 } from "uuid";
 
 const AccountIconButton = (props) => {
   const { logout } = useLogout();

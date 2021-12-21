@@ -18,7 +18,6 @@ import {
   FOOTER_COLUMNS,
 } from "../core/constants";
 import { FaGithub, FaTwitter, FaDiscord } from "react-icons/fa";
-import { v4 } from "uuid";
 
 const LINKS_SIZES = {
   fontWeight: "300",

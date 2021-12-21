@@ -10,7 +10,6 @@ import {
   chakra,
   Link,
 } from "@chakra-ui/react";
-import { v4 } from "uuid";
 
 const HOUR_KEY = "Hourly";
 const DAY_KEY = "Daily";

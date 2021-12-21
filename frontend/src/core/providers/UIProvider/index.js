@@ -166,8 +166,6 @@ const UIProvider = ({ children }) => {
   const [onboardingState, setOnboardingState] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState();
   const [onboardingStateInit, setOnboardingStateInit] = useState(false);
-  const [onboardingRedirectCheckPassed, setOnboardingRedirectCheckPassed] =
-    useState(false);
 
   const setOnboardingComplete = useCallback(
     (newState) => {
@@ -210,20 +208,6 @@ const UIProvider = ({ children }) => {
       else setOnboardingStep(step);
     }
   }, [onboardingState, onboardingStep]);
-
-  useEffect(() => {
-    //redirect to welcome page if yet not completed onboarding
-    if (isLoggedIn && onboardingState && !onboardingState?.is_complete) {
-      //shortcircuit this experience for now since /welcome is now default landing in the app screen
-      // router.replace("/welcome", undefined, { shallow: true });
-    }
-    if (isLoggedIn) {
-      setOnboardingRedirectCheckPassed(true);
-    } else {
-      setOnboardingRedirectCheckPassed(false);
-    }
-    // eslint-disable-next-line
-  }, [isLoggedIn, onboardingState?.is_complete]);
 
   useEffect(() => {
     //This will set up onboarding complete once user finishes each view at least once
