@@ -241,8 +241,8 @@ class SubdcriptionsAbiResponse(BaseModel):
 class DashboardMeta(BaseModel):
     subscription_id: UUID
     generic: Optional[List[Dict[str, str]]]
-    all_methods: bool = False
-    all_events: bool = False
+    all_methods: bool = True
+    all_events: bool = True
     methods: List[Dict[str, Any]]
     events: List[Dict[str, Any]]
 
@@ -251,14 +251,14 @@ class DashboardResource(BaseModel):
     type: str
     user_id: str
     name: str
-    dashboard_subscriptions: List[DashboardMeta]
+    subscription_settings: List[DashboardMeta]
 
 
 class DashboardCreate(BaseModel):
     name: str
-    subscriptions: List[DashboardMeta]
+    subscription_settings: List[DashboardMeta]
 
 
 class DashboardUpdate(BaseModel):
     name: Optional[str]
-    subscriptions: List[DashboardMeta] = Field(default_factory=list)
+    subscription_settings: List[DashboardMeta] = Field(default_factory=list)

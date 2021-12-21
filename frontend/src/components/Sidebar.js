@@ -28,10 +28,7 @@ import { MdSettings, MdDashboard, MdTimeline } from "react-icons/md";
 import { WHITE_LOGO_W_TEXT_URL, ALL_NAV_PATHES } from "../core/constants";
 import { v4 } from "uuid";
 import useDashboard from "../core/hooks/useDashboard";
-import {
-  DRAWER_TYPES,
-  MODAL_TYPES,
-} from "../core/providers/OverlayProvider/constants";
+import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 import OverlayContext from "../core/providers/OverlayProvider/context";
 
 const Sidebar = () => {
@@ -123,7 +120,7 @@ const Sidebar = () => {
                 size="sm"
                 justifyContent="center"
                 fontWeight="600"
-                pl={8}
+                pl={2}
                 pt={3}
               >
                 Dashboards
@@ -131,15 +128,20 @@ const Sidebar = () => {
               <Menu iconShape="square">
                 <>
                   {dashboardsListCache.data &&
-                    dashboardsListCache.data.data.resources.map((dashboard) => {
-                      return (
-                        <MenuItem icon={<MdDashboard />} key={v4()}>
-                          <RouterLink href={`/dashboard/${dashboard?.id}`}>
-                            {dashboard.resource_data.name}
-                          </RouterLink>
-                        </MenuItem>
-                      );
-                    })}
+                    dashboardsListCache.data.data.resources.map(
+                      (dashboard, idx) => {
+                        return (
+                          <MenuItem
+                            icon={<MdDashboard />}
+                            key={`dashboard-link-${idx}`}
+                          >
+                            <RouterLink href={`/dashboard/${dashboard?.id}`}>
+                              {dashboard.resource_data.name}
+                            </RouterLink>
+                          </MenuItem>
+                        );
+                      }
+                    )}
                 </>
                 <MenuItem>
                   <Button
@@ -147,7 +149,9 @@ const Sidebar = () => {
                     colorScheme="orange"
                     size="sm"
                     onClick={() =>
-                      overlay.toggleDrawer(DRAWER_TYPES.NEW_DASHBOARD)
+                      overlay.toggleModal({
+                        type: MODAL_TYPES.NEW_DASHBOARD_FLOW,
+                      })
                     }
                     // w="100%"
                     // borderRadius={0}

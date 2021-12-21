@@ -8,11 +8,13 @@ export const MODAL_TYPES = {
   HUBSPOT: 6,
   NEW_SUBSCRIPTON: 7,
   UPLOAD_ABI: 8,
+  NEW_DASHBOARD_FLOW: 9,
 };
 
 export const DRAWER_TYPES = {
   OFF: 0,
   NEW_DASHBOARD: 1,
+  NEW_DASHBOARD_ITEM: 2,
 };
 
 export const ALERT_TYPES = {

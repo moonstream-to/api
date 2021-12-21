@@ -1,7 +1,17 @@
 import React from "react";
 import { usePresignedURL } from "../core/hooks";
 import Report from "./Report";
-import { Spinner, Flex, Heading, Text, IconButton } from "@chakra-ui/react";
+
+import {
+  Spinner,
+  Flex,
+  Heading,
+  Text,
+  Container,
+  chakra,
+  Link,
+  IconButton,
+} from "@chakra-ui/react";
 import { v4 } from "uuid";
 
 const HOUR_KEY = "Hourly";
@@ -12,6 +22,7 @@ timeMap[HOUR_KEY] = "hour";
 timeMap[DAY_KEY] = "day";
 timeMap[WEEK_KEY] = "week";
 
+
 const SubscriptionReport = ({
   timeRange,
   url,
@@ -19,22 +30,59 @@ const SubscriptionReport = ({
   refetchLinks,
   refreshDashboard,
 }) => {
-  const { data, isLoading, refetch, dataUpdatedAt } = usePresignedURL({
+  const { data, isLoading, failureCount, refetch, dataUpdatedAt } = usePresignedURL({
+
     url: url,
     isEnabled: true,
     id: id,
-    cacheType: timeRange,
+    cacheType: `${timeRange} subscription_report`,
     requestNewURLCallback: refetchLinks,
+    hideToastOn404: true,
   });
   const plotMinW = "250px";
-  if (!data || isLoading) return <Spinner />;
 
-  const referesh_graf = function () {
-    refreshDashboard.refetch();
-    dataUpdatedAt = new Date().toUTCString();
-    refetch();
-  };
+  if (failureCount < 1 && (!data || isLoading)) return <Spinner />;
+  if (failureCount >= 1 && (!data || isLoading))
 
+    const referesh_graf = function () {
+      refreshDashboard.refetch();
+      dataUpdatedAt = new Date().toUTCString();
+      refetch();
+    };
+    return (
+      <Container
+        w="100%"
+        size="lg"
+        bgColor="orange.100"
+        borderRadius="md"
+        mt={14}
+        mb={14}
+        p={8}
+        boxShadow="md"
+      >
+        <Heading mb={6}>We are crawling the blockchain </Heading>
+        <chakra.span>
+          <Text mb={4}>
+            It takes about 5 minutes to populate this dashboard.
+          </Text>
+          <Text>
+            If you have been looking at this message for more than 5 minutes,
+            contact our team on
+            {` `}
+            <Link
+              color="orange.900"
+              isExternal
+              href={"https://discord.gg/K56VNUQGvA"}
+            >
+              Discord
+            </Link>
+            {"."}
+          </Text>
+        </chakra.span>
+        <br />
+      </Container>
+    );
+>>>>>>> main
   return (
     <Flex
       w="100%"

@@ -14,26 +14,25 @@ from uuid import UUID
 import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
 from moonstreamdb.db import yield_db_session_ctx
-from sqlalchemy import Column, and_, func, text, distinct
+from sqlalchemy import Column, and_, distinct, func, text
 from sqlalchemy.orm import Query, Session
 from sqlalchemy.sql.operators import in_op
+from web3 import Web3
 
 from ..blockchain import (
+    connect,
     get_block_model,
     get_label_model,
     get_transaction_model,
-    connect,
 )
 from ..data import AvailableBlockchainType
+from ..reporter import reporter
 from ..settings import (
+    CRAWLER_LABEL,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
-    CRAWLER_LABEL,
 )
-from ..reporter import reporter
 from ..settings import bugout_client as bc
-
-from web3 import Web3
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -200,45 +199,49 @@ def generate_metrics(
         return response_metric
 
     try:
-        start_time = time.time()
 
-        results["transactions_out"] = make_query(
-            db_session,
-            transaction_model.from_address,
-            transaction_model.hash,
-            func.count,
-        )
+        if "transactions_out" in metrics:
+            start_time = time.time()
+            results["transactions_out"] = make_query(
+                db_session,
+                transaction_model.from_address,
+                transaction_model.hash,
+                func.count,
+            )
 
-        print("--- transactions_out %s seconds ---" % (time.time() - start_time))
+            print("--- transactions_out %s seconds ---" % (time.time() - start_time))
 
-        start_time = time.time()
-        results["transactions_in"] = make_query(
-            db_session,
-            transaction_model.to_address,
-            transaction_model.hash,
-            func.count,
-        )
+        if "transactions_in" in metrics:
+            start_time = time.time()
+            results["transactions_in"] = make_query(
+                db_session,
+                transaction_model.to_address,
+                transaction_model.hash,
+                func.count,
+            )
 
-        print("--- transactions_in %s seconds ---" % (time.time() - start_time))
+            print("--- transactions_in %s seconds ---" % (time.time() - start_time))
 
-        start_time = time.time()
-        results["value_out"] = make_query(
-            db_session,
-            transaction_model.from_address,
-            transaction_model.value,
-            func.sum,
-        )
-        print("--- value_out %s seconds ---" % (time.time() - start_time))
+        if "value_out" in metrics:
+            start_time = time.time()
+            results["value_out"] = make_query(
+                db_session,
+                transaction_model.from_address,
+                transaction_model.value,
+                func.sum,
+            )
+            print("--- value_out %s seconds ---" % (time.time() - start_time))
 
-        start_time = time.time()
-        results["value_in"] = make_query(
-            db_session,
-            transaction_model.to_address,
-            transaction_model.value,
-            func.sum,
-        )
+        if "value_in" in metrics:
+            start_time = time.time()
+            results["value_in"] = make_query(
+                db_session,
+                transaction_model.to_address,
+                transaction_model.value,
+                func.sum,
+            )
 
-        print("--- value_in %s seconds ---" % (time.time() - start_time))
+            print("--- value_in %s seconds ---" % (time.time() - start_time))
 
     except Exception as err:
         print(err)
@@ -255,7 +258,9 @@ def generate_data(
     functions: List[str],
     start: Any,
     metric_type: str,
+    crawler_label: str,
 ):
+
     label_model = get_label_model(blockchain_type)
 
     # create empty time series
@@ -282,7 +287,7 @@ def generate_data(
     label_requested = (
         db_session.query(label_model.label_data["name"].astext.label("label"))
         .filter(label_model.address == address)
-        .filter(label_model.label == CRAWLER_LABEL)
+        .filter(label_model.label == crawler_label)
         .filter(
             and_(
                 label_model.label_data["type"].astext == metric_type,
@@ -325,7 +330,7 @@ def generate_data(
             label_model.label_data["name"].astext.label("label"),
         )
         .filter(label_model.address == address)
-        .filter(label_model.label == CRAWLER_LABEL)
+        .filter(label_model.label == crawler_label)
         .filter(
             and_(
                 label_model.label_data["type"].astext == metric_type,
@@ -342,6 +347,8 @@ def generate_data(
         label_counts = label_counts.filter(
             func.to_timestamp(label_model.block_timestamp) < end
         )
+
+    # split grafics
 
     label_counts_subquery = (
         label_counts.group_by(
@@ -398,14 +405,17 @@ def cast_to_python_type(evm_type: str) -> Callable:
 
 
 def get_unique_address(
-    db_session: Session, blockchain_type: AvailableBlockchainType, address: str
+    db_session: Session,
+    blockchain_type: AvailableBlockchainType,
+    address: str,
+    crawler_label: str,
 ):
     label_model = get_label_model(blockchain_type)
 
     return (
         db_session.query(label_model.label_data["args"]["to"])
         .filter(label_model.address == address)
-        .filter(label_model.label == CRAWLER_LABEL)
+        .filter(label_model.label == crawler_label)
         .filter(label_model.label_data["type"].astext == "event")
         .filter(label_model.label_data["name"].astext == "Transfer")
         .distinct()
@@ -546,6 +556,7 @@ def get_count(
     select_expression: Any,
     blockchain_type: AvailableBlockchainType,
     address: str,
+    crawler_label: str,
 ):
     """
     Return count of event from database.
@@ -555,7 +566,7 @@ def get_count(
     return (
         db_session.query(select_expression)
         .filter(label_model.address == address)
-        .filter(label_model.label == CRAWLER_LABEL)
+        .filter(label_model.label == crawler_label)
         .filter(label_model.label_data["type"].astext == type)
         .filter(label_model.label_data["name"].astext == name)
         .count()
@@ -571,11 +582,8 @@ def stats_generate_handler(args: argparse.Namespace):
     with yield_db_session_ctx() as db_session:
         # read all subscriptions
 
-        # ethereum_blockchain
-
         start_time = time.time()
 
-        # polygon_blockchain
         dashboard_resources: BugoutResources = bc.list_resources(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             params={"type": BUGOUT_RESOURCE_TYPE_DASHBOARD},
@@ -610,10 +618,12 @@ def stats_generate_handler(args: argparse.Namespace):
 
         s3_client = boto3.client("s3")
 
+        subscriptions_count = 0
+
         for dashboard in dashboard_resources.resources:
 
             for dashboard_subscription_filters in dashboard.resource_data[
-                "dashboard_subscriptions"
+                "subscription_settings"
             ]:
 
                 try:
@@ -623,6 +633,8 @@ def stats_generate_handler(args: argparse.Namespace):
                         # Meen it's are different blockchain type
                         continue
 
+                    subscriptions_count += 1
+
                     s3_data_object: Dict[str, Any] = {}
 
                     extention_data = []
@@ -631,7 +643,17 @@ def stats_generate_handler(args: argparse.Namespace):
                         "address"
                     ]
 
+                    crawler_label = CRAWLER_LABEL
+
+                    if address in (
+                        "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+                        "0xA2a13cE1824F3916fC84C65e559391fc6674e6e8",
+                    ):
+                        crawler_label = "moonworm"
+
                     generic = dashboard_subscription_filters["generic"]
+
+                    generic_metrics_names = [item["name"] for item in generic]
 
                     if not subscription_by_id[subscription_id].resource_data["abi"]:
 
@@ -683,6 +705,7 @@ def stats_generate_handler(args: argparse.Namespace):
                                 db_session=db_session,
                                 blockchain_type=blockchain_type,
                                 address=address,
+                                crawler_label=crawler_label,
                             ),
                         }
                     )
@@ -699,6 +722,7 @@ def stats_generate_handler(args: argparse.Namespace):
                                     select_expression=get_label_model(blockchain_type),
                                     blockchain_type=blockchain_type,
                                     address=address,
+                                    crawler_label=crawler_label,
                                 ),
                             }
                         )
@@ -719,6 +743,7 @@ def stats_generate_handler(args: argparse.Namespace):
                                     ),
                                     blockchain_type=blockchain_type,
                                     address=address,
+                                    crawler_label=crawler_label,
                                 ),
                             }
                         )
@@ -747,6 +772,7 @@ def stats_generate_handler(args: argparse.Namespace):
                             functions=methods,
                             start=start_date,
                             metric_type="tx_call",
+                            crawler_label=crawler_label,
                         )
 
                         s3_data_object["functions"] = functions_calls_data
@@ -759,6 +785,7 @@ def stats_generate_handler(args: argparse.Namespace):
                             functions=events,
                             start=start_date,
                             metric_type="event",
+                            crawler_label=crawler_label,
                         )
 
                         s3_data_object["events"] = events_data
@@ -768,7 +795,7 @@ def stats_generate_handler(args: argparse.Namespace):
                             blockchain_type=blockchain_type,
                             address=address,
                             timescale=timescale,
-                            metrics=generic,
+                            metrics=generic_metrics_names,
                             start=start_date,
                         )
 
@@ -794,7 +821,7 @@ def stats_generate_handler(args: argparse.Namespace):
 
         reporter.custom_report(
             title=f"Dashboard stats generated.",
-            content=f"Generate statistics for {args.blockchain}. \n Generation time: {time.time() - start_time}.",
+            content=f"Generate statistics for {args.blockchain}. \n Generation time: {time.time() - start_time}. \n Total amount of dashboards: {len(dashboard_resources.resources)}. Generate stats for {subscriptions_count}.",
             tags=["dashboard", "statistics", f"blockchain:{args.blockchain}"],
         )
 

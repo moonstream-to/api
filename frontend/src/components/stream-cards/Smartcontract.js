@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Flex,
   Text,
@@ -14,13 +14,11 @@ import {
   chakra,
 } from "@chakra-ui/react";
 import moment from "moment";
-import UIContext from "../../core/providers/UIProvider/context";
 import { useToast } from "../../core/hooks";
 import { useSubscriptions } from "../../core/hooks";
 
 const SmartcontractCard_ = ({ entry, showOnboardingTooltips, className }) => {
   const { subscriptionsCache, subscriptionTypeIcons } = useSubscriptions();
-  const ui = useContext(UIContext);
   const [copyString, setCopyString] = useState(false);
   const [icon, setIcon] = useState(null);
   const { onCopy, hasCopied } = useClipboard(copyString, 1);

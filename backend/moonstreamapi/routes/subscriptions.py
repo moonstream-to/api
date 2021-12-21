@@ -9,9 +9,11 @@ from typing import Any, Dict, List, Optional
 import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, Depends, Request, Form, BackgroundTasks
 from web3 import Web3
 
+from ..actions import validate_abi_json, upload_abi_to_s3, apply_moonworm_tasks
+from ..admin import subscription_types
 from .. import data
 from ..actions import upload_abi_to_s3, validate_abi_json
 from ..admin import subscription_types
@@ -37,6 +39,7 @@ BUGOUT_RESOURCE_TYPE_SUBSCRIPTION = "subscription"
 @router.post("/", tags=["subscriptions"], response_model=data.SubscriptionResourceData)
 async def add_subscription_handler(
     request: Request,  # subscription_data: data.CreateSubscriptionRequest = Body(...)
+    background_tasks: BackgroundTasks,
     address: str = Form(...),
     color: str = Form(...),
     label: str = Form(...),
@@ -139,6 +142,13 @@ async def add_subscription_handler(
             logger.error(f"Error getting user subscriptions: {str(e)}")
             raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
+        background_tasks.add_task(
+            apply_moonworm_tasks,
+            subscription_type_id,
+            json_abi,
+            address,
+        )
+
     return data.SubscriptionResourceData(
         id=str(resource.id),
         user_id=resource.resource_data["user_id"],
@@ -230,6 +240,7 @@ async def get_subscriptions_handler(request: Request) -> data.SubscriptionsListR
 async def update_subscriptions_handler(
     request: Request,
     subscription_id: str,
+    background_tasks: BackgroundTasks,
     color: Optional[str] = Form(None),
     label: Optional[str] = Form(None),
     abi: Optional[str] = Form(None),
@@ -296,6 +307,14 @@ async def update_subscriptions_handler(
     except Exception as e:
         logger.error(f"Error getting user subscriptions: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    if abi:
+        background_tasks.add_task(
+            apply_moonworm_tasks,
+            subscription_resource.resource_data["subscription_type_id"],
+            json_abi,
+            subscription_resource.resource_data["address"],
+        )
 
     return data.SubscriptionResourceData(
         id=str(resource.id),
