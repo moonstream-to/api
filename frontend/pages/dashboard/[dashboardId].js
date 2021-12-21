@@ -20,7 +20,6 @@ import { useRouter, useSubscriptions } from "../../src/core/hooks";
 import { BiTrash } from "react-icons/bi";
 import OverlayContext from "../../src/core/providers/OverlayProvider/context";
 import SubscriptionReport from "../../src/components/SubscriptionReport";
-import { v4 } from "uuid";
 import { DRAWER_TYPES } from "../../src/core/providers/OverlayProvider/constants";
 import Page404 from "../../src/components/FourOFour";
 import { BsGear } from "react-icons/bs";
@@ -158,7 +157,7 @@ const Analytics = () => {
               )?.label;
               return (
                 <Flex
-                  key={v4()}
+                  key={`${dashboardId}-subscription-report-${key}`}
                   flexBasis={plotMinW}
                   flexGrow={1}
                   minW={plotMinW}

@@ -103,4 +103,4 @@ const Report = ({ data, timeRange }) => {
   );
 };
 
-export default Report;
+export default React.memo(Report);

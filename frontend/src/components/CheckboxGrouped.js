@@ -1,6 +1,5 @@
 import React from "react";
 import { Stack, Checkbox } from "@chakra-ui/react";
-import { v4 } from "uuid";
 
 const CheckboxGroupped = ({
   groupName,
@@ -27,7 +26,7 @@ const CheckboxGroupped = ({
           return (
             <Stack
               px={2}
-              key={v4()}
+              key={`list-item-checkbox-${idx}`}
               direction="row"
               bgColor={idx % 2 == 0 ? "gray.50" : "gray.100"}
             >
