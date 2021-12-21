@@ -36,11 +36,29 @@ var MOONSTREAM_NODE_POLYGON_B_IPC_ADDR = os.Getenv("MOONSTREAM_NODE_POLYGON_B_IP
 var MOONSTREAM_NODE_POLYGON_IPC_PORT = os.Getenv("MOONSTREAM_NODE_POLYGON_IPC_PORT")
 var MOONSTREAM_NODES_SERVER_PORT = os.Getenv("MOONSTREAM_NODES_SERVER_PORT")
 
-// Return list of NodeConfig structures
-func (nc *NodeConfigList) InitNodeConfigList() {
-	if MOONSTREAM_NODES_SERVER_PORT == "" || MOONSTREAM_NODE_ETHEREUM_A_IPC_ADDR == "" || MOONSTREAM_NODE_ETHEREUM_B_IPC_ADDR == "" || MOONSTREAM_NODE_ETHEREUM_IPC_PORT == "" || MOONSTREAM_NODE_POLYGON_A_IPC_ADDR == "" || MOONSTREAM_NODE_POLYGON_B_IPC_ADDR == "" || MOONSTREAM_NODE_POLYGON_IPC_PORT == "" {
+func checkEnvVarSet() {
+	if MOONSTREAM_NODE_ETHEREUM_A_IPC_ADDR == "" {
+		MOONSTREAM_NODE_ETHEREUM_A_IPC_ADDR = "a.ethereum.moonstream.internal"
+	}
+	if MOONSTREAM_NODE_ETHEREUM_B_IPC_ADDR == "" {
+		MOONSTREAM_NODE_ETHEREUM_B_IPC_ADDR = "b.ethereum.moonstream.internal"
+	}
+
+	if MOONSTREAM_NODE_POLYGON_A_IPC_ADDR == "" {
+		MOONSTREAM_NODE_POLYGON_A_IPC_ADDR = "a.polygon.moonstream.internal"
+	}
+	if MOONSTREAM_NODE_POLYGON_B_IPC_ADDR == "" {
+		MOONSTREAM_NODE_POLYGON_B_IPC_ADDR = "b.polygon.moonstream.internal"
+	}
+	
+	if MOONSTREAM_NODES_SERVER_PORT == "" || MOONSTREAM_NODE_ETHEREUM_IPC_PORT == "" || MOONSTREAM_NODE_POLYGON_IPC_PORT == "" {
 		log.Fatal("Some of environment variables not set")
 	}
+}
+
+// Return list of NodeConfig structures
+func (nc *NodeConfigList) InitNodeConfigList() {
+	checkEnvVarSet()
 
 	// Define available blockchain nodes
 	blockchainConfigList := make([]BlockchainConfig, 0, 2)

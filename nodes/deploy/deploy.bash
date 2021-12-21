@@ -19,7 +19,6 @@ APP_DIR="${APP_DIR:-/home/ubuntu/moonstream}"
 APP_NODES_DIR="${APP_DIR}/nodes"
 PYTHON_ENV_DIR="${PYTHON_ENV_DIR:-/home/ubuntu/moonstream-env}"
 PYTHON="${PYTHON_ENV_DIR}/bin/python"
-PIP="${PYTHON_ENV_DIR}/bin/pip"
 SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/moonstream-secrets}"
 PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
 AWS_SSM_PARAMETER_PATH="${AWS_SSM_PARAMETER_PATH:-/moonstream/prod}"
@@ -27,7 +26,6 @@ SCRIPT_DIR="$(realpath $(dirname $0))"
 
 # Parameters scripts
 PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.py"
-CHECKENV_PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.bash"
 CHECKENV_NODES_CONNECTIONS_SCRIPT="${SCRIPT_DIR}/nodes-connections.bash"
 
 # Service file
@@ -37,27 +35,32 @@ set -eu
 
 echo
 echo
-echo -e "${PREFIX_INFO} Building executable load balancer for nodes script with Go"
-EXEC_DIR=$(pwd)
-cd "${APP_NODES_DIR}/node_balancer"
-HOME=/root /usr/local/go/bin/go build -o "${APP_NODES_DIR}/node_balancer/nodebalancer" "${APP_NODES_DIR}/node_balancer/main.go"
-cd "${EXEC_DIR}"
-
-echo
-echo
 echo -e "${PREFIX_INFO} Retrieving deployment parameters"
 mkdir -p "${SECRETS_DIR}"
 AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" "${PYTHON}" "${PARAMETERS_SCRIPT}" extract -p "${AWS_SSM_PARAMETER_PATH}" -o "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
+echo -e "${PREFIX_INFO} Install checkenv"
+HOME=/root /usr/local/go/bin/go install github.com/bugout-dev/checkenv@latest
+
+echo
+echo
 echo -e "${PREFIX_INFO} Retrieving addition deployment parameters"
-bash "${CHECKENV_PARAMETERS_SCRIPT}" -v -p "moonstream" -o "${PARAMETERS_ENV_PATH}"
+HOME=/root AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" $HOME/go/bin/checkenv show aws_ssm+Product:moonstream >> "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
 echo -e "${PREFIX_INFO} Updating nodes connection parameters"
 bash "${CHECKENV_NODES_CONNECTIONS_SCRIPT}" -v -f "${PARAMETERS_ENV_PATH}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Building executable load balancer for nodes script with Go"
+EXEC_DIR=$(pwd)
+cd "${APP_NODES_DIR}/node_balancer"
+HOME=/root /usr/local/go/bin/go build -o "${APP_NODES_DIR}/node_balancer/nodebalancer" "${APP_NODES_DIR}/node_balancer/main.go"
+cd "${EXEC_DIR}"
 
 echo
 echo

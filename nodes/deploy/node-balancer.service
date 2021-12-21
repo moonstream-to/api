@@ -11,7 +11,7 @@ WorkingDirectory=/home/ubuntu/moonstream/nodes/node_balancer
 EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
 Restart=on-failure
 RestartSec=15s
-ExecStart=/home/ubuntu/moonstream/nodes/node_balancer/nodebalancer -host 0.0.0.0 -port 8544 -healthcheck
+ExecStart=/home/ubuntu/moonstream/nodes/node_balancer/nodebalancer -host "$(ec2metadata --local-ipv4)" -port 8544 -healthcheck
 SyslogIdentifier=node-balancer
 
 [Install]

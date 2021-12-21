@@ -21,9 +21,9 @@ func pingRoute(w http.ResponseWriter, r *http.Request) {
 func lbHandler(w http.ResponseWriter, r *http.Request) {
 	var blockchain string
 	switch {
-	case strings.HasPrefix(r.URL.Path, "/lb/ethereum"):
+	case strings.HasPrefix(r.URL.Path, "/nb/ethereum"):
 		blockchain = "ethereum"
-	case strings.HasPrefix(r.URL.Path, "/lb/polygon"):
+	case strings.HasPrefix(r.URL.Path, "/nb/polygon"):
 		blockchain = "polygon"
 	default:
 		http.Error(w, fmt.Sprintf("Unacceptable blockchain provided %s", blockchain), http.StatusBadRequest)
@@ -41,11 +41,11 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 	r.Header.Add("X-Origin-Path", r.URL.Path)
 
 	switch {
-	case strings.HasPrefix(r.URL.Path, fmt.Sprintf("/lb/%s/ping", blockchain)):
+	case strings.HasPrefix(r.URL.Path, fmt.Sprintf("/nb/%s/ping", blockchain)):
 		r.URL.Path = "/ping"
 		peer.StatusReverseProxy.ServeHTTP(w, r)
 		return
-	case strings.HasPrefix(r.URL.Path, fmt.Sprintf("/lb/%s/rpc", blockchain)):
+	case strings.HasPrefix(r.URL.Path, fmt.Sprintf("/nb/%s/rpc", blockchain)):
 		r.URL.Path = "/"
 		peer.GethReverseProxy.ServeHTTP(w, r)
 		return
