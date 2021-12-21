@@ -5,7 +5,7 @@ import { DashboardService } from "../services";
 import { useContext } from "react";
 import UserContext from "../providers/UserProvider/context";
 
-const useDashboard = (dashboardId) => {
+const useDashboard = (dashboardId, timeRange) => {
   const toast = useToast();
   const router = useRouter();
   const { user } = useContext(UserContext);
@@ -74,12 +74,26 @@ const useDashboard = (dashboardId) => {
     }
   );
 
+  const refreshDashboard = useQuery(
+    ["dashboardRefresh", { dashboardId }],
+    () => DashboardService.refreshDashboard(dashboardId, timeRange),
+    {
+      ...queryCacheProps,
+      enabled: false,
+      onError: (error) => {
+        toast(error, "error");
+      },
+      enabled: !!user && !!dashboardId,
+    }
+  );
+
   return {
     createDashboard,
     dashboardsListCache,
     dashboardCache,
     deleteDashboard,
     dashboardLinksCache,
+    refreshDashboard,
   };
 };
 

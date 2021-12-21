@@ -94,8 +94,12 @@ const Analytics = () => {
   const [timeRange, setTimeRange] = useState(timeMap[MINUTE_KEY]);
   const router = useRouter();
   const { dashboardId } = router.params;
-  const { dashboardCache, dashboardLinksCache, deleteDashboard } =
-    useDashboard(dashboardId);
+  const {
+    dashboardCache,
+    dashboardLinksCache,
+    deleteDashboard,
+    refreshDashboard,
+  } = useDashboard(dashboardId, timeRange);
 
   const { subscriptionsCache } = useSubscriptions();
 
@@ -218,6 +222,7 @@ const Analytics = () => {
                   url={s3PresignedURLs[timeRange]}
                   id={dashboardId}
                   refetchLinks={dashboardLinksCache.refetch}
+                  refreshDashboard={refreshDashboard}
                 />
               </Flex>
             );

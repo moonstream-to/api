@@ -434,9 +434,9 @@ async def get_dashboard_data_links_handler(
     return stats
 
 
-@router.get("/{dashboard_id}/stats_update", tags=["dashboards"])
+@router.post("/{dashboard_id}/stats_update", tags=["dashboards"])
 async def update_dashbord_data_handler(
-    request: Request, dashboard_id: str, timescale: str
+    request: Request, dashboard_id: str, updatestats: data.UpdateStats
 ) -> Dict[str, Any]:
     """
     Return journal statistics
@@ -445,12 +445,17 @@ async def update_dashbord_data_handler(
 
     token = request.state.token
 
-    requests.get(
+    responce = requests.post(
         f"{MOONSTREAM_CRAWLERS_INTERNAL}/jobs/stats_update",
-        params={
+        json={
             "dashboard_id": dashboard_id,
-            "timescale": timescale,
+            "timescales": updatestats.timescales,
             "token": token,
         },
     )
-    return {"status": "task send"}
+    if responce.status_code != 200:
+        raise MoonstreamHTTPException(
+            status_code=responce.status_code,
+            detail="Task for start generate stats failed.",
+        )
+    return responce.json()

@@ -1,7 +1,7 @@
 import React from "react";
 import { usePresignedURL } from "../core/hooks";
 import Report from "./Report";
-import { Spinner, Flex, Heading, Text } from "@chakra-ui/react";
+import { Spinner, Flex, Heading, Text, IconButton } from "@chakra-ui/react";
 import { v4 } from "uuid";
 
 const HOUR_KEY = "Hourly";
@@ -12,8 +12,14 @@ timeMap[HOUR_KEY] = "hour";
 timeMap[DAY_KEY] = "day";
 timeMap[WEEK_KEY] = "week";
 
-const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
-  const { data, isLoading } = usePresignedURL({
+const SubscriptionReport = ({
+  timeRange,
+  url,
+  id,
+  refetchLinks,
+  refreshDashboard,
+}) => {
+  const { data, isLoading, refetch, dataUpdatedAt } = usePresignedURL({
     url: url,
     isEnabled: true,
     id: id,
@@ -22,6 +28,13 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
   });
   const plotMinW = "250px";
   if (!data || isLoading) return <Spinner />;
+
+  const referesh_graf = function () {
+    refreshDashboard.refetch();
+    dataUpdatedAt = new Date().toUTCString();
+    refetch();
+  };
+
   return (
     <Flex
       w="100%"
@@ -30,6 +43,15 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
       flexBasis={plotMinW}
       direction="column"
     >
+      <IconButton
+        icon={<RepeatIcon />}
+        variant="ghost"
+        colorScheme="green"
+        size="sm"
+        onClick={() => {
+          referesh_graf();
+        }}
+      />
       <Flex
         bgColor="blue.50"
         direction={["column", "row", null]}

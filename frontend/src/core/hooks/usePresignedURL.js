@@ -14,17 +14,27 @@ const usePresignedURL = ({
   const toast = useToast();
 
   const getFromPresignedURL = async () => {
+    const queryState = queryClient.getQueryState([
+      "presignedURL",
+      cacheType,
+      id,
+      url,
+    ]);
+
     const response = await axios({
       url: url,
       // You can uncomment this to use mockupsLibrary in development
       // url: `https://example.com/s3`,
       method: "GET",
+      headers: {
+        "If-Modified-Since": queryState?.dataUpdatedAt,
+      },
     });
     return response.data;
   };
 
-  const { data, isLoading, error, refetch } = useQuery(
-    [`${cacheType}`, { id }],
+  const { data, isLoading, failureCount, refetch, dataUpdatedAt } = useQuery(
+    [`${cacheType}`, id, url],
     getFromPresignedURL,
     {
       ...queryCacheProps,
@@ -52,6 +62,9 @@ const usePresignedURL = ({
     data,
     isLoading,
     error,
+    failureCount,
+    dataUpdatedAt,
+    refetch,
   };
 };
 

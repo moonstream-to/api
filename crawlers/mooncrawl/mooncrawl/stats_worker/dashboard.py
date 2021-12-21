@@ -799,33 +799,18 @@ def stats_generate_handler(args: argparse.Namespace):
         )
 
 
-def stats_generate_api_task(token: UUID, timescale: str, dashboard_id: str):
+def stats_generate_api_task(
+    token: UUID,
+    timescales: List[str],
+    dashboard: BugoutResource,
+    subscription_by_id: Dict[str, BugoutResource],
+    dashboard_id: str,
+):
     """
     Start crawler with generate.
     """
 
     with yield_db_session_ctx() as db_session:
-
-        dashboard: BugoutResource = bc.get_resource(
-            token=token,
-            resource_id=dashboard_id,
-            timeout=10,
-        )
-
-        # get all user subscriptions
-
-        blockchain_subscriptions: BugoutResources = bc.list_resources(
-            token=token,
-            params={"type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION},
-            timeout=10,
-        )
-
-        # Create subscriptions dict for get subscriptions by id.
-
-        subscription_by_id = {
-            str(blockchain_subscription.id): blockchain_subscription
-            for blockchain_subscription in blockchain_subscriptions.resources
-        }
 
         print(f"Amount of blockchain subscriptions: {len(subscription_by_id)}")
 
@@ -945,56 +930,58 @@ def stats_generate_api_task(token: UUID, timescale: str, dashboard_id: str):
                     db_session=db_session, blockchain_type=blockchain_type
                 )
 
-                start_date = (
-                    datetime.utcnow() - timescales_delta[timescale]["timedelta"]
-                )
+                for timescale in timescales:
 
-                print(f"Timescale: {timescale}")
+                    start_date = (
+                        datetime.utcnow() - timescales_delta[timescale]["timedelta"]
+                    )
 
-                s3_data_object["blocks_state"] = current_blocks_state
+                    print(f"Timescale: {timescale}")
 
-                s3_data_object["web3_metric"] = extention_data
+                    s3_data_object["blocks_state"] = current_blocks_state
 
-                functions_calls_data = generate_data(
-                    db_session=db_session,
-                    blockchain_type=blockchain_type,
-                    address=address,
-                    timescale=timescale,
-                    functions=methods,
-                    start=start_date,
-                    metric_type="tx_call",
-                )
+                    s3_data_object["web3_metric"] = extention_data
 
-                s3_data_object["functions"] = functions_calls_data
+                    functions_calls_data = generate_data(
+                        db_session=db_session,
+                        blockchain_type=blockchain_type,
+                        address=address,
+                        timescale=timescale,
+                        functions=methods,
+                        start=start_date,
+                        metric_type="tx_call",
+                    )
 
-                events_data = generate_data(
-                    db_session=db_session,
-                    blockchain_type=blockchain_type,
-                    address=address,
-                    timescale=timescale,
-                    functions=events,
-                    start=start_date,
-                    metric_type="event",
-                )
+                    s3_data_object["functions"] = functions_calls_data
 
-                s3_data_object["events"] = events_data
+                    events_data = generate_data(
+                        db_session=db_session,
+                        blockchain_type=blockchain_type,
+                        address=address,
+                        timescale=timescale,
+                        functions=events,
+                        start=start_date,
+                        metric_type="event",
+                    )
 
-                s3_data_object["generic"] = generate_metrics(
-                    db_session=db_session,
-                    blockchain_type=blockchain_type,
-                    address=address,
-                    timescale=timescale,
-                    metrics=generic,
-                    start=start_date,
-                )
+                    s3_data_object["events"] = events_data
 
-                push_statistics(
-                    statistics_data=s3_data_object,
-                    subscription=subscription_by_id[subscription_id],
-                    timescale=timescale,
-                    bucket=bucket,
-                    dashboard_id=dashboard.id,
-                )
+                    s3_data_object["generic"] = generate_metrics(
+                        db_session=db_session,
+                        blockchain_type=blockchain_type,
+                        address=address,
+                        timescale=timescale,
+                        metrics=generic,
+                        start=start_date,
+                    )
+
+                    push_statistics(
+                        statistics_data=s3_data_object,
+                        subscription=subscription_by_id[subscription_id],
+                        timescale=timescale,
+                        bucket=bucket,
+                        dashboard_id=dashboard.id,
+                    )
             except Exception as err:
                 reporter.error_report(
                     err,
