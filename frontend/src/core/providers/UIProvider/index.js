@@ -260,26 +260,12 @@ const UIProvider = ({ children }) => {
   }, [onboardingStep, router.nextRouter.pathname, user, isAppReady]);
 
   useEffect(() => {
-    if (
-      isInit &&
-      router.nextRouter.isReady &&
-      onboardingState &&
-      !isLoggingOut &&
-      !isLoggingIn &&
-      onboardingRedirectCheckPassed
-    ) {
+    if (isInit && router.nextRouter.isReady && !isLoggingOut && !isLoggingIn) {
       setAppReady(true);
     } else {
       setAppReady(false);
     }
-  }, [
-    isInit,
-    router,
-    onboardingState,
-    isLoggingOut,
-    isLoggingIn,
-    onboardingRedirectCheckPassed,
-  ]);
+  }, [isInit, router, isLoggingOut, isLoggingIn]);
 
   //***************New chart item 's state  ************************/
   const dashboardUpdateReducer = useCallback(

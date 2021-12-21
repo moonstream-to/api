@@ -46,9 +46,9 @@ const AccountIconButton = (props) => {
         </MenuGroup>
         <MenuDivider />
         {ui.isMobileView &&
-          ALL_NAV_PATHES.map((pathToLink) => {
+          ALL_NAV_PATHES.map((pathToLink, idx) => {
             return (
-              <MenuItem key={v4()}>
+              <MenuItem key={`AccountIconButton-All_nav_pathes-${idx}`}>
                 <RouterLink href={pathToLink.path}>
                   {pathToLink.title}
                 </RouterLink>

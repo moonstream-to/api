@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { usePresignedURL } from "../core/hooks";
 import Report from "./Report";
 import {
@@ -30,6 +30,27 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
     hideToastOn404: true,
   });
   const plotMinW = "250px";
+  const eventKeys = useMemo(
+    () =>
+      Object.keys(data?.events ?? {}).length > 0
+        ? Object.keys(data?.events)
+        : undefined,
+    [data]
+  );
+  const methodKeys = useMemo(
+    () =>
+      Object.keys(data?.methods ?? {}).length > 0
+        ? Object.keys(data?.methods)
+        : undefined,
+    [data]
+  );
+  const genericKeys = useMemo(
+    () =>
+      Object.keys(data?.generic ?? {}).length > 0
+        ? Object.keys(data?.generic)
+        : undefined,
+    [data]
+  );
   if (failureCount < 1 && (!data || isLoading)) return <Spinner />;
   if (failureCount >= 1 && (!data || isLoading))
     return (
@@ -79,7 +100,7 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
         flexWrap="wrap"
         alignContent={["inherit", "flex-start", null]}
       >
-        {data?.web3_metric.map((metric) => {
+        {data?.web3_metric.map((metric, web3MetricIndex) => {
           return (
             <Flex
               flexGrow={1}
@@ -88,7 +109,7 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
               p={2}
               m={1}
               bgColor="blue.100"
-              key={v4()}
+              key={`web3-metric-${web3MetricIndex}`}
               size="sm"
               fontWeight="600"
               boxShadow="sm"
@@ -111,7 +132,7 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
           );
         })}
       </Flex>
-      {data?.events && Object.keys(data?.events) && (
+      {data?.events && eventKeys && (
         <Flex
           w="100%"
           h="auto"
@@ -122,10 +143,10 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
           <Heading size="md" pt={4}>
             Events
           </Heading>
-          {Object.keys(data.events).map((key) => {
+          {eventKeys.map((key) => {
             return (
               <Flex
-                key={v4()}
+                key={`events-list-${key}`}
                 flexBasis={plotMinW}
                 flexGrow={1}
                 minW={plotMinW}
@@ -154,7 +175,7 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
           })}
         </Flex>
       )}
-      {data?.functions && Object.keys(data?.functions) && (
+      {data?.functions && methodKeys && (
         <Flex
           w="100%"
           h="auto"
@@ -165,10 +186,10 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
           <Heading size="md" pt={4}>
             functions
           </Heading>
-          {Object.keys(data.functions).map((key) => {
+          {methodKeys.map((key) => {
             return (
               <Flex
-                key={v4()}
+                key={`methods-list-${key}`}
                 flexBasis={plotMinW}
                 flexGrow={1}
                 minW={plotMinW}
@@ -197,7 +218,7 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
           })}
         </Flex>
       )}
-      {data?.generic && Object.keys(data?.generic) && (
+      {data?.generic && genericKeys && (
         <Flex
           w="100%"
           h="auto"
@@ -211,7 +232,7 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
           {Object.keys(data.generic).map((key) => {
             return (
               <Flex
-                key={v4()}
+                key={`generics-list-${key}`}
                 flexBasis={plotMinW}
                 flexGrow={1}
                 minW={plotMinW}
@@ -244,4 +265,4 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
   );
 };
 
-export default SubscriptionReport;
+export default React.memo(SubscriptionReport);

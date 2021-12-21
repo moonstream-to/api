@@ -1,6 +1,5 @@
 import React, { useContext } from "react";
 import Downshift from "downshift";
-import { v4 } from "uuid";
 import {
   Stack,
   Box,
@@ -124,7 +123,7 @@ const AutoCompleter = ({
                           px={4}
                           py={1}
                           alignItems="center"
-                          key={v4()}
+                          key={`autocomplete-item-${index}`}
                           {...getItemProps({
                             index,
                             item,

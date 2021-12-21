@@ -102,9 +102,9 @@ const Sidebar = () => {
                 Login
               </MenuItem>
               {ui.isMobileView &&
-                ALL_NAV_PATHES.map((pathToLink) => {
+                ALL_NAV_PATHES.map((pathToLink, linkItemIndex) => {
                   return (
-                    <MenuItem key={v4()}>
+                    <MenuItem key={`mobile-all-nav-path-item-${linkItemIndex}`}>
                       <RouterLink href={pathToLink.path}>
                         {pathToLink.title}
                       </RouterLink>
