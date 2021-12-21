@@ -45,7 +45,7 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 		r.URL.Path = "/ping"
 		peer.StatusReverseProxy.ServeHTTP(w, r)
 		return
-	case strings.HasPrefix(r.URL.Path, fmt.Sprintf("/nb/%s/rpc", blockchain)):
+	case strings.HasPrefix(r.URL.Path, fmt.Sprintf("/nb/%s/ipc", blockchain)):
 		r.URL.Path = "/"
 		peer.GethReverseProxy.ServeHTTP(w, r)
 		return
