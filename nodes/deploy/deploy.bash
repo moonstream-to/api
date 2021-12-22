@@ -48,6 +48,11 @@ HOME=/root AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" $HOME/go/bin/checkenv show
 
 echo
 echo
+echo -e "${PREFIX_INFO} Add instance local IP to parameters"
+echo "AWS_LOCAL_IPV4=$(ec2metadata --local-ipv4)" >> "${PARAMETERS_ENV_PATH}"
+
+echo
+echo
 echo -e "${PREFIX_INFO} Building executable load balancer for nodes script with Go"
 EXEC_DIR=$(pwd)
 cd "${APP_NODES_DIR}/node_balancer"
