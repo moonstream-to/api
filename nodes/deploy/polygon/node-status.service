@@ -1,0 +1,14 @@
+[Unit]
+Description=Moonstream node status server
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/moonstream/nodes/server
+EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
+ExecStart=/home/ubuntu/moonstream/nodes/server/nodestatus -blockchain polygon -host "${AWS_LOCAL_IPV4}" -port 8734
+SyslogIdentifier=node-status
+
+[Install]
+WantedBy=multi-user.target
