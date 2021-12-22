@@ -865,6 +865,14 @@ def stats_generate_api_task(
 
                 address = subscription_by_id[subscription_id].resource_data["address"]
 
+                crawler_label = CRAWLER_LABEL
+
+                if address in (
+                    "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+                    "0xA2a13cE1824F3916fC84C65e559391fc6674e6e8",
+                ):
+                    crawler_label = "moonworm"
+
                 generic = dashboard_subscription_filters["generic"]
 
                 if not subscription_by_id[subscription_id].resource_data["abi"]:
@@ -913,6 +921,7 @@ def stats_generate_api_task(
                             db_session=db_session,
                             blockchain_type=blockchain_type,
                             address=address,
+                            crawler_label=crawler_label,
                         ),
                     }
                 )
@@ -929,6 +938,7 @@ def stats_generate_api_task(
                                 select_expression=get_label_model(blockchain_type),
                                 blockchain_type=blockchain_type,
                                 address=address,
+                                crawler_label=crawler_label,
                             ),
                         }
                     )
@@ -949,6 +959,7 @@ def stats_generate_api_task(
                                 ),
                                 blockchain_type=blockchain_type,
                                 address=address,
+                                crawler_label=crawler_label,
                             ),
                         }
                     )
@@ -977,6 +988,7 @@ def stats_generate_api_task(
                         functions=methods,
                         start=start_date,
                         metric_type="tx_call",
+                        crawler_label=crawler_label,
                     )
 
                     s3_data_object["functions"] = functions_calls_data
@@ -989,6 +1001,7 @@ def stats_generate_api_task(
                         functions=events,
                         start=start_date,
                         metric_type="event",
+                        crawler_label=crawler_label,
                     )
 
                     s3_data_object["events"] = events_data

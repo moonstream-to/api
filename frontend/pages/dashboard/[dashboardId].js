@@ -13,6 +13,7 @@ import {
   EditablePreview,
   Button,
 } from "@chakra-ui/react";
+import { RepeatIcon } from "@chakra-ui/icons";
 import Scrollable from "../../src/components/Scrollable";
 import RangeSelector from "../../src/components/RangeSelector";
 import useDashboard from "../../src/core/hooks/useDashboard";
@@ -46,7 +47,7 @@ const Analytics = () => {
     deleteDashboard,
     updateDashboard,
     refreshDashboard,
-  } = useDashboard(dashboardId, timeRange);
+  } = useDashboard(dashboardId);
 
   const { subscriptionsCache } = useSubscriptions();
 
@@ -87,6 +88,13 @@ const Analytics = () => {
   }
 
   const plotMinW = "250px";
+
+  const referesh_graf = function () {
+    refreshDashboard.mutate({
+      timeRange: timeRange,
+      dashboardId: dashboardCache.data.id,
+    });
+  };
 
   return (
     <Scrollable>
@@ -148,6 +156,15 @@ const Analytics = () => {
             variant="outline"
             icon={<BsGear />}
           />
+          <IconButton
+            icon={<RepeatIcon />}
+            variant="ghost"
+            colorScheme="green"
+            size="sm"
+            onClick={() => {
+              referesh_graf();
+            }}
+          />
         </Stack>
 
         <Flex w="100%" direction="row" flexWrap="wrap-reverse" id="container">
@@ -177,12 +194,12 @@ const Analytics = () => {
                   >
                     {name ?? ""}
                   </Text>
+
                   <SubscriptionReport
                     timeRange={timeRange}
                     url={s3PresignedURLs[timeRange]}
                     id={dashboardId}
                     refetchLinks={dashboardLinksCache.refetch}
-                    refreshDashboard={refreshDashboard}
                   />
                 </Flex>
               );

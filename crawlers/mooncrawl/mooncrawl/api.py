@@ -1,6 +1,7 @@
 """
 The Mooncrawl HTTP API
 """
+from datetime import datetime, timedelta
 import logging
 from os import times
 import time
@@ -141,12 +142,16 @@ async def status_handler(
                 stats_presigned_url = s3_client.generate_presigned_url(
                     "get_object",
                     Params={
+                        # "IfModifiedSince": datetime(2015, 1, 1),
+                        # "IfUnmodifiedSince": datetime(2015, 1, 1),
+                        "IfMatch": "757ab3614c58b5a184457d34dd104238",
                         "Bucket": subscription.resource_data["bucket"],
                         "Key": result_key,
                     },
                     ExpiresIn=300,
                     HttpMethod="GET",
                 )
+                print("stats_presigned_url", stats_presigned_url)
                 presigned_urls_response[subscription.id][
                     timescale
                 ] = stats_presigned_url

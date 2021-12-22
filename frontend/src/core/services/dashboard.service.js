@@ -46,7 +46,7 @@ export const getDashboardLinks = (dashboardId) => {
   });
 };
 
-export const refreshDashboard = (dashboardId, timeRange) => {
+export const refreshDashboard = ({ dashboardId, timeRange }) => {
   return http({
     method: "POST",
     url: `${API_URL}/dashboards/${dashboardId}/stats_update`,
