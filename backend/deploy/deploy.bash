@@ -24,11 +24,7 @@ SCRIPT_DIR="$(realpath $(dirname $0))"
 SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/moonstream-secrets}"
 PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
 AWS_SSM_PARAMETER_PATH="${AWS_SSM_PARAMETER_PATH:-/moonstream/prod}"
-
-# Parameters scripts
 PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.py"
-CHECKENV_PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.bash"
-CHECKENV_NODES_CONNECTIONS_SCRIPT="${SCRIPT_DIR}/nodes-connections.bash"
 
 # API server service file
 SERVICE_FILE="${SCRIPT_DIR}/moonstreamapi.service"
@@ -53,13 +49,13 @@ AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" "${PYTHON}" "${PARAMETERS_SCRIPT}" "$
 
 echo
 echo
-echo -e "${PREFIX_INFO} Retrieving addition deployment parameters"
-bash "${CHECKENV_PARAMETERS_SCRIPT}" -v -p "moonstream" -o "${PARAMETERS_ENV_PATH}"
+echo -e "${PREFIX_INFO} Install checkenv"
+HOME=/root /usr/local/go/bin/go install github.com/bugout-dev/checkenv@latest
 
 echo
 echo
-echo -e "${PREFIX_INFO} Updating nodes connection parameters"
-bash "${CHECKENV_NODES_CONNECTIONS_SCRIPT}" -v -f "${PARAMETERS_ENV_PATH}"
+echo -e "${PREFIX_INFO} Retrieving addition deployment parameters"
+HOME=/root AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" $HOME/go/bin/checkenv show aws_ssm+Product:moonstream >> "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
