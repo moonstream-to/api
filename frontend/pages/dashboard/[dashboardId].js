@@ -35,7 +35,7 @@ timeMap[MINUTE_KEY] = "day";
 const Analytics = () => {
   const { toggleAlert } = useContext(OverlayContext);
 
-  const [timeRange, setTimeRange] = useState(timeMap[MINUTE_KEY]);
+  const [timeRange, setTimeRange] = useState(timeMap[DAY_KEY]);
   const router = useRouter();
   const overlay = useContext(OverlayContext);
   const { dashboardId } = router.params;
@@ -127,7 +127,7 @@ const Analytics = () => {
           />
           <Spacer />
           <RangeSelector
-            initialRange={MINUTE_KEY}
+            initialRange={DAY_KEY}
             ranges={Object.keys(timeMap)}
             size={["sm", "md", null]}
             onChange={(e) => {
