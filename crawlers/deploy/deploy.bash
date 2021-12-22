@@ -81,6 +81,11 @@ HOME=/root AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" $HOME/go/bin/checkenv show
 
 echo
 echo
+echo -e "${PREFIX_INFO} Add instance local IP to parameters"
+echo "AWS_LOCAL_IPV4=$(ec2metadata --local-ipv4)" >> "${PARAMETERS_ENV_PATH}"
+
+echo
+echo
 echo -e "${PREFIX_INFO} Replacing existing Ethereum block with transactions syncronizer service definition with ${ETHEREUM_SYNCHRONIZE_SERVICE}"
 chmod 644 "${SCRIPT_DIR}/${ETHEREUM_SYNCHRONIZE_SERVICE}"
 cp "${SCRIPT_DIR}/${ETHEREUM_SYNCHRONIZE_SERVICE}" "/etc/systemd/system/${ETHEREUM_SYNCHRONIZE_SERVICE}"
