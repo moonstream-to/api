@@ -10,11 +10,11 @@ ExecStart=/usr/bin/geth --syncmode snap --cache 4096 \
     --datadir /mnt/disks/nodes/ethereum \
     --txpool.globalslots 153600 --txpool.globalqueue 3072 \
     --http --http.api eth,web3,txpool \
-    --http.addr "${MOONSTREAM_NODE_ETHEREUM_IPC_ADDR}" \
-    --http.port "${MOONSTREAM_NODE_ETHEREUM_IPC_PORT}"
+    --http.addr "${AWS_LOCAL_IPV4}" \
+    --http.port 8545
 ExecStop=/bin/kill -s SIGINT -$MAINPID
 TimeoutStopSec=300
-SyslogIdentifier=ethereum-node
+SyslogIdentifier=geth
 
 [Install]
 WantedBy=multi-user.target
