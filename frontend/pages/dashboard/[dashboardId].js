@@ -157,7 +157,7 @@ const Analytics = () => {
               )?.label;
               return (
                 <Flex
-                  key={`${dashboardId}-subscription-report-${key}`}
+                  key={`${dashboardId}-subscription-report-${key}-${timeRange}`}
                   flexBasis={plotMinW}
                   flexGrow={1}
                   minW={plotMinW}
