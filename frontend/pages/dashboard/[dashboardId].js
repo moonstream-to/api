@@ -40,7 +40,6 @@ const Analytics = () => {
   const router = useRouter();
   const overlay = useContext(OverlayContext);
   const { dashboardId } = router.params;
-  const [refreshingStatus, setRefreshingStatus] = useState(false);
   const {
     dashboardCache,
     dashboardLinksCache,
@@ -89,13 +88,11 @@ const Analytics = () => {
 
   const plotMinW = "250px";
 
-  const referesh_graf = function () {
+  const referesh_charts = () => {
     refreshDashboard.mutate({
       dashboardId: dashboardCache.data.id,
-      setStatus: setRefreshingStatus,
       timeRange: timeRange,
     });
-    setRefreshingStatus(true);
   };
 
   return (
@@ -159,13 +156,15 @@ const Analytics = () => {
             icon={<BsGear />}
           />
           <IconButton
-            isLoading={refreshingStatus}
+            isLoading={
+              refreshDashboard.isLoading || refreshDashboard.isFetching
+            }
             icon={<RepeatIcon />}
             variant="ghost"
             colorScheme="green"
             size="sm"
             onClick={() => {
-              referesh_graf();
+              referesh_charts();
             }}
           />
         </Stack>
@@ -203,8 +202,6 @@ const Analytics = () => {
                     presignedRequest={s3PresignedURLs[timeRange]}
                     id={dashboardId}
                     refetchLinks={dashboardLinksCache.refetch}
-                    refreshingStatus={refreshingStatus}
-                    setRefreshingStatus={setRefreshingStatus}
                   />
                 </Flex>
               );

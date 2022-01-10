@@ -27,7 +27,7 @@ const SubscriptionReport = ({
   refetchLinks,
 }) => {
   const { data, isLoading, failureCount, isFetching } = usePresignedURL({
-    presignedRequest: presignedRequest,
+    ...presignedRequest,
     isEnabled: true,
     id: id,
     cacheType: `${timeRange} subscription_report`,
@@ -104,10 +104,11 @@ const SubscriptionReport = ({
       flexBasis={plotMinW}
       direction="column"
     >
-      <Text
-        fontSize="xs"
-        textAlign="right"
-      >{`Latest block number: ${data?.blocks_state.latest_labelled_block}`}</Text>
+      <Text fontSize="xs" textAlign="right">{`Latest block number: ${
+        data?.blocks_state?.latest_labelled_block != undefined
+          ? data?.blocks_state?.latest_labelled_block
+          : "Not available"
+      }`}</Text>
       <Flex
         bgColor="blue.50"
         direction={["column", "row", null]}

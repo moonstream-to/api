@@ -1,10 +1,11 @@
-import { useQuery, useQueryClient } from "react-query";
+import { useQuery } from "react-query";
 import { queryCacheProps } from "./hookCommon";
 import { useToast } from ".";
 import axios from "axios";
 
 const usePresignedURL = ({
-  presignedRequest,
+  url,
+  headers,
   cacheType,
   id,
   requestNewURLCallback,
@@ -15,16 +16,16 @@ const usePresignedURL = ({
 
   const getFromPresignedURL = async () => {
     let request_parameters = {
-      url: presignedRequest.url,
+      url: url,
       // You can uncomment this to use mockupsLibrary in development
       // url: `https://example.com/s3`,
       headers: {},
       method: "GET",
     };
 
-    if ("headers" in presignedRequest) {
-      Object.keys(presignedRequest.headers).map((key) => {
-        request_parameters["headers"][key] = presignedRequest.headers[key];
+    if (headers != undefined) {
+      Object.keys(headers).map((key) => {
+        request_parameters["headers"][key] = headers[key];
       });
     }
 
@@ -32,8 +33,8 @@ const usePresignedURL = ({
     return response.data;
   };
 
-  const { data, isLoading, error, failureCount, refetch, isFetching } = useQuery(
-    ["presignedURL", cacheType, id, presignedRequest.url],
+  const { data, isLoading, error, failureCount, isFetching } = useQuery(
+    ["presignedURL", cacheType, id, url],
     getFromPresignedURL,
     {
       ...queryCacheProps,
@@ -41,7 +42,7 @@ const usePresignedURL = ({
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
       staleTime: Infinity,
-      enabled: isEnabled && presignedRequest.url ? true : false,
+      enabled: isEnabled && url ? true : false,
       keepPreviousData: true,
       onSuccess: () => {},
       onError: (e) => {
@@ -51,6 +52,7 @@ const usePresignedURL = ({
         ) {
           requestNewURLCallback();
         } else if (e?.response?.status === 304) {
+          // If not modified.
         } else {
           !hideToastOn404 && toast(error, "error");
         }
@@ -63,8 +65,7 @@ const usePresignedURL = ({
     isLoading,
     error,
     failureCount,
-    refetch,
-    isFetching
+    isFetching,
   };
 };
 
