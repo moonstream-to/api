@@ -18,7 +18,6 @@ import {
   FOOTER_COLUMNS,
 } from "../core/constants";
 import { FaGithub, FaTwitter, FaDiscord } from "react-icons/fa";
-import { v4 } from "uuid";
 
 const LINKS_SIZES = {
   fontWeight: "300",
@@ -110,9 +109,9 @@ const Footer = () => (
             </SocialButton>
           </Stack>
         </Stack>
-        {Object.values(FOOTER_COLUMNS).map((columnEnum) => {
+        {Object.values(FOOTER_COLUMNS).map((columnEnum, colIndex) => {
           return (
-            <Stack align={"flex-start"} key={v4()}>
+            <Stack align={"flex-start"} key={`footer-list-column-${colIndex}`}>
               {ALL_NAV_PATHES.filter(
                 (navPath) => navPath.footerCategory === columnEnum
               ).length > 0 && (
@@ -120,9 +119,13 @@ const Footer = () => (
                   <ListHeader>{columnEnum}</ListHeader>
                   {ALL_NAV_PATHES.filter(
                     (navPath) => navPath.footerCategory === columnEnum
-                  ).map((linkItem) => {
+                  ).map((linkItem, linkItemIndex) => {
                     return (
-                      <RouterLink passHref href={linkItem.path} key={v4()}>
+                      <RouterLink
+                        passHref
+                        href={linkItem.path}
+                        key={`footer-list-link-item-${linkItemIndex}-col-${colIndex}`}
+                      >
                         <Link {...LINKS_SIZES}>{linkItem.title}</Link>
                       </RouterLink>
                     );

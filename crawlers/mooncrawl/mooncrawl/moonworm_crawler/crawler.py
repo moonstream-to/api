@@ -332,7 +332,7 @@ def heartbeat(
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
         journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
         entry_id=heartbeat_entry_id,
-        title=f"{crawler_type} Heartbeat - {blockchain_type.value}",
+        title=f"{crawler_type} Heartbeat - {blockchain_type.value}. Status: {crawler_status['status']} - {crawler_status['current_time']}",
         content=f"{json.dumps(crawler_status, indent=2)}",
     )
     if is_dead:

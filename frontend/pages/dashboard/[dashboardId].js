@@ -21,7 +21,6 @@ import { useRouter, useSubscriptions } from "../../src/core/hooks";
 import { BiTrash } from "react-icons/bi";
 import OverlayContext from "../../src/core/providers/OverlayProvider/context";
 import SubscriptionReport from "../../src/components/SubscriptionReport";
-import { v4 } from "uuid";
 import { DRAWER_TYPES } from "../../src/core/providers/OverlayProvider/constants";
 import Page404 from "../../src/components/FourOFour";
 import { BsGear } from "react-icons/bs";
@@ -37,7 +36,7 @@ timeMap[MINUTE_KEY] = "day";
 const Analytics = () => {
   const { toggleAlert } = useContext(OverlayContext);
 
-  const [timeRange, setTimeRange] = useState(timeMap[MINUTE_KEY]);
+  const [timeRange, setTimeRange] = useState(timeMap[DAY_KEY]);
   const router = useRouter();
   const overlay = useContext(OverlayContext);
   const { dashboardId } = router.params;
@@ -139,7 +138,7 @@ const Analytics = () => {
           />
           <Spacer />
           <RangeSelector
-            initialRange={MINUTE_KEY}
+            initialRange={DAY_KEY}
             ranges={Object.keys(timeMap)}
             size={["sm", "md", null]}
             onChange={(e) => {
@@ -179,7 +178,7 @@ const Analytics = () => {
               )?.label;
               return (
                 <Flex
-                  key={v4()}
+                  key={`${dashboardId}-subscription-report-${key}-${timeRange}`}
                   flexBasis={plotMinW}
                   flexGrow={1}
                   minW={plotMinW}
