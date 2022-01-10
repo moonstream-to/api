@@ -91,8 +91,9 @@ const Analytics = () => {
 
   const referesh_graf = function () {
     refreshDashboard.mutate({
-      timeRange: timeRange,
       dashboardId: dashboardCache.data.id,
+      setStatus: setRefreshingStatus,
+      timeRange: timeRange,
     });
     setRefreshingStatus(true);
   };

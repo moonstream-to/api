@@ -121,7 +121,7 @@ const useDashboard = (dashboardId) => {
   );
 
   const refreshDashboard = useMutation(DashboardService.refreshDashboard, {
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       let new_state = {};
 
       let current_links_state = queryClient.getQueryData([
@@ -142,8 +142,10 @@ const useDashboard = (dashboardId) => {
         ["dashboardLinks", { dashboardId: dashboardId }],
         new_state
       );
+      variables.setStatus(false);
     },
-    onError: (error) => {
+    onError: (error, variables) => {
+      variables.setStatus(false);
       toast(error.error, "error", "Fail");
     },
     onSettled: () => {

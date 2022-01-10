@@ -25,18 +25,14 @@ const SubscriptionReport = ({
   presignedRequest,
   id,
   refetchLinks,
-  refreshingStatus: refreshingStatus,
-  setRefreshingStatus: setRefreshingStatus,
 }) => {
-  const { data, isLoading, failureCount } = usePresignedURL({
+  const { data, isLoading, failureCount, isFetching } = usePresignedURL({
     presignedRequest: presignedRequest,
     isEnabled: true,
     id: id,
     cacheType: `${timeRange} subscription_report`,
     requestNewURLCallback: refetchLinks,
     hideToastOn404: true,
-    refreshingStatus: refreshingStatus,
-    setRefreshingStatus: setRefreshingStatus,
   });
   const plotMinW = "250px";
 
@@ -62,7 +58,8 @@ const SubscriptionReport = ({
     [data]
   );
 
-  if (failureCount < 1 && (!data || isLoading)) return <Spinner />;
+  if ((failureCount < 1 && (!data || isLoading)) || isFetching)
+    return <Spinner />;
   if (failureCount >= 1 && (!data || isLoading)) {
     return (
       <Container

@@ -10,8 +10,6 @@ const usePresignedURL = ({
   requestNewURLCallback,
   isEnabled,
   hideToastOn404,
-  refreshingStatus,
-  setRefreshingStatus,
 }) => {
   const toast = useToast();
 
@@ -34,7 +32,7 @@ const usePresignedURL = ({
     return response.data;
   };
 
-  const { data, isLoading, error, failureCount, refetch } = useQuery(
+  const { data, isLoading, error, failureCount, refetch, isFetching } = useQuery(
     ["presignedURL", cacheType, id, presignedRequest.url],
     getFromPresignedURL,
     {
@@ -45,9 +43,7 @@ const usePresignedURL = ({
       staleTime: Infinity,
       enabled: isEnabled && presignedRequest.url ? true : false,
       keepPreviousData: true,
-      onSuccess: (e) => {
-        setRefreshingStatus(false);
-      },
+      onSuccess: () => {},
       onError: (e) => {
         if (
           e?.response?.data?.includes("Request has expired") ||
@@ -68,6 +64,7 @@ const usePresignedURL = ({
     error,
     failureCount,
     refetch,
+    isFetching
   };
 };
 
