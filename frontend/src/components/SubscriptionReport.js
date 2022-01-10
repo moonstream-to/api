@@ -104,6 +104,10 @@ const SubscriptionReport = ({
       flexBasis={plotMinW}
       direction="column"
     >
+      <Text
+        fontSize="xs"
+        textAlign="right"
+      >{`Latest block number: ${data?.blocks_state.latest_labelled_block}`}</Text>
       <Flex
         bgColor="blue.50"
         direction={["column", "row", null]}
