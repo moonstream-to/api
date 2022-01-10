@@ -428,7 +428,7 @@ async def get_dashboard_data_links_handler(
                     ExpiresIn=300,
                     HttpMethod="GET",
                 )
-                stats[subscription.id][timescale] = stats_presigned_url
+                stats[subscription.id][timescale] = {"url": stats_presigned_url}
             except Exception as err:
                 logger.warning(
                     f"Can't generate S3 presigned url in stats endpoint for Bucket:{MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET}, Key:{result_key} get error:{err}"

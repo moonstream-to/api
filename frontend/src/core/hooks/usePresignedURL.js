@@ -4,34 +4,50 @@ import { useToast } from ".";
 import axios from "axios";
 
 const usePresignedURL = ({
-  url,
+  presignedRequest,
   cacheType,
   id,
   requestNewURLCallback,
   isEnabled,
   hideToastOn404,
+  refreshingStatus,
+  setRefreshingStatus,
 }) => {
   const toast = useToast();
 
   const getFromPresignedURL = async () => {
-    const response = await axios({
-      url: url,
+    let request_parameters = {
+      url: presignedRequest.url,
       // You can uncomment this to use mockupsLibrary in development
       // url: `https://example.com/s3`,
+      headers: {},
       method: "GET",
-    });
+    };
+    console.log(presignedRequest);
+    if ("headers" in presignedRequest) {
+      Object.keys(presignedRequest.headers).map((key) => {
+        request_parameters["headers"][key] = presignedRequest.headers[key];
+      });
+    }
+
+    const response = await axios(request_parameters);
     return response.data;
   };
 
-  const { data, isLoading, error, failureCount, refetch, dataUpdatedAt } =
-    useQuery(["presignedURL", cacheType, id, url], getFromPresignedURL, {
+  const { data, isLoading, error, failureCount, refetch } = useQuery(
+    ["presignedURL", cacheType, id, presignedRequest.url],
+    getFromPresignedURL,
+    {
       ...queryCacheProps,
       refetchOnMount: false,
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
       staleTime: Infinity,
-      enabled: isEnabled && url ? true : false,
+      enabled: isEnabled && presignedRequest.url ? true : false,
       keepPreviousData: true,
+      onSuccess: (e) => {
+        setRefreshingStatus(false);
+      },
       onError: (e) => {
         if (
           e?.response?.data?.includes("Request has expired") ||
@@ -43,14 +59,14 @@ const usePresignedURL = ({
           !hideToastOn404 && toast(error, "error");
         }
       },
-    });
+    }
+  );
 
   return {
     data,
     isLoading,
     error,
     failureCount,
-    dataUpdatedAt,
     refetch,
   };
 };

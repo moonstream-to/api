@@ -41,6 +41,7 @@ const Analytics = () => {
   const router = useRouter();
   const overlay = useContext(OverlayContext);
   const { dashboardId } = router.params;
+  const [refreshingStatus, setRefreshingStatus] = useState(false);
   const {
     dashboardCache,
     dashboardLinksCache,
@@ -94,6 +95,7 @@ const Analytics = () => {
       timeRange: timeRange,
       dashboardId: dashboardCache.data.id,
     });
+    setRefreshingStatus(true);
   };
 
   return (
@@ -157,6 +159,7 @@ const Analytics = () => {
             icon={<BsGear />}
           />
           <IconButton
+            isLoading={refreshingStatus}
             icon={<RepeatIcon />}
             variant="ghost"
             colorScheme="green"
@@ -197,9 +200,11 @@ const Analytics = () => {
 
                   <SubscriptionReport
                     timeRange={timeRange}
-                    url={s3PresignedURLs[timeRange]}
+                    presignedRequest={s3PresignedURLs[timeRange]}
                     id={dashboardId}
                     refetchLinks={dashboardLinksCache.refetch}
+                    refreshingStatus={refreshingStatus}
+                    setRefreshingStatus={setRefreshingStatus}
                   />
                 </Flex>
               );

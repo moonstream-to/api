@@ -21,17 +21,26 @@ timeMap[HOUR_KEY] = "hour";
 timeMap[DAY_KEY] = "day";
 timeMap[WEEK_KEY] = "week";
 
-const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
+const SubscriptionReport = ({
+  timeRange,
+  presignedRequest,
+  id,
+  refetchLinks,
+  refreshingStatus: refreshingStatus,
+  setRefreshingStatus: setRefreshingStatus,
+}) => {
   const { data, isLoading, failureCount } = usePresignedURL({
-    url: url,
+    presignedRequest: presignedRequest,
     isEnabled: true,
     id: id,
     cacheType: `${timeRange} subscription_report`,
     requestNewURLCallback: refetchLinks,
     hideToastOn404: true,
+    refreshingStatus: refreshingStatus,
+    setRefreshingStatus: setRefreshingStatus,
   });
   const plotMinW = "250px";
-  console.log(data, isLoading);
+  console.log(refreshingStatus);
   if (failureCount < 1 && (!data || isLoading)) return <Spinner />;
   if (failureCount >= 1 && (!data || isLoading)) {
     return (

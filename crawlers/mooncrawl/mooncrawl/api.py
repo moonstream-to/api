@@ -139,22 +139,25 @@ async def status_handler(
 
             try:
                 result_key = f'{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/{dashboard.blockchain_by_subscription_id[subscription.resource_data["subscription_type_id"]]}/contracts_data/{subscription.resource_data["address"]}/{stats_update.dashboard_id}/v1/{timescale}.json'
+
+                object = s3_client.head_object(
+                    Bucket=subscription.resource_data["bucket"], Key=result_key
+                )
+
                 stats_presigned_url = s3_client.generate_presigned_url(
                     "get_object",
                     Params={
-                        # "IfModifiedSince": datetime(2015, 1, 1),
-                        # "IfUnmodifiedSince": datetime(2015, 1, 1),
-                        "IfMatch": "757ab3614c58b5a184457d34dd104238",
                         "Bucket": subscription.resource_data["bucket"],
                         "Key": result_key,
                     },
                     ExpiresIn=300,
                     HttpMethod="GET",
                 )
-                print("stats_presigned_url", stats_presigned_url)
-                presigned_urls_response[subscription.id][
-                    timescale
-                ] = stats_presigned_url
+
+                presigned_urls_response[subscription.id][timescale] = {
+                    "url": stats_presigned_url,
+                    "headers": {"If-Modified-Since": object["LastModified"]},
+                }
             except Exception as err:
                 logger.warning(
                     f"Can't generate S3 presigned url in stats endpoint for Bucket:{subscription.resource_data['bucket']}, Key:{result_key} get error:{err}"
