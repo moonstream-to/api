@@ -23,7 +23,7 @@ const usePresignedURL = ({
       headers: {},
       method: "GET",
     };
-    console.log(presignedRequest);
+
     if ("headers" in presignedRequest) {
       Object.keys(presignedRequest.headers).map((key) => {
         request_parameters["headers"][key] = presignedRequest.headers[key];
