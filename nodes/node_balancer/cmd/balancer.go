@@ -113,7 +113,6 @@ func (bpool *BlockchainPool) GetNextNode(blockchain string) *Node {
 				continue
 			}
 
-			fmt.Printf("Used node: %s with hi block: %d\n", np.Nodes[idx].GethURL, np.Nodes[idx].CurrentBlock)
 			return np.Nodes[idx]
 		}
 	}
@@ -180,7 +179,7 @@ func (bpool *BlockchainPool) HealthCheck() {
 				n.SetCurrentBlock(statusResponse.CurrentBlock)
 			}
 
-			log.Printf("Node %s is alive: %t with current block: %d\n", n.StatusURL, true, statusResponse.CurrentBlock)
+			log.Printf("Node %s is alive: %t with current block: %d blockchain called: %d times\n", n.StatusURL, true, statusResponse.CurrentBlock, b.Current)
 		}
 	}
 }

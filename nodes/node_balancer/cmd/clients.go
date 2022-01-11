@@ -93,5 +93,5 @@ func (cpool *ClientPool) CleanInactiveClientNodes() {
 		}
 	}
 
-	log.Printf("Active clients: %d", len(cpool.Clients))
+	log.Printf("Active clients: %d\n", len(cpool.Clients))
 }

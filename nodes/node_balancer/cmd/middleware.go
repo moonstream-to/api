@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"log"
+	"net"
 	"net/http"
 
 	humbug "github.com/bugout-dev/humbug/go/pkg"
@@ -31,6 +32,11 @@ func panicMiddleware(next http.Handler) http.Handler {
 func logMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		next.ServeHTTP(w, r)
-		log.Printf("%s %s %s\n", r.Method, r.URL.Path, r.RemoteAddr)
+		ip, _, err := net.SplitHostPort(r.RemoteAddr)
+		if err != nil {
+			log.Printf("Unable to parse client IP: %s\n", r.RemoteAddr)
+		} else {
+			log.Printf("%s %s %s\n", ip, r.Method, r.URL.Path)
+		}
 	})
 }
