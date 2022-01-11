@@ -17,6 +17,23 @@ type NodeStatusResponse struct {
 	CurrentBlock uint64 `json:"current_block"`
 }
 
+// Node - which one node client worked with
+// LastCallTs - timestamp from last call
+type ClientNode struct {
+	Blockchain string
+	Node       *Node
+	LastCallTs int64
+}
+
+type Client struct {
+	IP          string
+	ClientNodes []ClientNode
+}
+
+type ClientPool struct {
+	Clients []*Client
+}
+
 // Node structure with
 // StatusURL for status server at node endpoint
 // GethURL for geth/bor/etc node http.server endpoint

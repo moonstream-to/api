@@ -6,6 +6,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"strings"
 )
@@ -31,10 +32,21 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Chose one node
-	peer := blockchainPool.GetNextPeer(blockchain)
-	if peer == nil {
-		http.Error(w, "There are no nodes available", http.StatusServiceUnavailable)
+	ip, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		http.Error(w, "Unable to parse client IP", http.StatusInternalServerError)
 		return
+	}
+
+	var node *Node
+	node = clientPool.GetClientNode(blockchain, ip)
+	if node == nil {
+		node = blockchainPool.GetNextNode(blockchain)
+		if node == nil {
+			http.Error(w, "There are no nodes available", http.StatusServiceUnavailable)
+			return
+		}
+		clientPool.AddClientNode(ip, blockchain, node)
 	}
 
 	// Save origin path, to use in proxyErrorHandler if node will not response
@@ -43,11 +55,11 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case strings.HasPrefix(r.URL.Path, fmt.Sprintf("/nb/%s/ping", blockchain)):
 		r.URL.Path = "/ping"
-		peer.StatusReverseProxy.ServeHTTP(w, r)
+		node.StatusReverseProxy.ServeHTTP(w, r)
 		return
 	case strings.HasPrefix(r.URL.Path, fmt.Sprintf("/nb/%s/jsonrpc", blockchain)):
 		r.URL.Path = "/"
-		peer.GethReverseProxy.ServeHTTP(w, r)
+		node.GethReverseProxy.ServeHTTP(w, r)
 		return
 	default:
 		http.Error(w, fmt.Sprintf("Unacceptable path for %s blockchain %s", blockchain, r.URL.Path), http.StatusBadRequest)
