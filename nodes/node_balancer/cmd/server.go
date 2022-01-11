@@ -29,7 +29,7 @@ func initHealthCheck(debug bool) {
 			blockchainPool.HealthCheck()
 			clientPool.CleanInactiveClientNodes()
 			if debug {
-				blockchainPool.StatusLog()
+				// blockchainPool.StatusLog()
 				clientPool.StatusLog()
 			}
 		}
@@ -108,8 +108,6 @@ func InitServer() {
 		fmt.Printf("Node balancer version: v%s\n", configs.NODE_BALANCER_VERSION)
 		return
 	}
-
-	clientPool.AddClient("localhost")
 
 	// Configure Humbug reporter to handle errors
 	var err error

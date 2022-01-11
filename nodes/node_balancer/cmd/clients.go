@@ -11,7 +11,9 @@ import (
 
 var clientPool ClientPool
 
-func (cpool *ClientPool) AddClient(ip string) {
+func (cpool *ClientPool) AddClientNode(ip, blockchain string, node *Node) {
+	ts := time.Now().Unix()
+
 	var client *Client
 	for _, c := range cpool.Clients {
 		if c.IP == ip {
@@ -26,30 +28,21 @@ func (cpool *ClientPool) AddClient(ip string) {
 		}
 		cpool.Clients = append(cpool.Clients, client)
 	}
-}
 
-func (cpool *ClientPool) AddClientNode(ip, blockchain string, node *Node) {
-	ts := time.Now().Unix()
-
-	for _, c := range cpool.Clients {
-		if c.IP == ip {
-			newNode := true
-
-			for _, cn := range c.ClientNodes {
-				if reflect.DeepEqual(cn.Node, node) {
-					cn.LastCallTs = ts
-					newNode = false
-				}
-			}
-
-			if newNode {
-				c.ClientNodes = append(c.ClientNodes, ClientNode{
-					Blockchain: blockchain,
-					Node:       node,
-					LastCallTs: ts,
-				})
-			}
+	newNode := true
+	for _, cn := range client.ClientNodes {
+		if reflect.DeepEqual(cn.Node, node) {
+			cn.LastCallTs = ts
+			newNode = false
 		}
+	}
+
+	if newNode {
+		client.ClientNodes = append(client.ClientNodes, ClientNode{
+			Blockchain: blockchain,
+			Node:       node,
+			LastCallTs: ts,
+		})
 	}
 }
 
@@ -62,7 +55,7 @@ func (cpool *ClientPool) GetClientNode(blockchain, ip string) *Node {
 				if cn.Blockchain == blockchain {
 					if ts-cn.LastCallTs < configs.NB_CLIENT_NODE_KEEP_ALIVE {
 						cn.LastCallTs = ts
-						fmt.Println("Hot client node found, re-use it")
+						fmt.Printf("Hot client node found: %s, re-use it", cn.Node.GethURL)
 						return cn.Node
 					} else {
 						fmt.Println("Client node outdated, remove it")
