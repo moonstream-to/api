@@ -96,7 +96,7 @@ var NB_HEALTH_CHECK_INTERVAL = time.Second * 5
 var NB_HEALTH_CHECK_CALL_TIMEOUT = time.Second * 2
 
 // Client config
-var NB_CLIENT_NODE_KEEP_ALIVE = int64(5) // Seconds
+var NB_CLIENT_NODE_KEEP_ALIVE = int64(5) // How long to store node in hot list for client in seconds
 
 // Humbug config
 var HUMBUG_REPORTER_NODE_BALANCER_TOKEN = os.Getenv("HUMBUG_REPORTER_NODE_BALANCER_TOKEN")

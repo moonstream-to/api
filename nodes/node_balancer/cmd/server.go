@@ -29,8 +29,7 @@ func initHealthCheck(debug bool) {
 			blockchainPool.HealthCheck()
 			clientPool.CleanInactiveClientNodes()
 			if debug {
-				// blockchainPool.StatusLog()
-				clientPool.StatusLog()
+				blockchainPool.StatusLog()
 			}
 		}
 	}
