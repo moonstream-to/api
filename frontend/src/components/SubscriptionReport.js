@@ -26,7 +26,7 @@ const SubscriptionReport = ({
   id,
   refetchLinks,
 }) => {
-  const { data, isLoading, failureCount, isFetching } = usePresignedURL({
+  const { data, isLoading, failureCount } = usePresignedURL({
     ...presignedRequest,
     isEnabled: true,
     id: id,
