@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { Box, useBreakpointValue, Image } from "@chakra-ui/react";
+import { Box, useBreakpointValue, Image, Button } from "@chakra-ui/react";
 import DragOnGrid from "./DragOnGrid";
 import Xarrow from "react-xarrows";
 const SchematicPlayground = () => {
@@ -79,7 +79,7 @@ const SchematicPlayground = () => {
           gridStep={gridCellSize}
           defaultPosition={{ x: 0, y: -1 }}
         >
-          <Box
+          <Button
             m={0}
             ref={ref2}
             p={0}
@@ -89,134 +89,79 @@ const SchematicPlayground = () => {
             minH={`${gridCellSize.toString}` + `px`}
             fontSize={(gridCellSize / 4).toString() + `px`}
             boxSize={`${gridCellSize.toString()}` + "px"}
-            bg="transparent"
+            bg="blue.900"
+            color="white"
+            textAlign="center"
             zIndex={10}
-            bgColor="red.900"
           >
-            <Image
-              m={0}
-              ref={ref2}
-              p={0}
-              pointerEvents="none"
-              borderRadius="sm"
-              minW={`${gridCellSize.toString}` + `px`}
-              minH={`${gridCellSize.toString}` + `px`}
-              fontSize={(gridCellSize / 4).toString() + `px`}
-              boxSize={`${gridCellSize.toString()}` + "px"}
-              bg="red.900"
-              color="white"
-              textAlign="center"
-              src={`https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/NFT.png`}
-            ></Image>
-          </Box>
+            DEX
+          </Button>
         </DragOnGrid>
         <DragOnGrid
           ref={ref3}
           gridStep={gridCellSize}
-          defaultPosition={{ x: 8, y: -1 }}
+          defaultPosition={{ x: 8, y: 2 }}
         >
-          <Box
+          <Button
             m={0}
             ref={ref3}
             p={0}
             borderRadius="sm"
             className="handle"
             minW={`${gridCellSize.toString}` + `px`}
-            minH={`${gridCellSize.toString}` + `px`}
             fontSize={(gridCellSize / 4).toString() + `px`}
             boxSize={`${gridCellSize.toString()}` + "px"}
-            bg="transparent"
+            bg="green.900"
+            color="white"
+            textAlign="center"
             zIndex={10}
-            bgColor="red.900"
           >
-            <Image
-              m={0}
-              ref={ref3}
-              p={0}
-              pointerEvents="none"
-              borderRadius="sm"
-              minW={`${gridCellSize.toString}` + `px`}
-              minH={`${gridCellSize.toString}` + `px`}
-              fontSize={(gridCellSize / 4).toString() + `px`}
-              boxSize={`${gridCellSize.toString()}` + "px"}
-              bg="orange.900"
-              color="white"
-              textAlign="center"
-              src={`https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/DAO .png`}
-            ></Image>
-          </Box>
+            NFT
+          </Button>
         </DragOnGrid>
         <DragOnGrid
           ref={ref4}
           gridStep={gridCellSize}
-          defaultPosition={{ x: 3, y: -1 }}
+          defaultPosition={{ x: -2, y: 3 }}
         >
-          <Box
+          <Button
             m={0}
             ref={ref4}
             p={0}
             borderRadius="sm"
             className="handle"
             minW={`${gridCellSize.toString}` + `px`}
-            minH={`${gridCellSize.toString}` + `px`}
             fontSize={(gridCellSize / 4).toString() + `px`}
             boxSize={`${gridCellSize.toString()}` + "px"}
-            bg="transparent"
+            bg="red.900"
+            color="white"
+            textAlign="center"
             zIndex={10}
-            bgColor="red.900"
           >
-            <Image
-              m={0}
-              ref={ref4}
-              p={0}
-              pointerEvents="none"
-              borderRadius="sm"
-              minW={`${gridCellSize.toString}` + `px`}
-              minH={`${gridCellSize.toString}` + `px`}
-              fontSize={(gridCellSize / 4).toString() + `px`}
-              boxSize={`${gridCellSize.toString()}` + "px"}
-              bg="green.900"
-              color="white"
-              textAlign="center"
-              src={`https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/ERC 20.png`}
-            ></Image>
-          </Box>
+            ERC20
+          </Button>
         </DragOnGrid>
         <DragOnGrid
           ref={ref4}
           gridStep={gridCellSize}
-          defaultPosition={{ x: 9, y: 0 }}
+          defaultPosition={{ x: 3, y: -1 }}
         >
-          <Box
+          <Button
             m={0}
             ref={ref5}
             p={0}
             borderRadius="sm"
             className="handle"
             minW={`${gridCellSize.toString}` + `px`}
-            minH={`${gridCellSize.toString}` + `px`}
             fontSize={(gridCellSize / 4).toString() + `px`}
             boxSize={`${gridCellSize.toString()}` + "px"}
-            bg="transparent"
+            bg="orange.900"
+            color="white"
+            textAlign="center"
             zIndex={10}
-            bgColor="red.900"
           >
-            <Image
-              m={0}
-              ref={ref5}
-              p={0}
-              pointerEvents="none"
-              borderRadius="sm"
-              minW={`${gridCellSize.toString}` + `px`}
-              minH={`${gridCellSize.toString}` + `px`}
-              fontSize={(gridCellSize / 4).toString() + `px`}
-              boxSize={`${gridCellSize.toString()}` + "px"}
-              bg="gray.900"
-              color="white"
-              textAlign="center"
-              src={`https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/crypto+traders.png`}
-            ></Image>
-          </Box>
+            Oracle
+          </Button>
         </DragOnGrid>
       </Box>
       <Xarrow
