@@ -58,8 +58,7 @@ const SubscriptionReport = ({
     [data]
   );
 
-  if ((failureCount < 1 && (!data || isLoading)) || isFetching)
-    return <Spinner />;
+  if (failureCount < 1 && (!data || isLoading)) return <Spinner />;
   if (failureCount >= 1 && (!data || isLoading)) {
     return (
       <Container
@@ -105,9 +104,7 @@ const SubscriptionReport = ({
       direction="column"
     >
       <Text fontSize="xs" textAlign="right">{`Latest block number: ${
-        data?.blocks_state?.latest_labelled_block != undefined
-          ? data?.blocks_state?.latest_labelled_block
-          : "Not available"
+        data?.blocks_state?.latest_labelled_block ?? "Not available"
       }`}</Text>
       <Flex
         bgColor="blue.50"

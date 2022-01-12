@@ -23,7 +23,7 @@ const usePresignedURL = ({
       method: "GET",
     };
 
-    if (headers != undefined) {
+    if (headers) {
       Object.keys(headers).map((key) => {
         request_parameters["headers"][key] = headers[key];
       });

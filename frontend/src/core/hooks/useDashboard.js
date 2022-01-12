@@ -122,25 +122,19 @@ const useDashboard = (dashboardId) => {
 
   const refreshDashboard = useMutation(DashboardService.refreshDashboard, {
     onSuccess: (data) => {
-      let newData = {};
-
-      let oldData = queryClient.getQueryData([
-        "dashboardLinks",
-        { dashboardId: dashboardId },
-      ]);
-
-      newData = oldData;
-
-      Object.keys(data.data).map((subscription) => {
-        Object.keys(data.data[subscription]).map((timeScale) => {
-          newData.data[subscription][timeScale] =
-            data.data[subscription][timeScale];
-        });
-      });
-
       queryClient.setQueryData(
         ["dashboardLinks", { dashboardId: dashboardId }],
-        newData
+        (oldData) => {
+          let newData = { ...oldData };
+
+          Object.keys(data.data).forEach((subscription) => {
+            Object.keys(data.data[subscription]).forEach((timeScale) => {
+              newData.data[subscription][timeScale] =
+                data.data[subscription][timeScale];
+            });
+          });
+          return newData;
+        }
       );
     },
     onError: (error) => {

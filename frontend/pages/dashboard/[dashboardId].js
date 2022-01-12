@@ -88,7 +88,7 @@ const Analytics = () => {
 
   const plotMinW = "250px";
 
-  const referesh_charts = () => {
+  const refereshCharts = () => {
     refreshDashboard.mutate({
       dashboardId: dashboardCache.data.id,
       timeRange: timeRange,
@@ -164,7 +164,7 @@ const Analytics = () => {
             colorScheme="green"
             size="sm"
             onClick={() => {
-              referesh_charts();
+              refereshCharts();
             }}
           />
         </Stack>

@@ -156,7 +156,11 @@ async def status_handler(
 
                 presigned_urls_response[subscription.id][timescale] = {
                     "url": stats_presigned_url,
-                    "headers": {"If-Modified-Since": object["LastModified"]},
+                    "headers": {
+                        "If-Modified-Since": (
+                            object["LastModified"] + timedelta(seconds=1)
+                        ).strftime("%c")
+                    },
                 }
             except Exception as err:
                 logger.warning(
