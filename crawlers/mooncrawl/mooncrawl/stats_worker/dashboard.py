@@ -244,8 +244,19 @@ def generate_metrics(
             print("--- value_in %s seconds ---" % (time.time() - start_time))
 
     except Exception as err:
-        print(err)
-        pass
+        logger.error(err)
+        db_session.rollback()
+        reporter.error_report(
+            err,
+            [
+                "dashboard",
+                "metrics",
+                "statistics",
+                f"metrics:{','.join(metrics)}"
+                f"blockchain:{blockchain_type}"
+                f"address:{address}",
+            ],
+        )
 
     return results
 
@@ -808,6 +819,7 @@ def stats_generate_handler(args: argparse.Namespace):
                             dashboard_id=dashboard.id,
                         )
                 except Exception as err:
+                    db_session.rollback()
                     reporter.error_report(
                         err,
                         [
@@ -818,7 +830,7 @@ def stats_generate_handler(args: argparse.Namespace):
                             f"dashboard:{dashboard.id}",
                         ],
                     )
-                    print(err)
+                    logger.error(err)
 
         reporter.custom_report(
             title=f"Dashboard stats generated.",
