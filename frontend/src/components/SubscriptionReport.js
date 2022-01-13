@@ -26,7 +26,7 @@ const SubscriptionReport = ({
   id,
   refetchLinks,
 }) => {
-  const { data, isLoading, failureCount } = usePresignedURL({
+  const { data, isLoading, failureCount, isFetching } = usePresignedURL({
     ...presignedRequest,
     isEnabled: true,
     id: id,
@@ -168,15 +168,16 @@ const SubscriptionReport = ({
                 boxShadow="md"
                 m={2}
               >
-                <Text
+                <Flex
+                  direction="row"
                   w="100%"
-                  py={2}
-                  bgColor="gray.50"
-                  fontWeight="600"
-                  textAlign="center"
+                  bgColor="blue.50"
+                  placeItems="center"
+                  justifyContent={"center"}
                 >
-                  {key}
-                </Text>
+                  <Text>{key}</Text>
+                  {isFetching && <Spinner size="sm" m={1} />}
+                </Flex>
                 <Report
                   data={data.events[key]}
                   metric={key}
@@ -211,15 +212,16 @@ const SubscriptionReport = ({
                 boxShadow="md"
                 m={2}
               >
-                <Text
+                <Flex
+                  direction="row"
                   w="100%"
-                  py={2}
-                  bgColor="gray.50"
-                  fontWeight="600"
-                  textAlign="center"
+                  bgColor="blue.50"
+                  placeItems="center"
+                  justifyContent={"center"}
                 >
-                  {key}
-                </Text>
+                  <Text>{key}</Text>
+                  {isFetching && <Spinner size="sm" m={2} />}
+                </Flex>
                 <Report
                   data={data.functions[key]}
                   metric={key}
@@ -254,15 +256,16 @@ const SubscriptionReport = ({
                 boxShadow="md"
                 m={2}
               >
-                <Text
+                <Flex
+                  direction="row"
                   w="100%"
-                  py={2}
-                  bgColor="gray.50"
-                  fontWeight="600"
-                  textAlign="center"
+                  bgColor="blue.50"
+                  placeItems="center"
+                  justifyContent={"center"}
                 >
-                  {key}
-                </Text>
+                  <Text>{key}</Text>
+                  {isFetching && <Spinner size="sm" m={2} />}
+                </Flex>
                 <Report
                   data={data.generic[key]}
                   metric={key}
