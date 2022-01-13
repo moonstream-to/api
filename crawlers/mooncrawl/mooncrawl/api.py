@@ -8,7 +8,7 @@ import time
 from typing import Dict, Any, List
 from uuid import UUID
 
-import boto3
+import boto3 type: ignore
 from fastapi import FastAPI, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 
