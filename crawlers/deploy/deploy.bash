@@ -153,7 +153,7 @@ chmod 644 "${SCRIPT_DIR}/${POLYGON_STATISTICS_SERVICE_FILE}" "${SCRIPT_DIR}/${PO
 cp "${SCRIPT_DIR}/${POLYGON_STATISTICS_SERVICE_FILE}" "/etc/systemd/system/${POLYGON_STATISTICS_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${POLYGON_STATISTICS_TIMER_FILE}" "/etc/systemd/system/${POLYGON_STATISTICS_TIMER_FILE}"
 systemctl daemon-reload
-systemctl restart "${POLYGON_STATISTICS_TIMER_FILE}"
+systemctl restart --no-block "${POLYGON_STATISTICS_TIMER_FILE}"
 
 # echo
 # echo
