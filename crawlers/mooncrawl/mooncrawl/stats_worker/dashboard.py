@@ -244,6 +244,7 @@ def generate_metrics(
             print("--- value_in %s seconds ---" % (time.time() - start_time))
 
     except Exception as err:
+        logger.error(err)
         db_session.rollback()
         reporter.error_report(
             err,
@@ -829,7 +830,7 @@ def stats_generate_handler(args: argparse.Namespace):
                             f"dashboard:{dashboard.id}",
                         ],
                     )
-                    print(err)
+                    logger.error(err)
 
         reporter.custom_report(
             title=f"Dashboard stats generated.",
