@@ -19,19 +19,16 @@ type NodeStatusResponse struct {
 
 // Node - which one node client worked with
 // LastCallTs - timestamp from last call
-type ClientNode struct {
+type Client struct {
 	Blockchain string
 	Node       *Node
 	LastCallTs int64
-}
 
-type Client struct {
-	IP          string
-	ClientNodes []ClientNode
+	mux sync.RWMutex
 }
 
 type ClientPool struct {
-	Clients []*Client
+	Client map[string]*Client
 }
 
 // Node structure with

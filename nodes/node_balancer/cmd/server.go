@@ -108,6 +108,9 @@ func InitServer() {
 		return
 	}
 
+	// Generate map of clients
+	clientPool.Client = make(map[string]*Client)
+
 	// Configure Humbug reporter to handle errors
 	var err error
 	sessionID := uuid.New().String()

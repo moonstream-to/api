@@ -39,7 +39,7 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var node *Node
-	node = clientPool.GetClientNode(blockchain, ip)
+	node = clientPool.GetClientNode(ip)
 	if node == nil {
 		node = blockchainPool.GetNextNode(blockchain)
 		if node == nil {
