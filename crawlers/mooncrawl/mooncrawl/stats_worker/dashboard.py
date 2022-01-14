@@ -850,14 +850,7 @@ def stats_generate_api_task(
 
                     s3_data_object["events"] = events_data
 
-                    s3_data_object["generic"] = generate_metrics(
-                        db_session=db_session,
-                        blockchain_type=blockchain_type,
-                        address=address,
-                        timescale=timescale,
-                        metrics=generic,
-                        start=start_date,
-                    )
+                    s3_data_object["generic"] = {}
 
                     push_statistics(
                         statistics_data=s3_data_object,
