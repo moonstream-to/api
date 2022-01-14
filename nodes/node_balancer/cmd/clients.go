@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	// "fmt"
 	"log"
 	"reflect"
 	"time"
@@ -11,33 +10,31 @@ import (
 
 var clientPool ClientPool
 
-func (client *Client) GetClientNode() (clientNode *Node) {
-	client.mux.RLock()
-	clientNode = client.Node
-	client.mux.RUnlock()
-	return clientNode
-}
+// func (client *Client) GetClientNode() (clientNode *Node) {
+// 	client.mux.RLock()
+// 	clientNode = client.Node
+// 	client.mux.RUnlock()
+// 	return clientNode
+// }
 
 // Add client node and client itself if doesn't exist
 // TODO(kompotkot): Add mutex as for balancer
-func (cpool *ClientPool) AddClientNode(id, blockchain string, node *Node) *Client {
+func (cpool *ClientPool) AddClientNode(id, blockchain string, node *Node) {
 	ts := time.Now().Unix()
-
-	currentClient := cpool.Client[id]
 
 	// Find clint with same ID and update timestamp or
 	// add new one if doesn't exist
-	if currentClient != nil {
-		if reflect.DeepEqual(currentClient.Node, node) {
-			currentClient.LastCallTs = ts
-			return currentClient
+	if cpool.Client[id] != nil {
+		if reflect.DeepEqual(cpool.Client[id].Node, node) {
+			cpool.Client[id].LastCallTs = ts
+			return
 		}
 	}
-
-	currentClient.Blockchain = blockchain
-	currentClient.Node = node
-	currentClient.LastCallTs = ts
-	return currentClient
+	cpool.Client[id] = &Client{
+		Blockchain: blockchain,
+		Node:       node,
+		LastCallTs: ts,
+	}
 }
 
 // Get client hot node if exists

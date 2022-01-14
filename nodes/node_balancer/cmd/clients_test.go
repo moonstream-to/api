@@ -8,6 +8,27 @@ import (
 	configs "github.com/bugout-dev/moonstream/nodes/node_balancer/configs"
 )
 
+func TestAddClientNode(t *testing.T) {
+	var cases = []struct {
+		clients  map[string]*Client
+		expected string
+	}{
+		{map[string]*Client{"1": {Blockchain: "ethereum", Node: &Node{Alive: true}}}, "1"},
+	}
+	for _, c := range cases {
+		clientPool.Client = make(map[string]*Client)
+		for id, client := range c.clients {
+			clientPool.AddClientNode(id, client.Blockchain, client.Node)
+		}
+		for id := range clientPool.Client {
+			if id != c.expected {
+				t.Log("Wrong client was added")
+				t.Fatal()
+			}
+		}
+	}
+}
+
 func TestGetClientNode(t *testing.T) {
 	ts := time.Now().Unix()
 
@@ -16,6 +37,7 @@ func TestGetClientNode(t *testing.T) {
 		id       string
 		expected *Node
 	}{
+		{map[string]*Client{}, "1", nil},
 		{map[string]*Client{"1": {Blockchain: "ethereum", LastCallTs: ts, Node: &Node{Alive: true}}}, "1", &Node{Alive: true}},
 		{map[string]*Client{"2": {Blockchain: "polygon", LastCallTs: ts, Node: &Node{Alive: true}}}, "1", nil},
 		{map[string]*Client{"1": {Blockchain: "ethereum", LastCallTs: ts - configs.NB_CLIENT_NODE_KEEP_ALIVE, Node: &Node{Alive: true}}}, "1", nil},
@@ -56,8 +78,8 @@ func TestCleanInactiveClientNodes(t *testing.T) {
 		}
 
 		clientPool.CleanInactiveClientNodes()
-		for key := range clientPool.Client {
-			if key != c.expected {
+		for id := range clientPool.Client {
+			if id != c.expected {
 				t.Log("Wrong client was removed")
 				t.Fatal()
 			}
