@@ -95,6 +95,13 @@ const Analytics = () => {
     });
   };
 
+  const retryCallbackFn = (attempts, status) => {
+    if (status === 304 && attempts > 5) {
+      refereshCharts();
+    }
+    return status === 404 || status === 403 ? false : true;
+  };
+
   return (
     <Scrollable>
       <Flex
@@ -198,6 +205,7 @@ const Analytics = () => {
                   </Text>
 
                   <SubscriptionReport
+                    retryCallbackFn={retryCallbackFn}
                     timeRange={timeRange}
                     presignedRequest={s3PresignedURLs[timeRange]}
                     id={dashboardId}

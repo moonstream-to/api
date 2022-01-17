@@ -11,11 +11,12 @@ const usePresignedURL = ({
   requestNewURLCallback,
   isEnabled,
   hideToastOn404,
+  retryCallbackFn,
 }) => {
   const toast = useToast();
 
   const getFromPresignedURL = async () => {
-    let request_parameters = {
+    let requestParameters = {
       url: url,
       // You can uncomment this to use mockupsLibrary in development
       // url: `https://example.com/s3`,
@@ -25,11 +26,11 @@ const usePresignedURL = ({
 
     if (headers) {
       Object.keys(headers).map((key) => {
-        request_parameters["headers"][key] = headers[key];
+        requestParameters["headers"][key] = headers[key];
       });
     }
 
-    const response = await axios(request_parameters);
+    const response = await axios(requestParameters);
     return response.data;
   };
 
@@ -44,6 +45,9 @@ const usePresignedURL = ({
       staleTime: Infinity,
       enabled: isEnabled && url ? true : false,
       keepPreviousData: true,
+      retry: (attempts, e) => {
+        return retryCallbackFn(attempts, e?.response?.status);
+      },
       onSuccess: () => {},
       onError: (e) => {
         if (

@@ -25,6 +25,7 @@ const SubscriptionReport = ({
   presignedRequest,
   id,
   refetchLinks,
+  retryCallbackFn,
 }) => {
   const { data, isLoading, failureCount, isFetching } = usePresignedURL({
     ...presignedRequest,
@@ -33,6 +34,7 @@ const SubscriptionReport = ({
     cacheType: `${timeRange} subscription_report`,
     requestNewURLCallback: refetchLinks,
     hideToastOn404: true,
+    retryCallbackFn: retryCallbackFn,
   });
   const plotMinW = "250px";
 
