@@ -8,7 +8,7 @@ import boto3  # type: ignore
 import requests
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
-from fastapi import APIRouter, Body, Query, Request
+from fastapi import APIRouter, Body, Path, Query, Request
 
 from .. import actions, data
 from ..middleware import MoonstreamHTTPException
@@ -439,7 +439,9 @@ async def get_dashboard_data_links_handler(
 
 @router.post("/{dashboard_id}/stats_update", tags=["dashboards"])
 async def update_dashbord_data_handler(
-    request: Request, dashboard_id: str, updatestats: data.UpdateStats
+    request: Request,
+    dashboard_id: str = Path(...),
+    updatestats: data.UpdateStats = Body(...),
 ) -> Dict[str, Any]:
     """
     Return journal statistics
