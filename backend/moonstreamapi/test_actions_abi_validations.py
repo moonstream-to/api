@@ -1,9 +1,8 @@
 import unittest
 
-from .data import DashboardMeta
 from .actions import dashboards_abi_validation
+from .data import DashboardMeta
 from .middleware import MoonstreamHTTPException
-
 
 abi_example = [
     {

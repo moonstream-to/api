@@ -2,41 +2,36 @@ import hashlib
 import json
 from itertools import chain
 import logging
-from typing import List, Optional, Dict, Any, Union
-import time
+from typing import List, Optional, Dict, Any
 from enum import Enum
 import uuid
 
 import boto3  # type: ignore
-from bugout.data import BugoutSearchResults, BugoutSearchResult
+
+from bugout.data import BugoutSearchResults, BugoutSearchResult, BugoutResource
 from bugout.journal import SearchOrder
 from ens.utils import is_valid_ens_name  # type: ignore
 from eth_utils.address import is_address  # type: ignore
-from moonstreamdb.models import (
-    EthereumLabel,
-)
+from moonstreamdb.models import EthereumLabel
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+from web3 import Web3
 from web3._utils.validation import validate_abi
 
-
-from .middleware import MoonstreamHTTPException
 from . import data
-from .reporter import reporter
 from .middleware import MoonstreamHTTPException
-from .settings import ETHERSCAN_SMARTCONTRACTS_BUCKET
-from bugout.data import BugoutResource
+from .reporter import reporter
 from .settings import (
-    MOONSTREAM_APPLICATION_ID,
-    bugout_client as bc,
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
+    ETHERSCAN_SMARTCONTRACTS_BUCKET,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
+    MOONSTREAM_APPLICATION_ID,
     MOONSTREAM_DATA_JOURNAL_ID,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
     MOONSTREAM_MOONWORM_TASKS_JOURNAL,
 )
-from web3 import Web3
+from .settings import bugout_client as bc
 
 logger = logging.getLogger(__name__)
 

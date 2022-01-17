@@ -7,15 +7,16 @@ import logging
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
-from moonstreamdb import db
 from sqlalchemy.orm import Session
+
+from moonstreamdb import db
 
 from .. import data
 from ..providers.bugout import ethereum_whalewatch_provider
 from ..settings import (
-    bugout_client,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_DATA_JOURNAL_ID,
+    bugout_client,
 )
 from ..stream_queries import StreamQuery
 

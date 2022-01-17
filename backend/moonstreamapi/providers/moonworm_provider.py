@@ -1,23 +1,17 @@
-from dataclasses import dataclass, field
 import logging
-from typing import cast, Dict, Any, List, Optional, Tuple
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 from bugout.app import Bugout
 from bugout.data import BugoutResource
-
-from moonstreamdb.blockchain import (
-    get_label_model,
-    AvailableBlockchainType,
-)
-from sqlalchemy import or_, and_, text
-from sqlalchemy.orm import Session, Query, query_expression
+from moonstreamdb.blockchain import AvailableBlockchainType, get_label_model
+from sqlalchemy import and_, or_, text
+from sqlalchemy.orm import Query, Session, query_expression
 from sqlalchemy.sql.expression import label
-
 
 from .. import data
 from ..stream_boundaries import validate_stream_boundary
 from ..stream_queries import StreamQuery
-
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARN)

@@ -1,9 +1,9 @@
 """
 Stream queries - data structure, and parser.
 """
-from dataclasses import dataclass, field
 import logging
-from typing import cast, List, Tuple
+from dataclasses import dataclass, field
+from typing import List, Tuple, cast
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

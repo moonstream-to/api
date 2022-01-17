@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { usePresignedURL } from "../core/hooks";
 import Report from "./Report";
+
 import {
   Spinner,
   Flex,
@@ -19,16 +20,24 @@ timeMap[HOUR_KEY] = "hour";
 timeMap[DAY_KEY] = "day";
 timeMap[WEEK_KEY] = "week";
 
-const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
-  const { data, isLoading, failureCount } = usePresignedURL({
-    url: url,
+const SubscriptionReport = ({
+  timeRange,
+  presignedRequest,
+  id,
+  refetchLinks,
+  retryCallbackFn,
+}) => {
+  const { data, isLoading, failureCount, isFetching } = usePresignedURL({
+    ...presignedRequest,
     isEnabled: true,
     id: id,
     cacheType: `${timeRange} subscription_report`,
     requestNewURLCallback: refetchLinks,
     hideToastOn404: true,
+    retryCallbackFn: retryCallbackFn,
   });
   const plotMinW = "250px";
+
   const eventKeys = useMemo(
     () =>
       Object.keys(data?.events ?? {}).length > 0
@@ -50,8 +59,9 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
         : undefined,
     [data]
   );
+
   if (failureCount < 1 && (!data || isLoading)) return <Spinner />;
-  if (failureCount >= 1 && (!data || isLoading))
+  if (failureCount >= 1 && (!data || isLoading)) {
     return (
       <Container
         w="100%"
@@ -85,6 +95,8 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
         <br />
       </Container>
     );
+  }
+
   return (
     <Flex
       w="100%"
@@ -93,6 +105,9 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
       flexBasis={plotMinW}
       direction="column"
     >
+      <Text fontSize="xs" textAlign="right">{`Latest block number: ${
+        data?.blocks_state?.latest_labelled_block ?? "Not available"
+      }`}</Text>
       <Flex
         bgColor="blue.50"
         direction={["column", "row", null]}
@@ -155,15 +170,16 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
                 boxShadow="md"
                 m={2}
               >
-                <Text
+                <Flex
+                  direction="row"
                   w="100%"
-                  py={2}
-                  bgColor="gray.50"
-                  fontWeight="600"
-                  textAlign="center"
+                  bgColor="blue.50"
+                  placeItems="center"
+                  justifyContent={"center"}
                 >
-                  {key}
-                </Text>
+                  <Text>{key}</Text>
+                  {isFetching && <Spinner size="sm" m={1} />}
+                </Flex>
                 <Report
                   data={data.events[key]}
                   metric={key}
@@ -198,15 +214,16 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
                 boxShadow="md"
                 m={2}
               >
-                <Text
+                <Flex
+                  direction="row"
                   w="100%"
-                  py={2}
-                  bgColor="gray.50"
-                  fontWeight="600"
-                  textAlign="center"
+                  bgColor="blue.50"
+                  placeItems="center"
+                  justifyContent={"center"}
                 >
-                  {key}
-                </Text>
+                  <Text>{key}</Text>
+                  {isFetching && <Spinner size="sm" m={2} />}
+                </Flex>
                 <Report
                   data={data.functions[key]}
                   metric={key}
@@ -241,15 +258,16 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
                 boxShadow="md"
                 m={2}
               >
-                <Text
+                <Flex
+                  direction="row"
                   w="100%"
-                  py={2}
-                  bgColor="gray.50"
-                  fontWeight="600"
-                  textAlign="center"
+                  bgColor="blue.50"
+                  placeItems="center"
+                  justifyContent={"center"}
                 >
-                  {key}
-                </Text>
+                  <Text>{key}</Text>
+                  {isFetching && <Spinner size="sm" m={2} />}
+                </Flex>
                 <Report
                   data={data.generic[key]}
                   metric={key}

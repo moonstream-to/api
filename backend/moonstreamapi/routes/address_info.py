@@ -2,12 +2,12 @@ import logging
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
-from moonstreamdb.db import yield_db_session
 from sqlalchemy.orm import Session
 from web3 import Web3
 
-from .. import actions
-from .. import data
+from moonstreamdb.db import yield_db_session
+
+from .. import actions, data
 from ..middleware import MoonstreamHTTPException
 from ..web3_provider import yield_web3_provider
 

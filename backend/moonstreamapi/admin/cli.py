@@ -2,13 +2,13 @@
 Moonstream CLI
 """
 import argparse
-
-import logging
 import json
+import logging
 import os
 from posix import listdir
 from typing import Optional
 
+from sqlalchemy.orm import with_expression
 
 from moonstreamdb.db import SessionLocal
 

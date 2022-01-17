@@ -17,6 +17,10 @@ class TimeScale(Enum):
     day = "day"
 
 
+class UpdateStats(BaseModel):
+    timescales: List[str]
+
+
 class SubscriptionTypeResourceData(BaseModel):
     id: str
     name: str

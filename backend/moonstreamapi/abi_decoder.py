@@ -1,15 +1,16 @@
 import argparse
 import binascii
 import sys
-from typing import List, Optional, Union, Type, cast
+from typing import List, Optional, Type, Union, cast
 
 import pyevmasm
-
-from moonstreamdb.db import yield_db_session
 from moonstreamdb.models import ESDEventSignature, ESDFunctionSignature
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import text
-from .data import EVMEventSignature, EVMFunctionSignature, ContractABI
+
+from moonstreamdb.db import yield_db_session
+
+from .data import ContractABI, EVMEventSignature, EVMFunctionSignature
 
 
 def query_for_text_signatures(
