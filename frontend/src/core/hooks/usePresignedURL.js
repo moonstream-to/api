@@ -48,17 +48,16 @@ const usePresignedURL = ({
       retry: (attempts, e) => {
         return retryCallbackFn(attempts, e?.response?.status);
       },
-      onSuccess: () => {},
       onError: (e) => {
         if (
           e?.response?.data?.includes("Request has expired") ||
           e?.response?.status === 403
         ) {
           requestNewURLCallback();
-        } else if (e?.response?.status === 304) {
-          // If not modified.
         } else {
-          !hideToastOn404 && toast(error, "error");
+          !hideToastOn404 &&
+            e?.response?.status !== 304 &&
+            toast(error, "error");
         }
       },
     }
