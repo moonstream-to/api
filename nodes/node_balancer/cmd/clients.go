@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"errors"
-	"log"
 	"reflect"
 	"time"
 
@@ -82,7 +81,7 @@ func (cpool *ClientPool) GetClientNode(id string) *Node {
 }
 
 // Clean client list of hot outdated nodes
-func (cpool *ClientPool) CleanInactiveClientNodes() {
+func (cpool *ClientPool) CleanInactiveClientNodes() int {
 	cnt := 0
 	for id, client := range cpool.Client {
 		lastCallTs := client.GetClientLastCallDiff()
@@ -93,5 +92,5 @@ func (cpool *ClientPool) CleanInactiveClientNodes() {
 		}
 	}
 
-	log.Printf("Active clients: %d\n", cnt)
+	return cnt
 }

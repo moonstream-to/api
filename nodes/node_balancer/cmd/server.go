@@ -27,8 +27,9 @@ func initHealthCheck(debug bool) {
 		select {
 		case <-t.C:
 			blockchainPool.HealthCheck()
-			ethereumClientPool.CleanInactiveClientNodes()
-			polygonClientPool.CleanInactiveClientNodes()
+			ethereumClients := ethereumClientPool.CleanInactiveClientNodes()
+			polygonClients := polygonClientPool.CleanInactiveClientNodes()
+			log.Printf("Active etehereum clients: %d, polygon clients: %d\n", ethereumClients, polygonClients)
 			if debug {
 				blockchainPool.StatusLog()
 			}
