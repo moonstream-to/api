@@ -104,7 +104,7 @@ func (bpool *BlockchainPool) GetNextNode(blockchain string) *Node {
 		// If we have an alive one, use it and store if its not the original one
 		if np.Nodes[idx].IsAlive() {
 			if i != next {
-				log.Printf("Mark the current one %d", uint64(idx))
+				// Mark the current one
 				atomic.StoreUint64(&np.Current, uint64(idx))
 			}
 			// Pass nodes with low blocks

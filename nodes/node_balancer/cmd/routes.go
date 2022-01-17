@@ -6,7 +6,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 
@@ -35,7 +34,6 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 
 	clientId := w.Header().Get(configs.MOONSTREAM_CLIENT_ID_HEADER)
 	if clientId == "" {
-		log.Printf("Empty client id provided")
 		// TODO(kompotkot): After all internal crawlers and services start
 		// providing client id header, then replace to http.Error
 		clientId = "none"
@@ -48,7 +46,7 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Unacceptable blockchain provided %s", blockchain), http.StatusBadRequest)
 		return
 	}
-	cpool.GetClientNode(clientId)
+	node = cpool.GetClientNode(clientId)
 	if node == nil {
 		node = blockchainPool.GetNextNode(blockchain)
 		if node == nil {
