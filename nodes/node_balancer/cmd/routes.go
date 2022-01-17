@@ -6,9 +6,12 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"strings"
+
+	configs "github.com/bugout-dev/moonstream/nodes/node_balancer/configs"
 )
 
 // pingRoute response with status of load balancer server itself
@@ -31,27 +34,29 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Chose one node
-	ip, _, err := net.SplitHostPort(r.RemoteAddr)
-	if err != nil {
-		http.Error(w, "Unable to parse client IP", http.StatusInternalServerError)
-		return
+	clientId := w.Header().Get(configs.MOONSTREAM_CLIENT_ID_HEADER)
+	if clientId == "" {
+		log.Printf("Empty client id provided")
+		// TODO(kompotkot): After all internal crawlers and services start
+		// providing client id header, then replace to http.Error
+		clientId = "none"
 	}
 
+	// Chose one node
 	var node *Node
 	cpool, err := GetClientPool(blockchain)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Unacceptable blockchain provided %s", blockchain), http.StatusBadRequest)
 		return
 	}
-	cpool.GetClientNode(ip)
+	cpool.GetClientNode(clientId)
 	if node == nil {
 		node = blockchainPool.GetNextNode(blockchain)
 		if node == nil {
 			http.Error(w, "There are no nodes available", http.StatusServiceUnavailable)
 			return
 		}
-		cpool.AddClientNode(ip, node)
+		cpool.AddClientNode(clientId, node)
 	}
 
 	// Save origin path, to use in proxyErrorHandler if node will not response
