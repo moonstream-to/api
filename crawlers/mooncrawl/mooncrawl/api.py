@@ -112,11 +112,9 @@ async def status_handler(
 
         background_tasks.add_task(
             dashboard.stats_generate_api_task,
-            token=stats_update.token,
             timescales=stats_update.timescales,
             dashboard=dashboard_resource,
             subscription_by_id=subscription_by_id,
-            dashboard_id=stats_update.dashboard_id,
         )
 
     except Exception as e:
