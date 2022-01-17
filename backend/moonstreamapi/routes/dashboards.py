@@ -16,7 +16,7 @@ from ..reporter import reporter
 from ..settings import (
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
     MOONSTREAM_APPLICATION_ID,
-    MOONSTREAM_CRAWLERS_INTERNAL,
+    MOONSTREAM_CRAWLERS_SERVER_URL,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
 )
@@ -451,7 +451,7 @@ async def update_dashbord_data_handler(
     token = request.state.token
 
     responce = requests.post(
-        f"{MOONSTREAM_CRAWLERS_INTERNAL}/jobs/stats_update",
+        f"{MOONSTREAM_CRAWLERS_SERVER_URL}/jobs/stats_update",
         json={
             "dashboard_id": dashboard_id,
             "timescales": updatestats.timescales,
