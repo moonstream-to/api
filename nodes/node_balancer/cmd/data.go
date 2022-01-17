@@ -20,7 +20,6 @@ type NodeStatusResponse struct {
 // Node - which one node client worked with
 // LastCallTs - timestamp from last call
 type Client struct {
-	Blockchain string
 	Node       *Node
 	LastCallTs int64
 

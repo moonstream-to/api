@@ -39,14 +39,19 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var node *Node
-	node = clientPool.GetClientNode(ip)
+	cpool, err := GetClientPool(blockchain)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Unacceptable blockchain provided %s", blockchain), http.StatusBadRequest)
+		return
+	}
+	cpool.GetClientNode(ip)
 	if node == nil {
 		node = blockchainPool.GetNextNode(blockchain)
 		if node == nil {
 			http.Error(w, "There are no nodes available", http.StatusServiceUnavailable)
 			return
 		}
-		clientPool.AddClientNode(ip, blockchain, node)
+		cpool.AddClientNode(ip, node)
 	}
 
 	// Save origin path, to use in proxyErrorHandler if node will not response

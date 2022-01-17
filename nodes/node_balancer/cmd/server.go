@@ -27,7 +27,8 @@ func initHealthCheck(debug bool) {
 		select {
 		case <-t.C:
 			blockchainPool.HealthCheck()
-			clientPool.CleanInactiveClientNodes()
+			ethereumClientPool.CleanInactiveClientNodes()
+			polygonClientPool.CleanInactiveClientNodes()
 			if debug {
 				blockchainPool.StatusLog()
 			}
@@ -109,7 +110,7 @@ func InitServer() {
 	}
 
 	// Generate map of clients
-	clientPool.Client = make(map[string]*Client)
+	CreateClientPools()
 
 	// Configure Humbug reporter to handle errors
 	var err error
