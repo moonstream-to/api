@@ -8,7 +8,7 @@ import logging
 import time
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Union
+from typing import Any, Callable, Dict, List
 from uuid import UUID
 
 import boto3  # type: ignore
@@ -21,7 +21,6 @@ from web3 import Web3
 
 from ..blockchain import (
     connect,
-    get_block_model,
     get_label_model,
     get_transaction_model,
 )
@@ -671,11 +670,9 @@ def stats_generate_handler(args: argparse.Namespace):
 
 
 def stats_generate_api_task(
-    token: UUID,
     timescales: List[str],
     dashboard: BugoutResource,
     subscription_by_id: Dict[str, BugoutResource],
-    dashboard_id: str,
 ):
     """
     Start crawler with generate.
@@ -716,8 +713,6 @@ def stats_generate_api_task(
                     "0xA2a13cE1824F3916fC84C65e559391fc6674e6e8",
                 ):
                     crawler_label = "moonworm"
-
-                generic = dashboard_subscription_filters["generic"]
 
                 if not subscription_by_id[subscription_id].resource_data["abi"]:
 
