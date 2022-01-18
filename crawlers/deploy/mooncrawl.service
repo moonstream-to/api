@@ -11,7 +11,7 @@ WorkingDirectory=/home/ubuntu/moonstream/crawlers/mooncrawl
 EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
 Restart=on-failure
 RestartSec=15s
-ExecStart=/home/ubuntu/moonstream-env/bin/uvicorn --host "${AWS_LOCAL_IPV4}" --port 7491 --workers 4 mooncrawl.api:app
+ExecStart=/home/ubuntu/moonstream-env/bin/uvicorn --host "${AWS_LOCAL_IPV4}" --port "${MOONSTREAM_CRAWLERS_SERVER_PORT}" --workers 4 mooncrawl.api:app
 SyslogIdentifier=mooncrawl
 
 [Install]
