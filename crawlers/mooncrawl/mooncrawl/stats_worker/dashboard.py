@@ -570,10 +570,7 @@ def stats_generate_handler(args: argparse.Namespace):
 
                     crawler_label = CRAWLER_LABEL
 
-                    if address in (
-                        "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
-                        "0xA2a13cE1824F3916fC84C65e559391fc6674e6e8",
-                    ):
+                    if address in ("0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",):
                         crawler_label = "moonworm"
 
                     # Read required events, functions and web3_call form ABI
