@@ -3,7 +3,7 @@ Description=Update Polygon statistics dashboard each 5 minutes
 
 [Timer]
 OnBootSec=10s
-OnUnitActiveSec=5m
+OnUnitActiveSec=15m
 
 [Install]
 WantedBy=timers.target
