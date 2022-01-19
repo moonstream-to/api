@@ -190,7 +190,7 @@ const SubscriptionReport = ({
           })}
         </Flex>
       )}
-      {data?.functions && methodKeys && (
+      {data?.methods && methodKeys && (
         <Flex
           w="100%"
           h="auto"
@@ -199,7 +199,7 @@ const SubscriptionReport = ({
           direction="column"
         >
           <Heading size="md" pt={4}>
-            functions
+            Methods
           </Heading>
           {methodKeys.map((key) => {
             return (
@@ -225,7 +225,7 @@ const SubscriptionReport = ({
                   {isFetching && <Spinner size="sm" m={2} />}
                 </Flex>
                 <Report
-                  data={data.functions[key]}
+                  data={data.methods[key]}
                   metric={key}
                   timeRange={timeRange}
                 />

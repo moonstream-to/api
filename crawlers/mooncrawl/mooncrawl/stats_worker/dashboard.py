@@ -645,7 +645,7 @@ def stats_generate_handler(args: argparse.Namespace):
                             metric_type="tx_call",
                             crawler_label=crawler_label,
                         )
-                        s3_data_object["functions"] = functions_calls_data
+                        s3_data_object["methods"] = functions_calls_data
 
                         # Generte events timeseries
                         events_data = generate_data(
@@ -804,7 +804,7 @@ def stats_generate_api_task(
                         metric_type="tx_call",
                         crawler_label=crawler_label,
                     )
-                    s3_data_object["functions"] = functions_calls_data
+                    s3_data_object["methods"] = functions_calls_data
 
                     # Generate events timeseries
                     events_data = generate_data(
