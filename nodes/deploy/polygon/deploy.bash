@@ -26,15 +26,6 @@ HEIMDALL_HOME="/mnt/disks/nodes/${BLOCKCHAIN}/.heimdalld"
 # Node status server service file
 NODE_STATUS_SERVER_SERVICE_FILE="node-status.service"
 
-
-# Polygon heimdalld service files
-POLYGON_HEIMDALLD_SERVICE_FILE="heimdalld.service"
-POLYGON_HEIMDALLD_BRIDGE_SERVICE_FILE="heimdalld-bridge.service"
-POLYGON_HEIMDALLD_REST_SERVICE_FILE="heimdalld-rest-server.service"
-
-# Polygon bor service file
-POLYGON_BOR_SERVICE_FILE="bor.service"
-
 set -eu
 
 echo
