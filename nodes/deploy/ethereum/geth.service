@@ -1,10 +1,12 @@
 [Unit]
 Description=Ethereum node Geth client
+StartLimitIntervalSec=500
+StartLimitBurst=5
 After=network.target
 
 [Service]
-User=ubuntu
-Group=www-data
+Restart=on-failure
+RestartSec=5s
 EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
 ExecStart=/usr/bin/geth --syncmode snap --cache 4096 \
     --datadir /mnt/disks/nodes/ethereum \
@@ -13,7 +15,9 @@ ExecStart=/usr/bin/geth --syncmode snap --cache 4096 \
     --http.addr "${AWS_LOCAL_IPV4}" \
     --http.port 8545 \
     --http.vhosts "*"
-ExecStop=/bin/kill -s SIGINT -$MAINPID
+Type=simple
+User=ubuntu
+KillSignal=SIGINT
 TimeoutStopSec=300
 SyslogIdentifier=geth
 
