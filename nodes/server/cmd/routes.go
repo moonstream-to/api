@@ -3,6 +3,7 @@ package cmd
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -31,17 +32,13 @@ func (es *extendedServer) pingGethRoute(w http.ResponseWriter, req *http.Request
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
-	var IPC_PATH string
-	if es.blockchain == "ethereum" {
-		IPC_PATH = settings.MOONSTREAM_NODE_ETHEREUM_IPC_PATH
-	} else if es.blockchain == "polygon" {
-		IPC_PATH = settings.MOONSTREAM_NODE_POLYGON_IPC_PATH
-	} else {
+	if es.blockchain != "ethereum" && es.blockchain != "polygon" {
 		log.Printf("Unaccepted blockchain type: %s", es.blockchain)
 		http.Error(w, http.StatusText(400), http.StatusBadRequest)
 		return
 	}
-	gethResponse, err := http.Post(IPC_PATH, "application/json",
+	MOONSTREAM_WEB3_PROVIDER_URI := fmt.Sprintf("http://%s:8545", settings.LOCAL_IPV4)
+	gethResponse, err := http.Post(MOONSTREAM_WEB3_PROVIDER_URI, "application/json",
 		bytes.NewBuffer(postBody))
 	if err != nil {
 		log.Printf("Unable to request geth, error: %s", err)
