@@ -45,10 +45,10 @@ const SubscriptionReport = ({
         : undefined,
     [data]
   );
-  const functionKeys = useMemo(
+  const methodKeys = useMemo(
     () =>
-      Object.keys(data?.functions ?? {}).length > 0
-        ? Object.keys(data?.functions)
+      Object.keys(data?.methods ?? {}).length > 0
+        ? Object.keys(data?.methods)
         : undefined,
     [data]
   );
@@ -190,7 +190,7 @@ const SubscriptionReport = ({
           })}
         </Flex>
       )}
-      {data?.functions && functionKeys && (
+      {data?.methods && methodKeys && (
         <Flex
           w="100%"
           h="auto"
@@ -199,9 +199,9 @@ const SubscriptionReport = ({
           direction="column"
         >
           <Heading size="md" pt={4}>
-            Functions
+            Methods
           </Heading>
-          {functionKeys.map((key) => {
+          {methodKeys.map((key) => {
             return (
               <Flex
                 key={`methods-list-${key}`}
@@ -225,7 +225,7 @@ const SubscriptionReport = ({
                   {isFetching && <Spinner size="sm" m={2} />}
                 </Flex>
                 <Report
-                  data={data.functions[key]}
+                  data={data.methods[key]}
                   metric={key}
                   timeRange={timeRange}
                 />
