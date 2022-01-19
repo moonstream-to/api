@@ -45,10 +45,10 @@ const SubscriptionReport = ({
         : undefined,
     [data]
   );
-  const methodKeys = useMemo(
+  const functionKeys = useMemo(
     () =>
-      Object.keys(data?.methods ?? {}).length > 0
-        ? Object.keys(data?.methods)
+      Object.keys(data?.functions ?? {}).length > 0
+        ? Object.keys(data?.functions)
         : undefined,
     [data]
   );
@@ -190,7 +190,7 @@ const SubscriptionReport = ({
           })}
         </Flex>
       )}
-      {data?.functions && methodKeys && (
+      {data?.functions && functionKeys && (
         <Flex
           w="100%"
           h="auto"
@@ -199,9 +199,9 @@ const SubscriptionReport = ({
           direction="column"
         >
           <Heading size="md" pt={4}>
-            functions
+            Functions
           </Heading>
-          {methodKeys.map((key) => {
+          {functionKeys.map((key) => {
             return (
               <Flex
                 key={`methods-list-${key}`}
