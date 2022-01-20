@@ -20,7 +20,6 @@ APP_NODES_DIR="${APP_DIR}/nodes"
 SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/moonstream-secrets}"
 PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
 SCRIPT_DIR="$(realpath $(dirname $0))"
-BLOCKCHAIN="ethereum"
 
 # Node status server service file
 NODE_STATUS_SERVER_SERVICE_FILE="node-status.service"

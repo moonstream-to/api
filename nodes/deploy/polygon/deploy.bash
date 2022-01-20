@@ -20,8 +20,6 @@ APP_NODES_DIR="${APP_DIR}/nodes"
 SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/moonstream-secrets}"
 PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
 SCRIPT_DIR="$(realpath $(dirname $0))"
-BLOCKCHAIN="polygon"
-HEIMDALL_HOME="/mnt/disks/nodes/${BLOCKCHAIN}/.heimdalld"
 
 # Node status server service file
 NODE_STATUS_SERVER_SERVICE_FILE="node-status.service"
@@ -82,29 +80,13 @@ echo -e "${PREFIX_INFO} Source startup environment variables"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Modify heimdall config with seeds"
+echo -e "${PREFIX_INFO} Update heimdall config file with seeds"
 sed -i "s|^seeds =.*|$SEEDS_LINE|" "${MOUNT_DATA_DIR}/.heimdalld/config/config.toml"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Source extracted parameters"
-. "${PARAMETERS_ENV_PATH}"
-
-echo
-echo
-echo -e "${PREFIX_INFO} Retrieving Ethereum node address"
-RETRIEVED_NODE_ETHEREUM_IP_ADDR=$(aws route53 list-resource-record-sets --hosted-zone-id "${MOONSTREAM_INTERNAL_HOSTED_ZONE_ID}" --query "ResourceRecordSets[?Name == 'a.ethereum.moonstream.internal.'].ResourceRecords[].Value" | jq -r .[0])
-if [ "$RETRIEVED_NODE_ETHEREUM_IP_ADDR" == "null" ]; then
-  verbose "${PREFIX_CRIT} Ethereum node internal DNS record address is null"
-  exit 1
-fi
-
-echo
-echo
-MOONSTREAM_NODE_ETHEREUM_IPC_URI="http://$RETRIEVED_NODE_ETHEREUM_IP_ADDR:8545"
-echo -e "${PREFIX_INFO} Update heimdall config file with Ethereum URI ${C_GREEN}${MOONSTREAM_NODE_ETHEREUM_IPC_URI}${C_RESET}"
-sed -i "s|^eth_rpc_url =.*|eth_rpc_url = \"$MOONSTREAM_NODE_ETHEREUM_IPC_URI\"|" "${HEIMDALL_HOME}/config/heimdall-config.toml"
-echo -e "${PREFIX_INFO} Updated ${C_GREEN}eth_rpc_url = $MOONSTREAM_NODE_ETHEREUM_IPC_URI${C_RESET} for heimdall"
+echo -e "${PREFIX_INFO} Update heimdall config file with nodebalancer Ethereum URI"
+sed -i "s|^eth_rpc_url =.*|eth_rpc_url = \"http://nodebalancer.moonstream.internal:8544/nb/ethereum/jsonrpc\"|" "${MOUNT_DATA_DIR}/.heimdalld/config/heimdall-config.toml"
 
 echo
 echo
