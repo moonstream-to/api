@@ -6,6 +6,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -21,6 +22,13 @@ func pingRoute(w http.ResponseWriter, r *http.Request) {
 
 // lbHandler load balances the incoming requests to nodes
 func lbHandler(w http.ResponseWriter, r *http.Request) {
+	attempts := GetAttemptsFromContext(r)
+	if attempts > configs.NB_CONNECTION_RETRIES {
+		log.Printf("Max attempts reached from %s %s, terminating\n", r.RemoteAddr, r.URL.Path)
+		http.Error(w, "Service not available", http.StatusServiceUnavailable)
+		return
+	}
+
 	var blockchain string
 	switch {
 	case strings.HasPrefix(r.URL.Path, "/nb/ethereum"):
