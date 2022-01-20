@@ -2,6 +2,7 @@ import React from "react";
 import { ResponsiveLineCanvas } from "@nivo/line";
 
 const Report = ({ data, timeRange }) => {
+  if (!data) return "there is no data to show";
   const commonProperties = {
     animate: false,
     enableSlices: "x",

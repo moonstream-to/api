@@ -114,7 +114,7 @@ const SubscriptionReport = ({
         flexWrap="wrap"
         alignContent={["inherit", "flex-start", null]}
       >
-        {data?.web3_metric.map((metric, web3MetricIndex) => {
+        {data?.web3_metric?.map((metric, web3MetricIndex) => {
           return (
             <Flex
               flexGrow={1}
