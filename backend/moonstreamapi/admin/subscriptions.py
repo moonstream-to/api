@@ -7,12 +7,9 @@ from typing import Dict, List, Optional, Union
 
 from bugout.data import BugoutResources
 
-from ..settings import (
-    MOONSTREAM_ADMIN_ACCESS_TOKEN,
-    bugout_client as bc,
-    BUGOUT_REQUEST_TIMEOUT_SECONDS,
-)
 from .. import reporter
+from ..settings import BUGOUT_REQUEST_TIMEOUT_SECONDS, MOONSTREAM_ADMIN_ACCESS_TOKEN
+from ..settings import bugout_client as bc
 
 
 def migrate_subscriptions(

@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
+from typing import List
 
 from pydantic import BaseModel
 
@@ -8,6 +9,12 @@ from pydantic import BaseModel
 class AvailableBlockchainType(Enum):
     ETHEREUM = "ethereum"
     POLYGON = "polygon"
+
+
+class StatsUpdateRequest(BaseModel):
+    dashboard_id: str
+    timescales: List[str]
+    token: str
 
 
 @dataclass

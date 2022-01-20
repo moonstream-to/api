@@ -167,7 +167,7 @@ def main() -> None:
         "--confirmations",
         "-c",
         type=int,
-        default=100,
+        default=175,
         help="Number of confirmations to wait for",
     )
 

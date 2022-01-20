@@ -13,6 +13,7 @@ import {
   EditablePreview,
   Button,
 } from "@chakra-ui/react";
+import { RepeatIcon } from "@chakra-ui/icons";
 import Scrollable from "../../src/components/Scrollable";
 import RangeSelector from "../../src/components/RangeSelector";
 import useDashboard from "../../src/core/hooks/useDashboard";
@@ -44,6 +45,7 @@ const Analytics = () => {
     dashboardLinksCache,
     deleteDashboard,
     updateDashboard,
+    refreshDashboard,
   } = useDashboard(dashboardId);
 
   const { subscriptionsCache } = useSubscriptions();
@@ -85,6 +87,20 @@ const Analytics = () => {
   }
 
   const plotMinW = "250px";
+
+  const refereshCharts = () => {
+    refreshDashboard.mutate({
+      dashboardId: dashboardCache.data.id,
+      timeRange: timeRange,
+    });
+  };
+
+  const retryCallbackFn = (attempts, status) => {
+    if (status === 304 && attempts > 5) {
+      refereshCharts();
+    }
+    return status === 404 || status === 403 ? false : true;
+  };
 
   return (
     <Scrollable>
@@ -146,6 +162,18 @@ const Analytics = () => {
             variant="outline"
             icon={<BsGear />}
           />
+          <IconButton
+            isLoading={
+              refreshDashboard.isLoading || refreshDashboard.isFetching
+            }
+            icon={<RepeatIcon />}
+            variant="ghost"
+            colorScheme="green"
+            size="sm"
+            onClick={() => {
+              refereshCharts();
+            }}
+          />
         </Stack>
 
         <Flex w="100%" direction="row" flexWrap="wrap-reverse" id="container">
@@ -175,9 +203,11 @@ const Analytics = () => {
                   >
                     {name ?? ""}
                   </Text>
+
                   <SubscriptionReport
+                    retryCallbackFn={retryCallbackFn}
                     timeRange={timeRange}
-                    url={s3PresignedURLs[timeRange]}
+                    presignedRequest={s3PresignedURLs[timeRange]}
                     id={dashboardId}
                     refetchLinks={dashboardLinksCache.refetch}
                   />

@@ -7,7 +7,8 @@ from fastapi import HTTPException, Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from .reporter import reporter
-from .settings import MOONSTREAM_APPLICATION_ID, bugout_client as bc
+from .settings import MOONSTREAM_APPLICATION_ID
+from .settings import bugout_client as bc
 
 logger = logging.getLogger(__name__)
 

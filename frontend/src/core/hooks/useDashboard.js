@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import { useRouter, useToast } from ".";
 import { queryCacheProps } from "./hookCommon";
 import { DashboardService } from "../services";
@@ -8,6 +8,7 @@ import UserContext from "../providers/UserProvider/context";
 const useDashboard = (dashboardId) => {
   const toast = useToast();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { user } = useContext(UserContext);
 
   const dashboardsListCache = useQuery(
@@ -119,12 +120,35 @@ const useDashboard = (dashboardId) => {
     }
   );
 
+  const refreshDashboard = useMutation(DashboardService.refreshDashboard, {
+    onSuccess: (data) => {
+      queryClient.setQueryData(
+        ["dashboardLinks", { dashboardId: dashboardId }],
+        (oldData) => {
+          let newData = { ...oldData };
+
+          Object.keys(data.data).forEach((subscription) => {
+            Object.keys(data.data[subscription]).forEach((timeScale) => {
+              newData.data[subscription][timeScale] =
+                data.data[subscription][timeScale];
+            });
+          });
+          return newData;
+        }
+      );
+    },
+    onError: (error) => {
+      toast(error.error, "error", "Fail");
+    },
+  });
+
   return {
     createDashboard,
     dashboardsListCache,
     dashboardCache,
     deleteDashboard,
     dashboardLinksCache,
+    refreshDashboard,
     updateDashboard,
   };
 };

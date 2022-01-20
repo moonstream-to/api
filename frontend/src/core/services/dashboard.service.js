@@ -45,3 +45,13 @@ export const getDashboardLinks = (dashboardId) => {
     url: `${API_URL}/dashboards/${dashboardId}/stats`,
   });
 };
+
+export const refreshDashboard = ({ dashboardId, timeRange }) => {
+  return http({
+    method: "POST",
+    url: `${API_URL}/dashboards/${dashboardId}/stats_update`,
+    data: {
+      timescales: [timeRange],
+    },
+  });
+};

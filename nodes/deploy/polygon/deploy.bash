@@ -26,14 +26,12 @@ HEIMDALL_HOME="/mnt/disks/nodes/${BLOCKCHAIN}/.heimdalld"
 # Node status server service file
 NODE_STATUS_SERVER_SERVICE_FILE="node-status.service"
 
-
-# Polygon heimdalld service files
-POLYGON_HEIMDALLD_SERVICE_FILE="heimdalld.service"
-POLYGON_HEIMDALLD_BRIDGE_SERVICE_FILE="heimdalld-bridge.service"
-POLYGON_HEIMDALLD_REST_SERVICE_FILE="heimdalld-rest-server.service"
-
 # Polygon bor service file
 POLYGON_BOR_SERVICE_FILE="bor.service"
+
+# Node startup variables
+NODE_STARTUP_DIRECTORY="/home/ubuntu/node"
+NODE_STARTUP_VARIABLES_FILE="variables.env"
 
 set -eu
 
@@ -74,6 +72,21 @@ systemctl status "${NODE_STATUS_SERVER_SERVICE_FILE}"
 
 echo
 echo
+echo -e "${PREFIX_INFO} Copy node startup environment variables to ${NODE_STARTUP_DIRECTORY} directory"
+cp "${SCRIPT_DIR}/${NODE_STARTUP_VARIABLES_FILE}" "${NODE_STARTUP_DIRECTORY}/${NODE_STARTUP_VARIABLES_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Source startup environment variables"
+. "${NODE_STARTUP_DIRECTORY}/${NODE_STARTUP_VARIABLES_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Modify heimdall config with seeds"
+sed -i "s|^seeds =.*|$SEEDS_LINE|" "${MOUNT_DATA_DIR}/.heimdalld/config/config.toml"
+
+echo
+echo
 echo -e "${PREFIX_INFO} Source extracted parameters"
 . "${PARAMETERS_ENV_PATH}"
 
@@ -92,3 +105,13 @@ MOONSTREAM_NODE_ETHEREUM_IPC_URI="http://$RETRIEVED_NODE_ETHEREUM_IP_ADDR:8545"
 echo -e "${PREFIX_INFO} Update heimdall config file with Ethereum URI ${C_GREEN}${MOONSTREAM_NODE_ETHEREUM_IPC_URI}${C_RESET}"
 sed -i "s|^eth_rpc_url =.*|eth_rpc_url = \"$MOONSTREAM_NODE_ETHEREUM_IPC_URI\"|" "${HEIMDALL_HOME}/config/heimdall-config.toml"
 echo -e "${PREFIX_INFO} Updated ${C_GREEN}eth_rpc_url = $MOONSTREAM_NODE_ETHEREUM_IPC_URI${C_RESET} for heimdall"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Polygon Bor service definition with ${POLYGON_BOR_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${POLYGON_BOR_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${POLYGON_BOR_SERVICE_FILE}" "/etc/systemd/system/${POLYGON_BOR_SERVICE_FILE}"
+systemctl daemon-reload
+systemctl disable "${POLYGON_BOR_SERVICE_FILE}"
+systemctl status "${POLYGON_BOR_SERVICE_FILE}"
+echo -e "${PREFIX_WARN} Bor service updated, but not restarted!"

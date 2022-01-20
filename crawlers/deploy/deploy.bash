@@ -26,8 +26,11 @@ AWS_SSM_PARAMETER_PATH="${AWS_SSM_PARAMETER_PATH:-/moonstream/prod}"
 SCRIPT_DIR="$(realpath $(dirname $0))"
 PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.py"
 
+# Service files
+MOONCRAWL_SERVICE_FILE="mooncrawl.service"
+
 # Ethereum service files
-ETHEREUM_SYNCHRONIZE_SERVICE="ethereum-synchronize.service"
+ETHEREUM_SYNCHRONIZE_SERVICE_FILE="ethereum-synchronize.service"
 ETHEREUM_TRENDING_SERVICE_FILE="ethereum-trending.service"
 ETHEREUM_TRENDING_TIMER_FILE="ethereum-trending.timer"
 ETHEREUM_TXPOOL_SERVICE_FILE="ethereum-txpool.service"
@@ -86,11 +89,19 @@ echo "AWS_LOCAL_IPV4=$(ec2metadata --local-ipv4)" >> "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Replacing existing Ethereum block with transactions syncronizer service definition with ${ETHEREUM_SYNCHRONIZE_SERVICE}"
-chmod 644 "${SCRIPT_DIR}/${ETHEREUM_SYNCHRONIZE_SERVICE}"
-cp "${SCRIPT_DIR}/${ETHEREUM_SYNCHRONIZE_SERVICE}" "/etc/systemd/system/${ETHEREUM_SYNCHRONIZE_SERVICE}"
+echo -e "${PREFIX_INFO} Replacing existing Moonstream crawlers HTTP API server service definition with ${MOONCRAWL_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${MOONCRAWL_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${MOONCRAWL_SERVICE_FILE}" "/etc/systemd/system/${MOONCRAWL_SERVICE_FILE}"
 systemctl daemon-reload
-systemctl restart "${ETHEREUM_SYNCHRONIZE_SERVICE}"
+systemctl restart "${MOONCRAWL_SERVICE_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Ethereum block with transactions syncronizer service definition with ${ETHEREUM_SYNCHRONIZE_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ETHEREUM_SYNCHRONIZE_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_SYNCHRONIZE_SERVICE_FILE}" "/etc/systemd/system/${ETHEREUM_SYNCHRONIZE_SERVICE_FILE}"
+systemctl daemon-reload
+systemctl restart "${ETHEREUM_SYNCHRONIZE_SERVICE_FILE}"
 
 echo
 echo
@@ -142,7 +153,7 @@ chmod 644 "${SCRIPT_DIR}/${POLYGON_STATISTICS_SERVICE_FILE}" "${SCRIPT_DIR}/${PO
 cp "${SCRIPT_DIR}/${POLYGON_STATISTICS_SERVICE_FILE}" "/etc/systemd/system/${POLYGON_STATISTICS_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${POLYGON_STATISTICS_TIMER_FILE}" "/etc/systemd/system/${POLYGON_STATISTICS_TIMER_FILE}"
 systemctl daemon-reload
-systemctl restart "${POLYGON_STATISTICS_TIMER_FILE}"
+systemctl restart --no-block "${POLYGON_STATISTICS_TIMER_FILE}"
 
 # echo
 # echo

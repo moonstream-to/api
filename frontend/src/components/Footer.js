@@ -18,6 +18,7 @@ import {
   FOOTER_COLUMNS,
 } from "../core/constants";
 import { FaGithub, FaTwitter, FaDiscord } from "react-icons/fa";
+import moment from "moment";
 
 const LINKS_SIZES = {
   fontWeight: "300",
@@ -87,7 +88,9 @@ const Footer = () => (
               />
             </Link>
           </Box>
-          <Text fontSize={"sm"}>© 2021 Moonstream.to All rights reserved</Text>
+          <Text fontSize={"sm"}>
+            © {moment().year()} Moonstream.to All rights reserved
+          </Text>
           <Stack direction={"row"} spacing={6}>
             <SocialButton
               label={"Twitter"}
