@@ -70,9 +70,9 @@ func (node *Node) GetCurrentBlock() (currentBlock uint64) {
 	return currentBlock
 }
 
-// GetNextPeer returns next active peer to take a connection
+// GetNextNode returns next active peer to take a connection
 // Loop through entire nodes to find out an alive one
-func (bpool *BlockchainPool) GetNextPeer(blockchain string) *Node {
+func (bpool *BlockchainPool) GetNextNode(blockchain string) *Node {
 	highestBlock := uint64(0)
 
 	// Get NodePool with correct blockchain
@@ -104,7 +104,7 @@ func (bpool *BlockchainPool) GetNextPeer(blockchain string) *Node {
 		// If we have an alive one, use it and store if its not the original one
 		if np.Nodes[idx].IsAlive() {
 			if i != next {
-				log.Printf("Mark the current one %d", uint64(idx))
+				// Mark the current one
 				atomic.StoreUint64(&np.Current, uint64(idx))
 			}
 			// Pass nodes with low blocks
@@ -152,7 +152,7 @@ func (bpool *BlockchainPool) HealthCheck() {
 			n.SetCurrentBlock(0)
 
 			// Get response from node /ping endpoint
-			httpClient := http.Client{Timeout: configs.LB_HEALTH_CHECK_CALL_TIMEOUT}
+			httpClient := http.Client{Timeout: configs.NB_HEALTH_CHECK_CALL_TIMEOUT}
 			resp, err := httpClient.Get(fmt.Sprintf("%s/status", n.StatusURL))
 			if err != nil {
 				log.Printf("Unable to reach node: %s\n", n.StatusURL)
@@ -179,7 +179,7 @@ func (bpool *BlockchainPool) HealthCheck() {
 				n.SetCurrentBlock(statusResponse.CurrentBlock)
 			}
 
-			log.Printf("Node %s is alive: %t with current block: %d\n", n.StatusURL, true, statusResponse.CurrentBlock)
+			log.Printf("Node %s is alive: %t with current block: %d blockchain called: %d times\n", n.StatusURL, true, statusResponse.CurrentBlock, b.Current)
 		}
 	}
 }

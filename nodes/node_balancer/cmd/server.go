@@ -22,11 +22,14 @@ var reporter *humbug.HumbugReporter
 
 // initHealthCheck runs a routine for check status of the nodes every 5 seconds
 func initHealthCheck(debug bool) {
-	t := time.NewTicker(configs.LB_HEALTH_CHECK_INTERVAL)
+	t := time.NewTicker(configs.NB_HEALTH_CHECK_INTERVAL)
 	for {
 		select {
 		case <-t.C:
 			blockchainPool.HealthCheck()
+			ethereumClients := ethereumClientPool.CleanInactiveClientNodes()
+			polygonClients := polygonClientPool.CleanInactiveClientNodes()
+			log.Printf("Active etehereum clients: %d, polygon clients: %d\n", ethereumClients, polygonClients)
 			if debug {
 				blockchainPool.StatusLog()
 			}
@@ -60,13 +63,13 @@ func GetRetryFromContext(r *http.Request) int {
 func proxyErrorHandler(proxy *httputil.ReverseProxy, url *url.URL) {
 	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, e error) {
 		retries := GetRetryFromContext(r)
-		if retries < configs.LB_CONNECTION_RETRIES {
+		if retries < configs.NB_CONNECTION_RETRIES {
 			log.Printf(
 				"An error occurred while proxying to %s, number of retries: %d/%d. Error: %s\n",
-				url, retries+1, configs.LB_CONNECTION_RETRIES, e.Error(),
+				url, retries+1, configs.NB_CONNECTION_RETRIES, e.Error(),
 			)
 			select {
-			case <-time.After(configs.LB_CONNECTION_RETRIES_INTERVAL):
+			case <-time.After(configs.NB_CONNECTION_RETRIES_INTERVAL):
 				ctx := context.WithValue(r.Context(), Retry, retries+1)
 				proxy.ServeHTTP(w, r.WithContext(ctx))
 			}
@@ -106,6 +109,9 @@ func InitServer() {
 		fmt.Printf("Node balancer version: v%s\n", configs.NODE_BALANCER_VERSION)
 		return
 	}
+
+	// Generate map of clients
+	CreateClientPools()
 
 	// Configure Humbug reporter to handle errors
 	var err error
