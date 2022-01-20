@@ -178,7 +178,7 @@ const Analytics = () => {
 
         <Flex w="100%" direction="row" flexWrap="wrap-reverse" id="container">
           <>
-            {Object.keys(dashboardLinksCache.data.data).map((key) => {
+            {Object.keys(dashboardLinksCache.data.data)?.map((key) => {
               const s3PresignedURLs = dashboardLinksCache.data.data[key];
               const name = subscriptionsCache.data.subscriptions.find(
                 (subscription) => subscription.id === key
