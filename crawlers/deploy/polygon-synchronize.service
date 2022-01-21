@@ -1,8 +1,12 @@
 [Unit]
 Description=Polygon block with transactions synchronizer
+StartLimitIntervalSec=300
+StartLimitBurst=3
 After=network.target
 
 [Service]
+Restart=on-failure
+RestartSec=15s
 User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/moonstream/crawlers/mooncrawl
