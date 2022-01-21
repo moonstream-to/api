@@ -7,9 +7,9 @@ After=network.target
 [Service]
 Restart=on-failure
 RestartSec=5s
-WorkingDirectory=$HOME/node
+WorkingDirectory=/home/ubuntu/node
 EnvironmentFile=/etc/matic/metadata
-EnvironmentFile=$HOME/node/variables.env
+EnvironmentFile=/home/ubuntu/node/variables.env
 EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
 ExecStart=/home/ubuntu/go/bin/bor --datadir "${MOUNT_DATA_DIR}/.bor/data" \
     --port 30303 \
