@@ -43,15 +43,18 @@ cd "${EXEC_DIR}"
 
 echo
 echo
+echo -e "${PREFIX_INFO} Create secrets directory"
+mkdir -p "${SECRETS_DIR}"
+
+echo
+echo
 echo -e "${PREFIX_INFO} Install checkenv"
 HOME=/root /usr/local/go/bin/go install github.com/bugout-dev/checkenv@latest
 
 echo
 echo
 echo -e "${PREFIX_INFO} Retrieving deployment parameters"
-mkdir -p "${SECRETS_DIR}"
-> "${PARAMETERS_ENV_PATH}"
-HOME=/root AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" $HOME/go/bin/checkenv show aws_ssm+Product:moonstream,Node:true >> "${PARAMETERS_ENV_PATH}"
+AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" /root/go/bin/checkenv show aws_ssm+Product:moonstream,Node:true > "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
