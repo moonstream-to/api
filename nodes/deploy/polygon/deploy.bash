@@ -95,5 +95,4 @@ chmod 644 "${SCRIPT_DIR}/${POLYGON_BOR_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${POLYGON_BOR_SERVICE_FILE}" "/etc/systemd/system/${POLYGON_BOR_SERVICE_FILE}"
 systemctl daemon-reload
 systemctl disable "${POLYGON_BOR_SERVICE_FILE}"
-systemctl status "${POLYGON_BOR_SERVICE_FILE}"
 echo -e "${PREFIX_WARN} Bor service updated, but not restarted!"

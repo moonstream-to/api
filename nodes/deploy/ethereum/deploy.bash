@@ -71,5 +71,4 @@ chmod 644 "${SCRIPT_DIR}/${ETHEREUM_GETH_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${ETHEREUM_GETH_SERVICE_FILE}" "/etc/systemd/system/${ETHEREUM_GETH_SERVICE_FILE}"
 systemctl daemon-reload
 systemctl disable "${ETHEREUM_GETH_SERVICE_FILE}"
-systemctl status "${ETHEREUM_GETH_SERVICE_FILE}"
 echo -e "${PREFIX_WARN} Geth service updated, but not restarted!"
