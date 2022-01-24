@@ -25,6 +25,7 @@ from .settings import (
     MOONSTREAM_CRAWL_WORKERS,
     MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI,
     MOONSTREAM_POLYGON_WEB3_PROVIDER_URI,
+    MOONSTREAM_CLIENT_ID_HEADER,
 )
 
 logger = logging.getLogger(__name__)
@@ -37,8 +38,16 @@ class BlockCrawlError(Exception):
     """
 
 
-def connect(blockchain_type: AvailableBlockchainType, web3_uri: Optional[str] = None):
+def connect(
+    blockchain_type: AvailableBlockchainType,
+    web3_uri: Optional[str] = None,
+    token: Optional[str] = None,
+):
     web3_provider: Union[IPCProvider, HTTPProvider] = Web3.IPCProvider()
+
+    request_kwargs: Any = None
+    if token is not None:
+        request_kwargs = {"headers": {MOONSTREAM_CLIENT_ID_HEADER: token}}
 
     if web3_uri is None:
         if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -49,7 +58,10 @@ def connect(blockchain_type: AvailableBlockchainType, web3_uri: Optional[str] = 
             raise Exception("Wrong blockchain type provided for web3 URI")
 
     if web3_uri.startswith("http://") or web3_uri.startswith("https://"):
-        web3_provider = Web3.HTTPProvider(web3_uri)
+        web3_provider = Web3.HTTPProvider(
+            endpoint_uri=web3_uri,
+            request_kwargs=request_kwargs,
+        )
     else:
         web3_provider = Web3.IPCProvider(web3_uri)
     web3_client = Web3(web3_provider)
@@ -181,15 +193,18 @@ def add_block_transactions(
 
 
 def get_latest_blocks(
-    blockchain_type: AvailableBlockchainType, confirmations: int = 0
+    blockchain_type: AvailableBlockchainType,
+    confirmations: int = 0,
+    token: Optional[str] = None,
 ) -> Tuple[Optional[int], int]:
     """
-    Retrieve the latest block from the connected node (connection is created by the connect(AvailableBlockchainType) method).
+    Retrieve the latest block from the connected node (connection is created by the
+    connect(AvailableBlockchainType, ClientTokenID) method).
 
     If confirmations > 0, and the latest block on the node has block number N, this returns the block
     with block_number (N - confirmations)
     """
-    web3_client = connect(blockchain_type)
+    web3_client = connect(blockchain_type, token=token)
     latest_block_number: int = web3_client.eth.block_number
     if confirmations > 0:
         latest_block_number -= confirmations
@@ -212,11 +227,12 @@ def crawl_blocks(
     blockchain_type: AvailableBlockchainType,
     blocks_numbers: List[int],
     with_transactions: bool = False,
+    token: Optional[str] = None,
 ) -> None:
     """
     Open database and geth sessions and fetch block data from blockchain.
     """
-    web3_client = connect(blockchain_type)
+    web3_client = connect(blockchain_type, token=token)
     with yield_db_session_ctx() as db_session:
         pbar = tqdm(total=len(blocks_numbers))
         for block_number in blocks_numbers:
@@ -256,6 +272,7 @@ def check_missing_blocks(
     blockchain_type: AvailableBlockchainType,
     blocks_numbers: List[int],
     notransactions=False,
+    token: Optional[str] = None,
 ) -> List[int]:
     """
     Query block from postgres. If block does not presented in database,
@@ -294,7 +311,7 @@ def check_missing_blocks(
                 [block[0], block[1]] for block in blocks_exist_raw_query.all()
             ]
 
-            web3_client = connect(blockchain_type)
+            web3_client = connect(blockchain_type, token=token)
 
             blocks_exist_len = len(blocks_exist)
             pbar = tqdm(total=blocks_exist_len)
@@ -336,6 +353,7 @@ def crawl_blocks_executor(
     block_numbers_list: List[int],
     with_transactions: bool = False,
     num_processes: int = MOONSTREAM_CRAWL_WORKERS,
+    token: Optional[str] = None,
 ) -> None:
     """
     Execute crawler in processes.
@@ -363,14 +381,16 @@ def crawl_blocks_executor(
     results: List[Future] = []
     if num_processes == 1:
         logger.warning("Executing block crawler in lazy mod")
-        return crawl_blocks(blockchain_type, block_numbers_list, with_transactions)
+        return crawl_blocks(
+            blockchain_type, block_numbers_list, with_transactions, token
+        )
     else:
         with ThreadPoolExecutor(max_workers=MOONSTREAM_CRAWL_WORKERS) as executor:
             for worker in worker_indices:
                 block_chunk = worker_job_lists[worker]
                 logger.info(f"Spawned process for {len(block_chunk)} blocks")
                 result = executor.submit(
-                    crawl_blocks, blockchain_type, block_chunk, with_transactions
+                    crawl_blocks, blockchain_type, block_chunk, with_transactions, token
                 )
                 result.add_done_callback(record_error)
                 results.append(result)

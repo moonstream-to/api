@@ -85,6 +85,7 @@ def _retry_connect_web3(
     blockchain_type: AvailableBlockchainType,
     retry_count: int = 10,
     sleep_time: float = 5,
+    token: Optional[str] = None,
 ) -> Web3:
     """
     Retry connecting to the blockchain.
@@ -92,7 +93,7 @@ def _retry_connect_web3(
     while retry_count > 0:
         retry_count -= 1
         try:
-            web3 = connect(blockchain_type)
+            web3 = connect(blockchain_type, token=token)
             web3.eth.block_number
             logger.info(f"Connected to {blockchain_type}")
             return web3
