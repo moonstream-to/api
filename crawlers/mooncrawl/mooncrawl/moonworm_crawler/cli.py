@@ -54,9 +54,7 @@ def handle_crawl(args: argparse.Namespace) -> None:
             logger.info(
                 "No web3 provider URL provided, using default (blockchan.py: connect())"
             )
-            web3 = _retry_connect_web3(
-                blockchain_type=blockchain_type, client_id=args.client_id
-            )
+            web3 = _retry_connect_web3(blockchain_type)
         else:
             logger.info(f"Using web3 provider URL: {args.web3}")
             web3 = Web3(

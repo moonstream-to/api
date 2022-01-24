@@ -55,11 +55,7 @@ def web3_client_from_cli_or_env(args: argparse.Namespace) -> Web3:
         raise ValueError(
             "Could not find Web3 connection information in arguments or in MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI environment variable"
         )
-    return connect(
-        AvailableBlockchainType.ETHEREUM,
-        web3_connection_string,
-        client_id=args.client_id,
-    )
+    return connect(AvailableBlockchainType.ETHEREUM, web3_connection_string)
 
 
 def get_latest_block_from_node(web3_client: Web3):
@@ -261,12 +257,6 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Moonstream NFT crawlers")
     parser.set_defaults(func=lambda _: parser.print_help())
     subcommands = parser.add_subparsers(description="Subcommands")
-
-    parser.add_argument(
-        "--client-id",
-        type=str,
-        help="Client token ID",
-    )
 
     parser_ethereum = subcommands.add_parser(
         "ethereum",

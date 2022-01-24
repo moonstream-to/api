@@ -26,12 +26,9 @@ ORIGINS = RAW_ORIGINS.split(",")
 # OpenAPI
 DOCS_TARGET_PATH = "docs"
 
+
 # Crawler label
 CRAWLER_LABEL = "moonworm-alpha"
-
-MOONSTREAM_CLIENT_ID_HEADER = os.environ.get(
-    "MOONSTREAM_CLIENT_ID_HEADER", "x-moonstream-client-id"
-)
 
 # Geth connection address
 MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI = os.environ.get(
