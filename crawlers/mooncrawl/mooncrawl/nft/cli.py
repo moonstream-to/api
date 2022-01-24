@@ -56,7 +56,9 @@ def web3_client_from_cli_or_env(args: argparse.Namespace) -> Web3:
             "Could not find Web3 connection information in arguments or in MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI environment variable"
         )
     return connect(
-        AvailableBlockchainType.ETHEREUM, web3_connection_string, token=args.token
+        AvailableBlockchainType.ETHEREUM,
+        web3_connection_string,
+        client_id=args.client_id,
     )
 
 
@@ -261,7 +263,7 @@ def main() -> None:
     subcommands = parser.add_subparsers(description="Subcommands")
 
     parser.add_argument(
-        "--token",
+        "--client-id",
         type=str,
         help="Client token ID",
     )

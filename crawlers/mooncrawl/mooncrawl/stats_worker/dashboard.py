@@ -339,7 +339,7 @@ def generate_list_of_names(
 def process_external(
     abi_external_calls: List[Dict[str, Any]],
     blockchain: AvailableBlockchainType,
-    token: Optional[str] = None,
+    client_id: Optional[str] = None,
 ):
     """
     Request all required external data
@@ -385,7 +385,7 @@ def process_external(
             logger.error(f"Error processing external call: {e}")
 
     if external_calls:
-        web3_client = connect(blockchain, token=token)
+        web3_client = connect(blockchain, client_id=client_id)
 
     for extcall in external_calls:
         try:
@@ -436,7 +436,7 @@ def generate_web3_metrics(
     address: str,
     crawler_label: str,
     abi_json: Any,
-    token: Optional[str] = None,
+    client_id: Optional[str] = None,
 ) -> List[Any]:
     """
     Generate stats for cards components
@@ -449,7 +449,7 @@ def generate_web3_metrics(
     extention_data = process_external(
         abi_external_calls=abi_external_calls,
         blockchain=blockchain_type,
-        token=token,
+        client_id=client_id,
     )
 
     extention_data.append(
@@ -615,7 +615,7 @@ def stats_generate_handler(args: argparse.Namespace):
                         address=address,
                         crawler_label=crawler_label,
                         abi_json=abi_json,
-                        token=args.token,
+                        client_id=args.client_id,
                     )
 
                     # Generate blocks state information
