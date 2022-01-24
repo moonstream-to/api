@@ -1,4 +1,5 @@
 import json
+from lib2to3.pgen2.token import OP
 import logging
 import re
 import time
@@ -308,6 +309,61 @@ def _get_heartbeat_entry_id(
             content="",
         )
         return str(entry.id)
+
+
+def get_crawler_point(
+    crawler_type: str,
+    blockchain_type: AvailableBlockchainType,
+    abi_hash: str,
+    start_block: int,
+    end_block: int,
+):
+    """
+    Get current tasks crawler or create point
+    """
+
+    entries = bugout_client.search(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+        query=f"#{crawler_type} #crawpoint #{blockchain_type.value} #{abi_hash}",
+        limit=1,
+    )
+    if entries.results and entries.results[0].content:
+        content = json.loads(entries.results[0].content)
+        entry_id = entries.results[0].entry_url.split("/")[-1]
+        return content["start_block"], content["end_block"], entry_id
+    else:
+        logger.info(f"No {crawler_type} heartbeat entry found, creating one")
+        entry = bugout_client.create_entry(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+            title=f"{crawler_type} crawler - {blockchain_type.value}",
+            tags=[crawler_type, "crawler", blockchain_type.value, abi_hash],
+            content=f'{{"start_block":{start_block}, "end_block": {end_block} }}',
+        )
+        return start_block, end_block, entry.id
+
+
+# Update current crawler state
+
+
+def update_crawl_point(
+    crawler_type: str,
+    blockchain_type: AvailableBlockchainType,
+    entry_id: str,
+    start_block: int,
+    end_block: int,
+) -> None:
+    """
+    Update or crawl point
+    """
+    bugout_client.update_entry_content(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+        entry_id=entry_id,
+        title=f"{crawler_type} crawler - {blockchain_type.value}",
+        content=f'{{"start_block":{start_block}, "end_block": {end_block} }}',
+    )
 
 
 def heartbeat(

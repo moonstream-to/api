@@ -1,4 +1,6 @@
+import hashlib
 import logging
+import json
 import time
 import traceback
 from datetime import datetime, timedelta
@@ -19,6 +21,7 @@ from .crawler import (
     blockchain_type_to_subscription_type,
     get_crawl_job_entries,
     heartbeat,
+    get_crawler_point,
     make_event_crawl_jobs,
     make_function_call_crawl_jobs,
     merge_event_crawl_jobs,
@@ -76,6 +79,7 @@ def continuous_crawler(
     min_sleep_time: float = 0.1,
     heartbeat_interval: float = 60,
     new_jobs_refetch_interval: float = 120,
+    use_traker: bool = True,
 ):
     crawler_type = "NFT_crawler"
     assert (
@@ -95,6 +99,16 @@ def continuous_crawler(
     jobs_refetchet_time = crawl_start_time
     if web3 is None:
         web3 = _retry_connect_web3(blockchain_type)
+
+    if use_traker:
+
+        start_block, end_block, entry_id = get_crawler_point(
+            crawler_type=crawler_type,
+            blockchain_type=blockchain_type,
+            abi_hash=hashlib.md5(json.dumps(abi).encode("utf-8")).hexdigest(),
+            start_block=start_block,
+            end_block=end_block,
+        )
 
     network = (
         Network.ethereum
@@ -148,17 +162,14 @@ def continuous_crawler(
                 db_session.execute("SELECT 1")
                 time.sleep(min_sleep_time)
 
-                end_block = min(
-                    web3.eth.blockNumber - confirmations,
-                    start_block + max_blocks_batch,
+                update_crawl_point(
+                    crawler_type=crawler_type,
+                    blockchain_type=blockchain_type,
+                    entry_id=entry_id,
+                    start_block=start_block,
+                    end_block=end_block,
                 )
 
-                if start_block + min_blocks_batch > end_block:
-                    min_sleep_time *= 2
-                    logger.info(
-                        f"Sleeping for {min_sleep_time} seconds because of low block count"
-                    )
-                    continue
                 min_sleep_time = max(min_sleep_time, min_sleep_time / 2)
 
                 logger.info(f"Crawling events from {start_block} to {end_block}")
