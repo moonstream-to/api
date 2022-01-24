@@ -93,7 +93,7 @@ def crawler_blocks_sync_handler(args: argparse.Namespace) -> None:
     """
     while True:
         latest_stored_block_number, latest_block_number = get_latest_blocks(
-            AvailableBlockchainType(args.blockchain), args.confirmations, args.client_id
+            AvailableBlockchainType(args.blockchain), args.confirmations
         )
         if latest_stored_block_number is None:
             latest_stored_block_number = 0
@@ -137,7 +137,6 @@ def crawler_blocks_sync_handler(args: argparse.Namespace) -> None:
                 block_numbers_list=blocks_numbers_list,
                 with_transactions=True,
                 num_processes=args.jobs,
-                client_id=args.client_id,
             )
         logger.info(
             f"Synchronized blocks from {latest_stored_block_number} to {latest_block_number}"
@@ -156,8 +155,6 @@ def crawler_blocks_add_handler(args: argparse.Namespace) -> None:
             blockchain_type=AvailableBlockchainType(args.blockchain),
             block_numbers_list=blocks_numbers_list,
             with_transactions=True,
-            num_processes=MOONSTREAM_CRAWL_WORKERS,
-            client_id=args.client_id,
         )
 
     logger.info(
@@ -180,7 +177,7 @@ def crawler_blocks_missing_handler(args: argparse.Namespace) -> None:
         confirmations = 150
         shift = 2000
         _, latest_block_number = get_latest_blocks(
-            AvailableBlockchainType(args.blockchain), confirmations, args.client_id
+            AvailableBlockchainType(args.blockchain), confirmations
         )
         block_range = f"{latest_block_number-shift}-{latest_block_number}"
 
@@ -209,7 +206,6 @@ def crawler_blocks_missing_handler(args: argparse.Namespace) -> None:
             block_numbers_list=missing_blocks_numbers_total,
             with_transactions=True,
             num_processes=1 if args.lazy else MOONSTREAM_CRAWL_WORKERS,
-            client_id=args.client_id,
         )
     logger.info(
         f"Required {time.time() - startTime} with {MOONSTREAM_CRAWL_WORKERS} workers "
@@ -249,12 +245,6 @@ def main() -> None:
     subcommands = parser.add_subparsers(description="Crawlers commands")
 
     time_now = datetime.now(timezone.utc)
-
-    parser.add_argument(
-        "--client-id",
-        type=str,
-        help="Client token ID",
-    )
 
     # Blockchain blocks parser
     parser_crawler_blocks = subcommands.add_parser(

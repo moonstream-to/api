@@ -8,7 +8,7 @@ import logging
 import time
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List
 from uuid import UUID
 
 import boto3  # type: ignore
@@ -337,9 +337,7 @@ def generate_list_of_names(
 
 
 def process_external(
-    abi_external_calls: List[Dict[str, Any]],
-    blockchain: AvailableBlockchainType,
-    client_id: Optional[str] = None,
+    abi_external_calls: List[Dict[str, Any]], blockchain: AvailableBlockchainType
 ):
     """
     Request all required external data
@@ -385,7 +383,7 @@ def process_external(
             logger.error(f"Error processing external call: {e}")
 
     if external_calls:
-        web3_client = connect(blockchain, client_id=client_id)
+        web3_client = connect(blockchain)
 
     for extcall in external_calls:
         try:
@@ -436,7 +434,6 @@ def generate_web3_metrics(
     address: str,
     crawler_label: str,
     abi_json: Any,
-    client_id: Optional[str] = None,
 ) -> List[Any]:
     """
     Generate stats for cards components
@@ -449,7 +446,6 @@ def generate_web3_metrics(
     extention_data = process_external(
         abi_external_calls=abi_external_calls,
         blockchain=blockchain_type,
-        client_id=client_id,
     )
 
     extention_data.append(
@@ -615,7 +611,6 @@ def stats_generate_handler(args: argparse.Namespace):
                         address=address,
                         crawler_label=crawler_label,
                         abi_json=abi_json,
-                        client_id=args.client_id,
                     )
 
                     # Generate blocks state information
