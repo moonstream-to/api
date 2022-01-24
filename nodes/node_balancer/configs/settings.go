@@ -30,10 +30,8 @@ var ConfigList NodeConfigList
 
 var MOONSTREAM_NODE_ETHEREUM_A_IPC_ADDR = os.Getenv("MOONSTREAM_NODE_ETHEREUM_A_IPC_ADDR")
 var MOONSTREAM_NODE_ETHEREUM_B_IPC_ADDR = os.Getenv("MOONSTREAM_NODE_ETHEREUM_B_IPC_ADDR")
-var MOONSTREAM_NODE_ETHEREUM_IPC_PORT = os.Getenv("MOONSTREAM_NODE_ETHEREUM_IPC_PORT")
 var MOONSTREAM_NODE_POLYGON_A_IPC_ADDR = os.Getenv("MOONSTREAM_NODE_POLYGON_A_IPC_ADDR")
 var MOONSTREAM_NODE_POLYGON_B_IPC_ADDR = os.Getenv("MOONSTREAM_NODE_POLYGON_B_IPC_ADDR")
-var MOONSTREAM_NODE_POLYGON_IPC_PORT = os.Getenv("MOONSTREAM_NODE_POLYGON_IPC_PORT")
 var MOONSTREAM_NODES_SERVER_PORT = os.Getenv("MOONSTREAM_NODES_SERVER_PORT")
 var MOONSTREAM_CLIENT_ID_HEADER = os.Getenv("MOONSTREAM_CLIENT_ID_HEADER")
 
@@ -56,8 +54,8 @@ func checkEnvVarSet() {
 		MOONSTREAM_CLIENT_ID_HEADER = "x-moonstream-client-id"
 	}
 
-	if MOONSTREAM_NODES_SERVER_PORT == "" || MOONSTREAM_NODE_ETHEREUM_IPC_PORT == "" || MOONSTREAM_NODE_POLYGON_IPC_PORT == "" {
-		log.Fatal("Some of environment variables not set")
+	if MOONSTREAM_NODES_SERVER_PORT == "" {
+		log.Fatal("Environment variable MOONSTREAM_NODES_SERVER_PORT should be set")
 	}
 }
 
@@ -70,12 +68,12 @@ func (nc *NodeConfigList) InitNodeConfigList() {
 	blockchainConfigList = append(blockchainConfigList, BlockchainConfig{
 		Blockchain: "ethereum",
 		IPs:        []string{MOONSTREAM_NODE_ETHEREUM_A_IPC_ADDR, MOONSTREAM_NODE_ETHEREUM_B_IPC_ADDR},
-		Port:       MOONSTREAM_NODE_ETHEREUM_IPC_PORT,
+		Port:       "8545",
 	})
 	blockchainConfigList = append(blockchainConfigList, BlockchainConfig{
 		Blockchain: "polygon",
 		IPs:        []string{MOONSTREAM_NODE_POLYGON_A_IPC_ADDR, MOONSTREAM_NODE_POLYGON_B_IPC_ADDR},
-		Port:       MOONSTREAM_NODE_POLYGON_IPC_PORT,
+		Port:       "8545",
 	})
 
 	// Parse node addr, ip and blockchain

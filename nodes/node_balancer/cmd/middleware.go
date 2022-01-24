@@ -36,7 +36,7 @@ func logMiddleware(next http.Handler) http.Handler {
 		if err != nil {
 			log.Printf("Unable to parse client IP: %s\n", r.RemoteAddr)
 		} else {
-			log.Printf("%s %s %s\n", ip, r.Method, r.URL.Path)
+			log.Printf("%s %s %s %s\n", ip, r.Method, r.URL.Path, r.Header.Get("X-Origin-Path"))
 		}
 	})
 }
