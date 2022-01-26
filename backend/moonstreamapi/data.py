@@ -3,12 +3,36 @@ Pydantic schemas for the Moonstream HTTP API
 """
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from multiprocessing import Condition
+from nis import match
+from os import name
+from pickle import DICT
+from turtle import st
+from typing import Any, Dict, List, Literal, Optional, Union
 from uuid import UUID
 
 from pydantic import BaseModel, Field
 
 USER_ONBOARDING_STATE = "onboarding_state"
+
+
+AccessibleColumns = Literal[
+    "address", "transaction_hash", "block_timestamp", "label_data", "block_number"
+]
+AccessibleAgregateFunctions = Literal["MAX", "MIN", "COUNT"]
+AccessibleTypes = Literal["int", "string", "datetime", "timestamp"]
+Args = Literal["args"]
+ConditionKeys = Literal["$and", "$or"]
+
+conditions_keys = ["and", "or"]
+
+accessible_columns = [
+    "address",
+    "transaction_hash",
+    "block_timestamp",
+    "label_data",
+    "block_number",
+]
 
 
 class TimeScale(Enum):
@@ -168,7 +192,7 @@ class Event(BaseModel):
 
 class GetEventsResponse(BaseModel):
     stream_boundary: StreamBoundary
-    events: List[Event] = Field(default_factory=list)
+    events: Union[List[Event], Any] = Field(default_factory=list)
 
 
 class TxinfoEthereumBlockchainRequest(BaseModel):
@@ -262,3 +286,30 @@ class DashboardCreate(BaseModel):
 class DashboardUpdate(BaseModel):
     name: Optional[str]
     subscription_settings: List[DashboardMeta] = Field(default_factory=list)
+
+
+class SortCondition(BaseModel):
+    SORT: Dict[str, Any] = Field(alias="$sort")
+
+
+class SelectMap(BaseModel):
+    MAP: List[Dict[str, Any]] = Field(alias="$map")
+
+
+class Filters(BaseModel):
+    AND: Optional[List[Dict[str, "Filters"]]] = Field(alias="$and")
+    OR: Optional[List[Dict[str, "Filters"]]] = Field(alias="$or")
+    data_name: Optional[str] = Field(alias="data_name")
+    type: Optional[str]
+    address: Optional[Union[str, Dict[str, Any]]]
+    args: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]]
+    block_timestamp: Optional[Union[str, Dict[str, Any]]]
+    transaction_hash: Optional[Union[str, Dict[str, Any]]]
+
+
+class MatchFilters(BaseModel):
+    match: Dict[str, Any] = Field(alias="$match")  # Filters = Field(alias="$match")
+
+
+class EventFilters(BaseModel):
+    __root__: List[Union[MatchFilters, SelectMap, SortCondition]]

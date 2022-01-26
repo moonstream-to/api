@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional
 from bugout.data import BugoutResource
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
+import traceback
 
 from moonstreamdb import db
 
@@ -120,9 +121,11 @@ async def stream_handler(
             raise_on_error=True,
         )
     except ReceivingEventsException as e:
+        traceback.print_exc()
         logger.error("Error receiving events from provider")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
     except Exception as e:
+        traceback.print_exc()
         logger.error("Unable to get events")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 

@@ -85,6 +85,8 @@ def get_events(
             for (key, value) in event_providers.items()
             if value.event_type in query.subscription_types
         }
+        if query.event_filters:
+            sort_events = False
 
         for provider_name, provider in event_providers_filtered.items():
             futures[provider_name] = executor.submit(
