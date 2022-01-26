@@ -24,14 +24,25 @@ AccessibleTypes = Literal["int", "string", "datetime", "timestamp"]
 Args = Literal["args"]
 ConditionKeys = Literal["$and", "$or"]
 
-conditions_keys = ["and", "or"]
+conditions_keys = ["AND", "OR"]
 
+
+# {"data.block_number": None},
+# {"data.address": None},
+# {"data.transaction_hash": None},
+# {"data.label_data": None},
+# {"data.block_timestamp": None},
+# {"data.log_index": None},
+# {"data.created_at": None},
 accessible_columns = [
     "address",
     "transaction_hash",
     "block_timestamp",
     "label_data",
     "block_number",
+    "label",
+    "log_index",
+    "created_at",
 ]
 
 
