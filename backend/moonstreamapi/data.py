@@ -26,14 +26,6 @@ ConditionKeys = Literal["$and", "$or"]
 
 conditions_keys = ["AND", "OR"]
 
-
-# {"data.block_number": None},
-# {"data.address": None},
-# {"data.transaction_hash": None},
-# {"data.label_data": None},
-# {"data.block_timestamp": None},
-# {"data.log_index": None},
-# {"data.created_at": None},
 accessible_columns = [
     "address",
     "transaction_hash",
@@ -307,6 +299,8 @@ class SelectMap(BaseModel):
     MAP: List[Dict[str, Any]] = Field(alias="$map")
 
 
+# On progress
+# Validation of query on pydentic level
 class Filters(BaseModel):
     AND: Optional[List[Dict[str, "Filters"]]] = Field(alias="$and")
     OR: Optional[List[Dict[str, "Filters"]]] = Field(alias="$or")

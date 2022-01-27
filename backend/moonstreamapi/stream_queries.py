@@ -21,31 +21,7 @@ class StreamQuery:
     subscriptions: List[Tuple[str, str]] = field(default_factory=list)
 
 
-# custom parser
-EVENTS_PREFIX = "events:"
-EVENT_ADDRESS_PREFIX = "event_address:"
-EVENT_LABEL_PREFIX = "event_label:"
-EVENT_ARGS_PREFIX = "argument:"
-
-# parse as custom parser
-EVENTS_PREFIX = "events:"
-EVENT_ADDRESS_PREFIX = "address:"
-EVENT_LABEL_PREFIX = "label:"
-EVENT_ARGS_PREFIX = "arg_type:"
-EVENT_ARGS_OPERATOR_PREFIX = "arg_operation:"
-EVENT_ARGS_VALUE_PREFIX = "arg_value:"
-
-
-# example of object parser
-
 EVENT_PREFIX = "event:"
-EVENT_ADDRESS_PREFIX = "address:"
-EVENT_LABEL_PREFIX = "label:"
-EVENT_ARGS_PREFIX = "arg_type:"
-EVENT_ARGS_OPERATOR_PREFIX = "arg_operation:"
-EVENT_ARGS_VALUE_PREFIX = "arg_value:"
-
-
 SUBSCRIPTION_TYPE_PREFIX = "type:"
 SUBSCRIPTION_PREFIX = "sub:"
 SUBSCRIPTION_SEPARATOR = ":"
@@ -67,71 +43,8 @@ def parse_query_string(q: str) -> StreamQuery:
         b. Tokens of the form "type:<subscription_type>" populate the subscription_types field of the resulting StreamQuery.
         c. Tokens of the form "sub:<subscription_type>:<filter> populate the subscriptions field of the resulting StreamQuery.
            This "<filter>" should be a valid filter for the event provider corresponding to the given subscription type.
-
-    event:<address>:<event_name>:<argument_name>:<argument_type>:<operator>:<arg_value>
-
-    #
-    tx_call
-    event
-
-    {
-        output_statment: [
-            block_timestamp:{
-                func:
-                type:
-            }
-            address:{
-                func:
-                type:
-            }
-            args:{
-                name:
-                unc:
-                type:
-            }
-
-
-        ]
-        filters :[  # All times or
-            {
-                "address": "0xe77bbFD8ED65720F187eFdD109e38D75EaCa7385",
-                "label_filters": [
-                    {
-                        "name": "Transfer"
-                        "type": "metod"
-                        "args": [
-                            {
-                                "name": "to"
-                                "value": "0x962355fC06e85A341E9f20C395F2fe70f25E793E"
-                                "type": "str"
-                            }
-                        ]
-                    }
-                ]
-
-            },
-            {
-                "address": "0x1AaaC93313A263992b682DCA299142eCdA0a43Bc",
-                "label_filters": [
-                    {
-                        "name": "Transfer"
-                        "type": "metod"
-                        "args_filters": [
-                            "amount[int]>=5"
-                            ]
-                        ]
-                    }
-                ]
-
-            },
-        ]
-        group_condition: [
-
-        ]
-        order_by":[
-
-        ]
-    }
+        d. Tokens of the form "event:<query>" query wich writed via schema defined in https://github.com/bugout-dev/moonstream/issues/534
+           This query was transfor to sqlalchemy query to datbase wich give ability request any kind of data from labels tabel.
 
     Returns: Parsed StreamQuery object.
     """

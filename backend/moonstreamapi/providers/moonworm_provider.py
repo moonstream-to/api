@@ -7,12 +7,11 @@ from dataclasses import dataclass, field
 from multiprocessing import Condition
 from re import A, L
 from tkinter.messagebox import NO
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Optional, Tuple
 from black import patch_click
 
 from bugout.app import Bugout
 from bugout.data import BugoutResource
-from eth_utils import address
 from moonstreamdb.blockchain import AvailableBlockchainType, get_label_model
 from sqlalchemy import (
     and_,
@@ -53,37 +52,6 @@ default_time_interval_seconds: int = 5 * 60
 estimated_events_per_time_interval: float = 5 * 800
 
 
-operator_dict = {}
-
-
-@dataclass
-class ArgsFilters:
-    name: str
-    value: Any
-    type: str
-
-
-@dataclass
-class LabelsFilters:
-
-    name: str
-    type: str
-    args: List[ArgsFilters] = field(default_factory=list)
-
-
-@dataclass
-class AddressFilters:
-
-    address: str
-    label_filters: List[LabelsFilters] = field(default_factory=list)
-
-
-@dataclass
-class Filters:
-
-    addresses: List[AddressFilters] = field(default_factory=list)
-
-
 class MoonwormProvider:
     def __init__(
         self,
@@ -97,7 +65,9 @@ class MoonwormProvider:
         self.description = description
         self.valid_period_seconds = streamboaundary_range_limit
 
-    def default_filters(self, subscriptions: List[BugoutResource]) -> data.EventFilters:
+    def default_filters(
+        self, subscriptions: List[BugoutResource]
+    ) -> Tuple[data.EventFilters, List[str]]:
         """
         Default filter strings for the given list of subscriptions.
         """
@@ -114,6 +84,7 @@ class MoonwormProvider:
                     f"Could not find subscription address for subscription with resource id: {subscription.id}"
                 )
         # Add addresses only without filters
+        # Predefined query for usual frontend behaivior
 
         if addresses:
 
