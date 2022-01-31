@@ -29,6 +29,7 @@ import { WHITE_LOGO_W_TEXT_URL, ALL_NAV_PATHES } from "../core/constants";
 import useDashboard from "../core/hooks/useDashboard";
 import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 import OverlayContext from "../core/providers/OverlayProvider/context";
+import moment from "moment";
 
 const Sidebar = () => {
   const ui = useContext(UIContext);
@@ -190,7 +191,7 @@ const Sidebar = () => {
               textColor="gray.700"
               textAlign="center"
             >
-              © 2021 Moonstream.to
+              © {moment().year()} Moonstream.to
             </Text>
           </Menu>
         )}
