@@ -37,7 +37,7 @@ ExecStart=/home/ubuntu/go/bin/bor --datadir "${MOUNT_DATA_DIR}/.bor/data" \
 Type=simple
 User=ubuntu
 KillSignal=SIGINT
-TimeoutStopSec=300
+TimeoutStopSec=180
 SyslogIdentifier=bor
 
 [Install]

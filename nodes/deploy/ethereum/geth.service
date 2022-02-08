@@ -18,7 +18,7 @@ ExecStart=/usr/bin/geth --syncmode snap --cache 4096 \
 Type=simple
 User=ubuntu
 KillSignal=SIGINT
-TimeoutStopSec=300
+TimeoutStopSec=180
 SyslogIdentifier=geth
 
 [Install]
