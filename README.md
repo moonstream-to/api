@@ -4,26 +4,18 @@
 
 ## What is Moonstream?
 
-Moonstream is a product which helps anyone participate in decentralized finance. From the most
-sophisticated flash arbitrageurs to people looking for yield from currency that would otherwise lie
-dormant in their exchange accounts.
+Moonstream makes tools that help people build, manage, and maintain their blockchain economies.
 
-Moonstream users can subscribe to events from any blockchain - from the activity of specific accounts
-or smart contracts to updates about general market movements. This information comes from the blockchains
-themselves, from their mempools/transaction pools, and from centralized exchanges, social media, and
-the news. This forms a stream of information tailored to their specific needs.
-
-They can use this information to execute transactions directly from the Moonstream frontend or they
-can set up programs which execute (on- or off-chain) when their stream meets certain conditions.
+In order to provide this functionality, we build a lot of technology to crawl blockchains and makes sense of crawled transactions and events. This repository contains that code.
 
 ## Who uses Moonstream?
 
-1. **Development teams deploying decentralized applications.** They use Moonstream to analyze how
-   users are calling their dapps, and set up alerts for suspicious activity.
-2. **Algorithmic funds.** They use Moonstream to execute transactions directly on-chain under
-   prespecified conditions.
-3. **Crypto traders.** They use Moonstream to evaluate trading strategies based on data from
-   centralized exchanges, the blockchain, and the transaction pool.
+Game designers and economists, data scientists, smart contract developers, backend engineers, and teams managing loyalty programs for blockchain projects.
+
+Some of our prominents customers:
+
+1. [Laguna Games](https://laguna.games), makers of [Crypto Unicorns](https://cryptounicorns.fun)
+2. [RealtyBits](https://realtybits.com)
 
 ## Free software
 
@@ -38,21 +30,13 @@ You are and _will always be_ free to host your own instance of Moonstream.
 
 This monorepo contains the following components:
 
-1. [`frontend`](./frontend): A web frontend for Moonstream. Allows users to perform API operations
-   through a visual interface. The frontend also offers charting and analysis functionality. Built
-   in [React](https://reactjs.org/).
-2. [`backend`'](./backend): The Moonstream API. This portion of the code base implements a REST API
-   through which users can manage the events that show up in their stream and actually consume their
-   stream data. Built in [Python](https://www.python.org/) using [Fast API](https://fastapi.tiangolo.com/).
-3. [`crawlers`](./crawlers): This part of the code base contains workers which extract data from
-   blockchains, transaction pools, and other sources. Currently contains a single [Python](https://www.python.org/)
-   package but we will soon be addding crawlers implemented in other languages: [Go](https://golang.org/),
-   [Rust](https://www.rust-lang.org/)), and [Javascript](https://developer.mozilla.org/en-US/docs/Web/JavaScript).
+1. [`frontend`](./frontend): A web frontend for Moonstream. Allows users to create dashboards and monitor the activity of accounts and smart contracts on multiple blockchains. Built in [React](https://reactjs.org/).
+2. [`backend`'](./backend): The Moonstream API allows users to programmatically consume data about transactions and events taking place on blockchains crawled by Moonstream. Built in [Python](https://www.python.org/) using [Fast API](https://fastapi.tiangolo.com/).
+3. [`crawlers`](./crawlers): This part of the code base contains workers which extract data from blockchains, transaction pools, and other sources. We have many crawlers and each crawler can utilize a different tech stack.
 4. [`db`](./db): Moonstream stores blockchain data in [Postgres](https://www.postgresql.org/). This
    directory contains the code we use to manage the schema in our Postgres database. For sources that
    send higher volumes of data, we use a separate Postgres database and interface with it using
-   [Bugout](https://bugout.dev). For more information on how that data is processed, check how the API
-   inserts events from those sources into a stream.
+   [Bugout](https://bugout.dev).
 
 ### Installation and setup
 
