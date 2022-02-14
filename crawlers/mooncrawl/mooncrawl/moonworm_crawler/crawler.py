@@ -338,7 +338,7 @@ def get_crawler_point(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
             title=f"{crawler_type} crawler - {blockchain_type.value}",
-            tags=[crawler_type, "crawler", blockchain_type.value, abi_hash],
+            tags=[crawler_type, "crawpoint", blockchain_type.value, abi_hash],
             content=f'{{"start_block":{start_block}, "end_block": {end_block} }}',
         )
         return start_block, end_block, entry.id
