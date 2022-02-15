@@ -30,9 +30,7 @@ from .subscriptions import BUGOUT_RESOURCE_TYPE_SUBSCRIPTION
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(
-    prefix="/streams",
-)
+router = APIRouter(prefix="/streams",)
 
 
 def get_user_subscriptions(token: str) -> Dict[str, List[BugoutResource]]:
@@ -41,9 +39,7 @@ def get_user_subscriptions(token: str) -> Dict[str, List[BugoutResource]]:
     """
     response = bc.list_resources(
         token=token,
-        params={
-            "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
-        },
+        params={"type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,},
         timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
     )
 
