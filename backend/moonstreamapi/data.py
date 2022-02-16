@@ -262,3 +262,7 @@ class DashboardCreate(BaseModel):
 class DashboardUpdate(BaseModel):
     name: Optional[str]
     subscription_settings: List[DashboardMeta] = Field(default_factory=list)
+
+
+class UpdateDataRequest(BaseModel):
+    params: Dict[str, Any] = Field(default_factory=dict)
