@@ -1,13 +1,17 @@
 [Unit]
 Description=Ethereum block with transactions synchronizer
+StartLimitIntervalSec=300
+StartLimitBurst=3
 After=network.target
 
 [Service]
+Restart=on-failure
+RestartSec=15s
 User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/moonstream/crawlers/mooncrawl
 EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
-ExecStart=/home/ubuntu/moonstream-env/bin/python -m mooncrawl.crawler blocks synchronize --blockchain ethereum -c 6 -j 1
+ExecStart=/home/ubuntu/moonstream-env/bin/python -m mooncrawl.crawler blocks synchronize --blockchain ethereum -c 6 -j 2
 SyslogIdentifier=ethereum-synchronize
 
 [Install]

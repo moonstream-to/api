@@ -23,8 +23,8 @@ from web3.types import BlockData
 from .data import AvailableBlockchainType, DateRange
 from .settings import (
     MOONSTREAM_CRAWL_WORKERS,
-    MOONSTREAM_ETHEREUM_IPC_PATH,
-    MOONSTREAM_POLYGON_IPC_PATH,
+    MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI,
+    MOONSTREAM_POLYGON_WEB3_PROVIDER_URI,
 )
 
 logger = logging.getLogger(__name__)
@@ -42,9 +42,9 @@ def connect(blockchain_type: AvailableBlockchainType, web3_uri: Optional[str] = 
 
     if web3_uri is None:
         if blockchain_type == AvailableBlockchainType.ETHEREUM:
-            web3_uri = MOONSTREAM_ETHEREUM_IPC_PATH
+            web3_uri = MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.POLYGON:
-            web3_uri = MOONSTREAM_POLYGON_IPC_PATH
+            web3_uri = MOONSTREAM_POLYGON_WEB3_PROVIDER_URI
         else:
             raise Exception("Wrong blockchain type provided for web3 URI")
 

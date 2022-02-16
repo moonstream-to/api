@@ -1,8 +1,16 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { usePresignedURL } from "../core/hooks";
 import Report from "./Report";
-import { Spinner, Flex, Heading, Text } from "@chakra-ui/react";
-import { v4 } from "uuid";
+
+import {
+  Spinner,
+  Flex,
+  Heading,
+  Text,
+  Container,
+  chakra,
+  Link,
+} from "@chakra-ui/react";
 
 const HOUR_KEY = "Hourly";
 const DAY_KEY = "Daily";
@@ -12,16 +20,83 @@ timeMap[HOUR_KEY] = "hour";
 timeMap[DAY_KEY] = "day";
 timeMap[WEEK_KEY] = "week";
 
-const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
-  const { data, isLoading } = usePresignedURL({
-    url: url,
+const SubscriptionReport = ({
+  timeRange,
+  presignedRequest,
+  id,
+  refetchLinks,
+  retryCallbackFn,
+}) => {
+  const { data, isLoading, failureCount, isFetching } = usePresignedURL({
+    ...presignedRequest,
     isEnabled: true,
     id: id,
-    cacheType: timeRange,
+    cacheType: `${timeRange} subscription_report`,
     requestNewURLCallback: refetchLinks,
+    hideToastOn404: true,
+    retryCallbackFn: retryCallbackFn,
   });
   const plotMinW = "250px";
-  if (!data || isLoading) return <Spinner />;
+
+  const eventKeys = useMemo(
+    () =>
+      Object.keys(data?.events ?? {}).length > 0
+        ? Object.keys(data?.events)
+        : undefined,
+    [data]
+  );
+  const methodKeys = useMemo(
+    () =>
+      Object.keys(data?.methods ?? {}).length > 0
+        ? Object.keys(data?.methods)
+        : undefined,
+    [data]
+  );
+  const genericKeys = useMemo(
+    () =>
+      Object.keys(data?.generic ?? {}).length > 0
+        ? Object.keys(data?.generic)
+        : undefined,
+    [data]
+  );
+
+  if (failureCount < 1 && (!data || isLoading)) return <Spinner />;
+  if (failureCount >= 1 && (!data || isLoading)) {
+    return (
+      <Container
+        w="100%"
+        size="lg"
+        bgColor="orange.100"
+        borderRadius="md"
+        mt={14}
+        mb={14}
+        p={8}
+        boxShadow="md"
+      >
+        <Heading mb={6}>We are crawling the blockchain </Heading>
+        <chakra.span>
+          <Text mb={4}>
+            It takes about 5 minutes to populate this dashboard.
+          </Text>
+          <Text>
+            If you have been looking at this message for more than 5 minutes,
+            contact our team on
+            {` `}
+            <Link
+              color="orange.900"
+              isExternal
+              href={"https://discord.gg/K56VNUQGvA"}
+            >
+              Discord
+            </Link>
+            {"."}
+          </Text>
+        </chakra.span>
+        <br />
+      </Container>
+    );
+  }
+
   return (
     <Flex
       w="100%"
@@ -30,13 +105,16 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
       flexBasis={plotMinW}
       direction="column"
     >
+      <Text fontSize="xs" textAlign="right">{`Latest block number: ${
+        data?.blocks_state?.latest_labelled_block ?? "Not available"
+      }`}</Text>
       <Flex
         bgColor="blue.50"
         direction={["column", "row", null]}
         flexWrap="wrap"
         alignContent={["inherit", "flex-start", null]}
       >
-        {data?.web3_metric.map((metric) => {
+        {data?.web3_metric?.map((metric, web3MetricIndex) => {
           return (
             <Flex
               flexGrow={1}
@@ -45,7 +123,7 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
               p={2}
               m={1}
               bgColor="blue.100"
-              key={v4()}
+              key={`web3-metric-${web3MetricIndex}`}
               size="sm"
               fontWeight="600"
               boxShadow="sm"
@@ -68,7 +146,7 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
           );
         })}
       </Flex>
-      {data?.events && Object.keys(data?.events) && (
+      {data?.events && eventKeys && (
         <Flex
           w="100%"
           h="auto"
@@ -79,10 +157,10 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
           <Heading size="md" pt={4}>
             Events
           </Heading>
-          {Object.keys(data.events).map((key) => {
+          {eventKeys.map((key) => {
             return (
               <Flex
-                key={v4()}
+                key={`events-list-${key}`}
                 flexBasis={plotMinW}
                 flexGrow={1}
                 minW={plotMinW}
@@ -92,15 +170,16 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
                 boxShadow="md"
                 m={2}
               >
-                <Text
+                <Flex
+                  direction="row"
                   w="100%"
-                  py={2}
-                  bgColor="gray.50"
-                  fontWeight="600"
-                  textAlign="center"
+                  bgColor="blue.50"
+                  placeItems="center"
+                  justifyContent={"center"}
                 >
-                  {key}
-                </Text>
+                  <Text>{key}</Text>
+                  {isFetching && <Spinner size="sm" m={1} />}
+                </Flex>
                 <Report
                   data={data.events[key]}
                   metric={key}
@@ -111,7 +190,7 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
           })}
         </Flex>
       )}
-      {data?.functions && Object.keys(data?.functions) && (
+      {data?.methods && methodKeys && (
         <Flex
           w="100%"
           h="auto"
@@ -120,12 +199,12 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
           direction="column"
         >
           <Heading size="md" pt={4}>
-            functions
+            Methods
           </Heading>
-          {Object.keys(data.functions).map((key) => {
+          {methodKeys.map((key) => {
             return (
               <Flex
-                key={v4()}
+                key={`methods-list-${key}`}
                 flexBasis={plotMinW}
                 flexGrow={1}
                 minW={plotMinW}
@@ -135,17 +214,18 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
                 boxShadow="md"
                 m={2}
               >
-                <Text
+                <Flex
+                  direction="row"
                   w="100%"
-                  py={2}
-                  bgColor="gray.50"
-                  fontWeight="600"
-                  textAlign="center"
+                  bgColor="blue.50"
+                  placeItems="center"
+                  justifyContent={"center"}
                 >
-                  {key}
-                </Text>
+                  <Text>{key}</Text>
+                  {isFetching && <Spinner size="sm" m={2} />}
+                </Flex>
                 <Report
-                  data={data.functions[key]}
+                  data={data.methods[key]}
                   metric={key}
                   timeRange={timeRange}
                 />
@@ -154,7 +234,7 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
           })}
         </Flex>
       )}
-      {data?.generic && Object.keys(data?.generic) && (
+      {data?.generic && genericKeys && (
         <Flex
           w="100%"
           h="auto"
@@ -168,7 +248,7 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
           {Object.keys(data.generic).map((key) => {
             return (
               <Flex
-                key={v4()}
+                key={`generics-list-${key}`}
                 flexBasis={plotMinW}
                 flexGrow={1}
                 minW={plotMinW}
@@ -178,15 +258,16 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
                 boxShadow="md"
                 m={2}
               >
-                <Text
+                <Flex
+                  direction="row"
                   w="100%"
-                  py={2}
-                  bgColor="gray.50"
-                  fontWeight="600"
-                  textAlign="center"
+                  bgColor="blue.50"
+                  placeItems="center"
+                  justifyContent={"center"}
                 >
-                  {key}
-                </Text>
+                  <Text>{key}</Text>
+                  {isFetching && <Spinner size="sm" m={2} />}
+                </Flex>
                 <Report
                   data={data.generic[key]}
                   metric={key}
@@ -201,4 +282,4 @@ const SubscriptionReport = ({ timeRange, url, id, refetchLinks }) => {
   );
 };
 
-export default SubscriptionReport;
+export default React.memo(SubscriptionReport);

@@ -32,9 +32,9 @@ from bugout.app import Bugout
 from bugout.data import BugoutResource
 from sqlalchemy.orm import Session
 
-from . import bugout, transactions, moonworm_provider
 from .. import data
 from ..stream_queries import StreamQuery
+from . import bugout, moonworm_provider, transactions
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARN)

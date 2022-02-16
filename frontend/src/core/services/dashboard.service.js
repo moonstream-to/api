@@ -10,6 +10,14 @@ export const createDashboard = (data) => {
   });
 };
 
+export const updateDashboard = ({ dashboard, id }) => {
+  return http({
+    method: "PUT",
+    url: `${API_URL}/dashboards/${id}`,
+    data: dashboard,
+  });
+};
+
 export const getDashboardsList = () => {
   return http({
     method: "GET",
@@ -18,7 +26,6 @@ export const getDashboardsList = () => {
 };
 
 export const deleteDashboard = (id) => {
-  console.log("delete:", id);
   return http({
     method: "DELETE",
     url: `${API_URL}/dashboards/${id}`,
@@ -36,5 +43,15 @@ export const getDashboardLinks = (dashboardId) => {
   return http({
     method: "GET",
     url: `${API_URL}/dashboards/${dashboardId}/stats`,
+  });
+};
+
+export const refreshDashboard = ({ dashboardId, timeRange }) => {
+  return http({
+    method: "POST",
+    url: `${API_URL}/dashboards/${dashboardId}/stats_update`,
+    data: {
+      timescales: [timeRange],
+    },
   });
 };

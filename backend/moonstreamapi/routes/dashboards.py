@@ -1,25 +1,27 @@
+import json
 import logging
 from os import read
-import json
-from typing import Any, List, Optional, Dict
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 import boto3  # type: ignore
+import requests
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
-from fastapi import APIRouter, Request, Query, Body
+from fastapi import APIRouter, Body, Path, Query, Request
 
-from .. import actions
-from .. import data
+from .. import actions, data
 from ..middleware import MoonstreamHTTPException
 from ..reporter import reporter
 from ..settings import (
-    MOONSTREAM_APPLICATION_ID,
-    bugout_client as bc,
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
+    MOONSTREAM_APPLICATION_ID,
+    MOONSTREAM_CRAWLERS_SERVER_URL,
+    MOONSTREAM_CRAWLERS_SERVER_PORT,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
 )
+from ..settings import bugout_client as bc
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +44,8 @@ blockchain_by_subscription_id = {
 
 @router.post("/", tags=["dashboards"], response_model=BugoutResource)
 async def add_dashboard_handler(
-    request: Request, dashboard: data.DashboardCreate = Body(...)
+    request: Request,
+    dashboard: data.DashboardCreate = Body(...),
 ) -> BugoutResource:
     """
     Add subscription to blockchain stream data for user.
@@ -52,7 +55,7 @@ async def add_dashboard_handler(
 
     user = request.state.user
 
-    dashboard_subscriptions = dashboard.subscriptions
+    subscription_settings = dashboard.subscription_settings
 
     # Get all user subscriptions
     params = {
@@ -74,11 +77,11 @@ async def add_dashboard_handler(
 
     s3_client = boto3.client("s3")
 
-    available_subscriptions = {
+    available_subscriptions: Dict[UUID, Dict[str, Any]] = {
         resource.id: resource.resource_data for resource in resources.resources
     }
 
-    for dashboard_subscription in dashboard_subscriptions:
+    for dashboard_subscription in subscription_settings:
         if dashboard_subscription.subscription_id in available_subscriptions.keys():
 
             # TODO(Andrey): Add some dedublication for get object from s3 for repeated subscription_id
@@ -133,7 +136,7 @@ async def add_dashboard_handler(
         type=BUGOUT_RESOURCE_TYPE_DASHBOARD,
         user_id=str(user.id),
         name=dashboard.name,
-        dashboard_subscriptions=dashboard_subscriptions,
+        subscription_settings=subscription_settings,
     )
 
     try:
@@ -232,7 +235,9 @@ async def get_dashboard_handler(
 
 @router.put("/{dashboard_id}", tags=["dashboards"], response_model=BugoutResource)
 async def update_dashboard_handler(
-    request: Request, dashboard_id: str, dashboard: data.DashboardUpdate = Body(...)
+    request: Request,
+    dashboard_id: str,
+    dashboard: data.DashboardUpdate = Body(...),
 ) -> BugoutResource:
     """
     Update dashboards mainly fully overwrite name and subscription metadata
@@ -242,7 +247,7 @@ async def update_dashboard_handler(
 
     user = request.state.user
 
-    dashboard_subscriptions = dashboard.subscriptions
+    subscription_settings = dashboard.subscription_settings
 
     params = {
         "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
@@ -265,7 +270,7 @@ async def update_dashboard_handler(
         resource.id: resource.resource_data for resource in resources.resources
     }
 
-    for dashboard_subscription in dashboard_subscriptions:
+    for dashboard_subscription in subscription_settings:
 
         if dashboard_subscription.subscription_id in available_subscriptions:
 
@@ -318,10 +323,10 @@ async def update_dashboard_handler(
 
     dashboard_resource: Dict[str, Any] = {}
 
-    if dashboard_subscriptions:
+    if subscription_settings:
 
-        dashboard_resource["dashboard_subscriptions"] = json.loads(dashboard.json())[
-            "subscriptions"
+        dashboard_resource["subscription_settings"] = json.loads(dashboard.json())[
+            "subscription_settings"
         ]
 
     if dashboard.name is not None:
@@ -347,7 +352,7 @@ async def get_dashboard_data_links_handler(
     request: Request, dashboard_id: str
 ) -> Dict[UUID, Any]:
     """
-    Update dashboards mainly fully overwrite name and subscription metadata
+    Get s3 presign urls for dshaboard grafics
     """
 
     token = request.state.token
@@ -392,7 +397,7 @@ async def get_dashboard_data_links_handler(
     subscriptions_ids = [
         UUID(subscription_meta["subscription_id"])
         for subscription_meta in dashboard_resource.resource_data[
-            "dashboard_subscriptions"
+            "subscription_settings"
         ]
     ]
 
@@ -424,10 +429,39 @@ async def get_dashboard_data_links_handler(
                     ExpiresIn=300,
                     HttpMethod="GET",
                 )
-                stats[subscription.id][timescale] = stats_presigned_url
+                stats[subscription.id][timescale] = {"url": stats_presigned_url}
             except Exception as err:
                 logger.warning(
                     f"Can't generate S3 presigned url in stats endpoint for Bucket:{MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET}, Key:{result_key} get error:{err}"
                 )
 
     return stats
+
+
+@router.post("/{dashboard_id}/stats_update", tags=["dashboards"])
+async def update_dashbord_data_handler(
+    request: Request,
+    dashboard_id: str = Path(...),
+    updatestats: data.UpdateStats = Body(...),
+) -> Dict[str, Any]:
+    """
+    Return journal statistics
+    journal.read permission required.
+    """
+
+    token = request.state.token
+
+    responce = requests.post(
+        f"{MOONSTREAM_CRAWLERS_SERVER_URL}:{MOONSTREAM_CRAWLERS_SERVER_PORT}/jobs/stats_update",
+        json={
+            "dashboard_id": dashboard_id,
+            "timescales": updatestats.timescales,
+            "token": token,
+        },
+    )
+    if responce.status_code != 200:
+        raise MoonstreamHTTPException(
+            status_code=responce.status_code,
+            detail="Task for start generate stats failed.",
+        )
+    return responce.json()

@@ -34,7 +34,7 @@ const TxABI = (props) => {
           </Tr>
         </Thead>
         <Tbody>
-          {abi.functions.concat(abi.events).map((el) => (
+          {abi.methods.concat(abi.events).map((el) => (
             <Tr key={el.hex_signature}>
               <Td>{el.hex_signature}</Td>
               <Td>

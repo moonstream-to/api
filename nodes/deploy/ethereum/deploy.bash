@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Deployment script - intended to run on Moonstream Ethereum node control server
+# Deployment script - intended to run on Moonstream Ethereum node server
 
 # Colors
 C_RESET='\033[0m'
@@ -20,14 +20,9 @@ APP_NODES_DIR="${APP_DIR}/nodes"
 SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/moonstream-secrets}"
 PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
 SCRIPT_DIR="$(realpath $(dirname $0))"
-BLOCKCHAIN="ethereum"
 
-# Parameters scripts
-CHECKENV_PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.bash"
-CHECKENV_NODES_CONNECTIONS_SCRIPT="${SCRIPT_DIR}/nodes-connections.bash"
-
-# Nodes server service file
-NODES_SERVER_SERVICE_FILE="moonstreamnodes.service"
+# Node status server service file
+NODE_STATUS_SERVER_SERVICE_FILE="node-status.service"
 
 # Ethereum geth service file
 ETHEREUM_GETH_SERVICE_FILE="geth.service"
@@ -36,38 +31,41 @@ set -eu
 
 echo
 echo
-echo -e "${PREFIX_INFO} Building executable server of moonstreamnodes with Go"
+echo -e "${PREFIX_INFO} Building executable server of node status server"
 EXEC_DIR=$(pwd)
 cd "${APP_NODES_DIR}/server"
-HOME=/root /usr/local/go/bin/go build -o "${APP_NODES_DIR}/server/moonstreamnodes" "${APP_NODES_DIR}/server/main.go"
+HOME=/root /usr/local/go/bin/go build -o "${APP_NODES_DIR}/server/nodestatus" "${APP_NODES_DIR}/server/main.go"
 cd "${EXEC_DIR}"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Retrieving deployment parameters"
+echo -e "${PREFIX_INFO} Create secrets directory"
 mkdir -p "${SECRETS_DIR}"
-> "${PARAMETERS_ENV_PATH}"
-bash "${CHECKENV_PARAMETERS_SCRIPT}" -vn -p "moonstream" -o "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Updating nodes connection parameters"
-bash "${CHECKENV_NODES_CONNECTIONS_SCRIPT}" -v -f "${PARAMETERS_ENV_PATH}"
+echo -e "${PREFIX_INFO} Install checkenv"
+HOME=/root /usr/local/go/bin/go install github.com/bugout-dev/checkenv@latest
 
 echo
 echo
-LOCAL_IP="$(ec2metadata --local-ipv4)"
-echo -e "${PREFIX_INFO} Replacing current node IP environment variable with local IP ${C_GREEN}${LOCAL_IP}${C_RESET}"
-sed -i "s|MOONSTREAM_NODE_ETHEREUM_IPC_ADDR=.*|MOONSTREAM_NODE_ETHEREUM_IPC_ADDR=\"$LOCAL_IP\"|" "${PARAMETERS_ENV_PATH}"
+echo -e "${PREFIX_INFO} Retrieving deployment parameters"
+AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" /root/go/bin/checkenv show aws_ssm+Product:moonstream,Node:true > "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Replacing existing moonstreamnodes service definition with ${NODES_SERVER_SERVICE_FILE}"
-chmod 644 "${SCRIPT_DIR}/${NODES_SERVER_SERVICE_FILE}"
-cp "${SCRIPT_DIR}/${NODES_SERVER_SERVICE_FILE}" "/etc/systemd/system/${NODES_SERVER_SERVICE_FILE}"
+echo -e "${PREFIX_INFO} Add instance local IP to parameters"
+AWS_LOCAL_IPV4="$(ec2metadata --local-ipv4)"
+echo "AWS_LOCAL_IPV4=$AWS_LOCAL_IPV4" >> "${PARAMETERS_ENV_PATH}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing node status server definition with ${NODE_STATUS_SERVER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${NODE_STATUS_SERVER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${NODE_STATUS_SERVER_SERVICE_FILE}" "/etc/systemd/system/${NODE_STATUS_SERVER_SERVICE_FILE}"
 systemctl daemon-reload
-systemctl restart "${NODES_SERVER_SERVICE_FILE}"
-systemctl status "${NODES_SERVER_SERVICE_FILE}"
+systemctl restart "${NODE_STATUS_SERVER_SERVICE_FILE}"
+systemctl status "${NODE_STATUS_SERVER_SERVICE_FILE}"
 
 echo
 echo
@@ -76,4 +74,4 @@ chmod 644 "${SCRIPT_DIR}/${ETHEREUM_GETH_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${ETHEREUM_GETH_SERVICE_FILE}" "/etc/systemd/system/${ETHEREUM_GETH_SERVICE_FILE}"
 systemctl daemon-reload
 systemctl disable "${ETHEREUM_GETH_SERVICE_FILE}"
-systemctl status "${ETHEREUM_GETH_SERVICE_FILE}"
+echo -e "${PREFIX_WARN} Geth service updated, but not restarted!"
