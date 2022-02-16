@@ -12,8 +12,8 @@ from . import actions, data
 from .middleware import BroodAuthMiddleware, MoonstreamHTTPException
 from .routes.address_info import router as addressinfo_router
 from .routes.dashboards import router as dashboards_router
-from .routes.queries import router as whales_router
-from .routes.streams import router as queries_router
+from .routes.queries import router as queries_router
+from .routes.streams import router as streams_router
 from .routes.subscriptions import router as subscriptions_router
 from .routes.txinfo import router as txinfo_router
 from .routes.users import router as users_router

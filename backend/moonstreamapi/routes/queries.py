@@ -23,15 +23,12 @@ from ..settings import bugout_client as bc
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(
-    prefix="/queries",
-)
+router = APIRouter(prefix="/queries",)
 
 
 @router.post("/{query_id}/update", tags=["queries"])
 async def update_query_data_handler(
-    request: Request,
-    query_id: str = Query(...),
+    request: Request, query_id: str = Query(...),
 ) -> Optional[Dict[str, Any]]:
     """
     Request update data on S3 bucket
@@ -62,5 +59,7 @@ async def update_query_data_handler(
                 )
 
             return responce.json()
-    except:
-        return None
+    except Exception as e:
+        logger.error("Unable to get events")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+    return None
