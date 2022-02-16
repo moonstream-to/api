@@ -32,4 +32,3 @@ def data_generate(bucket: str, key: str, query: str):
     """
     with yield_db_session_ctx() as db_session:
         push_statistics(data=db_session.execute(query).all(), key=key, bucket=bucket)
-
