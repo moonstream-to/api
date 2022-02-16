@@ -5,7 +5,7 @@ from io import StringIO
 import csv
 
 
-import boto3
+import boto3  # type: ignore
 from moonstreamdb.db import yield_db_session_ctx
 
 

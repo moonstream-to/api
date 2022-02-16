@@ -21,7 +21,9 @@ from ..settings import bugout_client as bc
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/queries",)
+router = APIRouter(
+    prefix="/queries",
+)
 
 
 @router.post("/{query_id}/update", tags=["queries"])
