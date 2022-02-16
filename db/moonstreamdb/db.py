@@ -11,6 +11,10 @@ MOONSTREAM_DB_URI = os.environ.get("MOONSTREAM_DB_URI")
 if MOONSTREAM_DB_URI is None:
     raise ValueError("MOONSTREAM_DB_URI environment variable must be set")
 
+MOONSTREAM_DB_URI_READ_ONLY = os.environ.get("MOONSTREAM_DB_URI_READ_ONLY")
+if MOONSTREAM_DB_URI_READ_ONLY is None:
+    raise ValueError("MOONSTREAM_DB_URI_READ_ONLY environment variable must be set")
+
 MOONSTREAM_POOL_SIZE_RAW = os.environ.get("MOONSTREAM_POOL_SIZE", 0)
 try:
     if MOONSTREAM_POOL_SIZE_RAW is not None:
@@ -60,3 +64,31 @@ def yield_db_session() -> Session:
 
 
 yield_db_session_ctx = contextmanager(yield_db_session)
+
+
+# Read only
+
+RO_engine = create_engine(
+    MOONSTREAM_DB_URI_READ_ONLY,
+    pool_size=MOONSTREAM_POOL_SIZE,
+    connect_args={
+        "options": f"-c statement_timeout={MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS}"
+    },
+)
+RO_SessionLocal = sessionmaker(bind=RO_engine)
+
+
+def yield_db_read_only_session() -> Session:
+    """
+    Yields a database connection (created using environment variables).
+    As per FastAPI docs:
+    https://fastapi.tiangolo.com/tutorial/sql-databases/#create-a-dependency
+    """
+    session = RO_SessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()
+
+
+yield_db_read_only_session_ctx = contextmanager(yield_db_session)
