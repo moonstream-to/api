@@ -80,14 +80,17 @@ async def now_handler() -> data.NowResponse:
 
 @app.post("/jobs/stats_update", tags=["jobs"])
 async def status_handler(
-    stats_update: data.StatsUpdateRequest, background_tasks: BackgroundTasks,
+    stats_update: data.StatsUpdateRequest,
+    background_tasks: BackgroundTasks,
 ):
     """
     Update dashboard endpoint create are tasks for update.
     """
 
     dashboard_resource: BugoutResource = bc.get_resource(
-        token=stats_update.token, resource_id=stats_update.dashboard_id, timeout=10,
+        token=stats_update.token,
+        resource_id=stats_update.dashboard_id,
+        timeout=10,
     )
 
     # get all user subscriptions
@@ -167,7 +170,9 @@ async def status_handler(
 
 @app.post("/jobs/{query_id}/query_update", tags=["jobs"])
 async def queries_data_update_handler(
-    query_id: str, query: Any, background_tasks: BackgroundTasks,
+    query_id: str,
+    query: Any,
+    background_tasks: BackgroundTasks,
 ) -> Dict[str, Any]:
 
     s3_client = boto3.client("s3")
@@ -187,7 +192,10 @@ async def queries_data_update_handler(
 
     stats_presigned_url = s3_client.generate_presigned_url(
         "get_object",
-        Params={"Bucket": "queries_bucket", "Key": f"queries/{query_id}/data.json",},
+        Params={
+            "Bucket": "queries_bucket",
+            "Key": f"queries/{query_id}/data.json",
+        },
         ExpiresIn=300000,
         HttpMethod="GET",
     )
