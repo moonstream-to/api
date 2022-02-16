@@ -192,4 +192,4 @@ async def queries_data_update_handler(
         HttpMethod="GET",
     )
 
-    return stats_presigned_url
+    return {"url": stats_presigned_url}
