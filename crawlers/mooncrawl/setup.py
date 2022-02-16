@@ -58,6 +58,7 @@ setup(
             "esd=mooncrawl.esd:main",
             "etherscan=mooncrawl.etherscan:main",
             "identity=mooncrawl.identity:main",
+            "generic-crawler=mooncrawl.generic_crawler.cli:main",
             "moonworm-crawler=mooncrawl.moonworm_crawler.cli:main",
             "nft=mooncrawl.nft.cli:main",
             "statistics=mooncrawl.stats_worker.dashboard:main",
