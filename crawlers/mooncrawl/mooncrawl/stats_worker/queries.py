@@ -7,6 +7,7 @@ import csv
 
 import boto3  # type: ignore
 from moonstreamdb.db import yield_db_session_ctx
+from sqlalchemy import text
 
 
 logging.basicConfig(level=logging.INFO)
@@ -57,9 +58,16 @@ def data_generate(
                 bucket=bucket,
             )
         else:
+            block_number, block_timestamp = db_session.execute(
+                "SELECT block_number, block_timestamp FROM polygon_labels WHERE block_number=(SELECT max(block_number) FROM polygon_labels where label='moonworm-alpha') limit 1;",
+            ).one()
 
             data = json.dumps(
-                [dict(row) for row in db_session.execute(query, params)]
+                {
+                    "block_number": block_number,
+                    "block_timestamp": block_timestamp,
+                    "data": [dict(row) for row in db_session.execute(query, params)],
+                }
             ).encode("utf-8")
             push_statistics(
                 s3=s3,
