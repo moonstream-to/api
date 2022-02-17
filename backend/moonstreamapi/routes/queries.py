@@ -27,12 +27,36 @@ from ..settings import bugout_client as bc
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(
-    prefix="/queries",
-)
+router = APIRouter(prefix="/queries",)
 
 
 BUGOUT_RESOURCE_QUERY_RESOLVER = "query_name_resolver"
+
+
+@router.get("/list", tags=["queries"])
+async def get_access_link_handler(request: Request) -> Dict[str, Any]:
+
+    token = request.state.token
+
+    # Check already existed queries
+
+    params = {
+        "type": BUGOUT_RESOURCE_QUERY_RESOLVER,
+    }
+    try:
+        resources: BugoutResources = bc.list_resources(token=token, params=params)
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        logger.error(
+            f"Error listing subscriptions for user ({request.user.id}) with token ({request.state.token}), error: {str(e)}"
+        )
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    users_queries: Dict[str, Any] = [
+        resource.resource_data for resource in resources.resources
+    ]
+    return users_queries
 
 
 @router.post("/{query_name}", tags=["queries"])
@@ -96,6 +120,7 @@ async def create_query_handler(
             resource_data={
                 "type": BUGOUT_RESOURCE_QUERY_RESOLVER,
                 "user_id": str(user.id),
+                "user": str(user.username),
                 "name": query_name,
                 "entry_id": str(entry.id),
             },
@@ -242,10 +267,7 @@ async def update_query_data_handler(
 
 
 @router.get("/{query_name}", tags=["queries"])
-async def get_access_link_handler(
-    request: Request,
-    query_name: str,
-) -> str:
+async def get_access_link_handler(request: Request, query_name: str,) -> str:
     """
     Request update data on S3 bucket
     """
