@@ -27,14 +27,16 @@ from ..settings import bugout_client as bc
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/queries",)
+router = APIRouter(
+    prefix="/queries",
+)
 
 
 BUGOUT_RESOURCE_QUERY_RESOLVER = "query_name_resolver"
 
 
 @router.get("/list", tags=["queries"])
-async def get_access_link_handler(request: Request) -> Dict[str, Any]:
+async def get_list_of_queries_handler(request: Request) -> Dict[str, Any]:
 
     token = request.state.token
 
@@ -53,7 +55,7 @@ async def get_access_link_handler(request: Request) -> Dict[str, Any]:
         )
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
-    users_queries: Dict[str, Any] = [
+    users_queries: List[Dict[str, Any]] = [
         resource.resource_data for resource in resources.resources
     ]
     return users_queries
@@ -267,7 +269,10 @@ async def update_query_data_handler(
 
 
 @router.get("/{query_name}", tags=["queries"])
-async def get_access_link_handler(request: Request, query_name: str,) -> str:
+async def get_access_link_handler(
+    request: Request,
+    query_name: str,
+) -> str:
     """
     Request update data on S3 bucket
     """
