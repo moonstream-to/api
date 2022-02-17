@@ -12,5 +12,12 @@ const Badge = {
   variants: {
     outline: variantOutline,
   },
+  sizes: {
+    xxl: {
+      fontSize: "4xl",
+      borderWidth: "xl",
+      borderRadius: "lg",
+    },
+  },
 };
 export default Badge;
