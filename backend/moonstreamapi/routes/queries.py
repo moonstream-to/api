@@ -5,7 +5,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 import boto3  # type: ignore
-from bugout.data import BugoutResources
+from bugout.data import BugoutResources, BugoutJournalEntryContent, BugoutJournalEntry
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Body, Request
 import requests
@@ -38,7 +38,7 @@ BUGOUT_RESOURCE_QUERY_RESOLVER = "query_name_resolver"
 @router.post("/{query_name}", tags=["queries"])
 async def create_query_handler(
     request: Request, query_name: str, query_applied: data.PreapprovedQuery = Body(...)
-) -> Any:
+) -> BugoutJournalEntry:
     """
     Create query in bugout journal
     """
@@ -123,11 +123,11 @@ async def create_query_handler(
         logger.error(f"Error in applind tags to query entry: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
-    return True
+    return entry
 
 
 @router.get("/{query_name}/query", tags=["queries"])
-async def get_query_handler(request: Request, query_name: str) -> Any:
+async def get_query_handler(request: Request, query_name: str) -> BugoutJournalEntry:
 
     token = request.state.token
 
@@ -157,7 +157,7 @@ async def update_query_handler(
     request: Request,
     query_name: str,
     request_update: data.UpdateQueryRequest = Body(...),
-) -> Any:
+) -> BugoutJournalEntryContent:
 
     token = request.state.token
 
