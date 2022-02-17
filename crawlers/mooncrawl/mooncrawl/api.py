@@ -181,13 +181,6 @@ async def queries_data_update_handler(
 
     try:
 
-        # test statement params
-        t = text(request.query)
-        t = t.bindparams(**request.params)
-
-        t.compile(compile_kwargs={"literal_binds": True})
-        print(t.compile(compile_kwargs={"literal_binds": True}))
-
         background_tasks.add_task(
             queries.data_generate,
             bucket=MOONSTREAM_QUERIES_BUCKET,
