@@ -3,10 +3,12 @@ Pydantic schemas for the Moonstream HTTP API
 """
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Literal
 from uuid import UUID
+from xmlrpc.client import Boolean
 
 from pydantic import BaseModel, Field
+from sqlalchemy import false
 
 USER_ONBOARDING_STATE = "onboarding_state"
 
@@ -266,3 +268,12 @@ class DashboardUpdate(BaseModel):
 
 class UpdateDataRequest(BaseModel):
     params: Dict[str, Any] = Field(default_factory=dict)
+
+
+class UpdateQueryRequest(BaseModel):
+    query: str
+
+
+class PreapprovedQuery(BaseModel):
+    query: str
+    public: bool = False

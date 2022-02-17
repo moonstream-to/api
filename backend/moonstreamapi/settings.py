@@ -7,6 +7,8 @@ BUGOUT_BROOD_URL = os.environ.get("BUGOUT_BROOD_URL", "https://auth.bugout.dev")
 BUGOUT_SPIRE_URL = os.environ.get("BUGOUT_SPIRE_URL", "https://spire.bugout.dev")
 
 
+BUGOUT_RESOURCE_QUERY_RESOLVER = "query_name_resolver"
+
 bugout_client = Bugout(brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIRE_URL)
 
 BUGOUT_REQUEST_TIMEOUT_SECONDS = 5
@@ -99,3 +101,7 @@ if MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI == "":
     raise ValueError(
         "MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI environment variable must be set"
     )
+
+MOONSTREAM_QUERIES_BUCKET = os.environ.get("MOONSTREAM_QUERIES_BUCKET", "")
+if MOONSTREAM_QUERIES_BUCKET == "":
+    raise ValueError("MOONSTREAM_QUERIES_BUCKET environment variable must be set")

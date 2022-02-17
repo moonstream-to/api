@@ -11,6 +11,7 @@ from uuid import UUID
 import boto3  # type: ignore
 from fastapi import FastAPI, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 
 from bugout.data import BugoutResource, BugoutResources
 
@@ -180,6 +181,13 @@ async def queries_data_update_handler(
 
     try:
 
+        # test statement params
+        t = text(request.query)
+        t = t.bindparams(**request.params)
+
+        t.compile(compile_kwargs={"literal_binds": True})
+        print(t.compile(compile_kwargs={"literal_binds": True}))
+
         background_tasks.add_task(
             queries.data_generate,
             bucket=MOONSTREAM_QUERIES_BUCKET,
@@ -199,7 +207,7 @@ async def queries_data_update_handler(
             "Bucket": MOONSTREAM_QUERIES_BUCKET,
             "Key": f"queries/{query_id}/data.{request.file_type}",
         },
-        ExpiresIn=300000,
+        ExpiresIn=43200,  # 12 hours
         HttpMethod="GET",
     )
 
