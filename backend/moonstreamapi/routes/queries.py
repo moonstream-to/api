@@ -352,6 +352,8 @@ async def remove_query_handler(
         )
         for resource in resources.resources
     }
+    if len(query_ids) == 0:
+        raise MoonstreamHTTPException(status_code=404, detail="Query does not existю")
 
     try:
         bc.remove_resources(token=token, resource_id=query_ids[query_name][0])
