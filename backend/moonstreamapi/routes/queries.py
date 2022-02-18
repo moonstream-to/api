@@ -10,7 +10,7 @@ from bugout.data import BugoutResources, BugoutJournalEntryContent, BugoutJourna
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Body, Request
 import requests
-from slugify import slugify
+from slugify import slugify  # type: ignore
 
 
 from .. import data
@@ -30,14 +30,16 @@ from ..settings import bugout_client as bc
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/queries",)
+router = APIRouter(
+    prefix="/queries",
+)
 
 
 BUGOUT_RESOURCE_QUERY_RESOLVER = "query_name_resolver"
 
 
 @router.get("/list", tags=["queries"])
-async def get_list_of_queries_handler(request: Request) -> Dict[str, Any]:
+async def get_list_of_queries_handler(request: Request) -> List[Dict[str, Any]]:
 
     token = request.state.token
 
@@ -233,7 +235,7 @@ async def update_query_data_handler(
         entries = bc.search(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
-            query=f"#approved ! #query_id:{query_id}",
+            query=f"#approved #query_id:{query_id} !#preapprove",
             limit=1,
             timeout=5,
         )
@@ -272,7 +274,10 @@ async def update_query_data_handler(
 
 
 @router.get("/{query_name}", tags=["queries"])
-async def get_access_link_handler(request: Request, query_name: str,) -> str:
+async def get_access_link_handler(
+    request: Request,
+    query_name: str,
+) -> str:
     """
     Request update data on S3 bucket
     """
@@ -289,7 +294,7 @@ async def get_access_link_handler(request: Request, query_name: str,) -> str:
         entries = bc.search(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
-            query=f"#approved #query_id:{query_id}",
+            query=f"#approved #query_id:{query_id} !#preapprove",
             limit=1,
             timeout=5,
         )
@@ -321,7 +326,8 @@ async def get_access_link_handler(request: Request, query_name: str,) -> str:
 
 @router.delete("/{query_name}", tags=["queries"])
 async def remove_query_handler(
-    request: Request, query_name: str,
+    request: Request,
+    query_name: str,
 ) -> BugoutJournalEntry:
     """
     Request update data on S3 bucket
@@ -356,7 +362,7 @@ async def remove_query_handler(
         raise MoonstreamHTTPException(status_code=404, detail="Query does not existю")
 
     try:
-        bc.remove_resources(token=token, resource_id=query_ids[query_name][0])
+        bc.delete_resource(token=token, resource_id=query_ids[query_name][0])
     except BugoutResponseException as e:
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
@@ -376,4 +382,3 @@ async def remove_query_handler(
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     return entry
-
