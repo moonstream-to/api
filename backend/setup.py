@@ -21,6 +21,7 @@ setup(
         "pyevmasm",
         "python-dateutil",
         "python-multipart",
+        "python-slugify",
         "uvicorn",
         "web3",
     ],

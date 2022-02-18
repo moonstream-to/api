@@ -2,13 +2,16 @@
 The Moonstream queries HTTP API
 """
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple, Union
+from uuid import UUID
 
 import boto3  # type: ignore
 from bugout.data import BugoutResources, BugoutJournalEntryContent, BugoutJournalEntry
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Body, Request
 import requests
+from slugify import slugify
+
 
 from .. import data
 from ..actions import get_query_by_name
@@ -27,9 +30,7 @@ from ..settings import bugout_client as bc
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(
-    prefix="/queries",
-)
+router = APIRouter(prefix="/queries",)
 
 
 BUGOUT_RESOURCE_QUERY_RESOLVER = "query_name_resolver"
@@ -61,7 +62,7 @@ async def get_list_of_queries_handler(request: Request) -> Dict[str, Any]:
     return users_queries
 
 
-@router.post("/{query_name}", tags=["queries"])
+@router.post("/", tags=["queries"])
 async def create_query_handler(
     request: Request, query_name: str, query_applied: data.PreapprovedQuery = Body(...)
 ) -> BugoutJournalEntry:
@@ -91,6 +92,8 @@ async def create_query_handler(
     used_queries: List[str] = [
         resource.resource_data["name"] for resource in resources.resources
     ]
+
+    query_name = slugify(query_applied.name)
 
     if query_name in used_queries:
 
@@ -269,10 +272,7 @@ async def update_query_data_handler(
 
 
 @router.get("/{query_name}", tags=["queries"])
-async def get_access_link_handler(
-    request: Request,
-    query_name: str,
-) -> str:
+async def get_access_link_handler(request: Request, query_name: str,) -> str:
     """
     Request update data on S3 bucket
     """
@@ -317,3 +317,61 @@ async def get_access_link_handler(
         logger.error(f"Error in send generate query data task: {e}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
     raise MoonstreamHTTPException(status_code=403, detail="Query not approved yet.")
+
+
+@router.delete("/{query_name}", tags=["queries"])
+async def remove_query_handler(
+    request: Request, query_name: str,
+) -> BugoutJournalEntry:
+    """
+    Request update data on S3 bucket
+    """
+    token = request.state.token
+
+    """
+        def delete_resource(
+        self,
+        token: Union[str, uuid.UUID],
+        resource_id: Union[str, uuid.UUID],
+        timeout: float = REQUESTS_TIMEOUT
+    """
+
+    params = {"type": BUGOUT_RESOURCE_QUERY_RESOLVER, "name": query_name}
+    try:
+        resources: BugoutResources = bc.list_resources(token=token, params=params)
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        logger.error(f"Error get query, error: {str(e)}")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    query_ids: Dict[str, Tuple[UUID, Union[UUID, str]]] = {
+        resource.resource_data["name"]: (
+            resource.id,
+            resource.resource_data["entry_id"],
+        )
+        for resource in resources.resources
+    }
+
+    try:
+        bc.remove_resources(token=token, resource_id=query_ids[query_name][0])
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        logger.error(f"Error get query, error: {str(e)}")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    try:
+        entry = bc.delete_entry(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
+            entry_id=query_ids[query_name][1],
+        )
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        logger.error(f"Error get query, error: {str(e)}")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    return entry
+
