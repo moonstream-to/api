@@ -149,11 +149,11 @@ const carousel_content = [
   { title: "Bitcoin coming soon!", img: assets["bitcoinLogo"] },
   { title: "Ethereum", img: assets["ethereumBlackLogo"] },
   { title: "Ethereum transaction pool", img: assets["ethereumRainbowLogo"] },
-  { title: "Polygon coming soon!", img: assets["maticLogo"] },
+  { title: "Polygon", img: assets["maticLogo"] },
   { title: "Bitcoin coming soon!", img: assets["bitcoinLogo"] },
   { title: "Ethereum", img: assets["ethereumBlackLogo"] },
   { title: "Ethereum transaction pool", img: assets["ethereumRainbowLogo"] },
-  { title: "Polygon coming soon!", img: assets["maticLogo"] },
+  { title: "Polygon", img: assets["maticLogo"] },
 ];
 const Homepage = () => {
   const ui = useContext(UIContext);
@@ -349,8 +349,11 @@ const Homepage = () => {
                           display="inline-block"
                           color="blue.200"
                         >
-                          Moonstream has handled over $200M in transaction value
-                          to date.
+                          Moonstream has handled over{" "}
+                          <Text fontWeight={600} textColor="orange.900" display={"inline-block"}>
+                            $200M
+                          </Text>{" "}
+                          in transaction value to date.
                         </chakra.span>
                         <Box
                           w="100vw"
@@ -903,7 +906,7 @@ const Homepage = () => {
                       mb={18}
                       fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
                     >
-                      Checkout our GitHub repository and join our community on
+                      Check out our GitHub repository and join our community on
                       Discord
                     </Text>
                   </chakra.span>
