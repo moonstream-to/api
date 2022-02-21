@@ -350,7 +350,11 @@ const Homepage = () => {
                           color="blue.200"
                         >
                           Moonstream has handled over{" "}
-                          <Text fontWeight={600} textColor="orange.900" display={"inline-block"}>
+                          <Text
+                            fontWeight={600}
+                            textColor="orange.900"
+                            display={"inline-block"}
+                          >
                             $200M
                           </Text>{" "}
                           in transaction value to date.
