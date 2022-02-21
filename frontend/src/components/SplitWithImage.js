@@ -140,7 +140,7 @@ const SplitWithImage = ({
                 fontWeight={600}
                 fontSize={["xs", "sm"]}
                 sx={{
-                  background: `linear-gradient(to bottom, rgba(30,87,153,0) 0%,${theme100} 15%,${theme200} 19%,${theme300} 20%,${theme900} 50%,${theme300} 80%,${theme200} 81%,${theme100} 85%,rgba(30,87,153,0) 100%);`,
+                  background: `linear-gradient(to bottom, ${theme100} 0%,${theme100} 15%,${theme200} 19%,${theme300} 20%,${theme900} 50%,${theme300} 80%,${theme200} 81%,${theme100} 85%,${theme100} 100%);`,
                 }}
                 p={[1, 2]}
                 rounded={"md"}
