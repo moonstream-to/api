@@ -19,10 +19,10 @@ import {
   GridItem,
   SimpleGrid,
   Button,
-  Badge,
   Image as ChakraImage,
 } from "@chakra-ui/react";
 import dynamic from "next/dynamic";
+import Link from "next/dist/client/link";
 import useUser from "../src/core/hooks/useUser";
 import useModals from "../src/core/hooks/useModals";
 import useRouter from "../src/core/hooks/useRouter";
@@ -32,13 +32,24 @@ import TrustedBadge from "../src/components/TrustedBadge";
 import Slider from "react-slick";
 import { v4 as uuidv4 } from "uuid";
 import RouteButton from "../src/components/RouteButton";
-import { FaDiscord, FaStoreAlt } from "react-icons/fa";
 import { MODAL_TYPES } from "../src/core/providers/OverlayProvider/constants";
+import mixpanel from "mixpanel-browser";
+import {
+  MIXPANEL_PROPS,
+  MIXPANEL_EVENTS,
+} from "../src/core/providers/AnalyticsProvider/constants";
+
 const SplitWithImage = dynamic(
   () => import("../src/components/SplitWithImage"),
   {
     ssr: false,
   }
+);
+const FaStoreAlt = dynamic(() =>
+  import("react-icons/fa").then((mod) => mod.FaStoreAlt)
+);
+const FaDiscord = dynamic(() =>
+  import("react-icons/fa").then((mod) => mod.FaDiscord)
 );
 
 const GiRiver = dynamic(() =>
@@ -102,7 +113,7 @@ const VscOrganization = dynamic(() =>
 
 const HEADING_PROPS = {
   fontWeight: "700",
-  fontSize: ["4xl", "5xl", "4xl", "5xl", "6xl", "7xl"],
+  fontSize: ["4xl", "5xl", "5xl", "5xl", "6xl", "7xl"],
 };
 
 const assets = {
@@ -131,6 +142,7 @@ const assets = {
   laguna: `${AWS_ASSETS_PATH}/featured_by/laguna_logo.svg`,
   game7io: `${AWS_ASSETS_PATH}/featured_by/game7io_logo.png`,
   orangedao: `${AWS_ASSETS_PATH}/featured_by/orangedao_logo.png`,
+  meetup: `${AWS_ASSETS_PATH}/featured_by/meetup_logo.png`,
 };
 
 const carousel_content = [
@@ -337,15 +349,9 @@ const Homepage = () => {
                           display="inline-block"
                           color="blue.200"
                         >
-                          Moonstream handled transaction value to-date:
+                          Moonstream has handled over $200M in transaction value
+                          to date.
                         </chakra.span>
-                        <Badge
-                          variant="outline"
-                          colorScheme={"yellow"}
-                          size="xxl"
-                        >
-                          $200M
-                        </Badge>
                         <Box
                           w="100vw"
                           minH="200px"
@@ -404,7 +410,7 @@ const Homepage = () => {
                 <Heading
                   {...HEADING_PROPS}
                   textAlign="center"
-                  mt={[24, 32, 48]}
+                  mt={[12, 14, 16]}
                   pb={[12, 12, 12, null, 24]}
                 >
                   Features:
@@ -413,93 +419,161 @@ const Homepage = () => {
                   columns={[1, 2, 2, 5, null, 5]}
                   justifyContent="center"
                 >
-                  <Stack spacing={1} px={1} alignItems="center">
-                    <ChakraImage
-                      boxSize={["220px", "220px", "xs", null, "xs"]}
-                      objectFit="contain"
-                      src={assets["cryptoTraders"]}
-                      alt="mined transactions"
-                    />
-                    <Heading textAlign="center ">Analytics</Heading>
-                    <chakra.span
-                      textAlign={"center"}
-                      textColor="blue.600"
-                      px={2}
+                  <Link href="#more_about_analytics" shallow scroll>
+                    <Stack
+                      transition={"1s"}
+                      spacing={1}
+                      px={1}
+                      alignItems="center"
+                      borderRadius="12px"
+                      borderColor="gray.100"
+                      borderWidth={"1px"}
+                      _hover={{ transform: "scale(1.05)", transition: "0.42s" }}
+                      cursor="pointer"
+                      m={2}
+                      pb={2}
                     >
-                      Get the full picture of your economy with automated
-                      customizable dashboards.
-                    </chakra.span>
-                  </Stack>
-                  <Stack spacing={1} px={1} alignItems="center">
-                    <ChakraImage
-                      boxSize={["220px", "220px", "xs", null, "xs"]}
-                      objectFit="contain"
-                      src={assets["NFT"]}
-                      alt="mined transactions"
-                    />
-                    <Heading textAlign="center ">Markets</Heading>
-                    <chakra.span
-                      textAlign={"center"}
-                      textColor="blue.600"
-                      px={2}
-                    >
-                      Create goods and resources for your economy. Set up fully
-                      customizable storefronts for these items.
-                    </chakra.span>
-                  </Stack>
-
-                  <Stack spacing={1} px={1} alignItems="center">
-                    <ChakraImage
-                      boxSize={["220px", "220px", "xs", null, "xs"]}
-                      objectFit="contain"
-                      src={assets["erc20"]}
-                      alt="mined transactions"
-                    />
-                    <Heading textAlign="center ">Bridges</Heading>
-                    <chakra.span
-                      textAlign={"center"}
-                      textColor="blue.600"
-                      px={2}
-                    >
-                      Open up your economy to Ethereum’s rich DeFi ecosystem, no
-                      matter which chain you live on.
-                    </chakra.span>
-                  </Stack>
-                  <Stack spacing={1} px={1} alignItems="center">
-                    <ChakraImage
-                      boxSize={["220px", "220px", "xs", null, "xs"]}
-                      objectFit="contain"
-                      src={assets["DAO"]}
-                      alt="mined transactions"
-                    />
-                    <Heading textAlign="center ">{`Loyality`}</Heading>
-                    <chakra.span
-                      textAlign={"center"}
-                      textColor="blue.600"
-                      px={2}
-                    >
-                      Reward the most active participants in your economy with
-                      loyalty programs and token sale whitelists.
-                    </chakra.span>
-                  </Stack>
-                  <GridItem colSpan={[1, 2, 2, 1, null, 1]}>
-                    <Stack spacing={1} px={1} alignItems="center">
                       <ChakraImage
                         boxSize={["220px", "220px", "xs", null, "xs"]}
                         objectFit="contain"
-                        src={assets["smartDevelopers"]}
+                        src={assets["cryptoTraders"]}
                         alt="mined transactions"
                       />
-                      <Heading textAlign="center ">{`Security`}</Heading>
+                      <Heading textAlign="center ">Analytics</Heading>
                       <chakra.span
                         textAlign={"center"}
                         textColor="blue.600"
                         px={2}
                       >
-                        Secure your economy against bad actors. Detect attacks
-                        on your economy and defend against them.
+                        Get the full picture of your economy with automated
+                        customizable dashboards.
                       </chakra.span>
                     </Stack>
+                  </Link>
+                  <Link href="#more_about_markets" shallow scroll>
+                    <Stack
+                      transition={"1s"}
+                      spacing={1}
+                      px={1}
+                      alignItems="center"
+                      borderRadius="12px"
+                      borderColor="gray.100"
+                      borderWidth={"1px"}
+                      _hover={{ transform: "scale(1.05)", transition: "0.42s" }}
+                      m={2}
+                      pb={2}
+                    >
+                      <ChakraImage
+                        boxSize={["220px", "220px", "xs", null, "xs"]}
+                        objectFit="contain"
+                        src={assets["NFT"]}
+                        alt="mined transactions"
+                      />
+                      <Heading textAlign="center ">Markets</Heading>
+                      <chakra.span
+                        textAlign={"center"}
+                        textColor="blue.600"
+                        px={2}
+                      >
+                        Create goods and resources for your economy. Set up
+                        fully customizable storefronts for these items.
+                      </chakra.span>
+                    </Stack>
+                  </Link>
+                  <Link href="#more_about_bridges" shallow scroll>
+                    <Stack
+                      transition={"1s"}
+                      spacing={1}
+                      px={1}
+                      alignItems="center"
+                      borderRadius="12px"
+                      borderColor="gray.100"
+                      borderWidth={"1px"}
+                      _hover={{ transform: "scale(1.05)", transition: "0.42s" }}
+                      m={2}
+                      pb={2}
+                    >
+                      <ChakraImage
+                        boxSize={["220px", "220px", "xs", null, "xs"]}
+                        objectFit="contain"
+                        src={assets["erc20"]}
+                        alt="mined transactions"
+                      />
+                      <Heading textAlign="center ">Bridges</Heading>
+                      <chakra.span
+                        textAlign={"center"}
+                        textColor="blue.600"
+                        px={2}
+                      >
+                        Open up your economy to Ethereum’s rich DeFi ecosystem,
+                        no matter which chain you live on.
+                      </chakra.span>
+                    </Stack>
+                  </Link>
+                  <Link href="#more_about_loyalty" shallow scroll>
+                    <Stack
+                      transition={"1s"}
+                      spacing={1}
+                      px={1}
+                      alignItems="center"
+                      borderRadius="12px"
+                      borderColor="gray.100"
+                      borderWidth={"1px"}
+                      _hover={{ transform: "scale(1.05)", transition: "0.42s" }}
+                      m={2}
+                      pb={2}
+                    >
+                      <ChakraImage
+                        boxSize={["220px", "220px", "xs", null, "xs"]}
+                        objectFit="contain"
+                        src={assets["DAO"]}
+                        alt="mined transactions"
+                      />
+                      <Heading textAlign="center ">{`Loyalty`}</Heading>
+                      <chakra.span
+                        textAlign={"center"}
+                        textColor="blue.600"
+                        px={2}
+                      >
+                        Reward the most active participants in your economy with
+                        loyalty programs and token sale whitelists.
+                      </chakra.span>
+                    </Stack>
+                  </Link>
+                  <GridItem colSpan={[1, 2, 2, 1, null, 1]}>
+                    <Link href="#more_about_security" shallow scroll>
+                      <Stack
+                        transition={"1s"}
+                        spacing={1}
+                        px={1}
+                        alignItems="center"
+                        borderRadius="12px"
+                        borderColor="gray.100"
+                        borderWidth={"1px"}
+                        _hover={{
+                          transform: "scale(1.05)",
+                          transition: "0.42s",
+                        }}
+                        m={2}
+                        pb={2}
+                      >
+                        <ChakraImage
+                          boxSize={["220px", "220px", "xs", null, "xs"]}
+                          objectFit="contain"
+                          src={assets["smartDevelopers"]}
+                          alt="mined transactions"
+                        />
+                        <Heading textAlign="center ">{`Security`}</Heading>
+                        <chakra.span
+                          textAlign={"center"}
+                          textColor="blue.600"
+                          px={2}
+                        >
+                          Secure your economy against bad actors. Detect attacks
+                          on your economy and defend against them.
+                        </chakra.span>
+                      </Stack>
+                    </Link>
                   </GridItem>
                 </SimpleGrid>
               </GridItem>
@@ -541,19 +615,13 @@ const Homepage = () => {
                 px="7%"
                 colSpan="12"
                 pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
-                pb={["0", "66px", null, "66px"]}
+                pb={["0", "32px", null, "32px"]}
                 id="exchanges"
-                minH={ui.isMobileView ? "100vh" : null}
               >
                 <Center>
-                  <RouteButton
-                    size="xl"
-                    colorScheme={"orange"}
-                    variant="solid"
-                    href="/whitepapers"
-                  >
-                    Moonstream DAO Use cases
-                  </RouteButton>
+                  <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
+                    Learn more about Moonstream DAO use cases
+                  </Heading>
                 </Center>
               </GridItem>
               <GridItem
@@ -561,10 +629,21 @@ const Homepage = () => {
                 colSpan="12"
                 pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
                 pb={["0", "66px", null, "66px"]}
-                id="txpool"
+                id="more_about_analytics"
                 minH={ui.isMobileView ? "100vh" : null}
               >
                 <SplitWithImage
+                  cta={{
+                    colorScheme: "orange",
+                    onClick: () => {
+                      mixpanel.get_distinct_id() &&
+                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer txpool button`,
+                        });
+                      router.push("/whitepapers");
+                    },
+                    label: "NFT market report",
+                  }}
                   socialButton={{
                     url: "https://discord.gg/K56VNUQGvA",
                     title: "Contact us on discord",
@@ -572,7 +651,7 @@ const Homepage = () => {
                   }}
                   elementName={"element1"}
                   colorScheme="green"
-                  badge={`Analytics`}
+                  badge={`Moonstream analytics`}
                   bullets={[
                     {
                       text: `See how value flows into and out of every component of your economy.`,
@@ -601,26 +680,7 @@ const Homepage = () => {
                 colSpan="12"
                 pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
                 pb={["0", "66px", null, "66px"]}
-                id="exchanges"
-                minH={ui.isMobileView ? "100vh" : null}
-              >
-                <Center>
-                  <RouteButton
-                    size="xl"
-                    colorScheme={"orange"}
-                    variant="solid"
-                    href="/whitepapers"
-                  >
-                    Moonstream DAO NFT market analysis
-                  </RouteButton>
-                </Center>
-              </GridItem>
-              <GridItem
-                px="7%"
-                colSpan="12"
-                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
-                pb={["0", "66px", null, "66px"]}
-                id="exchanges"
+                id="more_about_markets"
                 minH={ui.isMobileView ? "100vh" : null}
               >
                 <SplitWithImage
@@ -661,7 +721,7 @@ const Homepage = () => {
                 colSpan="12"
                 pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
                 pb={["0", "66px", null, "66px"]}
-                id="smartDeveloper"
+                id="more_about_bridges"
                 minH={ui.isMobileView ? "100vh" : null}
               >
                 <SplitWithImage
@@ -672,7 +732,7 @@ const Homepage = () => {
                   }}
                   elementName={"element3"}
                   colorScheme="orange"
-                  badge={`Bridges`}
+                  badge={`Moonstream bridges`}
                   bullets={[
                     {
                       text: `Make it easy for participants to bring value into your economy from other blockchains.`,
@@ -702,7 +762,7 @@ const Homepage = () => {
                 colSpan="12"
                 pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
                 pb={["0", "66px", null, "66px"]}
-                id="analytics"
+                id="more_about_loyalty"
                 minH={ui.isMobileView ? "100vh" : null}
               >
                 <SplitWithImage
@@ -714,7 +774,7 @@ const Homepage = () => {
                   }}
                   elementName={"element3"}
                   colorScheme="red"
-                  badge={`Loyalty`}
+                  badge={`Moonstream Loyalty`}
                   bullets={[
                     {
                       text: `Track the most active participants in your economy and easily give them rewards for their engagement.`,
@@ -743,40 +803,39 @@ const Homepage = () => {
                 colSpan="12"
                 pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
                 pb={["0", "66px", null, "66px"]}
-                id="analytics"
+                id="more_about_security"
                 minH={ui.isMobileView ? "100vh" : null}
               >
                 <SplitWithImage
-                  mirror
                   socialButton={{
                     url: "https://discord.gg/K56VNUQGvA",
                     title: "Contact us on discord",
                     icon: "discord",
                   }}
                   elementName={"element3"}
-                  colorScheme="red"
-                  badge={`Security`}
+                  colorScheme="green"
+                  badge={`Moonstream security`}
                   bullets={[
                     {
                       text: `Moonstream smart contracts have been vetted in production with over $200M in value transacted.`,
                       icon: MdOutlineVerifiedUser,
-                      color: "red.50",
-                      bgColor: "red.900",
+                      color: "green.50",
+                      bgColor: "green.900",
                     },
                     {
                       text: `Moonstream scanners constantly monitor accounts and transactions in your economy and identify threats in seconds.`,
                       icon: GiRadarCrossSection,
-                      color: "red.50",
-                      bgColor: "red.900",
+                      color: "green.50",
+                      bgColor: "green.900",
                     },
                     {
                       text: `One-click deploy defense bots which counter attacks as soon as they are detected.`,
                       icon: GiRobotGolem,
-                      color: "red.50",
-                      bgColor: "red.900",
+                      color: "green.50",
+                      bgColor: "green.900",
                     },
                   ]}
-                  imgURL={assets["DAO"]}
+                  imgURL={assets["smartDevelopers"]}
                 />
               </GridItem>
               <GridItem
@@ -815,6 +874,11 @@ const Homepage = () => {
                       scale={1.5}
                       name="bc101"
                       ImgURL={assets["bc101"]}
+                    />
+                    <TrustedBadge
+                      scale={1.5}
+                      name="bc101"
+                      ImgURL={assets["meetup"]}
                     />
                   </Suspense>
                 </Flex>
@@ -868,15 +932,16 @@ const Homepage = () => {
                     </RouteButton>
                   </Flex>
                   <Button
+                    mt={3}
                     placeSelf="center"
                     w={["100%", "100%", "fit-content", null]}
                     maxW={["250px", null, "fit-content"]}
-                    onClick={() => toggleModal({ type: MODAL_TYPES.HUBSPOT })}
+                    onClick={() => toggleModal({ type: MODAL_TYPES.SIGNUP })}
                     size="lg"
                     variant="solid"
                     colorScheme="orange"
                   >
-                    Contact us
+                    Sign up
                   </Button>
                 </Stack>
               </GridItem>

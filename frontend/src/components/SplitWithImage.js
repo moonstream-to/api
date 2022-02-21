@@ -180,20 +180,6 @@ const SplitWithImage = ({
               flexWrap="nowrap"
               display={["column", "column", null, "row"]}
             >
-              {cta && (
-                <Button
-                  colorScheme={colorScheme}
-                  w={["100%", "100%", "fit-content", null]}
-                  maxW={["250px", null, "fit-content"]}
-                  variant="outline"
-                  mt={[0, 0, null, 16]}
-                  size={socialButton ? buttonSize.double : buttonSize.single}
-                  onClick={cta.onClick}
-                >
-                  {cta.label}
-                </Button>
-              )}
-
               {socialButton && (
                 <RouteButton
                   isExternal
@@ -211,6 +197,19 @@ const SplitWithImage = ({
                 >
                   {socialButton.title}
                 </RouteButton>
+              )}
+              {cta && (
+                <Button
+                  colorScheme={cta.colorScheme ?? colorScheme}
+                  w={["100%", "100%", "fit-content", null]}
+                  maxW={["250px", null, "fit-content"]}
+                  variant="outline"
+                  mt={[0, 0, null, 16]}
+                  size={socialButton ? buttonSize.double : buttonSize.single}
+                  onClick={cta.onClick}
+                >
+                  {cta.label}
+                </Button>
               )}
             </Flex>
           </Stack>
