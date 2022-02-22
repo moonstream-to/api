@@ -40,7 +40,7 @@ from ..moonworm_crawler.event_crawler import Event, get_block_timestamp
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
+# TODO: ADD VALUE!!!
 @dataclass
 class FunctionCallWithGasPrice(ContractFunctionCall):
     gas_price: int
