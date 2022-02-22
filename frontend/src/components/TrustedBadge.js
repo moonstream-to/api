@@ -1,7 +1,8 @@
 import { React } from "react";
 import { Flex, Image, Link } from "@chakra-ui/react";
 
-const TrustedBadge = ({ name, caseURL, ImgURL }) => {
+const TrustedBadge = ({ name, caseURL, ImgURL, scale, isGrayScale }) => {
+  const _scale = scale ?? 1;
   return (
     <Flex
       m={1}
@@ -13,8 +14,15 @@ const TrustedBadge = ({ name, caseURL, ImgURL }) => {
       direction="column"
     >
       <Image
-        sx={{ filter: "grayscale(100%)" }}
-        h={["2.25rem", null, "3rem", "3rem", "4rem", "6rem"]}
+        sx={isGrayScale && { filter: "grayscale(100%)" }}
+        h={[
+          `${2.25 * _scale}rem`,
+          null,
+          `${3 * _scale}rem`,
+          `${3 * _scale}rem`,
+          `${4 * _scale}rem`,
+          `${6 * _scale}rem`,
+        ]}
         src={ImgURL}
         alt={name}
       ></Image>

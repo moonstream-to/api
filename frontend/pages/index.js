@@ -13,7 +13,6 @@ import {
   Center,
   chakra,
   Stack,
-  Link,
   useMediaQuery,
   Grid,
   Text,
@@ -23,92 +22,98 @@ import {
   Image as ChakraImage,
 } from "@chakra-ui/react";
 import dynamic from "next/dynamic";
+import Link from "next/dist/client/link";
 import useUser from "../src/core/hooks/useUser";
 import useModals from "../src/core/hooks/useModals";
 import useRouter from "../src/core/hooks/useRouter";
+import { AWS_ASSETS_PATH, DEFAULT_METATAGS } from "../src/core/constants";
+import UIContext from "../src/core/providers/UIProvider/context";
+import TrustedBadge from "../src/components/TrustedBadge";
+import Slider from "react-slick";
+import { v4 as uuidv4 } from "uuid";
+import RouteButton from "../src/components/RouteButton";
+import { MODAL_TYPES } from "../src/core/providers/OverlayProvider/constants";
+import mixpanel from "mixpanel-browser";
 import {
   MIXPANEL_PROPS,
   MIXPANEL_EVENTS,
 } from "../src/core/providers/AnalyticsProvider/constants";
-import { AWS_ASSETS_PATH, DEFAULT_METATAGS } from "../src/core/constants";
-import mixpanel from "mixpanel-browser";
-import UIContext from "../src/core/providers/UIProvider/context";
-import TrustedBadge from "../src/components/TrustedBadge";
-import Slider from "react-slick";
-import SchematicPlayground from "../src/components/SchematicPlayground";
-import { v4 as uuidv4 } from "uuid";
-import RouteButton from "../src/components/RouteButton";
-import { FaDiscord } from "react-icons/fa";
-import { MODAL_TYPES } from "../src/core/providers/OverlayProvider/constants";
+
 const SplitWithImage = dynamic(
   () => import("../src/components/SplitWithImage"),
   {
     ssr: false,
   }
 );
+const FaStoreAlt = dynamic(() =>
+  import("react-icons/fa").then((mod) => mod.FaStoreAlt)
+);
+const FaDiscord = dynamic(() =>
+  import("react-icons/fa").then((mod) => mod.FaDiscord)
+);
+
+const GiRiver = dynamic(() =>
+  import("react-icons/gi").then((mod) => mod.GiRiver)
+);
+
+const GiCrossedChains = dynamic(() =>
+  import("react-icons/gi").then((mod) => mod.GiCrossedChains)
+);
+
+const GiChainedHeart = dynamic(() =>
+  import("react-icons/gi").then((mod) => mod.GiChainedHeart)
+);
+
+const MdOutlineVerifiedUser = dynamic(() =>
+  import("react-icons/md").then((mod) => mod.MdOutlineVerifiedUser)
+);
+
+const GiRadarCrossSection = dynamic(() =>
+  import("react-icons/gi").then((mod) => mod.GiRadarCrossSection)
+);
+
+const GiMedallist = dynamic(() =>
+  import("react-icons/gi").then((mod) => mod.GiMedallist)
+);
+
+const GiRobotGolem = dynamic(() =>
+  import("react-icons/gi").then((mod) => mod.GiRobotGolem)
+);
+
+const CgUserlane = dynamic(() =>
+  import("react-icons/cg").then((mod) => mod.CgUserlane)
+);
+
+const GiChaingun = dynamic(() =>
+  import("react-icons/gi").then((mod) => mod.GiChaingun)
+);
+
+const GiQuickSlash = dynamic(() =>
+  import("react-icons/gi").then((mod) => mod.GiQuickSlash)
+);
+
+const GiConcentrationOrb = dynamic(() =>
+  import("react-icons/gi").then((mod) => mod.GiConcentrationOrb)
+);
+
+const GiTakeMyMoney = dynamic(() =>
+  import("react-icons/gi").then((mod) => mod.GiTakeMyMoney)
+);
+
 const FaGithubSquare = dynamic(() =>
   import("react-icons/fa").then((mod) => mod.FaGithubSquare)
-);
-const GiSuspicious = dynamic(() =>
-  import("react-icons/gi").then((mod) => mod.GiSuspicious)
-);
-
-const GiHook = dynamic(() =>
-  import("react-icons/gi").then((mod) => mod.GiHook)
-);
-
-const IoTelescopeSharp = dynamic(() =>
-  import("react-icons/io5").then((mod) => mod.IoTelescopeSharp)
-);
-
-const AiFillApi = dynamic(() =>
-  import("react-icons/ai").then((mod) => mod.AiFillApi)
-);
-
-const BiTransfer = dynamic(() =>
-  import("react-icons/bi").then((mod) => mod.BiTransfer)
-);
-
-const RiDashboardFill = dynamic(() =>
-  import("react-icons/ri").then((mod) => mod.RiDashboardFill)
-);
-const FaFileContract = dynamic(() =>
-  import("react-icons/fa").then((mod) => mod.FaFileContract)
 );
 const GiMeshBall = dynamic(() =>
   import("react-icons/gi").then((mod) => mod.GiMeshBall)
 );
 
-const GiLogicGateXor = dynamic(() =>
-  import("react-icons/gi").then((mod) => mod.GiLogicGateXor)
-);
-
 const VscOrganization = dynamic(() =>
   import("react-icons/vsc").then((mod) => mod.VscOrganization)
 );
-const FaVoteYea = dynamic(() =>
-  import("react-icons/fa").then((mod) => mod.FaVoteYea)
-);
-
-const RiOrganizationChart = dynamic(() =>
-  import("react-icons/ri").then((mod) => mod.RiOrganizationChart)
-);
-const FiActivity = dynamic(() =>
-  import("react-icons/fi").then((mod) => mod.FiActivity)
-);
-
-const RiMapPinUserLine = dynamic(() =>
-  import("react-icons/ri").then((mod) => mod.RiMapPinUserLine)
-);
-const AiOutlinePieChart = dynamic(() =>
-  import("react-icons/ai").then((mod) => mod.AiOutlinePieChart)
-);
-
-const BiBot = dynamic(() => import("react-icons/bi").then((mod) => mod.BiBot));
 
 const HEADING_PROPS = {
   fontWeight: "700",
-  fontSize: ["4xl", "5xl", "4xl", "5xl", "6xl", "7xl"],
+  fontSize: ["4xl", "5xl", "5xl", "5xl", "6xl", "7xl"],
 };
 
 const assets = {
@@ -123,6 +128,7 @@ const assets = {
   cryptoTraders: `${AWS_ASSETS_PATH}/crypto+traders.png`,
   smartDevelopers: `${AWS_ASSETS_PATH}/smart+contract+developers.png`,
   cointelegraph: `${AWS_ASSETS_PATH}/featured_by/Cointelegraph_logo.png`,
+  educativesessions: `${AWS_ASSETS_PATH}/featured_by/educative_logo.png`,
   cryptoinsiders: `${AWS_ASSETS_PATH}/featured_by/crypto_insiders.png`,
   cryptoslate: `${AWS_ASSETS_PATH}/featured_by/cs-media-logo-light.png`,
   bitcoinLogo: `${AWS_ASSETS_PATH}/bitcoin.png`,
@@ -132,17 +138,22 @@ const assets = {
   erc20: `${AWS_ASSETS_PATH}/ERC 20.png`,
   DAO: `${AWS_ASSETS_PATH}/DAO .png`,
   NFT: `${AWS_ASSETS_PATH}/NFT.png`,
+  bc101: `${AWS_ASSETS_PATH}/featured_by/blockchain101_logo.png`,
+  laguna: `${AWS_ASSETS_PATH}/featured_by/laguna_logo.svg`,
+  game7io: `${AWS_ASSETS_PATH}/featured_by/game7io_logo.png`,
+  orangedao: `${AWS_ASSETS_PATH}/featured_by/orangedao_logo.png`,
+  meetup: `${AWS_ASSETS_PATH}/featured_by/meetup_logo.png`,
 };
 
 const carousel_content = [
   { title: "Bitcoin coming soon!", img: assets["bitcoinLogo"] },
   { title: "Ethereum", img: assets["ethereumBlackLogo"] },
   { title: "Ethereum transaction pool", img: assets["ethereumRainbowLogo"] },
-  { title: "Polygon coming soon!", img: assets["maticLogo"] },
+  { title: "Polygon", img: assets["maticLogo"] },
   { title: "Bitcoin coming soon!", img: assets["bitcoinLogo"] },
   { title: "Ethereum", img: assets["ethereumBlackLogo"] },
   { title: "Ethereum transaction pool", img: assets["ethereumRainbowLogo"] },
-  { title: "Polygon coming soon!", img: assets["maticLogo"] },
+  { title: "Polygon", img: assets["maticLogo"] },
 ];
 const Homepage = () => {
   const ui = useContext(UIContext);
@@ -321,7 +332,7 @@ const Homepage = () => {
                           fontWeight="semibold"
                           color="white"
                         >
-                          Open source blockchain analytics
+                          Building blocks for your blockchain economy
                         </Heading>
                         <chakra.span
                           my={12}
@@ -329,9 +340,24 @@ const Homepage = () => {
                           display="inline-block"
                           color="blue.200"
                         >
-                          Product analytics for Web3. Moonstream helps you
-                          understand exactly how people are using your smart
-                          contracts.
+                          Moonstream DAO makes tools that help you build,
+                          manage, and secure your blockchain economy.
+                        </chakra.span>
+                        <chakra.span
+                          my={12}
+                          fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
+                          display="inline-block"
+                          color="blue.200"
+                        >
+                          Moonstream has handled over{" "}
+                          <Text
+                            fontWeight={600}
+                            textColor="orange.900"
+                            display={"inline-block"}
+                          >
+                            $200M
+                          </Text>{" "}
+                          in transaction value to date.
                         </chakra.span>
                         <Box
                           w="100vw"
@@ -391,75 +417,439 @@ const Homepage = () => {
                 <Heading
                   {...HEADING_PROPS}
                   textAlign="center"
-                  mt={[24, 32, 48]}
+                  mt={[12, 14, 16]}
                   pb={[12, 12, 12, null, 24]}
                 >
-                  Get analytics for your:
+                  Features:
                 </Heading>
-                <SimpleGrid columns={[1, 2, 2, 4, null, 4]}>
-                  <Stack spacing={1} px={1} alignItems="center">
-                    <ChakraImage
-                      boxSize={["220px", "220px", "xs", null, "xs"]}
-                      objectFit="contain"
-                      src={assets["NFT"]}
-                      alt="mined transactions"
-                    />
-                    <Heading textAlign="center ">NFTs</Heading>
-                  </Stack>
-                  <Stack spacing={1} px={1} alignItems="center">
-                    <ChakraImage
-                      boxSize={["220px", "220px", "xs", null, "xs"]}
-                      objectFit="contain"
-                      src={assets["erc20"]}
-                      alt="mined transactions"
-                    />
-                    <Heading textAlign="center ">Tokens</Heading>
-                  </Stack>
-
-                  <Stack spacing={1} px={1} alignItems="center">
-                    <ChakraImage
-                      boxSize={["220px", "220px", "xs", null, "xs"]}
-                      objectFit="contain"
-                      src={assets["cryptoTraders"]}
-                      alt="mined transactions"
-                    />
-                    <Heading textAlign="center ">DEXs</Heading>
-                  </Stack>
-                  <Stack spacing={1} px={1} alignItems="center">
-                    <ChakraImage
-                      boxSize={["220px", "220px", "xs", null, "xs"]}
-                      objectFit="contain"
-                      src={assets["DAO"]}
-                      alt="mined transactions"
-                    />
-                    <Heading textAlign="center ">{`DAOs`}</Heading>
-                  </Stack>
-                </SimpleGrid>
-                <Center>
-                  <Heading
-                    pt={["32px", "160px", null]}
-                    pb={["12px", "60px", null]}
-                    fontSize={["18px", "32px", null]}
-                    textAlign="center"
-                  >
-                    Your game changer in blockchain analytics
-                  </Heading>
-                </Center>
-                <Flex
-                  w="100%"
-                  direction={["column", "row", "column", null, "column"]}
-                  flexWrap={["nowrap", "nowrap", "nowrap", null, "nowrap"]}
-                  pb="32px"
-                  placeContent="center"
+                <SimpleGrid
+                  columns={[1, 2, 2, 5, null, 5]}
+                  justifyContent="center"
                 >
-                  <SchematicPlayground />
-                </Flex>
+                  <Link href="#more_about_analytics" shallow scroll>
+                    <Stack
+                      transition={"1s"}
+                      spacing={1}
+                      px={1}
+                      alignItems="center"
+                      borderRadius="12px"
+                      borderColor="gray.100"
+                      borderWidth={"1px"}
+                      _hover={{ transform: "scale(1.05)", transition: "0.42s" }}
+                      cursor="pointer"
+                      m={2}
+                      pb={2}
+                    >
+                      <ChakraImage
+                        boxSize={["220px", "220px", "xs", null, "xs"]}
+                        objectFit="contain"
+                        src={assets["cryptoTraders"]}
+                        alt="mined transactions"
+                      />
+                      <Heading textAlign="center ">Analytics</Heading>
+                      <chakra.span
+                        textAlign={"center"}
+                        textColor="blue.600"
+                        px={2}
+                      >
+                        Get the full picture of your economy with automated
+                        customizable dashboards.
+                      </chakra.span>
+                    </Stack>
+                  </Link>
+                  <Link href="#more_about_markets" shallow scroll>
+                    <Stack
+                      transition={"1s"}
+                      spacing={1}
+                      px={1}
+                      alignItems="center"
+                      borderRadius="12px"
+                      borderColor="gray.100"
+                      borderWidth={"1px"}
+                      _hover={{ transform: "scale(1.05)", transition: "0.42s" }}
+                      m={2}
+                      pb={2}
+                    >
+                      <ChakraImage
+                        boxSize={["220px", "220px", "xs", null, "xs"]}
+                        objectFit="contain"
+                        src={assets["NFT"]}
+                        alt="mined transactions"
+                      />
+                      <Heading textAlign="center ">Markets</Heading>
+                      <chakra.span
+                        textAlign={"center"}
+                        textColor="blue.600"
+                        px={2}
+                      >
+                        Create goods and resources for your economy. Set up
+                        fully customizable storefronts for these items.
+                      </chakra.span>
+                    </Stack>
+                  </Link>
+                  <Link href="#more_about_bridges" shallow scroll>
+                    <Stack
+                      transition={"1s"}
+                      spacing={1}
+                      px={1}
+                      alignItems="center"
+                      borderRadius="12px"
+                      borderColor="gray.100"
+                      borderWidth={"1px"}
+                      _hover={{ transform: "scale(1.05)", transition: "0.42s" }}
+                      m={2}
+                      pb={2}
+                    >
+                      <ChakraImage
+                        boxSize={["220px", "220px", "xs", null, "xs"]}
+                        objectFit="contain"
+                        src={assets["erc20"]}
+                        alt="mined transactions"
+                      />
+                      <Heading textAlign="center ">Bridges</Heading>
+                      <chakra.span
+                        textAlign={"center"}
+                        textColor="blue.600"
+                        px={2}
+                      >
+                        Open up your economy to Ethereum’s rich DeFi ecosystem,
+                        no matter which chain you live on.
+                      </chakra.span>
+                    </Stack>
+                  </Link>
+                  <Link href="#more_about_loyalty" shallow scroll>
+                    <Stack
+                      transition={"1s"}
+                      spacing={1}
+                      px={1}
+                      alignItems="center"
+                      borderRadius="12px"
+                      borderColor="gray.100"
+                      borderWidth={"1px"}
+                      _hover={{ transform: "scale(1.05)", transition: "0.42s" }}
+                      m={2}
+                      pb={2}
+                    >
+                      <ChakraImage
+                        boxSize={["220px", "220px", "xs", null, "xs"]}
+                        objectFit="contain"
+                        src={assets["DAO"]}
+                        alt="mined transactions"
+                      />
+                      <Heading textAlign="center ">{`Loyalty`}</Heading>
+                      <chakra.span
+                        textAlign={"center"}
+                        textColor="blue.600"
+                        px={2}
+                      >
+                        Reward the most active participants in your economy with
+                        loyalty programs and token sale whitelists.
+                      </chakra.span>
+                    </Stack>
+                  </Link>
+                  <GridItem colSpan={[1, 2, 2, 1, null, 1]}>
+                    <Link href="#more_about_security" shallow scroll>
+                      <Stack
+                        transition={"1s"}
+                        spacing={1}
+                        px={1}
+                        alignItems="center"
+                        borderRadius="12px"
+                        borderColor="gray.100"
+                        borderWidth={"1px"}
+                        _hover={{
+                          transform: "scale(1.05)",
+                          transition: "0.42s",
+                        }}
+                        m={2}
+                        pb={2}
+                      >
+                        <ChakraImage
+                          boxSize={["220px", "220px", "xs", null, "xs"]}
+                          objectFit="contain"
+                          src={assets["smartDevelopers"]}
+                          alt="mined transactions"
+                        />
+                        <Heading textAlign="center ">{`Security`}</Heading>
+                        <chakra.span
+                          textAlign={"center"}
+                          textColor="blue.600"
+                          px={2}
+                        >
+                          Secure your economy against bad actors. Detect attacks
+                          on your economy and defend against them.
+                        </chakra.span>
+                      </Stack>
+                    </Link>
+                  </GridItem>
+                </SimpleGrid>
               </GridItem>
 
               <GridItem
                 px="7%"
+                mt={["32px", "64px", null]}
+                pt={["98px", "126px", null]}
                 colSpan="12"
-                pt="66px"
+                bgColor="blue.50"
+                pb={["20px", "30px", "92px", null, "92px", "196px"]}
+              >
+                <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
+                  Trusted by{" "}
+                </Heading>
+                <Flex wrap="wrap" direction="row" justifyContent="center">
+                  <Suspense fallback={""}>
+                    <TrustedBadge
+                      scale={1.5}
+                      name="Laguna games"
+                      caseURL=""
+                      ImgURL={assets["laguna"]}
+                    />
+                    <TrustedBadge
+                      scale={1.5}
+                      name="game7io"
+                      ImgURL={assets["game7io"]}
+                    />
+
+                    <TrustedBadge
+                      scale={1.5}
+                      name="orangedao"
+                      ImgURL={assets["orangedao"]}
+                    />
+                  </Suspense>
+                </Flex>
+              </GridItem>
+              <GridItem
+                px="7%"
+                colSpan="12"
+                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
+                pb={["0", "32px", null, "32px"]}
+                id="exchanges"
+              >
+                <Center>
+                  <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
+                    Learn more about Moonstream DAO use cases
+                  </Heading>
+                </Center>
+              </GridItem>
+              <GridItem
+                px="7%"
+                colSpan="12"
+                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
+                pb={["0", "66px", null, "66px"]}
+                id="more_about_analytics"
+                minH={ui.isMobileView ? "100vh" : null}
+              >
+                <SplitWithImage
+                  cta={{
+                    colorScheme: "orange",
+                    onClick: () => {
+                      mixpanel.get_distinct_id() &&
+                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer txpool button`,
+                        });
+                      router.push("/whitepapers");
+                    },
+                    label: "NFT market report",
+                  }}
+                  socialButton={{
+                    url: "https://discord.gg/K56VNUQGvA",
+                    title: "Contact us on discord",
+                    icon: "discord",
+                  }}
+                  elementName={"element1"}
+                  colorScheme="green"
+                  badge={`Moonstream analytics`}
+                  bullets={[
+                    {
+                      text: `See how value flows into and out of every component of your economy.`,
+                      icon: GiRiver,
+                      color: "green.50",
+                      bgColor: "green.900",
+                    },
+                    {
+                      text: `Track inflation or deflation of your currencies.`,
+                      icon: GiTakeMyMoney,
+                      color: "green.50",
+                      bgColor: "green.900",
+                    },
+                    {
+                      text: `Track the concentration of wealth in your economy.`,
+                      icon: GiConcentrationOrb,
+                      color: "green.50",
+                      bgColor: "green.900",
+                    },
+                  ]}
+                  imgURL={assets["cryptoTraders"]}
+                />
+              </GridItem>
+              <GridItem
+                px="7%"
+                colSpan="12"
+                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
+                pb={["0", "66px", null, "66px"]}
+                id="more_about_markets"
+                minH={ui.isMobileView ? "100vh" : null}
+              >
+                <SplitWithImage
+                  elementName={"element2"}
+                  mirror={true}
+                  colorScheme="blue"
+                  badge={`Moonstream Markets`}
+                  socialButton={{
+                    url: "https://discord.gg/K56VNUQGvA",
+                    title: "Contact us on discord",
+                    icon: "discord",
+                  }}
+                  bullets={[
+                    {
+                      text: `Deploy new goods or resources into your economy in seconds.`,
+                      icon: GiQuickSlash,
+                      color: "blue.50",
+                      bgColor: "blue.900",
+                    },
+                    {
+                      text: `Easy liquidity for those goods and resources on DEXs and on secondary markets like Open Sea.`,
+                      icon: GiMeshBall,
+                      color: "blue.50",
+                      bgColor: "blue.900",
+                    },
+                    {
+                      text: `Create custom NFT storefronts.`,
+                      icon: FaStoreAlt,
+                      color: "blue.50",
+                      bgColor: "blue.900",
+                    },
+                  ]}
+                  imgURL={assets["NFT"]}
+                />
+              </GridItem>
+              <GridItem
+                px="7%"
+                colSpan="12"
+                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
+                pb={["0", "66px", null, "66px"]}
+                id="more_about_bridges"
+                minH={ui.isMobileView ? "100vh" : null}
+              >
+                <SplitWithImage
+                  socialButton={{
+                    url: "https://discord.gg/K56VNUQGvA",
+                    title: "Contact us on discord",
+                    icon: "discord",
+                  }}
+                  elementName={"element3"}
+                  colorScheme="orange"
+                  badge={`Moonstream bridges`}
+                  bullets={[
+                    {
+                      text: `Make it easy for participants to bring value into your economy from other blockchains.`,
+                      icon: GiCrossedChains,
+                      color: "orange.50",
+                      bgColor: "orange.900",
+                    },
+                    {
+                      text: `Make your tokens and NFTs multi-chain.`,
+                      icon: GiChainedHeart,
+                      color: "orange.50",
+                      bgColor: "orange.900",
+                    },
+                    {
+                      text: `Run the cost-intensive parts of your economy off of Ethereum while tapping into Ethereum’s DeFi ecosystem.
+                      `,
+                      icon: GiChaingun,
+                      color: "orange.50",
+                      bgColor: "orange.900",
+                    },
+                  ]}
+                  imgURL={assets["erc20"]}
+                />
+              </GridItem>
+              <GridItem
+                px="7%"
+                colSpan="12"
+                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
+                pb={["0", "66px", null, "66px"]}
+                id="more_about_loyalty"
+                minH={ui.isMobileView ? "100vh" : null}
+              >
+                <SplitWithImage
+                  mirror
+                  socialButton={{
+                    url: "https://discord.gg/K56VNUQGvA",
+                    title: "Contact us on discord",
+                    icon: "discord",
+                  }}
+                  elementName={"element3"}
+                  colorScheme="red"
+                  badge={`Moonstream Loyalty`}
+                  bullets={[
+                    {
+                      text: `Track the most active participants in your economy and easily give them rewards for their engagement.`,
+                      icon: VscOrganization,
+                      color: "red.50",
+                      bgColor: "red.900",
+                    },
+                    {
+                      text: `Create and distribute whitelist tokens for your pre-sales. Make them tradeable on markets like OpenSea.`,
+                      icon: GiMedallist,
+                      color: "red.50",
+                      bgColor: "red.900",
+                    },
+                    {
+                      text: `Manage KYC information about your community.`,
+                      icon: CgUserlane,
+                      color: "red.50",
+                      bgColor: "red.900",
+                    },
+                  ]}
+                  imgURL={assets["DAO"]}
+                />
+              </GridItem>
+              <GridItem
+                px="7%"
+                colSpan="12"
+                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
+                pb={["0", "66px", null, "66px"]}
+                id="more_about_security"
+                minH={ui.isMobileView ? "100vh" : null}
+              >
+                <SplitWithImage
+                  socialButton={{
+                    url: "https://discord.gg/K56VNUQGvA",
+                    title: "Contact us on discord",
+                    icon: "discord",
+                  }}
+                  elementName={"element3"}
+                  colorScheme="green"
+                  badge={`Moonstream security`}
+                  bullets={[
+                    {
+                      text: `Moonstream smart contracts have been vetted in production with over $200M in value transacted.`,
+                      icon: MdOutlineVerifiedUser,
+                      color: "green.50",
+                      bgColor: "green.900",
+                    },
+                    {
+                      text: `Moonstream scanners constantly monitor accounts and transactions in your economy and identify threats in seconds.`,
+                      icon: GiRadarCrossSection,
+                      color: "green.50",
+                      bgColor: "green.900",
+                    },
+                    {
+                      text: `One-click deploy defense bots which counter attacks as soon as they are detected.`,
+                      icon: GiRobotGolem,
+                      color: "green.50",
+                      bgColor: "green.900",
+                    },
+                  ]}
+                  imgURL={assets["smartDevelopers"]}
+                />
+              </GridItem>
+              <GridItem
+                px="7%"
+                mt={["32px", "64px", null]}
+                pt={["98px", "226px", null]}
+                colSpan="12"
                 bgColor="blue.50"
                 pb={["20px", "30px", "92px", null, "92px", "196px"]}
               >
@@ -482,242 +872,23 @@ const Homepage = () => {
                       name="cryptoslate"
                       ImgURL={assets["cryptoslate"]}
                     />
+                    <TrustedBadge
+                      name="educative sessions"
+                      scale={1.5}
+                      ImgURL={assets["educativesessions"]}
+                    />
+                    <TrustedBadge
+                      scale={1.5}
+                      name="bc101"
+                      ImgURL={assets["bc101"]}
+                    />
+                    <TrustedBadge
+                      scale={1.5}
+                      name="bc101"
+                      ImgURL={assets["meetup"]}
+                    />
                   </Suspense>
                 </Flex>
-              </GridItem>
-              <GridItem
-                px="7%"
-                colSpan="12"
-                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
-                pb={["0", "66px", null, "66px"]}
-                id="txpool"
-                minH={ui.isMobileView ? "100vh" : null}
-              >
-                <SplitWithImage
-                  cta={{
-                    label: "Want to find out more?",
-                    onClick: () => {
-                      mixpanel.get_distinct_id() &&
-                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer txpool button`,
-                        });
-                      toggleModal({ type: MODAL_TYPES.HUBSPOT });
-                    },
-                  }}
-                  elementName={"element1"}
-                  colorScheme="green"
-                  badge={`NFTs`}
-                  title={`Custom analytics for NFTs`}
-                  body={`Moonstream automatically understands smart contracts. Create your own custom dashboards. Doesn’t matter what the custom behavior is, you can track it.`}
-                  bullets={[
-                    {
-                      text: `Who owns your NFTs?`,
-                      icon: AiOutlinePieChart,
-                      color: "green.50",
-                      bgColor: "green.900",
-                    },
-                    {
-                      text: `Who is selling your NFTs?`,
-                      icon: FaFileContract,
-                      color: "green.50",
-                      bgColor: "green.900",
-                    },
-                    {
-                      text: `How much are your NFTs being sold for on OpenSea, Nifty Gateway, Rarible?`,
-                      icon: RiDashboardFill,
-                      color: "green.50",
-                      bgColor: "green.900",
-                    },
-                    {
-                      text: `Who is using the custom features of your NFTs?`,
-                      icon: GiMeshBall,
-                      color: "green.50",
-                      bgColor: "green.900",
-                    },
-                    {
-                      text: `How are they using them?`,
-                      icon: RiMapPinUserLine,
-                      color: "green.50",
-                      bgColor: "green.900",
-                    },
-                  ]}
-                  imgURL={assets["NFT"]}
-                />
-              </GridItem>
-              <GridItem
-                px="7%"
-                colSpan="12"
-                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
-                pb={["0", "66px", null, "66px"]}
-                id="exchanges"
-                minH={ui.isMobileView ? "100vh" : null}
-              >
-                <SplitWithImage
-                  cta={{
-                    label: "Want to find out more?",
-                    onClick: () => {
-                      mixpanel.get_distinct_id() &&
-                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer exchanges button`,
-                        });
-                      toggleModal({ type: MODAL_TYPES.HUBSPOT });
-                    },
-                  }}
-                  elementName={"element2"}
-                  mirror={true}
-                  colorScheme="orange"
-                  badge={`ERC20`}
-                  title={`Feel the pulse of token activity`}
-                  body={`Visualize market activity with Moonstream dashboards. Monitor token activity on the blockchain and in the transaction pool.`}
-                  bullets={[
-                    {
-                      text: `Who owns your tokens?`,
-                      icon: GiSuspicious,
-                      color: "orange.50",
-                      bgColor: "orange.900",
-                    },
-                    {
-                      text: `What is your weekly, daily, or hourly transaction volume?`,
-                      icon: AiFillApi,
-                      color: "orange.50",
-                      bgColor: "orange.900",
-                    },
-                    {
-                      text: `Which exchanges is your token trending on?`,
-                      icon: IoTelescopeSharp,
-                      color: "orange.50",
-                      bgColor: "orange.900",
-                    },
-                    {
-                      text: `Which other tokens is your token being traded for?`,
-                      icon: BiTransfer,
-                      color: "orange.50",
-                      bgColor: "orange.900",
-                    },
-                    {
-                      text: `How many people are holding your token versus actively using it?
-                      `,
-                      icon: GiLogicGateXor,
-                      color: "orange.50",
-                      bgColor: "orange.900",
-                    },
-                  ]}
-                  imgURL={assets["erc20"]}
-                />
-              </GridItem>
-              <GridItem
-                px="7%"
-                colSpan="12"
-                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
-                pb={["0", "66px", null, "66px"]}
-                id="smartDeveloper"
-                minH={ui.isMobileView ? "100vh" : null}
-              >
-                <SplitWithImage
-                  cta={{
-                    label: "Want to find out more?",
-                    onClick: () => {
-                      mixpanel.get_distinct_id() &&
-                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer smartDeveloper button`,
-                        });
-                      toggleModal({ type: MODAL_TYPES.HUBSPOT });
-                    },
-                  }}
-                  elementName={"element3"}
-                  colorScheme="blue"
-                  title={`All the data you need to make a market`}
-                  badge={`DEXs`}
-                  body={`Monitor the performance of your DEX live from the blockchain and from the transaction pool. Build dashboards that show you DEX activity monthly, weekly, daily, hourly, or by the minute.`}
-                  bullets={[
-                    {
-                      text: `Who is providing liquidity on your DEX?`,
-                      icon: GiSuspicious,
-                      color: "blue.50",
-                      bgColor: "blue.900",
-                    },
-                    {
-                      text: `How much liquidity for each token pair?`,
-                      icon: GiMeshBall,
-                      color: "blue.50",
-                      bgColor: "blue.900",
-                    },
-                    {
-                      text: `Bot vs. human activity on your exchange`,
-                      icon: BiBot,
-                      color: "blue.50",
-                      bgColor: "blue.900",
-                    },
-                    {
-                      text: `How large is your transaction pool backlog?`,
-                      icon: GiHook,
-                      color: "blue.50",
-                      bgColor: "blue.900",
-                    },
-                  ]}
-                  imgURL={assets["cryptoTraders"]}
-                />
-              </GridItem>
-              <GridItem
-                px="7%"
-                colSpan="12"
-                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
-                pb={["0", "66px", null, "66px"]}
-                id="analytics"
-                minH={ui.isMobileView ? "100vh" : null}
-              >
-                <SplitWithImage
-                  mirror
-                  cta={{
-                    label: "Want to find out more?",
-                    onClick: () => {
-                      mixpanel.get_distinct_id() &&
-                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer analytics button`,
-                        });
-                      toggleModal({ type: MODAL_TYPES.HUBSPOT });
-                    },
-                  }}
-                  elementName={"element3"}
-                  colorScheme="red"
-                  badge={`DAOs`}
-                  title={`What really matters is community`}
-                  body={`Gain insight into your community. Build community dashboards to make participation more open. Monitor your DAO ecosystem.`}
-                  bullets={[
-                    {
-                      text: `Who are your community members?`,
-                      icon: VscOrganization,
-                      color: "red.50",
-                      bgColor: "red.900",
-                    },
-                    {
-                      text: `Who is actively participating?`,
-                      icon: GiSuspicious,
-                      color: "red.50",
-                      bgColor: "red.900",
-                    },
-                    {
-                      text: `What are the open initiatives for your DAO?`,
-                      icon: FaVoteYea,
-                      color: "red.50",
-                      bgColor: "red.900",
-                    },
-                    {
-                      text: `What is the level of participation for each initiative?`,
-                      icon: FiActivity,
-                      color: "red.50",
-                      bgColor: "red.900",
-                    },
-                    {
-                      text: `Which DAOs or other protocols interact with yours?
-                      `,
-                      icon: RiOrganizationChart,
-                      color: "red.50",
-                      bgColor: "red.900",
-                    },
-                  ]}
-                  imgURL={assets["DAO"]}
-                />
               </GridItem>
               <GridItem
                 placeItems="center"
@@ -739,17 +910,8 @@ const Homepage = () => {
                       mb={18}
                       fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
                     >
-                      We believe that the blockchain is for everyone. This
-                      requires complete <b>transparency</b>. That’s why all our
-                      software is{" "}
-                      <chakra.span
-                        display="inline-block"
-                        textColor="orange.900"
-                        as={Link}
-                        href="https://github.com/bugout-dev/moonstream"
-                      >
-                        <i>open source</i>
-                      </chakra.span>
+                      Check out our GitHub repository and join our community on
+                      Discord
                     </Text>
                   </chakra.span>
                   <Flex direction="row" flexWrap="wrap" placeContent="center">
@@ -777,6 +939,7 @@ const Homepage = () => {
                     </RouteButton>
                   </Flex>
                   <Button
+                    mt={3}
                     placeSelf="center"
                     w={["100%", "100%", "fit-content", null]}
                     maxW={["250px", null, "fit-content"]}
