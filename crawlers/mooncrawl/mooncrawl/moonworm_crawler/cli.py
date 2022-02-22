@@ -159,7 +159,7 @@ def main() -> None:
         "--min-blocks-batch",
         "-n",
         type=int,
-        default=10,
+        default=40,
         help="Minimum number of blocks to crawl in a single batch",
     )
 

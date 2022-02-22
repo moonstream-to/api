@@ -116,7 +116,7 @@ def continuous_crawler(
     function_call_crawl_jobs: List[FunctionCallCrawlJob],
     start_block: int,
     max_blocks_batch: int = 100,
-    min_blocks_batch: int = 10,
+    min_blocks_batch: int = 40,
     confirmations: int = 60,
     min_sleep_time: float = 0.1,
     heartbeat_interval: float = 60,
@@ -187,12 +187,12 @@ def continuous_crawler(
                 )
 
                 if start_block + min_blocks_batch > end_block:
-                    min_sleep_time *= 2
+                    min_sleep_time += 0.1
                     logger.info(
                         f"Sleeping for {min_sleep_time} seconds because of low block count"
                     )
                     continue
-                min_sleep_time = max(min_sleep_time, min_sleep_time / 2)
+                min_sleep_time = max(0, min_sleep_time - 0.1)
 
                 logger.info(f"Crawling events from {start_block} to {end_block}")
                 all_events = _crawl_events(
