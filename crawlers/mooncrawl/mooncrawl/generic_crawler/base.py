@@ -70,6 +70,7 @@ def _function_call_with_gas_price_to_label(
             "gasPrice": function_call.gas_price,
             "maxFeePerGas": function_call.max_fee_per_gas,
             "maxPriorityFeePerGas": function_call.max_priority_fee_per_gas,
+            "value": function_call.value,
         },
         address=function_call.contract_address,
         block_number=function_call.block_number,
