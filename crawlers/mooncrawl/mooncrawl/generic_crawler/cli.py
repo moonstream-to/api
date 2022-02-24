@@ -30,7 +30,7 @@ def handle_nft_crawler(args: argparse.Namespace) -> None:
     # to_block = 24975113  # for polygon, 15 february 2022
 
     blockchain_type = AvailableBlockchainType(args.blockchain_type)
-
+    breakpoint()
     logger.info(f"Blockchain type: {blockchain_type.value}")
     with yield_db_session_ctx() as db_session:
         web3: Optional[Web3] = None
@@ -55,7 +55,7 @@ def handle_nft_crawler(args: argparse.Namespace) -> None:
         crawl(
             db_session,
             web3,
-            AvailableBlockchainType.POLYGON,
+            blockchain_type,
             label,
             abi,
             erc20_abi,

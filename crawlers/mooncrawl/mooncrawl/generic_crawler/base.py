@@ -42,15 +42,16 @@ logger = logging.getLogger(__name__)
 
 # TODO: ADD VALUE!!!
 @dataclass
-class FunctionCallWithGasPrice(ContractFunctionCall):
+class ExtededFunctionCall(ContractFunctionCall):
     gas_price: int
     max_fee_per_gas: Optional[int] = None
     max_priority_fee_per_gas: Optional[int] = None
+    value: int = 0
 
 
 def _function_call_with_gas_price_to_label(
     blockchain_type: AvailableBlockchainType,
-    function_call: FunctionCallWithGasPrice,
+    function_call: ExtededFunctionCall,
     label_name: str,
 ) -> Base:
     """
@@ -81,7 +82,7 @@ def _function_call_with_gas_price_to_label(
 
 def add_function_calls_with_gas_price_to_session(
     db_session: Session,
-    function_calls: List[FunctionCallWithGasPrice],
+    function_calls: List[ExtededFunctionCall],
     blockchain_type: AvailableBlockchainType,
     label_name: str,
 ) -> None:
@@ -135,6 +136,14 @@ def _transform_to_w3_tx(
         "transactionIndex": tx_raw.transaction_index,
         "value": tx_raw.value,
     }
+    if tx["maxFeePerGas"] is not None:
+        tx["maxFeePerGas"] = int(tx["maxFeePerGas"])
+    if tx["maxPriorityFeePerGas"] is not None:
+        tx["maxPriorityFeePerGas"] = int(tx["maxPriorityFeePerGas"])
+    if tx["gasPrice"] is not None:
+        tx["gasPrice"] = int(tx["gasPrice"])
+    if tx["value"] is not None:
+        tx["value"] = int(tx["value"])
     return tx
 
 
@@ -160,7 +169,7 @@ def process_transaction(
 
     transaction_reciept = web3.eth.getTransactionReceipt(transaction["hash"])
 
-    function_call = FunctionCallWithGasPrice(
+    function_call = ExtededFunctionCall(
         block_number=transaction["blockNumber"],
         block_timestamp=get_block_timestamp(
             db_session,
@@ -182,6 +191,7 @@ def process_transaction(
             "maxFeePerGas",
         ),
         max_priority_fee_per_gas=transaction.get("maxPriorityFeePerGas"),
+        value=transaction["value"],
     )
 
     secondary_logs = []
