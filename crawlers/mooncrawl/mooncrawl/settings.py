@@ -84,3 +84,13 @@ if MOONSTREAM_MOONWORM_TASKS_JOURNAL == "":
     raise ValueError(
         "MOONSTREAM_MOONWORM_TASKS_JOURNAL environment variable must be set"
     )
+
+
+MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET = os.environ.get(
+    "MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET", ""
+)
+if MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET == "":
+    raise ValueError(
+        "MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET environment variable must be set"
+    )
+
