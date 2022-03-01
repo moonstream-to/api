@@ -1,8 +1,10 @@
 import logging
 import os
 import json
+from re import I
 from typing import Any, Dict, List, Optional, Union
 import traceback
+import requests
 
 import boto3  # type: ignore
 from moonstreamdb.db import yield_db_session_ctx
@@ -122,6 +124,8 @@ def main():
                     key=f"LEADERBOARD_DATA/IMDEX_FILE.json",
                     bucket=settings.MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
                 )
+
+                requests.post("https://unim-leaderboard.moonstream.to/update")
 
                 break
 
