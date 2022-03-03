@@ -3,7 +3,9 @@ module github.com/bugout-dev/moonstream/crawlers/ldb
 go 1.17
 
 require (
+	github.com/bugout-dev/humbug/go v0.0.0-20211206230955-57607cd2d205
 	github.com/ethereum/go-ethereum v1.10.16
+	github.com/google/uuid v1.1.5
 	github.com/lib/pq v1.0.0
 	gopkg.in/urfave/cli.v1 v1.20.0
 )
@@ -22,7 +24,6 @@ require (
 	github.com/go-ole/go-ole v1.2.1 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/google/uuid v1.1.5 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/graph-gophers/graphql-go v1.3.0 // indirect
 	github.com/hashicorp/go-bexpr v0.1.10 // indirect

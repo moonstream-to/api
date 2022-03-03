@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
-	"time"
 
+	humbug "github.com/bugout-dev/humbug/go/pkg"
 	"github.com/bugout-dev/moonstream/crawlers/ldb/configs"
-	_ "github.com/lib/pq"
 
 	"github.com/ethereum/go-ethereum/cmd/utils"
 	"github.com/ethereum/go-ethereum/common"
@@ -16,6 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/eth/ethconfig"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/node"
+	_ "github.com/lib/pq"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -35,6 +36,10 @@ type LocalConnections struct {
 	Chain    *core.BlockChain
 	ChainDB  ethdb.Database
 	Database *sql.DB
+}
+
+type HumbugReporter struct {
+	Reporter *humbug.HumbugReporter
 }
 
 func setLocalChain(ctx *cli.Context) error {
@@ -164,31 +169,63 @@ func (lc *LocalConnections) getTxsFromDB(blockNumber uint64) (Transactions, erro
 	return transactions, nil
 }
 
+type CorruptBlocks struct {
+	Numbers []uint64
+}
+
+var corruptBlocks CorruptBlocks
+
 // Write down inconsistent state between database and blockchain
-// **source** (string): Source of nonconformity [blockchain, database]
-func recordNonconformity(number uint64, source string) {
-	fmt.Println(number, source)
+/*
+- number (uint64): Block number
+- source (string): Source of nonconformity [blockchain, database]
+*/
+func (cb *CorruptBlocks) recordNonconformity(number uint64, source string) {
+	cb.Numbers = append(cb.Numbers, number)
+	fmt.Println(cb.Numbers)
+}
+
+func (r *HumbugReporter) submitReport(start, end uint64) error {
+	content, err := json.Marshal(corruptBlocks)
+	if err != nil {
+		return fmt.Errorf("Unable to marshal to json: %v", err)
+	}
+
+	report := humbug.Report{
+		Title:   fmt.Sprintf("LDB verifier %d-%d", start, end),
+		Content: string(content),
+		Tags: []string{
+			fmt.Sprintf("start:%d", start),
+			fmt.Sprintf("end:%d", end),
+		},
+	}
+	r.Reporter.Publish(report)
+	fmt.Println("Error published")
+
+	return nil
 }
 
 func verify(start, end uint64) error {
-	for i := start; i <= end; i++ {
+	var cnt uint64 // Counter until report formed and sent to Humbug
+
+	for i := start; i < end; i++ {
 		header, err := localConnections.getBlockFromChain(i)
 		if err != nil {
 			fmt.Printf("Unable to get block: %d from chain, err %v\n", i, err)
-			recordNonconformity(i, "blockchain")
+			corruptBlocks.recordNonconformity(i, "blockchain")
 			continue
 		}
 
 		block, err := localConnections.getBlockFromDB(header)
 		if err != nil {
 			fmt.Printf("Unable to get block: %d, err: %v\n", block.BlockNumber, err)
-			recordNonconformity(block.BlockNumber, "database")
+			corruptBlocks.recordNonconformity(i, "database")
 			continue
 		}
 
 		if header.Number.Uint64() != block.BlockNumber {
 			fmt.Printf("Incorrect %d block retrieved from database\n", block.BlockNumber)
-			recordNonconformity(block.BlockNumber, "database")
+			corruptBlocks.recordNonconformity(i, "database")
 			continue
 		}
 
@@ -198,18 +235,31 @@ func verify(start, end uint64) error {
 		dbTxs, err := localConnections.getTxsFromDB(header.Number.Uint64())
 		if err != nil {
 			fmt.Printf("Unable to get transactions: %d, err: %v\n", block.BlockNumber, err)
-			recordNonconformity(block.BlockNumber, "database")
+			corruptBlocks.recordNonconformity(i, "database")
 			continue
 		}
 
 		if chainTxs.Quantity != dbTxs.Quantity {
 			fmt.Printf("Different number of transactions in block %d, err %v\n", block.BlockNumber, err)
-			recordNonconformity(block.BlockNumber, "database")
+			corruptBlocks.recordNonconformity(i, "database")
 			continue
 		}
 
 		fmt.Printf("Processed block number: %d\r", i)
-		time.Sleep(1 * time.Second)
+
+		cnt++
+		if cnt >= configs.BLOCK_RANGE_REPORT {
+			err := humbugReporter.submitReport(start, end)
+			if err != nil {
+				fmt.Printf("Unable to send humbug report: %v", err)
+			}
+			cnt = 0
+		}
+	}
+
+	err := humbugReporter.submitReport(start, end)
+	if err != nil {
+		fmt.Printf("Unable to send humbug report: %v", err)
 	}
 	fmt.Println("")
 
