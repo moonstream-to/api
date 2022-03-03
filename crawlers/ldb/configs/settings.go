@@ -21,7 +21,7 @@ var HUMBUG_LDB_BLOCK_RANGE_REPORT = os.Getenv("HUMBUG_LDB_BLOCK_RANGE_REPORT")
 
 func init() {
 	if HUMBUG_LDB_BLOCK_RANGE_REPORT != "" {
-		ldbRangeReport, err := strconv.ParseUint(HUMBUG_LDB_BLOCK_RANGE_REPORT, 0, 16)
+		ldbRangeReport, err := strconv.ParseUint(HUMBUG_LDB_BLOCK_RANGE_REPORT, 16, 64)
 		if err != nil {
 			log.Fatal(err)
 		}
