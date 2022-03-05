@@ -28,6 +28,10 @@ func (cb *CorruptBlocks) registerCorruptBlock(number uint64, source, description
 	})
 }
 
+func add(blockchain string, start, end uint64) error {
+	return nil
+}
+
 // Return range of block hashes with transaction hashes from blockchain
 func show(start, end uint64) error {
 	for i := start; i <= end; i++ {
@@ -51,7 +55,7 @@ func show(start, end uint64) error {
 }
 
 // Run verification flow of blockchain with database data
-func verify(start, end uint64) error {
+func verify(blockchain string, start, end uint64) error {
 	var cnt uint64 // Counter until report formed and sent to Humbug
 
 	for i := start; i < end; i++ {
@@ -63,7 +67,7 @@ func verify(start, end uint64) error {
 			continue
 		}
 
-		dbBlock, err := localConnections.getDatabaseBlockTxs(header.Hash().String())
+		dbBlock, err := localConnections.getDatabaseBlockTxs(blockchain, header.Hash().String())
 
 		if err != nil {
 			description := fmt.Sprintf("Unable to get block: %d, err: %v", i, err)
@@ -101,7 +105,7 @@ func verify(start, end uint64) error {
 		if cnt >= configs.BLOCK_RANGE_REPORT {
 			err := humbugReporter.submitReport(start, end)
 			if err != nil {
-				fmt.Printf("Unable to send humbug report: %v", err)
+				return fmt.Errorf("Unable to send humbug report: %v", err)
 			}
 			cnt = 0
 		}
@@ -109,7 +113,7 @@ func verify(start, end uint64) error {
 
 	err := humbugReporter.submitReport(start, end)
 	if err != nil {
-		fmt.Printf("Unable to send humbug report: %v", err)
+		return fmt.Errorf("Unable to send humbug report: %v", err)
 	}
 	fmt.Println("")
 

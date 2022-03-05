@@ -94,17 +94,25 @@ func (lc *LocalConnections) getChainTxs(headerHash common.Hash, number uint64) [
 }
 
 // Retrive block with transactions from database
-func (lc *LocalConnections) getDatabaseBlockTxs(headerHash string) (LightBlock, error) {
+func (lc *LocalConnections) getDatabaseBlockTxs(blockchain, headerHash string) (LightBlock, error) {
 	var lBlock LightBlock
 	var txs []LightTransaction
 	query := fmt.Sprintf(
 		`SELECT 
-			ethereum_blocks.hash,
-			ethereum_blocks.block_number,
-			ethereum_transactions.hash
-		FROM ethereum_blocks
-			LEFT JOIN ethereum_transactions ON ethereum_blocks.block_number = ethereum_transactions.block_number
-		WHERE ethereum_blocks.hash = '%s';`,
+			%s_blocks.hash,
+			%s_blocks.block_number,
+			%s_transactions.hash
+		FROM %s_blocks
+			LEFT JOIN %s_transactions ON %s_blocks.block_number = %s_transactions.block_number
+		WHERE %s_blocks.hash = '%s';`,
+		blockchain,
+		blockchain,
+		blockchain,
+		blockchain,
+		blockchain,
+		blockchain,
+		blockchain,
+		blockchain,
 		headerHash,
 	)
 	rows, err := lc.Database.Query(query)

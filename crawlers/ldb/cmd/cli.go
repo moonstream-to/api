@@ -14,6 +14,10 @@ import (
 )
 
 var (
+	BlockchainFlag = cli.StringFlag{
+		Name:  "blockchain",
+		Usage: `Which blockchain to crawl ("ethereum", "polygon")`,
+	}
 	DataDirFlag = cli.StringFlag{
 		Name:  "datadir",
 		Usage: "Data directory for the databases and keystore",
@@ -27,6 +31,7 @@ var (
 )
 
 // Parse start and end blocks from command line input
+// TODO(kompotkot): Re-write to work via channel in goroutines
 func startEndBlock(ctx *cli.Context) (uint64, uint64, error) {
 	start, err := strconv.ParseUint(ctx.Args().Get(0), 10, 32)
 	if err != nil {
@@ -44,53 +49,9 @@ func processAddCommand(ctx *cli.Context) error {
 	if ctx.NArg() != 2 {
 		return fmt.Errorf("Required arguments: %v", ctx.Command.ArgsUsage)
 	}
-
-	start, end, err := startEndBlock(ctx)
-	if err != nil {
-		return fmt.Errorf("Unable to parse block range: %v", err)
-	}
-
-	err = setLocalChain(ctx)
-	if err != nil {
-		return fmt.Errorf("Unable to set blockchain: %v", err)
-	}
-	defer localConnections.Stack.Close()
-	defer localConnections.ChainDB.Close()
-
-	show(start, end)
-
-	localConnections.Chain.Stop()
-
-	return nil
-}
-
-func processShowCommand(ctx *cli.Context) error {
-	if ctx.NArg() != 2 {
-		return fmt.Errorf("Required arguments: %v", ctx.Command.ArgsUsage)
-	}
-
-	start, end, err := startEndBlock(ctx)
-	if err != nil {
-		return fmt.Errorf("Unable to parse block range: %v", err)
-	}
-
-	err = setLocalChain(ctx)
-	if err != nil {
-		return fmt.Errorf("Unable to set blockchain: %v", err)
-	}
-	defer localConnections.Stack.Close()
-	defer localConnections.ChainDB.Close()
-
-	show(start, end)
-
-	localConnections.Chain.Stop()
-
-	return nil
-}
-
-func processVerifyCommand(ctx *cli.Context) error {
-	if ctx.NArg() != 2 {
-		return fmt.Errorf("Required arguments: %v", ctx.Command.ArgsUsage)
+	blockchain := ctx.GlobalString(BlockchainFlag.Name)
+	if blockchain != "ethereum" && blockchain != "polygon" {
+		return fmt.Errorf("Unsupported blockchain provided")
 	}
 
 	start, end, err := startEndBlock(ctx)
@@ -110,7 +71,77 @@ func processVerifyCommand(ctx *cli.Context) error {
 		return fmt.Errorf("Unable to set database connection: %v", err)
 	}
 
-	verify(start, end)
+	err = add(blockchain, start, end)
+	if err != nil {
+		return fmt.Errorf("Error occurred due add acction: %v", err)
+	}
+
+	localConnections.Chain.Stop()
+
+	return nil
+}
+
+func processShowCommand(ctx *cli.Context) error {
+	if ctx.NArg() != 2 {
+		return fmt.Errorf("Required arguments: %v", ctx.Command.ArgsUsage)
+	}
+	blockchain := ctx.GlobalString(BlockchainFlag.Name)
+	if blockchain != "ethereum" && blockchain != "polygon" {
+		return fmt.Errorf("Unsupported blockchain provided")
+	}
+
+	start, end, err := startEndBlock(ctx)
+	if err != nil {
+		return fmt.Errorf("Unable to parse block range: %v", err)
+	}
+
+	err = setLocalChain(ctx)
+	if err != nil {
+		return fmt.Errorf("Unable to set blockchain: %v", err)
+	}
+	defer localConnections.Stack.Close()
+	defer localConnections.ChainDB.Close()
+
+	err = show(start, end)
+	if err != nil {
+		return fmt.Errorf("Error occurred due show acction: %v", err)
+	}
+
+	localConnections.Chain.Stop()
+
+	return nil
+}
+
+func processVerifyCommand(ctx *cli.Context) error {
+	if ctx.NArg() != 2 {
+		return fmt.Errorf("Required arguments: %v", ctx.Command.ArgsUsage)
+	}
+	blockchain := ctx.GlobalString(BlockchainFlag.Name)
+	if blockchain != "ethereum" && blockchain != "polygon" {
+		return fmt.Errorf("Unsupported blockchain provided")
+	}
+
+	start, end, err := startEndBlock(ctx)
+	if err != nil {
+		return fmt.Errorf("Unable to parse block range: %v", err)
+	}
+
+	err = setLocalChain(ctx)
+	if err != nil {
+		return fmt.Errorf("Unable to set blockchain: %v", err)
+	}
+	defer localConnections.Stack.Close()
+	defer localConnections.ChainDB.Close()
+
+	err = setDatabase()
+	if err != nil {
+		return fmt.Errorf("Unable to set database connection: %v", err)
+	}
+
+	err = verify(blockchain, start, end)
+	if err != nil {
+		return fmt.Errorf("Error occurred due verify acction: %v", err)
+	}
 
 	localConnections.Chain.Stop()
 
@@ -124,9 +155,11 @@ func LDBCLI() {
 	app.Email = "engineering@bugout.dev"
 	app.Usage = "blockchain ldb extractor command line interface"
 	app.Flags = []cli.Flag{
+		BlockchainFlag,
 		DataDirFlag,
 		GCModeFlag,
 	}
+
 	app.Commands = []cli.Command{
 		{
 			Name:        "add",
@@ -135,6 +168,7 @@ func LDBCLI() {
 			Usage:       "Add new blocks with transactions to database",
 			Description: "This command request blocks from blockchain and adds to database.",
 			Flags: []cli.Flag{
+				BlockchainFlag,
 				DataDirFlag,
 				GCModeFlag,
 			},
@@ -146,6 +180,7 @@ func LDBCLI() {
 			Usage:       "Show block with transactions",
 			Description: "This command print out requested blocks.",
 			Flags: []cli.Flag{
+				BlockchainFlag,
 				DataDirFlag,
 				GCModeFlag,
 			},
@@ -157,6 +192,7 @@ func LDBCLI() {
 			Usage:       "Verify blocks with transactions at database",
 			Description: "This command compare blocks in database and in blockchain for difference.",
 			Flags: []cli.Flag{
+				BlockchainFlag,
 				DataDirFlag,
 				GCModeFlag,
 			},
