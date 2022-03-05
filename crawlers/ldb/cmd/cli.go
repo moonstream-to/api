@@ -8,18 +8,12 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/bugout-dev/moonstream/crawlers/ldb/configs"
-
-	"github.com/bugout-dev/humbug/go/pkg"
 	"github.com/ethereum/go-ethereum/cmd/utils"
 	"github.com/google/uuid"
 	"gopkg.in/urfave/cli.v1"
 )
 
 var (
-	localConnections *LocalConnections
-	humbugReporter   *HumbugReporter
-
 	DataDirFlag = cli.StringFlag{
 		Name:  "datadir",
 		Usage: "Data directory for the databases and keystore",
@@ -31,18 +25,6 @@ var (
 		Value: "full",
 	}
 )
-
-// Generate humbug client
-func setHumbugClient(sessionID string) error {
-	consent := humbug.CreateHumbugConsent(humbug.True)
-	reporter, err := humbug.CreateHumbugReporter(consent, configs.HUMBUG_LDB_CLIENT_ID, sessionID, configs.HUMBUG_LDB_TOKEN)
-	if err != nil {
-		return fmt.Errorf("Unable to generate humbug reporter: %v", err)
-	}
-	humbugReporter.Reporter = reporter
-
-	return nil
-}
 
 // Parse start and end blocks from command line input
 func startEndBlock(ctx *cli.Context) (uint64, uint64, error) {
@@ -75,7 +57,7 @@ func processAddCommand(ctx *cli.Context) error {
 	defer localConnections.Stack.Close()
 	defer localConnections.ChainDB.Close()
 
-	localConnections.fetchFromNode(start, end)
+	show(start, end)
 
 	localConnections.Chain.Stop()
 
@@ -99,7 +81,7 @@ func processShowCommand(ctx *cli.Context) error {
 	defer localConnections.Stack.Close()
 	defer localConnections.ChainDB.Close()
 
-	localConnections.fetchFromNode(start, end)
+	show(start, end)
 
 	localConnections.Chain.Stop()
 
@@ -184,10 +166,11 @@ func LDBCLI() {
 	sort.Sort(cli.FlagsByName(app.Flags))
 	sort.Sort(cli.CommandsByName(app.Commands))
 
+	// Initialize local connections
 	localConnections = &LocalConnections{}
-	humbugReporter = &HumbugReporter{}
 
-	// Humbug client to be able write data in Bugout journal
+	// Initialize humbug client to be able write data in Bugout journal
+	humbugReporter = &HumbugReporter{}
 	sessionID := uuid.New().String()
 	err := setHumbugClient(sessionID)
 	if err != nil {
