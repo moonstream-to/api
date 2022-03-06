@@ -60,25 +60,21 @@ func show(blockNumbers []uint64) error {
 			continue
 		}
 
-		// chainTxs := localConnections.getChainTxs(block.Hash(), bn)
+		chainTxs := localConnections.getChainTxs(block.Hash(), bn)
 
 		var txs []common.Hash
-		// for _, tx := range chainTxs {
-		// 	txs = append(txs, tx.Hash())
-		// }
+		for _, tx := range chainTxs {
+			txs = append(txs, tx.Hash())
+		}
 
 		fmt.Printf("Block %d block with hash: %s and transactions: %s\n", block.Number(), block.Hash().String(), txs)
 	}
-
-	fmt.Println("new range")
 
 	return nil
 }
 
 // Run verification flow of blockchain with database data
 func verify(blockchain string, blockNumbers []uint64) error {
-	var cnt uint64 // Counter until report formed and sent to Humbug
-
 	for _, bn := range blockNumbers {
 		chainBlock, err := localConnections.getChainBlock(bn)
 		if err != nil {
@@ -121,8 +117,6 @@ func verify(blockchain string, blockNumbers []uint64) error {
 		}
 
 		fmt.Printf("Processed block number: %d\r", bn)
-
-		cnt++
 	}
 
 	return nil
