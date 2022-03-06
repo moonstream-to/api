@@ -73,50 +73,117 @@ func show(blockNumbers []uint64) error {
 	return nil
 }
 
+// TODO(kompotkot): Find way to remove Number
+type Result struct {
+	ErrorOutput string
+	ErrorSource string
+	Number      uint64
+	Output      string
+}
+
+type Job struct {
+	BlockNumber uint64
+	Results     chan<- Result
+}
+
 // Run verification flow of blockchain with database data
-func verify(blockchain string, blockNumbers []uint64) error {
-	for _, bn := range blockNumbers {
-		chainBlock, err := localConnections.getChainBlock(bn)
-		if err != nil {
-			description := fmt.Sprintf("Unable to get block: %d from chain, err %v", bn, err)
-			fmt.Println(description)
-			corruptBlocks.registerCorruptBlock(bn, "blockchain", description)
-			continue
+func verify(blockchain string, blockNumbers []uint64, workers int) error {
+	jobsCh := make(chan Job, workers)
+	resultCh := make(chan Result, len(blockNumbers))
+	doneCh := make(chan struct{}, workers)
+
+	// Add jobs
+	go func() {
+		for _, bn := range blockNumbers {
+			jobsCh <- Job{
+				BlockNumber: bn,
+				Results:     resultCh,
+			}
 		}
+		close(jobsCh)
+	}()
 
-		dbBlock, err := localConnections.getDatabaseBlockTxs(blockchain, chainBlock.Hash().String())
+	for i := 0; i < workers; i++ {
+		// Do jobs
+		go func() {
+			for job := range jobsCh {
+				chainBlock, err := localConnections.getChainBlock(job.BlockNumber)
+				if err != nil {
+					job.Results <- Result{
+						ErrorOutput: fmt.Sprintf("Unable to get block: %d from chain, err %v", job.BlockNumber, err),
+						ErrorSource: "blockchain",
+						Number:      job.BlockNumber,
+					}
+					continue
+				}
 
-		if err != nil {
-			description := fmt.Sprintf("Unable to get block: %d, err: %v", bn, err)
-			fmt.Println(description)
-			corruptBlocks.registerCorruptBlock(bn, "database", description)
-			continue
+				dbBlock, err := localConnections.getDatabaseBlockTxs(blockchain, chainBlock.Hash().String())
+
+				if err != nil {
+					job.Results <- Result{
+						ErrorOutput: fmt.Sprintf("Unable to get block: %d, err: %v", job.BlockNumber, err),
+						ErrorSource: "database",
+						Number:      job.BlockNumber,
+					}
+					continue
+				}
+
+				if dbBlock.Number == nil {
+					job.Results <- Result{
+						ErrorOutput: fmt.Sprintf("Block %d not presented in database", job.BlockNumber),
+						ErrorSource: "database",
+						Number:      job.BlockNumber,
+					}
+					continue
+				}
+
+				if chainBlock.NumberU64() != dbBlock.Number.Uint64() {
+					job.Results <- Result{
+						ErrorOutput: fmt.Sprintf("Incorrect %d block retrieved from database", job.BlockNumber),
+						ErrorSource: "database",
+						Number:      job.BlockNumber,
+					}
+					continue
+				}
+
+				chainTxs := localConnections.getChainTxs(chainBlock.Hash(), job.BlockNumber)
+
+				if len(chainTxs) != len(dbBlock.Transactions) {
+					job.Results <- Result{
+						ErrorOutput: fmt.Sprintf("Different number of transactions in block %d, err %v", job.BlockNumber, err),
+						ErrorSource: "database",
+						Number:      job.BlockNumber,
+					}
+					continue
+				}
+
+				job.Results <- Result{
+					Output: fmt.Sprintf("Processed block number: %d", job.BlockNumber),
+				}
+			}
+			doneCh <- struct{}{}
+		}()
+	}
+
+	// Await completion
+	go func() {
+		for i := 0; i < workers; i++ {
+			<-doneCh
 		}
+		close(resultCh)
+	}()
 
-		if dbBlock.Number == nil {
-			description := fmt.Sprintf("Block %d not presented in database", bn)
-			fmt.Println(description)
-			corruptBlocks.registerCorruptBlock(bn, "database", description)
-			continue
+	for result := range resultCh {
+		if result.ErrorOutput != "" {
+			fmt.Println(result.ErrorOutput)
+			corruptBlocks.registerCorruptBlock(result.Number, result.ErrorSource, result.ErrorOutput)
 		}
-
-		if chainBlock.NumberU64() != dbBlock.Number.Uint64() {
-			description := fmt.Sprintf("Incorrect %d block retrieved from database", bn)
-			fmt.Println(description)
-			corruptBlocks.registerCorruptBlock(bn, "database", description)
-			continue
+		if result.Output != "" {
+			fmt.Println(result.Output)
 		}
-
-		chainTxs := localConnections.getChainTxs(chainBlock.Hash(), bn)
-
-		if len(chainTxs) != len(dbBlock.Transactions) {
-			description := fmt.Sprintf("Different number of transactions in block %d, err %v", bn, err)
-			fmt.Println(description)
-			corruptBlocks.registerCorruptBlock(bn, "database", description)
-			continue
+		if result.Output != "" && result.ErrorOutput != "" {
+			fmt.Printf("Unprocessable result with error: %s and output: %s", result.ErrorOutput, result.Output)
 		}
-
-		fmt.Printf("Processed block number: %d\r", bn)
 	}
 
 	return nil

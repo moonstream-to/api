@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/bugout-dev/moonstream/crawlers/ldb/configs"
+	// "github.com/bugout-dev/moonstream/crawlers/ldb/configs"
 
 	"github.com/ethereum/go-ethereum/cmd/utils"
 	"github.com/google/uuid"
@@ -33,9 +33,15 @@ var (
 		Usage: `Blockchain garbage collection mode ("full", "archive")`,
 		Value: "full",
 	}
+	ThreadsFlag = cli.IntFlag{
+		Name:  "threads",
+		Usage: "Number of threads to use",
+		Value: 2,
+	}
 )
 
 // Block step generator, yield list of blocks with length equal blockStep
+// TODO(kompotkot): Not-safe method with slices in channel, re-write this function
 func BlockYield(start, end, blockStep uint64) chan []uint64 {
 	ch := make(chan []uint64)
 
@@ -173,6 +179,10 @@ func processVerifyCommand(ctx *cli.Context) error {
 	if blockchain != "ethereum" && blockchain != "polygon" {
 		return fmt.Errorf("Unsupported blockchain provided")
 	}
+	threads := ctx.GlobalInt(ThreadsFlag.Name)
+	if threads <= 0 {
+		threads = 1
+	}
 
 	start, end, err := startEndBlock(ctx)
 	if err != nil {
@@ -191,22 +201,10 @@ func processVerifyCommand(ctx *cli.Context) error {
 		return fmt.Errorf("Unable to set database connection: %v", err)
 	}
 
-	cnt := uint64(0)
-	reportStart := uint64(start)
 	for blocks := range BlockYield(start, end, BlockNumberStep) {
-		err = verify(blockchain, blocks)
+		err = verify(blockchain, blocks, threads)
 		if err != nil {
 			return fmt.Errorf("Error occurred due verify acction: %v", err)
-		}
-
-		cnt += BlockNumberStep
-		if cnt >= configs.BLOCK_RANGE_REPORT {
-			err := humbugReporter.submitReport(reportStart, blocks[len(blocks)-1]+1, "")
-			if err != nil {
-				return fmt.Errorf("Unable to send humbug report: %v", err)
-			}
-			reportStart = blocks[len(blocks)-1] + 1
-			cnt = 0
 		}
 	}
 
@@ -230,6 +228,7 @@ func LDBCLI() {
 		BlockchainFlag,
 		DataDirFlag,
 		GCModeFlag,
+		ThreadsFlag,
 	}
 
 	app.Commands = []cli.Command{
@@ -267,6 +266,7 @@ func LDBCLI() {
 				BlockchainFlag,
 				DataDirFlag,
 				GCModeFlag,
+				ThreadsFlag,
 			},
 		},
 	}

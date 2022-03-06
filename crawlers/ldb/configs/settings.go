@@ -5,8 +5,6 @@ import (
 	"time"
 )
 
-var BLOCK_RANGE_REPORT uint64 = 100000
-
 // Database configs
 var MOONSTREAM_DB_MAX_IDLE_CONNS int = 30
 var MOONSTREAM_DB_CONN_MAX_LIFETIME = 30 * time.Minute
