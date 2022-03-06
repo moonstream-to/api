@@ -8,12 +8,14 @@ import (
 	"sort"
 	"strconv"
 
+	"github.com/bugout-dev/moonstream/crawlers/ldb/configs"
 	"github.com/ethereum/go-ethereum/cmd/utils"
 	"github.com/google/uuid"
 	"gopkg.in/urfave/cli.v1"
 )
 
 var (
+	// Block steps used to prevent long executor tasks and data loss possibility
 	BlockNumberStep = uint64(1000)
 
 	BlockchainFlag = cli.StringFlag{
@@ -188,11 +190,28 @@ func processVerifyCommand(ctx *cli.Context) error {
 		return fmt.Errorf("Unable to set database connection: %v", err)
 	}
 
+	cnt := uint64(0)
+	reportStart := uint64(start)
 	for blocks := range BlockYield(start, end, BlockNumberStep) {
 		err = verify(blockchain, blocks)
 		if err != nil {
 			return fmt.Errorf("Error occurred due verify acction: %v", err)
 		}
+
+		cnt += BlockNumberStep
+		if cnt >= configs.BLOCK_RANGE_REPORT {
+			err := humbugReporter.submitReport(reportStart, blocks[len(blocks)-1]+1, "")
+			if err != nil {
+				return fmt.Errorf("Unable to send humbug report: %v", err)
+			}
+			reportStart = blocks[len(blocks)-1] + 1
+			cnt = 0
+		}
+	}
+
+	err = humbugReporter.submitReport(start, end, "Total ")
+	if err != nil {
+		return fmt.Errorf("Unable to send humbug report: %v", err)
 	}
 
 	localConnections.Chain.Stop()

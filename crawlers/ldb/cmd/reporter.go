@@ -24,14 +24,15 @@ func setHumbugClient(sessionID string) error {
 	return nil
 }
 
-func (r *HumbugReporter) submitReport(start, end uint64) error {
+// Publish report with verified blocks to entry
+func (r *HumbugReporter) submitReport(start, end uint64, prefix string) error {
 	content, err := json.Marshal(corruptBlocks)
 	if err != nil {
 		return fmt.Errorf("Unable to marshal to json: %v", err)
 	}
 
 	report := humbug.Report{
-		Title:   fmt.Sprintf("LDB verifier %d-%d", start, end),
+		Title:   fmt.Sprintf("%sLDB verifier %d-%d", prefix, start, end),
 		Content: string(content),
 		Tags: []string{
 			fmt.Sprintf("start:%d", start),
@@ -39,7 +40,7 @@ func (r *HumbugReporter) submitReport(start, end uint64) error {
 		},
 	}
 	r.Reporter.Publish(report)
-	fmt.Printf("Error for range %d-%d published\n", start, end)
+	fmt.Printf("%sLDB report for range %d-%d published\n", prefix, start, end)
 
 	return nil
 }

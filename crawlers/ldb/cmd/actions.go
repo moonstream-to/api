@@ -47,6 +47,7 @@ func add(blockchain string, blockNumbers []uint64) error {
 
 		fmt.Printf("Processed block number: %d\r", bn)
 	}
+
 	return nil
 }
 
@@ -59,15 +60,17 @@ func show(blockNumbers []uint64) error {
 			continue
 		}
 
-		chainTxs := localConnections.getChainTxs(block.Hash(), bn)
+		// chainTxs := localConnections.getChainTxs(block.Hash(), bn)
 
 		var txs []common.Hash
-		for _, tx := range chainTxs {
-			txs = append(txs, tx.Hash())
-		}
+		// for _, tx := range chainTxs {
+		// 	txs = append(txs, tx.Hash())
+		// }
 
 		fmt.Printf("Block %d block with hash: %s and transactions: %s\n", block.Number(), block.Hash().String(), txs)
 	}
+
+	fmt.Println("new range")
 
 	return nil
 }
@@ -120,11 +123,6 @@ func verify(blockchain string, blockNumbers []uint64) error {
 		fmt.Printf("Processed block number: %d\r", bn)
 
 		cnt++
-	}
-
-	err := humbugReporter.submitReport(blockNumbers[0], blockNumbers[len(blockNumbers)-1])
-	if err != nil {
-		return fmt.Errorf("Unable to send humbug report: %v", err)
 	}
 
 	return nil
