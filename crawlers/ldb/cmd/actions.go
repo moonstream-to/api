@@ -73,19 +73,6 @@ func show(blockNumbers []uint64) error {
 	return nil
 }
 
-// TODO(kompotkot): Find way to remove Number
-type Result struct {
-	ErrorOutput string
-	ErrorSource string
-	Number      uint64
-	Output      string
-}
-
-type Job struct {
-	BlockNumber uint64
-	Results     chan<- Result
-}
-
 // Run verification flow of blockchain with database data
 func verify(blockchain string, blockNumbers []uint64, workers int) error {
 	jobsCh := make(chan Job, workers)

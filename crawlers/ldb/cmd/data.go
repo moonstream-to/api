@@ -52,3 +52,17 @@ type CorruptBlock struct {
 type CorruptBlocks struct {
 	Blocks []CorruptBlock `json:"blocks"`
 }
+
+// Concurrency jobs structure
+type Job struct {
+	BlockNumber uint64
+	Results     chan<- Result
+}
+
+// TODO(kompotkot): Find way to remove Number
+type Result struct {
+	ErrorOutput string
+	ErrorSource string
+	Number      uint64
+	Output      string
+}
