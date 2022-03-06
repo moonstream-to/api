@@ -74,18 +74,18 @@ func setDatabase() error {
 }
 
 // Retrive block from blockchain
-func (lc *LocalConnections) getChainBlock(number uint64) (*types.Header, error) {
-	header := lc.Chain.GetHeaderByNumber(number)
-	if header == nil {
+func (lc *LocalConnections) getChainBlock(number uint64) (*types.Block, error) {
+	block := lc.Chain.GetBlockByNumber(number)
+	if block == nil {
 		return nil, fmt.Errorf("Not found %d block in chain", number)
 	}
-	return header, nil
+	return block, nil
 }
 
 // Retrive block transactions from blockchain
-func (lc *LocalConnections) getChainTxs(headerHash common.Hash, number uint64) []*types.Transaction {
+func (lc *LocalConnections) getChainTxs(blockHash common.Hash, number uint64) []*types.Transaction {
 	var transactions []*types.Transaction
-	body := rawdb.ReadBody(lc.ChainDB, headerHash, number)
+	body := rawdb.ReadBody(lc.ChainDB, blockHash, number)
 	for _, tx := range body.Transactions {
 		transactions = append(transactions, tx)
 	}
@@ -94,7 +94,7 @@ func (lc *LocalConnections) getChainTxs(headerHash common.Hash, number uint64) [
 }
 
 // Retrive block with transactions from database
-func (lc *LocalConnections) getDatabaseBlockTxs(blockchain, headerHash string) (LightBlock, error) {
+func (lc *LocalConnections) getDatabaseBlockTxs(blockchain, blockHash string) (LightBlock, error) {
 	var lBlock LightBlock
 	var txs []LightTransaction
 	query := fmt.Sprintf(
@@ -105,15 +105,7 @@ func (lc *LocalConnections) getDatabaseBlockTxs(blockchain, headerHash string) (
 		FROM %s_blocks
 			LEFT JOIN %s_transactions ON %s_blocks.block_number = %s_transactions.block_number
 		WHERE %s_blocks.hash = '%s';`,
-		blockchain,
-		blockchain,
-		blockchain,
-		blockchain,
-		blockchain,
-		blockchain,
-		blockchain,
-		blockchain,
-		headerHash,
+		blockchain, blockchain, blockchain, blockchain, blockchain, blockchain, blockchain, blockchain, blockHash,
 	)
 	rows, err := lc.Database.Query(query)
 	if err != nil {
@@ -150,4 +142,73 @@ func (lc *LocalConnections) getDatabaseBlockTxs(blockchain, headerHash string) (
 	}
 
 	return lBlock, nil
+}
+
+// Write block with transactions to database
+func (lc *LocalConnections) writeDatabaseBlockTxs(
+	blockchain string, block *types.Block, txs []*types.Transaction, td *big.Int,
+) error {
+	// block.extraData doesn't exist at Polygon mainnet
+	var extraData interface{}
+	if block.Extra() == nil {
+		extraData = "NULL"
+	} else {
+		extraData = fmt.Sprintf("'0x%x'", block.Extra())
+	}
+
+	// For support of blocks before London hardfork
+	var baseFee interface{}
+	if block.BaseFee() == nil {
+		baseFee = "NULL"
+	} else {
+		baseFee = block.BaseFee()
+	}
+
+	query := fmt.Sprintf(
+		`INSERT INTO ethereum_blocks (
+			block_number,
+			difficulty,
+			extra_data,
+			gas_limit,
+			gas_used,
+			base_fee_per_gas,
+			hash,
+			logs_bloom,
+			miner,
+			nonce,
+			parent_hash,
+			receipt_root,
+			uncles,
+			size,
+			state_root,
+			timestamp,
+			total_difficulty,
+			transactions_root
+		)
+		VALUES (%d, %d, %v, %d, %d, %v, '%s', '0x%x', '%s', '0x%x', '0x%x', '0x%x', '0x%x', %f, '0x%x', %d, %d, '0x%x');`,
+		block.Number(),
+		block.Difficulty(),
+		extraData,
+		block.GasLimit(),
+		block.GasUsed(),
+		baseFee,
+		block.Hash(),
+		block.Bloom(),
+		block.Coinbase(),
+		block.Nonce(),
+		block.ParentHash(),
+		block.ReceiptHash(),
+		block.UncleHash(),
+		block.Size(),
+		block.Root(),
+		block.Time(),
+		td,
+		block.TxHash(),
+	)
+	_, err := lc.Database.Exec(query)
+	if err != nil {
+		return fmt.Errorf("An error occurred during sql operation: %v", err)
+	}
+
+	return nil
 }

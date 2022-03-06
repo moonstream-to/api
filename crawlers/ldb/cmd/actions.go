@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/bugout-dev/moonstream/crawlers/ldb/configs"
+	// "github.com/bugout-dev/moonstream/crawlers/ldb/configs"
 
 	"github.com/ethereum/go-ethereum/common"
 	_ "github.com/lib/pq"
@@ -29,26 +29,45 @@ func (cb *CorruptBlocks) registerCorruptBlock(number uint64, source, description
 }
 
 func add(blockchain string, start, end uint64) error {
+	for i := start; i < end; i++ {
+		block, err := localConnections.getChainBlock(i)
+		if err != nil {
+			description := fmt.Sprintf("Unable to get block: %d from chain, err %v", i, err)
+			fmt.Println(description)
+			corruptBlocks.registerCorruptBlock(i, "blockchain", description)
+			continue
+		}
+		td := localConnections.Chain.GetTd(block.Hash(), block.NumberU64())
+
+		chainTxs := localConnections.getChainTxs(block.Hash(), i)
+
+		err = localConnections.writeDatabaseBlockTxs(blockchain, block, chainTxs, td)
+		if err != nil {
+			fmt.Printf("Error occurred due saving block %d with transactions in database: %v", i, err)
+		}
+
+		fmt.Printf("Processed block number: %d\r", i)
+	}
 	return nil
 }
 
 // Return range of block hashes with transaction hashes from blockchain
 func show(start, end uint64) error {
 	for i := start; i <= end; i++ {
-		header, err := localConnections.getChainBlock(i)
+		block, err := localConnections.getChainBlock(i)
 		if err != nil {
 			fmt.Printf("Unable to get block: %d from chain, err %v\n", i, err)
 			continue
 		}
 
-		chainTxs := localConnections.getChainTxs(header.Hash(), i)
+		chainTxs := localConnections.getChainTxs(block.Hash(), i)
 
 		var txs []common.Hash
 		for _, tx := range chainTxs {
 			txs = append(txs, tx.Hash())
 		}
 
-		fmt.Printf("Block %d header with hash: %s and transactions: %s\n", header.Number, header.Hash().String(), txs)
+		fmt.Printf("Block %d block with hash: %s and transactions: %s\n", block.Number(), block.Hash().String(), txs)
 	}
 
 	return nil
@@ -59,7 +78,7 @@ func verify(blockchain string, start, end uint64) error {
 	var cnt uint64 // Counter until report formed and sent to Humbug
 
 	for i := start; i < end; i++ {
-		header, err := localConnections.getChainBlock(i)
+		block, err := localConnections.getChainBlock(i)
 		if err != nil {
 			description := fmt.Sprintf("Unable to get block: %d from chain, err %v", i, err)
 			fmt.Println(description)
@@ -67,7 +86,7 @@ func verify(blockchain string, start, end uint64) error {
 			continue
 		}
 
-		dbBlock, err := localConnections.getDatabaseBlockTxs(blockchain, header.Hash().String())
+		dbBlock, err := localConnections.getDatabaseBlockTxs(blockchain, block.Hash().String())
 
 		if err != nil {
 			description := fmt.Sprintf("Unable to get block: %d, err: %v", i, err)
@@ -83,14 +102,14 @@ func verify(blockchain string, start, end uint64) error {
 			continue
 		}
 
-		if header.Number.Uint64() != dbBlock.Number.Uint64() {
+		if block.NumberU64() != dbBlock.Number.Uint64() {
 			description := fmt.Sprintf("Incorrect %d block retrieved from database", i)
 			fmt.Println(description)
 			corruptBlocks.registerCorruptBlock(i, "database", description)
 			continue
 		}
 
-		chainTxs := localConnections.getChainTxs(header.Hash(), i)
+		chainTxs := localConnections.getChainTxs(block.Hash(), i)
 
 		if len(chainTxs) != len(dbBlock.Transactions) {
 			description := fmt.Sprintf("Different number of transactions in block %d, err %v", i, err)
@@ -102,19 +121,19 @@ func verify(blockchain string, start, end uint64) error {
 		fmt.Printf("Processed block number: %d\r", i)
 
 		cnt++
-		if cnt >= configs.BLOCK_RANGE_REPORT {
-			err := humbugReporter.submitReport(start, end)
-			if err != nil {
-				return fmt.Errorf("Unable to send humbug report: %v", err)
-			}
-			cnt = 0
-		}
+		// if cnt >= configs.BLOCK_RANGE_REPORT {
+		// 	err := humbugReporter.submitReport(start, end)
+		// 	if err != nil {
+		// 		return fmt.Errorf("Unable to send humbug report: %v", err)
+		// 	}
+		// 	cnt = 0
+		// }
 	}
 
-	err := humbugReporter.submitReport(start, end)
-	if err != nil {
-		return fmt.Errorf("Unable to send humbug report: %v", err)
-	}
+	// err := humbugReporter.submitReport(start, end)
+	// if err != nil {
+	// 	return fmt.Errorf("Unable to send humbug report: %v", err)
+	// }
 	fmt.Println("")
 
 	return nil
