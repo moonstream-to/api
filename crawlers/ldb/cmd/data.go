@@ -59,7 +59,7 @@ type Job struct {
 	Results     chan<- Result
 }
 
-// TODO(kompotkot): Find way to remove Number
+// TODO(kompotkot): Find way to remove Number, it repeats Job
 type Result struct {
 	ErrorOutput string
 	ErrorSource string

@@ -8,8 +8,6 @@ import (
 	"sort"
 	"strconv"
 
-	// "github.com/bugout-dev/moonstream/crawlers/ldb/configs"
-
 	"github.com/ethereum/go-ethereum/cmd/utils"
 	"github.com/google/uuid"
 	"gopkg.in/urfave/cli.v1"
@@ -61,7 +59,7 @@ func BlockYield(start, end, blockStep uint64) chan []uint64 {
 
 			var blocks []uint64
 			for i := currentBlock; i < tempEnd; i++ {
-				blocks = append(blocks, i) // Block operation
+				blocks = append(blocks, i) // Blocking operation
 			}
 			ch <- blocks
 
@@ -75,7 +73,6 @@ func BlockYield(start, end, blockStep uint64) chan []uint64 {
 }
 
 // Parse start and end blocks from command line input
-// TODO(kompotkot): Re-write to work via channel in goroutines
 func startEndBlock(ctx *cli.Context) (uint64, uint64, error) {
 	inputStart, err := strconv.ParseUint(ctx.Args().Get(0), 10, 32)
 	if err != nil {
