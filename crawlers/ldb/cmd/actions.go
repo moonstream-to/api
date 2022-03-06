@@ -3,8 +3,6 @@ package cmd
 import (
 	"fmt"
 
-	// "github.com/bugout-dev/moonstream/crawlers/ldb/configs"
-
 	"github.com/ethereum/go-ethereum/common"
 	_ "github.com/lib/pq"
 )
@@ -28,39 +26,40 @@ func (cb *CorruptBlocks) registerCorruptBlock(number uint64, source, description
 	})
 }
 
-func add(blockchain string, start, end uint64) error {
-	for i := start; i < end; i++ {
-		block, err := localConnections.getChainBlock(i)
+// Add new blocks with transactions to database
+func add(blockchain string, blockNumbers []uint64) error {
+	for _, bn := range blockNumbers {
+		block, err := localConnections.getChainBlock(bn)
 		if err != nil {
-			description := fmt.Sprintf("Unable to get block: %d from chain, err %v", i, err)
+			description := fmt.Sprintf("Unable to get block: %d from chain, err %v", bn, err)
 			fmt.Println(description)
-			corruptBlocks.registerCorruptBlock(i, "blockchain", description)
+			corruptBlocks.registerCorruptBlock(bn, "blockchain", description)
 			continue
 		}
 		td := localConnections.Chain.GetTd(block.Hash(), block.NumberU64())
 
-		chainTxs := localConnections.getChainTxs(block.Hash(), i)
+		chainTxs := localConnections.getChainTxs(block.Hash(), bn)
 
 		err = localConnections.writeDatabaseBlockTxs(blockchain, block, chainTxs, td)
 		if err != nil {
-			fmt.Printf("Error occurred due saving block %d with transactions in database: %v", i, err)
+			fmt.Printf("Error occurred due saving block %d with transactions in database: %v", bn, err)
 		}
 
-		fmt.Printf("Processed block number: %d\r", i)
+		fmt.Printf("Processed block number: %d\r", bn)
 	}
 	return nil
 }
 
 // Return range of block hashes with transaction hashes from blockchain
-func show(start, end uint64) error {
-	for i := start; i <= end; i++ {
-		block, err := localConnections.getChainBlock(i)
+func show(blockNumbers []uint64) error {
+	for _, bn := range blockNumbers {
+		block, err := localConnections.getChainBlock(bn)
 		if err != nil {
-			fmt.Printf("Unable to get block: %d from chain, err %v\n", i, err)
+			fmt.Printf("Unable to get block: %d from chain, err %v\n", bn, err)
 			continue
 		}
 
-		chainTxs := localConnections.getChainTxs(block.Hash(), i)
+		chainTxs := localConnections.getChainTxs(block.Hash(), bn)
 
 		var txs []common.Hash
 		for _, tx := range chainTxs {
@@ -74,67 +73,59 @@ func show(start, end uint64) error {
 }
 
 // Run verification flow of blockchain with database data
-func verify(blockchain string, start, end uint64) error {
+func verify(blockchain string, blockNumbers []uint64) error {
 	var cnt uint64 // Counter until report formed and sent to Humbug
 
-	for i := start; i < end; i++ {
-		block, err := localConnections.getChainBlock(i)
+	for _, bn := range blockNumbers {
+		chainBlock, err := localConnections.getChainBlock(bn)
 		if err != nil {
-			description := fmt.Sprintf("Unable to get block: %d from chain, err %v", i, err)
+			description := fmt.Sprintf("Unable to get block: %d from chain, err %v", bn, err)
 			fmt.Println(description)
-			corruptBlocks.registerCorruptBlock(i, "blockchain", description)
+			corruptBlocks.registerCorruptBlock(bn, "blockchain", description)
 			continue
 		}
 
-		dbBlock, err := localConnections.getDatabaseBlockTxs(blockchain, block.Hash().String())
+		dbBlock, err := localConnections.getDatabaseBlockTxs(blockchain, chainBlock.Hash().String())
 
 		if err != nil {
-			description := fmt.Sprintf("Unable to get block: %d, err: %v", i, err)
+			description := fmt.Sprintf("Unable to get block: %d, err: %v", bn, err)
 			fmt.Println(description)
-			corruptBlocks.registerCorruptBlock(i, "database", description)
+			corruptBlocks.registerCorruptBlock(bn, "database", description)
 			continue
 		}
 
 		if dbBlock.Number == nil {
-			description := fmt.Sprintf("Block %d not presented in database", i)
+			description := fmt.Sprintf("Block %d not presented in database", bn)
 			fmt.Println(description)
-			corruptBlocks.registerCorruptBlock(i, "database", description)
+			corruptBlocks.registerCorruptBlock(bn, "database", description)
 			continue
 		}
 
-		if block.NumberU64() != dbBlock.Number.Uint64() {
-			description := fmt.Sprintf("Incorrect %d block retrieved from database", i)
+		if chainBlock.NumberU64() != dbBlock.Number.Uint64() {
+			description := fmt.Sprintf("Incorrect %d block retrieved from database", bn)
 			fmt.Println(description)
-			corruptBlocks.registerCorruptBlock(i, "database", description)
+			corruptBlocks.registerCorruptBlock(bn, "database", description)
 			continue
 		}
 
-		chainTxs := localConnections.getChainTxs(block.Hash(), i)
+		chainTxs := localConnections.getChainTxs(chainBlock.Hash(), bn)
 
 		if len(chainTxs) != len(dbBlock.Transactions) {
-			description := fmt.Sprintf("Different number of transactions in block %d, err %v", i, err)
+			description := fmt.Sprintf("Different number of transactions in block %d, err %v", bn, err)
 			fmt.Println(description)
-			corruptBlocks.registerCorruptBlock(i, "database", description)
+			corruptBlocks.registerCorruptBlock(bn, "database", description)
 			continue
 		}
 
-		fmt.Printf("Processed block number: %d\r", i)
+		fmt.Printf("Processed block number: %d\r", bn)
 
 		cnt++
-		// if cnt >= configs.BLOCK_RANGE_REPORT {
-		// 	err := humbugReporter.submitReport(start, end)
-		// 	if err != nil {
-		// 		return fmt.Errorf("Unable to send humbug report: %v", err)
-		// 	}
-		// 	cnt = 0
-		// }
 	}
 
-	// err := humbugReporter.submitReport(start, end)
-	// if err != nil {
-	// 	return fmt.Errorf("Unable to send humbug report: %v", err)
-	// }
-	fmt.Println("")
+	err := humbugReporter.submitReport(blockNumbers[0], blockNumbers[len(blockNumbers)-1])
+	if err != nil {
+		return fmt.Errorf("Unable to send humbug report: %v", err)
+	}
 
 	return nil
 }

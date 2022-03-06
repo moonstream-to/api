@@ -164,8 +164,8 @@ func (lc *LocalConnections) writeDatabaseBlockTxs(
 		baseFee = block.BaseFee()
 	}
 
-	query := fmt.Sprintf(
-		`INSERT INTO ethereum_blocks (
+	blockQuery := fmt.Sprintf(
+		`INSERT INTO %s_blocks (
 			block_number,
 			difficulty,
 			extra_data,
@@ -184,8 +184,8 @@ func (lc *LocalConnections) writeDatabaseBlockTxs(
 			timestamp,
 			total_difficulty,
 			transactions_root
-		)
-		VALUES (%d, %d, %v, %d, %d, %v, '%s', '0x%x', '%s', '0x%x', '0x%x', '0x%x', '0x%x', %f, '0x%x', %d, %d, '0x%x');`,
+		) VALUES (%d, %d, %v, %d, %d, %v, '%s', '0x%x', '%s', '0x%x', '0x%x', '0x%x', '0x%x', %f, '0x%x', %d, %d, '0x%x');`,
+		blockchain,
 		block.Number(),
 		block.Difficulty(),
 		extraData,
@@ -205,10 +205,43 @@ func (lc *LocalConnections) writeDatabaseBlockTxs(
 		td,
 		block.TxHash(),
 	)
-	_, err := lc.Database.Exec(query)
+	_, err := lc.Database.Exec(blockQuery)
 	if err != nil {
 		return fmt.Errorf("An error occurred during sql operation: %v", err)
 	}
 
+	// for _, tx := range(txs) {
+	// 	txQuery := fmt.Sprintf(
+	// 		`INSERT INTO %s_transactions (
+	// 			hash,
+	// 			block_number,
+	// 			from_address,
+	// 			to_address,
+	// 			gas,
+	// 			gas_price,
+	// 			max_fee_per_gas,
+	// 			max_priority_fee_per_gas,
+	// 			input,
+	// 			nonce,
+	// 			transaction_index,
+	// 			transaction_type,
+	// 			value
+	// 		) VALUES ('%s', %d, '%s', '%s', %d, %d, );`,
+	// 		blockchain,
+	// 		tx.Hash(),
+	// 		block.Number(),
+	// 		tx.from,
+	// 		tx.To(),
+	// 		tx.Gas(),
+	// 		tx.GasPrice(),
+	// 		"max_fee",
+	// 		"max_prior",
+	// 		tx.input,
+	// 		tx.Nonce(),
+	// 		"tx_index",
+	// 		tx.Type(),
+	// 		tx.Value(),
+	// 	)
+	// }
 	return nil
 }

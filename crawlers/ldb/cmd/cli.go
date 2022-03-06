@@ -14,6 +14,8 @@ import (
 )
 
 var (
+	BlockNumberStep = uint64(1000)
+
 	BlockchainFlag = cli.StringFlag{
 		Name:  "blockchain",
 		Usage: `Which blockchain to crawl ("ethereum", "polygon")`,
@@ -30,16 +32,60 @@ var (
 	}
 )
 
+// Block step generator, yield list of blocks with length equal blockStep
+func BlockYield(start, end, blockStep uint64) chan []uint64 {
+	ch := make(chan []uint64)
+
+	go func(ch chan []uint64) {
+		currentBlock := start
+		var tempEnd uint64
+
+		for {
+			if currentBlock >= end {
+				break
+			}
+
+			tempEnd = currentBlock + blockStep
+			if tempEnd >= end {
+				tempEnd = end
+			}
+
+			var blocks []uint64
+			for i := currentBlock; i < tempEnd; i++ {
+				blocks = append(blocks, i) // Block operation
+			}
+			ch <- blocks
+
+			currentBlock += blockStep
+		}
+
+		close(ch)
+	}(ch)
+
+	return ch
+}
+
 // Parse start and end blocks from command line input
 // TODO(kompotkot): Re-write to work via channel in goroutines
 func startEndBlock(ctx *cli.Context) (uint64, uint64, error) {
-	start, err := strconv.ParseUint(ctx.Args().Get(0), 10, 32)
+	inputStart, err := strconv.ParseUint(ctx.Args().Get(0), 10, 32)
 	if err != nil {
 		return 0, 0, err
 	}
-	end, err := strconv.ParseUint(ctx.Args().Get(1), 10, 32)
+	inputEnd, err := strconv.ParseUint(ctx.Args().Get(1), 10, 32)
 	if err != nil {
 		return 0, 0, err
+	}
+
+	var start, end uint64
+	if inputStart < inputEnd {
+		start = inputStart
+		end = inputEnd
+	} else if inputStart > inputEnd {
+		start = inputEnd
+		end = inputStart
+	} else {
+		return 0, 0, fmt.Errorf("Start and end block can't be equal")
 	}
 
 	return start, end, nil
@@ -71,9 +117,11 @@ func processAddCommand(ctx *cli.Context) error {
 		return fmt.Errorf("Unable to set database connection: %v", err)
 	}
 
-	err = add(blockchain, start, end)
-	if err != nil {
-		return fmt.Errorf("Error occurred due add acction: %v", err)
+	for blocks := range BlockYield(start, end, BlockNumberStep) {
+		err = add(blockchain, blocks)
+		if err != nil {
+			return fmt.Errorf("Error occurred due add acction: %v", err)
+		}
 	}
 
 	localConnections.Chain.Stop()
@@ -102,9 +150,11 @@ func processShowCommand(ctx *cli.Context) error {
 	defer localConnections.Stack.Close()
 	defer localConnections.ChainDB.Close()
 
-	err = show(start, end)
-	if err != nil {
-		return fmt.Errorf("Error occurred due show acction: %v", err)
+	for blocks := range BlockYield(start, end, BlockNumberStep) {
+		err = show(blocks)
+		if err != nil {
+			return fmt.Errorf("Error occurred due show acction: %v", err)
+		}
 	}
 
 	localConnections.Chain.Stop()
@@ -138,9 +188,11 @@ func processVerifyCommand(ctx *cli.Context) error {
 		return fmt.Errorf("Unable to set database connection: %v", err)
 	}
 
-	err = verify(blockchain, start, end)
-	if err != nil {
-		return fmt.Errorf("Error occurred due verify acction: %v", err)
+	for blocks := range BlockYield(start, end, BlockNumberStep) {
+		err = verify(blockchain, blocks)
+		if err != nil {
+			return fmt.Errorf("Error occurred due verify acction: %v", err)
+		}
 	}
 
 	localConnections.Chain.Stop()

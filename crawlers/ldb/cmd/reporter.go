@@ -39,7 +39,7 @@ func (r *HumbugReporter) submitReport(start, end uint64) error {
 		},
 	}
 	r.Reporter.Publish(report)
-	fmt.Println("Error published")
+	fmt.Printf("Error for range %d-%d published\n", start, end)
 
 	return nil
 }
