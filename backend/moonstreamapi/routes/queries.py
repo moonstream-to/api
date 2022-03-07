@@ -14,7 +14,7 @@ from slugify import slugify  # type: ignore
 
 
 from .. import data
-from ..actions import get_query_by_name
+from ..actions import get_query_by_name, name_normalization
 from ..middleware import MoonstreamHTTPException
 from ..settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -96,11 +96,7 @@ async def create_query_handler(
         resource.resource_data["name"] for resource in resources.resources
     ]
 
-    try:
-        query_name = slugify(query_applied.name)
-    except ResourceQueryFetchException as e:
-        logger.error(f"Error in query normalization.")
-        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+    query_name = name_normalization(query_applied.name)
 
     if query_name in used_queries:
 

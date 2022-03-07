@@ -19,6 +19,7 @@ from bugout.exceptions import BugoutResponseException
 from ens.utils import is_valid_ens_name  # type: ignore
 from eth_utils.address import is_address  # type: ignore
 from moonstreamdb.models import EthereumLabel
+from slugify import slugify  # type: ignore
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from web3 import Web3
@@ -531,7 +532,24 @@ def apply_moonworm_tasks(subscription_type: str, abi: Any, address: str,) -> Non
         )
 
 
+def name_normalization(query_name: str) -> str:
+    """
+    return correct url name
+    """
+    try:
+        normalized_query_name = slugify(
+            query_name, max_length=50, regex_pattern=r"[A-Za-z0-9_-]"
+        )
+    except Exception as e:
+        logger.error(f"Error in query normalization.")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    return normalized_query_name
+
+
 def get_query_by_name(query_name: str, token: uuid.UUID) -> str:
+
+    query_name = name_normalization(query_name)
 
     params = {"type": data.BUGOUT_RESOURCE_QUERY_RESOLVER, "name": query_name}
     try:
