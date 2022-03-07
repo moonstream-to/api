@@ -12,6 +12,8 @@ from sqlalchemy import false
 
 USER_ONBOARDING_STATE = "onboarding_state"
 
+BUGOUT_RESOURCE_QUERY_RESOLVER = "query_name_resolver"
+
 
 class TimeScale(Enum):
     month = "month"
@@ -278,3 +280,7 @@ class PreapprovedQuery(BaseModel):
     query: str
     name: str
     public: bool = False
+
+
+class QueryPresignUrl(BaseModel):
+    url: str

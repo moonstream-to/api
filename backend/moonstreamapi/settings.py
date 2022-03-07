@@ -7,8 +7,6 @@ BUGOUT_BROOD_URL = os.environ.get("BUGOUT_BROOD_URL", "https://auth.bugout.dev")
 BUGOUT_SPIRE_URL = os.environ.get("BUGOUT_SPIRE_URL", "https://spire.bugout.dev")
 
 
-BUGOUT_RESOURCE_QUERY_RESOLVER = "query_name_resolver"
-
 bugout_client = Bugout(brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIRE_URL)
 
 BUGOUT_REQUEST_TIMEOUT_SECONDS = 5
@@ -70,8 +68,8 @@ if MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX is None:
     raise ValueError(
         "MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX environment variable must be set"
     )
-MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX = (
-    MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX.rstrip("/")
+MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX = MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX.rstrip(
+    "/"
 )
 
 MOONSTREAM_CRAWLERS_SERVER_URL = os.environ.get("MOONSTREAM_CRAWLERS_SERVER_URL")
@@ -105,3 +103,11 @@ if MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI == "":
 MOONSTREAM_QUERIES_BUCKET = os.environ.get("MOONSTREAM_QUERIES_BUCKET", "")
 if MOONSTREAM_QUERIES_BUCKET == "":
     raise ValueError("MOONSTREAM_QUERIES_BUCKET environment variable must be set")
+
+MOONSTREAM_QUERIES_BUCKET_PREFIX = os.environ.get(
+    "MOONSTREAM_QUERIES_BUCKET_PREFIX", ""
+)
+if MOONSTREAM_QUERIES_BUCKET_PREFIX == "":
+    raise ValueError(
+        "MOONSTREAM_QUERIES_BUCKET_PREFIX environment variable must be set"
+    )
