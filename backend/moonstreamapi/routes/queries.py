@@ -22,6 +22,7 @@ from ..settings import (
     MOONSTREAM_CRAWLERS_SERVER_URL,
     MOONSTREAM_CRAWLERS_SERVER_PORT,
     MOONSTREAM_QUERIES_BUCKET,
+    MOONSTREAM_QUERIES_BUCKET_PREFIX,
     MOONSTREAM_QUERIES_JOURNAL_ID,
 )
 from ..settings import bugout_client as bc
@@ -346,7 +347,7 @@ async def get_access_link_handler(
                 "get_object",
                 Params={
                     "Bucket": MOONSTREAM_QUERIES_BUCKET,
-                    "Key": f"queries/{query_id}/data.{file_type}",
+                    "Key": f"{MOONSTREAM_QUERIES_BUCKET_PREFIX}/{query_id}/data.{file_type}",
                 },
                 ExpiresIn=300000,
                 HttpMethod="GET",
@@ -366,14 +367,6 @@ async def remove_query_handler(
     Request update data on S3 bucket
     """
     token = request.state.token
-
-    """
-        def delete_resource(
-        self,
-        token: Union[str, uuid.UUID],
-        resource_id: Union[str, uuid.UUID],
-        timeout: float = REQUESTS_TIMEOUT
-    """
 
     params = {"type": data.BUGOUT_RESOURCE_QUERY_RESOLVER, "name": query_name}
     try:
