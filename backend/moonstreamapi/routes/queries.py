@@ -231,9 +231,7 @@ async def update_query_handler(
 
 
 @router.post(
-    "/{query_name}/update_data",
-    tags=["queries"],
-    response_model=Optional[data.QueryPresignUrl],
+    "/{query_name}/update_data", tags=["queries"],
 )
 async def update_query_data_handler(
     request: Request,
@@ -301,9 +299,7 @@ async def update_query_data_handler(
     return s3_response
 
 
-@router.get(
-    "/{query_name}", tags=["queries"], response_model=Optional[data.QueryPresignUrl]
-)
+@router.get("/{query_name}", tags=["queries"])
 async def get_access_link_handler(
     request: Request, query_name: str,
 ) -> Optional[data.QueryPresignUrl]:
