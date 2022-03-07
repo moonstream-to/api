@@ -355,7 +355,7 @@ const Homepage = () => {
                             textColor="orange.900"
                             display={"inline-block"}
                           >
-                            $200M
+                            $1B
                           </Text>{" "}
                           in transaction value to date.
                         </chakra.span>
@@ -824,7 +824,7 @@ const Homepage = () => {
                   badge={`Moonstream security`}
                   bullets={[
                     {
-                      text: `Moonstream smart contracts have been vetted in production with over $200M in value transacted.`,
+                      text: `Moonstream smart contracts have been vetted in production with over $1B in value transacted.`,
                       icon: MdOutlineVerifiedUser,
                       color: "green.50",
                       bgColor: "green.900",
