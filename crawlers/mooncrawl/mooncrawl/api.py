@@ -1,6 +1,7 @@
 """
 The Mooncrawl HTTP API
 """
+from cgi import test
 from datetime import datetime, timedelta
 import logging
 from os import times
@@ -23,6 +24,7 @@ from .settings import (
     bugout_client as bc,
     BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
     MOONSTREAM_QUERIES_BUCKET,
+    MOONSTREAM_QUERIES_BUCKET_PREFIX,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
 )
 from .version import MOONCRAWL_VERSION
@@ -82,17 +84,14 @@ async def now_handler() -> data.NowResponse:
 
 @app.post("/jobs/stats_update", tags=["jobs"])
 async def status_handler(
-    stats_update: data.StatsUpdateRequest,
-    background_tasks: BackgroundTasks,
+    stats_update: data.StatsUpdateRequest, background_tasks: BackgroundTasks,
 ):
     """
     Update dashboard endpoint create are tasks for update.
     """
 
     dashboard_resource: BugoutResource = bc.get_resource(
-        token=stats_update.token,
-        resource_id=stats_update.dashboard_id,
-        timeout=10,
+        token=stats_update.token, resource_id=stats_update.dashboard_id, timeout=10,
     )
 
     # get all user subscriptions
@@ -120,7 +119,9 @@ async def status_handler(
         )
 
     except Exception as e:
-        logger.error(f"Unhandled status exception, error: {e}")
+        logger.error(
+            f"Unhandled /jobs/stats_update start background task exception, error: {e}"
+        )
         raise MoonstreamHTTPException(status_code=500)
 
     presigned_urls_response: Dict[UUID, Any] = {}
@@ -172,12 +173,27 @@ async def status_handler(
 
 @app.post("/jobs/{query_id}/query_update", tags=["jobs"])
 async def queries_data_update_handler(
-    query_id: str,
-    request: data.QueryDataUpdate,
-    background_tasks: BackgroundTasks,
+    query_id: str, request: data.QueryDataUpdate, background_tasks: BackgroundTasks,
 ) -> Dict[str, Any]:
 
     s3_client = boto3.client("s3")
+
+    expected_query_parameters = text(request.query)._bindparams.keys()
+
+    # request.params validations
+    passed_params = {
+        key: value
+        for key, value in request.params.values()
+        if key in expected_query_parameters
+    }
+
+    if len(passed_params) != len(expected_query_parameters):
+        logger.error(
+            f"Unmatched amount of applying query parameters: {passed_params}, query_id:{query_id}."
+        )
+        raise MoonstreamHTTPException(
+            status_code=500, detail="Unmatched amount of applying query parameters"
+        )
 
     try:
 
@@ -191,14 +207,14 @@ async def queries_data_update_handler(
         )
 
     except Exception as e:
-        logger.error(f"Unhandled status exception, error: {e}")
+        logger.error(f"Unhandled query execute exception, error: {e}")
         raise MoonstreamHTTPException(status_code=500)
 
     stats_presigned_url = s3_client.generate_presigned_url(
         "get_object",
         Params={
             "Bucket": MOONSTREAM_QUERIES_BUCKET,
-            "Key": f"queries/{query_id}/data.{request.file_type}",
+            "Key": f"{MOONSTREAM_QUERIES_BUCKET_PREFIX}/queries/{query_id}/data.{request.file_type}",
         },
         ExpiresIn=43200,  # 12 hours
         HttpMethod="GET",

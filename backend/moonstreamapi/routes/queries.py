@@ -67,7 +67,7 @@ async def get_list_of_queries_handler(request: Request) -> List[Dict[str, Any]]:
 
 @router.post("/", tags=["queries"])
 async def create_query_handler(
-    request: Request, query_name: str, query_applied: data.PreapprovedQuery = Body(...)
+    request: Request, query_applied: data.PreapprovedQuery = Body(...)
 ) -> BugoutJournalEntry:
     """
     Create query in bugout journal
@@ -250,7 +250,7 @@ async def update_query_data_handler(
         entries = bc.search(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
-            query=f"#approved #query_id:{query_id} !#preapprove",
+            query=f"tag:approved tag:query_id:{query_id} !tag:preapprove",
             limit=1,
             timeout=5,
         )
@@ -284,8 +284,7 @@ async def update_query_data_handler(
 
             if responce.status_code != 200:
                 raise MoonstreamHTTPException(
-                    status_code=responce.status_code,
-                    detail="Task for start generate stats failed.",
+                    status_code=responce.status_code, detail=responce.text,
                 )
 
             s3_response = data.QueryPresignUrl(**responce.json())
@@ -300,7 +299,7 @@ async def get_access_link_handler(
     request: Request, query_name: str,
 ) -> Optional[data.QueryPresignUrl]:
     """
-    Request update data on S3 bucket
+    Request S3 presign url
     """
 
     # get real connect to query_id
@@ -339,7 +338,7 @@ async def get_access_link_handler(
                 "get_object",
                 Params={
                     "Bucket": MOONSTREAM_QUERIES_BUCKET,
-                    "Key": f"{MOONSTREAM_QUERIES_BUCKET_PREFIX}/{query_id}/data.{file_type}",
+                    "Key": f"{MOONSTREAM_QUERIES_BUCKET_PREFIX}/queries/{query_id}/data.{file_type}",
                 },
                 ExpiresIn=300000,
                 HttpMethod="GET",
@@ -356,7 +355,7 @@ async def remove_query_handler(
     request: Request, query_name: str,
 ) -> BugoutJournalEntry:
     """
-    Request update data on S3 bucket
+    Request delete query from journal
     """
     token = request.state.token
 
@@ -377,7 +376,7 @@ async def remove_query_handler(
         for resource in resources.resources
     }
     if len(query_ids) == 0:
-        raise MoonstreamHTTPException(status_code=404, detail="Query does not existю")
+        raise MoonstreamHTTPException(status_code=404, detail="Query does not exists")
 
     try:
         bc.delete_resource(token=token, resource_id=query_ids[query_name][0])

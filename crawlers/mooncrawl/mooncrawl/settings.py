@@ -89,3 +89,12 @@ if MOONSTREAM_MOONWORM_TASKS_JOURNAL == "":
 MOONSTREAM_QUERIES_BUCKET = os.environ.get("MOONSTREAM_QUERIES_BUCKET", "")
 if MOONSTREAM_QUERIES_BUCKET == "":
     raise ValueError("MOONSTREAM_QUERIES_BUCKET environment variable must be set")
+
+
+MOONSTREAM_QUERIES_BUCKET_PREFIX = os.environ.get(
+    "MOONSTREAM_QUERIES_BUCKET_PREFIX", ""
+)
+if MOONSTREAM_QUERIES_BUCKET_PREFIX == "":
+    raise ValueError(
+        "MOONSTREAM_QUERIES_BUCKET_PREFIX environment variable must be set"
+    )

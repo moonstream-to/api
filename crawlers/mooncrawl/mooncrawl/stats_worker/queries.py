@@ -7,8 +7,7 @@ import csv
 
 import boto3  # type: ignore
 from moonstreamdb.db import yield_db_session_ctx
-from sqlalchemy import text
-
+from ..settings import MOONSTREAM_QUERIES_BUCKET_PREFIX
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -72,6 +71,6 @@ def data_generate(
             push_statistics(
                 s3=s3,
                 data=data,
-                key=f"queries/{query_id}/data.{file_type}",
+                key=f"{MOONSTREAM_QUERIES_BUCKET_PREFIX}/queries/{query_id}/data.{file_type}",
                 bucket=bucket,
             )

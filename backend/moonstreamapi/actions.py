@@ -537,9 +537,7 @@ def name_normalization(query_name: str) -> str:
     return correct url name
     """
     try:
-        normalized_query_name = slugify(
-            query_name, max_length=50, regex_pattern=r"[A-Za-z0-9_-]"
-        )
+        normalized_query_name = slugify(query_name, max_length=50)
     except Exception as e:
         logger.error(f"Error in query normalization.")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
