@@ -247,7 +247,11 @@ def create_onboarding_resource(
     token: uuid.UUID,
     resource_data: Dict[str, Any] = {
         "type": data.USER_ONBOARDING_STATE,
-        "steps": {"welcome": 0, "subscriptions": 0, "stream": 0,},
+        "steps": {
+            "welcome": 0,
+            "subscriptions": 0,
+            "stream": 0,
+        },
         "is_complete": False,
     },
 ) -> BugoutResource:
@@ -299,7 +303,9 @@ def json_type(evm_type: str) -> type:
 
 
 def dashboards_abi_validation(
-    dashboard_subscription: data.DashboardMeta, abi: Any, s3_path: str,
+    dashboard_subscription: data.DashboardMeta,
+    abi: Any,
+    s3_path: str,
 ):
 
     """
@@ -408,7 +414,9 @@ def validate_abi_json(abi: Any) -> None:
 
 
 def upload_abi_to_s3(
-    resource: BugoutResource, abi: str, update: Dict[str, Any],
+    resource: BugoutResource,
+    abi: str,
+    update: Dict[str, Any],
 ) -> Dict[str, Any]:
     """
     Uploading ABI to s3 bucket. Return object for updating resource.
@@ -480,7 +488,11 @@ def get_all_entries_from_search(
     return results
 
 
-def apply_moonworm_tasks(subscription_type: str, abi: Any, address: str,) -> None:
+def apply_moonworm_tasks(
+    subscription_type: str,
+    abi: Any,
+    address: str,
+) -> None:
     """
     Get list of subscriptions loads abi and apply them as moonworm tasks if it not exist
     """

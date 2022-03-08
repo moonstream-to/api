@@ -84,14 +84,17 @@ async def now_handler() -> data.NowResponse:
 
 @app.post("/jobs/stats_update", tags=["jobs"])
 async def status_handler(
-    stats_update: data.StatsUpdateRequest, background_tasks: BackgroundTasks,
+    stats_update: data.StatsUpdateRequest,
+    background_tasks: BackgroundTasks,
 ):
     """
     Update dashboard endpoint create are tasks for update.
     """
 
     dashboard_resource: BugoutResource = bc.get_resource(
-        token=stats_update.token, resource_id=stats_update.dashboard_id, timeout=10,
+        token=stats_update.token,
+        resource_id=stats_update.dashboard_id,
+        timeout=10,
     )
 
     # get all user subscriptions
