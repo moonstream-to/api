@@ -19,6 +19,7 @@ type NodeStatusResponse struct {
 
 type BugoutUserResponse struct {
 	ID string `json:"user_id"`
+	ApplicationID string `json:"application_id"`
 }
 
 // Node - which one node client worked with

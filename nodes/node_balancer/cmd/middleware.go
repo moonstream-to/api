@@ -104,6 +104,10 @@ func authMiddleware(next http.Handler) http.Handler {
 			http.Error(w, "Wrong authorization header", http.StatusForbidden)
 			return
 		}
+		if userResponse.ApplicationID != configs.BUGOUT_NODE_BALANCER_APPLICATION_ID {
+			http.Error(w, "Wrong authorization header", http.StatusForbidden)
+			return
+		}
 
 		next.ServeHTTP(w, r)
 	})
