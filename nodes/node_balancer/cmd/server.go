@@ -157,8 +157,8 @@ func InitServer() {
 	}
 
 	serveMux := http.NewServeMux()
+	serveMux.Handle("/nb/", authMiddleware(http.HandlerFunc(lbHandler)))
 	serveMux.HandleFunc("/ping", pingRoute)
-	serveMux.HandleFunc("/nb/", lbHandler)
 
 	// Set common middlewares, from bottom to top
 	commonHandler := logMiddleware(serveMux)

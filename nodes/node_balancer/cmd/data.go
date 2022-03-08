@@ -17,6 +17,10 @@ type NodeStatusResponse struct {
 	CurrentBlock uint64 `json:"current_block"`
 }
 
+type BugoutUserResponse struct {
+	ID string `json:"user_id"`
+}
+
 // Node - which one node client worked with
 // LastCallTs - timestamp from last call
 type Client struct {

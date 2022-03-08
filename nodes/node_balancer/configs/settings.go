@@ -10,6 +10,13 @@ import (
 	"time"
 )
 
+// Bugout config
+var BUGOUT_AUTH_URL = os.Getenv("BUGOUT_AUTH_URL")
+var BUGOUT_NODE_BALANCER_APPLICATION_ID = os.Getenv("BUGOUT_NODE_BALANCER_APPLICATION_ID")
+var BUGOUT_INTERNAL_CRAWLERS_USER_ID = os.Getenv("BUGOUT_INTERNAL_CRAWLERS_USER_ID")
+var BUGOUT_AUTH_CALL_TIMEOUT = time.Second * 1
+
+// Node config
 type BlockchainConfig struct {
 	Blockchain string
 	IPs        []string
@@ -30,10 +37,8 @@ var ConfigList NodeConfigList
 
 var MOONSTREAM_NODE_ETHEREUM_A_IPC_ADDR = os.Getenv("MOONSTREAM_NODE_ETHEREUM_A_IPC_ADDR")
 var MOONSTREAM_NODE_ETHEREUM_B_IPC_ADDR = os.Getenv("MOONSTREAM_NODE_ETHEREUM_B_IPC_ADDR")
-var MOONSTREAM_NODE_ETHEREUM_IPC_PORT = os.Getenv("MOONSTREAM_NODE_ETHEREUM_IPC_PORT")
 var MOONSTREAM_NODE_POLYGON_A_IPC_ADDR = os.Getenv("MOONSTREAM_NODE_POLYGON_A_IPC_ADDR")
 var MOONSTREAM_NODE_POLYGON_B_IPC_ADDR = os.Getenv("MOONSTREAM_NODE_POLYGON_B_IPC_ADDR")
-var MOONSTREAM_NODE_POLYGON_IPC_PORT = os.Getenv("MOONSTREAM_NODE_POLYGON_IPC_PORT")
 var MOONSTREAM_NODES_SERVER_PORT = os.Getenv("MOONSTREAM_NODES_SERVER_PORT")
 var MOONSTREAM_CLIENT_ID_HEADER = os.Getenv("MOONSTREAM_CLIENT_ID_HEADER")
 
@@ -56,8 +61,8 @@ func checkEnvVarSet() {
 		MOONSTREAM_CLIENT_ID_HEADER = "x-moonstream-client-id"
 	}
 
-	if MOONSTREAM_NODES_SERVER_PORT == "" || MOONSTREAM_NODE_ETHEREUM_IPC_PORT == "" || MOONSTREAM_NODE_POLYGON_IPC_PORT == "" {
-		log.Fatal("Some of environment variables not set")
+	if MOONSTREAM_NODES_SERVER_PORT == "" {
+		log.Fatal("MOONSTREAM_NODES_SERVER_PORT environment variable not set")
 	}
 }
 
@@ -70,12 +75,12 @@ func (nc *NodeConfigList) InitNodeConfigList() {
 	blockchainConfigList = append(blockchainConfigList, BlockchainConfig{
 		Blockchain: "ethereum",
 		IPs:        []string{MOONSTREAM_NODE_ETHEREUM_A_IPC_ADDR, MOONSTREAM_NODE_ETHEREUM_B_IPC_ADDR},
-		Port:       MOONSTREAM_NODE_ETHEREUM_IPC_PORT,
+		Port:       "8545",
 	})
 	blockchainConfigList = append(blockchainConfigList, BlockchainConfig{
 		Blockchain: "polygon",
 		IPs:        []string{MOONSTREAM_NODE_POLYGON_A_IPC_ADDR, MOONSTREAM_NODE_POLYGON_B_IPC_ADDR},
-		Port:       MOONSTREAM_NODE_POLYGON_IPC_PORT,
+		Port:       "8545",
 	})
 
 	// Parse node addr, ip and blockchain
