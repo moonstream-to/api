@@ -57,6 +57,12 @@ class StatusAPIException(Exception):
     """
 
 
+class NameNormalizationException(Exception):
+    """
+    Raised on actions when slugify can't normalize name.
+    """
+
+
 class LabelNames(Enum):
     ETHERSCAN_SMARTCONTRACT = "etherscan_smartcontract"
     COINMARKETCAP_TOKEN = "coinmarketcap_token"
@@ -539,8 +545,9 @@ def name_normalization(query_name: str) -> str:
     try:
         normalized_query_name = slugify(query_name, max_length=50)
     except Exception as e:
-        logger.error(f"Error in query normalization.")
-        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+        logger.error(f"Error in query normalization. Error: {e}")
+
+        raise NameNormalizationException(f"Can't normalize name:{query_name}")
 
     return normalized_query_name
 

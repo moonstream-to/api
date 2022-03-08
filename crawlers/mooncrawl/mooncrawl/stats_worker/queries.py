@@ -5,8 +5,8 @@ from io import StringIO
 import csv
 
 
-import boto3  # type: ignore
-from moonstreamdb.db import yield_db_session_ctx
+import boto3
+from moonstreamdb.db import yield_db_read_only_session_ctx
 from ..settings import MOONSTREAM_QUERIES_BUCKET_PREFIX
 
 logging.basicConfig(level=logging.INFO)
@@ -38,7 +38,7 @@ def data_generate(
     """
     s3 = boto3.client("s3")
 
-    with yield_db_session_ctx() as db_session:
+    with yield_db_read_only_session_ctx() as db_session:
 
         if file_type == "csv":
             csv_buffer = StringIO()

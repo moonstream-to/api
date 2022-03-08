@@ -10,11 +10,10 @@ from bugout.data import BugoutResources, BugoutJournalEntryContent, BugoutJourna
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Body, Request
 import requests
-from slugify import slugify  # type: ignore
 
 
 from .. import data
-from ..actions import get_query_by_name, name_normalization
+from ..actions import get_query_by_name, name_normalization, NameNormalizationException
 from ..middleware import MoonstreamHTTPException
 from ..settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -95,14 +94,19 @@ async def create_query_handler(
     used_queries: List[str] = [
         resource.resource_data["name"] for resource in resources.resources
     ]
-
-    query_name = name_normalization(query_applied.name)
+    try:
+        query_name = name_normalization(query_applied.name)
+    except NameNormalizationException:
+        raise MoonstreamHTTPException(
+            status_code=403,
+            detail=f"Provided query name can't be normalize please select different.",
+        )
 
     if query_name in used_queries:
 
         raise MoonstreamHTTPException(
             status_code=404,
-            detail=f"Provided query name already use. Please remove it or use PUT /{query_name}",
+            detail=f"Provided query name already use. Please remove it or use PUT /{query_name} for update query",
         )
 
     try:
@@ -166,6 +170,11 @@ async def get_query_handler(request: Request, query_name: str) -> BugoutJournalE
 
     try:
         query_id = get_query_by_name(query_name, token)
+    except NameNormalizationException:
+        raise MoonstreamHTTPException(
+            status_code=403,
+            detail=f"Provided query name can't be normalize please select different.",
+        )
     except ResourceQueryFetchException as e:
         logger.error(f"Error in request query by name from brood resources: {e}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
@@ -200,6 +209,11 @@ async def update_query_handler(
 
     try:
         query_id = get_query_by_name(query_name, token)
+    except NameNormalizationException:
+        raise MoonstreamHTTPException(
+            status_code=403,
+            detail=f"Provided query name can't be normalize please select different.",
+        )
     except ResourceQueryFetchException as e:
         logger.error(f"Error in request query by name from brood resources: {e}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
@@ -242,6 +256,11 @@ async def update_query_data_handler(
 
     try:
         query_id = get_query_by_name(query_name, token)
+    except NameNormalizationException:
+        raise MoonstreamHTTPException(
+            status_code=403,
+            detail=f"Provided query name can't be normalize please select different.",
+        )
     except ResourceQueryFetchException as e:
         logger.error(f"Error in request query by name from brood resources: {e}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
@@ -308,6 +327,11 @@ async def get_access_link_handler(
 
     try:
         query_id = get_query_by_name(query_name, token)
+    except NameNormalizationException:
+        raise MoonstreamHTTPException(
+            status_code=403,
+            detail=f"Provided query name can't be normalize please select different.",
+        )
     except ResourceQueryFetchException as e:
         logger.error(f"Error in request query by name from brood resources: {e}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)

@@ -91,4 +91,4 @@ def yield_db_read_only_session() -> Session:
         session.close()
 
 
-yield_db_read_only_session_ctx = contextmanager(yield_db_session)
+yield_db_read_only_session_ctx = contextmanager(yield_db_read_only_session)
