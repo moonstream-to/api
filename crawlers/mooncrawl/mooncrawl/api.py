@@ -173,17 +173,19 @@ async def status_handler(
 
 @app.post("/jobs/{query_id}/query_update", tags=["jobs"])
 async def queries_data_update_handler(
-    query_id: str, request: data.QueryDataUpdate, background_tasks: BackgroundTasks,
+    query_id: str,
+    request_data: data.QueryDataUpdate,
+    background_tasks: BackgroundTasks,
 ) -> Dict[str, Any]:
 
     s3_client = boto3.client("s3")
 
-    expected_query_parameters = text(request.query)._bindparams.keys()
+    expected_query_parameters = text(request_data.query)._bindparams.keys()
 
     # request.params validations
     passed_params = {
         key: value
-        for key, value in request.params.values()
+        for key, value in request_data.params.items()
         if key in expected_query_parameters
     }
 
@@ -201,9 +203,9 @@ async def queries_data_update_handler(
             queries.data_generate,
             bucket=MOONSTREAM_QUERIES_BUCKET,
             query_id=f"{query_id}",
-            file_type=request.file_type,
-            query=request.query,
-            params=request.params,
+            file_type=request_data.file_type,
+            query=request_data.query,
+            params=request_data.params,
         )
 
     except Exception as e:
@@ -214,7 +216,7 @@ async def queries_data_update_handler(
         "get_object",
         Params={
             "Bucket": MOONSTREAM_QUERIES_BUCKET,
-            "Key": f"{MOONSTREAM_QUERIES_BUCKET_PREFIX}/queries/{query_id}/data.{request.file_type}",
+            "Key": f"{MOONSTREAM_QUERIES_BUCKET_PREFIX}/queries/{query_id}/data.{request_data.file_type}",
         },
         ExpiresIn=43200,  # 12 hours
         HttpMethod="GET",
