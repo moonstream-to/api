@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 import boto3  # type: ignore
 from moonstreamdb.db import yield_db_read_only_session_ctx
 
-from ..settings import MOONSTREAM_QUERIES_BUCKET_PREFIX
+from ..settings import MOONSTREAM_S3_QUERIES_BUCKET_PREFIX
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -71,6 +71,6 @@ def data_generate(
             push_statistics(
                 s3=s3,
                 data=data,
-                key=f"{MOONSTREAM_QUERIES_BUCKET_PREFIX}/queries/{query_id}/data.{file_type}",
+                key=f"{MOONSTREAM_S3_QUERIES_BUCKET_PREFIX}/queries/{query_id}/data.{file_type}",
                 bucket=bucket,
             )

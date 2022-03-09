@@ -20,8 +20,8 @@ from ..settings import (
     MOONSTREAM_APPLICATION_ID,
     MOONSTREAM_CRAWLERS_SERVER_URL,
     MOONSTREAM_CRAWLERS_SERVER_PORT,
-    MOONSTREAM_QUERIES_BUCKET,
-    MOONSTREAM_QUERIES_BUCKET_PREFIX,
+    MOONSTREAM_S3_QUERIES_BUCKET,
+    MOONSTREAM_S3_QUERIES_BUCKET_PREFIX,
     MOONSTREAM_QUERIES_JOURNAL_ID,
 )
 from ..settings import bugout_client as bc
@@ -345,8 +345,8 @@ async def get_access_link_handler(
             stats_presigned_url = s3.generate_presigned_url(
                 "get_object",
                 Params={
-                    "Bucket": MOONSTREAM_QUERIES_BUCKET,
-                    "Key": f"{MOONSTREAM_QUERIES_BUCKET_PREFIX}/queries/{query_id}/data.{file_type}",
+                    "Bucket": MOONSTREAM_S3_QUERIES_BUCKET,
+                    "Key": f"{MOONSTREAM_S3_QUERIES_BUCKET_PREFIX}/queries/{query_id}/data.{file_type}",
                 },
                 ExpiresIn=300000,
                 HttpMethod="GET",

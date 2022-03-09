@@ -23,8 +23,8 @@ from .settings import (
     ORIGINS,
     bugout_client as bc,
     BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
-    MOONSTREAM_QUERIES_BUCKET,
-    MOONSTREAM_QUERIES_BUCKET_PREFIX,
+    MOONSTREAM_S3_QUERIES_BUCKET,
+    MOONSTREAM_S3_QUERIES_BUCKET_PREFIX,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
 )
 from .version import MOONCRAWL_VERSION
@@ -204,7 +204,7 @@ async def queries_data_update_handler(
 
         background_tasks.add_task(
             queries.data_generate,
-            bucket=MOONSTREAM_QUERIES_BUCKET,
+            bucket=MOONSTREAM_S3_QUERIES_BUCKET,
             query_id=f"{query_id}",
             file_type=request_data.file_type,
             query=request_data.query,
@@ -218,8 +218,8 @@ async def queries_data_update_handler(
     stats_presigned_url = s3_client.generate_presigned_url(
         "get_object",
         Params={
-            "Bucket": MOONSTREAM_QUERIES_BUCKET,
-            "Key": f"{MOONSTREAM_QUERIES_BUCKET_PREFIX}/queries/{query_id}/data.{request_data.file_type}",
+            "Bucket": MOONSTREAM_S3_QUERIES_BUCKET,
+            "Key": f"{MOONSTREAM_S3_QUERIES_BUCKET_PREFIX}/queries/{query_id}/data.{request_data.file_type}",
         },
         ExpiresIn=43200,  # 12 hours
         HttpMethod="GET",
