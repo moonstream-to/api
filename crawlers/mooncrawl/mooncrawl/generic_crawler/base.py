@@ -169,17 +169,18 @@ def process_transaction(
         function_args = "unknown"
 
     transaction_reciept = web3.eth.getTransactionReceipt(transaction["hash"])
+    block_timestamp = get_block_timestamp(
+        db_session,
+        web3,
+        blockchain_type,
+        transaction["blockNumber"],
+        blocks_cache,
+        100,
+    )
 
     function_call = ExtededFunctionCall(
         block_number=transaction["blockNumber"],
-        block_timestamp=get_block_timestamp(
-            db_session,
-            web3,
-            blockchain_type,
-            transaction["blockNumber"],
-            blocks_cache,
-            100,
-        ),
+        block_timestamp=block_timestamp,
         transaction_hash=transaction["hash"].hex(),
         contract_address=transaction["to"],
         caller_address=transaction["from"],
@@ -207,8 +208,10 @@ def process_transaction(
                     "blockNumber": raw_event["blockNumber"],
                     "transactionHash": raw_event["transactionHash"].hex(),
                     "logIndex": raw_event["logIndex"],
+                    "blockTimestamp": block_timestamp,
                 }
-                secondary_logs.append(_processEvent(event))
+                processed_event = _processEvent(event)
+                secondary_logs.append(processed_event)
 
                 break
             except:
@@ -270,6 +273,7 @@ def crawl(
     secondary_abi: Dict[str, Any],
     from_block: int,
     to_block: int,
+    crawl_transactions: bool = True,
     addresses: Optional[List[ChecksumAddress]] = None,
     batch_size: int = 100,
 ) -> None:
@@ -309,34 +313,35 @@ def crawl(
                 event = _processEvent(raw_event)
                 events.append(event)
 
-        transaction_hashes = {event.transaction_hash for event in events}
-        logger.info(f"Fetched {len(events)} events")
-        logger.info(f"Fetching {len(transaction_hashes)} transactions")
+        if crawl_transactions:
+            transaction_hashes = {event.transaction_hash for event in events}
+            logger.info(f"Fetched {len(events)} events")
+            logger.info(f"Fetching {len(transaction_hashes)} transactions")
 
-        transactions = _get_transactions(
-            db_session, web3, blockchain_type, transaction_hashes
-        )
-        logger.info(f"Fetched {len(transactions)} transactions")
-
-        function_calls = []
-        for tx in transactions:
-            processed_tx, secondary_logs = process_transaction(
-                db_session,
-                web3,
-                blockchain_type,
-                contract,
-                secondary_abi,
-                tx,
-                db_blocks_cache,
+            transactions = _get_transactions(
+                db_session, web3, blockchain_type, transaction_hashes
             )
-            function_calls.append(processed_tx)
-            events.extend(secondary_logs)
-        add_function_calls_with_gas_price_to_session(
-            db_session,
-            function_calls,
-            blockchain_type,
-            label_name,
-        )
+            logger.info(f"Fetched {len(transactions)} transactions")
+
+            function_calls = []
+            for tx in transactions:
+                processed_tx, secondary_logs = process_transaction(
+                    db_session,
+                    web3,
+                    blockchain_type,
+                    contract,
+                    secondary_abi,
+                    tx,
+                    db_blocks_cache,
+                )
+                function_calls.append(processed_tx)
+                events.extend(secondary_logs)
+            add_function_calls_with_gas_price_to_session(
+                db_session,
+                function_calls,
+                blockchain_type,
+                label_name,
+            )
         add_events_to_session(
             db_session,
             events,

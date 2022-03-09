@@ -21,6 +21,9 @@ def handle_nft_crawler(args: argparse.Namespace) -> None:
         abi = json.load(f)
     with open("mooncrawl/generic_crawler/abis/erc20.json") as f:
         erc20_abi = json.load(f)
+        erc20_abi = [
+            abi for abi in erc20_abi if abi.get("name") == "Transfer"
+        ]  # only care about transfer event
 
     label = args.label_name
     from_block = args.start_block
@@ -65,10 +68,120 @@ def handle_nft_crawler(args: argparse.Namespace) -> None:
         )
 
 
+def handle_crawl(args: argparse.Namespace) -> None:
+    logger.info(f"Starting generic crawler")
+
+    label = args.label_name
+    from_block = args.start_block
+    to_block = args.end_block
+
+    with open(args.abi) as f:
+        abi = json.load(f)
+
+    blockchain_type = AvailableBlockchainType(args.blockchain_type)
+
+    logger.info(f"Blockchain type: {blockchain_type.value}")
+    with yield_db_session_ctx() as db_session:
+        web3: Optional[Web3] = None
+        if args.web3 is None:
+            logger.info(
+                "No web3 provider URL provided, using default (blockchan.py: connect())"
+            )
+            web3 = connect(blockchain_type)
+        else:
+            logger.info(f"Using web3 provider URL: {args.web3}")
+            web3 = Web3(
+                Web3.HTTPProvider(args.web3),
+            )
+            if args.poa:
+                logger.info("Using PoA middleware")
+                web3.middleware_onion.inject(geth_poa_middleware, layer=0)
+        last_crawled_block = get_checkpoint(
+            db_session, blockchain_type, from_block, to_block, label
+        )
+
+        logger.info(f"Starting from block: {last_crawled_block}")
+        crawl_transaction = not args.disable_transactions
+        crawl(
+            db_session,
+            web3,
+            blockchain_type,
+            label,
+            abi,
+            secondary_abi=[],
+            from_block=last_crawled_block,
+            to_block=to_block,
+            crawl_transactions=crawl_transaction,
+            batch_size=args.max_blocks_batch,
+        )
+
+
 def main():
     parser = argparse.ArgumentParser()
 
     subparsers = parser.add_subparsers()
+
+    crawl_parser = subparsers.add_parser("crawl", help="Crawl with abi")
+    crawl_parser.add_argument(
+        "--blockchain_type",
+        type=str,
+        required=True,
+        choices=[
+            "ethereum",
+            "polygon",
+        ],
+    )
+    crawl_parser.add_argument(
+        "--abi",
+        type=str,
+        default=None,
+        help="Abi of the contract",
+    )
+    crawl_parser.add_argument(
+        "--disable_transactions",
+        action="store_true",
+        help="Disable transactions crawling",
+    )
+    crawl_parser.add_argument(
+        "--web3",
+        type=str,
+        default=None,
+        help="Web3 provider URL",
+    )
+
+    crawl_parser.add_argument(
+        "--poa",
+        action="store_true",
+        default=False,
+        help="Use PoA middleware",
+    )
+
+    crawl_parser.add_argument(
+        "--start_block",
+        type=int,
+        default=None,
+    )
+    crawl_parser.add_argument(
+        "--end_block",
+        type=int,
+        default=None,
+    )
+
+    crawl_parser.add_argument(
+        "--max_blocks_batch",
+        type=int,
+        default=500,
+        help="Maximum number of blocks to crawl in a single crawl step",
+    )
+
+    crawl_parser.add_argument(
+        "--label_name",
+        type=str,
+        default="erc721",
+        help="Label name",
+    )
+
+    crawl_parser.set_defaults(func=handle_crawl)
 
     nft_crawler_parser = subparsers.add_parser(
         "nft",
