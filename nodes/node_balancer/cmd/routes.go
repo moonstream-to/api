@@ -22,6 +22,13 @@ func pingRoute(w http.ResponseWriter, r *http.Request) {
 
 // lbHandler load balances the incoming requests to nodes
 func lbHandler(w http.ResponseWriter, r *http.Request) {
+	userRaw := r.Context().Value("user")
+	user, ok := userRaw.(BugoutUserResponse)
+	if !ok {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
 	attempts := GetAttemptsFromContext(r)
 	if attempts > configs.NB_CONNECTION_RETRIES {
 		log.Printf("Max attempts reached from %s %s, terminating\n", r.RemoteAddr, r.URL.Path)
@@ -73,8 +80,12 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 		node.StatusReverseProxy.ServeHTTP(w, r)
 		return
 	case strings.HasPrefix(r.URL.Path, fmt.Sprintf("/nb/%s/jsonrpc", blockchain)):
-		r.URL.Path = "/"
-		node.GethReverseProxy.ServeHTTP(w, r)
+		if user.ID == configs.BUGOUT_INTERNAL_CRAWLERS_USER_ID {
+			r.URL.Path = "/"
+			node.GethReverseProxy.ServeHTTP(w, r)
+		} else {
+			fmt.Println("Fetch from db")
+		}
 		return
 	default:
 		http.Error(w, fmt.Sprintf("Unacceptable path for %s blockchain %s", blockchain, r.URL.Path), http.StatusBadRequest)

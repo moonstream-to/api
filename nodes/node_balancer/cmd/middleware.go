@@ -4,6 +4,7 @@ Server API middlewares.
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -109,6 +110,8 @@ func authMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		next.ServeHTTP(w, r)
+		ctxUser := context.WithValue(r.Context(), "user", userResponse)
+
+		next.ServeHTTP(w, r.WithContext(ctxUser))
 	})
 }

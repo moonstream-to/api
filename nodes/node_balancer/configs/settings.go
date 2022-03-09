@@ -110,3 +110,6 @@ var NB_CLIENT_NODE_KEEP_ALIVE = int64(5) // How long to store node in hot list f
 
 // Humbug config
 var HUMBUG_REPORTER_NODE_BALANCER_TOKEN = os.Getenv("HUMBUG_REPORTER_NODE_BALANCER_TOKEN")
+
+// Database config
+var MOONSTREAM_DB_URI = os.Getenv("MOONSTREAM_DB_URI")
