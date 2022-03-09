@@ -62,6 +62,11 @@ class NameNormalizationException(Exception):
     Raised on actions when slugify can't normalize name.
     """
 
+class ResourceQueryFetchException(Exception):
+    """
+    Exception in queries API
+    """
+
 
 class LabelNames(Enum):
     ETHERSCAN_SMARTCONTRACT = "etherscan_smartcontract"
@@ -552,21 +557,25 @@ def apply_moonworm_tasks(
 
 def name_normalization(query_name: str) -> str:
     """
-    return correct url name
+    Sanitize provided query name.
     """
     try:
         normalized_query_name = slugify(query_name, max_length=50)
     except Exception as e:
         logger.error(f"Error in query normalization. Error: {e}")
-
         raise NameNormalizationException(f"Can't normalize name:{query_name}")
 
     return normalized_query_name
 
 
 def get_query_by_name(query_name: str, token: uuid.UUID) -> str:
-
-    query_name = name_normalization(query_name)
+    """
+    Fetch query_id from Brood resources.
+    """
+    try:
+        query_name = name_normalization(query_name)
+    except Exception:
+        raise NameNormalizationException("Unable to normalize query name")
 
     params = {"type": data.BUGOUT_RESOURCE_QUERY_RESOLVER, "name": query_name}
     try:

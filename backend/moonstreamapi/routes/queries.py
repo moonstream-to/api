@@ -33,13 +33,6 @@ router = APIRouter(
     prefix="/queries",
 )
 
-
-class ResourceQueryFetchException(Exception):
-    """
-    Exception in queries API
-    """
-
-
 @router.get("/list", tags=["queries"])
 async def get_list_of_queries_handler(request: Request) -> List[Dict[str, Any]]:
 
@@ -54,10 +47,7 @@ async def get_list_of_queries_handler(request: Request) -> List[Dict[str, Any]]:
         resources: BugoutResources = bc.list_resources(token=token, params=params)
     except BugoutResponseException as e:
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
-    except ResourceQueryFetchException as e:
-        logger.error(
-            f"Error listing subscriptions for user ({request.user.id}) with token ({request.state.token}), error: {str(e)}"
-        )
+    except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     users_queries: List[Dict[str, Any]] = [
@@ -87,10 +77,7 @@ async def create_query_handler(
         resources: BugoutResources = bc.list_resources(token=token, params=params)
     except BugoutResponseException as e:
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
-    except ResourceQueryFetchException as e:
-        logger.error(
-            f"Error create query for user ({request.user.id}) with token ({request.state.token}), error: {str(e)}"
-        )
+    except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     used_queries: List[str] = [
@@ -122,8 +109,7 @@ async def create_query_handler(
         )
     except BugoutResponseException as e:
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
-    except ResourceQueryFetchException as e:
-        logger.error(f"Error creating query entry: {str(e)}")
+    except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     try:
@@ -142,8 +128,7 @@ async def create_query_handler(
     except BugoutResponseException as e:
         logger.error(f"Error creating name resolving resource: {str(e)}")
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
-    except ResourceQueryFetchException as e:
-        logger.error(f"Error creating name resolving resource: {str(e)}")
+    except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     try:
@@ -158,8 +143,7 @@ async def create_query_handler(
     except BugoutResponseException as e:
         logger.error(f"Error in applind tags to query entry: {str(e)}")
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
-    except ResourceQueryFetchException as e:
-        logger.error(f"Error in applind tags to query entry: {str(e)}")
+    except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     return entry
@@ -177,8 +161,7 @@ async def get_query_handler(request: Request, query_name: str) -> BugoutJournalE
             status_code=403,
             detail=f"Provided query name can't be normalize please select different.",
         )
-    except ResourceQueryFetchException as e:
-        logger.error(f"Error in request query by name from brood resources: {e}")
+    except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     try:
@@ -192,9 +175,7 @@ async def get_query_handler(request: Request, query_name: str) -> BugoutJournalE
     except BugoutResponseException as e:
         logger.error(f"Error in get query: {str(e)}")
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
-
-    except ResourceQueryFetchException as e:
-        logger.error(f"Error in get query: {e}")
+    except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     return entry
@@ -216,8 +197,7 @@ async def update_query_handler(
             status_code=403,
             detail=f"Provided query name can't be normalize please select different.",
         )
-    except ResourceQueryFetchException as e:
-        logger.error(f"Error in request query by name from brood resources: {e}")
+    except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     try:
@@ -234,9 +214,7 @@ async def update_query_handler(
     except BugoutResponseException as e:
         logger.error(f"Error in updating query: {str(e)}")
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
-
-    except ResourceQueryFetchException as e:
-        logger.error(f"Error in updating query: {e}")
+    except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     return entry
@@ -264,8 +242,7 @@ async def update_query_data_handler(
             status_code=403,
             detail=f"Provided query name can't be normalize please select different.",
         )
-    except ResourceQueryFetchException as e:
-        logger.error(f"Error in request query by name from brood resources: {e}")
+    except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     try:
@@ -311,9 +288,12 @@ async def update_query_data_handler(
                 )
 
             s3_response = data.QueryPresignUrl(**responce.json())
-    except ResourceQueryFetchException as e:
-        logger.error(f"Error in send generate query data task: {e}")
+    except BugoutResponseException as e:
+        logger.error(f"Error in updating query: {str(e)}")
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
     return s3_response
 
 
@@ -337,8 +317,7 @@ async def get_access_link_handler(
             status_code=403,
             detail=f"Provided query name can't be normalize please select different.",
         )
-    except ResourceQueryFetchException as e:
-        logger.error(f"Error in request query by name from brood resources: {e}")
+    except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     s3 = boto3.client("s3")
@@ -373,9 +352,12 @@ async def get_access_link_handler(
                 HttpMethod="GET",
             )
             s3_response = data.QueryPresignUrl(url=stats_presigned_url)
-    except ResourceQueryFetchException as e:
-        logger.error(f"Error in send generate query data task: {e}")
+    except BugoutResponseException as e:
+        logger.error(f"Error in get access link: {str(e)}")
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
     return s3_response
 
 
@@ -394,8 +376,7 @@ async def remove_query_handler(
         resources: BugoutResources = bc.list_resources(token=token, params=params)
     except BugoutResponseException as e:
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
-    except ResourceQueryFetchException as e:
-        logger.error(f"Error get query, error: {str(e)}")
+    except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     query_ids: Dict[str, Tuple[UUID, Union[UUID, str]]] = {
@@ -412,8 +393,7 @@ async def remove_query_handler(
         bc.delete_resource(token=token, resource_id=query_ids[query_name][0])
     except BugoutResponseException as e:
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
-    except ResourceQueryFetchException as e:
-        logger.error(f"Error get query, error: {str(e)}")
+    except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     try:
@@ -424,8 +404,7 @@ async def remove_query_handler(
         )
     except BugoutResponseException as e:
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
-    except ResourceQueryFetchException as e:
-        logger.error(f"Error get query, error: {str(e)}")
+    except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     return entry
