@@ -1,12 +1,12 @@
+import csv
 import json
 import logging
-from typing import Any, Dict, Optional
 from io import StringIO
-import csv
+from typing import Any, Dict, Optional
 
-
-import boto3
+import boto3  # type: ignore
 from moonstreamdb.db import yield_db_read_only_session_ctx
+
 from ..settings import MOONSTREAM_QUERIES_BUCKET_PREFIX
 
 logging.basicConfig(level=logging.INFO)
