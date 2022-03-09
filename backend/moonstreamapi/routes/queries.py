@@ -33,6 +33,7 @@ router = APIRouter(
     prefix="/queries",
 )
 
+
 @router.get("/list", tags=["queries"])
 async def get_list_of_queries_handler(request: Request) -> List[Dict[str, Any]]:
 

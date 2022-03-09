@@ -62,6 +62,7 @@ class NameNormalizationException(Exception):
     Raised on actions when slugify can't normalize name.
     """
 
+
 class ResourceQueryFetchException(Exception):
     """
     Exception in queries API
@@ -560,7 +561,9 @@ def name_normalization(query_name: str) -> str:
     Sanitize provided query name.
     """
     try:
-        normalized_query_name = slugify(query_name, max_length=50)
+        normalized_query_name = slugify(
+            query_name, max_length=50, lowercase=False, separator="_"
+        )
     except Exception as e:
         logger.error(f"Error in query normalization. Error: {e}")
         raise NameNormalizationException(f"Can't normalize name:{query_name}")
