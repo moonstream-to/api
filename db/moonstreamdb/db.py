@@ -65,7 +65,6 @@ def yield_db_session() -> Session:
 
 yield_db_session_ctx = contextmanager(yield_db_session)
 
-
 # Read only
 
 RO_engine = create_engine(
