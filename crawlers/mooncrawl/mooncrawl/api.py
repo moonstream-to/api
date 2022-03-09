@@ -201,13 +201,24 @@ async def queries_data_update_handler(
         )
 
     try:
+        valid_query = queries.query_validation(request_data.query)
+    except queries.QueryNotValid:
+        logger.error(f"Incorrect query provided with id: {query_id}")
+        raise MoonstreamHTTPException(
+            status_code=401, detail="Incorrect query provided"
+        )
+    except Exception as e:
+        logger.error(f"Unhandled query execute exception, error: {e}")
+        raise MoonstreamHTTPException(status_code=500)
+
+    try:
 
         background_tasks.add_task(
             queries.data_generate,
             bucket=MOONSTREAM_S3_QUERIES_BUCKET,
             query_id=f"{query_id}",
             file_type=request_data.file_type,
-            query=request_data.query,
+            query=valid_query,
             params=request_data.params,
         )
 

@@ -1,6 +1,7 @@
 import csv
 import json
 import logging
+import re
 from io import StringIO
 from typing import Any, Dict, Optional
 
@@ -11,6 +12,14 @@ from ..settings import MOONSTREAM_S3_QUERIES_BUCKET_PREFIX
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+QUERY_REGEX = re.compile("[\[\]@#$%^&?;`/]")
+
+
+class QueryNotValid(Exception):
+    """
+    Raised when query validation not passed.
+    """
 
 
 def push_statistics(s3: Any, data: Any, key: str, bucket: str) -> None:
@@ -24,6 +33,16 @@ def push_statistics(s3: Any, data: Any, key: str, bucket: str) -> None:
     )
 
     logger.info(f"Statistics push to bucket: s3://{bucket}/{key}")
+
+
+def query_validation(query: str) -> str:
+    """
+    Sanitize provided query.
+    """
+    if QUERY_REGEX.search(query) != None:
+        raise QueryNotValid("Query contains restricted symbols")
+
+    return query
 
 
 def data_generate(
