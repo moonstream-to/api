@@ -1,6 +1,7 @@
 import json
 import logging
 from dataclasses import dataclass
+import time
 from typing import Any, Dict, List, Optional, Union
 
 import web3
@@ -288,7 +289,11 @@ def crawl(
     pbar.set_description(f"Crawling blocks {from_block}-{to_block}")
 
     while current_block <= to_block:
-
+        blockchain_block = web3.eth.block_number
+        if current_block > blockchain_block:
+            logger.info("Current block is greater than blockchain block, sleeping")
+            time.sleep(1)
+            continue
         batch_end = min(current_block + batch_size, to_block)
         logger.info(f"Crawling blocks {current_block}-{current_block + batch_size}")
         events = []
