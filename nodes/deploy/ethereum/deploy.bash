@@ -65,7 +65,6 @@ chmod 644 "${SCRIPT_DIR}/${NODE_STATUS_SERVER_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${NODE_STATUS_SERVER_SERVICE_FILE}" "/etc/systemd/system/${NODE_STATUS_SERVER_SERVICE_FILE}"
 systemctl daemon-reload
 systemctl restart "${NODE_STATUS_SERVER_SERVICE_FILE}"
-systemctl status "${NODE_STATUS_SERVER_SERVICE_FILE}"
 
 echo
 echo
