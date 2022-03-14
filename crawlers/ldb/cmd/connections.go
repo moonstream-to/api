@@ -227,6 +227,12 @@ func prepareTxsQuery(blockchain string, block *types.Block, txs []*types.Transac
 	)
 
 	for i, tx := range txs {
+		var maxFeePerGas interface{}
+		maxFeePerGas = "NULL"
+
+		var maxPriorityFeePerGas interface{}
+		maxPriorityFeePerGas = "NULL"
+
 		m, err := tx.AsMessage(signer, block.Number())
 		if err != nil {
 			return "", fmt.Errorf("Transaction to message transformation failed: %v", err)
@@ -235,15 +241,15 @@ func prepareTxsQuery(blockchain string, block *types.Block, txs []*types.Transac
 			txsQuery += ","
 		}
 		txsQuery += fmt.Sprintf(
-			`('%s', %d, '%s', '%s', %d, %d, %d, %d, '0x%x', '0x%x', %d, %d, %d)`,
+			`('%s', %d, '%s', '%s', %d, %d, %v, %v, '0x%x', %d, %d, %d, %d)`,
 			tx.Hash(),
 			block.Number(),
 			m.From(),
 			tx.To(),
 			tx.Gas(),
 			tx.GasPrice(),
-			0, //"max_fee",
-			0, //"max_prior",
+			maxFeePerGas,
+			maxPriorityFeePerGas,
 			tx.Data(),
 			tx.Nonce(),
 			i,
@@ -274,15 +280,18 @@ func (lc *LocalConnections) writeDatabaseBlockTxs(
 	genesisHash := common.HexToHash("0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3")
 	chainConfig := rawdb.ReadChainConfig(lc.ChainDB, genesisHash)
 	signer := types.MakeSigner(chainConfig, block.Number())
-	txsQuery, err := prepareTxsQuery(blockchain, block, txs, signer)
-	if err != nil {
-		dbTx.Rollback()
-		return err
-	}
-	_, err = dbTx.Exec(txsQuery)
-	if err != nil {
-		dbTx.Rollback()
-		return fmt.Errorf("An error occurred during sql operation: %v", err)
+
+	if len(txs) > 0 {
+		txsQuery, err := prepareTxsQuery(blockchain, block, txs, signer)
+		if err != nil {
+			dbTx.Rollback()
+			return err
+		}
+		_, err = dbTx.Exec(txsQuery)
+		if err != nil {
+			dbTx.Rollback()
+			return fmt.Errorf("An error occurred during sql operation: %v", err)
+		}
 	}
 
 	err = dbTx.Commit()

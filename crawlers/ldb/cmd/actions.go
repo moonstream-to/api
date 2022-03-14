@@ -27,25 +27,76 @@ func (cb *CorruptBlocks) registerCorruptBlock(number uint64, source, description
 }
 
 // Add new blocks with transactions to database
-func add(blockchain string, blockNumbers []uint64) error {
-	for _, bn := range blockNumbers {
-		block, err := localConnections.getChainBlock(bn)
-		if err != nil {
-			description := fmt.Sprintf("Unable to get block: %d from chain, err %v", bn, err)
-			fmt.Println(description)
-			corruptBlocks.registerCorruptBlock(bn, "blockchain", description)
-			continue
+func add(blockchain string, blockNumbers []uint64, workers int) error {
+	jobsCh := make(chan Job, workers)
+	resultCh := make(chan Result, len(blockNumbers))
+	doneCh := make(chan struct{}, workers)
+
+	// Add jobs
+	go func() {
+		for _, bn := range blockNumbers {
+			jobsCh <- Job{
+				BlockNumber: bn,
+				Results:     resultCh,
+			}
 		}
-		td := localConnections.Chain.GetTd(block.Hash(), block.NumberU64())
+		close(jobsCh)
+	}()
 
-		chainTxs := localConnections.getChainTxs(block.Hash(), bn)
+	for i := 0; i < workers; i++ {
+		// Do jobs
+		go func() {
+			for job := range jobsCh {
+				block, err := localConnections.getChainBlock(job.BlockNumber)
+				if err != nil {
+					job.Results <- Result{
+						ErrorOutput: fmt.Sprintf("Unable to get block: %d from chain, err %v", job.BlockNumber, err),
+						ErrorSource: "blockchain",
+						Number:      job.BlockNumber,
+					}
+					continue
+				}
 
-		err = localConnections.writeDatabaseBlockTxs(blockchain, block, chainTxs, td)
-		if err != nil {
-			fmt.Printf("Error occurred due saving block %d with transactions in database: %v", bn, err)
+				td := localConnections.Chain.GetTd(block.Hash(), block.NumberU64())
+
+				chainTxs := localConnections.getChainTxs(block.Hash(), block.NumberU64())
+
+				err = localConnections.writeDatabaseBlockTxs(blockchain, block, chainTxs, td)
+				if err != nil {
+					job.Results <- Result{
+						ErrorOutput: fmt.Sprintf("Unable to write block %d with txs in database, err %v", job.BlockNumber, err),
+						ErrorSource: "database",
+						Number:      job.BlockNumber,
+					}
+					continue
+				}
+
+				job.Results <- Result{
+					Output: fmt.Sprintf("Processed block number: %d", job.BlockNumber),
+				}
+			}
+			doneCh <- struct{}{}
+		}()
+	}
+
+	// Await completion
+	go func() {
+		for i := 0; i < workers; i++ {
+			<-doneCh
 		}
+		close(resultCh)
+	}()
 
-		fmt.Printf("Processed block number: %d\r", bn)
+	for result := range resultCh {
+		if result.ErrorOutput != "" {
+			fmt.Println(result.ErrorOutput)
+		}
+		if result.Output != "" {
+			fmt.Println(result.Output)
+		}
+		if result.Output != "" && result.ErrorOutput != "" {
+			fmt.Printf("Unprocessable result with error: %s and output: %s", result.ErrorOutput, result.Output)
+		}
 	}
 
 	return nil

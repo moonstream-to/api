@@ -105,6 +105,10 @@ func processAddCommand(ctx *cli.Context) error {
 	if blockchain != "ethereum" && blockchain != "polygon" {
 		return fmt.Errorf("Unsupported blockchain provided")
 	}
+	threads := ctx.GlobalInt(ThreadsFlag.Name)
+	if threads <= 0 {
+		threads = 1
+	}
 
 	start, end, err := startEndBlock(ctx)
 	if err != nil {
@@ -124,7 +128,7 @@ func processAddCommand(ctx *cli.Context) error {
 	}
 
 	for blocks := range BlockYield(start, end, BlockNumberStep) {
-		err = add(blockchain, blocks)
+		err = add(blockchain, blocks, threads)
 		if err != nil {
 			return fmt.Errorf("Error occurred due add acction: %v", err)
 		}
@@ -239,6 +243,7 @@ func LDBCLI() {
 				BlockchainFlag,
 				DataDirFlag,
 				GCModeFlag,
+				ThreadsFlag,
 			},
 		},
 		{
