@@ -144,10 +144,7 @@ func (lc *LocalConnections) getDatabaseBlockTxs(blockchain, blockHash string) (L
 	return lBlock, nil
 }
 
-// Write block with transactions to database
-func (lc *LocalConnections) writeDatabaseBlockTxs(
-	blockchain string, block *types.Block, txs []*types.Transaction, td *big.Int,
-) error {
+func prepareBlockQuery(blockchain string, block *types.Block, td *big.Int) string {
 	// block.extraData doesn't exist at Polygon mainnet
 	var extraData interface{}
 	if block.Extra() == nil {
@@ -184,7 +181,7 @@ func (lc *LocalConnections) writeDatabaseBlockTxs(
 			timestamp,
 			total_difficulty,
 			transactions_root
-		) VALUES (%d, %d, %v, %d, %d, %v, '%s', '0x%x', '%s', '0x%x', '0x%x', '0x%x', '0x%x', %f, '0x%x', %d, %d, '0x%x');`,
+		) VALUES (%d, %d, %v, %d, %d, %v, '%s', '0x%x', '%s', '0x%x', '0x%x', '0x%x', '0x%x', %f, '0x%x', %d, %d, '0x%x')`,
 		blockchain,
 		block.Number(),
 		block.Difficulty(),
@@ -205,43 +202,93 @@ func (lc *LocalConnections) writeDatabaseBlockTxs(
 		td,
 		block.TxHash(),
 	)
-	_, err := lc.Database.Exec(blockQuery)
+
+	return blockQuery
+}
+
+func prepareTxsQuery(blockchain string, block *types.Block, txs []*types.Transaction, signer types.Signer) (string, error) {
+	txsQuery := fmt.Sprintf(
+		`INSERT INTO %s_transactions (
+			hash,
+			block_number,
+			from_address,
+			to_address,
+			gas,
+			gas_price,
+			max_fee_per_gas,
+			max_priority_fee_per_gas,
+			input,
+			nonce,
+			transaction_index,
+			transaction_type,
+			value
+		) VALUES `,
+		blockchain,
+	)
+
+	for i, tx := range txs {
+		m, err := tx.AsMessage(signer, block.Number())
+		if err != nil {
+			return "", fmt.Errorf("Transaction to message transformation failed: %v", err)
+		}
+		if i != 0 {
+			txsQuery += ","
+		}
+		txsQuery += fmt.Sprintf(
+			`('%s', %d, '%s', '%s', %d, %d, %d, %d, '0x%x', '0x%x', %d, %d, %d)`,
+			tx.Hash(),
+			block.Number(),
+			m.From(),
+			tx.To(),
+			tx.Gas(),
+			tx.GasPrice(),
+			0, //"max_fee",
+			0, //"max_prior",
+			tx.Data(),
+			tx.Nonce(),
+			i,
+			tx.Type(),
+			tx.Value(),
+		)
+	}
+
+	return txsQuery, nil
+}
+
+// Write block with transactions to database
+func (lc *LocalConnections) writeDatabaseBlockTxs(
+	blockchain string, block *types.Block, txs []*types.Transaction, td *big.Int,
+) error {
+	dbTx, err := lc.Database.Begin()
 	if err != nil {
+		return fmt.Errorf("Unable to begin database transaction, err: %v", err)
+	}
+
+	blockQuery := prepareBlockQuery(blockchain, block, td)
+	_, err = dbTx.Exec(blockQuery)
+	if err != nil {
+		dbTx.Rollback()
 		return fmt.Errorf("An error occurred during sql operation: %v", err)
 	}
 
-	// for _, tx := range(txs) {
-	// 	txQuery := fmt.Sprintf(
-	// 		`INSERT INTO %s_transactions (
-	// 			hash,
-	// 			block_number,
-	// 			from_address,
-	// 			to_address,
-	// 			gas,
-	// 			gas_price,
-	// 			max_fee_per_gas,
-	// 			max_priority_fee_per_gas,
-	// 			input,
-	// 			nonce,
-	// 			transaction_index,
-	// 			transaction_type,
-	// 			value
-	// 		) VALUES ('%s', %d, '%s', '%s', %d, %d, );`,
-	// 		blockchain,
-	// 		tx.Hash(),
-	// 		block.Number(),
-	// 		tx.from,
-	// 		tx.To(),
-	// 		tx.Gas(),
-	// 		tx.GasPrice(),
-	// 		"max_fee",
-	// 		"max_prior",
-	// 		tx.input,
-	// 		tx.Nonce(),
-	// 		"tx_index",
-	// 		tx.Type(),
-	// 		tx.Value(),
-	// 	)
-	// }
+	genesisHash := common.HexToHash("0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3")
+	chainConfig := rawdb.ReadChainConfig(lc.ChainDB, genesisHash)
+	signer := types.MakeSigner(chainConfig, block.Number())
+	txsQuery, err := prepareTxsQuery(blockchain, block, txs, signer)
+	if err != nil {
+		dbTx.Rollback()
+		return err
+	}
+	_, err = dbTx.Exec(txsQuery)
+	if err != nil {
+		dbTx.Rollback()
+		return fmt.Errorf("An error occurred during sql operation: %v", err)
+	}
+
+	err = dbTx.Commit()
+	if err != nil {
+		return fmt.Errorf("Unable to commit transactions: %v", err)
+	}
+
 	return nil
 }
