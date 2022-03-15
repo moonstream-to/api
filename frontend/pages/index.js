@@ -19,6 +19,8 @@ import {
   GridItem,
   SimpleGrid,
   Button,
+  LinkBox,
+  LinkOverlay,
   Image as ChakraImage,
 } from "@chakra-ui/react";
 import dynamic from "next/dynamic";
@@ -128,6 +130,7 @@ const assets = {
   cryptoTraders: `${AWS_ASSETS_PATH}/crypto+traders.png`,
   smartDevelopers: `${AWS_ASSETS_PATH}/smart+contract+developers.png`,
   cointelegraph: `${AWS_ASSETS_PATH}/featured_by/Cointelegraph_logo.png`,
+  forte: `${AWS_ASSETS_PATH}/featured_by/forte_logo.png`,
   educativesessions: `${AWS_ASSETS_PATH}/featured_by/educative_logo.png`,
   cryptoinsiders: `${AWS_ASSETS_PATH}/featured_by/crypto_insiders.png`,
   cryptoslate: `${AWS_ASSETS_PATH}/featured_by/cs-media-logo-light.png`,
@@ -135,7 +138,7 @@ const assets = {
   ethereumBlackLogo: `${AWS_ASSETS_PATH}/eth-diamond-black.png`,
   ethereumRainbowLogo: `${AWS_ASSETS_PATH}/eth-diamond-rainbow.png`,
   maticLogo: `${AWS_ASSETS_PATH}/matic-token-inverted-icon.png`,
-  erc20: `${AWS_ASSETS_PATH}/ERC 20.png`,
+  lender: `${AWS_ASSETS_PATH}/lender.png`,
   DAO: `${AWS_ASSETS_PATH}/DAO .png`,
   NFT: `${AWS_ASSETS_PATH}/NFT.png`,
   bc101: `${AWS_ASSETS_PATH}/featured_by/blockchain101_logo.png`,
@@ -503,17 +506,17 @@ const Homepage = () => {
                       <ChakraImage
                         boxSize={["220px", "220px", "xs", null, "xs"]}
                         objectFit="contain"
-                        src={assets["erc20"]}
-                        alt="mined transactions"
+                        src={assets["lender"]}
+                        alt="engine"
                       />
-                      <Heading textAlign="center ">Bridges</Heading>
+                      <Heading textAlign="center ">Engine</Heading>
                       <chakra.span
                         textAlign={"center"}
                         textColor="blue.600"
                         px={2}
                       >
-                        Open up your economy to Ethereum’s rich DeFi ecosystem,
-                        no matter which chain you live on.
+                        Create and manage tokens with custom mechanics specific
+                        to your project.
                       </chakra.span>
                     </Stack>
                   </Link>
@@ -603,17 +606,26 @@ const Homepage = () => {
                       name="Laguna games"
                       caseURL=""
                       ImgURL={assets["laguna"]}
+                      boxURL="https://laguna.games/"
                     />
                     <TrustedBadge
                       scale={1.5}
                       name="game7io"
                       ImgURL={assets["game7io"]}
+                      boxURL="https://game7.io/"
                     />
 
                     <TrustedBadge
                       scale={1.5}
                       name="orangedao"
                       ImgURL={assets["orangedao"]}
+                      boxURL="https://game7.io/"
+                    />
+                    <TrustedBadge
+                      scale={1.5}
+                      name="forte"
+                      ImgURL={assets["forte"]}
+                      boxURL="https://www.forte.io/"
                     />
                   </Suspense>
                 </Flex>
@@ -739,29 +751,28 @@ const Homepage = () => {
                   }}
                   elementName={"element3"}
                   colorScheme="orange"
-                  badge={`Moonstream bridges`}
+                  badge={`Moonstream engine`}
                   bullets={[
                     {
-                      text: `Make it easy for participants to bring value into your economy from other blockchains.`,
+                      text: `Deploy customizable and upgradable characters, items, and currencies into your economy`,
                       icon: GiCrossedChains,
                       color: "orange.50",
                       bgColor: "orange.900",
                     },
                     {
-                      text: `Make your tokens and NFTs multi-chain.`,
+                      text: `Monitor interactions between these tokens`,
                       icon: GiChainedHeart,
                       color: "orange.50",
                       bgColor: "orange.900",
                     },
                     {
-                      text: `Run the cost-intensive parts of your economy off of Ethereum while tapping into Ethereum’s DeFi ecosystem.
-                      `,
+                      text: `Secure the tokens with Moonstream defense bots.`,
                       icon: GiChaingun,
                       color: "orange.50",
                       bgColor: "orange.900",
                     },
                   ]}
-                  imgURL={assets["erc20"]}
+                  imgURL={assets["lender"]}
                 />
               </GridItem>
               <GridItem
@@ -862,30 +873,36 @@ const Homepage = () => {
                       name="cointelegraph"
                       caseURL=""
                       ImgURL={assets["cointelegraph"]}
+                      boxURL="https://cointelegraph.com/news/17-of-addresses-snapped-up-80-of-all-ethereum-nfts-since-april"
                     />
                     <TrustedBadge
                       name="CryptoInsiders"
                       ImgURL={assets["cryptoinsiders"]}
+                      boxURL="https://www.crypto-insiders.nl/nieuws/altcoin/17-van-ethereum-whales-bezitten-meer-dan-80-van-alle-nfts-op-de-blockchain/"
                     />
 
                     <TrustedBadge
                       name="cryptoslate"
                       ImgURL={assets["cryptoslate"]}
+                      boxURL="https://cryptoslate.com/should-investors-care-80-of-all-nfts-belong-to-17-of-addresses/"
                     />
                     <TrustedBadge
                       name="educative sessions"
                       scale={1.5}
                       ImgURL={assets["educativesessions"]}
+                      boxURL="https://youtu.be/DN8zRzJuy0M"
                     />
                     <TrustedBadge
                       scale={1.5}
                       name="bc101"
                       ImgURL={assets["bc101"]}
+                      boxURL="https://blockchain101.com/courses/"
                     />
                     <TrustedBadge
                       scale={1.5}
                       name="bc101"
                       ImgURL={assets["meetup"]}
+                      boxURL="https://www.meetup.com/SF-Bay-Area-Data-Science-Initiative/events/283215538/"
                     />
                   </Suspense>
                 </Flex>
