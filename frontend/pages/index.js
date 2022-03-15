@@ -19,8 +19,6 @@ import {
   GridItem,
   SimpleGrid,
   Button,
-  LinkBox,
-  LinkOverlay,
   Image as ChakraImage,
 } from "@chakra-ui/react";
 import dynamic from "next/dynamic";

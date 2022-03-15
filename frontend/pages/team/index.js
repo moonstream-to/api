@@ -248,8 +248,8 @@ const Product = () => {
             avatarURL={assets["dragonfly"]}
             name={"Tim Pechersky"}
             atName={"@peersky"}
-            content={`Spectral hopper. Hes special ability to precieve world trough spectral domain. Occasionaly
-            shifts in to time domain to spend some in doing flow
+            content={`Spectral hopper. Has special ability to perceive world trough spectral domain. Occasionaly
+            shifts in time domain to spend some in doing flow
             arts, surfing, and connecting with nature.`}
           />
           <TeamCard
