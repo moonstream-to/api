@@ -22,6 +22,12 @@ MOONSTREAM_DATA_JOURNAL_ID = os.environ.get("MOONSTREAM_DATA_JOURNAL_ID", "")
 if MOONSTREAM_DATA_JOURNAL_ID == "":
     raise ValueError("MOONSTREAM_DATA_JOURNAL_ID environment variable must be set")
 
+
+MOONSTREAM_QUERIES_JOURNAL_ID = os.environ.get("MOONSTREAM_QUERIES_JOURNAL_ID", "")
+if MOONSTREAM_DATA_JOURNAL_ID == "":
+    raise ValueError("MOONSTREAM_QUERIES_JOURNAL_ID environment variable must be set")
+
+
 MOONSTREAM_ADMIN_ACCESS_TOKEN = os.environ.get("MOONSTREAM_ADMIN_ACCESS_TOKEN", "")
 if MOONSTREAM_ADMIN_ACCESS_TOKEN == "":
     raise ValueError("MOONSTREAM_ADMIN_ACCESS_TOKEN environment variable must be set")
@@ -92,4 +98,16 @@ MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI = os.environ.get(
 if MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI == "":
     raise ValueError(
         "MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI environment variable must be set"
+    )
+
+MOONSTREAM_S3_QUERIES_BUCKET = os.environ.get("MOONSTREAM_S3_QUERIES_BUCKET", "")
+if MOONSTREAM_S3_QUERIES_BUCKET == "":
+    raise ValueError("MOONSTREAM_S3_QUERIES_BUCKET environment variable must be set")
+
+MOONSTREAM_S3_QUERIES_BUCKET_PREFIX = os.environ.get(
+    "MOONSTREAM_S3_QUERIES_BUCKET_PREFIX", ""
+)
+if MOONSTREAM_S3_QUERIES_BUCKET_PREFIX == "":
+    raise ValueError(
+        "MOONSTREAM_S3_QUERIES_BUCKET_PREFIX environment variable must be set"
     )
