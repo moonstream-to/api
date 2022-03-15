@@ -617,7 +617,7 @@ const Homepage = () => {
                       scale={1.5}
                       name="orangedao"
                       ImgURL={assets["orangedao"]}
-                      boxURL="https://game7.io/"
+                      boxURL="https://lfg.orangedao.xyz/"
                     />
                     <TrustedBadge
                       scale={1.5}
@@ -894,7 +894,7 @@ const Homepage = () => {
                       scale={1.5}
                       name="bc101"
                       ImgURL={assets["bc101"]}
-                      boxURL="https://blockchain101.com/courses/"
+                      boxURL="https://blockchain101.com/"
                     />
                     <TrustedBadge
                       scale={1.5}

@@ -11,14 +11,8 @@ const TrustedBadge = ({
 }) => {
   const _scale = scale ?? 1;
   return (
-    <LinkBox
-      bgColor={"blue.300"}
-      borderRadius="md"
-      transition="1s"
-      _hover={{ transform: "scale(1.05)", transition: "1s" }}
-      m={2}
-    >
-      <LinkOverlay href={boxURL}>
+    <LinkBox m={2}>
+      <LinkOverlay href={boxURL} isExternal>
         <Flex
           m={1}
           justifyContent="center"
