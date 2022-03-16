@@ -15,8 +15,8 @@ var (
 
 // Command Line Interface state
 type StateCLI struct {
-	serverCmd  *flag.FlagSet
-	clientsCmd *flag.FlagSet
+	serverCmd *flag.FlagSet
+	usersCmd  *flag.FlagSet
 
 	// Common flags
 	showVersion bool
@@ -31,7 +31,7 @@ type StateCLI struct {
 func (s *StateCLI) populateCLI() {
 	// Subcommands setup
 	s.serverCmd = flag.NewFlagSet("server", flag.ExitOnError)
-	s.clientsCmd = flag.NewFlagSet("clients", flag.ExitOnError)
+	s.usersCmd = flag.NewFlagSet("users", flag.ExitOnError)
 
 	// Server subcommand flag pointers
 	s.serverCmd.StringVar(&s.listeningAddr, "host", "127.0.0.1", "Server listening address")
@@ -41,6 +41,8 @@ func (s *StateCLI) populateCLI() {
 }
 
 func init() {
+	configs.VerifyEnvironments()
+
 	InitBugoutClient()
 }
 
@@ -56,21 +58,21 @@ func CLI() {
 	case "server":
 		stateCLI.serverCmd.Parse(os.Args[2:])
 		Server()
-	case "clients":
-		stateCLI.clientsCmd.Parse(os.Args[2:])
-		resources, err := bugoutClient.GetResources(configs.BUGOUT_NODE_BALANCER_CONTROLLER_TOKEN, "")
+	case "users":
+		stateCLI.usersCmd.Parse(os.Args[2:])
+		userAccesses, err := bugoutClient.GetUserAccesses(configs.NB_CONTROLLER_TOKEN, "", "")
 		if err != nil {
 			fmt.Printf("Unable to get resources %v", err)
 			return
 		}
-		resourcesJson, err := json.Marshal(resources)
+		userAccessesJson, err := json.Marshal(userAccesses)
 		if err != nil {
 			fmt.Printf("Unable to marshal resources %v", err)
 			return
 		}
-		fmt.Println(string(resourcesJson))
+		fmt.Println(string(userAccessesJson))
 	case "version":
-		fmt.Printf("v%s\n", configs.NODE_BALANCER_VERSION)
+		fmt.Printf("v%s\n", configs.NB_VERSION)
 	default:
 		flag.PrintDefaults()
 		os.Exit(1)

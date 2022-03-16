@@ -24,12 +24,14 @@ func pingRoute(w http.ResponseWriter, r *http.Request) {
 
 // lbHandler load balances the incoming requests to nodes
 func lbHandler(w http.ResponseWriter, r *http.Request) {
-	userRaw := r.Context().Value("user")
-	user, ok := userRaw.(BugoutUserResponse)
+	currentUserAccessRaw := r.Context().Value("currentUserAccess")
+	currentUserAccess, ok := currentUserAccessRaw.(UserAccess)
 	if !ok {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+
+	fmt.Println(currentUserAccess)
 
 	attempts := GetAttemptsFromContext(r)
 	if attempts > configs.NB_CONNECTION_RETRIES {
@@ -56,14 +58,14 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Unacceptable blockchain provided %s", blockchain), http.StatusBadRequest)
 		return
 	}
-	node = cpool.GetClientNode(user.ID)
+	node = cpool.GetClientNode(currentUserAccess.AccessID)
 	if node == nil {
 		node = blockchainPool.GetNextNode(blockchain)
 		if node == nil {
 			http.Error(w, "There are no nodes available", http.StatusServiceUnavailable)
 			return
 		}
-		cpool.AddClientNode(user.ID, node)
+		cpool.AddClientNode(currentUserAccess.AccessID, node)
 	}
 
 	// Save origin path, to use in proxyErrorHandler if node will not response
@@ -75,7 +77,7 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 		node.StatusReverseProxy.ServeHTTP(w, r)
 		return
 	case strings.HasPrefix(r.URL.Path, fmt.Sprintf("/nb/%s/jsonrpc", blockchain)):
-		lbJSONRPCHandler(w, r, blockchain, node, user)
+		lbJSONRPCHandler(w, r, blockchain, node, currentUserAccess)
 		return
 	default:
 		http.Error(w, fmt.Sprintf("Unacceptable path for %s blockchain %s", blockchain, r.URL.Path), http.StatusBadRequest)
@@ -83,49 +85,62 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string, node *Node, user BugoutUserResponse) {
-	var dataSource string
-	dataSources := r.Header[configs.MOONSTREAM_DATA_SOURCE_HEADER]
-	// TODO(kompotkot): Re-write it, to be able to work without database
-	if len(dataSources) == 0 {
-		dataSource = "database"
-	} else {
-		dataSource = dataSources[0]
-	}
-
+func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string, node *Node, currentUserAccess UserAccess) {
 	switch {
-	case dataSource == "blockchain":
-		if user.ID != controllerUserID {
-			resources, err := bugoutClient.GetResources(configs.BUGOUT_NODE_BALANCER_CONTROLLER_TOKEN, user.ID)
+	case currentUserAccess.dataSource == "blockchain":
+		if currentUserAccess.BlockchainAccess == false {
+			http.Error(w, "Access to blockchain node not allowed with provided access id", http.StatusForbidden)
+			return
+		}
+		if currentUserAccess.ExtendedMethods == false {
+			jsonrpcRequest, err := parseJSONRPCRequest(r)
 			if err != nil {
-				http.Error(w, fmt.Sprintf("not allowed %s", dataSource), http.StatusBadRequest)
+				http.Error(w, "Unable to parse JSON RPC request", http.StatusBadRequest)
 				return
 			}
-
-			blockchainAccess := false
-			for _, resource := range resources.Resources {
-				if resource.ResourceData.BlockchainAccess == true {
-					blockchainAccess = true
-				}
-			}
-
-			if blockchainAccess == false {
-				http.Error(w, fmt.Sprintf("not allowed %s", dataSource), http.StatusBadRequest)
+			err = verifyMethodWhitelisted(jsonrpcRequest.Method)
+			if err != nil {
+				http.Error(w, "Method for provided access id not allowed", http.StatusForbidden)
 				return
 			}
 		}
 
-		fmt.Println("proxied to node")
-		// r.URL.Path = "/"
-		// node.GethReverseProxy.ServeHTTP(w, r)
+		r.URL.Path = "/"
+		node.GethReverseProxy.ServeHTTP(w, r)
 		return
-	case dataSource == "database":
+	case currentUserAccess.dataSource == "database":
 		lbDatabaseHandler(w, r, blockchain)
 		return
 	default:
-		http.Error(w, fmt.Sprintf("Unacceptable data source %s", dataSource), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Unacceptable data source %s", currentUserAccess.dataSource), http.StatusBadRequest)
 		return
 	}
+}
+
+func parseJSONRPCRequest(r *http.Request) (JSONRPCRequest, error) {
+	var jsonrpcRequest JSONRPCRequest
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return jsonrpcRequest, err
+	}
+	err = json.Unmarshal(body, &jsonrpcRequest)
+	if err != nil {
+		return jsonrpcRequest, err
+	}
+
+	return jsonrpcRequest, nil
+}
+
+var ALLOWED_METHODS = []string{"eth_getBlockByNumber"}
+
+func verifyMethodWhitelisted(method string) error {
+	for _, m := range ALLOWED_METHODS {
+		if method == m {
+			return nil
+		}
+	}
+	return fmt.Errorf("Method not allowed")
 }
 
 type JSONRPCRequest struct {
@@ -135,18 +150,10 @@ type JSONRPCRequest struct {
 	ID      uint64        `json:"id"`
 }
 
-// var ALLOWED_ETH_ENDPOINTS = []string{"eth_getBlockByNumber"}
-
 func lbDatabaseHandler(w http.ResponseWriter, r *http.Request, blockchain string) {
-	body, err := ioutil.ReadAll(r.Body)
+	jsonrpcRequest, err := parseJSONRPCRequest(r)
 	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	var jsonrpcRequest JSONRPCRequest
-	err = json.Unmarshal(body, &jsonrpcRequest)
-	if err != nil {
-		fmt.Println(err)
+		http.Error(w, "Unable to parse JSON RPC request", http.StatusBadRequest)
 		return
 	}
 

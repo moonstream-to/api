@@ -3,13 +3,29 @@ package cmd
 import (
 	"errors"
 	"reflect"
+	"sync"
 	"time"
 
 	configs "github.com/bugout-dev/moonstream/nodes/node_balancer/configs"
 )
 
-var ethereumClientPool ClientPool
-var polygonClientPool ClientPool
+var (
+	ethereumClientPool ClientPool
+	polygonClientPool  ClientPool
+)
+
+// Node - which one node client worked with
+// LastCallTs - timestamp from last call
+type Client struct {
+	Node       *Node
+	LastCallTs int64
+
+	mux sync.RWMutex
+}
+
+type ClientPool struct {
+	Client map[string]*Client
+}
 
 // Generate client pools for different blockchains
 func CreateClientPools() {

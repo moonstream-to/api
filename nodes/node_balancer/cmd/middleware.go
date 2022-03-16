@@ -5,13 +5,9 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
-	"strings"
 
 	"github.com/bugout-dev/moonstream/nodes/node_balancer/configs"
 
@@ -48,69 +44,62 @@ func logMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// Bugout authentication
-func authMiddleware(next http.Handler) http.Handler {
+// Check access id was provided correctly and save user access configuration to request context
+func accessMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authHeaders := r.Header["Authorization"]
-		authHeadersLen := len(authHeaders)
-		if authHeadersLen == 0 {
-			http.Error(w, "Authorization header not found", http.StatusForbidden)
-			return
-		}
-		if authHeadersLen > 1 {
-			http.Error(w, "Too many authorization headers provided", http.StatusBadRequest)
-			return
-		}
-		authHeader := authHeaders[0]
+		var currentUserAccess UserAccess
 
-		// Extract Bearer token
-		headerSlice := strings.Split(authHeader, " ")
-		if len(headerSlice) != 2 {
-			http.Error(w, "Unacceptable token format provided", http.StatusBadRequest)
-			return
-		}
-		if headerSlice[0] != "Bearer" {
-			http.Error(w, "Unacceptable token format provided", http.StatusBadRequest)
-			return
+		var accessID string
+		accessIDHeaders := r.Header[configs.NB_ACCESS_ID_HEADER]
+		for _, h := range accessIDHeaders {
+			accessID = h
 		}
 
-		// Check token is active
-		client := http.Client{Timeout: configs.BUGOUT_AUTH_CALL_TIMEOUT}
-		authReq, err := http.NewRequest("GET", fmt.Sprintf("%s/user", configs.BUGOUT_AUTH_URL), nil)
-		if err != nil {
-			http.Error(w, "Unable to construct authorization request", http.StatusInternalServerError)
-			return
-		}
-		authReq.Header.Set("Authorization", authHeader)
-		resp, err := client.Do(authReq)
-		if err != nil {
-			http.Error(w, "Unable to reach authorization server", http.StatusInternalServerError)
-			return
-		}
-		defer resp.Body.Close()
-
-		// Parse response from authorization server
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			http.Error(w, "Unable to read respose from authorization server", http.StatusInternalServerError)
-			return
-		}
-		var userResponse BugoutUserResponse
-		err = json.Unmarshal(body, &userResponse)
-		if err != nil {
-			http.Error(w, "Unable to parse respose from authorization server", http.StatusInternalServerError)
-			return
-		}
-		if userResponse.ID == "" {
-			http.Error(w, "Wrong authorization header", http.StatusForbidden)
-			return
-		}
-		if userResponse.ApplicationID != configs.BUGOUT_NODE_BALANCER_APPLICATION_ID {
-			http.Error(w, "Wrong authorization header", http.StatusForbidden)
-			return
+		dataSource := "database"
+		dataSources := r.Header[configs.NB_DATA_SOURCE_HEADER]
+		for _, h := range dataSources {
+			dataSource = h
 		}
 
-		ctxUser := context.WithValue(r.Context(), "user", userResponse)
+		queries := r.URL.Query()
+		for k, v := range queries {
+			if k == "access_id" {
+				accessID = v[0]
+			}
+			if k == "data_source" {
+				dataSource = v[0]
+			}
+		}
+
+		// If access id does not belong to controller, then find it in Bugout resources
+		if accessID == configs.NB_CONTROLLER_ACCESS_ID {
+			currentUserAccess = controllerUserAccess
+			currentUserAccess.dataSource = dataSource
+		} else {
+			userAccesses, err := bugoutClient.GetUserAccesses(configs.NB_CONTROLLER_TOKEN, "", accessID)
+			if err != nil {
+				http.Error(w, "Unable to get user with provided access identifier", http.StatusForbidden)
+				return
+			}
+			if len(userAccesses) == 0 {
+				http.Error(w, "User with provided access identifier not found", http.StatusForbidden)
+				return
+			}
+			userAccess := userAccesses[0]
+
+			currentUserAccess = UserAccess{
+				UserID:           userAccess.UserID,
+				AccessID:         userAccess.AccessID,
+				Name:             userAccess.Name,
+				Description:      userAccess.Description,
+				BlockchainAccess: userAccess.BlockchainAccess,
+				ExtendedMethods:  userAccess.ExtendedMethods,
+
+				dataSource: dataSource,
+			}
+		}
+
+		ctxUser := context.WithValue(r.Context(), "currentUserAccess", currentUserAccess)
 
 		next.ServeHTTP(w, r.WithContext(ctxUser))
 	})

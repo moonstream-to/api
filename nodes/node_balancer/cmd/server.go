@@ -18,8 +18,7 @@ import (
 )
 
 var (
-	// User id to controll access to blockchain nodes
-	controllerUserID string
+	controllerUserAccess UserAccess
 
 	// Crash reporter
 	reporter *humbug.HumbugReporter
@@ -105,18 +104,26 @@ func Server() {
 	var err error
 	sessionID := uuid.New().String()
 	consent := humbug.CreateHumbugConsent(humbug.True)
-	reporter, err = humbug.CreateHumbugReporter(consent, "moonstream-node-balancer", sessionID, configs.HUMBUG_REPORTER_NODE_BALANCER_TOKEN)
+	reporter, err = humbug.CreateHumbugReporter(consent, "moonstream-node-balancer", sessionID, configs.HUMBUG_REPORTER_NB_TOKEN)
 	if err != nil {
 		panic(fmt.Sprintf("Invalid Humbug Crash configuration: %s", err.Error()))
 	}
 	// Record system information
 	reporter.Publish(humbug.SystemReport())
 
-	user, err := bugoutClient.GetUser(configs.BUGOUT_NODE_BALANCER_CONTROLLER_TOKEN)
+	userAccesses, err := bugoutClient.GetUserAccesses(configs.NB_CONTROLLER_TOKEN, "", configs.NB_CONTROLLER_ACCESS_ID)
 	if err != nil {
 		fmt.Printf("Unable to access Bugout authentication server %v", err)
 	}
-	controllerUserID = user.ID
+	userAccess := userAccesses[0]
+	controllerUserAccess = UserAccess{
+		UserID:           userAccess.UserID,
+		AccessID:         userAccess.AccessID,
+		Name:             userAccess.Name,
+		Description:      userAccess.Description,
+		BlockchainAccess: userAccess.BlockchainAccess,
+		ExtendedMethods:  userAccess.ExtendedMethods,
+	}
 
 	err = InitDatabaseClient()
 	if err != nil {
@@ -124,10 +131,10 @@ func Server() {
 	}
 
 	// Fill NodeConfigList with initial nodes from environment variables
-	configs.ConfigList.InitNodeConfigList()
+	nodeConfigs.InitNodeConfiguration()
 
 	// Parse nodes and set list of proxies
-	for i, nodeConfig := range configs.ConfigList.Configs {
+	for i, nodeConfig := range nodeConfigs.NodeConfigs {
 		gethUrl, err := url.Parse(fmt.Sprintf("http://%s:%d", nodeConfig.Addr, nodeConfig.Port))
 		if err != nil {
 			log.Fatal(err)
@@ -156,7 +163,7 @@ func Server() {
 	}
 
 	serveMux := http.NewServeMux()
-	serveMux.Handle("/nb/", authMiddleware(http.HandlerFunc(lbHandler)))
+	serveMux.Handle("/nb/", accessMiddleware(http.HandlerFunc(lbHandler)))
 	serveMux.HandleFunc("/ping", pingRoute)
 
 	// Set common middlewares, from bottom to top
