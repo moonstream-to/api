@@ -17,9 +17,24 @@ type NodeStatusResponse struct {
 	CurrentBlock uint64 `json:"current_block"`
 }
 
+// Bugout responses
 type BugoutUserResponse struct {
-	ID string `json:"user_id"`
+	ID            string `json:"user_id"`
 	ApplicationID string `json:"application_id"`
+}
+
+type BugoutResourceDataResponse struct {
+	UserID           string `json:"user_id"`
+	BlockchainAccess bool   `json:"blockchain_access"`
+}
+
+type BugoutResourceResponse struct {
+	ID           string                     `json:"id"`
+	ResourceData BugoutResourceDataResponse `json:"resource_data"`
+}
+
+type BugoutResourcesResponse struct {
+	Resources []BugoutResourceResponse `json:"resources"`
 }
 
 // Node - which one node client worked with

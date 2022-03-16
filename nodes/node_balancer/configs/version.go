@@ -1,3 +1,3 @@
 package configs
 
-var NODE_BALANCER_VERSION = "0.0.1"
+var NODE_BALANCER_VERSION = "0.0.2"

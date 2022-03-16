@@ -5,7 +5,6 @@ package cmd
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -18,7 +17,13 @@ import (
 	"github.com/google/uuid"
 )
 
-var reporter *humbug.HumbugReporter
+var (
+	// User id to controll access to blockchain nodes
+	controllerUserID string
+
+	// Crash reporter
+	reporter *humbug.HumbugReporter
+)
 
 // initHealthCheck runs a routine for check status of the nodes every 5 seconds
 func initHealthCheck(debug bool) {
@@ -92,24 +97,7 @@ func proxyErrorHandler(proxy *httputil.ReverseProxy, url *url.URL) {
 	}
 }
 
-func InitServer() {
-	var listeningAddr string
-	var listeningPort string
-	var enableHealthCheck bool
-	var enableDebug bool
-	var showVersion bool
-	flag.StringVar(&listeningAddr, "host", "127.0.0.1", "Server listening address")
-	flag.StringVar(&listeningPort, "port", "8544", "Server listening port")
-	flag.BoolVar(&enableHealthCheck, "healthcheck", false, "To enable healthcheck ser healthcheck flag")
-	flag.BoolVar(&enableDebug, "debug", false, "To enable debug mode with extended log set debug flag")
-	flag.BoolVar(&showVersion, "version", false, "Print version")
-	flag.Parse()
-
-	if showVersion {
-		fmt.Printf("Node balancer version: v%s\n", configs.NODE_BALANCER_VERSION)
-		return
-	}
-
+func Server() {
 	// Generate map of clients
 	CreateClientPools()
 
@@ -123,6 +111,17 @@ func InitServer() {
 	}
 	// Record system information
 	reporter.Publish(humbug.SystemReport())
+
+	user, err := bugoutClient.GetUser(configs.BUGOUT_NODE_BALANCER_CONTROLLER_TOKEN)
+	if err != nil {
+		fmt.Printf("Unable to access Bugout authentication server %v", err)
+	}
+	controllerUserID = user.ID
+
+	err = InitDatabaseClient()
+	if err != nil {
+		fmt.Printf("Unable to initialize database connection %v", err)
+	}
 
 	// Fill NodeConfigList with initial nodes from environment variables
 	configs.ConfigList.InitNodeConfigList()
@@ -165,18 +164,18 @@ func InitServer() {
 	commonHandler = panicMiddleware(commonHandler)
 
 	server := http.Server{
-		Addr:         fmt.Sprintf("%s:%s", listeningAddr, listeningPort),
+		Addr:         fmt.Sprintf("%s:%s", stateCLI.listeningAddr, stateCLI.listeningPort),
 		Handler:      commonHandler,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
 
 	// Start node health checking and current block fetching
-	if enableHealthCheck {
-		go initHealthCheck(enableDebug)
+	if stateCLI.enableHealthCheck {
+		go initHealthCheck(stateCLI.enableDebug)
 	}
 
-	log.Printf("Starting server at %s:%s\n", listeningAddr, listeningPort)
+	log.Printf("Starting server at %s:%s\n", stateCLI.listeningAddr, stateCLI.listeningPort)
 	err = server.ListenAndServe()
 	if err != nil {
 		log.Fatal(err)
