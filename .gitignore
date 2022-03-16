@@ -1,3 +1,4 @@
 .secrets/
+.idea/
 .vscode/
 .DS_Store

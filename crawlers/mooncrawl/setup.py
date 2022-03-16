@@ -37,7 +37,7 @@ setup(
         "bugout>=0.1.19",
         "chardet",
         "fastapi",
-        "moonstreamdb>=0.2.2",
+        "moonstreamdb>=0.2.3",
         "moonworm==0.1.11",
         "humbug",
         "pydantic",
