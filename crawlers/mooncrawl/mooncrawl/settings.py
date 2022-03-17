@@ -98,3 +98,9 @@ if MOONSTREAM_S3_QUERIES_BUCKET_PREFIX == "":
     raise ValueError(
         "MOONSTREAM_S3_QUERIES_BUCKET_PREFIX environment variable must be set"
     )
+
+# Node balancer
+NB_ACCESS_ID_HEADER = os.environ.get("NB_ACCESS_ID_HEADER", "x-node-balancer-access-id")
+NB_DATA_SOURCE_HEADER = os.environ.get(
+    "NB_DATA_SOURCE_HEADER", "x-node-balancer-data-source"
+)
