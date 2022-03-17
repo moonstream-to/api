@@ -15,6 +15,38 @@ import (
 	configs "github.com/bugout-dev/moonstream/nodes/node_balancer/configs"
 )
 
+var ALLOWED_METHODS = []string{
+	"eth_blockNumber",
+	"eth_estimateGas",
+	"eth_gasPrice",
+	"eth_getBalance",
+	"eth_getBlockByHash",
+	"eth_getBlockByNumber",
+	"eth_getBlockTransactionCountByHash",
+	"eth_getBlockTransactionCountByNumber",
+	"eth_getCode",
+	"eth_getStorageAt",
+	"eth_getTransactionByHash",
+	"eth_getTransactionByBlockHashAndIndex",
+	"eth_getTransactionByBlockNumberAndIndex",
+	"eth_getTransactionCount",
+	"eth_getTransactionReceipt",
+	"eth_getUncleByBlockHashAndIndex",
+	"eth_getUncleByBlockNumberAndIndex",
+	"eth_getUncleCountByBlockHash",
+	"eth_getUncleCountByBlockNumber",
+	"eth_getWork",
+	"eth_protocolVersion",
+	"eth_syncing",
+}
+
+type JSONRPCRequest struct {
+	Jsonrpc string        `json:"jsonrpc"`
+	Method  string        `json:"method"`
+	Params  []interface{} `json:"params"`
+	ID      uint64        `json:"id"`
+}
+
 // pingRoute response with status of load balancer server itself
 func pingRoute(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -109,7 +141,8 @@ func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string,
 		node.GethReverseProxy.ServeHTTP(w, r)
 		return
 	case currentUserAccess.dataSource == "database":
-		lbDatabaseHandler(w, r, blockchain)
+		// lbDatabaseHandler(w, r, blockchain)
+		http.Error(w, "Database access under development", http.StatusInternalServerError)
 		return
 	default:
 		http.Error(w, fmt.Sprintf("Unacceptable data source %s", currentUserAccess.dataSource), http.StatusBadRequest)
@@ -132,8 +165,6 @@ func parseJSONRPCRequest(r *http.Request) (JSONRPCRequest, error) {
 	return jsonrpcRequest, nil
 }
 
-var ALLOWED_METHODS = []string{"eth_getBlockByNumber"}
-
 func verifyMethodWhitelisted(method string) error {
 	for _, m := range ALLOWED_METHODS {
 		if method == m {
@@ -141,13 +172,6 @@ func verifyMethodWhitelisted(method string) error {
 		}
 	}
 	return fmt.Errorf("Method not allowed")
-}
-
-type JSONRPCRequest struct {
-	Jsonrpc string        `json:"jsonrpc"`
-	Method  string        `json:"method"`
-	Params  []interface{} `json:"params"`
-	ID      uint64        `json:"id"`
 }
 
 func lbDatabaseHandler(w http.ResponseWriter, r *http.Request, blockchain string) {
