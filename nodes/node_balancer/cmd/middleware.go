@@ -71,6 +71,11 @@ func accessMiddleware(next http.Handler) http.Handler {
 			}
 		}
 
+		if accessID == "" {
+			http.Error(w, "No authorization header passed with request", http.StatusForbidden)
+			return
+		}
+
 		// If access id does not belong to controller, then find it in Bugout resources
 		if accessID == configs.NB_CONTROLLER_ACCESS_ID {
 			currentUserAccess = controllerUserAccess
