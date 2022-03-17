@@ -49,14 +49,17 @@ func (s *StateCLI) checkRequirements() {
 		switch {
 		case s.serverCmd.Parsed():
 			s.serverCmd.PrintDefaults()
+			return
 		case s.usersCmd.Parsed():
 			s.usersCmd.PrintDefaults()
+			return
 		case s.versionCmd.Parsed():
 			s.versionCmd.PrintDefaults()
+			return
 		default:
 			s.usage()
+			return
 		}
-		os.Exit(1)
 	}
 }
 
@@ -92,6 +95,7 @@ func CLI() {
 		stateCLI.checkRequirements()
 
 		Server()
+
 	case "users":
 		stateCLI.usersCmd.Parse(os.Args[2:])
 		stateCLI.checkRequirements()
@@ -107,11 +111,13 @@ func CLI() {
 			return
 		}
 		fmt.Println(string(userAccessesJson))
+
 	case "version":
 		stateCLI.versionCmd.Parse(os.Args[2:])
 		stateCLI.checkRequirements()
 
 		fmt.Printf("v%s\n", configs.NB_VERSION)
+
 	default:
 		stateCLI.usage()
 		os.Exit(1)
