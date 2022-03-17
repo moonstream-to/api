@@ -171,18 +171,18 @@ func Server() {
 	commonHandler = panicMiddleware(commonHandler)
 
 	server := http.Server{
-		Addr:         fmt.Sprintf("%s:%s", stateCLI.listeningAddr, stateCLI.listeningPort),
+		Addr:         fmt.Sprintf("%s:%s", stateCLI.listeningAddrFlag, stateCLI.listeningPortFlag),
 		Handler:      commonHandler,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
 
 	// Start node health checking and current block fetching
-	if stateCLI.enableHealthCheck {
-		go initHealthCheck(stateCLI.enableDebug)
+	if stateCLI.enableHealthCheckFlag {
+		go initHealthCheck(stateCLI.enableDebugFlag)
 	}
 
-	log.Printf("Starting server at %s:%s\n", stateCLI.listeningAddr, stateCLI.listeningPort)
+	log.Printf("Starting server at %s:%s\n", stateCLI.listeningAddrFlag, stateCLI.listeningPortFlag)
 	err = server.ListenAndServe()
 	if err != nil {
 		log.Fatal(err)
