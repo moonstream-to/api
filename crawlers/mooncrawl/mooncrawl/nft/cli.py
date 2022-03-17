@@ -8,6 +8,7 @@ import sys
 import time
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional, cast
+from uuid import UUID
 
 from bugout.app import Bugout
 from bugout.journal import SearchOrder
@@ -20,6 +21,7 @@ from ..blockchain import connect
 from ..data import AvailableBlockchainType
 from ..publish import publish_json
 from ..settings import (
+    NB_CONTROLLER_ACCESS_ID,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_DATA_JOURNAL_ID,
     MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI,
@@ -55,7 +57,11 @@ def web3_client_from_cli_or_env(args: argparse.Namespace) -> Web3:
         raise ValueError(
             "Could not find Web3 connection information in arguments or in MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI environment variable"
         )
-    return connect(AvailableBlockchainType.ETHEREUM, web3_connection_string)
+    return connect(
+        AvailableBlockchainType.ETHEREUM,
+        web3_connection_string,
+        access_id=args.access_id,
+    )
 
 
 def get_latest_block_from_node(web3_client: Web3):
@@ -256,6 +262,14 @@ def ethereum_summary_handler(args: argparse.Namespace) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Moonstream NFT crawlers")
     parser.set_defaults(func=lambda _: parser.print_help())
+
+    parser.add_argument(
+        "--access-id",
+        default=NB_CONTROLLER_ACCESS_ID,
+        type=UUID,
+        help="User access ID",
+    )
+
     subcommands = parser.add_subparsers(description="Subcommands")
 
     parser_ethereum = subcommands.add_parser(

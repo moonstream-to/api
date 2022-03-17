@@ -23,7 +23,7 @@ from .blockchain import (
 )
 from .data import AvailableBlockchainType
 from .publish import publish_json
-from .settings import MOONSTREAM_CRAWL_WORKERS
+from .settings import NB_CONTROLLER_ACCESS_ID, MOONSTREAM_CRAWL_WORKERS
 from .version import MOONCRAWL_VERSION
 
 logging.basicConfig(level=logging.INFO)
@@ -257,6 +257,7 @@ def main() -> None:
 
     parser.add_argument(
         "--access-id",
+        default=NB_CONTROLLER_ACCESS_ID,
         type=UUID,
         help="User access ID",
     )

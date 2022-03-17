@@ -1,5 +1,6 @@
 import os
-from typing import cast
+from typing import cast, Optional
+from uuid import UUID
 
 from bugout.app import Bugout
 
@@ -104,3 +105,10 @@ NB_ACCESS_ID_HEADER = os.environ.get("NB_ACCESS_ID_HEADER", "x-node-balancer-acc
 NB_DATA_SOURCE_HEADER = os.environ.get(
     "NB_DATA_SOURCE_HEADER", "x-node-balancer-data-source"
 )
+
+NB_CONTROLLER_ACCESS_ID: Optional[UUID] = None
+NB_CONTROLLER_ACCESS_ID_RAW = os.environ.get("NB_CONTROLLER_ACCESS_ID", "")
+try:
+    NB_CONTROLLER_ACCESS_ID = UUID(NB_CONTROLLER_ACCESS_ID_RAW)
+except:
+    pass
