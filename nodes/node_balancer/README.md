@@ -6,7 +6,7 @@
 -   Build application
 
 ```bash
-go build -o nodebalancer
+go build -o nodebalancer .
 ```
 
 # Work with nodebalancer
@@ -89,4 +89,11 @@ curl --request GET 'http://127.0.0.1:8544/nb/ethereum/jsonrpc?access_id=<access_
         "params":["0xb71b64", false],
         "id":1
     }'
+```
+
+For Web3 providers `access_id` and `data_source` could be specified in headers
+
+```bash
+--header 'x-node-balancer-data-source: <blockchain/database>'
+--header 'x-node-balancer-access-id: <access_id>'
 ```

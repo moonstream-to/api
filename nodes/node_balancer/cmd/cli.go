@@ -39,6 +39,10 @@ type StateCLI struct {
 	listeningPortFlag     string
 	enableHealthCheckFlag bool
 	enableDebugFlag       bool
+
+	// Users list flags
+	limitFlag  int
+	offsetFlag int
 }
 
 func (s *StateCLI) usage() {
@@ -58,23 +62,23 @@ func (s *StateCLI) checkRequirements() {
 	if s.helpFlag {
 		switch {
 		case s.addAccessCmd.Parsed():
-			fmt.Println("add new user access token")
+			fmt.Printf("Add new user access token\n\n")
 			s.addAccessCmd.PrintDefaults()
 			os.Exit(0)
 		case s.deleteAccessCmd.Parsed():
-			fmt.Println("delete user access token")
+			fmt.Printf("Delete user access token\n\n")
 			s.deleteAccessCmd.PrintDefaults()
 			os.Exit(0)
 		case s.serverCmd.Parsed():
-			fmt.Println("start nodebalancer server")
+			fmt.Printf("Start nodebalancer server\n\n")
 			s.serverCmd.PrintDefaults()
 			os.Exit(0)
 		case s.usersCmd.Parsed():
-			fmt.Println("list user access tokens")
+			fmt.Printf("List user access tokens\n\n")
 			s.usersCmd.PrintDefaults()
 			os.Exit(0)
 		case s.versionCmd.Parsed():
-			fmt.Println("show version")
+			fmt.Printf("Show version\n\n")
 			s.versionCmd.PrintDefaults()
 			os.Exit(0)
 		default:
@@ -86,7 +90,7 @@ func (s *StateCLI) checkRequirements() {
 	switch {
 	case s.addAccessCmd.Parsed():
 		if s.userIDFlag == "" {
-			fmt.Println("User ID should be specified")
+			fmt.Printf("User ID should be specified\n\n")
 			s.addAccessCmd.PrintDefaults()
 			os.Exit(1)
 		}
@@ -94,14 +98,20 @@ func (s *StateCLI) checkRequirements() {
 			s.accessIDFlag = uuid.New().String()
 		}
 		if s.accessNameFlag == "" {
-			fmt.Println("Access name should be specified")
+			fmt.Printf("Access name should be specified\n\n")
 			s.addAccessCmd.PrintDefaults()
 			os.Exit(1)
 		}
 	case s.deleteAccessCmd.Parsed():
 		if s.userIDFlag == "" && s.accessIDFlag == "" {
-			fmt.Println("User or access ID flag should be specified")
+			fmt.Printf("User or access ID flag should be specified\n\n")
 			s.deleteAccessCmd.PrintDefaults()
+			os.Exit(1)
+		}
+	case s.usersCmd.Parsed():
+		if s.offsetFlag < 0 || s.limitFlag < 0 {
+			fmt.Printf("Offset and limit flags should be greater then zero\n\n")
+			s.usersCmd.PrintDefaults()
 			os.Exit(1)
 		}
 	}
@@ -137,6 +147,10 @@ func (s *StateCLI) populateCLI() {
 	s.serverCmd.StringVar(&s.listeningPortFlag, "port", "8544", "Server listening port")
 	s.serverCmd.BoolVar(&s.enableHealthCheckFlag, "healthcheck", false, "To enable healthcheck ser healthcheck flag")
 	s.serverCmd.BoolVar(&s.enableDebugFlag, "debug", false, "To enable debug mode with extended log set debug flag")
+
+	// Users list subcommand flag pointers
+	s.usersCmd.IntVar(&s.limitFlag, "limit", 10, "Output result limit")
+	s.usersCmd.IntVar(&s.offsetFlag, "offset", 0, "Result output offset")
 }
 
 func CLI() {
@@ -216,7 +230,17 @@ func CLI() {
 		}
 
 		var userAccesses []UserAccess
-		for _, resourceData := range resources.Resources {
+
+		offset := stateCLI.offsetFlag
+		if stateCLI.offsetFlag > len(resources.Resources) {
+			offset = len(resources.Resources)
+		}
+		limit := stateCLI.offsetFlag + stateCLI.limitFlag
+		if limit > len(resources.Resources) {
+			limit = len(resources.Resources[offset:]) + offset
+		}
+
+		for _, resourceData := range resources.Resources[offset:limit] {
 			userAccesses = append(userAccesses, resourceData.ResourceData)
 		}
 		userAccessesJson, err := json.Marshal(userAccesses)

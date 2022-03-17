@@ -17,7 +17,10 @@ import (
 
 var ALLOWED_METHODS = []string{
 	"eth_blockNumber",
+	"eth_call",
+	"eth_chainId",
 	"eth_estimateGas",
+	"eth_feeHistory",
 	"eth_gasPrice",
 	"eth_getBalance",
 	"eth_getBlockByHash",
@@ -25,6 +28,7 @@ var ALLOWED_METHODS = []string{
 	"eth_getBlockTransactionCountByHash",
 	"eth_getBlockTransactionCountByNumber",
 	"eth_getCode",
+	"eth_getLogs",
 	"eth_getStorageAt",
 	"eth_getTransactionByHash",
 	"eth_getTransactionByBlockHashAndIndex",
@@ -36,8 +40,16 @@ var ALLOWED_METHODS = []string{
 	"eth_getUncleCountByBlockHash",
 	"eth_getUncleCountByBlockNumber",
 	"eth_getWork",
+	"eth_mining",
+	// "eth_sendRawTransaction",
 	"eth_protocolVersion",
 	"eth_syncing",
+
+	"net_listening",
+	"net_peerCount",
+	"net_version",
+
+	"web3_clientVersion",
 }
 
 type JSONRPCRequest struct {
