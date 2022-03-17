@@ -11,10 +11,36 @@ go build -o nodebalancer
 
 # Work with nodebalancer
 
-## clients
+## add-access
+
+Add new access for user:
 
 ```bash
-nodebalancer clients | jq .
+nodebalancer add-access \
+	--user-id "<user_uuid>" \
+	--access-id "<access_uuid>" \
+	--name "Access name" \
+	--description "Description of access" \
+	--extended-methods false \
+	--blockchain--access true
+```
+
+## delete-access
+
+Delete user access:
+
+```bash
+nodebalancer delete-access \
+	--user-id "<user_uuid>" \
+	--access-id "<access_uuid>"
+```
+
+If `access-id` not specified, all user accesses will be deleted.
+
+## users
+
+```bash
+nodebalancer users | jq .
 ```
 
 This command will return a list of bugout resources of registered users to access node balancer with their `crawlers/app/project` (in our project we will call it `crawlers`).

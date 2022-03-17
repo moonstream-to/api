@@ -111,11 +111,11 @@ func Server() {
 	// Record system information
 	reporter.Publish(humbug.SystemReport())
 
-	userAccesses, err := bugoutClient.GetUserAccesses(configs.NB_CONTROLLER_TOKEN, "", configs.NB_CONTROLLER_ACCESS_ID)
+	resources, err := bugoutClient.GetResources(configs.NB_CONTROLLER_TOKEN, "", configs.NB_CONTROLLER_ACCESS_ID)
 	if err != nil {
 		fmt.Printf("Unable to access Bugout authentication server %v", err)
 	}
-	userAccess := userAccesses[0]
+	userAccess := resources.Resources[0].ResourceData
 	controllerUserAccess = UserAccess{
 		UserID:           userAccess.UserID,
 		AccessID:         userAccess.AccessID,

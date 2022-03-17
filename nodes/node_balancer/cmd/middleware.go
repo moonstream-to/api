@@ -76,17 +76,16 @@ func accessMiddleware(next http.Handler) http.Handler {
 			currentUserAccess = controllerUserAccess
 			currentUserAccess.dataSource = dataSource
 		} else {
-			userAccesses, err := bugoutClient.GetUserAccesses(configs.NB_CONTROLLER_TOKEN, "", accessID)
+			resources, err := bugoutClient.GetResources(configs.NB_CONTROLLER_TOKEN, "", accessID)
 			if err != nil {
 				http.Error(w, "Unable to get user with provided access identifier", http.StatusForbidden)
 				return
 			}
-			if len(userAccesses) == 0 {
+			if len(resources.Resources) == 0 {
 				http.Error(w, "User with provided access identifier not found", http.StatusForbidden)
 				return
 			}
-			userAccess := userAccesses[0]
-
+			userAccess := resources.Resources[0].ResourceData
 			currentUserAccess = UserAccess{
 				UserID:           userAccess.UserID,
 				AccessID:         userAccess.AccessID,
