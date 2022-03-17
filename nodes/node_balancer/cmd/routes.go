@@ -63,8 +63,6 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(currentUserAccess)
-
 	attempts := GetAttemptsFromContext(r)
 	if attempts > configs.NB_CONNECTION_RETRIES {
 		log.Printf("Max attempts reached from %s %s, terminating\n", r.RemoteAddr, r.URL.Path)
