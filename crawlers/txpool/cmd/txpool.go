@@ -143,8 +143,10 @@ func PollTxpoolContent(gethClient *rpc.Client, interval int, reporter *humbug.Hu
 }
 
 func InitTxPool() {
+	var accessID string
 	var blockchain string
 	var intervalSeconds int
+	flag.StringVar(&accessID, "access-id", "", "Access ID for Moonstream node balancer")
 	flag.StringVar(&blockchain, "blockchain", "", "Blockchain to crawl")
 	flag.IntVar(&intervalSeconds, "interval", 1, "Number of seconds to wait between RPC calls to query the transaction pool (default: 1)")
 	flag.Parse()
@@ -179,6 +181,10 @@ func InitTxPool() {
 	gethClient, err := rpc.Dial(MOONSTREAM_IPC_PATH)
 	if err != nil {
 		panic(fmt.Sprintf("Could not connect to geth: %s", err.Error()))
+	}
+	if accessID != "" {
+		gethClient.SetHeader("X-Node-Balancer-Access-Id", accessID)
+		gethClient.SetHeader("X-Node-Balancer-Data-Source", "blockchain")
 	}
 	defer gethClient.Close()
 
