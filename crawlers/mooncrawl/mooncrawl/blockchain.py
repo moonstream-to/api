@@ -53,6 +53,7 @@ def connect(
             "headers": {
                 NB_ACCESS_ID_HEADER: str(access_id),
                 NB_DATA_SOURCE_HEADER: "blockchain",
+                "Content-Type": "application/json",
             }
         }
 
@@ -393,7 +394,11 @@ def crawl_blocks_executor(
                 block_chunk = worker_job_lists[worker]
                 logger.info(f"Spawned process for {len(block_chunk)} blocks")
                 result = executor.submit(
-                    crawl_blocks, blockchain_type, block_chunk, with_transactions
+                    crawl_blocks,
+                    blockchain_type,
+                    block_chunk,
+                    with_transactions,
+                    access_id,
                 )
                 result.add_done_callback(record_error)
                 results.append(result)
