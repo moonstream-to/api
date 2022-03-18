@@ -114,6 +114,8 @@ func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string,
 		}
 
 		r.URL.Path = "/"
+		// If required detailed timeout configuration, define node.GethReverseProxy.Transport = &http.Transport{}
+		// as modified structure of DefaultTransport net/http/transport/DefaultTransport
 		node.GethReverseProxy.ServeHTTP(w, r)
 		return
 	case currentUserAccess.dataSource == "database":

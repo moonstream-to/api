@@ -173,8 +173,8 @@ func Server() {
 	server := http.Server{
 		Addr:         fmt.Sprintf("%s:%s", stateCLI.listeningAddrFlag, stateCLI.listeningPortFlag),
 		Handler:      commonHandler,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		ReadTimeout:  40 * time.Second,
+		WriteTimeout: 40 * time.Second,
 	}
 
 	// Start node health checking and current block fetching
