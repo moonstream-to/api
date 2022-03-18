@@ -108,6 +108,9 @@ func logMiddleware(next http.Handler) http.Handler {
 		}
 
 		if stateCLI.enableDebugFlag {
+			if r.URL.RawQuery != "" {
+				logStr += fmt.Sprintf(" %s", r.URL.RawQuery)
+			}
 			accessID := extractAccessID(r)
 			if accessID != "" {
 				dataSource := extractDataSource(r)
