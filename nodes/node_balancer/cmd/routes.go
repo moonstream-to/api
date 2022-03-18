@@ -4,6 +4,7 @@ Handle routes for load balancer API.
 package cmd
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -14,50 +15,6 @@ import (
 
 	configs "github.com/bugout-dev/moonstream/nodes/node_balancer/configs"
 )
-
-var ALLOWED_METHODS = []string{
-	"eth_blockNumber",
-	"eth_call",
-	"eth_chainId",
-	"eth_estimateGas",
-	"eth_feeHistory",
-	"eth_gasPrice",
-	"eth_getBalance",
-	"eth_getBlockByHash",
-	"eth_getBlockByNumber",
-	"eth_getBlockTransactionCountByHash",
-	"eth_getBlockTransactionCountByNumber",
-	"eth_getCode",
-	"eth_getLogs",
-	"eth_getStorageAt",
-	"eth_getTransactionByHash",
-	"eth_getTransactionByBlockHashAndIndex",
-	"eth_getTransactionByBlockNumberAndIndex",
-	"eth_getTransactionCount",
-	"eth_getTransactionReceipt",
-	"eth_getUncleByBlockHashAndIndex",
-	"eth_getUncleByBlockNumberAndIndex",
-	"eth_getUncleCountByBlockHash",
-	"eth_getUncleCountByBlockNumber",
-	"eth_getWork",
-	"eth_mining",
-	// "eth_sendRawTransaction",
-	"eth_protocolVersion",
-	"eth_syncing",
-
-	"net_listening",
-	"net_peerCount",
-	"net_version",
-
-	"web3_clientVersion",
-}
-
-type JSONRPCRequest struct {
-	Jsonrpc string        `json:"jsonrpc"`
-	Method  string        `json:"method"`
-	Params  []interface{} `json:"params"`
-	ID      uint64        `json:"id"`
-}
 
 // pingRoute response with status of load balancer server itself
 func pingRoute(w http.ResponseWriter, r *http.Request) {
@@ -128,6 +85,20 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string, node *Node, currentUserAccess UserAccess) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Unable to read body", http.StatusBadRequest)
+		return
+	}
+	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
+	var jsonrpcRequest JSONRPCRequest
+	err = json.Unmarshal(body, &jsonrpcRequest)
+	if err != nil {
+		http.Error(w, "Unable to parse JSON RPC request", http.StatusBadRequest)
+		return
+	}
+
 	switch {
 	case currentUserAccess.dataSource == "blockchain":
 		if currentUserAccess.BlockchainAccess == false {
@@ -135,11 +106,6 @@ func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string,
 			return
 		}
 		if currentUserAccess.ExtendedMethods == false {
-			jsonrpcRequest, err := parseJSONRPCRequest(r)
-			if err != nil {
-				http.Error(w, "Unable to parse JSON RPC request", http.StatusBadRequest)
-				return
-			}
 			err = verifyMethodWhitelisted(jsonrpcRequest.Method)
 			if err != nil {
 				http.Error(w, "Method for provided access id not allowed", http.StatusForbidden)
@@ -151,7 +117,7 @@ func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string,
 		node.GethReverseProxy.ServeHTTP(w, r)
 		return
 	case currentUserAccess.dataSource == "database":
-		// lbDatabaseHandler(w, r, blockchain)
+		// lbDatabaseHandler(w, r, blockchain, jsonrpcRequest)
 		http.Error(w, "Database access under development", http.StatusInternalServerError)
 		return
 	default:
@@ -160,37 +126,7 @@ func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string,
 	}
 }
 
-func parseJSONRPCRequest(r *http.Request) (JSONRPCRequest, error) {
-	var jsonrpcRequest JSONRPCRequest
-
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		return jsonrpcRequest, err
-	}
-	err = json.Unmarshal(body, &jsonrpcRequest)
-	if err != nil {
-		return jsonrpcRequest, err
-	}
-
-	return jsonrpcRequest, nil
-}
-
-func verifyMethodWhitelisted(method string) error {
-	for _, m := range ALLOWED_METHODS {
-		if method == m {
-			return nil
-		}
-	}
-	return fmt.Errorf("Method not allowed")
-}
-
-func lbDatabaseHandler(w http.ResponseWriter, r *http.Request, blockchain string) {
-	jsonrpcRequest, err := parseJSONRPCRequest(r)
-	if err != nil {
-		http.Error(w, "Unable to parse JSON RPC request", http.StatusBadRequest)
-		return
-	}
-
+func lbDatabaseHandler(w http.ResponseWriter, r *http.Request, blockchain string, jsonrpcRequest JSONRPCRequest) {
 	switch {
 	case jsonrpcRequest.Method == "eth_getBlockByNumber":
 		var blockNumber uint64

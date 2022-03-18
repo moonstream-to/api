@@ -4,15 +4,58 @@ Server API middlewares.
 package cmd
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
+	"strings"
 
 	"github.com/bugout-dev/moonstream/nodes/node_balancer/configs"
 
 	humbug "github.com/bugout-dev/humbug/go/pkg"
 )
+
+// Extract access_id from header and query. Query takes precedence over header.
+func extractAccessID(r *http.Request) string {
+	var accessID string
+
+	accessIDHeaders := r.Header[configs.NB_ACCESS_ID_HEADER]
+	for _, h := range accessIDHeaders {
+		accessID = h
+	}
+
+	queries := r.URL.Query()
+	for k, v := range queries {
+		if k == "access_id" {
+			accessID = v[0]
+		}
+	}
+
+	return accessID
+}
+
+// Extract data_source from header and query. Query takes precedence over header.
+func extractDataSource(r *http.Request) string {
+	dataSource := "database"
+
+	dataSources := r.Header[configs.NB_DATA_SOURCE_HEADER]
+	for _, h := range dataSources {
+		dataSource = h
+	}
+
+	queries := r.URL.Query()
+	for k, v := range queries {
+		if k == "data_source" {
+			dataSource = v[0]
+		}
+	}
+
+	return dataSource
+}
 
 // Handle panic errors to prevent server shutdown
 func panicMiddleware(next http.Handler) http.Handler {
@@ -34,13 +77,44 @@ func panicMiddleware(next http.Handler) http.Handler {
 // Log access requests in proper format
 func logMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, "Unable to read body", http.StatusBadRequest)
+			return
+		}
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+		if len(body) > 0 {
+			defer r.Body.Close()
+		}
+
 		next.ServeHTTP(w, r)
+
 		ip, _, err := net.SplitHostPort(r.RemoteAddr)
 		if err != nil {
-			log.Printf("Unable to parse client IP: %s\n", r.RemoteAddr)
-		} else {
-			log.Printf("%s %s %s\n", ip, r.Method, r.URL.Path)
+			http.Error(w, fmt.Sprintf("Unable to parse client IP: %s", r.RemoteAddr), http.StatusBadRequest)
+			return
 		}
+		logStr := fmt.Sprintf("%s %s %s", ip, r.Method, r.URL.Path)
+
+		// Parse body and log method if jsonrpc path
+		pathSlice := strings.Split(r.URL.Path, "/")
+		if r.Method == "POST" && pathSlice[len(pathSlice)-1] == "jsonrpc" {
+			var jsonrpcRequest JSONRPCRequest
+			err = json.Unmarshal(body, &jsonrpcRequest)
+			if err != nil {
+				log.Printf("Unable to parse body %v", err)
+			}
+			logStr += fmt.Sprintf(" %s", jsonrpcRequest.Method)
+		}
+
+		if stateCLI.enableDebugFlag {
+			accessID := extractAccessID(r)
+			if accessID != "" {
+				dataSource := extractDataSource(r)
+				logStr += fmt.Sprintf(" %s %s", dataSource, accessID)
+			}
+		}
+		log.Printf("%s\n", logStr)
 	})
 }
 
@@ -49,27 +123,8 @@ func accessMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var currentUserAccess UserAccess
 
-		var accessID string
-		accessIDHeaders := r.Header[configs.NB_ACCESS_ID_HEADER]
-		for _, h := range accessIDHeaders {
-			accessID = h
-		}
-
-		dataSource := "database"
-		dataSources := r.Header[configs.NB_DATA_SOURCE_HEADER]
-		for _, h := range dataSources {
-			dataSource = h
-		}
-
-		queries := r.URL.Query()
-		for k, v := range queries {
-			if k == "access_id" {
-				accessID = v[0]
-			}
-			if k == "data_source" {
-				dataSource = v[0]
-			}
-		}
+		accessID := extractAccessID(r)
+		dataSource := extractDataSource(r)
 
 		if accessID == "" {
 			http.Error(w, "No authorization header passed with request", http.StatusForbidden)

@@ -33,7 +33,7 @@ func initHealthCheck(debug bool) {
 			blockchainPool.HealthCheck()
 			ethereumClients := ethereumClientPool.CleanInactiveClientNodes()
 			polygonClients := polygonClientPool.CleanInactiveClientNodes()
-			log.Printf("Active etehereum clients: %d, polygon clients: %d\n", ethereumClients, polygonClients)
+			log.Printf("Active ethereum clients: %d, polygon clients: %d\n", ethereumClients, polygonClients)
 			if debug {
 				blockchainPool.StatusLog()
 			}
@@ -178,6 +178,7 @@ func Server() {
 	}
 
 	// Start node health checking and current block fetching
+	blockchainPool.HealthCheck()
 	if stateCLI.enableHealthCheckFlag {
 		go initHealthCheck(stateCLI.enableDebugFlag)
 	}
