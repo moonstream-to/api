@@ -265,6 +265,74 @@ def _processEvent(raw_event: Dict[str, Any]):
     return event
 
 
+def populate_with_events(
+    db_session: Session,
+    web3: Web3,
+    blockchain_type: AvailableBlockchainType,
+    label_name: str,
+    populate_from_label: str,
+    abi: List[Dict[str, Any]],
+    from_block: int,
+    to_block: int,
+    batch_size: int = 100,
+):
+    db_blocks_cache = {}
+    current_block = from_block
+
+    events_abi = [event for event in abi if event["type"] == "event"]
+    label_model = get_label_model(blockchain_type)
+
+    pbar = tqdm(total=(to_block - from_block + 1))
+    pbar.set_description(f"Populating events for  blocks {from_block}-{to_block}")
+
+    while current_block <= to_block:
+        batch_end = min(current_block + batch_size, to_block)
+        events = []
+        logger.info("Fetching events")
+        for event_abi in events_abi:
+            raw_events = _fetch_events_chunk(
+                web3,
+                event_abi,
+                current_block,
+                batch_end,
+            )
+            for raw_event in raw_events:
+                raw_event["blockTimestamp"] = get_block_timestamp(
+                    db_session,
+                    web3,
+                    blockchain_type,
+                    raw_event["blockNumber"],
+                    blocks_cache=db_blocks_cache,
+                    max_blocks_batch=1000,
+                )
+                event = _processEvent(raw_event)
+                events.append(event)
+        logger.info(f"Fetched {len(events)} events")
+        txs = (
+            db_session.query(label_model.transaction_hash)
+            .filter(
+                label_name == populate_from_label,
+                label_model.block_number >= current_block,
+                label_model.block_number <= batch_end,
+            )
+            .distinct()
+            .all()
+        )
+        txs_to_populate = [tx[0] for tx in txs]
+
+        events_to_save = []
+        for event in events:
+            if event.transaction_hash in txs_to_populate:
+                events_to_save.append(event)
+
+        logger.info(f"Found {len(events_to_save)} events to save")
+
+        add_events_to_session(db_session, events_to_save, blockchain_type, label_name)
+        commit_session(db_session)
+        pbar.update(batch_end - current_block + 1)
+        current_block = batch_end + 1
+
+
 def crawl(
     db_session: Session,
     web3: Web3,
