@@ -130,7 +130,7 @@ func accessMiddleware(next http.Handler) http.Handler {
 		dataSource := extractDataSource(r)
 
 		if accessID == "" {
-			http.Error(w, "No authorization header passed with request", http.StatusForbidden)
+			http.Error(w, "No access id passed with request", http.StatusForbidden)
 			return
 		}
 
