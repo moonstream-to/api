@@ -276,7 +276,7 @@ def populate_with_events(
     to_block: int,
     batch_size: int = 100,
 ):
-    db_blocks_cache = {}
+
     current_block = from_block
 
     events_abi = [event for event in abi if event["type"] == "event"]
@@ -290,7 +290,11 @@ def populate_with_events(
         events = []
         logger.info("Fetching events")
         txs = (
-            db_session.query(label_model.transaction_hash)
+            db_session.query(
+                label_model.transaction_hash,
+                label_model.block_number,
+                label_model.block_timestamp,
+            )
             .filter(
                 label_model.label == populate_from_label,
                 label_model.block_number >= current_block,
@@ -301,13 +305,14 @@ def populate_with_events(
         )
 
         txs_to_populate = [tx[0] for tx in txs]
+        block_timestamps = {tx[1]: tx[2] for tx in txs}
 
         logger.info(f"Theoretically {len(txs_to_populate)} transactions to populate")
         if len(txs_to_populate) == 0:
             pbar.update(batch_end - current_block + 1)
             current_block = batch_end + 1
             continue
-        # TODO(yhtiyar) don't get blockTimestamp if not required
+
         for event_abi in events_abi:
             raw_events = _fetch_events_chunk(
                 web3,
@@ -316,26 +321,14 @@ def populate_with_events(
                 batch_end,
             )
             for raw_event in raw_events:
-                raw_event["blockTimestamp"] = get_block_timestamp(
-                    db_session,
-                    web3,
-                    blockchain_type,
-                    raw_event["blockNumber"],
-                    blocks_cache=db_blocks_cache,
-                    max_blocks_batch=1000,
-                )
+                if raw_event["transactionHash"] not in txs_to_populate:
+                    continue
+                raw_event["blockTimestamp"] = block_timestamps[raw_event["blockNumber"]]
                 event = _processEvent(raw_event)
                 events.append(event)
-        logger.info(f"Fetched {len(events)} events")
 
-        events_to_save = []
-        for event in events:
-            if event.transaction_hash in txs_to_populate:
-                events_to_save.append(event)
-
-        logger.info(f"Found {len(events_to_save)} events to save")
-
-        add_events_to_session(db_session, events_to_save, blockchain_type, label_name)
+        logger.info(f"Found {len(events)} events for populate")
+        add_events_to_session(db_session, events, blockchain_type, label_name)
         commit_session(db_session)
         pbar.update(batch_end - current_block + 1)
         current_block = batch_end + 1
