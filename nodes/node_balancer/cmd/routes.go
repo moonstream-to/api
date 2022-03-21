@@ -106,8 +106,8 @@ func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string,
 			return
 		}
 		if currentUserAccess.ExtendedMethods == false {
-			err = verifyMethodWhitelisted(jsonrpcRequest.Method)
-			if err != nil {
+			_, exists := ALLOWED_METHODS[jsonrpcRequest.Method]
+			if !exists {
 				http.Error(w, "Method for provided access id not allowed", http.StatusForbidden)
 				return
 			}
