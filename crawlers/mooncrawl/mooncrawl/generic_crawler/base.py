@@ -289,6 +289,25 @@ def populate_with_events(
         batch_end = min(current_block + batch_size, to_block)
         events = []
         logger.info("Fetching events")
+        txs = (
+            db_session.query(label_model.transaction_hash)
+            .filter(
+                label_model.label == populate_from_label,
+                label_model.block_number >= current_block,
+                label_model.block_number <= batch_end,
+            )
+            .distinct()
+            .all()
+        )
+
+        txs_to_populate = [tx[0] for tx in txs]
+
+        logger.info(f"Theoretically {len(txs_to_populate)} transactions to populate")
+        if len(txs_to_populate) == 0:
+            pbar.update(batch_end - current_block + 1)
+            current_block = batch_end + 1
+            continue
+        # TODO(yhtiyar) don't get blockTimestamp if not required
         for event_abi in events_abi:
             raw_events = _fetch_events_chunk(
                 web3,
@@ -308,17 +327,6 @@ def populate_with_events(
                 event = _processEvent(raw_event)
                 events.append(event)
         logger.info(f"Fetched {len(events)} events")
-        txs = (
-            db_session.query(label_model.transaction_hash)
-            .filter(
-                label_name == populate_from_label,
-                label_model.block_number >= current_block,
-                label_model.block_number <= batch_end,
-            )
-            .distinct()
-            .all()
-        )
-        txs_to_populate = [tx[0] for tx in txs]
 
         events_to_save = []
         for event in events:
