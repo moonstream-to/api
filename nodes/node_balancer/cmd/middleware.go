@@ -139,7 +139,11 @@ func accessMiddleware(next http.Handler) http.Handler {
 			currentUserAccess = controllerUserAccess
 			currentUserAccess.dataSource = dataSource
 		} else {
-			resources, err := bugoutClient.GetResources(configs.NB_CONTROLLER_TOKEN, "", accessID)
+			resources, err := bugoutClient.Brood.GetResources(
+				configs.NB_CONTROLLER_TOKEN,
+				configs.NB_APPLICATION_ID,
+				map[string]string{"access_id": accessID},
+			)
 			if err != nil {
 				http.Error(w, "Unable to get user with provided access identifier", http.StatusForbidden)
 				return
@@ -148,7 +152,17 @@ func accessMiddleware(next http.Handler) http.Handler {
 				http.Error(w, "User with provided access identifier not found", http.StatusForbidden)
 				return
 			}
-			userAccess := resources.Resources[0].ResourceData
+			resource_data, err := json.Marshal(resources.Resources[0].ResourceData)
+			if err != nil {
+				http.Error(w, "Unable to encode resource data interface to json", http.StatusInternalServerError)
+				return
+			}
+			var userAccess UserAccess
+			err = json.Unmarshal(resource_data, &userAccess)
+			if err != nil {
+				http.Error(w, "Unable to decode resource data json to structure", http.StatusInternalServerError)
+				return
+			}
 			currentUserAccess = UserAccess{
 				UserID:           userAccess.UserID,
 				AccessID:         userAccess.AccessID,

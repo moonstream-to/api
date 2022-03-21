@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -111,11 +112,27 @@ func Server() {
 	// Record system information
 	reporter.Publish(humbug.SystemReport())
 
-	resources, err := bugoutClient.GetResources(configs.NB_CONTROLLER_TOKEN, "", configs.NB_CONTROLLER_ACCESS_ID)
+	// TODO(kompotkot): Remove, make it work without brood for internal crawlers
+	resources, err := bugoutClient.Brood.GetResources(
+		configs.NB_CONTROLLER_TOKEN,
+		configs.NB_APPLICATION_ID,
+		map[string]string{"access_id": configs.NB_CONTROLLER_ACCESS_ID},
+	)
 	if err != nil {
-		fmt.Printf("Unable to access Bugout authentication server %v", err)
+		fmt.Printf("Unable to get user with provided access identifier %v", err)
 	}
-	userAccess := resources.Resources[0].ResourceData
+	if len(resources.Resources) == 0 {
+		fmt.Printf("User with provided access identifier not found %v", err)
+	}
+	resource_data, err := json.Marshal(resources.Resources[0].ResourceData)
+	if err != nil {
+		fmt.Printf("Unable to encode resource data interface to json %v", err)
+	}
+	var userAccess UserAccess
+	err = json.Unmarshal(resource_data, &userAccess)
+	if err != nil {
+		fmt.Printf("Unable to decode resource data json to structure %v", err)
+	}
 	controllerUserAccess = UserAccess{
 		UserID:           userAccess.UserID,
 		AccessID:         userAccess.AccessID,

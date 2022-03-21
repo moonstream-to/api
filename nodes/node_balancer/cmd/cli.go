@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	bugout "github.com/bugout-dev/bugout-go/pkg"
 	"github.com/bugout-dev/moonstream/nodes/node_balancer/configs"
 
 	"github.com/google/uuid"
@@ -13,6 +14,8 @@ import (
 
 var (
 	stateCLI StateCLI
+
+	bugoutClient bugout.BugoutClient
 )
 
 // Command Line Interface state
@@ -43,6 +46,21 @@ type StateCLI struct {
 	// Users list flags
 	limitFlag  int
 	offsetFlag int
+}
+
+type PingResponse struct {
+	Status string `json:"status"`
+}
+
+type UserAccess struct {
+	UserID           string `json:"user_id"`
+	AccessID         string `json:"access_id"`
+	Name             string `json:"name"`
+	Description      string `json:"description"`
+	BlockchainAccess bool   `json:"blockchain_access"`
+	ExtendedMethods  bool   `json:"extended_methods"`
+
+	dataSource string
 }
 
 func (s *StateCLI) usage() {
@@ -174,23 +192,45 @@ func CLI() {
 			BlockchainAccess: stateCLI.blockchainAccessFlag,
 			ExtendedMethods:  stateCLI.extendedMethodsFlag,
 		}
-		userAccess, err := bugoutClient.AddUserAccess(configs.NB_CONTROLLER_TOKEN, proposedUserAccess)
+		_, err := bugoutClient.Brood.FindUser(
+			configs.NB_CONTROLLER_TOKEN,
+			map[string]string{
+				"user_id":        proposedUserAccess.UserID,
+				"application_id": configs.NB_APPLICATION_ID,
+			},
+		)
+		if err != nil {
+			fmt.Printf("User does not exists %v\n", err)
+			os.Exit(1)
+		}
+		resource, err := bugoutClient.Brood.CreateResource(configs.NB_CONTROLLER_TOKEN, configs.NB_APPLICATION_ID, proposedUserAccess)
 		if err != nil {
 			fmt.Printf("Unable to create user access %v\n", err)
 			os.Exit(1)
 		}
-		userAccessJson, err := json.Marshal(userAccess)
+		resource_data, err := json.Marshal(resource.ResourceData)
 		if err != nil {
-			fmt.Printf("Unable to marshal user access struct %v\n", err)
+			fmt.Printf("Unable to encode resource %s data interface to json %v", resource.Id, err)
 			os.Exit(1)
 		}
-		fmt.Println(string(userAccessJson))
+		fmt.Println(string(resource_data))
 
 	case "delete-access":
 		stateCLI.deleteAccessCmd.Parse(os.Args[2:])
 		stateCLI.checkRequirements()
 
-		resources, err := bugoutClient.GetResources(configs.NB_CONTROLLER_TOKEN, stateCLI.userIDFlag, stateCLI.accessIDFlag)
+		queryParameters := make(map[string]string)
+		if stateCLI.userIDFlag != "" {
+			queryParameters["user_id"] = stateCLI.userIDFlag
+		}
+		if stateCLI.accessIDFlag != "" {
+			queryParameters["access_id"] = stateCLI.accessIDFlag
+		}
+		resources, err := bugoutClient.Brood.GetResources(
+			configs.NB_CONTROLLER_TOKEN,
+			configs.NB_APPLICATION_ID,
+			queryParameters,
+		)
 		if err != nil {
 			fmt.Printf("Unable to get Bugout resources %v\n", err)
 			os.Exit(1)
@@ -198,12 +238,23 @@ func CLI() {
 
 		var userAccesses []UserAccess
 		for _, resource := range resources.Resources {
-			deletedResource, err := bugoutClient.DeleteResource(configs.NB_CONTROLLER_TOKEN, resource.ID)
+			deletedResource, err := bugoutClient.Brood.DeleteResource(configs.NB_CONTROLLER_TOKEN, resource.Id)
 			if err != nil {
-				fmt.Printf("Unable to delete resource with id %s %v\n", resource.ID, err)
+				fmt.Printf("Unable to delete resource %s %v\n", resource.Id, err)
 				continue
 			}
-			userAccesses = append(userAccesses, deletedResource.ResourceData)
+			resource_data, err := json.Marshal(deletedResource.ResourceData)
+			if err != nil {
+				fmt.Printf("Unable to encode resource %s data interface to json %v", resource.Id, err)
+				continue
+			}
+			var userAccess UserAccess
+			err = json.Unmarshal(resource_data, &userAccess)
+			if err != nil {
+				fmt.Printf("Unable to decode resource %s data json to structure %v", resource.Id, err)
+				continue
+			}
+			userAccesses = append(userAccesses, userAccess)
 		}
 
 		userAccessesJson, err := json.Marshal(userAccesses)
@@ -223,7 +274,18 @@ func CLI() {
 		stateCLI.usersCmd.Parse(os.Args[2:])
 		stateCLI.checkRequirements()
 
-		resources, err := bugoutClient.GetResources(configs.NB_CONTROLLER_TOKEN, stateCLI.userIDFlag, stateCLI.accessIDFlag)
+		var queryParameters map[string]string
+		if stateCLI.userIDFlag != "" {
+			queryParameters["user_id"] = stateCLI.userIDFlag
+		}
+		if stateCLI.accessIDFlag != "" {
+			queryParameters["access_id"] = stateCLI.accessIDFlag
+		}
+		resources, err := bugoutClient.Brood.GetResources(
+			configs.NB_CONTROLLER_TOKEN,
+			configs.NB_APPLICATION_ID,
+			queryParameters,
+		)
 		if err != nil {
 			fmt.Printf("Unable to get Bugout resources %v\n", err)
 			os.Exit(1)
@@ -240,8 +302,19 @@ func CLI() {
 			limit = len(resources.Resources[offset:]) + offset
 		}
 
-		for _, resourceData := range resources.Resources[offset:limit] {
-			userAccesses = append(userAccesses, resourceData.ResourceData)
+		for _, resource := range resources.Resources[offset:limit] {
+			resource_data, err := json.Marshal(resource.ResourceData)
+			if err != nil {
+				fmt.Printf("Unable to encode resource %s data interface to json %v", resource.Id, err)
+				continue
+			}
+			var userAccess UserAccess
+			err = json.Unmarshal(resource_data, &userAccess)
+			if err != nil {
+				fmt.Printf("Unable to decode resource %s data json to structure %v", resource.Id, err)
+				continue
+			}
+			userAccesses = append(userAccesses, userAccess)
 		}
 		userAccessesJson, err := json.Marshal(userAccesses)
 		if err != nil {
@@ -265,5 +338,11 @@ func CLI() {
 func init() {
 	configs.VerifyEnvironments()
 
-	InitBugoutClient()
+	// Init bugout client
+	bc, err := bugout.ClientFromEnv()
+	if err != nil {
+		fmt.Printf("Unable to initialize bugout client %v", err)
+		os.Exit(1)
+	}
+	bugoutClient = bc
 }
