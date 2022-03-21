@@ -6,6 +6,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Union, Literal
 from uuid import UUID
 from xmlrpc.client import Boolean
+from fastapi import Query
 
 from pydantic import BaseModel, Field
 from sqlalchemy import false
@@ -13,6 +14,8 @@ from sqlalchemy import false
 USER_ONBOARDING_STATE = "onboarding_state"
 
 BUGOUT_RESOURCE_QUERY_RESOLVER = "query_name_resolver"
+
+QUERIES_VERSION = "0.2"
 
 
 class TimeScale(Enum):

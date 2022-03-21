@@ -29,9 +29,7 @@ from ..settings import bugout_client as bc
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(
-    prefix="/queries",
-)
+router = APIRouter(prefix="/queries",)
 
 
 @router.get("/list", tags=["queries"])
@@ -138,9 +136,15 @@ async def create_query_handler(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
             entry_id=entry.id,
-            tags=[f"query_id:{entry.id}", f"preapprove"],
+            tags=[
+                f"query_id:{entry.id}",
+                f"preapprove",
+                f"user_id:{str(user.id)}",
+                f"user_name:{user.username}",
+                f"name:{query_name}",
+                f"version:{data.QUERIES_VERSION}",
+            ],
         )
-
     except BugoutResponseException as e:
         logger.error(f"Error in applind tags to query entry: {str(e)}")
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
@@ -222,8 +226,7 @@ async def update_query_handler(
 
 
 @router.post(
-    "/{query_name}/update_data",
-    tags=["queries"],
+    "/{query_name}/update_data", tags=["queries"],
 )
 async def update_query_data_handler(
     request: Request,
@@ -284,8 +287,7 @@ async def update_query_data_handler(
 
             if responce.status_code != 200:
                 raise MoonstreamHTTPException(
-                    status_code=responce.status_code,
-                    detail=responce.text,
+                    status_code=responce.status_code, detail=responce.text,
                 )
 
             s3_response = data.QueryPresignUrl(**responce.json())
@@ -300,8 +302,7 @@ async def update_query_data_handler(
 
 @router.get("/{query_name}", tags=["queries"])
 async def get_access_link_handler(
-    request: Request,
-    query_name: str,
+    request: Request, query_name: str,
 ) -> Optional[data.QueryPresignUrl]:
     """
     Request S3 presign url
@@ -364,8 +365,7 @@ async def get_access_link_handler(
 
 @router.delete("/{query_name}", tags=["queries"])
 async def remove_query_handler(
-    request: Request,
-    query_name: str,
+    request: Request, query_name: str,
 ) -> BugoutJournalEntry:
     """
     Request delete query from journal

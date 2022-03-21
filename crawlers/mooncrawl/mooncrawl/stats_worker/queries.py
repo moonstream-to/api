@@ -13,7 +13,7 @@ from ..settings import MOONSTREAM_S3_QUERIES_BUCKET_PREFIX
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-QUERY_REGEX = re.compile("[\[\]@#$%^&?;`/]")
+QUERY_REGEX = re.compile("[\[\]@#$%^&?;`]|/\*|--")
 
 
 class QueryNotValid(Exception):
