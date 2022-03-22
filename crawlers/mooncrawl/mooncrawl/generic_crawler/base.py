@@ -304,7 +304,7 @@ def populate_with_events(
             .all()
         )
 
-        txs_to_populate = [tx[0] for tx in txs]
+        txs_to_populate = {tx[0] for tx in txs}
         block_timestamps = {tx[1]: tx[2] for tx in txs}
 
         logger.info(f"Theoretically {len(txs_to_populate)} transactions to populate")
@@ -320,6 +320,7 @@ def populate_with_events(
                 current_block,
                 batch_end,
             )
+            logger.info(f"Fetched {len(raw_events)} events")
             for raw_event in raw_events:
                 if raw_event["transactionHash"] not in txs_to_populate:
                     continue
