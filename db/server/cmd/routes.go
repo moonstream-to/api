@@ -17,9 +17,18 @@ func pingRoute(w http.ResponseWriter, req *http.Request) {
 func (es *extendedServer) blocksLatestRoute(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	var latestBlock BlockNumberResponse
-	row := es.db.QueryRow("SELECT block_number FROM ethereum_blocks ORDER BY block_number DESC LIMIT 1")
-	err := row.Scan(&latestBlock.BlockNumber)
+	var blockLatest BlockLatestResponse
+	row := es.db.QueryRow(`SELECT ethereum_blocks.block_number AS ethereum_block_latest,
+    polygon_blocks_joinquery.block_number AS polygon_block_latest
+FROM ethereum_blocks
+    CROSS JOIN (
+        SELECT block_number
+        FROM polygon_blocks
+        ORDER BY block_number DESC
+    ) AS polygon_blocks_joinquery
+ORDER BY ethereum_blocks.block_number DESC
+LIMIT 1`)
+	err := row.Scan(&blockLatest.EthereumBlockLatest, &blockLatest.PolygonBlockLatest)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Row not found", http.StatusNotFound)
@@ -30,5 +39,5 @@ func (es *extendedServer) blocksLatestRoute(w http.ResponseWriter, req *http.Req
 		return
 	}
 
-	json.NewEncoder(w).Encode(latestBlock)
+	json.NewEncoder(w).Encode(blockLatest)
 }
