@@ -17,26 +17,36 @@ func pingRoute(w http.ResponseWriter, req *http.Request) {
 func (es *extendedServer) blocksLatestRoute(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	var blockNumbers []uint64
 	var blockLatest BlockLatestResponse
-	row := es.db.QueryRow(`SELECT ethereum_blocks.block_number AS ethereum_block_latest,
-    polygon_blocks_joinquery.block_number AS polygon_block_latest
-FROM ethereum_blocks
-    CROSS JOIN (
-        SELECT block_number
-        FROM polygon_blocks
-        ORDER BY block_number DESC
-    ) AS polygon_blocks_joinquery
-ORDER BY ethereum_blocks.block_number DESC
-LIMIT 1`)
-	err := row.Scan(&blockLatest.EthereumBlockLatest, &blockLatest.PolygonBlockLatest)
+	rows, err := es.db.Query(`(SELECT block_number FROM ethereum_blocks ORDER BY block_number DESC LIMIT 1)
+	UNION
+	(SELECT block_number FROM polygon_blocks ORDER BY block_number DESC LIMIT 1)`)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			http.Error(w, "Row not found", http.StatusNotFound)
-		} else {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-		}
 		log.Printf("An error occurred during sql operation: %s", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var bn uint64
+		err := rows.Scan(&bn)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				http.Error(w, "Row not found", http.StatusNotFound)
+			} else {
+				http.Error(w, "Internal server error", http.StatusInternalServerError)
+			}
+			log.Printf("An error occurred during scan sql response: %s", err)
+			return
+		}
+		blockNumbers = append(blockNumbers, bn)
+	}
+
+	blockLatest = BlockLatestResponse{
+		EthereumBlockLatest: blockNumbers[0],
+		PolygonBlockLatest:  blockNumbers[1],
 	}
 
 	json.NewEncoder(w).Encode(blockLatest)
