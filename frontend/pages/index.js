@@ -144,6 +144,8 @@ const assets = {
   game7io: `${AWS_ASSETS_PATH}/featured_by/game7io_logo.png`,
   orangedao: `${AWS_ASSETS_PATH}/featured_by/orangedao_logo.png`,
   meetup: `${AWS_ASSETS_PATH}/featured_by/meetup_logo.png`,
+  gnosis: `${AWS_ASSETS_PATH}/gnosis_chain_logo_no_text.png`,
+  immutable: `${AWS_ASSETS_PATH}/immutable_x_logo.png`,
 };
 
 const carousel_content = [
@@ -151,10 +153,8 @@ const carousel_content = [
   { title: "Ethereum", img: assets["ethereumBlackLogo"] },
   { title: "Ethereum transaction pool", img: assets["ethereumRainbowLogo"] },
   { title: "Polygon", img: assets["maticLogo"] },
-  { title: "Bitcoin coming soon!", img: assets["bitcoinLogo"] },
-  { title: "Ethereum", img: assets["ethereumBlackLogo"] },
-  { title: "Ethereum transaction pool", img: assets["ethereumRainbowLogo"] },
-  { title: "Polygon", img: assets["maticLogo"] },
+  { title: "immutable x coming soon!", img: assets["immutable"] },
+  { title: "gnosis chain coming soon!", img: assets["gnosis"] },
 ];
 const Homepage = () => {
   const ui = useContext(UIContext);
@@ -589,10 +589,9 @@ const Homepage = () => {
               <GridItem
                 px="7%"
                 mt={["32px", "64px", null]}
-                pt={["98px", "126px", null]}
+                py={["98px", "128px", null]}
                 colSpan="12"
                 bgColor="blue.50"
-                pb={["20px", "30px", "92px", null, "92px", "196px"]}
               >
                 <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
                   Trusted by{" "}
@@ -857,10 +856,9 @@ const Homepage = () => {
               <GridItem
                 px="7%"
                 mt={["32px", "64px", null]}
-                pt={["98px", "226px", null]}
+                py={["98px", "128px", null]}
                 colSpan="12"
                 bgColor="blue.50"
-                pb={["20px", "30px", "92px", null, "92px", "196px"]}
               >
                 <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
                   Featured by{" "}
@@ -932,25 +930,25 @@ const Homepage = () => {
                   <Flex direction="row" flexWrap="wrap" placeContent="center">
                     <RouteButton
                       placeSelf="center"
-                      href={`https://github.com/bugout-dev/moonstream`}
-                      size="md"
-                      variant="outline"
-                      colorScheme="blue"
-                      w="250px"
-                      leftIcon={<FaGithubSquare />}
-                    >
-                      git clone moonstream
-                    </RouteButton>
-                    <RouteButton
-                      placeSelf="center"
                       href={"https://discord.gg/K56VNUQGvA"}
-                      size="md"
+                      size="lg"
                       variant="outline"
                       colorScheme="blue"
                       leftIcon={<FaDiscord />}
-                      w="250px"
+                      w="300px"
                     >
                       Join our Discord
+                    </RouteButton>
+                    <RouteButton
+                      placeSelf="center"
+                      href={`https://github.com/bugout-dev/moonstream`}
+                      size="lg"
+                      variant="outline"
+                      colorScheme="blue"
+                      w="300px"
+                      leftIcon={<FaGithubSquare />}
+                    >
+                      git clone moonstream
                     </RouteButton>
                   </Flex>
                   <Button
