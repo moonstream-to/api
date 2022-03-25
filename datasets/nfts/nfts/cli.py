@@ -55,11 +55,12 @@ def handle_initdb(args: argparse.Namespace) -> None:
 
 def handle_materialize(args: argparse.Namespace) -> None:
 
+    if args.start is None or args.end is None:
+        raise ValueError("Set --end  --start")
+
     bounds: Optional[BlockBounds] = None
     if args.start is not None:
         bounds = BlockBounds(starting_block=args.start, ending_block=args.end)
-    elif args.end is not None:
-        raise ValueError("You cannot set --end unless you also set --start")
 
     logger.info(f"Materializing NFT events to datastore: {args.datastore}")
     logger.info(f"Block bounds: {bounds}")
@@ -78,8 +79,8 @@ def handle_materialize(args: argparse.Namespace) -> None:
             moonstream_datastore,
             label_model,
             start_block=bounds.starting_block,
-            end_block=bounds.starting_block + 500000,
-            batch_size=10000,
+            end_block=bounds.ending_block,
+            batch_size=args.batch_size,
         )
 
 

@@ -34,6 +34,7 @@ class NftTransaction:
 @dataclass
 class NftApprovalEvent:
     blockchain_type: str
+    token_address: str
     owner: str
     approved: str
     token_id: str
@@ -44,6 +45,7 @@ class NftApprovalEvent:
 @dataclass
 class NftApprovalForAllEvent:
     blockchain_type: str
+    token_address: str
     owner: str
     approved: str
     operator: str
@@ -54,6 +56,7 @@ class NftApprovalForAllEvent:
 @dataclass
 class NftTransferEvent:
     blockchain_type: str
+    token_address: str
     from_address: str
     to_address: str
     token_id: str
@@ -64,6 +67,7 @@ class NftTransferEvent:
 @dataclass
 class Erc20TransferEvent:
     blockchain_type: str
+    token_address: str
     from_address: str
     to_address: str
     value: int

@@ -27,6 +27,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 ERC721_LABEL = "erc721"
+ERC20_LABEL = "test-erc20"
 
 
 def _get_last_labeled_erc721_block(
@@ -95,6 +96,7 @@ def _parse_transfer_event(
     if label_model.label_data["args"].get("tokenId") is not None:
         return NftTransferEvent(
             blockchain_type=blockchain_type,
+            token_address=label_model.address,
             from_address=label_model.label_data["args"]["from"],
             to_address=label_model.label_data["args"]["to"],
             token_id=label_model.label_data["args"]["tokenId"],
@@ -104,6 +106,7 @@ def _parse_transfer_event(
     else:
         return Erc20TransferEvent(
             blockchain_type=blockchain_type,
+            token_address=label_model.address,
             from_address=label_model.label_data["args"]["from"],
             to_address=label_model.label_data["args"]["to"],
             value=label_model.label_data["args"]["value"],
@@ -128,6 +131,7 @@ def _parse_approval_event(
         blockchain_type = "polygon"
     return NftApprovalEvent(
         blockchain_type=blockchain_type,
+        token_address=label_model.address,
         owner=label_model.label_data["args"]["owner"],
         approved=label_model.label_data["args"]["approved"],
         token_id=label_model.label_data["args"]["tokenId"],
@@ -152,6 +156,7 @@ def _parse_approval_for_all_event(
         blockchain_type = "polygon"
     return NftApprovalForAllEvent(
         blockchain_type=blockchain_type,
+        token_address=label_model.address,
         owner=label_model.label_data["args"]["owner"],
         operator=label_model.label_data["args"]["operator"],
         approved=label_model.label_data["args"]["approved"],
@@ -196,7 +201,9 @@ def crawl_erc721_labels(
             and_(
                 label_model.block_number >= current_block,
                 label_model.block_number <= batch_end,
-                label_model.label == ERC721_LABEL,
+                or_(
+                    label_model.label == ERC721_LABEL, label_model.label == ERC20_LABEL
+                ),
             )
         )
 

@@ -49,6 +49,7 @@ def create_approvals_table_query(tabel_name) -> str:
 CREATE TABLE IF NOT EXISTS {tabel_name}
     (   
        blockchainType TEXT NOT NULL,
+       tokenAddress TEXT NOT NULL,
        owner TEXT NOT NULL,
        approved TEXT NOT NULL,
        tokenId TEXT NOT NULL,
@@ -65,6 +66,7 @@ def create_approval_for_all_table_query(tabel_name) -> str:
 CREATE TABLE IF NOT EXISTS {tabel_name}
     (   
         blockchainType TEXT NOT NULL,
+        tokenAddress TEXT NOT NULL,
         owner TEXT NOT NULL,
         approved BOOL NOT NULL,
         operator TEXT NOT NULL,
@@ -81,6 +83,7 @@ def create_transfers_table_query(tabel_name) -> str:
 CREATE TABLE IF NOT EXISTS {tabel_name}
     (   
         blockchainType TEXT NOT NULL,
+        tokenAddress TEXT NOT NULL,
         from_address TEXT NOT NULL,
         to_address TEXT NOT NULL,
         tokenId TEXT NOT NULL,
@@ -97,6 +100,7 @@ def create_erc20_transfers_table_query(tabel_name) -> str:
 CREATE TABLE IF NOT EXISTS {tabel_name}
     (   
         blockchainType TEXT NOT NULL,
+        tokenAddress TEXT NOT NULL,
         from_address TEXT NOT NULL,
         to_address TEXT NOT NULL,
         value INTEGER NOT NULL,
@@ -139,6 +143,7 @@ def insert_nft_approval_query(tabel_name):
 INSERT INTO {tabel_name}
     (
         blockchainType,
+        tokenAddress,
         owner,
         approved,
         tokenId,
@@ -147,7 +152,7 @@ INSERT INTO {tabel_name}
     )
 VALUES
     (
-         ?,?,?,?,?,?
+         ?,?,?,?,?,?,?
     );
     """
     return query
@@ -158,6 +163,7 @@ def insert_nft_approval_for_all_query(tabel_name):
 INSERT INTO {tabel_name}
     (
         blockchainType,
+        tokenAddress,
         owner,
         approved,
         operator,
@@ -166,7 +172,7 @@ INSERT INTO {tabel_name}
     )  
 VALUES
     (
-        ?,?,?,?,?,?
+        ?,?,?,?,?,?, ?
     );
     """
     return query
@@ -177,6 +183,7 @@ def insert_nft_transfers_query(tabel_name):
 INSERT INTO {tabel_name}
     (
         blockchainType,
+        tokenAddress,
         from_address,
         to_address,
         tokenId,
@@ -186,7 +193,7 @@ INSERT INTO {tabel_name}
 VALUES
 
     (
-        ?,?,?,?,?,?
+        ?,?,?,?,?,?,?
     );
     """
     return query
@@ -197,6 +204,7 @@ def insert_erc20_transfer_query(tabel_name):
 INSERT INTO {tabel_name}
     (
         blockchainType,
+        tokenAddress,
         from_address,
         to_address,
         value,
@@ -205,7 +213,7 @@ INSERT INTO {tabel_name}
     )
 VALUES
     (
-        ?,?,?,?,?,?
+        ?,?,?,?,?,?,?
     );
     """
     return query
@@ -245,6 +253,7 @@ def nft_approval_to_tuple(nft_approval: NftApprovalEvent) -> Tuple[Any]:
     """
     return (
         nft_approval.blockchain_type,
+        nft_approval.token_address,
         nft_approval.owner,
         nft_approval.approved,
         str(nft_approval.token_id),
@@ -261,6 +270,7 @@ def nft_approval_for_all_to_tuple(
     """
     return (
         nft_approval_for_all.blockchain_type,
+        nft_approval_for_all.token_address,
         nft_approval_for_all.owner,
         nft_approval_for_all.approved,
         nft_approval_for_all.operator,
@@ -275,6 +285,7 @@ def nft_transfer_to_tuple(nft_transfer: NftTransferEvent) -> Tuple[Any]:
     """
     return (
         nft_transfer.blockchain_type,
+        nft_transfer.token_address,
         nft_transfer.from_address,
         nft_transfer.to_address,
         str(nft_transfer.token_id),
@@ -291,6 +302,7 @@ def erc20_nft_transfer_to_tuple(
     """
     return (
         erc20_nft_transfer.blockchain_type,
+        erc20_nft_transfer.token_address,
         erc20_nft_transfer.from_address,
         erc20_nft_transfer.to_address,
         str(erc20_nft_transfer.value),
