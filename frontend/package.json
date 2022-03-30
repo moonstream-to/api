@@ -29,6 +29,7 @@
     "moment": "^2.29.1",
     "next": "11.1.2",
     "nprogress": "^0.2.0",
+    "onboard-os": "^1.0.5",
     "react": "^17.0.2",
     "react-ace": "^9.5.0",
     "react-calendly": "^2.2.1",

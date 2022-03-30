@@ -9,7 +9,6 @@ import { MIXPANEL_EVENTS } from "../providers/AnalyticsProvider/constants";
 const useSignUp = (source) => {
   const ui = useContext(UIContext);
 
-  const router = useRouter();
   const { getUser } = useUser();
   const toast = useToast();
   const { inviteAccept } = useInviteAccept();
@@ -38,8 +37,7 @@ const useSignUp = (source) => {
         });
       }
       getUser();
-      ui.setOnboardingComplete(false);
-      router.push("/welcome", undefined, { shallow: false });
+      ui.setOnboardingComplete(true);
     },
     onError: (error) => {
       toast(error, "error");
