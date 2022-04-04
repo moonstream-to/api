@@ -380,6 +380,21 @@ def insert_events(
     conn.commit()
 
 
+def get_last_saved_block(conn: sqlite3.Connection, blockchain_type: str) -> int:
+    """
+    Returns the last block number that was saved to the database.
+    """
+    cur = conn.cursor()
+
+    query = f"SELECT MAX(block_number) FROM transactions WHERE blockchain_type = '{blockchain_type}'"
+
+    cur.execute(query)
+    if cur.fetchone()[0] is None:
+        return 0
+
+    return cur.fetchone()[0]
+
+
 def setup_database(conn: sqlite3.Connection) -> None:
     """
     Sets up the schema of the Moonstream NFTs dataset in the given SQLite database.

@@ -207,6 +207,8 @@ def crawl_erc721_labels(
             )
         )
 
+        logger.info(f"Found {labels.count()} labels")
+
         transactions = []
         events = []
         for label in labels:
@@ -217,6 +219,6 @@ def crawl_erc721_labels(
                 events.append(parse_event(label))
         insert_transactions(conn, transactions)
         insert_events(conn, events)
-        logger.info(f"Found {len(events)} events and {len(transactions)} transactions")
+        logger.info(f"Saved {len(events)} events and {len(transactions)} transactions")
         pbar.update(batch_end - current_block + 1)
         current_block = batch_end + 1

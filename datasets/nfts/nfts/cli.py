@@ -11,7 +11,7 @@ from moonstreamdb.db import yield_db_session_ctx
 from moonstreamdb.models import EthereumLabel, PolygonLabel
 
 from .data import BlockBounds
-from .datastore import setup_database
+from .datastore import setup_database, get_last_saved_block
 from .derive import (
     current_owners,
     current_market_values,
@@ -74,6 +74,13 @@ def handle_materialize(args: argparse.Namespace) -> None:
     with yield_db_session_ctx() as db_session, contextlib.closing(
         sqlite3.connect(args.datastore)
     ) as moonstream_datastore:
+        last_saved_block = get_last_saved_block(moonstream_datastore)
+        if last_saved_block >= bounds.starting_block:
+            logger.info(
+                f"Skipping blocks {bounds.starting_block}-{last_saved_block}, starting from {last_saved_block + 1}"
+            )
+            bounds.starting_block = last_saved_block + 1
+
         crawl_erc721_labels(
             db_session,
             moonstream_datastore,
