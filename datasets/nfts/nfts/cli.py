@@ -75,6 +75,7 @@ def handle_materialize(args: argparse.Namespace) -> None:
         sqlite3.connect(args.datastore)
     ) as moonstream_datastore:
         last_saved_block = get_last_saved_block(moonstream_datastore, args.blockchain)
+        logger.info(f"Last saved block: {last_saved_block}")
         if last_saved_block >= bounds.starting_block:
             logger.info(
                 f"Skipping blocks {bounds.starting_block}-{last_saved_block}, starting from {last_saved_block + 1}"
