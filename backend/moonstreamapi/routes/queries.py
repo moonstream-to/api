@@ -57,7 +57,7 @@ async def get_list_of_queries_handler(request: Request) -> List[Dict[str, Any]]:
 
 @router.post("/", tags=["queries"])
 async def create_query_handler(
-    request: Request, query_applied: data.PreapprovedQuery = Body(...)
+    request: Request, query_applied: data.NewQuery = Body(...)
 ) -> BugoutJournalEntry:
     """
     Create query in bugout journal
@@ -138,7 +138,6 @@ async def create_query_handler(
             entry_id=entry.id,
             tags=[
                 f"query_id:{entry.id}",
-                f"preapprove",
                 f"user_id:{str(user.id)}",
                 f"user_name:{user.username}",
                 f"name:{query_name}",
@@ -213,7 +212,7 @@ async def update_query_handler(
             entry_id=query_id,
             title=query_name,
             content=request_update.query,
-            tags=["preapprove"],
+            tags=[],
         )
 
     except BugoutResponseException as e:
@@ -250,47 +249,39 @@ async def update_query_data_handler(
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     try:
-        entries = bc.search(
+        entry = bc.get_entry(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
-            query=f"tag:approved tag:query_id:{query_id} !tag:preapprove",
-            limit=1,
-            timeout=5,
+            entry_id=query_id,
         )
-
-        if len(entries.results) == 0:
-            raise MoonstreamHTTPException(
-                status_code=403, detail="Query not approved yet."
-            )
 
         s3_response = None
 
-        if entries.results[0].content:
-            content = entries.results[0].content
+        content = entry.content
 
-            tags = entries.results[0].tags
+        tags = entry.tags
 
-            file_type = "json"
+        file_type = "json"
 
-            if "ext:csv" in tags:
-                file_type = "csv"
+        if "ext:csv" in tags:
+            file_type = "csv"
 
-            responce = requests.post(
-                f"{MOONSTREAM_CRAWLERS_SERVER_URL}:{MOONSTREAM_CRAWLERS_SERVER_PORT}/jobs/{query_id}/query_update",
-                json={
-                    "query": content,
-                    "params": request_update.params,
-                    "file_type": file_type,
-                },
-                timeout=5,
+        responce = requests.post(
+            f"{MOONSTREAM_CRAWLERS_SERVER_URL}:{MOONSTREAM_CRAWLERS_SERVER_PORT}/jobs/{query_id}/query_update",
+            json={
+                "query": content,
+                "params": request_update.params,
+                "file_type": file_type,
+            },
+            timeout=5,
+        )
+
+        if responce.status_code != 200:
+            raise MoonstreamHTTPException(
+                status_code=responce.status_code, detail=responce.text,
             )
 
-            if responce.status_code != 200:
-                raise MoonstreamHTTPException(
-                    status_code=responce.status_code, detail=responce.text,
-                )
-
-            s3_response = data.QueryPresignUrl(**responce.json())
+        s3_response = data.QueryPresignUrl(**responce.json())
     except BugoutResponseException as e:
         logger.error(f"Error in updating query: {str(e)}")
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
@@ -325,35 +316,29 @@ async def get_access_link_handler(
     s3 = boto3.client("s3")
 
     try:
-        entries = bc.search(
+        entry = bc.get_entry(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
-            query=f"tag:approved tag:query_id:{query_id} !tag:preapprove",
-            limit=1,
-            timeout=5,
+            entry_id=query_id,
         )
 
-        s3_response = None
+        tags = entry.tags
 
-        if entries.results and entries.results[0].content:
+        file_type = "json"
 
-            tags = entries.results[0].tags
+        if "ext:csv" in tags:
+            file_type = "csv"
 
-            file_type = "json"
-
-            if "ext:csv" in tags:
-                file_type = "csv"
-
-            stats_presigned_url = s3.generate_presigned_url(
-                "get_object",
-                Params={
-                    "Bucket": MOONSTREAM_S3_QUERIES_BUCKET,
-                    "Key": f"{MOONSTREAM_S3_QUERIES_BUCKET_PREFIX}/queries/{query_id}/data.{file_type}",
-                },
-                ExpiresIn=300000,
-                HttpMethod="GET",
-            )
-            s3_response = data.QueryPresignUrl(url=stats_presigned_url)
+        stats_presigned_url = s3.generate_presigned_url(
+            "get_object",
+            Params={
+                "Bucket": MOONSTREAM_S3_QUERIES_BUCKET,
+                "Key": f"{MOONSTREAM_S3_QUERIES_BUCKET_PREFIX}/queries/{query_id}/data.{file_type}",
+            },
+            ExpiresIn=300000,
+            HttpMethod="GET",
+        )
+        s3_response = data.QueryPresignUrl(url=stats_presigned_url)
     except BugoutResponseException as e:
         logger.error(f"Error in get access link: {str(e)}")
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)

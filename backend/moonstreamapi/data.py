@@ -279,7 +279,7 @@ class UpdateQueryRequest(BaseModel):
     query: str
 
 
-class PreapprovedQuery(BaseModel):
+class NewQuery(BaseModel):
     query: str
     name: str
     public: bool = False
