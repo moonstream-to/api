@@ -937,6 +937,15 @@ const Homepage = () => {
                       variant="outline"
                       colorScheme="blue"
                       w="250px"
+                      onClick={() => {
+                        if (mixpanel.get_distinct_id()) {
+                          mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                            full_url: router.nextRouter.asPath,
+                            buttonName: `Check out our GitHub repository and join our community on
+                            Discord > git clone moonstream`,
+                          });
+                        }
+                      }}
                       leftIcon={<FaGithubSquare />}
                     >
                       git clone moonstream
@@ -949,6 +958,15 @@ const Homepage = () => {
                       colorScheme="blue"
                       leftIcon={<FaDiscord />}
                       w="250px"
+                      onClick={() => {
+                        if (mixpanel.get_distinct_id()) {
+                          mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                            full_url: router.nextRouter.asPath,
+                            buttonName: `Check out our GitHub repository and join our community on
+                            Discord > Join our Discord`,
+                          });
+                        }
+                      }}
                     >
                       Join our Discord
                     </RouteButton>
@@ -958,7 +976,16 @@ const Homepage = () => {
                     placeSelf="center"
                     w={["100%", "100%", "fit-content", null]}
                     maxW={["250px", null, "fit-content"]}
-                    onClick={() => toggleModal({ type: MODAL_TYPES.SIGNUP })}
+                    onClick={() => {
+                      if (mixpanel.get_distinct_id()) {
+                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                          full_url: router.nextRouter.asPath,
+                          buttonName: `Check out our GitHub repository and join our community on
+                          Discord > sign up`,
+                        });
+                      }
+                      toggleModal({ type: MODAL_TYPES.SIGNUP });
+                    }}
                     size="lg"
                     variant="solid"
                     colorScheme="orange"
