@@ -217,8 +217,11 @@ def crawl_erc721_labels(
                 transactions.append(parse_transaction_label(label))
             else:
                 events.append(parse_event(label))
+
+        logger.info(f"Parsed {len(events)} events and {len(transactions)} transactions")
         insert_transactions(conn, transactions)
         insert_events(conn, events)
         logger.info(f"Saved {len(events)} events and {len(transactions)} transactions")
         pbar.update(batch_end - current_block + 1)
+
         current_block = batch_end + 1
