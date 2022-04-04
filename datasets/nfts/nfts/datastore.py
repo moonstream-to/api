@@ -389,10 +389,11 @@ def get_last_saved_block(conn: sqlite3.Connection, blockchain_type: str) -> int:
     query = f"SELECT MAX(blockNumber) FROM transactions WHERE blockchainType = '{blockchain_type}'"
 
     cur.execute(query)
-    if cur.fetchone()[0] is None:
+    result = cur.fetchone()
+    if result is None:
         return 0
 
-    return cur.fetchone()[0]
+    return result[0]
 
 
 def setup_database(conn: sqlite3.Connection) -> None:
