@@ -76,7 +76,7 @@ def handle_materialize(args: argparse.Namespace) -> None:
             moonstream_datastore, args.blockchain.value
         )
         logger.info(f"Last saved block: {last_saved_block}")
-        if last_saved_block >= bounds.starting_block:
+        if last_saved_block and last_saved_block >= bounds.starting_block:
             logger.info(
                 f"Skipping blocks {bounds.starting_block}-{last_saved_block}, starting from {last_saved_block + 1}"
             )

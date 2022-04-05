@@ -380,7 +380,9 @@ def insert_events(
     conn.commit()
 
 
-def get_last_saved_block(conn: sqlite3.Connection, blockchain_type: str) -> int:
+def get_last_saved_block(
+    conn: sqlite3.Connection, blockchain_type: str
+) -> Optional[int]:
     """
     Returns the last block number that was saved to the database.
     """
@@ -390,8 +392,6 @@ def get_last_saved_block(conn: sqlite3.Connection, blockchain_type: str) -> int:
 
     cur.execute(query)
     result = cur.fetchone()
-    if result is None:
-        return 0
 
     return result[0]
 
