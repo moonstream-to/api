@@ -221,7 +221,18 @@ const SplitWithImage = ({
                   variant="outline"
                   mt={[0, 0, null, 16]}
                   size={socialButton ? buttonSize.double : buttonSize.single}
-                  onClick={cta.onClick}
+                  onClick={() => {
+                    if (mixpanel.get_distinct_id()) {
+                      mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                        full_url: router.nextRouter.asPath,
+                        buttonName: `${cta.label}`,
+                        page: `splitWImage`,
+                        section: `${badge}`,
+                      });
+                    }
+
+                    cta.onClick();
+                  }}
                 >
                   {cta.label}
                 </Button>
