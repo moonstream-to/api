@@ -195,7 +195,9 @@ const SplitWithImage = ({
                     if (mixpanel.get_distinct_id()) {
                       mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
                         full_url: router.nextRouter.asPath,
-                        buttonName: `splitWithImage > ${badge} > ${socialButton.title}`,
+                        buttonName: `${socialButton.title}`,
+                        page: `splitWImage`,
+                        section: `${badge}`,
                       });
                     }
                   }}
