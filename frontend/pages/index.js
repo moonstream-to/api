@@ -284,6 +284,7 @@ const Homepage = () => {
           flexDirection="column"
           sx={{ scrollBehavior: "smooth" }}
           bgSize="cover"
+          id="page:landing"
         >
           <Flex
             direction="column"
@@ -910,6 +911,7 @@ const Homepage = () => {
                 pt={["0", "0", "5.125rem", null, "5.125rem"]}
                 pb="120px"
                 px="7%"
+                id={"bottom-line"}
               >
                 <Stack direction="column" justifyContent="center">
                   <chakra.span
@@ -940,8 +942,9 @@ const Homepage = () => {
                         if (mixpanel.get_distinct_id()) {
                           mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
                             full_url: router.nextRouter.asPath,
-                            buttonName: `Check out our GitHub repository and join our community on
-                            Discord > Join our Discord`,
+                            buttonName: `Join our Discord`,
+                            page: `landing`,
+                            section: `bottom-line`,
                           });
                         }
                       }}
@@ -961,8 +964,9 @@ const Homepage = () => {
                         if (mixpanel.get_distinct_id()) {
                           mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
                             full_url: router.nextRouter.asPath,
-                            buttonName: `Check out our GitHub repository and join our community on
-                            Discord > git clone moonstream`,
+                            buttonName: `git clone moonstream`,
+                            page: `landing`,
+                            section: `bottom-line`,
                           });
                         }
                       }}
@@ -980,8 +984,9 @@ const Homepage = () => {
                       if (mixpanel.get_distinct_id()) {
                         mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
                           full_url: router.nextRouter.asPath,
-                          buttonName: `Check out our GitHub repository and join our community on
-                          Discord > sign up`,
+                          buttonName: `sign up`,
+                          page: `landing`,
+                          section: `bottom-line`,
                         });
                       }
                       toggleModal({ type: MODAL_TYPES.SIGNUP });

@@ -1,24 +1,15 @@
-import React, { useContext } from "react";
+import React from "react";
 import { useStatus } from "../../src/core/hooks";
 import { Heading, Text, Flex, Spacer, chakra, Spinner } from "@chakra-ui/react";
 import { getLayout, getLayoutProps } from "../../src/layouts/InfoPageLayout";
-import UserContext from "../../src/core/providers/UserProvider/context";
 
 const Status = () => {
-  const user = useContext(UserContext);
   const healthyStatusText = "Available";
   const downStatusText = "Unavailable";
-  const unauthorizedText = "Please login";
   const healthyStatusColor = "green.900";
   const downStatusColor = "red.600";
 
-  const shortTimestamp = (rawTimestamp) => {
-    return rawTimestamp.replace(/^.+T/, "").replace(/\..+/, "");
-  };
-
-  const {
-    serverListStatusCache,
-  } = useStatus();
+  const { serverListStatusCache } = useStatus();
 
   console.log(serverListStatusCache?.data);
 
@@ -223,20 +214,14 @@ const Status = () => {
               : downStatusText}
           </Text>
         </StatusRow>
-        <StatusRow
-          title="Ethereum latest block"
-          cache={serverListStatusCache}
-        >
+        <StatusRow title="Ethereum latest block" cache={serverListStatusCache}>
           <Text>
             {dbServerStatus?.response?.ethereum_block_latest
               ? dbServerStatus.response.ethereum_block_latest
               : 0}
           </Text>
         </StatusRow>
-        <StatusRow
-          title="Polygon latest block"
-          cache={serverListStatusCache}
-        >
+        <StatusRow title="Polygon latest block" cache={serverListStatusCache}>
           <Text>
             {dbServerStatus?.response?.polygon_block_latest
               ? dbServerStatus.response.polygon_block_latest
@@ -246,7 +231,10 @@ const Status = () => {
 
         <br />
 
-        <StatusRow title="Database replica server" cache={serverListStatusCache}>
+        <StatusRow
+          title="Database replica server"
+          cache={serverListStatusCache}
+        >
           <Text
             color={
               dbReplicaServerStatus?.status_code == 200
@@ -259,20 +247,14 @@ const Status = () => {
               : downStatusText}
           </Text>
         </StatusRow>
-        <StatusRow
-          title="Ethereum latest block"
-          cache={serverListStatusCache}
-        >
+        <StatusRow title="Ethereum latest block" cache={serverListStatusCache}>
           <Text>
             {dbReplicaServerStatus?.response?.ethereum_block_latest
               ? dbReplicaServerStatus.response.ethereum_block_latest
               : 0}
           </Text>
         </StatusRow>
-        <StatusRow
-          title="Polygon latest block"
-          cache={serverListStatusCache}
-        >
+        <StatusRow title="Polygon latest block" cache={serverListStatusCache}>
           <Text>
             {dbReplicaServerStatus?.response?.polygon_block_latest
               ? dbReplicaServerStatus.response.polygon_block_latest
@@ -282,7 +264,10 @@ const Status = () => {
 
         <br />
 
-        <StatusRow title="Unim Leaderboard server" cache={serverListStatusCache}>
+        <StatusRow
+          title="Unim Leaderboard server"
+          cache={serverListStatusCache}
+        >
           <Text
             color={
               unimLeaderboardStatus?.status_code == 200
