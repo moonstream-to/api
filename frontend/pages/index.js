@@ -34,10 +34,7 @@ import { v4 as uuidv4 } from "uuid";
 import RouteButton from "../src/components/RouteButton";
 import { MODAL_TYPES } from "../src/core/providers/OverlayProvider/constants";
 import mixpanel from "mixpanel-browser";
-import {
-  MIXPANEL_PROPS,
-  MIXPANEL_EVENTS,
-} from "../src/core/providers/AnalyticsProvider/constants";
+import { MIXPANEL_EVENTS } from "../src/core/providers/AnalyticsProvider/constants";
 
 const SplitWithImage = dynamic(
   () => import("../src/components/SplitWithImage"),
@@ -653,10 +650,6 @@ const Homepage = () => {
                   cta={{
                     colorScheme: "orange",
                     onClick: () => {
-                      mixpanel.get_distinct_id() &&
-                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer txpool button`,
-                        });
                       router.push("/whitepapers");
                     },
                     label: "NFT market report",
