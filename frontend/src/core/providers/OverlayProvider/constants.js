@@ -13,7 +13,6 @@ export const MODAL_TYPES = {
 export const DRAWER_TYPES = {
   OFF: 0,
   NEW_DASHBOARD: 1,
-  NEW_DASHBOARD_ITEM: 2,
 };
 
 export const ALERT_TYPES = {
