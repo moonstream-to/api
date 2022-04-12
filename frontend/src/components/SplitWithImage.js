@@ -11,10 +11,11 @@ import {
   useColorModeValue,
   Button,
   useBreakpointValue,
+  useToken,
 } from "@chakra-ui/react";
 import React, { useContext } from "react";
 import UIContext from "../core/providers/UIProvider/context";
-import { FaGithubSquare } from "react-icons/fa";
+import { FaDiscord, FaGithubSquare } from "react-icons/fa";
 import RouteButton from "../components/RouteButton";
 
 const Feature = ({ text, icon, iconBg, bullets }) => {
@@ -96,14 +97,17 @@ const SplitWithImage = ({
     return () => observer.unobserve(current);
   }, []);
 
-  const themeColor = useColorModeValue(
-    `${colorScheme}.50`,
-    `${colorScheme}.900`
-  );
-
-  const bgThemeColor = useColorModeValue(
-    `${colorScheme}.900`,
-    `${colorScheme}.50`
+  const [theme100, theme200, theme300, theme900] = useToken(
+    // the key within the theme, in this case `theme.colors`
+    "colors",
+    // the subkey(s), resolving to `theme.colors.red.100`
+    [
+      `${colorScheme}.100`,
+      `${colorScheme}.200`,
+      `${colorScheme}.300`,
+      `${colorScheme}.900`,
+    ]
+    // a single fallback or fallback array matching the length of the previous arg
   );
 
   return (
@@ -132,10 +136,12 @@ const SplitWithImage = ({
               <Text
                 id={`MoonBadge ${elementName}`}
                 textTransform={"uppercase"}
-                color={themeColor}
+                color={"white.100"}
                 fontWeight={600}
                 fontSize={["xs", "sm"]}
-                bg={bgThemeColor}
+                sx={{
+                  background: `linear-gradient(to bottom, ${theme100} 0%,${theme100} 15%,${theme200} 19%,${theme300} 20%,${theme900} 50%,${theme300} 80%,${theme200} 81%,${theme100} 85%,${theme100} 100%);`,
+                }}
                 p={[1, 2]}
                 rounded={"md"}
               >
@@ -174,20 +180,6 @@ const SplitWithImage = ({
               flexWrap="nowrap"
               display={["column", "column", null, "row"]}
             >
-              {cta && (
-                <Button
-                  colorScheme={colorScheme}
-                  w={["100%", "100%", "fit-content", null]}
-                  maxW={["250px", null, "fit-content"]}
-                  variant="outline"
-                  mt={[0, 0, null, 16]}
-                  size={socialButton ? buttonSize.double : buttonSize.single}
-                  onClick={cta.onClick}
-                >
-                  {cta.label}
-                </Button>
-              )}
-
               {socialButton && (
                 <RouteButton
                   isExternal
@@ -198,10 +190,26 @@ const SplitWithImage = ({
                   size={socialButton ? buttonSize.double : buttonSize.single}
                   variant="outline"
                   colorScheme={colorScheme}
-                  leftIcon={<FaGithubSquare />}
+                  leftIcon={
+                    (socialButton.icon == "github" && <FaGithubSquare />) ||
+                    (socialButton.icon == "discord" && <FaDiscord />)
+                  }
                 >
-                  git clone moonstream
+                  {socialButton.title}
                 </RouteButton>
+              )}
+              {cta && (
+                <Button
+                  colorScheme={cta.colorScheme ?? colorScheme}
+                  w={["100%", "100%", "fit-content", null]}
+                  maxW={["250px", null, "fit-content"]}
+                  variant="outline"
+                  mt={[0, 0, null, 16]}
+                  size={socialButton ? buttonSize.double : buttonSize.single}
+                  onClick={cta.onClick}
+                >
+                  {cta.label}
+                </Button>
               )}
             </Flex>
           </Stack>

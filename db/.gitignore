@@ -160,14 +160,29 @@ cython_debug/
 
 # End of https://www.toptal.com/developers/gitignore/api/python,visualstudiocode
 
-# Custom
-dev.env
-prod.env
-dev.env.ps1
-prod.env.ps1
-alembic.dev.ini
-alembic.prod.ini
+# Envionments
+.moonstream/
+.moonstreamdb/
 .db/
 .venv/
+.env/
+
+# Environment variables
+dev.env
+test.env
+prod.env
+moonstreamdb.env
+docker.env
+docker.dev.env
+docker.test.dev
+docker.prod.env
+docker.moonstreamdb.env
+
 .secrets/
-.moonstreamdb
+
+# Alembic migrations
+alembic.test.ini
+alembic.dev.ini
+alembic.prod.ini
+alembic.moonstreamdb.ini
+alembic.docker.ini

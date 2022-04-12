@@ -24,14 +24,13 @@ SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/moonstream-secrets}"
 PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
 AWS_SSM_PARAMETER_PATH="${AWS_SSM_PARAMETER_PATH:-/moonstream/prod}"
 SCRIPT_DIR="$(realpath $(dirname $0))"
-
-# Parameters scripts
 PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.py"
-CHECKENV_PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.bash"
-CHECKENV_NODES_CONNECTIONS_SCRIPT="${SCRIPT_DIR}/nodes-connections.bash"
+
+# Service files
+MOONCRAWL_SERVICE_FILE="mooncrawl.service"
 
 # Ethereum service files
-ETHEREUM_SYNCHRONIZE_SERVICE="ethereum-synchronize.service"
+ETHEREUM_SYNCHRONIZE_SERVICE_FILE="ethereum-synchronize.service"
 ETHEREUM_TRENDING_SERVICE_FILE="ethereum-trending.service"
 ETHEREUM_TRENDING_TIMER_FILE="ethereum-trending.timer"
 ETHEREUM_TXPOOL_SERVICE_FILE="ethereum-txpool.service"
@@ -45,7 +44,7 @@ POLYGON_MISSING_TIMER_FILE="polygon-missing.timer"
 POLYGON_STATISTICS_SERVICE_FILE="polygon-statistics.service"
 POLYGON_STATISTICS_TIMER_FILE="polygon-statistics.timer"
 POLYGON_TXPOOL_SERVICE_FILE="polygon-txpool.service"
-
+POLYGON_MOONWORM_CRAWLER_SERVICE_FILE="polygon-moonworm-crawler.service"
 
 set -eu
 
@@ -75,21 +74,34 @@ AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" "${PYTHON}" "${PARAMETERS_SCRIPT}" ex
 
 echo
 echo
+echo -e "${PREFIX_INFO} Install checkenv"
+HOME=/root /usr/local/go/bin/go install github.com/bugout-dev/checkenv@latest
+
+echo
+echo
 echo -e "${PREFIX_INFO} Retrieving addition deployment parameters"
-bash "${CHECKENV_PARAMETERS_SCRIPT}" -v -p "moonstream" -o "${PARAMETERS_ENV_PATH}"
+AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" /root/go/bin/checkenv show aws_ssm+Product:moonstream >> "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Updating nodes connection parameters"
-bash "${CHECKENV_NODES_CONNECTIONS_SCRIPT}" -v -f "${PARAMETERS_ENV_PATH}"
+echo -e "${PREFIX_INFO} Add instance local IP to parameters"
+echo "AWS_LOCAL_IPV4=$(ec2metadata --local-ipv4)" >> "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Replacing existing Ethereum block with transactions syncronizer service definition with ${ETHEREUM_SYNCHRONIZE_SERVICE}"
-chmod 644 "${SCRIPT_DIR}/${ETHEREUM_SYNCHRONIZE_SERVICE}"
-cp "${SCRIPT_DIR}/${ETHEREUM_SYNCHRONIZE_SERVICE}" "/etc/systemd/system/${ETHEREUM_SYNCHRONIZE_SERVICE}"
+echo -e "${PREFIX_INFO} Replacing existing Moonstream crawlers HTTP API server service definition with ${MOONCRAWL_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${MOONCRAWL_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${MOONCRAWL_SERVICE_FILE}" "/etc/systemd/system/${MOONCRAWL_SERVICE_FILE}"
 systemctl daemon-reload
-systemctl restart "${ETHEREUM_SYNCHRONIZE_SERVICE}"
+systemctl restart "${MOONCRAWL_SERVICE_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Ethereum block with transactions syncronizer service definition with ${ETHEREUM_SYNCHRONIZE_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ETHEREUM_SYNCHRONIZE_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_SYNCHRONIZE_SERVICE_FILE}" "/etc/systemd/system/${ETHEREUM_SYNCHRONIZE_SERVICE_FILE}"
+systemctl daemon-reload
+systemctl restart "${ETHEREUM_SYNCHRONIZE_SERVICE_FILE}"
 
 echo
 echo
@@ -141,7 +153,7 @@ chmod 644 "${SCRIPT_DIR}/${POLYGON_STATISTICS_SERVICE_FILE}" "${SCRIPT_DIR}/${PO
 cp "${SCRIPT_DIR}/${POLYGON_STATISTICS_SERVICE_FILE}" "/etc/systemd/system/${POLYGON_STATISTICS_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${POLYGON_STATISTICS_TIMER_FILE}" "/etc/systemd/system/${POLYGON_STATISTICS_TIMER_FILE}"
 systemctl daemon-reload
-systemctl restart "${POLYGON_STATISTICS_TIMER_FILE}"
+systemctl restart --no-block "${POLYGON_STATISTICS_TIMER_FILE}"
 
 # echo
 # echo
@@ -150,3 +162,11 @@ systemctl restart "${POLYGON_STATISTICS_TIMER_FILE}"
 # cp "${SCRIPT_DIR}/${POLYGON_TXPOOL_SERVICE_FILE}" "/etc/systemd/system/${POLYGON_TXPOOL_SERVICE_FILE}"
 # systemctl daemon-reload
 # systemctl restart "${POLYGON_TXPOOL_SERVICE_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Polygon moonworm crawler service definition with ${POLYGON_MOONWORM_CRAWLER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${POLYGON_MOONWORM_CRAWLER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${POLYGON_MOONWORM_CRAWLER_SERVICE_FILE}" "/etc/systemd/system/${POLYGON_MOONWORM_CRAWLER_SERVICE_FILE}"
+systemctl daemon-reload
+systemctl restart "${POLYGON_MOONWORM_CRAWLER_SERVICE_FILE}"

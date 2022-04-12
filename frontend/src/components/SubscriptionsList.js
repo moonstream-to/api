@@ -10,8 +10,8 @@ import {
   Tooltip,
   Editable,
   EditableInput,
-  Image,
   EditablePreview,
+  Image,
   Button,
   useMediaQuery,
   Accordion,
@@ -47,6 +47,7 @@ const SubscriptionsList = ({ emptyCTA }) => {
     updateSubscription,
     deleteSubscription,
     subscriptionTypeIcons,
+    subscriptionTypeNames,
   } = useSubscriptions();
 
   const updateCallback = ({ id, label, color }) => {
@@ -90,6 +91,7 @@ const SubscriptionsList = ({ emptyCTA }) => {
                 <Th {...cellProps}>Actions</Th>
               </Tr>
             </Thead>
+
             <Tbody>
               {subscriptionsCache.data.subscriptions.map((subscription) => {
                 const iconLink =
@@ -97,7 +99,14 @@ const SubscriptionsList = ({ emptyCTA }) => {
                 return (
                   <Tr key={`token-row-${subscription.id}`}>
                     <Td {...cellProps}>
-                      <Tooltip label="Ethereum blockchain" fontSize="md">
+                      <Tooltip
+                        label={`${
+                          subscriptionTypeNames[
+                            subscription.subscription_type_id
+                          ]
+                        }`}
+                        fontSize="md"
+                      >
                         <Image
                           h={["32px", "16px", "32px", null]}
                           src={iconLink}
@@ -200,7 +209,14 @@ const SubscriptionsList = ({ emptyCTA }) => {
                         textAlign="left"
                         alignItems="center"
                       >
-                        <Tooltip label="Ethereum blockchain" fontSize="md">
+                        <Tooltip
+                          label={`${
+                            subscriptionTypeNames[
+                              subscription.subscription_type_id
+                            ]
+                          }`}
+                          fontSize="md"
+                        >
                           <Image
                             h={["32px", "16px", "32px", null]}
                             src={iconLink}

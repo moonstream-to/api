@@ -2,27 +2,18 @@
 The Moonstream users HTTP API
 """
 import logging
-from typing import Any, Dict, Optional
 import uuid
+from typing import Any, Dict, Optional
 
-from bugout.data import BugoutToken, BugoutUser, BugoutResource, BugoutUserTokens
+from bugout.data import BugoutResource, BugoutToken, BugoutUser, BugoutUserTokens
 from bugout.exceptions import BugoutResponseException
-from fastapi import (
-    APIRouter,
-    Body,
-    Form,
-    Request,
-)
+from fastapi import APIRouter, Body, Form, Request
 
 from .. import data
-from ..middleware import MoonstreamHTTPException
-
-from ..settings import (
-    MOONSTREAM_APPLICATION_ID,
-    bugout_client as bc,
-    BUGOUT_REQUEST_TIMEOUT_SECONDS,
-)
 from ..actions import create_onboarding_resource
+from ..middleware import MoonstreamHTTPException
+from ..settings import BUGOUT_REQUEST_TIMEOUT_SECONDS, MOONSTREAM_APPLICATION_ID
+from ..settings import bugout_client as bc
 
 logger = logging.getLogger(__name__)
 

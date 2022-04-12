@@ -1,39 +1,44 @@
+import hashlib
 import json
+from itertools import chain
 import logging
-from typing import Optional, Dict, Any, Union
+from typing import List, Optional, Dict, Any
 from enum import Enum
 import uuid
 
 import boto3  # type: ignore
-from bugout.data import BugoutSearchResults
-from bugout.exceptions import BugoutResponseException
+
+from bugout.data import (
+    BugoutSearchResults,
+    BugoutSearchResult,
+    BugoutResource,
+    BugoutResources,
+)
 from bugout.journal import SearchOrder
+from bugout.exceptions import BugoutResponseException
 from ens.utils import is_valid_ens_name  # type: ignore
 from eth_utils.address import is_address  # type: ignore
-from moonstreamdb.models import (
-    EthereumLabel,
-)
+from moonstreamdb.models import EthereumLabel
+from slugify import slugify  # type: ignore
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+from web3 import Web3
 from web3._utils.validation import validate_abi
 
-
-from .middleware import MoonstreamHTTPException
 from . import data
-from .reporter import reporter
 from .middleware import MoonstreamHTTPException
-from .settings import ETHERSCAN_SMARTCONTRACTS_BUCKET
-from bugout.data import BugoutResource
+from .reporter import reporter
 from .settings import (
-    MOONSTREAM_APPLICATION_ID,
-    bugout_client as bc,
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
+    ETHERSCAN_SMARTCONTRACTS_BUCKET,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
+    MOONSTREAM_APPLICATION_ID,
     MOONSTREAM_DATA_JOURNAL_ID,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
+    MOONSTREAM_MOONWORM_TASKS_JOURNAL,
 )
-from web3 import Web3
+from .settings import bugout_client as bc
 
 logger = logging.getLogger(__name__)
 
@@ -41,12 +46,26 @@ logger = logging.getLogger(__name__)
 blockchain_by_subscription_id = {
     "ethereum_blockchain": "ethereum",
     "polygon_blockchain": "polygon",
+    "ethereum_smartcontract": "ethereum",
+    "polygon_smartcontract": "polygon",
 }
 
 
 class StatusAPIException(Exception):
     """
     Raised during checking Moonstream API statuses.
+    """
+
+
+class NameNormalizationException(Exception):
+    """
+    Raised on actions when slugify can't normalize name.
+    """
+
+
+class ResourceQueryFetchException(Exception):
+    """
+    Exception in queries API
     """
 
 
@@ -431,3 +450,153 @@ def upload_abi_to_s3(
     update["s3_path"] = result_key
 
     return update
+
+
+def get_all_entries_from_search(
+    journal_id: str, search_query: str, limit: int, token: str
+) -> List[BugoutSearchResult]:
+    """
+    Get all required entries from journal using search interface
+    """
+    offset = 0
+
+    results: List[BugoutSearchResult] = []
+
+    try:
+        existing_metods = bc.search(
+            token=token,
+            journal_id=journal_id,
+            query=search_query,
+            content=False,
+            timeout=10.0,
+            limit=limit,
+            offset=offset,
+        )
+        results.extend(existing_metods.results)
+
+    except Exception as e:
+        reporter.error_report(e)
+
+    if len(results) != existing_metods.total_results:
+
+        for offset in range(limit, existing_metods.total_results, limit):
+            existing_metods = bc.search(
+                token=token,
+                journal_id=journal_id,
+                query=search_query,
+                content=False,
+                timeout=10.0,
+                limit=limit,
+                offset=offset,
+            )
+        results.extend(existing_metods.results)
+
+    return results
+
+
+def apply_moonworm_tasks(
+    subscription_type: str,
+    abi: Any,
+    address: str,
+) -> None:
+    """
+    Get list of subscriptions loads abi and apply them as moonworm tasks if it not exist
+    """
+
+    entries_pack = []
+
+    try:
+        entries = get_all_entries_from_search(
+            journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+            search_query=f"tag:address:{address} tag:subscription_type:{subscription_type}",
+            limit=100,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        )
+
+        existing_tags = [entry.tags for entry in entries]
+
+        existing_hashes = [
+            tag.split(":")[-1]
+            for tag in chain(*existing_tags)
+            if "abi_method_hash" in tag
+        ]
+
+        abi_hashes_dict = {
+            hashlib.md5(json.dumps(method).encode("utf-8")).hexdigest(): method
+            for method in abi
+            if (method["type"] in ("event", "function"))
+            and (method.get("stateMutability", "") != "view")
+        }
+
+        for hash in abi_hashes_dict:
+            if hash not in existing_hashes:
+                entries_pack.append(
+                    {
+                        "title": address,
+                        "content": json.dumps(abi_hashes_dict[hash], indent=4),
+                        "tags": [
+                            f"address:{address}",
+                            f"type:{abi_hashes_dict[hash]['type']}",
+                            f"abi_method_hash:{hash}",
+                            f"subscription_type:{subscription_type}",
+                            f"abi_name:{abi_hashes_dict[hash]['name']}",
+                            f"status:active",
+                        ],
+                    }
+                )
+    except Exception as e:
+        reporter.error_report(e)
+
+    if len(entries_pack) > 0:
+        bc.create_entries_pack(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+            entries=entries_pack,
+            timeout=15,
+        )
+
+
+def name_normalization(query_name: str) -> str:
+    """
+    Sanitize provided query name.
+    """
+    try:
+        normalized_query_name = slugify(
+            query_name, max_length=50, lowercase=False, separator="_"
+        )
+    except Exception as e:
+        logger.error(f"Error in query normalization. Error: {e}")
+        raise NameNormalizationException(f"Can't normalize name:{query_name}")
+
+    return normalized_query_name
+
+
+def get_query_by_name(query_name: str, token: uuid.UUID) -> str:
+    """
+    Fetch query_id from Brood resources.
+    """
+    try:
+        query_name = name_normalization(query_name)
+    except Exception:
+        raise NameNormalizationException("Unable to normalize query name")
+
+    params = {"type": data.BUGOUT_RESOURCE_QUERY_RESOLVER, "name": query_name}
+    try:
+        resources: BugoutResources = bc.list_resources(token=token, params=params)
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        logger.error(f"Error get query, error: {str(e)}")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    available_queries: Dict[str, str] = {
+        resource.resource_data["name"]: resource.resource_data["entry_id"]
+        for resource in resources.resources
+    }
+
+    if query_name not in available_queries:
+        raise MoonstreamHTTPException(status_code=404, detail="Query not found.")
+
+    query_id = available_queries[query_name]
+
+    return query_id

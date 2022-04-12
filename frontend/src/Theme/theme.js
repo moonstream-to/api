@@ -15,7 +15,7 @@ import { createBreakpoints } from "@chakra-ui/theme-tools";
 
 const breakpointsCustom = createBreakpoints({
   sm: "24em", //Mobile phone
-  md: "64em", //Tablet or rotated phone
+  md: "64.01em", //Tablet or rotated phone
   lg: "89.9em", //QHD
   xl: "160em", //4k monitor
   "2xl": "192em", // Mac Book 16" and above

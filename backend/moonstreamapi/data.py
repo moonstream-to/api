@@ -1,21 +1,28 @@
 """
 Pydantic schemas for the Moonstream HTTP API
 """
+from datetime import datetime
 from enum import Enum
-from typing import List, Optional, Dict, Any, Union
+from typing import Any, Dict, List, Optional, Union, Literal
 from uuid import UUID
-
+from xmlrpc.client import Boolean
 
 from pydantic import BaseModel, Field
-from datetime import datetime
+from sqlalchemy import false
 
 USER_ONBOARDING_STATE = "onboarding_state"
+
+BUGOUT_RESOURCE_QUERY_RESOLVER = "query_name_resolver"
 
 
 class TimeScale(Enum):
     month = "month"
     week = "week"
     day = "day"
+
+
+class UpdateStats(BaseModel):
+    timescales: List[str]
 
 
 class SubscriptionTypeResourceData(BaseModel):
@@ -154,6 +161,7 @@ class StreamBoundary(BaseModel):
     end_time: Optional[int] = None
     include_start: bool = False
     include_end: bool = False
+    reversed_time: bool = False
 
 
 class Event(BaseModel):
@@ -230,11 +238,15 @@ class OnboardingState(BaseModel):
     steps: Dict[str, int]
 
 
+class SubdcriptionsAbiResponse(BaseModel):
+    url: str
+
+
 class DashboardMeta(BaseModel):
     subscription_id: UUID
     generic: Optional[List[Dict[str, str]]]
-    all_methods: bool = False
-    all_events: bool = False
+    all_methods: bool = True
+    all_events: bool = True
     methods: List[Dict[str, Any]]
     events: List[Dict[str, Any]]
 
@@ -243,14 +255,32 @@ class DashboardResource(BaseModel):
     type: str
     user_id: str
     name: str
-    dashboard_subscriptions: List[DashboardMeta]
+    subscription_settings: List[DashboardMeta]
 
 
 class DashboardCreate(BaseModel):
     name: str
-    subscriptions: List[DashboardMeta]
+    subscription_settings: List[DashboardMeta]
 
 
 class DashboardUpdate(BaseModel):
     name: Optional[str]
-    subscriptions: List[DashboardMeta] = Field(default_factory=list)
+    subscription_settings: List[DashboardMeta] = Field(default_factory=list)
+
+
+class UpdateDataRequest(BaseModel):
+    params: Dict[str, Any] = Field(default_factory=dict)
+
+
+class UpdateQueryRequest(BaseModel):
+    query: str
+
+
+class PreapprovedQuery(BaseModel):
+    query: str
+    name: str
+    public: bool = False
+
+
+class QueryPresignUrl(BaseModel):
+    url: str

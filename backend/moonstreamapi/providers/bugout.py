@@ -1,9 +1,9 @@
 """
 Event providers powered by Bugout journals.
 """
-from datetime import datetime
 import json
 import logging
+from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
 from bugout.app import Bugout
@@ -14,9 +14,8 @@ from dateutil.tz import UTC
 from sqlalchemy.orm import Session
 
 from .. import data
+from ..settings import HUMBUG_TXPOOL_CLIENT_ID
 from ..stream_queries import StreamQuery
-
-from ..settings import ETHTXPOOL_HUMBUG_CLIENT_ID
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARN)
@@ -327,34 +326,6 @@ class EthereumTXPoolProvider(BugoutEventProvider):
         return subscriptions_filters
 
 
-class PublicDataProvider(BugoutEventProvider):
-    def __init__(
-        self,
-        event_type: str,
-        description: str,
-        default_time_interval_seconds: int,
-        estimated_events_per_time_interval: float,
-        tags: Optional[List[str]] = None,
-        batch_size: int = 100,
-        timeout: float = 30.0,
-    ):
-
-        super().__init__(
-            event_type=event_type,
-            description=description,
-            default_time_interval_seconds=default_time_interval_seconds,
-            estimated_events_per_time_interval=estimated_events_per_time_interval,
-            tags=tags,
-            batch_size=batch_size,
-            timeout=timeout,
-        )
-
-    def parse_filters(
-        self, query: StreamQuery, user_subscriptions: Dict[str, List[BugoutResource]]
-    ) -> Optional[List[str]]:
-        return []
-
-
 whalewatch_description = """Event provider for Ethereum whale watch.
 
 Shows the top 10 addresses active on the Ethereum blockchain over the last hour in the following categories:
@@ -364,12 +335,20 @@ Shows the top 10 addresses active on the Ethereum blockchain over the last hour 
 4. Amount (in WEI) received
 
 To restrict your queries to this provider, add a filter of \"type:ethereum_whalewatch\" to your query (query parameter: \"q\") on the /streams endpoint."""
-whalewatch_provider = PublicDataProvider(
+ethereum_whalewatch_provider = BugoutEventProvider(
     event_type="ethereum_whalewatch",
     description=whalewatch_description,
     default_time_interval_seconds=310,
     estimated_events_per_time_interval=1,
     tags=["crawl_type:ethereum_trending"],
+)
+
+polygon_whalewatch_provider = BugoutEventProvider(
+    event_type="polygon_whalewatch",
+    description=whalewatch_description,
+    default_time_interval_seconds=310,
+    estimated_events_per_time_interval=1,
+    tags=["crawl_type:polygon_trending"],
 )
 
 ethereum_txpool_description = """Event provider for Ethereum transaction pool.
@@ -382,23 +361,5 @@ ethereum_txpool_provider = EthereumTXPoolProvider(
     description=ethereum_txpool_description,
     default_time_interval_seconds=5,
     estimated_events_per_time_interval=50,
-    tags=[f"client:{ETHTXPOOL_HUMBUG_CLIENT_ID}"],
-)
-
-nft_summary_description = """Event provider for NFT market summaries.
-
-This provider periodically generates NFT market summaries for the last hour of market activity.
-
-Currently, it summarizes the activities on the following NFT markets:
-1. The Ethereum market
-
-This provider is currently not accessible for subscription. The data from this provider is publicly
-available at the /nft endpoint."""
-nft_summary_provider = PublicDataProvider(
-    event_type="nft_summary",
-    description=nft_summary_description,
-    # 40 blocks per summary, 15 seconds per block + 2 seconds wiggle room.
-    default_time_interval_seconds=40 * 17,
-    estimated_events_per_time_interval=1,
-    tags=["crawl_type:nft_ethereum"],
+    tags=[f"client:{HUMBUG_TXPOOL_CLIENT_ID}"],
 )

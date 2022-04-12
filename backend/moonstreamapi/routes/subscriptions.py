@@ -2,31 +2,29 @@
 The Moonstream subscriptions HTTP API
 """
 import hashlib
-import logging
 import json
-from typing import List, Optional, Dict, Any
-
+import logging
+from typing import Any, Dict, List, Optional
 
 import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
-from fastapi import APIRouter, Depends, Request, Form
+from fastapi import APIRouter, Depends, Request, Form, BackgroundTasks
 from web3 import Web3
 
-from ..actions import (
-    validate_abi_json,
-    upload_abi_to_s3,
-)
+from ..actions import validate_abi_json, upload_abi_to_s3, apply_moonworm_tasks
 from ..admin import subscription_types
 from .. import data
+from ..actions import upload_abi_to_s3, validate_abi_json
+from ..admin import subscription_types
 from ..middleware import MoonstreamHTTPException
 from ..reporter import reporter
 from ..settings import (
     MOONSTREAM_APPLICATION_ID,
-    bugout_client as bc,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
 )
+from ..settings import bugout_client as bc
 from ..web3_provider import yield_web3_provider
 
 logger = logging.getLogger(__name__)
@@ -41,6 +39,7 @@ BUGOUT_RESOURCE_TYPE_SUBSCRIPTION = "subscription"
 @router.post("/", tags=["subscriptions"], response_model=data.SubscriptionResourceData)
 async def add_subscription_handler(
     request: Request,  # subscription_data: data.CreateSubscriptionRequest = Body(...)
+    background_tasks: BackgroundTasks,
     address: str = Form(...),
     color: str = Form(...),
     label: str = Form(...),
@@ -143,6 +142,13 @@ async def add_subscription_handler(
             logger.error(f"Error getting user subscriptions: {str(e)}")
             raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
+        background_tasks.add_task(
+            apply_moonworm_tasks,
+            subscription_type_id,
+            json_abi,
+            address,
+        )
+
     return data.SubscriptionResourceData(
         id=str(resource.id),
         user_id=resource.resource_data["user_id"],
@@ -234,6 +240,7 @@ async def get_subscriptions_handler(request: Request) -> data.SubscriptionsListR
 async def update_subscriptions_handler(
     request: Request,
     subscription_id: str,
+    background_tasks: BackgroundTasks,
     color: Optional[str] = Form(None),
     label: Optional[str] = Form(None),
     abi: Optional[str] = Form(None),
@@ -301,6 +308,14 @@ async def update_subscriptions_handler(
         logger.error(f"Error getting user subscriptions: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
+    if abi:
+        background_tasks.add_task(
+            apply_moonworm_tasks,
+            subscription_resource.resource_data["subscription_type_id"],
+            json_abi,
+            subscription_resource.resource_data["address"],
+        )
+
     return data.SubscriptionResourceData(
         id=str(resource.id),
         user_id=resource.resource_data["user_id"],
@@ -312,6 +327,51 @@ async def update_subscriptions_handler(
         updated_at=resource.updated_at,
         created_at=resource.created_at,
     )
+
+
+@router.get(
+    "/{subscription_id}/abi",
+    tags=["subscriptions"],
+    response_model=data.SubdcriptionsAbiResponse,
+)
+async def get_subscription_abi_handler(
+    request: Request,
+    subscription_id: str,
+) -> data.SubdcriptionsAbiResponse:
+
+    token = request.state.token
+
+    try:
+        subscription_resource: BugoutResource = bc.get_resource(
+            token=token,
+            resource_id=subscription_id,
+        )
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        logger.error(f"Error creating subscription resource: {str(e)}")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    if subscription_resource.resource_data["abi"] is None:
+        raise MoonstreamHTTPException(
+            status_code=404,
+            detail="Subscription abi not exists.",
+        )
+
+    s3_client = boto3.client("s3")
+
+    result_key = f"{subscription_resource.resource_data['s3_path']}"
+    presigned_url = s3_client.generate_presigned_url(
+        "get_object",
+        Params={
+            "Bucket": subscription_resource.resource_data["bucket"],
+            "Key": result_key,
+        },
+        ExpiresIn=300,
+        HttpMethod="GET",
+    )
+
+    return data.SubdcriptionsAbiResponse(url=presigned_url)
 
 
 @router.get(

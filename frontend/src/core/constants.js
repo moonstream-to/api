@@ -6,11 +6,11 @@ export const BUGOUT_ENDPOINTS = {
 };
 
 export const DEFAULT_METATAGS = {
-  title: "Moonstream: Open source blockchain analytics",
+  title: "Moonstream: Building blocks for your blockchain economy",
   description:
-    "Product analytics for Web3. Moonstream helps you understand exactly how people are using your smart contracts",
+    "Moonstream DAO makes tools that help you build, manage, and secure your blockchain economy.",
   keywords:
-    "analytics, blockchain analytics, protocol, protocols, blockchain, crypto, data, trading, smart contracts, web3, smart contract, ethereum, solana, polygon, matic, transactions, defi, finance, decentralized, mempool, NFT, NFTs, DAO, DAOs, DEX, DEXes, DEXs, cryptocurrency, cryptocurrencies, bitcoin",
+    "analytics, blockchain analytics, protocol, protocols, blockchain, crypto, data, NFT gaming, smart contracts, web3, smart contract, ethereum, polygon, matic, transactions, defi, finance, decentralized, mempool, NFT, NFTs, DAO, DAOs, cryptocurrency, cryptocurrencies, bitcoin, blockchain economy, marketplace, blockchain security, loyalty program, Ethereum bridge, Ethereum bridges, NFT game, NFT games",
   url: "https://www.moonstream.to",
   image: `https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/crypto+traders.png`,
 };
@@ -71,3 +71,34 @@ export const TIME_RANGE_SECONDS = {
   week: 86400 * 7,
   month: 86400 * 28,
 };
+
+export const CHART_METRICS = {
+  GENERIC: "genetic",
+  FUNCTIONS: "function",
+  EVENTS: "event",
+};
+
+export const DASHBOARD_UPDATE_ACTIONS = {
+  RENAME_DASHBOARD: 0,
+  APPEND_METRIC: 1,
+  DROP_METRIC: 2,
+  APPEND_SUBSCRIPTION: 4,
+  DROP_SUBSCRIPTION: 6,
+  OVERRIDE_DASHBOARD: 7,
+  OVERRIDE_SUBSCRIPTION: 8,
+  RESET_TO_DEFAULT: 9,
+};
+
+export const DASHBOARD_CONFIGURE_SETTING_SCOPES = {
+  METRICS_ARRAY: 1, //Scope to change whole array (methods | events | generics)
+  METRIC_NAME: 2, //Scope to one metric based on name
+  METRICS_ALL: 3, //Scope to replace whole subscription_setting object keeping subscriptionId
+};
+
+export const GENERIC_METRICS = [
+  "transactions_in",
+  "transactions_out",
+  "value_in",
+  "value_out",
+  "balance",
+];

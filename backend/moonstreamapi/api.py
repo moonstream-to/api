@@ -8,17 +8,16 @@ from typing import Dict
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from . import actions
-from . import data
+from . import actions, data
+from .middleware import BroodAuthMiddleware, MoonstreamHTTPException
 from .routes.address_info import router as addressinfo_router
-from .routes.nft import router as nft_router
+from .routes.dashboards import router as dashboards_router
+from .routes.queries import router as queries_router
 from .routes.streams import router as streams_router
 from .routes.subscriptions import router as subscriptions_router
 from .routes.txinfo import router as txinfo_router
 from .routes.users import router as users_router
 from .routes.whales import router as whales_router
-from .routes.dashboards import router as dashboards_router
-from .middleware import BroodAuthMiddleware, MoonstreamHTTPException
 from .settings import DOCS_TARGET_PATH, ORIGINS
 from .version import MOONSTREAMAPI_VERSION
 
@@ -32,7 +31,8 @@ tags_metadata = [
         "name": "labels",
         "description": "Labels for transactions, addresses with additional information.",
     },
-    {"name": "nft", "description": "NFT market summaries."},
+    {"name": "dashboards", "description": "Operations with user dashboards."},
+    {"name": "queries", "description": "Operations with user queries."},
     {"name": "streams", "description": "Operations with data streams and filters."},
     {"name": "subscriptions", "description": "Operations with user subscriptions."},
     {"name": "time", "description": "Server timestamp endpoints."},
@@ -124,10 +124,10 @@ async def status_handler() -> data.StatusResponse:
 
 
 app.include_router(addressinfo_router)
-app.include_router(nft_router)
 app.include_router(streams_router)
 app.include_router(subscriptions_router)
 app.include_router(txinfo_router)
 app.include_router(users_router)
 app.include_router(whales_router)
 app.include_router(dashboards_router)
+app.include_router(queries_router)

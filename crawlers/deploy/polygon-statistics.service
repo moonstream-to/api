@@ -1,5 +1,5 @@
 [Unit]
-Description=Update Polygon statistics dashboard
+Description=Update Polygon statistics dashboards
 After=network.target
 
 [Service]
