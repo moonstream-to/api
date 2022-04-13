@@ -20,8 +20,10 @@ func (es *extendedServer) blocksLatestRoute(w http.ResponseWriter, req *http.Req
 	var blockNumbers []uint64
 	var blockLatest BlockLatestResponse
 	rows, err := es.db.Query(`(SELECT block_number FROM ethereum_blocks ORDER BY block_number DESC LIMIT 1)
-	UNION
-	(SELECT block_number FROM polygon_blocks ORDER BY block_number DESC LIMIT 1)`)
+	UNION ALL
+	(SELECT block_number FROM polygon_blocks ORDER BY block_number DESC LIMIT 1)
+	UNION ALL
+	(SELECT block_number FROM polygon_labels WHERE label = 'moonworm-alpha' ORDER BY block_number DESC LIMIT 1)`)
 	if err != nil {
 		log.Printf("An error occurred during sql operation: %s", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -45,8 +47,9 @@ func (es *extendedServer) blocksLatestRoute(w http.ResponseWriter, req *http.Req
 	}
 
 	blockLatest = BlockLatestResponse{
-		EthereumBlockLatest: blockNumbers[0],
-		PolygonBlockLatest:  blockNumbers[1],
+		EthereumBlockLatest:                   blockNumbers[0],
+		PolygonBlockLatest:                    blockNumbers[1],
+		PolygonBlockLatestLabelsMoonwormAlpha: blockNumbers[2],
 	}
 
 	json.NewEncoder(w).Encode(blockLatest)
