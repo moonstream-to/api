@@ -138,6 +138,7 @@ const AnalyticsProvider = ({ children }) => {
           loaded: () => {
             setIsLoaded(true);
             mixpanel.identify(clientID);
+            mixpanel.register({ schema_version: 1.0 });
           },
         });
       } catch (error) {
