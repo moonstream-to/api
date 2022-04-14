@@ -154,12 +154,14 @@ def get_crawl_job_entries(
             offset=current_offset,
             limit=limit,
         )
+
         entries.extend(search_result.results)
 
         # if len(entries) >= search_result.total_results:
         if len(search_result.results) == 0:
             break
         current_offset += limit
+
     return entries
 
 
@@ -217,7 +219,15 @@ def make_function_call_crawl_jobs(
                 created_at=int(datetime.fromisoformat(entry.created_at).timestamp()),
             )
         else:
-            crawl_job_by_address[contract_address].contract_abi.append(json.loads(abi))
+            old_selectors = [
+                encode_function_signature(function_abi)
+                for function_abi in crawl_job_by_address[contract_address].contract_abi
+            ]
+            new_selector = encode_function_signature(json.loads(abi))
+            if new_selector not in old_selectors:
+                crawl_job_by_address[contract_address].contract_abi.append(
+                    json.loads(abi)
+                )
 
     return [crawl_job for crawl_job in crawl_job_by_address.values()]
 
@@ -283,6 +293,9 @@ def merge_function_call_crawl_jobs(
                 )
                 break
         else:
+            # No old job with new job address was found
+            # This else is intended for `for`
+            # https://book.pythontips.com/en/latest/for_-_else.html
             old_crawl_jobs.append(new_crawl_job)
     return old_crawl_jobs
 
