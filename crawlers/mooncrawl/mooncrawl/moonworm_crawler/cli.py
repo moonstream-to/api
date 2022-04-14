@@ -11,6 +11,7 @@ from ..settings import MOONSTREAM_MOONWORM_TASKS_JOURNAL, bugout_client
 from .continuous_crawler import _retry_connect_web3, continuous_crawler
 from .crawler import (
     SubscriptionTypes,
+    blockchain_type_to_subscription_type,
     get_crawl_job_entries,
     make_event_crawl_jobs,
     make_function_call_crawl_jobs,
@@ -23,9 +24,13 @@ logger = logging.getLogger(__name__)
 
 def handle_crawl(args: argparse.Namespace) -> None:
 
+    blockchain_type = AvailableBlockchainType(args.blockchain_type)
+
+    logger.info(f"Blockchain type: {blockchain_type.value}")
+
     initial_event_jobs = make_event_crawl_jobs(
         get_crawl_job_entries(
-            SubscriptionTypes.POLYGON_BLOCKCHAIN,
+            blockchain_type_to_subscription_type(blockchain_type),
             "event",
             MOONSTREAM_MOONWORM_TASKS_JOURNAL,
         )
@@ -34,7 +39,7 @@ def handle_crawl(args: argparse.Namespace) -> None:
 
     initial_function_call_jobs = make_function_call_crawl_jobs(
         get_crawl_job_entries(
-            SubscriptionTypes.POLYGON_BLOCKCHAIN,
+            blockchain_type_to_subscription_type(blockchain_type),
             "function",
             MOONSTREAM_MOONWORM_TASKS_JOURNAL,
         )
@@ -42,12 +47,6 @@ def handle_crawl(args: argparse.Namespace) -> None:
     logger.info(
         f"Initial function call crawl jobs count: {len(initial_function_call_jobs)}"
     )
-
-    # Couldn't figure out how to convert from string to AvailableBlockchainType
-    # AvailableBlockchainType(args.blockchain_type) is not working
-    blockchain_type = AvailableBlockchainType(args.blockchain_type)
-
-    logger.info(f"Blockchain type: {blockchain_type.value}")
     with yield_db_session_ctx() as db_session:
         web3: Optional[Web3] = None
         if args.web3 is None:
