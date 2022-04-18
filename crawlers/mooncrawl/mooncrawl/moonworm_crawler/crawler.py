@@ -212,7 +212,8 @@ def make_function_call_crawl_jobs(
         contract_address = Web3().toChecksumAddress(_get_tag(entry, "address"))
         abi = json.loads(cast(str, entry.content))
         method_signature = encode_function_signature(abi)
-
+        if method_signature is None:
+            raise ValueError(f"{abi} is not a function ABI")
         if contract_address not in crawl_job_by_address:
             crawl_job_by_address[contract_address] = FunctionCallCrawlJob(
                 contract_abi=[abi],
