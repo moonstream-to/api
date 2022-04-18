@@ -28,7 +28,7 @@ DOCS_TARGET_PATH = "docs"
 
 
 # Crawler label
-CRAWLER_LABEL = "test-moonworm-alpha"
+CRAWLER_LABEL = "moonworm-alpha"
 
 # Geth connection address
 MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI = os.environ.get(
