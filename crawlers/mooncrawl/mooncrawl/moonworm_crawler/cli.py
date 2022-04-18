@@ -151,7 +151,7 @@ def main() -> None:
         "--max-blocks-batch",
         "-m",
         type=int,
-        default=100,
+        default=80,
         help="Maximum number of blocks to crawl in a single batch",
     )
 
@@ -159,7 +159,7 @@ def main() -> None:
         "--min-blocks-batch",
         "-n",
         type=int,
-        default=40,
+        default=20,
         help="Minimum number of blocks to crawl in a single batch",
     )
 
@@ -191,7 +191,7 @@ def main() -> None:
         "--new-jobs-refetch-interval",
         "-r",
         type=float,
-        default=120,
+        default=180,
         help="Time to wait before refetching new jobs",
     )
 
