@@ -175,7 +175,7 @@ def main() -> None:
         "--min-sleep-time",
         "-t",
         type=float,
-        default=0.01,
+        default=0.1,
         help="Minimum time to sleep between crawl step",
     )
 
