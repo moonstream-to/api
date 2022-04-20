@@ -34,10 +34,7 @@ import { v4 as uuidv4 } from "uuid";
 import RouteButton from "../src/components/RouteButton";
 import { MODAL_TYPES } from "../src/core/providers/OverlayProvider/constants";
 import mixpanel from "mixpanel-browser";
-import {
-  MIXPANEL_PROPS,
-  MIXPANEL_EVENTS,
-} from "../src/core/providers/AnalyticsProvider/constants";
+import { MIXPANEL_EVENTS } from "../src/core/providers/AnalyticsProvider/constants";
 
 const SplitWithImage = dynamic(
   () => import("../src/components/SplitWithImage"),
@@ -284,6 +281,7 @@ const Homepage = () => {
           flexDirection="column"
           sx={{ scrollBehavior: "smooth" }}
           bgSize="cover"
+          id="page:landing"
         >
           <Flex
             direction="column"
@@ -652,10 +650,6 @@ const Homepage = () => {
                   cta={{
                     colorScheme: "orange",
                     onClick: () => {
-                      mixpanel.get_distinct_id() &&
-                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer txpool button`,
-                        });
                       router.push("/whitepapers");
                     },
                     label: "NFT market report",
@@ -910,6 +904,7 @@ const Homepage = () => {
                 pt={["0", "0", "5.125rem", null, "5.125rem"]}
                 pb="120px"
                 px="7%"
+                id={"bottom-line"}
               >
                 <Stack direction="column" justifyContent="center">
                   <chakra.span
@@ -935,28 +930,60 @@ const Homepage = () => {
                       variant="outline"
                       colorScheme="blue"
                       leftIcon={<FaDiscord />}
-                      w="300px"
+                      w="280px"
+                      onClick={() => {
+                        if (mixpanel.get_distinct_id()) {
+                          mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                            full_url: router.nextRouter.asPath,
+                            buttonName: `Join our Discord`,
+                            page: `landing`,
+                            section: `bottom-line`,
+                          });
+                        }
+                      }}
                     >
                       Join our Discord
                     </RouteButton>
                     <RouteButton
+                      // mt={3}
+                      // p={8}
                       placeSelf="center"
                       href={`https://github.com/bugout-dev/moonstream`}
                       size="lg"
                       variant="outline"
                       colorScheme="blue"
-                      w="300px"
+                      w="280px"
+                      onClick={() => {
+                        if (mixpanel.get_distinct_id()) {
+                          mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                            full_url: router.nextRouter.asPath,
+                            buttonName: `git clone moonstream`,
+                            page: `landing`,
+                            section: `bottom-line`,
+                          });
+                        }
+                      }}
                       leftIcon={<FaGithubSquare />}
                     >
                       git clone moonstream
                     </RouteButton>
                   </Flex>
                   <Button
-                    mt={3}
+                    // mt={3}
                     placeSelf="center"
                     w={["100%", "100%", "fit-content", null]}
-                    maxW={["250px", null, "fit-content"]}
-                    onClick={() => toggleModal({ type: MODAL_TYPES.SIGNUP })}
+                    maxW={["280px", null, "fit-content"]}
+                    onClick={() => {
+                      if (mixpanel.get_distinct_id()) {
+                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                          full_url: router.nextRouter.asPath,
+                          buttonName: `sign up`,
+                          page: `landing`,
+                          section: `bottom-line`,
+                        });
+                      }
+                      toggleModal({ type: MODAL_TYPES.SIGNUP });
+                    }}
                     size="lg"
                     variant="solid"
                     colorScheme="orange"
