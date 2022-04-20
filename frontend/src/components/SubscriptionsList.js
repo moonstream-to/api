@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { Skeleton, IconButton, Container } from "@chakra-ui/react";
 import {
   Table,
@@ -8,11 +8,14 @@ import {
   Thead,
   Tbody,
   Tooltip,
+  Input,
   Editable,
   EditableInput,
   EditablePreview,
+  useEditableControls,
   Image,
   Button,
+  ButtonGroup,
   useMediaQuery,
   Accordion,
   AccordionItem,
@@ -23,9 +26,9 @@ import {
   Flex,
   Text,
   Spacer,
-  Stack,
+  Stack
 } from "@chakra-ui/react";
-import { CheckIcon, DeleteIcon } from "@chakra-ui/icons";
+import { CheckIcon, CloseIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import moment from "moment";
 import CopyButton from "./CopyButton";
 import { useSubscriptions } from "../core/hooks";
@@ -33,11 +36,38 @@ import ConfirmationRequest from "./ConfirmationRequest";
 import ColorSelector from "./ColorSelector";
 import OverlayContext from "../core/providers/OverlayProvider/context";
 import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
+import SubscriptionCard from "./SubscriptionCard";
 
 const mapper = {
   "tag:erc721": "NFTs",
   "input:address": "Address",
 };
+
+const EditableControls = () => {
+  const {
+    isEditing,
+    getSubmitButtonProps,
+    getCancelButtonProps,
+    getEditButtonProps,
+  } = useEditableControls()
+
+  return isEditing ? (
+    <ButtonGroup justifyContent='center' size='sm'>
+      <IconButton icon={<CheckIcon />} {...getSubmitButtonProps()} />
+      <IconButton icon={<CloseIcon />} {...getCancelButtonProps()} />
+    </ButtonGroup>
+  ) : (
+    <Flex justifyContent='center'>
+      <IconButton size='sm' icon={<EditIcon />} {...getEditButtonProps()} />
+    </Flex>
+  )
+}
+
+// const truncateText = function(text) {
+//   if(text.length > 7) {
+//     return text.substring()
+//   }
+// }
 
 const SubscriptionsList = ({ emptyCTA }) => {
   const [isLargerThan530px] = useMediaQuery(["(min-width: 530px)"]);
@@ -49,6 +79,8 @@ const SubscriptionsList = ({ emptyCTA }) => {
     subscriptionTypeIcons,
     subscriptionTypeNames,
   } = useSubscriptions();
+
+  const [inputState, setInputState] = useState()
 
   const updateCallback = ({ id, label, color }) => {
     const data = { id: id };
@@ -97,242 +129,20 @@ const SubscriptionsList = ({ emptyCTA }) => {
                 const iconLink =
                   subscriptionTypeIcons[subscription.subscription_type_id];
                 return (
-                  <Tr key={`token-row-${subscription.id}`}>
-                    <Td {...cellProps}>
-                      <Tooltip
-                        label={`${
-                          subscriptionTypeNames[
-                            subscription.subscription_type_id
-                          ]
-                        }`}
-                        fontSize="md"
-                      >
-                        <Image
-                          h={["32px", "16px", "32px", null]}
-                          src={iconLink}
-                          alt="pool icon"
-                        />
-                      </Tooltip>
-                    </Td>
-                    <Td py={0} {...cellProps} wordBreak="break-word">
-                      <Editable
-                        colorScheme="blue"
-                        placeholder="enter note here"
-                        defaultValue={subscription.label}
-                        onSubmit={(nextValue) =>
-                          updateCallback({
-                            id: subscription.id,
-                            label: nextValue,
-                          })
-                        }
-                      >
-                        <EditablePreview
-                          maxW="40rem"
-                          _placeholder={{ color: "black" }}
-                        />
-                        <EditableInput maxW="40rem" />
-                      </Editable>
-                    </Td>
-                    <Td mr={4} p={0} wordBreak="break-word" {...cellProps}>
-                      {subscription.address?.startsWith("tag") ? (
-                        <CopyButton>{mapper[subscription.address]}</CopyButton>
-                      ) : (
-                        <CopyButton>{subscription.address}</CopyButton>
-                      )}
-                    </Td>
-                    <Td mr={4} p={0} {...cellProps}>
-                      {subscription.abi ? (
-                        <CheckIcon />
-                      ) : (
-                        <Button
-                          colorScheme="orange"
-                          size="xs"
-                          py={2}
-                          disabled={!subscription.address}
-                          onClick={() =>
-                            overlay.toggleModal({
-                              type: MODAL_TYPES.UPLOAD_ABI,
-                              props: { id: subscription.id },
-                            })
-                          }
-                        >
-                          Upload
-                        </Button>
-                      )}
-                    </Td>
-                    <Td {...cellProps}>
-                      <ColorSelector
-                        // subscriptionId={subscription.id}
-                        initialColor={subscription.color}
-                        callback={(color) =>
-                          updateCallback({ id: subscription.id, color: color })
-                        }
-                      />
-                    </Td>
-                    <Td py={0} {...cellProps} wordBreak="break-word">
-                      {moment(subscription.created_at).format("L")}
-                    </Td>
-
-                    <Td py={0} {...cellProps}>
-                      <ConfirmationRequest
-                        bodyMessage={"please confirm"}
-                        header={"Delete subscription"}
-                        onConfirm={() =>
-                          deleteSubscription.mutate(subscription.id)
-                        }
-                      >
-                        <IconButton
-                          size="sm"
-                          variant="ghost"
-                          colorScheme="blue"
-                          icon={<DeleteIcon />}
-                        />
-                      </ConfirmationRequest>
-                    </Td>
-                  </Tr>
+                  <SubscriptionCard key={`token-row-${subscription.id}`} subscription={subscription} isDesktopView={isLargerThan530px} iconLink={iconLink} />
                 );
               })}
             </Tbody>
           </Table>
         )}
         {!isLargerThan530px && (
-          <Accordion>
+          <Accordion
+            allowToggle={true}>
             {subscriptionsCache.data.subscriptions.map((subscription) => {
               const iconLink =
                 subscriptionTypeIcons[subscription.subscription_type_id];
               return (
-                <AccordionItem key={`token-row-${subscription.id}`}>
-                  <h2>
-                    <AccordionButton>
-                      <Stack
-                        direction="row"
-                        textAlign="left"
-                        alignItems="center"
-                      >
-                        <Tooltip
-                          label={`${
-                            subscriptionTypeNames[
-                              subscription.subscription_type_id
-                            ]
-                          }`}
-                          fontSize="md"
-                        >
-                          <Image
-                            h={["32px", "16px", "32px", null]}
-                            src={iconLink}
-                            alt="pool icon"
-                          />
-                        </Tooltip>
-                        <Editable
-                          colorScheme="blue"
-                          placeholder="enter note here"
-                          defaultValue={subscription.label}
-                          onSubmit={(nextValue) =>
-                            updateCallback({
-                              id: subscription.id,
-                              label: nextValue,
-                            })
-                          }
-                        >
-                          <EditablePreview
-                            maxW="40rem"
-                            _placeholder={{ color: "black" }}
-                          />
-                          <EditableInput maxW="40rem" />
-                        </Editable>
-                      </Stack>
-                      <AccordionIcon />
-                    </AccordionButton>
-                  </h2>
-                  <AccordionPanel pb={4}>
-                    <Stack>
-                      <Flex
-                        fontSize="sm"
-                        placeContent="center"
-                        h="min-content"
-                        alignItems="center"
-                        pr={8}
-                      >
-                        <Text>Address:</Text>
-                        <Spacer />
-                        {subscription.address?.startsWith("tag") ? (
-                          <CopyButton
-                            size="xs"
-                            copyString={subscription.address}
-                          >
-                            {mapper[subscription.address]}
-                          </CopyButton>
-                        ) : (
-                          <CopyButton
-                            size="xs"
-                            copyString={subscription.address}
-                          >
-                            <Text isTruncated>{subscription.address}</Text>
-                          </CopyButton>
-                        )}
-                      </Flex>
-                      <Flex
-                        fontSize="sm"
-                        placeContent="center"
-                        h="min-content"
-                        alignItems="center"
-                        pr={8}
-                      >
-                        <Text>Abi:</Text>
-                        <Spacer />
-                        {subscription.abi ? (
-                          <CheckIcon />
-                        ) : (
-                          <Button
-                            colorScheme="orange"
-                            size="xs"
-                            py={2}
-                            disabled={!subscription.address}
-                            onClick={() =>
-                              overlay.toggleModal({
-                                type: MODAL_TYPES.UPLOAD_ABI,
-                                props: { id: subscription.id },
-                              })
-                            }
-                          >
-                            Upload
-                          </Button>
-                        )}
-                      </Flex>
-                      <Flex
-                        fontSize="sm"
-                        placeContent="center"
-                        h="min-content"
-                        pr={8}
-                      >
-                        <Spacer />
-                        <ConfirmationRequest
-                          bodyMessage={"please confirm"}
-                          header={"Delete subscription"}
-                          onConfirm={() =>
-                            deleteSubscription.mutate(subscription.id)
-                          }
-                        >
-                          <Button
-                            colorScheme="red"
-                            size="xs"
-                            py={2}
-                            disabled={!subscription.address}
-                            onClick={() =>
-                              overlay.toggleModal({
-                                type: MODAL_TYPES.UPLOAD_ABI,
-                                props: { id: subscription.id },
-                              })
-                            }
-                            leftIcon={<DeleteIcon />}
-                          >
-                            Delete
-                          </Button>
-                        </ConfirmationRequest>
-                      </Flex>
-                    </Stack>
-                  </AccordionPanel>
-                </AccordionItem>
+                <SubscriptionCard key={`token-row-${subscription.id}`} subscription={subscription} isDesktopView={isLargerThan530px} iconLink={iconLink} />
               );
             })}
 
