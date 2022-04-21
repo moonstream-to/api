@@ -12,11 +12,7 @@ import {
   chakra,
 } from "@chakra-ui/react";
 import RouterLink from "next/link";
-import {
-  WHITE_LOGO_W_TEXT_URL,
-  ALL_NAV_PATHES,
-  FOOTER_COLUMNS,
-} from "../core/constants";
+import { WHITE_LOGO_W_TEXT_URL, SITEMAP } from "../core/constants";
 import { FaGithub, FaTwitter, FaDiscord } from "react-icons/fa";
 import moment from "moment";
 
@@ -69,9 +65,9 @@ const Footer = () => (
     bg={useColorModeValue("blue.900", "gray.900")}
     color={useColorModeValue("gray.700", "gray.200")}
   >
-    <Container as={Stack} maxW={"6xl"} py={10}>
+    <Container as={Stack} maxW={"8xl"} py={10}>
       <SimpleGrid
-        templateColumns={{ sm: "1fr 1fr", md: "2fr 1fr 1fr 2fr" }}
+        templateColumns={{ sm: "1fr 1fr", md: "2fr 1fr 1fr 1fr 1fr" }}
         spacing={8}
       >
         <Stack spacing={6}>
@@ -112,16 +108,30 @@ const Footer = () => (
             </SocialButton>
           </Stack>
         </Stack>
-        {Object.values(FOOTER_COLUMNS).map((columnEnum, colIndex) => {
+        {Object.values(SITEMAP).map((category, colIndex) => {
           return (
             <Stack align={"flex-start"} key={`footer-list-column-${colIndex}`}>
-              {ALL_NAV_PATHES.filter(
-                (navPath) => navPath.footerCategory === columnEnum
+              <>
+                <ListHeader>{category.title}</ListHeader>
+                {category.children.map((linkItem, linkItemIndex) => {
+                  return (
+                    <RouterLink
+                      passHref
+                      href={linkItem.path}
+                      key={`footer-list-link-item-${linkItemIndex}-col-${colIndex}`}
+                    >
+                      <Link {...LINKS_SIZES}>{linkItem.title}</Link>
+                    </RouterLink>
+                  );
+                })}
+              </>
+              {/* {SITEMAP.filter(
+                (navPath) => navPath.SiteMapCategory === columnEnum
               ).length > 0 && (
                 <>
                   <ListHeader>{columnEnum}</ListHeader>
                   {ALL_NAV_PATHES.filter(
-                    (navPath) => navPath.footerCategory === columnEnum
+                    (navPath) => navPath.SiteMapCategory === columnEnum
                   ).map((linkItem, linkItemIndex) => {
                     return (
                       <RouterLink
@@ -134,7 +144,7 @@ const Footer = () => (
                     );
                   })}
                 </>
-              )}
+              )} */}
             </Stack>
           );
         })}

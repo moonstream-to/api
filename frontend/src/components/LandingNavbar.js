@@ -8,13 +8,17 @@ import {
   Link,
   IconButton,
   Flex,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
 } from "@chakra-ui/react";
-import { HamburgerIcon } from "@chakra-ui/icons";
+import { ChevronDownIcon, HamburgerIcon } from "@chakra-ui/icons";
 import useModals from "../core/hooks/useModals";
 import UIContext from "../core/providers/UIProvider/context";
 import ChakraAccountIconButton from "./AccountIconButton";
 import RouteButton from "./RouteButton";
-import { ALL_NAV_PATHES, WHITE_LOGO_W_TEXT_URL } from "../core/constants";
+import { SITEMAP, WHITE_LOGO_W_TEXT_URL } from "../core/constants";
 import router from "next/router";
 import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 
@@ -59,21 +63,46 @@ const LandingNavbar = () => {
         <>
           <Spacer />
           <ButtonGroup variant="link" colorScheme="orange" spacing={4} pr={16}>
-            {ALL_NAV_PATHES.map((item, idx) => (
-              <RouteButton
-                key={`${idx}-${item.title}-landing-all-links`}
-                variant="link"
-                href={item.path}
-                color="white"
-                isActive={!!(router.pathname === item.path)}
-              >
-                {item.title}
-              </RouteButton>
+            {SITEMAP.map((item, idx) => (
+              <>
+                {!item.children && (
+                  <RouteButton
+                    key={`${idx}-${item.title}-landing-all-links`}
+                    variant="link"
+                    href={item.path}
+                    color="white"
+                    isActive={!!(router.pathname === item.path)}
+                  >
+                    {item.title}
+                  </RouteButton>
+                )}
+                {item.children && (
+                  <Menu>
+                    <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+                      {item.title}
+                    </MenuButton>
+                    <MenuList>
+                      {item.children.map((child, idx) => (
+                        <RouterLink
+                          key={`${idx}-${item.title}-menu-links`}
+                          href={child.path}
+                          passHref
+                        >
+                          <MenuItem as={"a"} m={0}>
+                            {child.title}
+                          </MenuItem>
+                        </RouterLink>
+                      ))}
+                    </MenuList>
+                  </Menu>
+                )}
+              </>
             ))}
 
             {ui.isLoggedIn && (
               <RouterLink href="/welcome" passHref>
                 <Button
+                  alignSelf={"center"}
                   as={Link}
                   colorScheme="orange"
                   variant="outline"
