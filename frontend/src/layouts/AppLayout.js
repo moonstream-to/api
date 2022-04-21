@@ -2,6 +2,7 @@ import { Flex, Spinner, Box } from "@chakra-ui/react";
 import { getLayout as getSiteLayout } from "./RootLayout";
 import React, { useContext, useEffect } from "react";
 import UIContext from "../core/providers/UIProvider/context";
+import Navbar from "../components/Navbar";
 
 const AppLayout = ({ children }) => {
   const ui = useContext(UIContext);
@@ -44,7 +45,7 @@ const AppLayout = ({ children }) => {
           zIndex={1010}
         />
       )}
-
+      <Navbar />
       {ui.isAppReady && ui.isLoggedIn && children}
     </Flex>
   );

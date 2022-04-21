@@ -27,9 +27,6 @@ const RootLayout = (props) => {
         flexBasis="100px"
         overflowX="hidden"
       >
-        <Suspense fallback="">
-          <Navbar />
-        </Suspense>
         {!ui.isAppView && (
           <Flex
             w="100%"
