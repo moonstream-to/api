@@ -354,7 +354,7 @@ const Homepage = () => {
                             textColor="orange.900"
                             display={"inline-block"}
                           >
-                            $1B
+                            $2.5B
                           </Text>{" "}
                           in transaction value to date.
                         </chakra.span>
@@ -366,7 +366,7 @@ const Homepage = () => {
                           overflowX="hidden"
                           overflowY="visible"
                         >
-                          <Slider
+                          {/* <Slider
                             {...settings}
                             // adaptiveHeight={true}
                             arrows={false}
@@ -404,7 +404,7 @@ const Homepage = () => {
                                 </Text>
                               </Box>
                             ))}
-                          </Slider>
+                          </Slider> */}
                         </Box>
                       </Stack>
                     </Flex>
@@ -589,7 +589,7 @@ const Homepage = () => {
                 mt={["32px", "64px", null]}
                 py={["98px", "128px", null]}
                 colSpan="12"
-                bgColor="blue.50"
+                bgColor="blue.500"
               >
                 <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
                   Trusted by{" "}
@@ -602,12 +602,14 @@ const Homepage = () => {
                       caseURL=""
                       ImgURL={assets["laguna"]}
                       boxURL="https://laguna.games/"
+                      bgColor="blue.900"
                     />
                     <TrustedBadge
                       scale={1.5}
                       name="game7io"
                       ImgURL={assets["game7io"]}
                       boxURL="https://game7.io/"
+                      bgColor="blue.900"
                     />
 
                     <TrustedBadge
@@ -615,241 +617,22 @@ const Homepage = () => {
                       name="orangedao"
                       ImgURL={assets["orangedao"]}
                       boxURL="https://lfg.orangedao.xyz/"
+                      bgColor="blue.900"
                     />
                     <TrustedBadge
                       scale={1.5}
                       name="forte"
                       ImgURL={assets["forte"]}
                       boxURL="https://www.forte.io/"
+                      bgColor="blue.900"
+                      invertColors={true}
                     />
                   </Suspense>
                 </Flex>
               </GridItem>
               <GridItem
                 px="7%"
-                colSpan="12"
-                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
-                pb={["0", "32px", null, "32px"]}
-                id="exchanges"
-              >
-                <Center>
-                  <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
-                    Learn more about Moonstream DAO use cases
-                  </Heading>
-                </Center>
-              </GridItem>
-              <GridItem
-                px="7%"
-                colSpan="12"
-                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
-                pb={["0", "66px", null, "66px"]}
-                id="more_about_analytics"
-                minH={ui.isMobileView ? "100vh" : null}
-              >
-                <SplitWithImage
-                  cta={{
-                    colorScheme: "orange",
-                    onClick: () => {
-                      router.push("/whitepapers");
-                    },
-                    label: "NFT market report",
-                  }}
-                  socialButton={{
-                    url: "https://discord.gg/K56VNUQGvA",
-                    title: "Contact us on discord",
-                    icon: "discord",
-                  }}
-                  elementName={"element1"}
-                  colorScheme="green"
-                  badge={`Moonstream analytics`}
-                  bullets={[
-                    {
-                      text: `See how value flows into and out of every component of your economy.`,
-                      icon: GiRiver,
-                      color: "green.50",
-                      bgColor: "green.900",
-                    },
-                    {
-                      text: `Track inflation or deflation of your currencies.`,
-                      icon: GiTakeMyMoney,
-                      color: "green.50",
-                      bgColor: "green.900",
-                    },
-                    {
-                      text: `Track the concentration of wealth in your economy.`,
-                      icon: GiConcentrationOrb,
-                      color: "green.50",
-                      bgColor: "green.900",
-                    },
-                  ]}
-                  imgURL={assets["cryptoTraders"]}
-                />
-              </GridItem>
-              <GridItem
-                px="7%"
-                colSpan="12"
-                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
-                pb={["0", "66px", null, "66px"]}
-                id="more_about_markets"
-                minH={ui.isMobileView ? "100vh" : null}
-              >
-                <SplitWithImage
-                  elementName={"element2"}
-                  mirror={true}
-                  colorScheme="blue"
-                  badge={`Moonstream Markets`}
-                  socialButton={{
-                    url: "https://discord.gg/K56VNUQGvA",
-                    title: "Contact us on discord",
-                    icon: "discord",
-                  }}
-                  bullets={[
-                    {
-                      text: `Deploy new goods or resources into your economy in seconds.`,
-                      icon: GiQuickSlash,
-                      color: "blue.50",
-                      bgColor: "blue.900",
-                    },
-                    {
-                      text: `Easy liquidity for those goods and resources on DEXs and on secondary markets like Open Sea.`,
-                      icon: GiMeshBall,
-                      color: "blue.50",
-                      bgColor: "blue.900",
-                    },
-                    {
-                      text: `Create custom NFT storefronts.`,
-                      icon: FaStoreAlt,
-                      color: "blue.50",
-                      bgColor: "blue.900",
-                    },
-                  ]}
-                  imgURL={assets["NFT"]}
-                />
-              </GridItem>
-              <GridItem
-                px="7%"
-                colSpan="12"
-                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
-                pb={["0", "66px", null, "66px"]}
-                id="more_about_bridges"
-                minH={ui.isMobileView ? "100vh" : null}
-              >
-                <SplitWithImage
-                  socialButton={{
-                    url: "https://discord.gg/K56VNUQGvA",
-                    title: "Contact us on discord",
-                    icon: "discord",
-                  }}
-                  elementName={"element3"}
-                  colorScheme="orange"
-                  badge={`Moonstream engine`}
-                  bullets={[
-                    {
-                      text: `Deploy customizable and upgradable characters, items, and currencies into your economy`,
-                      icon: GiCrossedChains,
-                      color: "orange.50",
-                      bgColor: "orange.900",
-                    },
-                    {
-                      text: `Monitor interactions between these tokens`,
-                      icon: GiChainedHeart,
-                      color: "orange.50",
-                      bgColor: "orange.900",
-                    },
-                    {
-                      text: `Secure the tokens with Moonstream defense bots.`,
-                      icon: GiChaingun,
-                      color: "orange.50",
-                      bgColor: "orange.900",
-                    },
-                  ]}
-                  imgURL={assets["lender"]}
-                />
-              </GridItem>
-              <GridItem
-                px="7%"
-                colSpan="12"
-                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
-                pb={["0", "66px", null, "66px"]}
-                id="more_about_loyalty"
-                minH={ui.isMobileView ? "100vh" : null}
-              >
-                <SplitWithImage
-                  mirror
-                  socialButton={{
-                    url: "https://discord.gg/K56VNUQGvA",
-                    title: "Contact us on discord",
-                    icon: "discord",
-                  }}
-                  elementName={"element3"}
-                  colorScheme="red"
-                  badge={`Moonstream Loyalty`}
-                  bullets={[
-                    {
-                      text: `Track the most active participants in your economy and easily give them rewards for their engagement.`,
-                      icon: VscOrganization,
-                      color: "red.50",
-                      bgColor: "red.900",
-                    },
-                    {
-                      text: `Create and distribute whitelist tokens for your pre-sales. Make them tradeable on markets like OpenSea.`,
-                      icon: GiMedallist,
-                      color: "red.50",
-                      bgColor: "red.900",
-                    },
-                    {
-                      text: `Manage KYC information about your community.`,
-                      icon: CgUserlane,
-                      color: "red.50",
-                      bgColor: "red.900",
-                    },
-                  ]}
-                  imgURL={assets["DAO"]}
-                />
-              </GridItem>
-              <GridItem
-                px="7%"
-                colSpan="12"
-                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
-                pb={["0", "66px", null, "66px"]}
-                id="more_about_security"
-                minH={ui.isMobileView ? "100vh" : null}
-              >
-                <SplitWithImage
-                  socialButton={{
-                    url: "https://discord.gg/K56VNUQGvA",
-                    title: "Contact us on discord",
-                    icon: "discord",
-                  }}
-                  elementName={"element3"}
-                  colorScheme="green"
-                  badge={`Moonstream security`}
-                  bullets={[
-                    {
-                      text: `Moonstream smart contracts have been vetted in production with over $1B in value transacted.`,
-                      icon: MdOutlineVerifiedUser,
-                      color: "green.50",
-                      bgColor: "green.900",
-                    },
-                    {
-                      text: `Moonstream scanners constantly monitor accounts and transactions in your economy and identify threats in seconds.`,
-                      icon: GiRadarCrossSection,
-                      color: "green.50",
-                      bgColor: "green.900",
-                    },
-                    {
-                      text: `One-click deploy defense bots which counter attacks as soon as they are detected.`,
-                      icon: GiRobotGolem,
-                      color: "green.50",
-                      bgColor: "green.900",
-                    },
-                  ]}
-                  imgURL={assets["smartDevelopers"]}
-                />
-              </GridItem>
-              <GridItem
-                px="7%"
-                mt={["32px", "64px", null]}
+                // mt={["32px", "64px", null]}
                 py={["98px", "128px", null]}
                 colSpan="12"
                 bgColor="blue.50"
