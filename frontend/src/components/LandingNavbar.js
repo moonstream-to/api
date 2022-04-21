@@ -12,6 +12,7 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
+  Portal,
 } from "@chakra-ui/react";
 import { ChevronDownIcon, HamburgerIcon } from "@chakra-ui/icons";
 import useModals from "../core/hooks/useModals";
@@ -41,7 +42,7 @@ const LandingNavbar = () => {
       <Flex
         pl={ui.isMobileView ? 2 : 8}
         justifySelf="flex-start"
-        h="100%"
+        h="48px"
         py={1}
         flexBasis="200px"
         flexGrow={1}
@@ -51,7 +52,7 @@ const LandingNavbar = () => {
           <Link
             as={Image}
             w="auto"
-            h="full"
+            h="100%"
             justifyContent="left"
             src={WHITE_LOGO_W_TEXT_URL}
             alt="Moonstream logo"
@@ -81,19 +82,22 @@ const LandingNavbar = () => {
                     <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
                       {item.title}
                     </MenuButton>
-                    <MenuList>
-                      {item.children.map((child, idx) => (
-                        <RouterLink
-                          key={`${idx}-${item.title}-menu-links`}
-                          href={child.path}
-                          passHref
-                        >
-                          <MenuItem as={"a"} m={0}>
-                            {child.title}
-                          </MenuItem>
-                        </RouterLink>
-                      ))}
-                    </MenuList>
+                    <Portal>
+                      <MenuList zIndex={100}>
+                        {item.children.map((child, idx) => (
+                          <RouterLink
+                            shallow={true}
+                            key={`${idx}-${item.title}-menu-links`}
+                            href={child.path}
+                            passHref
+                          >
+                            <MenuItem key={`menu-${idx}`} as={"a"} m={0}>
+                              {child.title}
+                            </MenuItem>
+                          </RouterLink>
+                        ))}
+                      </MenuList>
+                    </Portal>
                   </Menu>
                 )}
               </>
