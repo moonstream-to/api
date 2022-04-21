@@ -6,14 +6,14 @@ import { useSubscriptions } from "../core/hooks";
 
 const MobileFiledInput = ({
   onChange,
-  inidialValue,
+  initialValue,
   cancelText,
   submitText,
   id,
 }) => {
   const { updateSubscription } = useSubscriptions();
   const isLoading = updateSubscription.isLoading;
-  const [value, setValue] = useState(inidialValue);
+  const [value, setValue] = useState(initialValue);
   const updateCallback = () => {
     const data = { id: id };
     value && (data.label = value);
