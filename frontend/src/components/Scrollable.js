@@ -2,14 +2,14 @@ import { Flex, Box } from "@chakra-ui/react";
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "../core/hooks";
 import mixpanel from "mixpanel-browser";
-import { useXarrow, Xwrapper } from "react-xarrows";
 const Scrollable = (props) => {
   const scrollerRef = useRef();
   const router = useRouter();
   const [path, setPath] = useState();
-  const updateXarrow = useXarrow();
 
   const [scrollDepth, setScrollDepth] = useState(0);
+  const [y, setY] = useState(0);
+  const [dir, setDir] = useState(0);
 
   const getScrollPrecent = ({ currentTarget }) => {
     const scroll_level =
@@ -19,8 +19,20 @@ const Scrollable = (props) => {
   };
 
   const handleScroll = (e) => {
-    updateXarrow();
     const currentScroll = Math.ceil(getScrollPrecent(e) / 10);
+    if (currentScroll) {
+      if (currentScroll != y) {
+        setDir(y - currentScroll);
+        setY(currentScroll);
+      }
+    }
+
+    if (dir === -1) {
+      document.getElementById("Navbar").style.top = "-48px";
+    } else {
+      document.getElementById("Navbar").style.top = "-0";
+    }
+    setY(currentScroll);
     if (currentScroll > scrollDepth) {
       setScrollDepth(currentScroll);
       mixpanel?.get_distinct_id() &&
@@ -51,17 +63,15 @@ const Scrollable = (props) => {
       overflowY="hidden"
       maxH="100%"
     >
-      <Xwrapper>
-        <Box
-          className="Scrollable"
-          direction="column"
-          ref={scrollerRef}
-          overflowY="scroll"
-          onScroll={(e) => handleScroll(e)}
-        >
-          {props.children}
-        </Box>
-      </Xwrapper>
+      <Box
+        className="Scrollable"
+        direction="column"
+        ref={scrollerRef}
+        overflowY="scroll"
+        onScroll={(e) => handleScroll(e)}
+      >
+        {props.children}
+      </Box>
     </Flex>
   );
 };
