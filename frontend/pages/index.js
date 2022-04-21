@@ -34,10 +34,7 @@ import { v4 as uuidv4 } from "uuid";
 import RouteButton from "../src/components/RouteButton";
 import { MODAL_TYPES } from "../src/core/providers/OverlayProvider/constants";
 import mixpanel from "mixpanel-browser";
-import {
-  MIXPANEL_PROPS,
-  MIXPANEL_EVENTS,
-} from "../src/core/providers/AnalyticsProvider/constants";
+import { MIXPANEL_EVENTS } from "../src/core/providers/AnalyticsProvider/constants";
 
 const SplitWithImage = dynamic(
   () => import("../src/components/SplitWithImage"),
@@ -144,6 +141,8 @@ const assets = {
   game7io: `${AWS_ASSETS_PATH}/featured_by/game7io_logo.png`,
   orangedao: `${AWS_ASSETS_PATH}/featured_by/orangedao_logo.png`,
   meetup: `${AWS_ASSETS_PATH}/featured_by/meetup_logo.png`,
+  gnosis: `${AWS_ASSETS_PATH}/gnosis_chain_logo_no_text.png`,
+  immutable: `${AWS_ASSETS_PATH}/immutable_x_logo.png`,
 };
 
 const carousel_content = [
@@ -151,10 +150,8 @@ const carousel_content = [
   { title: "Ethereum", img: assets["ethereumBlackLogo"] },
   { title: "Ethereum transaction pool", img: assets["ethereumRainbowLogo"] },
   { title: "Polygon", img: assets["maticLogo"] },
-  { title: "Bitcoin coming soon!", img: assets["bitcoinLogo"] },
-  { title: "Ethereum", img: assets["ethereumBlackLogo"] },
-  { title: "Ethereum transaction pool", img: assets["ethereumRainbowLogo"] },
-  { title: "Polygon", img: assets["maticLogo"] },
+  { title: "immutable x coming soon!", img: assets["immutable"] },
+  { title: "gnosis chain coming soon!", img: assets["gnosis"] },
 ];
 const Homepage = () => {
   const ui = useContext(UIContext);
@@ -284,6 +281,7 @@ const Homepage = () => {
           flexDirection="column"
           sx={{ scrollBehavior: "smooth" }}
           bgSize="cover"
+          id="page:landing"
         >
           <Flex
             direction="column"
@@ -589,10 +587,9 @@ const Homepage = () => {
               <GridItem
                 px="7%"
                 mt={["32px", "64px", null]}
-                pt={["98px", "126px", null]}
+                py={["98px", "128px", null]}
                 colSpan="12"
                 bgColor="blue.50"
-                pb={["20px", "30px", "92px", null, "92px", "196px"]}
               >
                 <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
                   Trusted by{" "}
@@ -653,10 +650,6 @@ const Homepage = () => {
                   cta={{
                     colorScheme: "orange",
                     onClick: () => {
-                      mixpanel.get_distinct_id() &&
-                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer txpool button`,
-                        });
                       router.push("/whitepapers");
                     },
                     label: "NFT market report",
@@ -857,10 +850,9 @@ const Homepage = () => {
               <GridItem
                 px="7%"
                 mt={["32px", "64px", null]}
-                pt={["98px", "226px", null]}
+                py={["98px", "128px", null]}
                 colSpan="12"
                 bgColor="blue.50"
-                pb={["20px", "30px", "92px", null, "92px", "196px"]}
               >
                 <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
                   Featured by{" "}
@@ -912,6 +904,7 @@ const Homepage = () => {
                 pt={["0", "0", "5.125rem", null, "5.125rem"]}
                 pb="120px"
                 px="7%"
+                id={"bottom-line"}
               >
                 <Stack direction="column" justifyContent="center">
                   <chakra.span
@@ -932,33 +925,65 @@ const Homepage = () => {
                   <Flex direction="row" flexWrap="wrap" placeContent="center">
                     <RouteButton
                       placeSelf="center"
-                      href={`https://github.com/bugout-dev/moonstream`}
-                      size="md"
+                      href={"https://discord.gg/K56VNUQGvA"}
+                      size="lg"
                       variant="outline"
                       colorScheme="blue"
-                      w="250px"
+                      leftIcon={<FaDiscord />}
+                      w="280px"
+                      onClick={() => {
+                        if (mixpanel.get_distinct_id()) {
+                          mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                            full_url: router.nextRouter.asPath,
+                            buttonName: `Join our Discord`,
+                            page: `landing`,
+                            section: `bottom-line`,
+                          });
+                        }
+                      }}
+                    >
+                      Join our Discord
+                    </RouteButton>
+                    <RouteButton
+                      // mt={3}
+                      // p={8}
+                      placeSelf="center"
+                      href={`https://github.com/bugout-dev/moonstream`}
+                      size="lg"
+                      variant="outline"
+                      colorScheme="blue"
+                      w="280px"
+                      onClick={() => {
+                        if (mixpanel.get_distinct_id()) {
+                          mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                            full_url: router.nextRouter.asPath,
+                            buttonName: `git clone moonstream`,
+                            page: `landing`,
+                            section: `bottom-line`,
+                          });
+                        }
+                      }}
                       leftIcon={<FaGithubSquare />}
                     >
                       git clone moonstream
                     </RouteButton>
-                    <RouteButton
-                      placeSelf="center"
-                      href={"https://discord.gg/K56VNUQGvA"}
-                      size="md"
-                      variant="outline"
-                      colorScheme="blue"
-                      leftIcon={<FaDiscord />}
-                      w="250px"
-                    >
-                      Join our Discord
-                    </RouteButton>
                   </Flex>
                   <Button
-                    mt={3}
+                    // mt={3}
                     placeSelf="center"
                     w={["100%", "100%", "fit-content", null]}
-                    maxW={["250px", null, "fit-content"]}
-                    onClick={() => toggleModal({ type: MODAL_TYPES.SIGNUP })}
+                    maxW={["280px", null, "fit-content"]}
+                    onClick={() => {
+                      if (mixpanel.get_distinct_id()) {
+                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                          full_url: router.nextRouter.asPath,
+                          buttonName: `sign up`,
+                          page: `landing`,
+                          section: `bottom-line`,
+                        });
+                      }
+                      toggleModal({ type: MODAL_TYPES.SIGNUP });
+                    }}
                     size="lg"
                     variant="solid"
                     colorScheme="orange"
