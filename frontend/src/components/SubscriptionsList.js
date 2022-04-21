@@ -88,7 +88,7 @@ const SubscriptionsList = ({ emptyCTA }) => {
               );
             })}
 
-            <AccordionItem>
+            {/* <AccordionItem>
               <h2>
                 <AccordionButton>
                   <Box flex="1" textAlign="left">
@@ -103,7 +103,7 @@ const SubscriptionsList = ({ emptyCTA }) => {
                 enim ad minim veniam, quis nostrud exercitation ullamco laboris
                 nisi ut aliquip ex ea commodo consequat.
               </AccordionPanel>
-            </AccordionItem>
+            </AccordionItem> */}
           </Accordion>
         )}
       </>
