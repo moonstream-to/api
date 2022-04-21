@@ -57,11 +57,6 @@ const SubscriptionCard = ({ subscription, isDesktopView, iconLink }) => {
     else _setIsLoading(false);
   }, [updateSubscription.isLoading]);
 
-  const getIsLoading = React.useCallback(() => {
-    console.log("getIsLoading", updateSubscription.isLoading);
-    return updateSubscription.isLoading;
-  }, [updateSubscription.isLoading]);
-  console.log("updateSubscription.isLoading", updateSubscription.isLoading);
   return (
     <>
       {!isDesktopView && (
@@ -115,7 +110,7 @@ const SubscriptionCard = ({ subscription, isDesktopView, iconLink }) => {
           </h2>
           <AccordionPanel pb={4} bgColor="blue.100" boxShadow="md">
             <Stack>
-              <Flex fontSize="sm" h="min-content" pr={0}>
+              <Stack fontSize="sm" h="min-content" pr={0}>
                 <Text placeSelf="flex-start">Address:</Text>
                 {/* <Spacer /> */}
 
@@ -125,13 +120,14 @@ const SubscriptionCard = ({ subscription, isDesktopView, iconLink }) => {
                   </CopyButton>
                 ) : (
                   <Flex
+                    alignItems="center"
                     size="xs"
-                    copyString={subscription.address}
                     position="relative"
                     maxWidth="200px"
                     // w="100%"
                     flexGrow={1}
                   >
+                    <CopyButton copyString={subscription.address}></CopyButton>
                     <Text
                       isTruncated
                       dataFileType={subscription.address.slice(-3)}
@@ -143,13 +139,15 @@ const SubscriptionCard = ({ subscription, isDesktopView, iconLink }) => {
                         position: "absolute",
                         top: 0,
                         left: "100%",
+                        pt: "9px",
+                        marginLeft: "-2px",
                       }}
                     >
                       {subscription.address}
                     </Text>
                   </Flex>
                 )}
-              </Flex>
+              </Stack>
               <Flex
                 fontSize="sm"
                 placeContent="center"
@@ -257,12 +255,6 @@ const SubscriptionCard = ({ subscription, isDesktopView, iconLink }) => {
                       size="xs"
                       py={2}
                       disabled={!subscription.address}
-                      onClick={() =>
-                        overlay.toggleModal({
-                          type: MODAL_TYPES.UPLOAD_ABI,
-                          props: { id: subscription.id },
-                        })
-                      }
                       leftIcon={<DeleteIcon />}
                     >
                       Delete
