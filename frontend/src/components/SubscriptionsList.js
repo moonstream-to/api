@@ -9,11 +9,6 @@ import {
   Button,
   useMediaQuery,
   Accordion,
-  AccordionItem,
-  AccordionButton,
-  AccordionPanel,
-  AccordionIcon,
-  Box,
 } from "@chakra-ui/react";
 import { useSubscriptions } from "../core/hooks";
 import SubscriptionCard from "./SubscriptionCard";
