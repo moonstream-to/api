@@ -40,6 +40,7 @@ const SignUp = ({ toggleModal }) => {
                 colorScheme="blue"
                 placeholder="Your username here"
                 name="username"
+                autoComplete="username"
                 ref={register({ required: "Username is required!" })}
               />
               <InputRightElement>
@@ -57,6 +58,7 @@ const SignUp = ({ toggleModal }) => {
                 colorScheme="blue"
                 placeholder="Your email here"
                 name="email"
+                autoComplete="email"
                 ref={register({ required: "Email is required!" })}
               />
               <InputRightElement>
@@ -71,6 +73,7 @@ const SignUp = ({ toggleModal }) => {
             <PasswordInput
               placeholder="Add password"
               name="password"
+              autoComplete="new-password"
               ref={register({ required: "Password is required!" })}
             />
             <FormErrorMessage color="red.400" pl="1">

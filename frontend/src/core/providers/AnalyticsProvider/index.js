@@ -5,6 +5,8 @@ import { useClientID, useUser, useRouter } from "../../hooks";
 import { MIXPANEL_EVENTS, MIXPANEL_PROPS } from "./constants";
 import UIContext from "../UIProvider/context";
 
+const TELEMETRY_SCHEMA_VERSION = 1.0;
+
 const AnalyticsProvider = ({ children }) => {
   const clientID = useClientID();
   const analytics = process.env.NEXT_PUBLIC_MIXPANEL_TOKEN;
@@ -138,6 +140,7 @@ const AnalyticsProvider = ({ children }) => {
           loaded: () => {
             setIsLoaded(true);
             mixpanel.identify(clientID);
+            mixpanel.register({ schema_version: TELEMETRY_SCHEMA_VERSION });
           },
         });
       } catch (error) {

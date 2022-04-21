@@ -1,14 +1,11 @@
-import React, { useContext } from "react";
+import React from "react";
 import { useStatus } from "../../src/core/hooks";
 import { Heading, Text, Flex, Spacer, chakra, Spinner } from "@chakra-ui/react";
 import { getLayout, getLayoutProps } from "../../src/layouts/InfoPageLayout";
-import UserContext from "../../src/core/providers/UserProvider/context";
 
 const Status = () => {
-  const user = useContext(UserContext);
   const healthyStatusText = "Available";
   const downStatusText = "Unavailable";
-  const unauthorizedText = "Please login";
   const healthyStatusColor = "green.900";
   const downStatusColor = "red.600";
 
