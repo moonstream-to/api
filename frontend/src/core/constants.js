@@ -36,28 +36,28 @@ export const PAGETYPE = {
 
 export const SITEMAP = [
   {
-    title: "Solutions",
-    path: "/solutions",
+    title: "Features",
+    path: "/features",
     type: PAGETYPE.EMPTY,
     children: [
       {
-        title: "Loyalty",
-        path: "/solutions#loyalty",
+        title: "On-chain mechanics",
+        path: "/features/#engine",
         type: PAGETYPE.CONTENT,
       },
       {
-        title: "Engine",
-        path: "/solutions#engine",
+        title: "Loyalty programs",
+        path: "/features/#loyalty",
         type: PAGETYPE.CONTENT,
       },
       {
-        title: "Analytics",
-        path: "/solutions#analytics",
+        title: "Secure transactions",
+        path: "/features/#security",
         type: PAGETYPE.CONTENT,
       },
       {
-        title: "Security",
-        path: "/solutions#security",
+        title: "Content management",
+        path: "/features/#cms",
         type: PAGETYPE.CONTENT,
       },
     ],
