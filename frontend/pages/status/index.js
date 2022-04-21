@@ -9,6 +9,10 @@ const Status = () => {
   const healthyStatusColor = "green.900";
   const downStatusColor = "red.600";
 
+  const shortTimestamp = (rawTimestamp) => {
+    return rawTimestamp.replace(/^.+T/, "").replace(/\..+/, "");
+  };
+
   const { serverListStatusCache } = useStatus();
 
   console.log(serverListStatusCache?.data);
