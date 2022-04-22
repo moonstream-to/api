@@ -681,6 +681,148 @@ const Homepage = () => {
                 </Flex>
               </GridItem>
               <GridItem
+                px="7%"
+                // mt={["32px", "64px", null]}
+                py={["98px", "128px", null]}
+                colSpan="12"
+                bgColor="blue.50"
+              >
+                <Heading textAlign={"center"} as={"h2"}>
+                  Want to check it out?
+                </Heading>
+                <Flex
+                  // bg={useColorModeValue("#F9FAFB", "gray.600")}
+                  p={50}
+                  w="full"
+                  alignItems="center"
+                  justifyContent="center"
+                  direction={"row"}
+                >
+                  <chakra.h2
+                    mr={[0, 12, 14]}
+                    fontSize={{ base: "2xl", sm: "xl" }}
+                    // fontWeight="extrabold"
+                    letterSpacing="tight"
+                    // lineHeight="shorter"
+                    // color={useColorModeValue("gray.900", "gray.100")}
+                  >
+                    <chakra.span display="block" fontWeight="bold">
+                      To find out if Moonstream tools can benefit your project,
+                      please contact us on Discord.
+                    </chakra.span>
+                    <chakra.span
+                      display="block"
+                      // color={useColorModeValue("brand.600", "gray.500")}
+                    >
+                      {`You can also explore our analytics on your own! It
+                          helps you get awesome insights into economy you're
+                          interested in. Whether you are a game founder or a
+                          researcher, sign up and get your instant free access.`}
+                    </chakra.span>
+                    <chakra.span
+                      display="block"
+                      mt={2}
+                      fontSize="lg"
+                      fontWeight={"semibold"}
+                      // color={useColorModeValue("brand.600", "gray.500")}
+                    >
+                      {`PS If you need help using it, we'll readily help you
+                          out on Discord.`}
+                    </chakra.span>
+                  </chakra.h2>
+                  <Box
+                  // bg={useColorModeValue("gray.50", "gray.800")}
+                  >
+                    <Box
+                      maxW="7xl"
+                      w="min-content"
+                      mx="auto"
+                      py={{ base: 12, lg: 16 }}
+                      px={{ base: 4, lg: 8 }}
+                      display={{ lg: "flex" }}
+                      alignItems={{ lg: "center" }}
+                      justifyContent={{ lg: "space-between" }}
+                    >
+                      <Stack
+                        direction={{ base: "column", sm: "column" }}
+                        mt={{ base: 8, lg: 0 }}
+                        shrink={{ lg: 0 }}
+                      >
+                        <div></div>
+                        {/* <Button
+                          // mt={3}
+                          placeSelf="center"
+                          w={["100%", "100%", "fit-content", null]}
+                          maxW={["280px", null, "fit-content"]}
+                          size="lg"
+                        >
+                          Sign up
+                        </Button> */}
+                        <RouteButton
+                          w={"240px"}
+                          alignItems="center"
+                          justifyContent="center"
+                          border="solid transparent"
+                          fontWeight="bold"
+                          rounded="md"
+                          shadow="md"
+                          variant="solid"
+                          colorScheme="orange"
+                          onClick={() => {
+                            if (mixpanel.get_distinct_id()) {
+                              mixpanel.track(
+                                `${MIXPANEL_EVENTS.BUTTON_CLICKED}`,
+                                {
+                                  full_url: router.nextRouter.asPath,
+                                  buttonName: `Join our Discord`,
+                                  page: `landing`,
+                                  section: `bottom-line`,
+                                }
+                              );
+                            }
+                          }}
+                          href={"https://discord.gg/K56VNUQGvA"}
+                        >
+                          Learn More on Discord
+                        </RouteButton>
+                        <Button
+                          w={"240px"}
+                          alignItems="center"
+                          justifyContent="center"
+                          border="solid transparent"
+                          fontWeight="bold"
+                          rounded="md"
+                          shadow="md"
+                          color="brand.600"
+                          bg="white"
+                          _hover={{
+                            bg: "brand.50",
+                          }}
+                          // color={useColorModeValue("white")}
+                          // bg={useColorModeValue("brand.600", "brand.500")}
+                          onClick={() => {
+                            if (mixpanel.get_distinct_id()) {
+                              mixpanel.track(
+                                `${MIXPANEL_EVENTS.BUTTON_CLICKED}`,
+                                {
+                                  full_url: router.nextRouter.asPath,
+                                  buttonName: `sign up`,
+                                  page: `landing`,
+                                  section: `bottom-line`,
+                                }
+                              );
+                            }
+                            toggleModal({ type: MODAL_TYPES.SIGNUP });
+                          }}
+                        >
+                          {` Get started, it's free`}
+                        </Button>
+                      </Stack>
+                    </Box>
+                  </Box>
+                </Flex>
+              </GridItem>
+              <GridItem
                 placeItems="center"
                 w="100%"
                 colSpan="12"
