@@ -826,7 +826,7 @@ const Homepage = () => {
                   badge={`Moonstream security`}
                   bullets={[
                     {
-                      text: `Moonstream smart contracts have been vetted in production with over $1B in value transacted.`,
+                      text: `Moonstream smart contracts have been vetted in production with over $3B in value transacted.`,
                       icon: MdOutlineVerifiedUser,
                       color: "green.50",
                       bgColor: "green.900",
