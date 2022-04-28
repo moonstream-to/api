@@ -1,4 +1,5 @@
 import React, { useState, useContext, useEffect } from "react";
+import RouterLink from "next/link";
 import {
   Flex,
   Image,
@@ -15,12 +16,19 @@ import {
   useBreakpointValue,
   Spacer,
   ButtonGroup,
+  Button,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Portal,
 } from "@chakra-ui/react";
 import {
   HamburgerIcon,
   QuestionOutlineIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
+  ChevronDownIcon,
 } from "@chakra-ui/icons";
 import useRouter from "../core/hooks/useRouter";
 import UIContext from "../core/providers/UIProvider/context";
@@ -30,6 +38,7 @@ import AddNewIconButton from "./AddNewIconButton";
 import {
   USER_NAV_PATHES,
   ALL_NAV_PATHES,
+  SITEMAP,
   WHITE_LOGO_W_TEXT_URL,
 } from "../core/constants";
 
@@ -98,21 +107,53 @@ const AppNavbar = () => {
     <>
       {!ui.isMobileView && (
         <>
-          <Flex width="100%" px={2}>
+          <Flex px={2}>
             <Spacer />
             <Flex placeSelf="flex-end">
-              <ButtonGroup spacing={4} colorScheme="orange">
-                {ALL_NAV_PATHES.map((item, idx) => (
-                  <RouteButton
-                    key={`${idx}-${item.title}-landing-all-links`}
-                    variant="link"
-                    href={item.path}
-                    color="white"
-                    isActive={!!(router.nextRouter.pathname === item.path)}
-                  >
-                    {item.title}
-                  </RouteButton>
-                ))}
+              <ButtonGroup variant="link" spacing={4} colorScheme="orange">
+                {SITEMAP.map((item, idx) => {
+                  if (!item.children) {
+                    return (
+                      <RouteButton
+                        key={`${idx}-${item.title}-landing-all-links`}
+                        variant="link"
+                        href={item.path}
+                        color="white"
+                        isActive={!!(router.pathname === item.path)}
+                      >
+                        {item.title}
+                      </RouteButton>
+                    );
+                  } else {
+                    return (
+                      <Menu key={`menu-${idx}`}>
+                        <MenuButton
+                          key={`menu-button-${idx}`}
+                          as={Button}
+                          rightIcon={<ChevronDownIcon />}
+                        >
+                          {item.title}
+                        </MenuButton>
+                        <Portal>
+                          <MenuList zIndex={100}>
+                            {item.children.map((child, idx) => (
+                              <RouterLink
+                                shallow={true}
+                                key={`${idx}-${item.title}-menu-links`}
+                                href={child.path}
+                                passHref
+                              >
+                                <MenuItem key={`menu-${idx}`} as={"a"} m={0}>
+                                  {child.title}
+                                </MenuItem>
+                              </RouterLink>
+                            ))}
+                          </MenuList>
+                        </Portal>
+                      </Menu>
+                    );
+                  }
+                })}
                 {USER_NAV_PATHES.map((item, idx) => {
                   return (
                     <RouteButton

@@ -64,44 +64,46 @@ const LandingNavbar = () => {
         <>
           <Spacer />
           <ButtonGroup variant="link" colorScheme="orange" spacing={4} pr={16}>
-            {SITEMAP.map((item, idx) => (
-              <>
-                {!item.children && (
-                  <RouteButton
-                    key={`${idx}-${item.title}-landing-all-links`}
-                    variant="link"
-                    href={item.path}
-                    color="white"
-                    isActive={!!(router.pathname === item.path)}
-                  >
-                    {item.title}
-                  </RouteButton>
-                )}
-                {item.children && (
-                  <Menu>
-                    <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+            {SITEMAP.map((item, idx) => {
+              return (
+                <React.Fragment key={`Fragment-${idx}`}>
+                  {!item.children && (
+                    <RouteButton
+                      key={`${idx}-${item.title}-landing-all-links`}
+                      variant="link"
+                      href={item.path}
+                      color="white"
+                      isActive={!!(router.pathname === item.path)}
+                    >
                       {item.title}
-                    </MenuButton>
-                    <Portal>
-                      <MenuList zIndex={100}>
-                        {item.children.map((child, idx) => (
-                          <RouterLink
-                            shallow={true}
-                            key={`${idx}-${item.title}-menu-links`}
-                            href={child.path}
-                            passHref
-                          >
-                            <MenuItem key={`menu-${idx}`} as={"a"} m={0}>
-                              {child.title}
-                            </MenuItem>
-                          </RouterLink>
-                        ))}
-                      </MenuList>
-                    </Portal>
-                  </Menu>
-                )}
-              </>
-            ))}
+                    </RouteButton>
+                  )}
+                  {item.children && (
+                    <Menu>
+                      <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+                        {item.title}
+                      </MenuButton>
+                      <Portal>
+                        <MenuList zIndex={100}>
+                          {item.children.map((child, idx) => (
+                            <RouterLink
+                              shallow={true}
+                              key={`${idx}-${item.title}-menu-links`}
+                              href={child.path}
+                              passHref
+                            >
+                              <MenuItem key={`menu-${idx}`} as={"a"} m={0}>
+                                {child.title}
+                              </MenuItem>
+                            </RouterLink>
+                          ))}
+                        </MenuList>
+                      </Portal>
+                    </Menu>
+                  )}
+                </React.Fragment>
+              );
+            })}
 
             {ui.isLoggedIn && (
               <RouterLink href="/welcome" passHref>
