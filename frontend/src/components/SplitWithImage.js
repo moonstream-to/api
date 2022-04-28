@@ -62,7 +62,7 @@ const Feature = ({ text, icon, iconBg, bullets }) => {
   );
 };
 
-const SplitWithImage = ({
+const _SplitWithImage = ({
   badge,
   title,
   body,
@@ -259,5 +259,6 @@ const SplitWithImage = ({
     </Container>
   );
 };
+const SplitWithImage = chakra(_SplitWithImage);
 
-export default chakra(SplitWithImage);
+export default SplitWithImage;

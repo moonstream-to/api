@@ -100,10 +100,7 @@ const Footer = () => (
             >
               <FaGithub />
             </SocialButton>
-            <SocialButton
-              label={"Discord"}
-              href={"https://discord.gg/K56VNUQGvA"}
-            >
+            <SocialButton label={"Discord"} href={"/discordleed"}>
               <FaDiscord />
             </SocialButton>
           </Stack>

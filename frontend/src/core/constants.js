@@ -36,29 +36,24 @@ export const PAGETYPE = {
 
 export const SITEMAP = [
   {
-    title: "Features",
-    path: "/features",
+    title: "Resources",
+    path: "/resources",
     type: PAGETYPE.EMPTY,
     children: [
       {
-        title: "On-chain mechanics",
-        path: "/features/#engine",
+        title: "Case studies",
+        path: "https://docs.google.com/document/d/1mjfF8SgRrAZvtCVVxB2qNSUcbbmrH6dTEYSMfHKdEgc",
+        type: PAGETYPE.EXTERNAL,
+      },
+      {
+        title: "Whitepapers",
+        path: "/whitepapers",
         type: PAGETYPE.CONTENT,
       },
       {
-        title: "Loyalty programs",
-        path: "/features/#loyalty",
-        type: PAGETYPE.CONTENT,
-      },
-      {
-        title: "Secure transactions",
-        path: "/features/#security",
-        type: PAGETYPE.CONTENT,
-      },
-      {
-        title: "Content management",
-        path: "/features/#cms",
-        type: PAGETYPE.CONTENT,
+        title: "Blog",
+        path: "https://blog.moonstream.to",
+        type: PAGETYPE.EXTERNAL,
       },
     ],
   },
@@ -66,6 +61,7 @@ export const SITEMAP = [
     title: "Developers",
     path: "/developers",
     type: PAGETYPE.EMPTY,
+
     children: [
       {
         title: "Docs",
@@ -79,23 +75,7 @@ export const SITEMAP = [
       },
     ],
   },
-  {
-    title: "Resources",
-    path: "/resources",
-    type: PAGETYPE.EMPTY,
-    children: [
-      {
-        title: "whitepapers",
-        path: "/whitepapers",
-        type: PAGETYPE.CONTENT,
-      },
-      {
-        title: "blog",
-        path: "https://blog.moonstream.to",
-        type: PAGETYPE.EXTERNAL,
-      },
-    ],
-  },
+
   {
     title: "About",
     path: "/about",
