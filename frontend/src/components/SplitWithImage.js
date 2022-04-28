@@ -17,6 +17,9 @@ import React, { useContext } from "react";
 import UIContext from "../core/providers/UIProvider/context";
 import { FaDiscord, FaGithubSquare } from "react-icons/fa";
 import RouteButton from "../components/RouteButton";
+import mixpanel from "mixpanel-browser";
+import MIXPANEL_EVENTS from "../core/providers/AnalyticsProvider/constants";
+import { useRouter } from "../core/hooks";
 
 const Feature = ({ text, icon, iconBg, bullets }) => {
   return (
@@ -72,6 +75,8 @@ const SplitWithImage = ({
   imgBoxShadow,
   py,
 }) => {
+  const router = useRouter();
+
   var buttonSize = useBreakpointValue({
     base: { single: "sm", double: "xs" },
     sm: { single: "md", double: "sm" },
@@ -186,6 +191,16 @@ const SplitWithImage = ({
                   w={["100%", "100%", "fit-content", null]}
                   maxW={["250px", null, "fit-content"]}
                   href={socialButton.url}
+                  onClick={() => {
+                    if (mixpanel.get_distinct_id()) {
+                      mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                        full_url: router.nextRouter.asPath,
+                        buttonName: `${socialButton.title}`,
+                        page: `splitWImage`,
+                        section: `${badge}`,
+                      });
+                    }
+                  }}
                   mt={[0, 0, null, 16]}
                   size={socialButton ? buttonSize.double : buttonSize.single}
                   variant="outline"
@@ -206,7 +221,18 @@ const SplitWithImage = ({
                   variant="outline"
                   mt={[0, 0, null, 16]}
                   size={socialButton ? buttonSize.double : buttonSize.single}
-                  onClick={cta.onClick}
+                  onClick={() => {
+                    if (mixpanel.get_distinct_id()) {
+                      mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                        full_url: router.nextRouter.asPath,
+                        buttonName: `${cta.label}`,
+                        page: `splitWImage`,
+                        section: `${badge}`,
+                      });
+                    }
+
+                    cta.onClick();
+                  }}
                 >
                   {cta.label}
                 </Button>

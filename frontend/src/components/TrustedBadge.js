@@ -11,7 +11,7 @@ const TrustedBadge = ({
 }) => {
   const _scale = scale ?? 1;
   return (
-    <LinkBox m={2}>
+    <LinkBox m={2} bgColor="blue.300" borderRadius="md">
       <LinkOverlay href={boxURL} isExternal>
         <Flex
           m={1}
