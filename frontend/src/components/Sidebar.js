@@ -109,12 +109,7 @@ const Sidebar = () => {
                         {item.children.map((child, idx) => {
                           return (
                             <MenuItem key={`MenuItem-SITEMAP-${idx}`}>
-                              <RouterLink
-                                href={child.path}
-                                onClick={() => {
-                                  ui.setSidebarToggled(false);
-                                }}
-                              >
+                              <RouterLink href={child.path}>
                                 {child.title}
                               </RouterLink>
                             </MenuItem>

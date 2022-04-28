@@ -10,13 +10,15 @@ import {
   Flex,
   Heading,
   Box,
+  Container,
+  Divider,
   chakra,
   Stack,
+  VStack,
   useMediaQuery,
   Grid,
   Text,
   GridItem,
-  SimpleGrid,
   Button,
   Image as ChakraImage,
 } from "@chakra-ui/react";
@@ -92,6 +94,28 @@ const carousel_content = [
   { title: "immutable x coming soon!", img: assets["immutable"] },
   { title: "gnosis chain coming soon!", img: assets["gnosis"] },
 ];
+
+const Feature = ({ image, altText, heading }) => {
+  return (
+    <GridItem>
+      <ChakraImage
+        boxSize={["100px", "100px", "xs", null, "xs"]}
+        objectFit="contain"
+        src={image}
+        alt={altText}
+      />
+      <chakra.span
+        my={12}
+        fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
+        display="inline-block"
+        color="white"
+      >
+        {heading}
+      </chakra.span>
+    </GridItem>
+  );
+};
+
 const Homepage = () => {
   const ui = useContext(UIContext);
   const [background, setBackground] = useState("background720");
@@ -274,7 +298,7 @@ const Homepage = () => {
                           fontWeight="semibold"
                           color="white"
                         >
-                          Building blocks for your blockchain economy
+                          Building blocks for your blockchain game
                         </Heading>
                         <chakra.span
                           my={12}
@@ -282,8 +306,8 @@ const Homepage = () => {
                           display="inline-block"
                           color="blue.200"
                         >
-                          Moonstream DAO makes tools that help you build,
-                          manage, and secure your blockchain economy.
+                          We are introducing Moonstream Engine - a
+                          groundbreaking set of tools for game design.
                         </chakra.span>
                         <chakra.span
                           my={12}
@@ -406,16 +430,113 @@ const Homepage = () => {
                 colSpan="12"
                 pt={0}
                 minH="100vh"
+                bgColor={"blue.900"}
+                textColor="white"
+              >
+                <Box as={Container} maxW="7xl" mt={14} p={4}>
+                  <Grid
+                    templateColumns={{
+                      base: "repeat(1, 1fr)",
+                      sm: "repeat(2, 1fr)",
+                      md: "repeat(2, 1fr)",
+                    }}
+                    gap={4}>
+                    <GridItem>
+                      <VStack alignItems="flex-start" spacing="20px">
+                        <Heading
+                          {...HEADING_PROPS}
+                          textAlign="center"
+                          pb={14}
+                          pt={0}
+                        >
+                          Dive into Engine Features
+                        </Heading>
+                        <Button
+                          colorScheme="orange"
+                          size="md"
+                          textColor="blue.900"
+                        >
+                          <a
+                            href="https://docs.google.com/document/d/1mjfF8SgRrAZvtCVVxB2qNSUcbbmrH6dTEYSMfHKdEgc/preview"
+                            my={12}
+                            fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
+                            display="inline-block"
+                            color="blue.200"
+                          >
+                            Call To Action
+                          </a>
+                        </Button>
+                      </VStack>
+                    </GridItem>
+                    <GridItem>
+                      <Flex>
+                        <chakra.span
+                          my={12}
+                          fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
+                          display="inline-block"
+                          color="blue.200"
+                        >
+                          Lootboxes, crafting, deck builder, you name it!
+                          Whatever on-chain mechanics you want incorporated in
+                          your project, contact us to help you launch it. It is
+                          fast and secure. Or explore the features to know more.
+                        </chakra.span>
+                      </Flex>
+                    </GridItem>
+                  </Grid>
+                  <Divider mt={12} mb={12} />
+                  <Grid
+                    templateColumns={{
+                      base: "repeat(1, 1fr)",
+                      sm: "repeat(2, 1fr)",
+                      md: "repeat(4, 1fr)",
+                    }}
+                    gap={{ base: "8", sm: "12", md: "16" }}
+                  >
+                    <Feature
+                      image={assets["cryptoTraders"]}
+                      altText="mined transactions"
+                      heading="ON-CHAIN MECHANICS"
+                    />
+                    <Feature
+                      image={assets["NFT"]}
+                      altText="mined transactions"
+                      heading="LOYALTY PROGRAMS"
+                    />
+                    <Feature
+                      image={assets["lender"]}
+                      altText="mined transactions"
+                      heading="SECURE TRANSACTIONS"
+                    />
+                    <Feature
+                      image={assets["DAO"]}
+                      altText="mined transactions"
+                      heading="CONTENT MANAGEMENT"
+                    />
+                  </Grid>
+                </Box>
+              </GridItem>
+
+              {/* <GridItem
+                px="7%"
+                colSpan="12"
+                pt={0}
+                minH="100vh"
                 bgColor={"blue.1200"}
               >
                 <Heading
                   {...HEADING_PROPS}
                   textAlign="center"
+                  textColor="white"
                   mt={[12, 14, 16]}
                   pb={[12, 12, 12, null, 24]}
                 >
-                  Features:
+                  Dive into Engine Features
                 </Heading>
+                <chakra.span textAlign={"center"} textColor="white" px={2}>
+                  Get the full picture of your economy with automated
+                  customizable dashboards.
+                </chakra.span>
                 <SimpleGrid
                   columns={[1, 2, 2, 5, null, 5]}
                   justifyContent="center"
@@ -578,7 +699,7 @@ const Homepage = () => {
                     </Link>
                   </GridItem>
                 </SimpleGrid>
-              </GridItem>
+              </GridItem> */}
 
               <GridItem
                 px="7%"
@@ -635,11 +756,9 @@ const Homepage = () => {
                 // mt={["32px", "64px", null]}
                 py={["98px", "128px", null]}
                 colSpan="12"
-                bgColor="blue.50"
+                bgColor="blue.700"
+                textColor="white"
               >
-                <Heading textAlign={"center"} as={"h2"}>
-                  Want to check it out?
-                </Heading>
                 <Flex
                   // bg={useColorModeValue("#F9FAFB", "gray.600")}
                   p={50}
@@ -656,28 +775,13 @@ const Homepage = () => {
                     // lineHeight="shorter"
                     // color={useColorModeValue("gray.900", "gray.100")}
                   >
-                    <chakra.span display="block" fontWeight="bold">
-                      To find out if Moonstream tools can benefit your project,
-                      please contact us on Discord.
-                    </chakra.span>
                     <chakra.span
                       display="block"
-                      // color={useColorModeValue("brand.600", "gray.500")}
+                      my={12}
+                      fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
+                      color="white"
                     >
-                      {`You can also explore our analytics on your own! It
-                          helps you get awesome insights into economy you're
-                          interested in. Whether you are a game founder or a
-                          researcher, sign up and get your instant free access.`}
-                    </chakra.span>
-                    <chakra.span
-                      display="block"
-                      mt={2}
-                      fontSize="lg"
-                      fontWeight={"semibold"}
-                      // color={useColorModeValue("brand.600", "gray.500")}
-                    >
-                      {`PS If you need help using it, we'll readily help you
-                          out on Discord.`}
+                      {`Contact us on Discord to discuss your project and keep up with the latest updates on the Moonstream Engine.`}
                     </chakra.span>
                   </chakra.h2>
                   <Box
@@ -709,7 +813,7 @@ const Homepage = () => {
                           Sign up
                         </Button> */}
                         <RouteButton
-                          w={"240px"}
+                          w={"280px"}
                           alignItems="center"
                           justifyContent="center"
                           border="solid transparent"
@@ -718,6 +822,7 @@ const Homepage = () => {
                           shadow="md"
                           variant="solid"
                           colorScheme="orange"
+                          textColor="blue.1200"
                           onClick={() => {
                             if (mixpanel.get_distinct_id()) {
                               mixpanel.track(
@@ -733,140 +838,12 @@ const Homepage = () => {
                           }}
                           href={"https://discord.gg/K56VNUQGvA"}
                         >
-                          Learn More on Discord
+                          Join the community on Discord
                         </RouteButton>
-                        <Button
-                          w={"240px"}
-                          alignItems="center"
-                          justifyContent="center"
-                          border="solid transparent"
-                          fontWeight="bold"
-                          rounded="md"
-                          shadow="md"
-                          color="brand.600"
-                          bg="white"
-                          _hover={{
-                            bg: "brand.50",
-                          }}
-                          // color={useColorModeValue("white")}
-                          // bg={useColorModeValue("brand.600", "brand.500")}
-                          onClick={() => {
-                            if (mixpanel.get_distinct_id()) {
-                              mixpanel.track(
-                                `${MIXPANEL_EVENTS.BUTTON_CLICKED}`,
-                                {
-                                  full_url: router.nextRouter.asPath,
-                                  buttonName: `sign up`,
-                                  page: `landing`,
-                                  section: `bottom-line`,
-                                }
-                              );
-                            }
-                            toggleModal({ type: MODAL_TYPES.SIGNUP });
-                          }}
-                        >
-                          {` Get started, it's free`}
-                        </Button>
                       </Stack>
                     </Box>
                   </Box>
                 </Flex>
-              </GridItem>
-              <GridItem
-                placeItems="center"
-                w="100%"
-                colSpan="12"
-                pt={["0", "0", "5.125rem", null, "5.125rem"]}
-                pb="120px"
-                px="7%"
-                id={"bottom-line"}
-                bgColor="blue.50"
-              >
-                <Stack direction="column" justifyContent="center">
-                  <chakra.span
-                    textAlign="center"
-                    fontWeight="600"
-                    fontSize="lg"
-                    w="100%"
-                    h="fit-content"
-                  >
-                    <Text
-                      mb={18}
-                      fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
-                    >
-                      Check out our GitHub repository and join our community on
-                      Discord
-                    </Text>
-                  </chakra.span>
-                  <Flex direction="row" flexWrap="wrap" placeContent="center">
-                    <RouteButton
-                      placeSelf="center"
-                      href={"https://discord.gg/K56VNUQGvA"}
-                      size="lg"
-                      variant="outline"
-                      colorScheme="blue"
-                      leftIcon={<FaDiscord />}
-                      w="280px"
-                      onClick={() => {
-                        if (mixpanel.get_distinct_id()) {
-                          mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                            full_url: router.nextRouter.asPath,
-                            buttonName: `Join our Discord`,
-                            page: `landing`,
-                            section: `bottom-line`,
-                          });
-                        }
-                      }}
-                    >
-                      Join our Discord
-                    </RouteButton>
-                    <RouteButton
-                      // mt={3}
-                      // p={8}
-                      placeSelf="center"
-                      href={`https://github.com/bugout-dev/moonstream`}
-                      size="lg"
-                      variant="outline"
-                      colorScheme="blue"
-                      w="280px"
-                      onClick={() => {
-                        if (mixpanel.get_distinct_id()) {
-                          mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                            full_url: router.nextRouter.asPath,
-                            buttonName: `git clone moonstream`,
-                            page: `landing`,
-                            section: `bottom-line`,
-                          });
-                        }
-                      }}
-                      leftIcon={<FaGithubSquare />}
-                    >
-                      git clone moonstream
-                    </RouteButton>
-                  </Flex>
-                  <Button
-                    // mt={3}
-                    placeSelf="center"
-                    w={["100%", "100%", "fit-content", null]}
-                    maxW={["280px", null, "fit-content"]}
-                    onClick={() => {
-                      if (mixpanel.get_distinct_id()) {
-                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          full_url: router.nextRouter.asPath,
-                          buttonName: `sign up`,
-                          page: `landing`,
-                          section: `bottom-line`,
-                        });
-                      }
-                      toggleModal({ type: MODAL_TYPES.SIGNUP });
-                    }}
-                    size="lg"
-                    variant="solid"
-                    colorScheme="orange"
-                  >
-                    Sign up
-                  </Button>
-                </Stack>
               </GridItem>
             </Grid>
           </Flex>
