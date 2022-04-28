@@ -2,7 +2,7 @@ import { Flex, Spinner, Box } from "@chakra-ui/react";
 import { getLayout as getSiteLayout } from "./RootLayout";
 import React, { useContext, useEffect } from "react";
 import UIContext from "../core/providers/UIProvider/context";
-import Navbar from "../components/Navbar";
+import AppNavbar from "../components/AppNavbar";
 
 const AppLayout = ({ children }) => {
   const ui = useContext(UIContext);
@@ -17,12 +17,12 @@ const AppLayout = ({ children }) => {
 
   return (
     <Flex
-      direction="row"
       id="JournalsWrapper"
       flexGrow={1}
       maxH="100%"
       w="100%"
       overflow="hidden"
+      direction="column"
     >
       {(!ui.isAppReady || !ui.isLoggedIn) && (
         <Spinner
@@ -45,7 +45,9 @@ const AppLayout = ({ children }) => {
           zIndex={1010}
         />
       )}
-      <Navbar />
+      <Flex direction={"column"} bgColor="blue.900" id="Navbar">
+        <AppNavbar />
+      </Flex>
       {ui.isAppReady && ui.isLoggedIn && children}
     </Flex>
   );

@@ -10,7 +10,6 @@ import {
   Flex,
   Heading,
   Box,
-  Center,
   chakra,
   Stack,
   useMediaQuery,
@@ -29,8 +28,6 @@ import useRouter from "../src/core/hooks/useRouter";
 import { AWS_ASSETS_PATH, DEFAULT_METATAGS } from "../src/core/constants";
 import UIContext from "../src/core/providers/UIProvider/context";
 import TrustedBadge from "../src/components/TrustedBadge";
-import Slider from "react-slick";
-import { v4 as uuidv4 } from "uuid";
 import RouteButton from "../src/components/RouteButton";
 import { MODAL_TYPES } from "../src/core/providers/OverlayProvider/constants";
 import mixpanel from "mixpanel-browser";
@@ -42,70 +39,12 @@ const SplitWithImage = dynamic(
     ssr: false,
   }
 );
-const FaStoreAlt = dynamic(() =>
-  import("react-icons/fa").then((mod) => mod.FaStoreAlt)
-);
 const FaDiscord = dynamic(() =>
   import("react-icons/fa").then((mod) => mod.FaDiscord)
 );
 
-const GiRiver = dynamic(() =>
-  import("react-icons/gi").then((mod) => mod.GiRiver)
-);
-
-const GiCrossedChains = dynamic(() =>
-  import("react-icons/gi").then((mod) => mod.GiCrossedChains)
-);
-
-const GiChainedHeart = dynamic(() =>
-  import("react-icons/gi").then((mod) => mod.GiChainedHeart)
-);
-
-const MdOutlineVerifiedUser = dynamic(() =>
-  import("react-icons/md").then((mod) => mod.MdOutlineVerifiedUser)
-);
-
-const GiRadarCrossSection = dynamic(() =>
-  import("react-icons/gi").then((mod) => mod.GiRadarCrossSection)
-);
-
-const GiMedallist = dynamic(() =>
-  import("react-icons/gi").then((mod) => mod.GiMedallist)
-);
-
-const GiRobotGolem = dynamic(() =>
-  import("react-icons/gi").then((mod) => mod.GiRobotGolem)
-);
-
-const CgUserlane = dynamic(() =>
-  import("react-icons/cg").then((mod) => mod.CgUserlane)
-);
-
-const GiChaingun = dynamic(() =>
-  import("react-icons/gi").then((mod) => mod.GiChaingun)
-);
-
-const GiQuickSlash = dynamic(() =>
-  import("react-icons/gi").then((mod) => mod.GiQuickSlash)
-);
-
-const GiConcentrationOrb = dynamic(() =>
-  import("react-icons/gi").then((mod) => mod.GiConcentrationOrb)
-);
-
-const GiTakeMyMoney = dynamic(() =>
-  import("react-icons/gi").then((mod) => mod.GiTakeMyMoney)
-);
-
 const FaGithubSquare = dynamic(() =>
   import("react-icons/fa").then((mod) => mod.FaGithubSquare)
-);
-const GiMeshBall = dynamic(() =>
-  import("react-icons/gi").then((mod) => mod.GiMeshBall)
-);
-
-const VscOrganization = dynamic(() =>
-  import("react-icons/vsc").then((mod) => mod.VscOrganization)
 );
 
 const HEADING_PROPS = {
@@ -282,6 +221,7 @@ const Homepage = () => {
           sx={{ scrollBehavior: "smooth" }}
           bgSize="cover"
           id="page:landing"
+          bgColor={"blue.50"}
         >
           <Flex
             direction="column"
@@ -301,12 +241,15 @@ const Homepage = () => {
             >
               <GridItem
                 mt={0}
+                mb={0}
                 px="0"
                 colSpan="12"
-                pb={[1, 2, null, 8]}
+                // pb={[1, 2, null, 8]}
                 minH="100vh"
+                bgColor={"blue.50"}
+                id="Header grid item"
               >
-                <chakra.header boxSize="full" minH="100vh">
+                <chakra.header boxSize="full" minH="100vh" mb={0}>
                   <Box
                     bgPos="bottom"
                     bgColor="transparent"
@@ -412,7 +355,59 @@ const Homepage = () => {
                 </chakra.header>
               </GridItem>
 
-              <GridItem px="7%" colSpan="12" pt={0} minH="100vh">
+              <GridItem
+                px="7%"
+                // mt={["32px", "64px", null]}
+                py={["98px", "128px", null]}
+                colSpan="12"
+                bgColor="white.100"
+              >
+                <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
+                  Trusted by{" "}
+                </Heading>
+                <Flex wrap="wrap" direction="row" justifyContent="center">
+                  <Suspense fallback={""}>
+                    <TrustedBadge
+                      scale={1.5}
+                      name="Laguna games"
+                      caseURL=""
+                      ImgURL={assets["laguna"]}
+                      boxURL="https://laguna.games/"
+                      bgColor="blue.900"
+                    />
+                    <TrustedBadge
+                      scale={1.5}
+                      name="game7io"
+                      ImgURL={assets["game7io"]}
+                      boxURL="https://game7.io/"
+                      bgColor="blue.900"
+                    />
+
+                    <TrustedBadge
+                      scale={1.5}
+                      name="orangedao"
+                      ImgURL={assets["orangedao"]}
+                      boxURL="https://lfg.orangedao.xyz/"
+                      bgColor="blue.900"
+                    />
+                    <TrustedBadge
+                      scale={1.5}
+                      name="forte"
+                      ImgURL={assets["forte"]}
+                      boxURL="https://www.forte.io/"
+                      bgColor="blue.900"
+                      invertColors={true}
+                    />
+                  </Suspense>
+                </Flex>
+              </GridItem>
+              <GridItem
+                px="7%"
+                colSpan="12"
+                pt={0}
+                minH="100vh"
+                bgColor={"blue.1200"}
+              >
                 <Heading
                   {...HEADING_PROPS}
                   textAlign="center"
@@ -433,6 +428,7 @@ const Homepage = () => {
                       alignItems="center"
                       borderRadius="12px"
                       borderColor="gray.100"
+                      bgColor={"blue.700"}
                       borderWidth={"1px"}
                       _hover={{ transform: "scale(1.05)", transition: "0.42s" }}
                       cursor="pointer"
@@ -586,56 +582,10 @@ const Homepage = () => {
 
               <GridItem
                 px="7%"
-                mt={["32px", "64px", null]}
-                py={["98px", "128px", null]}
-                colSpan="12"
-                bgColor="blue.500"
-              >
-                <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
-                  Trusted by{" "}
-                </Heading>
-                <Flex wrap="wrap" direction="row" justifyContent="center">
-                  <Suspense fallback={""}>
-                    <TrustedBadge
-                      scale={1.5}
-                      name="Laguna games"
-                      caseURL=""
-                      ImgURL={assets["laguna"]}
-                      boxURL="https://laguna.games/"
-                      bgColor="blue.900"
-                    />
-                    <TrustedBadge
-                      scale={1.5}
-                      name="game7io"
-                      ImgURL={assets["game7io"]}
-                      boxURL="https://game7.io/"
-                      bgColor="blue.900"
-                    />
-
-                    <TrustedBadge
-                      scale={1.5}
-                      name="orangedao"
-                      ImgURL={assets["orangedao"]}
-                      boxURL="https://lfg.orangedao.xyz/"
-                      bgColor="blue.900"
-                    />
-                    <TrustedBadge
-                      scale={1.5}
-                      name="forte"
-                      ImgURL={assets["forte"]}
-                      boxURL="https://www.forte.io/"
-                      bgColor="blue.900"
-                      invertColors={true}
-                    />
-                  </Suspense>
-                </Flex>
-              </GridItem>
-              <GridItem
-                px="7%"
                 // mt={["32px", "64px", null]}
                 py={["98px", "128px", null]}
                 colSpan="12"
-                bgColor="blue.50"
+                bgColor="white.100"
               >
                 <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
                   Featured by{" "}
@@ -830,6 +780,7 @@ const Homepage = () => {
                 pb="120px"
                 px="7%"
                 id={"bottom-line"}
+                bgColor="blue.50"
               >
                 <Stack direction="column" justifyContent="center">
                   <chakra.span

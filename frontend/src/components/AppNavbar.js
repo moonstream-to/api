@@ -37,7 +37,6 @@ import RouteButton from "./RouteButton";
 import AddNewIconButton from "./AddNewIconButton";
 import {
   USER_NAV_PATHES,
-  ALL_NAV_PATHES,
   SITEMAP,
   WHITE_LOGO_W_TEXT_URL,
 } from "../core/constants";
