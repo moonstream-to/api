@@ -147,6 +147,9 @@ const Sidebar = () => {
                           <MenuItem
                             icon={<MdDashboard />}
                             key={`dashboard-link-${idx}`}
+                            onClick={() => {
+                              ui.setSidebarToggled(false);
+                            }}
                           >
                             <RouterLink href={`/dashboard/${dashboard?.id}`}>
                               {dashboard.resource_data.name}
@@ -161,11 +164,12 @@ const Sidebar = () => {
                     variant="solid"
                     colorScheme="orange"
                     size="sm"
-                    onClick={() =>
+                    onClick={() => {
                       overlay.toggleModal({
                         type: MODAL_TYPES.NEW_DASHBOARD_FLOW,
-                      })
-                    }
+                      });
+                      ui.setSidebarToggled(false);
+                    }}
                     // w="100%"
                     // borderRadius={0}
                   >
