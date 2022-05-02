@@ -108,7 +108,12 @@ const Sidebar = () => {
                       <React.Fragment key={`Fragment-${idx}`}>
                         {item.children.map((child, idx) => {
                           return (
-                            <MenuItem key={`MenuItem-SITEMAP-${idx}`}>
+                            <MenuItem
+                              key={`MenuItem-SITEMAP-${idx}`}
+                              onClick={() => {
+                                ui.setSidebarToggled(false);
+                              }}
+                            >
                               <RouterLink href={child.path}>
                                 {child.title}
                               </RouterLink>
