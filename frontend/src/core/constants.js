@@ -6,7 +6,7 @@ export const BUGOUT_ENDPOINTS = {
 };
 
 export const DEFAULT_METATAGS = {
-  title: "Moonstream: Building blocks for your blockchain economy",
+  title: "Moonstream: Building blocks for your blockchain game",
   description:
     "Moonstream DAO makes tools that help you build, manage, and secure your blockchain economy.",
   keywords:
