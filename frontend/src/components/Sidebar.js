@@ -192,13 +192,28 @@ const Sidebar = () => {
         <Divider color="gray.300" w="100%" />
         {ui.isLoggedIn && (
           <Menu iconShape="square">
-            <MenuItem icon={<MdSettings />}>
+            <MenuItem
+              icon={<MdSettings />}
+              onClick={() => {
+                ui.setSidebarToggled(false);
+              }}
+            >
               <RouterLink href="/subscriptions">Subscriptions </RouterLink>
             </MenuItem>
-            <MenuItem icon={<MdTimeline />}>
+            <MenuItem
+              icon={<MdTimeline />}
+              onClick={() => {
+                ui.setSidebarToggled(false);
+              }}
+            >
               <RouterLink href="/stream">Stream</RouterLink>
             </MenuItem>
-            <MenuItem icon={<LockIcon />}>
+            <MenuItem
+              icon={<LockIcon />}
+              onClick={() => {
+                ui.setSidebarToggled(false);
+              }}
+            >
               <RouterLink href="/account/tokens">API Tokens</RouterLink>
             </MenuItem>
             <Divider />
