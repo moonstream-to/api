@@ -5,7 +5,6 @@ import argparse
 import hashlib
 import json
 import logging
-from pickle import DICT
 import time
 from datetime import datetime, timedelta
 from enum import Enum
@@ -17,8 +16,8 @@ import traceback
 import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
 from moonstreamdb.db import yield_db_read_only_session_ctx
-from sqlalchemy import Column, and_, distinct, func, text, tuple_
-from sqlalchemy.orm import Query, Session, Bundle
+from sqlalchemy import and_, distinct, func, text
+from sqlalchemy.orm import Session
 from sqlalchemy.sql.operators import in_op
 from web3 import Web3
 
@@ -130,11 +129,7 @@ def generate_data(
     end = datetime.utcnow()
 
     time_series_subquery = db_session.query(
-        func.generate_series(
-            start,
-            end,
-            time_step,
-        ).label("timeseries_points")
+        func.generate_series(start, end, time_step,).label("timeseries_points")
     )
 
     time_series_subquery = time_series_subquery.subquery(name="time_series_subquery")
@@ -351,7 +346,7 @@ def process_external_merged(
 
     result: Dict[str, Any] = {}
 
-    for external_call_hash, external_call in external_calls.values():
+    for external_call_hash, external_call in external_calls.items():
 
         try:
             func_input_abi = []
@@ -374,7 +369,7 @@ def process_external_merged(
                 }
             ]
 
-            external_calls.append(
+            external_calls_normalized.append(
                 {
                     "external_call_hash": external_call_hash,
                     "address": Web3.toChecksumAddress(external_call["address"]),
@@ -400,6 +395,11 @@ def process_external_merged(
 
             result[extcall["external_call_hash"]] = response
         except Exception as e:
+            print(extcall["name"])
+            print(extcall["address"])
+            print(extcall["abi"])
+            print(extcall["input_args"])
+
             logger.error(f"Failed to call {extcall['external_call_hash']} error: {e}")
 
     return result
@@ -513,8 +513,7 @@ def generate_web3_metrics(
     abi_external_calls = [item for item in abi_json if item["type"] == "external_call"]
 
     extention_data = process_external(
-        abi_external_calls=abi_external_calls,
-        blockchain=blockchain_type,
+        abi_external_calls=abi_external_calls, blockchain=blockchain_type,
     )
 
     extention_data.append(
@@ -616,11 +615,11 @@ def stats_generate_handler(args: argparse.Namespace):
 
         # generate merged events and functions calls for all subscriptions
 
-        merged_events = {}
+        merged_events: Dict[str, Any] = {}
 
-        merged_functions = {}
+        merged_functions: Dict[str, Any] = {}
 
-        merged_external_calls = {}
+        merged_external_calls: Dict[str, Any] = {}
 
         merged_external_calls["merged"] = {}
 
@@ -635,7 +634,7 @@ def stats_generate_handler(args: argparse.Namespace):
         
         """
 
-        address_dashboard_id_subscription_id_tree = {}
+        address_dashboard_id_subscription_id_tree: Dict[str, Any] = {}
 
         for dashboard in dashboard_resources.resources:
 
@@ -649,22 +648,37 @@ def stats_generate_handler(args: argparse.Namespace):
                         # Mean it's are different blockchain type
                         continue
 
+                    try:
+                        UUID(subscription_id)
+                    except Exception as err:
+                        logger.error(
+                            f"Subscription id {subscription_id} is not valid UUID: {err}"
+                        )
+                        continue
+
                     address = subscription_by_id[subscription_id].resource_data[
                         "address"
                     ]
+                    if address not in address_dashboard_id_subscription_id_tree:
+                        address_dashboard_id_subscription_id_tree[address] = {}
 
-                    if dashboard.id not in address_dashboard_id_subscription_id_tree:
+                    if (
+                        str(dashboard.id)
+                        not in address_dashboard_id_subscription_id_tree
+                    ):
                         address_dashboard_id_subscription_id_tree[address][
-                            dashboard.id
-                        ] = {}
+                            str(dashboard.id)
+                        ] = []
 
                     if (
                         subscription_id
-                        not in address_dashboard_id_subscription_id_tree[dashboard.id]
+                        not in address_dashboard_id_subscription_id_tree[address][
+                            str(dashboard.id)
+                        ]
                     ):
                         address_dashboard_id_subscription_id_tree[address][
-                            dashboard.id
-                        ] = subscription_id
+                            str(dashboard.id)
+                        ].append(subscription_id)
 
                     if not subscription_by_id[subscription_id].resource_data["abi"]:
                         methods = []
@@ -678,10 +692,9 @@ def stats_generate_handler(args: argparse.Namespace):
                         key = subscription_by_id[subscription_id].resource_data[
                             "s3_path"
                         ]
-                        abi = s3_client.get_object(
-                            Bucket=bucket,
-                            Key=key,
-                        )
+                        print(f"bucket: {bucket}")
+                        print(f"key: {key}")
+                        abi = s3_client.get_object(Bucket=bucket, Key=key,)
                         abi_json = json.loads(abi["Body"].read())
                         methods = generate_list_of_names(
                             type="function",
@@ -702,20 +715,22 @@ def stats_generate_handler(args: argparse.Namespace):
 
                     if address not in merged_functions:
                         merged_functions[address] = {}
-                        merged_events[address]["merged"] = set()
+                        merged_functions[address]["merged"] = set()
 
-                    if address not in merged_external_calls:
-                        merged_external_calls[address] = {}
-                        merged_events[address]["merged"] = set()
+                    # if address not in merged_external_calls:
+                    #     merged_external_calls[address] = {}
+                    #     merged_external_calls[address]["merged"] = set()
 
-                    if dashboard.id not in merged_events[address]:
-                        merged_events[address][dashboard.id] = {}
+                    if str(dashboard.id) not in merged_events[address]:
+                        merged_events[address][str(dashboard.id)] = {}
 
-                    if dashboard.id not in merged_functions[address]:
-                        merged_functions[address][dashboard.id] = {}
+                    if str(dashboard.id) not in merged_functions[address]:
+                        merged_functions[address][str(dashboard.id)] = {}
 
-                    merged_events[address][dashboard.id][subscription_id] = events
-                    merged_functions[address][dashboard.id][subscription_id] = methods
+                    merged_events[address][str(dashboard.id)][subscription_id] = events
+                    merged_functions[address][str(dashboard.id)][
+                        subscription_id
+                    ] = methods
 
                     # Get external calls from ABI.
                     # external_calls merging required direct hash of external_call object.
@@ -746,26 +761,26 @@ def stats_generate_handler(args: argparse.Namespace):
                                 )
                             ).hexdigest()
 
-                            if dashboard.id not in merged_external_calls:
-                                merged_external_calls[dashboard.id] = {}
+                            if str(dashboard.id) not in merged_external_calls:
+                                merged_external_calls[str(dashboard.id)] = {}
 
                             if (
                                 subscription_id
-                                not in merged_external_calls[dashboard.id]
+                                not in merged_external_calls[str(dashboard.id)]
                             ):
-                                merged_external_calls[dashboard.id][
+                                merged_external_calls[str(dashboard.id)][
                                     subscription_id
                                 ] = {}
 
                             if (
                                 external_call_hash
-                                not in merged_external_calls[dashboard.id][
+                                not in merged_external_calls[str(dashboard.id)][
                                     subscription_id
                                 ]
                             ):
-                                merged_external_calls[dashboard.id][subscription_id] = {
-                                    external_call_hash: external_call["display_name"]
-                                }
+                                merged_external_calls[str(dashboard.id)][
+                                    subscription_id
+                                ] = {external_call_hash: external_call["display_name"]}
                             if (
                                 external_call_hash
                                 not in merged_external_calls["merged"]
@@ -783,33 +798,17 @@ def stats_generate_handler(args: argparse.Namespace):
                         merged_functions[address]["merged"].add(method)
 
                 except Exception as e:
+                    traceback.print_exc()
                     logger.error(f"Error while merging subscriptions: {e}")
 
         # Request contracts for external calls.
         # result is a {call_hash: value} dictionary.
 
         external_calls_results = process_external_merged(
-            external_calls=merged_external_calls["merged"],
-            blockchain=blockchain_type,
+            external_calls=merged_external_calls["merged"], blockchain=blockchain_type,
         )
 
         for address in address_dashboard_id_subscription_id_tree.keys():
-
-            # for dashboard_subscription_filters in dashboard.resource_data[
-            #     "subscription_settings"
-            # ]:
-
-            # try:
-            #     subscription_id = dashboard_subscription_filters["subscription_id"]
-
-            # if subscription_id not in subscription_by_id:
-            #     # Mean it's are different blockchain type
-            #     continue
-
-            # subscriptions_count += 1
-            # extention_data = []
-
-            # The resulting object whivh be pushed to S3
 
             current_blocks_state = get_blocks_state(
                 db_session=db_session, blockchain_type=blockchain_type
@@ -823,129 +822,159 @@ def stats_generate_handler(args: argparse.Namespace):
                 crawler_label = "moonworm"
 
             for timescale in [timescale.value for timescale in TimeScale]:
+                try:
+                    start_date = (
+                        datetime.utcnow() - timescales_delta[timescale]["timedelta"]
+                    )
 
-                start_date = (
-                    datetime.utcnow() - timescales_delta[timescale]["timedelta"]
-                )
+                    logger.info(f"Timescale: {timescale}")
 
-                logger.info(f"Timescale: {timescale}")
+                    # Write state of blocks in database
+                    s3_data_object_for_contract["blocks_state"] = current_blocks_state
 
-                # Write state of blocks in database
-                s3_data_object_for_contract["blocks_state"] = current_blocks_state
+                    # TODO(Andrey): Remove after https://github.com/bugout-dev/moonstream/issues/524
+                    s3_data_object_for_contract["generic"] = {}
 
-                # TODO(Andrey): Remove after https://github.com/bugout-dev/moonstream/issues/524
-                s3_data_object_for_contract["generic"] = {}
+                    # Generate functions call timeseries
+                    functions_calls_data = generate_data(
+                        db_session=db_session,
+                        blockchain_type=blockchain_type,
+                        address=address,
+                        timescale=timescale,
+                        functions=merged_functions[address]["merged"],
+                        start=start_date,
+                        metric_type="tx_call",
+                        crawler_label=crawler_label,
+                    )
+                    s3_data_object_for_contract["methods"] = functions_calls_data
 
-                # Generate functions call timeseries
-                functions_calls_data = generate_data(
-                    db_session=db_session,
-                    blockchain_type=blockchain_type,
-                    address=address,
-                    timescale=timescale,
-                    functions=merged_functions[address]["merged"],
-                    start=start_date,
-                    metric_type="tx_call",
-                    crawler_label=crawler_label,
-                )
-                s3_data_object_for_contract["methods"] = functions_calls_data
+                    # Generte events timeseries
+                    events_data = generate_data(
+                        db_session=db_session,
+                        blockchain_type=blockchain_type,
+                        address=address,
+                        timescale=timescale,
+                        functions=merged_events[address]["merged"],
+                        start=start_date,
+                        metric_type="event",
+                        crawler_label=crawler_label,
+                    )
+                    s3_data_object_for_contract["events"] = events_data
 
-                # Generte events timeseries
-                events_data = generate_data(
-                    db_session=db_session,
-                    blockchain_type=blockchain_type,
-                    address=address,
-                    timescale=timescale,
-                    functions=merged_events[address]["merged"],
-                    start=start_date,
-                    metric_type="event",
-                    crawler_label=crawler_label,
-                )
-                s3_data_object_for_contract["events"] = events_data
-
-                for dashboard in address_dashboard_id_subscription_id_tree[
-                    address
-                ]:  # Dashboards loop for address
-
-                    for subscription_id in address_dashboard_id_subscription_id_tree[
+                    for dashboard in address_dashboard_id_subscription_id_tree[
                         address
-                    ][dashboard.id]:
+                    ]:  # Dashboards loop for address
 
-                        extention_data = []
-
-                        s3_subscription_data_object = {}
-
-                        for external_call_hash, display_name in merged_external_calls[
-                            dashboard.id
-                        ][subscription_id].values():
-
-                            extention_data.append(
-                                {
-                                    "display_name": display_name,
-                                    "value": external_calls_results[external_call_hash],
-                                }
-                            )
-
-                        s3_subscription_data_object["web3_metric"] = extention_data
-
-                        # list of user defined events
-
-                        events_list = merged_events[address][dashboard.id][
+                        for (
                             subscription_id
-                        ]
+                        ) in address_dashboard_id_subscription_id_tree[address][
+                            dashboard
+                        ]:
 
-                        s3_subscription_data_object["events"] = {}
+                            try:
 
-                        for event in events_list:
-                            event_data = s3_data_object_for_contract["events"][event]
-                            s3_subscription_data_object["events"][event] = event_data
+                                extention_data = []
 
-                        # list of user defined functions
+                                s3_subscription_data_object: Dict[str, Any] = {}
 
-                        functions_list = merged_functions[address][dashboard.id][
-                            subscription_id
-                        ]
+                                print(f"dashboard:{dashboard}")
+                                print(f"subscription_id:{subscription_id}")
 
-                        s3_subscription_data_object["methods"] = {}
+                                if dashboard in merged_external_calls:
+                                    for (
+                                        external_call_hash,
+                                        display_name,
+                                    ) in merged_external_calls[dashboard][
+                                        subscription_id
+                                    ].items():
 
-                        for function in functions_list:
-                            function_data = s3_data_object_for_contract["methods"][
-                                function
-                            ]
-                            s3_subscription_data_object["methods"][
-                                function
-                            ] = function_data
+                                        if external_call_hash in external_calls_results:
 
-                        bucket = subscription_by_id[subscription_id].resource_data[
-                            "bucket"
-                        ]
-                        key = subscription_by_id[subscription_id].resource_data[
-                            "s3_path"
-                        ]
+                                            extention_data.append(
+                                                {
+                                                    "display_name": display_name,
+                                                    "value": external_calls_results[
+                                                        external_call_hash
+                                                    ],
+                                                }
+                                            )
 
-                        # Push data to S3 bucket
-                        push_statistics(
-                            statistics_data=s3_subscription_data_object,
-                            subscription=subscription_by_id[subscription_id],
-                            timescale=timescale,
-                            bucket=bucket,
-                            dashboard_id=dashboard.id,
-                        )
-            # except Exception as err:
-            #     traceback.print_exc()
-            #     db_session.rollback()
-            #     reporter.error_report(
-            #         err,
-            #         [
-            #             "dashboard",
-            #             "statistics",
-            #             f"blockchain:{args.blockchain}"
-            #             f"subscriptions:{subscription_id}",
-            #             f"dashboard:{dashboard.id}",
-            #         ],
-            #     )
-            #     logger.error(err)
+                                s3_subscription_data_object[
+                                    "web3_metric"
+                                ] = extention_data
 
-            # break
+                                # list of user defined events
+
+                                events_list = merged_events[address][dashboard][
+                                    subscription_id
+                                ]
+
+                                s3_subscription_data_object["events"] = {}
+
+                                for event in events_list:
+                                    if event in events_data:
+                                        s3_subscription_data_object["events"][
+                                            event
+                                        ] = events_data[event]
+
+                                # list of user defined functions
+
+                                functions_list = merged_functions[address][dashboard][
+                                    subscription_id
+                                ]
+
+                                s3_subscription_data_object["methods"] = {}
+
+                                for function in functions_list:
+                                    if function in functions_calls_data:
+                                        s3_subscription_data_object["methods"][
+                                            function
+                                        ] = functions_calls_data[function]
+
+                                bucket = subscription_by_id[
+                                    subscription_id
+                                ].resource_data["bucket"]
+                                key = subscription_by_id[subscription_id].resource_data[
+                                    "s3_path"
+                                ]
+
+                                # Push data to S3 bucket
+                                push_statistics(
+                                    statistics_data=s3_subscription_data_object,
+                                    subscription=subscription_by_id[subscription_id],
+                                    timescale=timescale,
+                                    bucket=bucket,
+                                    dashboard_id=dashboard,
+                                )
+                            except Exception as err:
+                                traceback.print_exc()
+                                db_session.rollback()
+                                reporter.error_report(
+                                    err,
+                                    [
+                                        "dashboard",
+                                        "statistics",
+                                        f"blockchain:{args.blockchain}"
+                                        f"subscriptions:{subscription_id}",
+                                        f"dashboard:{dashboard}",
+                                    ],
+                                )
+                                logger.error(err)
+                except Exception as err:
+                    traceback.print_exc()
+                    db_session.rollback()
+                    reporter.error_report(
+                        err,
+                        [
+                            "dashboard",
+                            "statistics",
+                            f"blockchain:{args.blockchain}" f"timescale:{timescale}",
+                            f"data_generation_failed",
+                        ],
+                    )
+                    logger.error(err)
+
+            break
 
         reporter.custom_report(
             title=f"Dashboard stats generated.",
@@ -1007,10 +1036,7 @@ def stats_generate_api_task(
 
                     bucket = subscription_by_id[subscription_id].resource_data["bucket"]
                     key = subscription_by_id[subscription_id].resource_data["s3_path"]
-                    abi = s3_client.get_object(
-                        Bucket=bucket,
-                        Key=key,
-                    )
+                    abi = s3_client.get_object(Bucket=bucket, Key=key,)
                     abi_json = json.loads(abi["Body"].read())
 
                     methods = generate_list_of_names(
@@ -1093,13 +1119,14 @@ def stats_generate_api_task(
                         dashboard_id=dashboard.id,
                     )
             except Exception as err:
+                traceback.print_exc()
                 reporter.error_report(
                     err,
                     [
                         "dashboard",
                         "statistics",
                         f"subscriptions:{subscription_id}",
-                        f"dashboard:{dashboard.id}",
+                        f"dashboard:{str(dashboard.id)}",
                     ],
                 )
                 logger.error(err)
