@@ -6,6 +6,7 @@ on:
       - "main"
     paths:
       - "db/**"
+      - "!db/deploy/**"
 
 jobs:
   build:
