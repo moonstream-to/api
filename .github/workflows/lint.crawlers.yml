@@ -24,7 +24,12 @@ jobs:
         run: pip install -e .[dev]
       - name: Mypy type check
         working-directory: ./crawlers/mooncrawl
-        run: mypy mooncrawl/
+        run: |
+            mypy --version
+            mypy mooncrawl/
       - name: Black syntax check
         working-directory: ./crawlers/mooncrawl
-        run: black --check mooncrawl/
+        run: | 
+            black --version
+            black --check mooncrawl/
+
