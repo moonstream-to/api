@@ -82,7 +82,6 @@ const SubscriptionsList = ({ emptyCTA }) => {
                 />
               );
             })}
-
           </Accordion>
         )}
       </>

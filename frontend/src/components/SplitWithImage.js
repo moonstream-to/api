@@ -12,6 +12,7 @@ import {
   Button,
   useBreakpointValue,
   useToken,
+  chakra,
 } from "@chakra-ui/react";
 import React, { useContext } from "react";
 import UIContext from "../core/providers/UIProvider/context";
@@ -50,7 +51,7 @@ const Feature = ({ text, icon, iconBg, bullets }) => {
                 text={bullet.text}
                 {...bullet}
                 icon={
-                  <Icon as={bullet.icon} color={bullet.color} w={5} h={5} />
+                  <Icon as={bullet.icon} color={bullet.color} w={16} h={16} />
                 }
               />
             );
@@ -61,7 +62,7 @@ const Feature = ({ text, icon, iconBg, bullets }) => {
   );
 };
 
-const SplitWithImage = ({
+const _SplitWithImage = ({
   badge,
   title,
   body,
@@ -74,6 +75,7 @@ const SplitWithImage = ({
   socialButton,
   imgBoxShadow,
   py,
+  ...props
 }) => {
   const router = useRouter();
 
@@ -121,6 +123,7 @@ const SplitWithImage = ({
       py={py}
       className={`fade-in-section ${isVisible ? "is-visible" : ""}`}
       ref={domRef}
+      {...props}
     >
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={[0, 0, 10, null, 10]}>
         {mirror && !ui.isMobileView && (
@@ -171,7 +174,7 @@ const SplitWithImage = ({
                 <Feature
                   key={`splitWImageBullet-${idx}-${title}`}
                   icon={
-                    <Icon as={bullet.icon} color={bullet.color} w={5} h={5} />
+                    <Icon as={bullet.icon} color={bullet.color} w={16} h={16} />
                   }
                   iconBg={bullet.bgColor}
                   text={bullet.text}
@@ -256,5 +259,6 @@ const SplitWithImage = ({
     </Container>
   );
 };
+const SplitWithImage = chakra(_SplitWithImage);
 
 export default SplitWithImage;

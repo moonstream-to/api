@@ -6,6 +6,7 @@ on:
       - "main"
     paths:
       - "crawlers/**"
+      - "!crawlers/deploy/**"
 
 jobs:
   build:
