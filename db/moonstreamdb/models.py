@@ -40,6 +40,11 @@ Following:
 """
 
 
+"""
+test lint
+"""
+
+
 class utcnow(expression.FunctionElement):
     type = DateTime
 
@@ -132,21 +137,9 @@ class EthereumLabel(Base):  # type: ignore
         nullable=False,
     )
     label = Column(VARCHAR(256), nullable=False, index=True)
-    block_number = Column(
-        BigInteger,
-        nullable=True,
-        index=True,
-    )
-    address = Column(
-        VARCHAR(256),
-        nullable=True,
-        index=True,
-    )
-    transaction_hash = Column(
-        VARCHAR(256),
-        nullable=True,
-        index=True,
-    )
+    block_number = Column(BigInteger, nullable=True, index=True,)
+    address = Column(VARCHAR(256), nullable=True, index=True,)
+    transaction_hash = Column(VARCHAR(256), nullable=True, index=True,)
     label_data = Column(JSONB, nullable=True)
     block_timestamp = Column(BigInteger, index=True)
     log_index = Column(Integer, nullable=True)
@@ -238,21 +231,9 @@ class PolygonLabel(Base):  # type: ignore
         nullable=False,
     )
     label = Column(VARCHAR(256), nullable=False, index=True)
-    block_number = Column(
-        BigInteger,
-        nullable=True,
-        index=True,
-    )
-    address = Column(
-        VARCHAR(256),
-        nullable=True,
-        index=True,
-    )
-    transaction_hash = Column(
-        VARCHAR(256),
-        nullable=True,
-        index=True,
-    )
+    block_number = Column(BigInteger, nullable=True, index=True,)
+    address = Column(VARCHAR(256), nullable=True, index=True,)
+    transaction_hash = Column(VARCHAR(256), nullable=True, index=True,)
     label_data = Column(JSONB, nullable=True)
     block_timestamp = Column(BigInteger, index=True)
     log_index = Column(Integer, nullable=True)
