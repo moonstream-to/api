@@ -8,7 +8,7 @@ import logging
 import time
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Union
 from uuid import UUID
 
 import traceback
@@ -87,7 +87,7 @@ def push_statistics(
     subscription: Any,
     timescale: str,
     bucket: str,
-    dashboard_id: UUID,
+    dashboard_id: Union[UUID, str],
 ) -> None:
 
     result_bytes = json.dumps(statistics_data).encode("utf-8")
@@ -646,9 +646,9 @@ def stats_generate_handler(args: argparse.Namespace):
 
         address_dashboard_id_subscription_id_tree: Dict[str, Any] = {}
 
-        for dashboard in dashboard_resources.resources:
+        for dashboard_id in dashboard_resources.resources:
 
-            for dashboard_subscription_filters in dashboard.resource_data[
+            for dashboard_subscription_filters in dashboard_id.resource_data[
                 "subscription_settings"
             ]:
                 try:
@@ -673,21 +673,21 @@ def stats_generate_handler(args: argparse.Namespace):
                         address_dashboard_id_subscription_id_tree[address] = {}
 
                     if (
-                        str(dashboard.id)
+                        str(dashboard_id.id)
                         not in address_dashboard_id_subscription_id_tree
                     ):
                         address_dashboard_id_subscription_id_tree[address][
-                            str(dashboard.id)
+                            str(dashboard_id.id)
                         ] = []
 
                     if (
                         subscription_id
                         not in address_dashboard_id_subscription_id_tree[address][
-                            str(dashboard.id)
+                            str(dashboard_id.id)
                         ]
                     ):
                         address_dashboard_id_subscription_id_tree[address][
-                            str(dashboard.id)
+                            str(dashboard_id.id)
                         ].append(subscription_id)
 
                     if not subscription_by_id[subscription_id].resource_data["abi"]:
@@ -729,14 +729,16 @@ def stats_generate_handler(args: argparse.Namespace):
                     #     merged_external_calls[address] = {}
                     #     merged_external_calls[address]["merged"] = set()
 
-                    if str(dashboard.id) not in merged_events[address]:
-                        merged_events[address][str(dashboard.id)] = {}
+                    if str(dashboard_id.id) not in merged_events[address]:
+                        merged_events[address][str(dashboard_id.id)] = {}
 
-                    if str(dashboard.id) not in merged_functions[address]:
-                        merged_functions[address][str(dashboard.id)] = {}
+                    if str(dashboard_id.id) not in merged_functions[address]:
+                        merged_functions[address][str(dashboard_id.id)] = {}
 
-                    merged_events[address][str(dashboard.id)][subscription_id] = events
-                    merged_functions[address][str(dashboard.id)][
+                    merged_events[address][str(dashboard_id.id)][
+                        subscription_id
+                    ] = events
+                    merged_functions[address][str(dashboard_id.id)][
                         subscription_id
                     ] = methods
 
@@ -769,24 +771,24 @@ def stats_generate_handler(args: argparse.Namespace):
                                 )
                             ).hexdigest()
 
-                            if str(dashboard.id) not in merged_external_calls:
-                                merged_external_calls[str(dashboard.id)] = {}
+                            if str(dashboard_id.id) not in merged_external_calls:
+                                merged_external_calls[str(dashboard_id.id)] = {}
 
                             if (
                                 subscription_id
-                                not in merged_external_calls[str(dashboard.id)]
+                                not in merged_external_calls[str(dashboard_id.id)]
                             ):
-                                merged_external_calls[str(dashboard.id)][
+                                merged_external_calls[str(dashboard_id.id)][
                                     subscription_id
                                 ] = {}
 
                             if (
                                 external_call_hash
-                                not in merged_external_calls[str(dashboard.id)][
+                                not in merged_external_calls[str(dashboard_id.id)][
                                     subscription_id
                                 ]
                             ):
-                                merged_external_calls[str(dashboard.id)][
+                                merged_external_calls[str(dashboard_id.id)][
                                     subscription_id
                                 ] = {external_call_hash: external_call["display_name"]}
                             if (
@@ -868,14 +870,14 @@ def stats_generate_handler(args: argparse.Namespace):
                     )
                     s3_data_object_for_contract["events"] = events_data
 
-                    for dashboard in address_dashboard_id_subscription_id_tree[
+                    for dashboard_id in address_dashboard_id_subscription_id_tree[
                         address
                     ]:  # Dashboards loop for address
 
                         for (
                             subscription_id
                         ) in address_dashboard_id_subscription_id_tree[address][
-                            dashboard
+                            dashboard_id
                         ]:
 
                             try:
@@ -888,11 +890,11 @@ def stats_generate_handler(args: argparse.Namespace):
                                     "blocks_state"
                                 ] = s3_data_object_for_contract["blocks_state"]
 
-                                if dashboard in merged_external_calls:
+                                if dashboard_id in merged_external_calls:
                                     for (
                                         external_call_hash,
                                         display_name,
-                                    ) in merged_external_calls[dashboard][
+                                    ) in merged_external_calls[dashboard_id][
                                         subscription_id
                                     ].items():
 
@@ -913,7 +915,7 @@ def stats_generate_handler(args: argparse.Namespace):
 
                                 # list of user defined events
 
-                                events_list = merged_events[address][dashboard][
+                                events_list = merged_events[address][dashboard_id][
                                     subscription_id
                                 ]
 
@@ -927,9 +929,9 @@ def stats_generate_handler(args: argparse.Namespace):
 
                                 # list of user defined functions
 
-                                functions_list = merged_functions[address][dashboard][
-                                    subscription_id
-                                ]
+                                functions_list = merged_functions[address][
+                                    dashboard_id
+                                ][subscription_id]
 
                                 s3_subscription_data_object["methods"] = {}
 
@@ -952,7 +954,7 @@ def stats_generate_handler(args: argparse.Namespace):
                                     subscription=subscription_by_id[subscription_id],
                                     timescale=timescale,
                                     bucket=bucket,
-                                    dashboard_id=dashboard,
+                                    dashboard_id=dashboard_id,
                                 )
                             except Exception as err:
                                 db_session.rollback()
@@ -963,7 +965,7 @@ def stats_generate_handler(args: argparse.Namespace):
                                         "statistics",
                                         f"blockchain:{args.blockchain}"
                                         f"subscriptions:{subscription_id}",
-                                        f"dashboard:{dashboard}",
+                                        f"dashboard:{dashboard_id}",
                                     ],
                                 )
                                 logger.error(err)

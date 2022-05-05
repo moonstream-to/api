@@ -46,7 +46,7 @@ def identities_cmc_add_handler(args: argparse.Namespace) -> None:
             "listing_status": args.listing_status,
         }
         try:
-            r = requests.get(url=url, headers=headers, params=params)
+            r = requests.get(url=url, headers=headers, params=params)  # type: ignore
             r.raise_for_status()
             response = r.json()
         except Exception as err:
@@ -100,10 +100,7 @@ def main():
     parser_cmc = subcommands.add_parser("cmc", description="Coinmarketcap commands")
     parser_cmc.set_defaults(func=lambda _: parser_cmc.print_help())
     parser_cmc.add_argument(
-        "-s",
-        "--sandbox",
-        action="store_true",
-        help="Target to sandbox API",
+        "-s", "--sandbox", action="store_true", help="Target to sandbox API",
     )
 
     subcommands_parser_cmc = parser_cmc.add_subparsers(
