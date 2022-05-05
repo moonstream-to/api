@@ -646,9 +646,9 @@ def stats_generate_handler(args: argparse.Namespace):
 
         address_dashboard_id_subscription_id_tree: Dict[str, Any] = {}
 
-        for dashboard_id in dashboard_resources.resources:
+        for dashboard in dashboard_resources.resources:
 
-            for dashboard_subscription_filters in dashboard_id.resource_data[
+            for dashboard_subscription_filters in dashboard.resource_data[
                 "subscription_settings"
             ]:
                 try:
@@ -673,21 +673,21 @@ def stats_generate_handler(args: argparse.Namespace):
                         address_dashboard_id_subscription_id_tree[address] = {}
 
                     if (
-                        str(dashboard_id.id)
+                        str(dashboard.id)
                         not in address_dashboard_id_subscription_id_tree
                     ):
                         address_dashboard_id_subscription_id_tree[address][
-                            str(dashboard_id.id)
+                            str(dashboard.id)
                         ] = []
 
                     if (
                         subscription_id
                         not in address_dashboard_id_subscription_id_tree[address][
-                            str(dashboard_id.id)
+                            str(dashboard.id)
                         ]
                     ):
                         address_dashboard_id_subscription_id_tree[address][
-                            str(dashboard_id.id)
+                            str(dashboard.id)
                         ].append(subscription_id)
 
                     if not subscription_by_id[subscription_id].resource_data["abi"]:
@@ -729,16 +729,14 @@ def stats_generate_handler(args: argparse.Namespace):
                     #     merged_external_calls[address] = {}
                     #     merged_external_calls[address]["merged"] = set()
 
-                    if str(dashboard_id.id) not in merged_events[address]:
-                        merged_events[address][str(dashboard_id.id)] = {}
+                    if str(dashboard.id) not in merged_events[address]:
+                        merged_events[address][str(dashboard.id)] = {}
 
-                    if str(dashboard_id.id) not in merged_functions[address]:
-                        merged_functions[address][str(dashboard_id.id)] = {}
+                    if str(dashboard.id) not in merged_functions[address]:
+                        merged_functions[address][str(dashboard.id)] = {}
 
-                    merged_events[address][str(dashboard_id.id)][
-                        subscription_id
-                    ] = events
-                    merged_functions[address][str(dashboard_id.id)][
+                    merged_events[address][str(dashboard.id)][subscription_id] = events
+                    merged_functions[address][str(dashboard.id)][
                         subscription_id
                     ] = methods
 
@@ -771,24 +769,24 @@ def stats_generate_handler(args: argparse.Namespace):
                                 )
                             ).hexdigest()
 
-                            if str(dashboard_id.id) not in merged_external_calls:
-                                merged_external_calls[str(dashboard_id.id)] = {}
+                            if str(dashboard.id) not in merged_external_calls:
+                                merged_external_calls[str(dashboard.id)] = {}
 
                             if (
                                 subscription_id
-                                not in merged_external_calls[str(dashboard_id.id)]
+                                not in merged_external_calls[str(dashboard.id)]
                             ):
-                                merged_external_calls[str(dashboard_id.id)][
+                                merged_external_calls[str(dashboard.id)][
                                     subscription_id
                                 ] = {}
 
                             if (
                                 external_call_hash
-                                not in merged_external_calls[str(dashboard_id.id)][
+                                not in merged_external_calls[str(dashboard.id)][
                                     subscription_id
                                 ]
                             ):
-                                merged_external_calls[str(dashboard_id.id)][
+                                merged_external_calls[str(dashboard.id)][
                                     subscription_id
                                 ] = {external_call_hash: external_call["display_name"]}
                             if (
@@ -965,7 +963,7 @@ def stats_generate_handler(args: argparse.Namespace):
                                         "statistics",
                                         f"blockchain:{args.blockchain}"
                                         f"subscriptions:{subscription_id}",
-                                        f"dashboard:{dashboard_id}",
+                                        f"dashboard:{dashboard}",
                                     ],
                                 )
                                 logger.error(err)
