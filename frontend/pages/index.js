@@ -4,11 +4,9 @@ import {
   Flex,
   Heading,
   Box,
-  Divider,
   chakra,
   Stack,
-  VStack,
-  Spacer,
+  Link,
   Center,
   useMediaQuery,
   Grid,
@@ -42,6 +40,7 @@ const assets = {
   educativesessions: `${AWS_ASSETS_PATH}/featured_by/educative_logo.png`,
   cryptoinsiders: `${AWS_ASSETS_PATH}/featured_by/crypto_insiders.png`,
   cryptoslate: `${AWS_ASSETS_PATH}/featured_by/cs-media-logo-light.png`,
+  cgcConference: `${AWS_ASSETS_PATH}/featured_by/cgc_conference_2022_logo.jpg`,
   lender: `${AWS_ASSETS_PATH}/lender.png`,
   DAO: `${AWS_ASSETS_PATH}/DAO .png`,
   NFT: `${AWS_ASSETS_PATH}/NFT.png`,
@@ -85,26 +84,6 @@ const Feature = ({ image, altText, heading, description }) => {
     </Stack>
   );
 };
-
-const MilestoneBox = ({ headingText, description }) => {
-  return (
-    <Box
-      w={["150px", "180px", "300px", "300px", "400px", "500px"]}
-      // bg="gray.100"
-      py={5}
-    >
-      <Text
-        fontSize={"3xl"}
-        textAlign="center"
-        color="orange.500"
-        fontWeight="bold"
-      >
-        {headingText}
-      </Text>
-      <Text marginLeft={10}>{description}</Text>
-    </Box>
-  )
-}
 
 const Homepage = () => {
   const [background, setBackground] = useState("background720");
@@ -203,6 +182,62 @@ const Homepage = () => {
       setBackgroundLoaded3840(true);
     };
   }, []);
+
+  const MilestoneBox = ({ headingText, description }) => {
+    return (
+      <Box
+        w={["150px", "180px", "300px", "300px", "400px", "500px"]}
+        // bg="gray.100"
+        py={5}
+      >
+        <Text
+          fontSize={"xl"}
+          ml={5}
+          color="orange.500"
+          fontWeight="bold"
+          textAlign="center"
+        >
+          {headingText}
+        </Text>
+        <Text textAlign="center">{description}</Text>
+      </Box>
+    );
+  };
+
+  const JoinDiscordButton = () => {
+    return (
+      <RouteButton
+        minW={["200px", "250px", "250px", "300px", "350px", "400px"]}
+        alignItems="center"
+        justifyContent="center"
+        border="solid transparent"
+        fontWeight="bold"
+        rounded={["lg", "xl", "2xl"]}
+        shadow="md"
+        variant="solid"
+        colorScheme="orange"
+        textColor="blue.1200"
+        fontSize={["lg", "xl", "2xl", "3xl", "4xl", "4xl"]}
+        py={[4, 6, 6, 8, 8]}
+        px={[4, 4, 4, 8, 8]}
+        onClick={() => {
+          if (mixpanel.get_distinct_id()) {
+            mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+              full_url: router.nextRouter.asPath,
+              buttonName: `Join our Discord`,
+              page: `landing`,
+              section: `bottom-line`,
+            });
+          }
+        }}
+        href={"/discordleed"}
+        isExternal
+      >
+        Join our Discord
+      </RouteButton>
+    );
+  };
+
   return (
     <Suspense fallback="">
       <Fade in>
@@ -278,44 +313,7 @@ const Homepage = () => {
                           allow you to integrate our game mechanics with zero
                           effort.
                         </chakra.span>
-                        <RouteButton
-                          minW={[
-                            "200px",
-                            "250px",
-                            "250px",
-                            "300px",
-                            "350px",
-                            "400px",
-                          ]}
-                          alignItems="center"
-                          justifyContent="center"
-                          border="solid transparent"
-                          fontWeight="bold"
-                          rounded={["lg", "xl", "2xl"]}
-                          shadow="md"
-                          variant="solid"
-                          colorScheme="orange"
-                          textColor="blue.1200"
-                          fontSize={["md", "lg", "lg", "xl", "2xl", "3xl"]}
-                          py={[4, 6, 6, 8, 8]}
-                          px={[4, 4, 4, 8, 8]}
-                          onClick={() => {
-                            if (mixpanel.get_distinct_id()) {
-                              mixpanel.track(
-                                `${MIXPANEL_EVENTS.BUTTON_CLICKED}`,
-                                {
-                                  full_url: router.nextRouter.asPath,
-                                  buttonName: `Join our Discord`,
-                                  page: `landing`,
-                                  section: `bottom-line`,
-                                }
-                              );
-                            }
-                          }}
-                          href={"/discordleed"}
-                        >
-                          Join our Discord
-                        </RouteButton>
+                        <JoinDiscordButton />
                       </Stack>
                     </Flex>
                   </Box>
@@ -332,25 +330,25 @@ const Homepage = () => {
                 <Heading {...HEADING_PROPS} textAlign="center" pb={5} pt={0}>
                   Major Milestones
                 </Heading>
-                <Flex>
-                  <Spacer />\
-                  <Spacer />
+                <Flex wrap="wrap" direction="row" justifyContent="center">
                   <MilestoneBox
-                    headingText="$3 billion"
-                    description="transaction volume. And growing"
+                    headingText="$3B transaction volume"
+                    description=""
                   />
                   <MilestoneBox
-                    headingText="22,000"
-                    description="active user in game economies built with our engine"
+                    headingText="22,000 active users"
+                    description=""
                   />
-                  <Spacer />
-                  <Spacer />
                 </Flex>
+                <Text textAlign="center" fontSize="lg">
+                  And growing...
+                </Text>
                 <chakra.h2
                   fontSize={{ base: "3xl", sm: "2xl" }}
                   textAlign="center"
                   pb={4}
-                  pt={0}
+                  pt={16}
+                  fontWeight="bold"
                 >
                   Trusted by{" "}
                 </chakra.h2>
@@ -432,12 +430,15 @@ const Homepage = () => {
                         px={[4, 4, 4, 8, 8]}
                         onClick={() => {
                           if (mixpanel.get_distinct_id()) {
-                            mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                              full_url: router.nextRouter.asPath,
-                              buttonName: `Explore the Use Cases`,
-                              page: `landing`,
-                              section: `Dive into Engine Features`,
-                            });
+                            mixpanel.track(
+                              `${MIXPANEL_EVENTS.BUTTON_CLICKED}`,
+                              {
+                                full_url: router.nextRouter.asPath,
+                                buttonName: `Explore the Use Cases`,
+                                page: `landing`,
+                                section: `Dive into Engine Features`,
+                              }
+                            );
                           }
                         }}
                         textColor="blue.900"
@@ -455,6 +456,7 @@ const Homepage = () => {
                   justifyContent="center"
                   w="100%"
                   placeContent={"space-between"}
+                  mx={[0, -2, -4]}
                 >
                   <Feature
                     image={assets["cryptoTraders"]}
@@ -467,19 +469,20 @@ const Homepage = () => {
                     heading="Crafting Recipes"
                   />
                   <Feature
-                    image={assets["lender"]}
+                    image={assets["DAO"]}
                     altText="mined transactions"
                     heading="Minigames"
                   />
                   <Feature
-                    image={assets["DAO"]}
+                    image={assets["lender"]}
                     altText="mined transactions"
                     heading="Airdrops"
                   />
                 </SimpleGrid>
               </GridItem>
               <GridItem
-                px="7%"
+                paddingLeft="15%"
+                paddingRight="20%"
                 // mt={["32px", "64px", null]}
                 py={["98px", "128px", null]}
                 colSpan="12"
@@ -488,15 +491,16 @@ const Homepage = () => {
                 <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
                   Our Workflow
                 </Heading>
-                <HStack py={5}>
-                  <Flex bgColor="grey.100" width="25%" height="100%">
+                <HStack alignItems="top" py={5}>
+                  <Flex height="100%" width="25%">
                     <chakra.h2
                       fontSize={["md", "xl", "2xl", "3xl", "3xl", "3xl"]}
+                      display="inline-block"
                     >
                       Step 1:
                     </chakra.h2>
                   </Flex>
-                  <Flex width="75%">
+                  <Flex height="100%" width="75%">
                     <chakra.span
                       fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
                       display="inline-block"
@@ -506,7 +510,7 @@ const Homepage = () => {
                     </chakra.span>
                   </Flex>
                 </HStack>
-                <HStack py={5}>
+                <HStack alignItems="top" py={5}>
                   <Flex bgColor="grey.100" width="25%" height="100%">
                     <chakra.h2
                       fontSize={["md", "xl", "2xl", "3xl", "3xl", "3xl"]}
@@ -519,13 +523,15 @@ const Homepage = () => {
                       fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
                       display="inline-block"
                     >
-                      Join our Discord to get in touch with the team
-                      (@zomglings). Tell us about your game and schedule a call
-                      if needed.
+                      <Link href="/discordleed" isExternal>
+                        Join our Discord
+                      </Link>{" "}
+                      to get in touch with the team (@zomglings). Tell us about
+                      your game and schedule a call if needed.
                     </chakra.span>
                   </Flex>
                 </HStack>
-                <HStack py={5}>
+                <HStack alignItems="top" py={5}>
                   <Flex bgColor="grey.100" width="25%" height="100%">
                     <chakra.h2
                       fontSize={["md", "xl", "2xl", "3xl", "3xl", "3xl"]}
@@ -559,51 +565,64 @@ const Homepage = () => {
                 <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
                   Featured by{" "}
                 </Heading>
-                <Flex wrap="wrap" direction="row" justifyContent="center" bgColor="white">
-                  <Suspense fallback={""}>
-                    <TrustedBadge
-                      name="cointelegraph"
-                      caseURL=""
-                      ImgURL={assets["cointelegraph"]}
-                      boxURL="https://cointelegraph.com/news/17-of-addresses-snapped-up-80-of-all-ethereum-nfts-since-april"
-                    />
-                    <TrustedBadge
-                      name="CryptoInsiders"
-                      ImgURL={assets["cryptoinsiders"]}
-                      boxURL="https://www.crypto-insiders.nl/nieuws/altcoin/17-van-ethereum-whales-bezitten-meer-dan-80-van-alle-nfts-op-de-blockchain/"
-                    />
-                    <TrustedBadge
-                      name="cryptoslate"
-                      ImgURL={assets["cryptoslate"]}
-                      boxURL="https://cryptoslate.com/should-investors-care-80-of-all-nfts-belong-to-17-of-addresses/"
-                    />
-                    <TrustedBadge
-                      name="educative sessions"
-                      scale={1.5}
-                      ImgURL={assets["educativesessions"]}
-                      boxURL="https://youtu.be/DN8zRzJuy0M"
-                    />
-                    <TrustedBadge
-                      scale={1.5}
-                      name="bc101"
-                      ImgURL={assets["bc101"]}
-                      boxURL="https://blockchain101.com/"
-                    />
-                    <TrustedBadge
-                      scale={1.5}
-                      name="bc101"
-                      ImgURL={assets["meetup"]}
-                      boxURL="https://www.meetup.com/SF-Bay-Area-Data-Science-Initiative/events/283215538/"
-                    />
-                  </Suspense>
-                </Flex>
+                <Center>
+                  <Flex
+                    width="85%"
+                    wrap="wrap"
+                    direction="row"
+                    justifyContent="center"
+                    bgColor="white"
+                  >
+                    <Suspense fallback={""}>
+                      <TrustedBadge
+                        name="cointelegraph"
+                        caseURL=""
+                        ImgURL={assets["cointelegraph"]}
+                        boxURL="https://cointelegraph.com/news/17-of-addresses-snapped-up-80-of-all-ethereum-nfts-since-april"
+                      />
+                      <TrustedBadge
+                        name="CryptoInsiders"
+                        ImgURL={assets["cryptoinsiders"]}
+                        boxURL="https://www.crypto-insiders.nl/nieuws/altcoin/17-van-ethereum-whales-bezitten-meer-dan-80-van-alle-nfts-op-de-blockchain/"
+                      />
+                      <TrustedBadge
+                        name="cryptoslate"
+                        ImgURL={assets["cryptoslate"]}
+                        boxURL="https://cryptoslate.com/should-investors-care-80-of-all-nfts-belong-to-17-of-addresses/"
+                      />
+                      <TrustedBadge
+                        name="educative sessions"
+                        scale={1.5}
+                        ImgURL={assets["educativesessions"]}
+                        boxURL="https://youtu.be/DN8zRzJuy0M"
+                      />
+                      <TrustedBadge
+                        scale={1.5}
+                        name="bc101"
+                        ImgURL={assets["bc101"]}
+                        boxURL="https://blockchain101.com/"
+                      />
+                      <TrustedBadge
+                        scale={1.5}
+                        name="bc101"
+                        ImgURL={assets["meetup"]}
+                        boxURL="https://www.meetup.com/SF-Bay-Area-Data-Science-Initiative/events/283215538/"
+                      />
+                      <TrustedBadge
+                        scale={1.5}
+                        name="cgc2022"
+                        ImgURL={assets["cgcConference"]}
+                        boxURL="https://www.cgc.one/"
+                      />
+                    </Suspense>
+                  </Flex>
+                </Center>
               </GridItem>
               <GridItem
                 px={["7%", null, "12%", "15%"]}
                 py={["98px", "128px", null]}
                 colSpan="12"
-                bgColor="blue.700"
-                textColor="white"
+                bgColor="white"
               >
                 <Flex
                   p={50}
@@ -625,40 +644,12 @@ const Homepage = () => {
                       display="block"
                       my={12}
                       fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
-                      color="white"
                     >
-                      {`Contact us on Discord to discuss your project and keep up with the latest updates on the Moonstream Engine.`}
+                      {`Contact us on Discord to discuss your project and keep up with the latest updates on Moonstream Engine.`}
                     </chakra.span>
                   </chakra.h2>
 
-                  <RouteButton
-                    minW={["300px", "300px", "460px"]}
-                    alignItems="center"
-                    justifyContent="center"
-                    border="solid transparent"
-                    fontWeight="bold"
-                    rounded="md"
-                    shadow="md"
-                    variant="solid"
-                    colorScheme="orange"
-                    textColor="blue.1200"
-                    fontSize={["md", "md", "lg", "xl", "3xl"]}
-                    py={[4, 6, 6, 8, 8]}
-                    px={[4, 4, 4, 8, 8]}
-                    onClick={() => {
-                      if (mixpanel.get_distinct_id()) {
-                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          full_url: router.nextRouter.asPath,
-                          buttonName: `Join our Discord`,
-                          page: `landing`,
-                          section: `bottom-line`,
-                        });
-                      }
-                    }}
-                    href={"/discordleed"}
-                  >
-                    Join the community on Discord
-                  </RouteButton>
+                  <JoinDiscordButton />
                 </Flex>
               </GridItem>
             </Grid>
