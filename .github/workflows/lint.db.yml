@@ -26,9 +26,9 @@ jobs:
         working-directory: ./db
         run: |
             mypy --version
-            mypy db/
+            mypy moonstreamdb/
       - name: Black syntax check
         working-directory: ./db
         run: | 
             black --version
-            black --check db/
+            black --check moonstreamdb/
