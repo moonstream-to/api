@@ -108,7 +108,12 @@ const Sidebar = () => {
                       <React.Fragment key={`Fragment-${idx}`}>
                         {item.children.map((child, idx) => {
                           return (
-                            <MenuItem key={`MenuItem-SITEMAP-${idx}`}>
+                            <MenuItem
+                              key={`MenuItem-SITEMAP-${idx}`}
+                              onClick={() => {
+                                ui.setSidebarToggled(false);
+                              }}
+                            >
                               <RouterLink href={child.path}>
                                 {child.title}
                               </RouterLink>
@@ -142,6 +147,9 @@ const Sidebar = () => {
                           <MenuItem
                             icon={<MdDashboard />}
                             key={`dashboard-link-${idx}`}
+                            onClick={() => {
+                              ui.setSidebarToggled(false);
+                            }}
                           >
                             <RouterLink href={`/dashboard/${dashboard?.id}`}>
                               {dashboard.resource_data.name}
@@ -156,11 +164,12 @@ const Sidebar = () => {
                     variant="solid"
                     colorScheme="orange"
                     size="sm"
-                    onClick={() =>
+                    onClick={() => {
                       overlay.toggleModal({
                         type: MODAL_TYPES.NEW_DASHBOARD_FLOW,
-                      })
-                    }
+                      });
+                      ui.setSidebarToggled(false);
+                    }}
                     // w="100%"
                     // borderRadius={0}
                   >
@@ -183,13 +192,28 @@ const Sidebar = () => {
         <Divider color="gray.300" w="100%" />
         {ui.isLoggedIn && (
           <Menu iconShape="square">
-            <MenuItem icon={<MdSettings />}>
+            <MenuItem
+              icon={<MdSettings />}
+              onClick={() => {
+                ui.setSidebarToggled(false);
+              }}
+            >
               <RouterLink href="/subscriptions">Subscriptions </RouterLink>
             </MenuItem>
-            <MenuItem icon={<MdTimeline />}>
+            <MenuItem
+              icon={<MdTimeline />}
+              onClick={() => {
+                ui.setSidebarToggled(false);
+              }}
+            >
               <RouterLink href="/stream">Stream</RouterLink>
             </MenuItem>
-            <MenuItem icon={<LockIcon />}>
+            <MenuItem
+              icon={<LockIcon />}
+              onClick={() => {
+                ui.setSidebarToggled(false);
+              }}
+            >
               <RouterLink href="/account/tokens">API Tokens</RouterLink>
             </MenuItem>
             <Divider />
