@@ -79,6 +79,10 @@ abi_type_to_dashboards_type = {"function": "methods", "event": "events"}
 BUGOUT_RESOURCE_TYPE_SUBSCRIPTION = "subscription"
 BUGOUT_RESOURCE_TYPE_DASHBOARD = "dashboards"
 
+"""
+test lint
+"""
+
 
 def push_statistics(
     statistics_data: Dict[str, Any],
@@ -126,11 +130,7 @@ def generate_data(
     end = datetime.utcnow()
 
     time_series_subquery = db_session.query(
-        func.generate_series(
-            start,
-            end,
-            time_step,
-        ).label("timeseries_points")
+        func.generate_series(start, end, time_step,).label("timeseries_points")
     )
 
     time_series_subquery = time_series_subquery.subquery(name="time_series_subquery")
@@ -444,8 +444,7 @@ def generate_web3_metrics(
     abi_external_calls = [item for item in abi_json if item["type"] == "external_call"]
 
     extention_data = process_external(
-        abi_external_calls=abi_external_calls,
-        blockchain=blockchain_type,
+        abi_external_calls=abi_external_calls, blockchain=blockchain_type,
     )
 
     extention_data.append(
@@ -586,10 +585,7 @@ def stats_generate_handler(args: argparse.Namespace):
                         key = subscription_by_id[subscription_id].resource_data[
                             "s3_path"
                         ]
-                        abi = s3_client.get_object(
-                            Bucket=bucket,
-                            Key=key,
-                        )
+                        abi = s3_client.get_object(Bucket=bucket, Key=key,)
                         abi_json = json.loads(abi["Body"].read())
                         methods = generate_list_of_names(
                             type="function",
@@ -742,10 +738,7 @@ def stats_generate_api_task(
 
                     bucket = subscription_by_id[subscription_id].resource_data["bucket"]
                     key = subscription_by_id[subscription_id].resource_data["s3_path"]
-                    abi = s3_client.get_object(
-                        Bucket=bucket,
-                        Key=key,
-                    )
+                    abi = s3_client.get_object(Bucket=bucket, Key=key,)
                     abi_json = json.loads(abi["Body"].read())
 
                     methods = generate_list_of_names(
