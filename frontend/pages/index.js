@@ -8,12 +8,15 @@ import {
   chakra,
   Stack,
   VStack,
+  Spacer,
+  Center,
   useMediaQuery,
   Grid,
   Text,
   GridItem,
   SimpleGrid,
   Image as ChakraImage,
+  HStack,
 } from "@chakra-ui/react";
 import useUser from "../src/core/hooks/useUser";
 import useRouter from "../src/core/hooks/useRouter";
@@ -82,6 +85,26 @@ const Feature = ({ image, altText, heading, description }) => {
     </Stack>
   );
 };
+
+const MilestoneBox = ({ headingText, description }) => {
+  return (
+    <Box
+      w={["150px", "180px", "300px", "300px", "400px", "500px"]}
+      // bg="gray.100"
+      py={5}
+    >
+      <Text
+        fontSize={"3xl"}
+        textAlign="center"
+        color="orange.500"
+        fontWeight="bold"
+      >
+        {headingText}
+      </Text>
+      <Text marginLeft={10}>{description}</Text>
+    </Box>
+  )
+}
 
 const Homepage = () => {
   const [background, setBackground] = useState("background720");
@@ -242,41 +265,57 @@ const Homepage = () => {
                           fontWeight="semibold"
                           color="white"
                         >
-                          Building blocks for your blockchain game
+                          Build a Sustainable Game Economy in only a few clicks
                         </Heading>
                         <chakra.span
                           my={12}
-                          fontSize={["md", "2xl", "3xl", "3xl", "4xl", "5xl"]}
+                          fontSize={["md", "xl", "2xl", "3xl", "4xl", "5xl"]}
                           display="inline-block"
                           color="blue.200"
                         >
-                          We are introducing Moonstream Engine - a
-                          groundbreaking set of tools for game design.
+                          Moonstream Engine empowers web3 game designers to grow
+                          healthy economies. Moonstream smart contracts and APIs
+                          allow you to integrate our game mechanics with zero
+                          effort.
                         </chakra.span>
-                        <chakra.span
-                          my={12}
-                          fontSize={["md", "2xl", "3xl", "3xl", "4xl", "5xl"]}
-                          display="inline-block"
-                          color="blue.200"
+                        <RouteButton
+                          minW={[
+                            "200px",
+                            "250px",
+                            "250px",
+                            "300px",
+                            "350px",
+                            "400px",
+                          ]}
+                          alignItems="center"
+                          justifyContent="center"
+                          border="solid transparent"
+                          fontWeight="bold"
+                          rounded={["lg", "xl", "2xl"]}
+                          shadow="md"
+                          variant="solid"
+                          colorScheme="orange"
+                          textColor="blue.1200"
+                          fontSize={["md", "lg", "lg", "xl", "2xl", "3xl"]}
+                          py={[4, 6, 6, 8, 8]}
+                          px={[4, 4, 4, 8, 8]}
+                          onClick={() => {
+                            if (mixpanel.get_distinct_id()) {
+                              mixpanel.track(
+                                `${MIXPANEL_EVENTS.BUTTON_CLICKED}`,
+                                {
+                                  full_url: router.nextRouter.asPath,
+                                  buttonName: `Join our Discord`,
+                                  page: `landing`,
+                                  section: `bottom-line`,
+                                }
+                              );
+                            }
+                          }}
+                          href={"/discordleed"}
                         >
-                          Moonstream has handled over{" "}
-                          <Text
-                            fontWeight={600}
-                            textColor="orange.900"
-                            display={"inline-block"}
-                          >
-                            $2.5B
-                          </Text>{" "}
-                          in transaction value to date.
-                        </chakra.span>
-                        <Box
-                          w="100vw"
-                          minH="200px"
-                          // px="7%"
-                          py={0}
-                          overflowX="hidden"
-                          overflowY="visible"
-                        ></Box>
+                          Join our Discord
+                        </RouteButton>
                       </Stack>
                     </Flex>
                   </Box>
@@ -290,9 +329,31 @@ const Homepage = () => {
                 colSpan="12"
                 bgColor="white.100"
               >
-                <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
-                  Trusted by{" "}
+                <Heading {...HEADING_PROPS} textAlign="center" pb={5} pt={0}>
+                  Major Milestones
                 </Heading>
+                <Flex>
+                  <Spacer />\
+                  <Spacer />
+                  <MilestoneBox
+                    headingText="$3 billion"
+                    description="transaction volume. And growing"
+                  />
+                  <MilestoneBox
+                    headingText="22,000"
+                    description="active user in game economies built with our engine"
+                  />
+                  <Spacer />
+                  <Spacer />
+                </Flex>
+                <chakra.h2
+                  fontSize={{ base: "3xl", sm: "2xl" }}
+                  textAlign="center"
+                  pb={4}
+                  pt={0}
+                >
+                  Trusted by{" "}
+                </chakra.h2>
                 <Flex wrap="wrap" direction="row" justifyContent="center">
                   <Suspense fallback={""}>
                     <TrustedBadge
@@ -337,6 +398,9 @@ const Homepage = () => {
                 bgColor={"blue.900"}
                 textColor="white"
               >
+                <Heading {...HEADING_PROPS} textAlign="center" pb={5} pt={0}>
+                  Features
+                </Heading>
                 <Grid
                   templateColumns={{
                     base: "repeat(1, 1fr)",
@@ -346,20 +410,21 @@ const Homepage = () => {
                   gap={4}
                 >
                   <GridItem>
-                    <VStack
-                      alignItems="flex-start"
-                      spacing="20px"
-                      mb={[12, 12, "initial"]}
-                    >
-                      <Heading
-                        {...HEADING_PROPS}
-                        textAlign={["center", "center", "left"]}
-                        alignSelf={["center", "center", "initial"]}
-                        pb={14}
-                        pt={0}
+                    <Flex>
+                      <chakra.span
+                        fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
+                        display="inline-block"
+                        color="blue.200"
                       >
-                        Dive into Engine Features
-                      </Heading>
+                        Lootboxes, crafting recipes, deck building, you name it!
+                        With Moonstream Engine you can deploy on-chain mechanics
+                        with one click. Read our Use Cases or explore the
+                        features to know more.
+                      </chakra.span>
+                    </Flex>
+                  </GridItem>
+                  <GridItem>
+                    <Center w="100%" h="100%">
                       <RouteButton
                         colorScheme="orange"
                         fontSize={["md", "lg", "lg", "xl", "3xl"]}
@@ -367,41 +432,24 @@ const Homepage = () => {
                         px={[4, 4, 4, 8, 8]}
                         onClick={() => {
                           if (mixpanel.get_distinct_id()) {
-                            mixpanel.track(
-                              `${MIXPANEL_EVENTS.BUTTON_CLICKED}`,
-                              {
-                                full_url: router.nextRouter.asPath,
-                                buttonName: `Explore case studies`,
-                                page: `landing`,
-                                section: `Dive into Engine Features`,
-                              }
-                            );
+                            mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                              full_url: router.nextRouter.asPath,
+                              buttonName: `Explore the Use Cases`,
+                              page: `landing`,
+                              section: `Dive into Engine Features`,
+                            });
                           }
                         }}
                         textColor="blue.900"
                         alignSelf={["center", "center", "initial"]}
                         href="https://docs.google.com/document/d/1mjfF8SgRrAZvtCVVxB2qNSUcbbmrH6dTEYSMfHKdEgc/preview"
+                        isExternal
                       >
-                        Explore case studies
+                        Explore the Use Cases
                       </RouteButton>
-                    </VStack>
-                  </GridItem>
-                  <GridItem>
-                    <Flex>
-                      <chakra.span
-                        fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
-                        display="inline-block"
-                        color="blue.200"
-                      >
-                        Lootboxes, crafting, deck builder, you name it! Whatever
-                        on-chain mechanics you want incorporated in your
-                        project, contact us to help you launch it. It is fast
-                        and secure. Or explore the features to know more.
-                      </chakra.span>
-                    </Flex>
+                    </Center>
                   </GridItem>
                 </Grid>
-                <Divider mt={12} mb={12} />
                 <SimpleGrid
                   columns={[1, 2, 2, 4, null, 4]}
                   justifyContent="center"
@@ -411,22 +459,22 @@ const Homepage = () => {
                   <Feature
                     image={assets["cryptoTraders"]}
                     altText="mined transactions"
-                    heading="ON-CHAIN MECHANICS"
+                    heading="Lootboxes"
                   />
                   <Feature
                     image={assets["NFT"]}
                     altText="mined transactions"
-                    heading="LOYALTY PROGRAMS"
+                    heading="Crafting Recipes"
                   />
                   <Feature
                     image={assets["lender"]}
                     altText="mined transactions"
-                    heading="SECURE TRANSACTIONS"
+                    heading="Minigames"
                   />
                   <Feature
                     image={assets["DAO"]}
                     altText="mined transactions"
-                    heading="CONTENT MANAGEMENT"
+                    heading="Airdrops"
                   />
                 </SimpleGrid>
               </GridItem>
@@ -438,9 +486,80 @@ const Homepage = () => {
                 bgColor="white.100"
               >
                 <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
+                  Our Workflow
+                </Heading>
+                <HStack py={5}>
+                  <Flex bgColor="grey.100" width="25%" height="100%">
+                    <chakra.h2
+                      fontSize={["md", "xl", "2xl", "3xl", "3xl", "3xl"]}
+                    >
+                      Step 1:
+                    </chakra.h2>
+                  </Flex>
+                  <Flex width="75%">
+                    <chakra.span
+                      fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
+                      display="inline-block"
+                    >
+                      So you decided to build a healthy economy on the
+                      blockchain. You are on the right path, traveler!
+                    </chakra.span>
+                  </Flex>
+                </HStack>
+                <HStack py={5}>
+                  <Flex bgColor="grey.100" width="25%" height="100%">
+                    <chakra.h2
+                      fontSize={["md", "xl", "2xl", "3xl", "3xl", "3xl"]}
+                    >
+                      Step 2:
+                    </chakra.h2>
+                  </Flex>
+                  <Flex width="75%">
+                    <chakra.span
+                      fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
+                      display="inline-block"
+                    >
+                      Join our Discord to get in touch with the team
+                      (@zomglings). Tell us about your game and schedule a call
+                      if needed.
+                    </chakra.span>
+                  </Flex>
+                </HStack>
+                <HStack py={5}>
+                  <Flex bgColor="grey.100" width="25%" height="100%">
+                    <chakra.h2
+                      fontSize={["md", "xl", "2xl", "3xl", "3xl", "3xl"]}
+                    >
+                      Step 3:
+                    </chakra.h2>
+                  </Flex>
+                  <Flex width="75%">
+                    <chakra.span
+                      fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
+                      display="inline-block"
+                    >
+                      Pick game mechanics that you&apos;d like to deploy.
+                      Moonstream Engine provides you with back-end tools to put
+                      them on the blockchain.
+                      <br />
+                      You&apos;re at the end of your development journey now,
+                      traveler. Time to watch your game economy grow!
+                    </chakra.span>
+                  </Flex>
+                </HStack>
+              </GridItem>
+              <GridItem
+                px="7%"
+                // mt={["32px", "64px", null]}
+                py={["98px", "128px", null]}
+                colSpan="12"
+                bgColor="blue.900"
+                textColor="white"
+              >
+                <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
                   Featured by{" "}
                 </Heading>
-                <Flex wrap="wrap" direction="row" justifyContent="center">
+                <Flex wrap="wrap" direction="row" justifyContent="center" bgColor="white">
                   <Suspense fallback={""}>
                     <TrustedBadge
                       name="cointelegraph"
@@ -453,7 +572,6 @@ const Homepage = () => {
                       ImgURL={assets["cryptoinsiders"]}
                       boxURL="https://www.crypto-insiders.nl/nieuws/altcoin/17-van-ethereum-whales-bezitten-meer-dan-80-van-alle-nfts-op-de-blockchain/"
                     />
-
                     <TrustedBadge
                       name="cryptoslate"
                       ImgURL={assets["cryptoslate"]}
