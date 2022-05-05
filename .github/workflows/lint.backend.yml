@@ -26,10 +26,10 @@ jobs:
         working-directory: ./backend
         run: |
             mypy --version
-            mypy backend/
+            mypy moonstreamapi/
 
       - name: Black syntax check
         working-directory: ./backend
         run: | 
             black --version
-            black --check backend/
+            black --check moonstreamapi/
