@@ -36,7 +36,6 @@ from ..settings import (
 from ..settings import bugout_client as bc
 
 logging.basicConfig(level=logging.INFO)
-# logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -293,16 +292,32 @@ def get_blocks_state(
 
     transactions_model = get_transaction_model(blockchain_type)
 
-    max_transactions_number = db_session.query(
-        func.max(transactions_model.block_number).label("block_number")
-    ).scalar()
+    max_transactions_number = (
+        db_session.query(transactions_model.block_number)
+        .order_by(transactions_model.block_number.desc())
+        .limit(1)
+    ).subquery("max_transactions_number")
+
+    max_label_number = (
+        db_session.query(label_model.block_number)
+        .order_by(label_model.block_number.desc())
+        .filter(label_model.label == CRAWLER_LABEL)
+        .limit(1)
+    ).subquery("max_label_models_number")
+
+    min_label_number = (
+        db_session.query(label_model.block_number)
+        .order_by(label_model.block_number.asc())
+        .filter(label_model.label == CRAWLER_LABEL)
+        .limit(1)
+    ).subquery("min_label_models_number")
 
     result = (
         db_session.query(
-            func.min(label_model.block_number).label("earliest_labelled_block"),
-            func.max(label_model.block_number).label("latest_labelled_block"),
-            max_transactions_number,
-        ).filter(label_model.label == CRAWLER_LABEL)
+            max_label_number.c.block_number.label("latest_labelled_block"),
+            min_label_number.c.block_number.label("earliest_labelled_block"),
+            max_transactions_number.c.block_number,
+        )
     ).one_or_none()
 
     if result:
@@ -395,11 +410,6 @@ def process_external_merged(
 
             result[extcall["external_call_hash"]] = response
         except Exception as e:
-            print(extcall["name"])
-            print(extcall["address"])
-            print(extcall["abi"])
-            print(extcall["input_args"])
-
             logger.error(f"Failed to call {extcall['external_call_hash']} error: {e}")
 
     return result
@@ -692,8 +702,6 @@ def stats_generate_handler(args: argparse.Namespace):
                         key = subscription_by_id[subscription_id].resource_data[
                             "s3_path"
                         ]
-                        print(f"bucket: {bucket}")
-                        print(f"key: {key}")
                         abi = s3_client.get_object(Bucket=bucket, Key=key,)
                         abi_json = json.loads(abi["Body"].read())
                         methods = generate_list_of_names(
@@ -798,7 +806,6 @@ def stats_generate_handler(args: argparse.Namespace):
                         merged_functions[address]["merged"].add(method)
 
                 except Exception as e:
-                    traceback.print_exc()
                     logger.error(f"Error while merging subscriptions: {e}")
 
         # Request contracts for external calls.
@@ -877,8 +884,9 @@ def stats_generate_handler(args: argparse.Namespace):
 
                                 s3_subscription_data_object: Dict[str, Any] = {}
 
-                                print(f"dashboard:{dashboard}")
-                                print(f"subscription_id:{subscription_id}")
+                                s3_subscription_data_object[
+                                    "blocks_state"
+                                ] = s3_data_object_for_contract["blocks_state"]
 
                                 if dashboard in merged_external_calls:
                                     for (
@@ -947,7 +955,6 @@ def stats_generate_handler(args: argparse.Namespace):
                                     dashboard_id=dashboard,
                                 )
                             except Exception as err:
-                                traceback.print_exc()
                                 db_session.rollback()
                                 reporter.error_report(
                                     err,
@@ -961,7 +968,6 @@ def stats_generate_handler(args: argparse.Namespace):
                                 )
                                 logger.error(err)
                 except Exception as err:
-                    traceback.print_exc()
                     db_session.rollback()
                     reporter.error_report(
                         err,
@@ -973,8 +979,6 @@ def stats_generate_handler(args: argparse.Namespace):
                         ],
                     )
                     logger.error(err)
-
-            break
 
         reporter.custom_report(
             title=f"Dashboard stats generated.",
