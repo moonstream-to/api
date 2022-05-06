@@ -64,10 +64,8 @@ const Feature = ({ image, altText, heading, description }) => {
       borderColor="blue.700"
       bgColor={"blue.800"}
       borderWidth={"1px"}
-      // minW="250px"
       _hover={{ transform: "scale(1.05)", transition: "0.42s" }}
       cursor="pointer"
-      // mt={2}
       m={[2, 3, null, 4, 8, 12]}
       pb={2}
     >
@@ -239,7 +237,6 @@ const Homepage = () => {
                 mb={0}
                 px="0"
                 colSpan="12"
-                // pb={[1, 2, null, 8]}
                 minH="100vh"
                 bgColor={"blue.50"}
                 id="Header grid item"
@@ -293,7 +290,6 @@ const Homepage = () => {
 
               <GridItem
                 px="7%"
-                // mt={["32px", "64px", null]}
                 py={["98px", "128px", null]}
                 colSpan="12"
                 bgColor="white.100"
@@ -460,7 +456,6 @@ const Homepage = () => {
               </GridItem>
               <GridItem
                 px={["7%", null, "12%", "15%"]}
-                // mt={["32px", "64px", null]}
                 py={["98px", "128px", null]}
                 colSpan="12"
                 bgColor="white.100"
@@ -543,7 +538,6 @@ const Homepage = () => {
               </GridItem>
               <GridItem
                 px="7%"
-                // mt={["32px", "64px", null]}
                 py={["98px", "128px", null]}
                 colSpan="12"
                 bgColor="blue.900"
