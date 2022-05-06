@@ -391,8 +391,10 @@ const Homepage = () => {
                       >
                         Lootboxes, crafting recipes, deck building, you name it!
                         <br />
+                        <br />
                         With Moonstream Engine you can deploy on-chain mechanics
                         with one click.
+                        <br />
                         <br />
                         Read our Use Cases or explore the features to know more.
                       </chakra.span>
