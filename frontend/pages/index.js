@@ -15,12 +15,14 @@ import {
   SimpleGrid,
   Image as ChakraImage,
   HStack,
+  VStack,
 } from "@chakra-ui/react";
 import useUser from "../src/core/hooks/useUser";
 import useRouter from "../src/core/hooks/useRouter";
 import { AWS_ASSETS_PATH, DEFAULT_METATAGS } from "../src/core/constants";
 import TrustedBadge from "../src/components/TrustedBadge";
 import RouteButton from "../src/components/RouteButton";
+import MilestoneBox from "../src/components/MilestoneBox";
 import mixpanel from "mixpanel-browser";
 import { MIXPANEL_EVENTS } from "../src/core/providers/AnalyticsProvider/constants";
 
@@ -183,43 +185,10 @@ const Homepage = () => {
     };
   }, []);
 
-  const MilestoneBox = ({ headingText, description }) => {
-    return (
-      <Box
-        w={["150px", "180px", "300px", "300px", "400px", "500px"]}
-        // bg="gray.100"
-        py={5}
-      >
-        <Text
-          fontSize={"xl"}
-          ml={5}
-          color="orange.500"
-          fontWeight="bold"
-          textAlign="center"
-        >
-          {headingText}
-        </Text>
-        <Text textAlign="center">{description}</Text>
-      </Box>
-    );
-  };
-
   const JoinDiscordButton = () => {
     return (
       <RouteButton
-        minW={["200px", "250px", "250px", "300px", "350px", "400px"]}
-        alignItems="center"
-        justifyContent="center"
-        border="solid transparent"
-        fontWeight="bold"
-        rounded={["lg", "xl", "2xl"]}
-        shadow="md"
-        variant="solid"
-        colorScheme="orange"
-        textColor="blue.1200"
-        fontSize={["lg", "xl", "2xl", "3xl", "4xl", "4xl"]}
-        py={[4, 6, 6, 8, 8]}
-        px={[4, 4, 4, 8, 8]}
+        variant="orangeAndBlue"
         onClick={() => {
           if (mixpanel.get_distinct_id()) {
             mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
@@ -303,10 +272,12 @@ const Homepage = () => {
                           Build a Sustainable Game Economy in only a few clicks
                         </Heading>
                         <chakra.span
+                          pt={4}
+                          pb={4}
                           my={12}
-                          fontSize={["md", "xl", "2xl", "3xl", "4xl", "5xl"]}
+                          fontSize={["md", "lg", "xl", "2xl", "3xl", "3xl"]}
                           display="inline-block"
-                          color="blue.200"
+                          color="white"
                         >
                           Moonstream Engine empowers web3 game designers to grow
                           healthy economies. Moonstream smart contracts and APIs
@@ -326,67 +297,70 @@ const Homepage = () => {
                 py={["98px", "128px", null]}
                 colSpan="12"
                 bgColor="white.100"
+                minH="100vh"
               >
-                <Heading {...HEADING_PROPS} textAlign="center" pb={5} pt={0}>
-                  Major Milestones
-                </Heading>
-                <Flex wrap="wrap" direction="row" justifyContent="center">
-                  <MilestoneBox
-                    headingText="$3B transaction volume"
-                    description=""
-                  />
-                  <MilestoneBox
-                    headingText="22,000 active users"
-                    description=""
-                  />
-                </Flex>
-                <Text textAlign="center" fontSize="lg">
-                  And growing...
-                </Text>
-                <chakra.h2
-                  fontSize={{ base: "3xl", sm: "2xl" }}
-                  textAlign="center"
-                  pb={4}
-                  pt={16}
-                  fontWeight="bold"
-                >
-                  Trusted by{" "}
-                </chakra.h2>
-                <Flex wrap="wrap" direction="row" justifyContent="center">
-                  <Suspense fallback={""}>
-                    <TrustedBadge
-                      scale={1.5}
-                      name="Laguna games"
-                      caseURL=""
-                      ImgURL={assets["laguna"]}
-                      boxURL="https://laguna.games/"
-                      bgColor="blue.900"
-                    />
-                    <TrustedBadge
-                      scale={1.5}
-                      name="game7io"
-                      ImgURL={assets["game7io"]}
-                      boxURL="https://game7.io/"
-                      bgColor="blue.900"
-                    />
+                <VStack align="center" justify="center" boxSize="full">
+                  <Heading
+                    fontSize={["lg", "4xl", "5xl", "5xl", "5xl", "6xl"]}
+                    fontWeight="semibold"
+                  >
+                    Major Milestones
+                  </Heading>
+                  <Flex wrap="wrap" direction="row" justifyContent="center">
+                    <MilestoneBox headingText="$3B transaction volume" />
+                    <MilestoneBox headingText="22,000 active users" />
+                  </Flex>
+                  <Text
+                    textAlign="center"
+                    fontSize={["md", "xl", "2xl", "3xl", "3xl", "3xl"]}
+                  >
+                    And growing...
+                  </Text>
+                  <chakra.h2
+                    fontSize={{ base: "3xl", sm: "2xl" }}
+                    textAlign="center"
+                    pb={4}
+                    pt={16}
+                    fontWeight="bold"
+                  >
+                    Trusted by{" "}
+                  </chakra.h2>
+                  <Flex wrap="wrap" direction="row" justifyContent="center">
+                    <Suspense fallback={""}>
+                      <TrustedBadge
+                        scale={1.5}
+                        name="Laguna games"
+                        caseURL=""
+                        ImgURL={assets["laguna"]}
+                        boxURL="https://laguna.games/"
+                        bgColor="blue.900"
+                      />
+                      <TrustedBadge
+                        scale={1.5}
+                        name="game7io"
+                        ImgURL={assets["game7io"]}
+                        boxURL="https://game7.io/"
+                        bgColor="blue.900"
+                      />
 
-                    <TrustedBadge
-                      scale={1.5}
-                      name="orangedao"
-                      ImgURL={assets["orangedao"]}
-                      boxURL="https://lfg.orangedao.xyz/"
-                      bgColor="blue.900"
-                    />
-                    <TrustedBadge
-                      scale={1.5}
-                      name="forte"
-                      ImgURL={assets["forte"]}
-                      boxURL="https://www.forte.io/"
-                      bgColor="blue.900"
-                      invertColors={true}
-                    />
-                  </Suspense>
-                </Flex>
+                      <TrustedBadge
+                        scale={1.5}
+                        name="orangedao"
+                        ImgURL={assets["orangedao"]}
+                        boxURL="https://lfg.orangedao.xyz/"
+                        bgColor="blue.900"
+                      />
+                      <TrustedBadge
+                        scale={1.5}
+                        name="forte"
+                        ImgURL={assets["forte"]}
+                        boxURL="https://www.forte.io/"
+                        bgColor="blue.900"
+                        invertColors={true}
+                      />
+                    </Suspense>
+                  </Flex>
+                </VStack>
               </GridItem>
               <GridItem
                 px={["7%", null, "12%", "15%"]}
@@ -396,7 +370,12 @@ const Homepage = () => {
                 bgColor={"blue.900"}
                 textColor="white"
               >
-                <Heading {...HEADING_PROPS} textAlign="center" pb={5} pt={0}>
+                <Heading
+                  {...HEADING_PROPS}
+                  textAlign="center"
+                  pb={[3, 12, null]}
+                  pt={0}
+                >
                   Features
                 </Heading>
                 <Grid
@@ -412,21 +391,21 @@ const Homepage = () => {
                       <chakra.span
                         fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
                         display="inline-block"
-                        color="blue.200"
+                        color="white"
                       >
                         Lootboxes, crafting recipes, deck building, you name it!
+                        <br />
                         With Moonstream Engine you can deploy on-chain mechanics
-                        with one click. Read our Use Cases or explore the
-                        features to know more.
+                        with one click.
+                        <br />
+                        Read our Use Cases or explore the features to know more.
                       </chakra.span>
                     </Flex>
                   </GridItem>
                   <GridItem>
                     <Center w="100%" h="100%">
                       <RouteButton
-                        colorScheme="orange"
-                        fontSize={["md", "lg", "lg", "xl", "3xl"]}
-                        py={[4, 4, 4, 8, 8]}
+                        variant="orangeAndBlue"
                         px={[4, 4, 4, 8, 8]}
                         onClick={() => {
                           if (mixpanel.get_distinct_id()) {
@@ -441,8 +420,6 @@ const Homepage = () => {
                             );
                           }
                         }}
-                        textColor="blue.900"
-                        alignSelf={["center", "center", "initial"]}
                         href="https://docs.google.com/document/d/1mjfF8SgRrAZvtCVVxB2qNSUcbbmrH6dTEYSMfHKdEgc/preview"
                         isExternal
                       >
@@ -457,6 +434,7 @@ const Homepage = () => {
                   w="100%"
                   placeContent={"space-between"}
                   mx={[0, -2, -4]}
+                  paddingTop="20px"
                 >
                   <Feature
                     image={assets["cryptoTraders"]}
@@ -481,24 +459,26 @@ const Homepage = () => {
                 </SimpleGrid>
               </GridItem>
               <GridItem
-                paddingLeft="15%"
-                paddingRight="20%"
+                px={["7%", null, "12%", "15%"]}
                 // mt={["32px", "64px", null]}
                 py={["98px", "128px", null]}
                 colSpan="12"
                 bgColor="white.100"
+                minH="100vh"
               >
                 <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
                   Our Workflow
                 </Heading>
                 <HStack alignItems="top" py={5}>
                   <Flex height="100%" width="25%">
-                    <chakra.h2
-                      fontSize={["md", "xl", "2xl", "3xl", "3xl", "3xl"]}
+                    <Heading
+                      as="h2"
+                      fontSize={["lg", "3xl", "4xl", "4xl", "4xl", "5xl"]}
                       display="inline-block"
+                      fontWeight="semibold"
                     >
                       Step 1:
-                    </chakra.h2>
+                    </Heading>
                   </Flex>
                   <Flex height="100%" width="75%">
                     <chakra.span
@@ -512,11 +492,14 @@ const Homepage = () => {
                 </HStack>
                 <HStack alignItems="top" py={5}>
                   <Flex bgColor="grey.100" width="25%" height="100%">
-                    <chakra.h2
-                      fontSize={["md", "xl", "2xl", "3xl", "3xl", "3xl"]}
+                    <Heading
+                      as="h2"
+                      fontSize={["lg", "3xl", "4xl", "4xl", "4xl", "5xl"]}
+                      display="inline-block"
+                      fontWeight="semibold"
                     >
                       Step 2:
-                    </chakra.h2>
+                    </Heading>
                   </Flex>
                   <Flex width="75%">
                     <chakra.span
@@ -533,11 +516,14 @@ const Homepage = () => {
                 </HStack>
                 <HStack alignItems="top" py={5}>
                   <Flex bgColor="grey.100" width="25%" height="100%">
-                    <chakra.h2
-                      fontSize={["md", "xl", "2xl", "3xl", "3xl", "3xl"]}
+                    <Heading
+                      as="h2"
+                      fontSize={["lg", "3xl", "4xl", "4xl", "4xl", "5xl"]}
+                      display="inline-block"
+                      fontWeight="semibold"
                     >
                       Step 3:
-                    </chakra.h2>
+                    </Heading>
                   </Flex>
                   <Flex width="75%">
                     <chakra.span
@@ -547,6 +533,7 @@ const Homepage = () => {
                       Pick game mechanics that you&apos;d like to deploy.
                       Moonstream Engine provides you with back-end tools to put
                       them on the blockchain.
+                      <br />
                       <br />
                       You&apos;re at the end of your development journey now,
                       traveler. Time to watch your game economy grow!
@@ -561,13 +548,14 @@ const Homepage = () => {
                 colSpan="12"
                 bgColor="blue.900"
                 textColor="white"
+                minH="100vh"
               >
                 <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
                   Featured by{" "}
                 </Heading>
                 <Center>
                   <Flex
-                    width="85%"
+                    width="81%"
                     wrap="wrap"
                     direction="row"
                     justifyContent="center"
@@ -623,31 +611,25 @@ const Homepage = () => {
                 py={["98px", "128px", null]}
                 colSpan="12"
                 bgColor="white"
+                minH="100vh"
               >
                 <Flex
-                  p={50}
                   w="100%"
                   alignItems="center"
                   justifyContent="center"
                   direction={["column", "column", "row"]}
                   maxW="1024px"
                 >
-                  <chakra.h2
+                  <chakra.span
+                    display="block"
+                    my={12}
+                    fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
+                    textAlign={["justify", "left", null]}
                     mr={[0, 12, 14]}
-                    fontSize={{ base: "2xl", sm: "xl" }}
-                    // fontWeight="extrabold"
                     letterSpacing="tight"
-                    // lineHeight="shorter"
-                    // color={useColorModeValue("gray.900", "gray.100")}
                   >
-                    <chakra.span
-                      display="block"
-                      my={12}
-                      fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
-                    >
-                      {`Contact us on Discord to discuss your project and keep up with the latest updates on Moonstream Engine.`}
-                    </chakra.span>
-                  </chakra.h2>
+                    {`Contact us on Discord to discuss your project and keep up with the latest updates on Moonstream Engine.`}
+                  </chakra.span>
 
                   <JoinDiscordButton />
                 </Flex>
