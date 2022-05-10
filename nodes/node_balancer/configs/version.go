@@ -1,3 +1,3 @@
 package configs
 
-var NB_VERSION = "0.0.1"
+var NB_VERSION = "0.0.2"
