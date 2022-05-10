@@ -5,12 +5,12 @@ package cmd
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"os"
 	"time"
 
 	humbug "github.com/bugout-dev/humbug/go/pkg"
@@ -29,7 +29,8 @@ func initHealthCheck(debug bool) {
 			blockchainPool.HealthCheck()
 			ethereumClients := ethereumClientPool.CleanInactiveClientNodes()
 			polygonClients := polygonClientPool.CleanInactiveClientNodes()
-			log.Printf("Active etehereum clients: %d, polygon clients: %d\n", ethereumClients, polygonClients)
+			xdaiClients := xdaiClientPool.CleanInactiveClientNodes()
+			log.Printf("Active etehereum clients: %d, polygon clients: %d, xdai clients: %d\n", ethereumClients, polygonClients, xdaiClients)
 			if debug {
 				blockchainPool.StatusLog()
 			}
@@ -92,24 +93,7 @@ func proxyErrorHandler(proxy *httputil.ReverseProxy, url *url.URL) {
 	}
 }
 
-func InitServer() {
-	var listeningAddr string
-	var listeningPort string
-	var enableHealthCheck bool
-	var enableDebug bool
-	var showVersion bool
-	flag.StringVar(&listeningAddr, "host", "127.0.0.1", "Server listening address")
-	flag.StringVar(&listeningPort, "port", "8544", "Server listening port")
-	flag.BoolVar(&enableHealthCheck, "healthcheck", false, "To enable healthcheck ser healthcheck flag")
-	flag.BoolVar(&enableDebug, "debug", false, "To enable debug mode with extended log set debug flag")
-	flag.BoolVar(&showVersion, "version", false, "Print version")
-	flag.Parse()
-
-	if showVersion {
-		fmt.Printf("Node balancer version: v%s\n", configs.NODE_BALANCER_VERSION)
-		return
-	}
-
+func Server() {
 	// Generate map of clients
 	CreateClientPools()
 
@@ -125,7 +109,11 @@ func InitServer() {
 	reporter.Publish(humbug.SystemReport())
 
 	// Fill NodeConfigList with initial nodes from environment variables
-	configs.ConfigList.InitNodeConfigList()
+	configs.ConfigList.InitNodeConfigList(stateCLI.configPathFlag)
+
+	fmt.Println(configs.ConfigList)
+
+	os.Exit(1)
 
 	// Parse nodes and set list of proxies
 	for i, nodeConfig := range configs.ConfigList.Configs {
@@ -165,18 +153,18 @@ func InitServer() {
 	commonHandler = panicMiddleware(commonHandler)
 
 	server := http.Server{
-		Addr:         fmt.Sprintf("%s:%s", listeningAddr, listeningPort),
+		Addr:         fmt.Sprintf("%s:%s", stateCLI.listeningAddrFlag, stateCLI.listeningPortFlag),
 		Handler:      commonHandler,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
 
 	// Start node health checking and current block fetching
-	if enableHealthCheck {
-		go initHealthCheck(enableDebug)
+	if stateCLI.enableHealthCheckFlag {
+		go initHealthCheck(stateCLI.enableDebugFlag)
 	}
 
-	log.Printf("Starting server at %s:%s\n", listeningAddr, listeningPort)
+	log.Printf("Starting server at %s:%s\n", stateCLI.listeningAddrFlag, stateCLI.listeningPortFlag)
 	err = server.ListenAndServe()
 	if err != nil {
 		log.Fatal(err)
