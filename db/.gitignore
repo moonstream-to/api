@@ -188,5 +188,5 @@ alembic.moonstreamdb.ini
 alembic.docker.ini
 
 # Schematic
-srv/*
+srv/
 .schematic.env
