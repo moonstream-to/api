@@ -111,10 +111,6 @@ func Server() {
 	// Fill NodeConfigList with initial nodes from environment variables
 	configs.ConfigList.InitNodeConfigList(stateCLI.configPathFlag)
 
-	fmt.Println(configs.ConfigList)
-
-	os.Exit(1)
-
 	// Parse nodes and set list of proxies
 	for i, nodeConfig := range configs.ConfigList.Configs {
 		gethUrl, err := url.Parse(fmt.Sprintf("http://%s:%d", nodeConfig.Addr, nodeConfig.Port))
