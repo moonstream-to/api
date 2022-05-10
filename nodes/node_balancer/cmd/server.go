@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"os"
 	"time"
 
 	humbug "github.com/bugout-dev/humbug/go/pkg"
