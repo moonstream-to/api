@@ -24,7 +24,7 @@ PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
 AWS_SSM_PARAMETER_PATH="${AWS_SSM_PARAMETER_PATH:-/moonstream/prod}"
 SCRIPT_DIR="$(realpath $(dirname $0))"
 PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.py"
-NODE_BALANCER_CONFIG_PATH="${NODE_BALANCER_CONFIG_PATH:-/home/ubuntu/.nodebalancer/config.txt}"
+NODE_BALANCER_CONFIG_PATH="${NODE_BALANCER_CONFIG_PATH:-/home/ubuntu/.nodebalancer}"
 NODE_BALANCER_CONFIG_SOURCE_FILE="node-balancer-config.txt"
 
 # Service file
@@ -64,7 +64,11 @@ cd "${EXEC_DIR}"
 echo
 echo
 echo -e "${PREFIX_INFO} Update nodebalancer configuration file"
-cp "${SCRIPT_DIR}/${NODE_BALANCER_CONFIG_SOURCE_FILE}" "${NODE_BALANCER_CONFIG_PATH}"
+if [ ! -d "$NODE_BALANCER_CONFIG_PATH" ]; then
+  mkdir "$NODE_BALANCER_CONFIG_PATH"
+  echo -e "${PREFIX_WARN} Created new node balancer config directory" 
+fi
+cp "${SCRIPT_DIR}/${NODE_BALANCER_CONFIG_SOURCE_FILE}" "${NODE_BALANCER_CONFIG_PATH}/config.txt"
 
 echo
 echo
