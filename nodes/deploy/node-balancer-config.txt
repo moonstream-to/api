@@ -1,0 +1,5 @@
+ethereum,a.ethereum.moonstream.internal,8545
+ethereum,b.ethereum.moonstream.internal,8545
+polygon,a.polygon.moonstream.internal,8545
+polygon,b.polygon.moonstream.internal,8545
+xdai,a.xdai.moonstream.internal,8545

@@ -4,9 +4,11 @@ Configurations for load balancer server.
 package configs
 
 import (
+	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -28,67 +30,43 @@ type NodeConfigList struct {
 
 var ConfigList NodeConfigList
 
-var MOONSTREAM_NODE_ETHEREUM_A_IPC_ADDR = os.Getenv("MOONSTREAM_NODE_ETHEREUM_A_IPC_ADDR")
-var MOONSTREAM_NODE_ETHEREUM_B_IPC_ADDR = os.Getenv("MOONSTREAM_NODE_ETHEREUM_B_IPC_ADDR")
-var MOONSTREAM_NODE_ETHEREUM_IPC_PORT = os.Getenv("MOONSTREAM_NODE_ETHEREUM_IPC_PORT")
-var MOONSTREAM_NODE_POLYGON_A_IPC_ADDR = os.Getenv("MOONSTREAM_NODE_POLYGON_A_IPC_ADDR")
-var MOONSTREAM_NODE_POLYGON_B_IPC_ADDR = os.Getenv("MOONSTREAM_NODE_POLYGON_B_IPC_ADDR")
-var MOONSTREAM_NODE_POLYGON_IPC_PORT = os.Getenv("MOONSTREAM_NODE_POLYGON_IPC_PORT")
 var MOONSTREAM_NODES_SERVER_PORT = os.Getenv("MOONSTREAM_NODES_SERVER_PORT")
 var MOONSTREAM_CLIENT_ID_HEADER = os.Getenv("MOONSTREAM_CLIENT_ID_HEADER")
 
 func checkEnvVarSet() {
-	if MOONSTREAM_NODE_ETHEREUM_A_IPC_ADDR == "" {
-		MOONSTREAM_NODE_ETHEREUM_A_IPC_ADDR = "a.ethereum.moonstream.internal"
-	}
-	if MOONSTREAM_NODE_ETHEREUM_B_IPC_ADDR == "" {
-		MOONSTREAM_NODE_ETHEREUM_B_IPC_ADDR = "b.ethereum.moonstream.internal"
-	}
-
-	if MOONSTREAM_NODE_POLYGON_A_IPC_ADDR == "" {
-		MOONSTREAM_NODE_POLYGON_A_IPC_ADDR = "a.polygon.moonstream.internal"
-	}
-	if MOONSTREAM_NODE_POLYGON_B_IPC_ADDR == "" {
-		MOONSTREAM_NODE_POLYGON_B_IPC_ADDR = "b.polygon.moonstream.internal"
-	}
-
 	if MOONSTREAM_CLIENT_ID_HEADER == "" {
 		MOONSTREAM_CLIENT_ID_HEADER = "x-moonstream-client-id"
 	}
 
-	if MOONSTREAM_NODES_SERVER_PORT == "" || MOONSTREAM_NODE_ETHEREUM_IPC_PORT == "" || MOONSTREAM_NODE_POLYGON_IPC_PORT == "" {
-		log.Fatal("Some of environment variables not set")
+	if MOONSTREAM_NODES_SERVER_PORT == "" {
+		log.Fatal("Environment variable MOONSTREAM_NODES_SERVER_PORT not set")
 	}
 }
 
 // Return list of NodeConfig structures
-func (nc *NodeConfigList) InitNodeConfigList() {
+func (nc *NodeConfigList) InitNodeConfigList(configPath string) {
 	checkEnvVarSet()
 
-	// Define available blockchain nodes
-	blockchainConfigList := make([]BlockchainConfig, 0, 2)
-	blockchainConfigList = append(blockchainConfigList, BlockchainConfig{
-		Blockchain: "ethereum",
-		IPs:        []string{MOONSTREAM_NODE_ETHEREUM_A_IPC_ADDR, MOONSTREAM_NODE_ETHEREUM_B_IPC_ADDR},
-		Port:       MOONSTREAM_NODE_ETHEREUM_IPC_PORT,
-	})
-	blockchainConfigList = append(blockchainConfigList, BlockchainConfig{
-		Blockchain: "polygon",
-		IPs:        []string{MOONSTREAM_NODE_POLYGON_A_IPC_ADDR, MOONSTREAM_NODE_POLYGON_B_IPC_ADDR},
-		Port:       MOONSTREAM_NODE_POLYGON_IPC_PORT,
-	})
+	rawBytes, err := ioutil.ReadFile(configPath)
+	if err != nil {
+		log.Fatalf("Unable to read config file, %v", err)
+	}
+	text := string(rawBytes)
+	lines := strings.Split(text, "\n")
 
-	// Parse node addr, ip and blockchain
-	for _, b := range blockchainConfigList {
-		for _, nodeIP := range b.IPs {
-			port, err := strconv.ParseInt(b.Port, 0, 16)
+	// Define available blockchain nodes
+	for _, line := range lines {
+		fields := strings.Split(line, ",")
+		if len(fields) == 3 {
+			port, err := strconv.ParseInt(fields[2], 0, 16)
 			if err != nil {
-				log.Printf("Unable to parse port number: %s", b.Port)
+				log.Printf("Unable to parse port number, %v", err)
 				continue
 			}
+
 			nc.Configs = append(nc.Configs, NodeConfig{
-				Blockchain: b.Blockchain,
-				Addr:       nodeIP,
+				Blockchain: fields[0],
+				Addr:       fields[1],
 				Port:       uint16(port),
 			})
 		}

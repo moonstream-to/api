@@ -8,13 +8,17 @@ import (
 	configs "github.com/bugout-dev/moonstream/nodes/node_balancer/configs"
 )
 
-var ethereumClientPool ClientPool
-var polygonClientPool ClientPool
+var (
+	ethereumClientPool ClientPool
+	polygonClientPool  ClientPool
+	xdaiClientPool     ClientPool
+)
 
 // Generate client pools for different blockchains
 func CreateClientPools() {
 	ethereumClientPool.Client = make(map[string]*Client)
 	polygonClientPool.Client = make(map[string]*Client)
+	xdaiClientPool.Client = make(map[string]*Client)
 }
 
 // Return client pool correspongin to blockchain
@@ -24,6 +28,8 @@ func GetClientPool(blockchain string) (*ClientPool, error) {
 		cpool = &ethereumClientPool
 	} else if blockchain == "polygon" {
 		cpool = &polygonClientPool
+	} else if blockchain == "xdai" {
+		cpool = &xdaiClientPool
 	} else {
 		return nil, errors.New("Unexisting blockchain provided")
 	}
