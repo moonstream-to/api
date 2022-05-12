@@ -183,28 +183,6 @@ const Homepage = () => {
     };
   }, []);
 
-  const JoinDiscordButton = () => {
-    return (
-      <RouteButton
-        variant="orangeAndBlue"
-        onClick={() => {
-          if (mixpanel.get_distinct_id()) {
-            mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-              full_url: router.nextRouter.asPath,
-              buttonName: `Join our Discord`,
-              page: `landing`,
-              section: `bottom-line`,
-            });
-          }
-        }}
-        href={"/discordleed"}
-        isExternal
-      >
-        Join our Discord
-      </RouteButton>
-    );
-  };
-
   return (
     <Suspense fallback="">
       <Fade in>
@@ -281,7 +259,26 @@ const Homepage = () => {
                           allow you to integrate our game mechanics with zero
                           effort.
                         </chakra.span>
-                        <JoinDiscordButton />
+                        <RouteButton
+                          variant="orangeAndBlue"
+                          onClick={() => {
+                            if (mixpanel.get_distinct_id()) {
+                              mixpanel.track(
+                                `${MIXPANEL_EVENTS.BUTTON_CLICKED}`,
+                                {
+                                  full_url: router.nextRouter.asPath,
+                                  buttonName: `Join our Discord`,
+                                  page: `landing`,
+                                  section: `front-and-center`,
+                                }
+                              );
+                            }
+                          }}
+                          href={"/discordleed"}
+                          isExternal
+                        >
+                          Join our Discord
+                        </RouteButton>
                       </Stack>
                     </Flex>
                   </Box>
@@ -504,7 +501,26 @@ const Homepage = () => {
                       display="inline-block"
                     >
                       <Link href="/discordleed" isExternal>
-                        Join our Discord
+                        <Text
+                          as="u"
+                          display="inline"
+                          fontWeight="semibold"
+                          onClick={() => {
+                            if (mixpanel.get_distinct_id()) {
+                              mixpanel.track(
+                                `${MIXPANEL_EVENTS.BUTTON_CLICKED}`,
+                                {
+                                  full_url: router.nextRouter.asPath,
+                                  buttonName: `Join our Discord`,
+                                  page: `landing`,
+                                  section: `bottom-line`,
+                                }
+                              );
+                            }
+                          }}
+                        >
+                          Join our Discord
+                        </Text>
                       </Link>{" "}
                       to get in touch with the team (@zomglings). Tell us about
                       your game and schedule a call if needed.
@@ -627,7 +643,23 @@ const Homepage = () => {
                     {`Contact us on Discord to discuss your project and keep up with the latest updates on Moonstream Engine.`}
                   </chakra.span>
 
-                  <JoinDiscordButton />
+                  <RouteButton
+                    variant="orangeAndBlue"
+                    onClick={() => {
+                      if (mixpanel.get_distinct_id()) {
+                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                          full_url: router.nextRouter.asPath,
+                          buttonName: `Join our Discord`,
+                          page: `landing`,
+                          section: `bottom-line`,
+                        });
+                      }
+                    }}
+                    href={"/discordleed"}
+                    isExternal
+                  >
+                    Join our Discord
+                  </RouteButton>
                 </Flex>
               </GridItem>
             </Grid>
