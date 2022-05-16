@@ -1,11 +1,15 @@
 package cmd
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"strings"
+
+	bugout "github.com/bugout-dev/bugout-go/pkg"
+	"github.com/google/uuid"
 
 	"github.com/bugout-dev/moonstream/nodes/node_balancer/configs"
 )
@@ -37,7 +41,7 @@ type StateCLI struct {
 
 	// Common flags
 	configPathFlag string
-	helpFlag bool
+	helpFlag       bool
 
 	// Add user access flags
 	userIDFlag            string
@@ -48,8 +52,8 @@ type StateCLI struct {
 	extendedMethodsFlag   bool
 
 	// Server flags
-	listeningAddrFlag     string
-	listeningPortFlag     string
+	listeningAddrFlag string
+	listeningPortFlag string
 
 	enableHealthCheckFlag bool
 	enableDebugFlag       bool
@@ -73,6 +77,7 @@ type UserAccess struct {
 
 	dataSource string
 }
+
 func (s *StateCLI) usage() {
 	fmt.Printf(`usage: nodebalancer [-h] {%[1]s,%[2]s,%[3]s,%[4]s,%[5]s} ...
 
@@ -141,30 +146,31 @@ func (s *StateCLI) checkRequirements() {
 			s.usersCmd.PrintDefaults()
 			os.Exit(1)
 		}
-	if s.configPathFlag == "" {
-		homeDir, err := os.UserHomeDir()
-		if err != nil {
-			log.Fatalf("Unable to find user home directory, %v", err)
-		}
-
-		configDirPath := fmt.Sprintf("%s/.nodebalancer", homeDir)
-		configPath := fmt.Sprintf("%s/config.txt", configDirPath)
-
-		err = os.MkdirAll(configDirPath, os.ModePerm)
-		if err != nil {
-			log.Fatalf("Unable to create directory, %v", err)
-		}
-
-		_, err = os.Stat(configPath)
-		if err != nil {
-			tempConfigB := []byte("ethereum,http://127.0.0.1,8545")
-			err = os.WriteFile(configPath, tempConfigB, 0644)
+		if s.configPathFlag == "" {
+			homeDir, err := os.UserHomeDir()
 			if err != nil {
-				log.Fatalf("Unable to write config, %v", err)
+				log.Fatalf("Unable to find user home directory, %v", err)
 			}
-		}
 
-		s.configPathFlag = configPath
+			configDirPath := fmt.Sprintf("%s/.nodebalancer", homeDir)
+			configPath := fmt.Sprintf("%s/config.txt", configDirPath)
+
+			err = os.MkdirAll(configDirPath, os.ModePerm)
+			if err != nil {
+				log.Fatalf("Unable to create directory, %v", err)
+			}
+
+			_, err = os.Stat(configPath)
+			if err != nil {
+				tempConfigB := []byte("ethereum,http://127.0.0.1,8545")
+				err = os.WriteFile(configPath, tempConfigB, 0644)
+				if err != nil {
+					log.Fatalf("Unable to write config, %v", err)
+				}
+			}
+
+			s.configPathFlag = configPath
+		}
 	}
 }
 
@@ -370,7 +376,7 @@ func CLI() {
 }
 
 func init() {
-	configs.VerifyEnvironments()
+	configs.CheckEnvVarSet()
 
 	// Init bugout client
 	bc, err := bugout.ClientFromEnv()

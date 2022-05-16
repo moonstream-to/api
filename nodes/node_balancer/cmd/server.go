@@ -13,8 +13,9 @@ import (
 	"net/url"
 	"time"
 
-	humbug "github.com/bugout-dev/humbug/go/pkg"
 	configs "github.com/bugout-dev/moonstream/nodes/node_balancer/configs"
+
+	humbug "github.com/bugout-dev/humbug/go/pkg"
 	"github.com/google/uuid"
 )
 
@@ -149,7 +150,7 @@ func Server() {
 	}
 
 	// Fill NodeConfigList with initial nodes from environment variables
-	configs.ConfigList.InitNodeConfigList(stateCLI.configPathFlag)
+	nodeConfigs.InitNodeConfigList(stateCLI.configPathFlag)
 
 	// Parse nodes and set list of proxies
 	for i, nodeConfig := range nodeConfigs.NodeConfigs {
