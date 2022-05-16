@@ -53,35 +53,53 @@ const assets = {
   meetup: `${AWS_ASSETS_PATH}/featured_by/meetup_logo.png`,
 };
 
-const Feature = ({ image, altText, heading, description }) => {
+const Feature = ({
+  title,
+  altText,
+  path,
+  mixpanel_url,
+  mixpanel_name,
+  image,
+}) => {
   return (
-    <Stack
-      transition={"1s"}
-      spacing={1}
-      px={1}
-      alignItems="center"
-      borderRadius="12px"
-      borderColor="blue.700"
-      bgColor={"blue.800"}
-      borderWidth={"1px"}
-      _hover={{ transform: "scale(1.05)", transition: "0.42s" }}
-      cursor="pointer"
-      m={[2, 3, null, 4, 8, 12]}
-      pb={2}
+    <Link
+      href={path}
+      onClick={() => {
+        if (mixpanel.get_distinct_id()) {
+          mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+            full_url: mixpanel_url,
+            buttonName: mixpanel_name,
+            page: `landing`,
+            section: `features`,
+          });
+        }
+      }}
     >
-      <ChakraImage
-        boxSize={["220px", "220px", "xs", null, "xs"]}
-        objectFit="contain"
-        src={image}
-        alt={altText}
-      />
-      <Heading textAlign="center" fontSize={["md", "md", "lg", "3xl", "4xl"]}>
-        {heading}
-      </Heading>
-      <chakra.span textAlign={"center"} textColor="blue.600" px={2}>
-        {description}
-      </chakra.span>
-    </Stack>
+      <Stack
+        transition={"1s"}
+        spacing={1}
+        px={1}
+        alignItems="center"
+        borderRadius="12px"
+        borderColor="blue.700"
+        bgColor={"blue.800"}
+        borderWidth={"1px"}
+        _hover={{ transform: "scale(1.05)", transition: "0.42s" }}
+        cursor="pointer"
+        m={[2, 3, null, 4, 8, 12]}
+        pb={2}
+      >
+        <ChakraImage
+          boxSize={["220px", "220px", "xs", null, "xs"]}
+          objectFit="contain"
+          src={image}
+          alt={altText}
+        />
+        <Heading textAlign="center" fontSize={["md", "md", "lg", "3xl", "4xl"]}>
+          {title}
+        </Heading>
+      </Stack>
+    </Link>
   );
 };
 
@@ -432,24 +450,36 @@ const Homepage = () => {
                   paddingTop="20px"
                 >
                   <Feature
+                    title="Lootboxes"
+                    altText="Lootboxes"
+                    path="/features/#lootboxes"
+                    mixpanel_name="lootboxes"
+                    mixpanel_url={router.nextRouter.asPath}
                     image={assets["cryptoTraders"]}
-                    altText="mined transactions"
-                    heading="Lootboxes"
                   />
                   <Feature
+                    title="Crafting Recipes"
+                    altText="Crafting Recipes"
+                    path="/features/#crafting"
+                    mixpanel_name="crafting"
+                    mixpanel_url={router.nextRouter.asPath}
                     image={assets["NFT"]}
-                    altText="mined transactions"
-                    heading="Crafting Recipes"
                   />
                   <Feature
+                    title="Minigames"
+                    altText="Minigames"
+                    path="/features/#minigames"
+                    mixpanel_name="minigames"
+                    mixpanel_url={router.nextRouter.asPath}
                     image={assets["DAO"]}
-                    altText="mined transactions"
-                    heading="Minigames"
                   />
                   <Feature
+                    title="Airdrops"
+                    altText="Airdrops"
+                    path="/features/#airdrops"
+                    mixpanel_name="airdrops"
+                    mixpanel_url={router.nextRouter.asPath}
                     image={assets["lender"]}
-                    altText="mined transactions"
-                    heading="Airdrops"
                   />
                 </SimpleGrid>
               </GridItem>
