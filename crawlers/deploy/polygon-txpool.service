@@ -11,7 +11,9 @@ WorkingDirectory=/home/ubuntu/moonstream/crawlers/txpool
 EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
 Restart=on-failure
 RestartSec=15s
-ExecStart=/home/ubuntu/moonstream/crawlers/txpool/txpool -blockchain polygon -access-id "${NB_CONTROLLER_ACCESS_ID}"
+ExecStart=/home/ubuntu/moonstream/crawlers/txpool/txpool \
+    -blockchain polygon \
+    -access-id "${NB_CONTROLLER_ACCESS_ID}"
 SyslogIdentifier=polygon-txpool
 
 [Install]
