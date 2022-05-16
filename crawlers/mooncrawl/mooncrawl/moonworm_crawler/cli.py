@@ -1,13 +1,14 @@
 import argparse
 import logging
 from typing import Optional
+from uuid import UUID
 
 from moonstreamdb.db import yield_db_session_ctx
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
 from ..blockchain import AvailableBlockchainType
-from ..settings import MOONSTREAM_MOONWORM_TASKS_JOURNAL, bugout_client
+from ..settings import MOONSTREAM_MOONWORM_TASKS_JOURNAL, NB_CONTROLLER_ACCESS_ID
 from .continuous_crawler import _retry_connect_web3, continuous_crawler
 from .crawler import (
     SubscriptionTypes,
@@ -54,7 +55,7 @@ def handle_crawl(args: argparse.Namespace) -> None:
             logger.info(
                 "No web3 provider URL provided, using default (blockchan.py: connect())"
             )
-            web3 = _retry_connect_web3(blockchain_type)
+            web3 = _retry_connect_web3(blockchain_type, access_id=args.access_id)
         else:
             logger.info(f"Using web3 provider URL: {args.web3}")
             web3 = Web3(
@@ -109,11 +110,21 @@ def handle_crawl(args: argparse.Namespace) -> None:
             args.min_sleep_time,
             args.heartbeat_interval,
             args.new_jobs_refetch_interval,
+            access_id=args.access_id,
         )
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
+    parser.set_defaults(func=lambda _: parser.print_help())
+
+    parser.add_argument(
+        "--access-id",
+        default=NB_CONTROLLER_ACCESS_ID,
+        type=UUID,
+        help="User access ID",
+    )
+
     subparsers = parser.add_subparsers()
 
     crawl_parser = subparsers.add_parser("crawl")

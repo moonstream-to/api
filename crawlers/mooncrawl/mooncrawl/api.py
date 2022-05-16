@@ -23,6 +23,7 @@ from .settings import (
     ORIGINS,
     bugout_client as bc,
     BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
+    NB_CONTROLLER_ACCESS_ID,
     MOONSTREAM_S3_QUERIES_BUCKET,
     MOONSTREAM_S3_QUERIES_BUCKET_PREFIX,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
@@ -119,6 +120,7 @@ async def status_handler(
             timescales=stats_update.timescales,
             dashboard=dashboard_resource,
             subscription_by_id=subscription_by_id,
+            access_id=NB_CONTROLLER_ACCESS_ID,
         )
 
     except Exception as e:
