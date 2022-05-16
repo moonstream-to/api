@@ -34,7 +34,8 @@ func initHealthCheck(debug bool) {
 			blockchainPool.HealthCheck()
 			ethereumClients := ethereumClientPool.CleanInactiveClientNodes()
 			polygonClients := polygonClientPool.CleanInactiveClientNodes()
-			log.Printf("Active ethereum clients: %d, polygon clients: %d\n", ethereumClients, polygonClients)
+			xdaiClients := xdaiClientPool.CleanInactiveClientNodes()
+			log.Printf("Active etehereum clients: %d, polygon clients: %d, xdai clients: %d\n", ethereumClients, polygonClients, xdaiClients)
 			if debug {
 				blockchainPool.StatusLog()
 			}
@@ -148,7 +149,7 @@ func Server() {
 	}
 
 	// Fill NodeConfigList with initial nodes from environment variables
-	nodeConfigs.InitNodeConfiguration()
+	configs.ConfigList.InitNodeConfigList(stateCLI.configPathFlag)
 
 	// Parse nodes and set list of proxies
 	for i, nodeConfig := range nodeConfigs.NodeConfigs {

@@ -45,6 +45,8 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 		blockchain = "ethereum"
 	case strings.HasPrefix(r.URL.Path, "/nb/polygon"):
 		blockchain = "polygon"
+	case strings.HasPrefix(r.URL.Path, "/nb/xdai"):
+		blockchain = "xdai"
 	default:
 		http.Error(w, fmt.Sprintf("Unacceptable blockchain provided %s", blockchain), http.StatusBadRequest)
 		return

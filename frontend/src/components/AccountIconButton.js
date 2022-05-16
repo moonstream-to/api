@@ -9,11 +9,12 @@ import {
   MenuDivider,
   IconButton,
   chakra,
+  Portal,
 } from "@chakra-ui/react";
 import { RiAccountCircleLine } from "react-icons/ri";
 import useLogout from "../core/hooks/useLogout";
 import UIContext from "../core/providers/UIProvider/context";
-import { ALL_NAV_PATHES } from "../core/constants";
+import { SITEMAP } from "../core/constants";
 
 const AccountIconButton = (props) => {
   const { logout } = useLogout();
@@ -30,39 +31,49 @@ const AccountIconButton = (props) => {
         icon={<RiAccountCircleLine m={0} size="26px" />}
         color="gray.100"
       />
-      <MenuList
-        zIndex="dropdown"
-        width={["100vw", "100vw", "18rem", "20rem", "22rem", "24rem"]}
-        borderRadius={0}
-      >
-        <MenuGroup>
-          <RouterLink href="/account/security" passHref>
-            <MenuItem>Security</MenuItem>
-          </RouterLink>
-          <RouterLink href="/account/tokens" passHref>
-            <MenuItem>API tokens</MenuItem>
-          </RouterLink>
-        </MenuGroup>
-        <MenuDivider />
-        {ui.isMobileView &&
-          ALL_NAV_PATHES.map((pathToLink, idx) => {
-            return (
-              <MenuItem key={`AccountIconButton-All_nav_pathes-${idx}`}>
-                <RouterLink href={pathToLink.path}>
-                  {pathToLink.title}
-                </RouterLink>
-              </MenuItem>
-            );
-          })}
-        <MenuDivider />
-        <MenuItem
-          onClick={() => {
-            logout();
-          }}
+      <Portal>
+        <MenuList
+          zIndex="dropdown"
+          width={["100vw", "100vw", "18rem", "20rem", "22rem", "24rem"]}
+          borderRadius={0}
         >
-          Logout
-        </MenuItem>
-      </MenuList>
+          <MenuGroup>
+            <RouterLink href="/account/security" passHref>
+              <MenuItem>Security</MenuItem>
+            </RouterLink>
+            <RouterLink href="/account/tokens" passHref>
+              <MenuItem>API tokens</MenuItem>
+            </RouterLink>
+          </MenuGroup>
+          <MenuDivider />
+          {ui.isMobileView &&
+            SITEMAP.map((item, idx) => {
+              if (item.children) {
+                return (
+                  <MenuGroup key={`AccountIconButton-MenuGroup-${idx}`}>
+                    {item.children.map((child, idx) => {
+                      return (
+                        <MenuItem key={`AccountIconButton-SITEMAP-${idx}`}>
+                          <RouterLink href={child.path}>
+                            {child.title}
+                          </RouterLink>
+                        </MenuItem>
+                      );
+                    })}
+                  </MenuGroup>
+                );
+              }
+            })}
+          <MenuDivider />
+          <MenuItem
+            onClick={() => {
+              logout();
+            }}
+          >
+            Logout
+          </MenuItem>
+        </MenuList>
+      </Portal>
     </Menu>
   );
 };

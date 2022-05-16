@@ -3,7 +3,6 @@ import { Flex, Center, Text, Link, IconButton } from "@chakra-ui/react";
 import React, { Suspense, useContext, useState } from "react";
 import UIContext from "../core/providers/UIProvider/context";
 const Sidebar = React.lazy(() => import("../components/Sidebar"));
-const Navbar = React.lazy(() => import("../components/Navbar"));
 
 const RootLayout = (props) => {
   const ui = useContext(UIContext);
@@ -27,9 +26,6 @@ const RootLayout = (props) => {
         flexBasis="100px"
         overflowX="hidden"
       >
-        <Suspense fallback="">
-          <Navbar />
-        </Suspense>
         {!ui.isAppView && (
           <Flex
             w="100%"

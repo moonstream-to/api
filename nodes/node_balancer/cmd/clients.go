@@ -12,6 +12,7 @@ import (
 var (
 	ethereumClientPool ClientPool
 	polygonClientPool  ClientPool
+	xdaiClientPool     ClientPool
 )
 
 // Node - which one node client worked with
@@ -31,6 +32,7 @@ type ClientPool struct {
 func CreateClientPools() {
 	ethereumClientPool.Client = make(map[string]*Client)
 	polygonClientPool.Client = make(map[string]*Client)
+	xdaiClientPool.Client = make(map[string]*Client)
 }
 
 // Return client pool correspongin to blockchain
@@ -40,6 +42,8 @@ func GetClientPool(blockchain string) (*ClientPool, error) {
 		cpool = &ethereumClientPool
 	} else if blockchain == "polygon" {
 		cpool = &polygonClientPool
+	} else if blockchain == "xdai" {
+		cpool = &xdaiClientPool
 	} else {
 		return nil, errors.New("Unexisting blockchain provided")
 	}

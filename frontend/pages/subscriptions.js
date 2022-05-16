@@ -14,7 +14,7 @@ import {
 import { AiOutlinePlusCircle } from "react-icons/ai";
 import OverlayContext from "../src/core/providers/OverlayProvider/context";
 import { MODAL_TYPES } from "../src/core/providers/OverlayProvider/constants";
-
+import Scrollable from "../src/components/Scrollable";
 const Subscriptions = () => {
   const { subscriptionsCache } = useSubscriptions();
   const modal = useContext(OverlayContext);
@@ -37,64 +37,66 @@ const Subscriptions = () => {
     modal.toggleModal({ type: MODAL_TYPES.NEW_SUBSCRIPTON });
   };
   return (
-    <Box w="100%" px="7%" pt={2}>
-      {subscriptionsCache.isLoading ? (
-        <Center>
-          <Spinner
-            hidden={false}
-            my={8}
-            size="lg"
-            color="blue.500"
-            thickness="4px"
-            speed="1.5s"
-          />
-        </Center>
-      ) : (
-        <ScaleFade in>
-          <Heading {...headingStyle}> My Subscriptions </Heading>
-          <Flex
-            mt={4}
-            overflow="initial"
-            maxH="unset"
-            height="100%"
-            direction="column"
-          >
+    <Scrollable>
+      <Box w="100%" px="7%" pt={2}>
+        {subscriptionsCache.isLoading ? (
+          <Center>
+            <Spinner
+              hidden={false}
+              my={8}
+              size="lg"
+              color="blue.500"
+              thickness="4px"
+              speed="1.5s"
+            />
+          </Center>
+        ) : (
+          <ScaleFade in>
+            <Heading {...headingStyle}> My Subscriptions </Heading>
             <Flex
-              h="3rem"
-              w="100%"
-              bgColor="blue.50"
-              borderTopRadius="xl"
-              justifyContent="flex-end"
-              alignItems="center"
+              mt={4}
+              overflow="initial"
+              maxH="unset"
+              height="100%"
+              direction="column"
             >
-              {subscriptionsCache.data?.is_free_subscription_availible && (
+              <Flex
+                h="3rem"
+                w="100%"
+                bgColor="blue.50"
+                borderTopRadius="xl"
+                justifyContent="flex-end"
+                alignItems="center"
+              >
+                {subscriptionsCache.data?.is_free_subscription_availible && (
+                  <Button
+                    onClick={() => newSubscriptionClicked(true)}
+                    mr={8}
+                    colorScheme="green"
+                    variant="solid"
+                    size="sm"
+                    rightIcon={<AiOutlinePlusCircle />}
+                  >
+                    Add for free
+                  </Button>
+                )}
                 <Button
-                  onClick={() => newSubscriptionClicked(true)}
+                  onClick={() => newSubscriptionClicked(false)}
                   mr={8}
-                  colorScheme="green"
+                  colorScheme="blue"
                   variant="solid"
                   size="sm"
                   rightIcon={<AiOutlinePlusCircle />}
                 >
-                  Add for free
+                  Add new
                 </Button>
-              )}
-              <Button
-                onClick={() => newSubscriptionClicked(false)}
-                mr={8}
-                colorScheme="blue"
-                variant="solid"
-                size="sm"
-                rightIcon={<AiOutlinePlusCircle />}
-              >
-                Add new
-              </Button>
+              </Flex>
+              <SubscriptionsList data={subscriptionsCache.data} />
             </Flex>
-            <SubscriptionsList data={subscriptionsCache.data} />
-          </Flex>
-        </ScaleFade>
-      )}
-    </Box>
+          </ScaleFade>
+        )}
+      </Box>
+    </Scrollable>
   );
 };
 

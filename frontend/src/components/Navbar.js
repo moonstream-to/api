@@ -2,7 +2,7 @@ import React, { Suspense, useContext } from "react";
 import { Flex } from "@chakra-ui/react";
 import UIContext from "../core/providers/UIProvider/context";
 
-const LandingNavbar = React.lazy(() => import("./LandingNavbar"));
+import LandingNavbar from "./LandingNavbar";
 const AppNavbar = React.lazy(() => import("./AppNavbar"));
 
 const Navbar = () => {
@@ -11,6 +11,7 @@ const Navbar = () => {
   return (
     <Flex
       boxShadow={["sm", "md"]}
+      zIndex={1}
       alignItems="center"
       id="Navbar"
       minH="3rem"
@@ -19,9 +20,12 @@ const Navbar = () => {
       direction="row"
       w="100%"
       overflow="hidden"
+      position={"fixed"}
+      transition={"0.3s"}
+      top={"0"}
     >
+      {(!isAppView || !isLoggedIn) && <LandingNavbar />}
       <Suspense fallback={""}>
-        {(!isAppView || !isLoggedIn) && <LandingNavbar />}
         {isAppView && isLoggedIn && <AppNavbar />}
       </Suspense>
     </Flex>

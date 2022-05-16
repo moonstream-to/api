@@ -9,6 +9,7 @@ export const MODAL_TYPES = {
   NEW_SUBSCRIPTON: 7,
   UPLOAD_ABI: 8,
   NEW_DASHBOARD_FLOW: 9,
+  MOBILE_INPUT_FIELD: 10,
 };
 
 export const DRAWER_TYPES = {

@@ -172,14 +172,14 @@ def continuous_crawler(
     )
     last_heartbeat_time = datetime.utcnow()
     blocks_cache: Dict[int, int] = {}
-
+    current_sleep_time = min_sleep_time
     failed_count = 0
     try:
         while True:
             try:
                 # query db  with limit 1, to avoid session closing
                 db_session.execute("SELECT 1")
-                time.sleep(min_sleep_time)
+                time.sleep(current_sleep_time)
 
                 end_block = min(
                     web3.eth.blockNumber - confirmations,
@@ -187,12 +187,12 @@ def continuous_crawler(
                 )
 
                 if start_block + min_blocks_batch > end_block:
-                    min_sleep_time += 0.1
+                    current_sleep_time += 0.1
                     logger.info(
-                        f"Sleeping for {min_sleep_time} seconds because of low block count"
+                        f"Sleeping for {current_sleep_time} seconds because of low block count"
                     )
                     continue
-                min_sleep_time = max(0, min_sleep_time - 0.1)
+                current_sleep_time = max(min_sleep_time, current_sleep_time - 0.1)
 
                 logger.info(f"Crawling events from {start_block} to {end_block}")
                 all_events = _crawl_events(

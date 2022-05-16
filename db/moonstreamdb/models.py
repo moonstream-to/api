@@ -260,6 +260,15 @@ class PolygonLabel(Base):  # type: ignore
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )
 
+    # Undescribed indexes
+    """
+    Migration: alembic\versions\5f5b8f19570f_added_index_for_address_type_and_name_.py
+
+    Index: "ix_polygon_labels_address_label_label_data_type_and_name" created manually.
+    By fields: (address, label, (label_data->>'type'), (label_data->>'name'))
+    Reason: https://github.com/sqlalchemy/alembic/issues/469#issuecomment-441887478
+    """
+
 
 class ESDFunctionSignature(Base):  # type: ignore
     """

@@ -1,15 +1,13 @@
 package cmd
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
+	"log"
 	"os"
+	"strings"
 
-	bugout "github.com/bugout-dev/bugout-go/pkg"
 	"github.com/bugout-dev/moonstream/nodes/node_balancer/configs"
-
-	"github.com/google/uuid"
 )
 
 var (
@@ -17,6 +15,17 @@ var (
 
 	bugoutClient bugout.BugoutClient
 )
+
+type flagSlice []string
+
+func (i *flagSlice) String() string {
+	return strings.Join(*i, ", ")
+}
+
+func (i *flagSlice) Set(value string) error {
+	*i = append(*i, value)
+	return nil
+}
 
 // Command Line Interface state
 type StateCLI struct {
@@ -27,6 +36,7 @@ type StateCLI struct {
 	versionCmd      *flag.FlagSet
 
 	// Common flags
+	configPathFlag string
 	helpFlag bool
 
 	// Add user access flags
@@ -40,6 +50,7 @@ type StateCLI struct {
 	// Server flags
 	listeningAddrFlag     string
 	listeningPortFlag     string
+
 	enableHealthCheckFlag bool
 	enableDebugFlag       bool
 
@@ -62,12 +73,10 @@ type UserAccess struct {
 
 	dataSource string
 }
-
 func (s *StateCLI) usage() {
 	fmt.Printf(`usage: nodebalancer [-h] {%[1]s,%[2]s,%[3]s,%[4]s,%[5]s} ...
 
 Moonstream node balancer CLI
-
 optional arguments:
     -h, --help         show this help message and exit
 
@@ -132,6 +141,30 @@ func (s *StateCLI) checkRequirements() {
 			s.usersCmd.PrintDefaults()
 			os.Exit(1)
 		}
+	if s.configPathFlag == "" {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			log.Fatalf("Unable to find user home directory, %v", err)
+		}
+
+		configDirPath := fmt.Sprintf("%s/.nodebalancer", homeDir)
+		configPath := fmt.Sprintf("%s/config.txt", configDirPath)
+
+		err = os.MkdirAll(configDirPath, os.ModePerm)
+		if err != nil {
+			log.Fatalf("Unable to create directory, %v", err)
+		}
+
+		_, err = os.Stat(configPath)
+		if err != nil {
+			tempConfigB := []byte("ethereum,http://127.0.0.1,8545")
+			err = os.WriteFile(configPath, tempConfigB, 0644)
+			if err != nil {
+				log.Fatalf("Unable to write config, %v", err)
+			}
+		}
+
+		s.configPathFlag = configPath
 	}
 }
 
@@ -146,6 +179,7 @@ func (s *StateCLI) populateCLI() {
 	// Common flag pointers
 	for _, fs := range []*flag.FlagSet{s.addAccessCmd, s.deleteAccessCmd, s.serverCmd, s.usersCmd, s.versionCmd} {
 		fs.BoolVar(&s.helpFlag, "help", false, "Show help message")
+		fs.StringVar(&s.configPathFlag, "config", "", "Path to configuration file (default: ~/.nodebalancer/config.txt)")
 	}
 
 	// Add, delete and list user access subcommand flag pointers
