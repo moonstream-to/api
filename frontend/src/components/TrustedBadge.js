@@ -1,5 +1,12 @@
 import { React } from "react";
-import { Flex, Image, Link, LinkBox, LinkOverlay } from "@chakra-ui/react";
+import {
+  Flex,
+  Image,
+  Link,
+  LinkBox,
+  LinkOverlay,
+  chakra,
+} from "@chakra-ui/react";
 
 const TrustedBadge = ({
   name,
@@ -8,10 +15,15 @@ const TrustedBadge = ({
   scale,
   isGrayScale,
   boxURL,
+  invertColors,
+  ...props
 }) => {
   const _scale = scale ?? 1;
+  const _isGrayScale = isGrayScale ? "grayscale(100%)" : "";
+  const _invert = invertColors ? "invert(100%)" : "";
+  const filterStr = _isGrayScale + " " + _invert;
   return (
-    <LinkBox m={2}>
+    <LinkBox m={2} borderRadius="md" {...props}>
       <LinkOverlay href={boxURL} isExternal>
         <Flex
           m={1}
@@ -23,7 +35,7 @@ const TrustedBadge = ({
           direction="column"
         >
           <Image
-            sx={isGrayScale && { filter: "grayscale(100%)" }}
+            sx={{ filter: filterStr }}
             h={[
               `${2.25 * _scale}rem`,
               null,
@@ -51,4 +63,4 @@ const TrustedBadge = ({
     </LinkBox>
   );
 };
-export default TrustedBadge;
+export default chakra(TrustedBadge);

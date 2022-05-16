@@ -1,12 +1,16 @@
 [Unit]
 Description=Ethereum txpool crawler
 After=network.target
+StartLimitIntervalSec=300
+StartLimitBurst=3
 
 [Service]
 User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/moonstream/crawlers/txpool
 EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
+Restart=on-failure
+RestartSec=15s
 ExecStart=/home/ubuntu/moonstream/crawlers/txpool/txpool -blockchain ethereum -access-id "${NB_CONTROLLER_ACCESS_ID}"
 SyslogIdentifier=ethereum-txpool
 

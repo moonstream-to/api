@@ -91,6 +91,3 @@ def function_call_crawler(
             i,
             min(i + batch_size - 1, end_block),
         )
-        logger.info(f"Crawled {len(crawled_functions)} functions")
-        for function_call in crawled_functions:
-            print(function_call)

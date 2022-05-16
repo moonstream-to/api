@@ -3,7 +3,7 @@
 # Compile application and run with provided arguments
 set -e
 
-PROGRAM_NAME="moonstreamdb"
+PROGRAM_NAME="nodebalancer"
 
 go build -o "$PROGRAM_NAME" .
 

@@ -12,11 +12,15 @@ import {
   Button,
   useBreakpointValue,
   useToken,
+  chakra,
 } from "@chakra-ui/react";
 import React, { useContext } from "react";
 import UIContext from "../core/providers/UIProvider/context";
 import { FaDiscord, FaGithubSquare } from "react-icons/fa";
 import RouteButton from "../components/RouteButton";
+import mixpanel from "mixpanel-browser";
+import MIXPANEL_EVENTS from "../core/providers/AnalyticsProvider/constants";
+import { useRouter } from "../core/hooks";
 
 const Feature = ({ text, icon, iconBg, bullets }) => {
   return (
@@ -47,7 +51,7 @@ const Feature = ({ text, icon, iconBg, bullets }) => {
                 text={bullet.text}
                 {...bullet}
                 icon={
-                  <Icon as={bullet.icon} color={bullet.color} w={5} h={5} />
+                  <Icon as={bullet.icon} color={bullet.color} w={16} h={16} />
                 }
               />
             );
@@ -58,7 +62,7 @@ const Feature = ({ text, icon, iconBg, bullets }) => {
   );
 };
 
-const SplitWithImage = ({
+const _SplitWithImage = ({
   badge,
   title,
   body,
@@ -71,7 +75,10 @@ const SplitWithImage = ({
   socialButton,
   imgBoxShadow,
   py,
+  ...props
 }) => {
+  const router = useRouter();
+
   var buttonSize = useBreakpointValue({
     base: { single: "sm", double: "xs" },
     sm: { single: "md", double: "sm" },
@@ -116,6 +123,7 @@ const SplitWithImage = ({
       py={py}
       className={`fade-in-section ${isVisible ? "is-visible" : ""}`}
       ref={domRef}
+      {...props}
     >
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={[0, 0, 10, null, 10]}>
         {mirror && !ui.isMobileView && (
@@ -166,7 +174,7 @@ const SplitWithImage = ({
                 <Feature
                   key={`splitWImageBullet-${idx}-${title}`}
                   icon={
-                    <Icon as={bullet.icon} color={bullet.color} w={5} h={5} />
+                    <Icon as={bullet.icon} color={bullet.color} w={16} h={16} />
                   }
                   iconBg={bullet.bgColor}
                   text={bullet.text}
@@ -186,6 +194,16 @@ const SplitWithImage = ({
                   w={["100%", "100%", "fit-content", null]}
                   maxW={["250px", null, "fit-content"]}
                   href={socialButton.url}
+                  onClick={() => {
+                    if (mixpanel.get_distinct_id()) {
+                      mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                        full_url: router.nextRouter.asPath,
+                        buttonName: `${socialButton.title}`,
+                        page: `splitWImage`,
+                        section: `${badge}`,
+                      });
+                    }
+                  }}
                   mt={[0, 0, null, 16]}
                   size={socialButton ? buttonSize.double : buttonSize.single}
                   variant="outline"
@@ -206,7 +224,18 @@ const SplitWithImage = ({
                   variant="outline"
                   mt={[0, 0, null, 16]}
                   size={socialButton ? buttonSize.double : buttonSize.single}
-                  onClick={cta.onClick}
+                  onClick={() => {
+                    if (mixpanel.get_distinct_id()) {
+                      mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+                        full_url: router.nextRouter.asPath,
+                        buttonName: `${cta.label}`,
+                        page: `splitWImage`,
+                        section: `${badge}`,
+                      });
+                    }
+
+                    cta.onClick();
+                  }}
                 >
                   {cta.label}
                 </Button>
@@ -230,5 +259,6 @@ const SplitWithImage = ({
     </Container>
   );
 };
+const SplitWithImage = chakra(_SplitWithImage);
 
 export default SplitWithImage;
