@@ -3,6 +3,7 @@ import time
 import traceback
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
+from uuid import UUID
 
 from moonworm.crawler.moonstream_ethereum_state_provider import (  # type: ignore
     MoonstreamEthereumStateProvider,
@@ -85,6 +86,7 @@ def _retry_connect_web3(
     blockchain_type: AvailableBlockchainType,
     retry_count: int = 10,
     sleep_time: float = 5,
+    access_id: Optional[UUID] = None,
 ) -> Web3:
     """
     Retry connecting to the blockchain.
@@ -92,7 +94,7 @@ def _retry_connect_web3(
     while retry_count > 0:
         retry_count -= 1
         try:
-            web3 = connect(blockchain_type)
+            web3 = connect(blockchain_type, access_id=access_id)
             web3.eth.block_number
             logger.info(f"Connected to {blockchain_type}")
             return web3
@@ -121,6 +123,7 @@ def continuous_crawler(
     min_sleep_time: float = 0.1,
     heartbeat_interval: float = 60,
     new_jobs_refetch_interval: float = 120,
+    access_id: Optional[UUID] = None,
 ):
     crawler_type = "continuous"
     assert (
@@ -139,7 +142,7 @@ def continuous_crawler(
 
     jobs_refetchet_time = crawl_start_time
     if web3 is None:
-        web3 = _retry_connect_web3(blockchain_type)
+        web3 = _retry_connect_web3(blockchain_type, access_id=access_id)
 
     network = (
         Network.ethereum
@@ -281,7 +284,7 @@ def continuous_crawler(
                     logger.error("Too many failures, exiting")
                     raise e
                 try:
-                    web3 = _retry_connect_web3(blockchain_type)
+                    web3 = _retry_connect_web3(blockchain_type, access_id=access_id)
                 except Exception as err:
                     logger.error(f"Failed to reconnect: {err}")
                     logger.exception(err)
