@@ -25,6 +25,7 @@ import RouteButton from "../src/components/RouteButton";
 import MilestoneBox from "../src/components/MilestoneBox";
 import mixpanel from "mixpanel-browser";
 import { MIXPANEL_EVENTS } from "../src/core/providers/AnalyticsProvider/constants";
+import RouterLink from "next/link";
 
 const HEADING_PROPS = {
   fontWeight: "700",
@@ -62,7 +63,7 @@ const Feature = ({
   image,
 }) => {
   return (
-    <Link
+    <RouterLink
       href={path}
       onClick={() => {
         if (mixpanel.get_distinct_id()) {
@@ -99,7 +100,7 @@ const Feature = ({
           {title}
         </Heading>
       </Stack>
-    </Link>
+    </RouterLink>
   );
 };
 
@@ -279,6 +280,15 @@ const Homepage = () => {
                         </chakra.span>
                         <RouteButton
                           variant="orangeAndBlue"
+                          minW={[
+                            "200px",
+                            "250px",
+                            "250px",
+                            "300px",
+                            "350px",
+                            "400px",
+                          ]}
+                          fontSize={["lg", "xl", "2xl", "3xl", "4xl", "4xl"]}
                           onClick={() => {
                             if (mixpanel.get_distinct_id()) {
                               mixpanel.track(
@@ -419,6 +429,15 @@ const Homepage = () => {
                     <Center w="100%" h="100%">
                       <RouteButton
                         variant="orangeAndBlue"
+                        minW={[
+                          "200px",
+                          "250px",
+                          "250px",
+                          "300px",
+                          "350px",
+                          "400px",
+                        ]}
+                        fontSize={["lg", "xl", "2xl", "3xl", "4xl", "4xl"]}
                         px={[4, 4, 4, 8, 8]}
                         onClick={() => {
                           if (mixpanel.get_distinct_id()) {
@@ -675,6 +694,15 @@ const Homepage = () => {
 
                   <RouteButton
                     variant="orangeAndBlue"
+                    minW={[
+                      "200px",
+                      "250px",
+                      "250px",
+                      "300px",
+                      "350px",
+                      "400px",
+                    ]}
+                    fontSize={["lg", "xl", "2xl", "3xl", "4xl", "4xl"]}
                     onClick={() => {
                       if (mixpanel.get_distinct_id()) {
                         mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {

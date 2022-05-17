@@ -15,9 +15,9 @@ const HEADING_PROPS = {
   fontSize: ["4xl", "5xl", "5xl", "5xl", "6xl", "7xl"],
 };
 
-const FeatureCard = (props, ref) => {
+const _FeatureCard = (props) => {
   return (
-    <Flex ref={ref} colSpan="12" pt={12}>
+    <Flex id={props.id} colSpan="12" pt={12}>
       <Grid
         templateColumns={{
           base: "repeat(1, 1fr)",
@@ -41,14 +41,14 @@ const FeatureCard = (props, ref) => {
           </VStack>
         </GridItem>
         <GridItem
-          order={2 * props.order}
+          order={[2, 2, 2 * props.cardOrder]}
           justifyContent="right"
           alignContent="center"
           h="auto"
         >
           <Center>
             <ChakraImage
-              boxSize={["220px", "220px", "md", null, "lg"]}
+              boxSize={["220px", "md", "md", null, "lg"]}
               objectFit="contain"
               src={props.image}
             />
@@ -59,4 +59,6 @@ const FeatureCard = (props, ref) => {
   );
 };
 
-export default React.forwardRef(FeatureCard);
+const FeatureCard = chakra(_FeatureCard)
+
+export default FeatureCard;
