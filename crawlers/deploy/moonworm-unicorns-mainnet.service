@@ -10,11 +10,7 @@ WorkingDirectory=/home/ubuntu
 EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
 Restart=on-failure
 RestartSec=15s
-ExecStart=/home/ubuntu/moonworm-env/bin/python -m moonworm.cli watch-cu \
-    -w "${MOONSTREAM_POLYGON_WEB3_PROVIDER_URI}?access_id=${NB_CONTROLLER_ACCESS_ID}&data_source=blockchain" \
-    -c 0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f \
-    -d 21418707 \
-    --confirmations 60
+ExecStart=/home/ubuntu/moonworm-env/bin/python -m moonworm.cli watch-cu -w "${MOONSTREAM_POLYGON_WEB3_PROVIDER_URI}?access_id=${NB_CONTROLLER_ACCESS_ID}&data_source=blockchain" -c 0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f -d 21418707 --confirmations 60
 SyslogIdentifier=moonworm-unicorns-mainnet
 
 [Install]
