@@ -4,6 +4,7 @@ Configurations for load balancer server.
 package configs
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -38,14 +39,47 @@ var (
 )
 
 var MOONSTREAM_NODES_SERVER_PORT = os.Getenv("MOONSTREAM_NODES_SERVER_PORT")
-var MOONSTREAM_CLIENT_ID_HEADER = os.Getenv("MOONSTREAM_CLIENT_ID_HEADER")
 
 func CheckEnvVarSet() {
-	if MOONSTREAM_CLIENT_ID_HEADER == "" {
-		MOONSTREAM_CLIENT_ID_HEADER = "x-moonstream-client-id"
+	if NB_ACCESS_ID_HEADER == "" {
+		NB_ACCESS_ID_HEADER = "x-node-balancer-access-id"
+	}
+	if NB_DATA_SOURCE_HEADER == "" {
+		NB_DATA_SOURCE_HEADER = "x-node-balancer-data-source"
 	}
 
 	if MOONSTREAM_NODES_SERVER_PORT == "" {
-		log.Fatal("Environment variable MOONSTREAM_NODES_SERVER_PORT not set")
+		fmt.Println("Environment variable MOONSTREAM_NODES_SERVER_PORT not set")
+		os.Exit(1)
 	}
+}
+
+func GenerateDefaultConfig() string {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Printf("Unable to find user home directory, %v", err)
+		os.Exit(1)
+	}
+
+	configDirPath := fmt.Sprintf("%s/.nodebalancer", homeDir)
+	configPath := fmt.Sprintf("%s/config.txt", configDirPath)
+
+	err = os.MkdirAll(configDirPath, os.ModePerm)
+	if err != nil {
+		fmt.Printf("Unable to create directory, %v", err)
+		os.Exit(1)
+	}
+
+	_, err = os.Stat(configPath)
+	if err != nil {
+		tempConfigB := []byte("ethereum,127.0.0.1,8545")
+		err = os.WriteFile(configPath, tempConfigB, 0644)
+		if err != nil {
+			fmt.Printf("Unable to create directory, %v", err)
+			os.Exit(1)
+		}
+		log.Printf("Config directory were not found, created default configuration at %s", configPath)
+	}
+
+	return configPath
 }

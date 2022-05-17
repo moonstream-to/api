@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"os"
 	"time"
 
 	configs "github.com/bugout-dev/moonstream/nodes/node_balancer/configs"
@@ -20,7 +21,7 @@ import (
 )
 
 var (
-	controllerUserAccess UserAccess
+	internalCrawlersAccess UserAccess
 
 	// Crash reporter
 	reporter *humbug.HumbugReporter
@@ -109,12 +110,12 @@ func Server() {
 	consent := humbug.CreateHumbugConsent(humbug.True)
 	reporter, err = humbug.CreateHumbugReporter(consent, "moonstream-node-balancer", sessionID, configs.HUMBUG_REPORTER_NB_TOKEN)
 	if err != nil {
-		panic(fmt.Sprintf("Invalid Humbug Crash configuration: %s", err.Error()))
+		fmt.Printf("Invalid Humbug Crash configuration: %v", err)
+		os.Exit(1)
 	}
 	// Record system information
 	reporter.Publish(humbug.SystemReport())
 
-	// TODO(kompotkot): Remove, make it work without brood for internal crawlers
 	resources, err := bugoutClient.Brood.GetResources(
 		configs.NB_CONTROLLER_TOKEN,
 		configs.NB_APPLICATION_ID,
@@ -122,20 +123,24 @@ func Server() {
 	)
 	if err != nil {
 		fmt.Printf("Unable to get user with provided access identifier %v", err)
+		os.Exit(1)
 	}
-	if len(resources.Resources) == 0 {
-		fmt.Printf("User with provided access identifier not found %v", err)
+	if len(resources.Resources) != 1 {
+		fmt.Printf("User with provided access identifier has wrong number of resources %v", err)
+		os.Exit(1)
 	}
 	resource_data, err := json.Marshal(resources.Resources[0].ResourceData)
 	if err != nil {
 		fmt.Printf("Unable to encode resource data interface to json %v", err)
+		os.Exit(1)
 	}
 	var userAccess UserAccess
 	err = json.Unmarshal(resource_data, &userAccess)
 	if err != nil {
 		fmt.Printf("Unable to decode resource data json to structure %v", err)
+		os.Exit(1)
 	}
-	controllerUserAccess = UserAccess{
+	internalCrawlersAccess = UserAccess{
 		UserID:           userAccess.UserID,
 		AccessID:         userAccess.AccessID,
 		Name:             userAccess.Name,
@@ -143,10 +148,16 @@ func Server() {
 		BlockchainAccess: userAccess.BlockchainAccess,
 		ExtendedMethods:  userAccess.ExtendedMethods,
 	}
+	log.Printf(
+		"Internal crawlers access set, resource id: %s, blockchain access: %t, extended methods: %t",
+		resources.Resources[0].Id, userAccess.BlockchainAccess, userAccess.ExtendedMethods,
+	)
 
 	err = InitDatabaseClient()
 	if err != nil {
-		fmt.Printf("Unable to initialize database connection %v", err)
+		log.Printf("Unable to initialize database connection %v\n", err)
+	} else {
+		log.Printf("Connection with database established\n")
 	}
 
 	// Fill NodeConfigList with initial nodes from environment variables
@@ -156,11 +167,13 @@ func Server() {
 	for i, nodeConfig := range nodeConfigs.NodeConfigs {
 		gethUrl, err := url.Parse(fmt.Sprintf("http://%s:%d", nodeConfig.Addr, nodeConfig.Port))
 		if err != nil {
-			log.Fatal(err)
+			fmt.Printf("Unable to parse gethUrl with addr: %s and port: %d\n", nodeConfig.Addr, nodeConfig.Port)
+			continue
 		}
 		statusUrl, err := url.Parse(fmt.Sprintf("http://%s:%s", nodeConfig.Addr, configs.MOONSTREAM_NODES_SERVER_PORT))
 		if err != nil {
-			log.Fatal(err)
+			fmt.Printf("Unable to parse statusUrl with addr: %s and port: %s\n", nodeConfig.Addr, configs.MOONSTREAM_NODES_SERVER_PORT)
+			continue
 		}
 
 		proxyToStatus := httputil.NewSingleHostReverseProxy(statusUrl)
@@ -177,12 +190,13 @@ func Server() {
 			GethReverseProxy:   proxyToGeth,
 		}, nodeConfig.Blockchain)
 		log.Printf(
-			"Added new %s proxy %d with geth url: %s and status url: %s\n",
+			"Added new %s proxy blockchain under index %d from config file with geth url: %s and status url: %s\n",
 			nodeConfig.Blockchain, i, gethUrl, statusUrl)
 	}
 
 	serveMux := http.NewServeMux()
 	serveMux.Handle("/nb/", accessMiddleware(http.HandlerFunc(lbHandler)))
+	log.Println("Authentication middleware enabled")
 	serveMux.HandleFunc("/ping", pingRoute)
 
 	// Set common middlewares, from bottom to top
@@ -202,9 +216,10 @@ func Server() {
 		go initHealthCheck(stateCLI.enableDebugFlag)
 	}
 
-	log.Printf("Starting server at %s:%s\n", stateCLI.listeningAddrFlag, stateCLI.listeningPortFlag)
+	log.Printf("Starting node load balancer HTTP server at %s:%s\n", stateCLI.listeningAddrFlag, stateCLI.listeningPortFlag)
 	err = server.ListenAndServe()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Printf("Failed to start server listener %v", err)
+		os.Exit(1)
 	}
 }

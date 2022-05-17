@@ -23,7 +23,7 @@ import (
 func extractAccessID(r *http.Request) string {
 	var accessID string
 
-	accessIDHeaders := r.Header[configs.NB_ACCESS_ID_HEADER]
+	accessIDHeaders := r.Header[strings.Title(configs.NB_ACCESS_ID_HEADER)]
 	for _, h := range accessIDHeaders {
 		accessID = h
 	}
@@ -42,7 +42,7 @@ func extractAccessID(r *http.Request) string {
 func extractDataSource(r *http.Request) string {
 	dataSource := "database"
 
-	dataSources := r.Header[configs.NB_DATA_SOURCE_HEADER]
+	dataSources := r.Header[strings.Title(configs.NB_DATA_SOURCE_HEADER)]
 	for _, h := range dataSources {
 		dataSource = h
 	}
@@ -134,9 +134,9 @@ func accessMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		// If access id does not belong to controller, then find it in Bugout resources
+		// If access id does not belong to internal crawlers, then find it in Bugout resources
 		if accessID == configs.NB_CONTROLLER_ACCESS_ID {
-			currentUserAccess = controllerUserAccess
+			currentUserAccess = internalCrawlersAccess
 			currentUserAccess.dataSource = dataSource
 		} else {
 			resources, err := bugoutClient.Brood.GetResources(

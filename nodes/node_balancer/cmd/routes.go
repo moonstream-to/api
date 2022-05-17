@@ -16,6 +16,10 @@ import (
 	configs "github.com/bugout-dev/moonstream/nodes/node_balancer/configs"
 )
 
+type PingResponse struct {
+	Status string `json:"status"`
+}
+
 // pingRoute response with status of load balancer server itself
 func pingRoute(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")

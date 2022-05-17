@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
@@ -15,6 +14,7 @@ import (
 )
 
 var (
+	// Storing CLI definitions at server startup
 	stateCLI StateCLI
 
 	bugoutClient bugout.BugoutClient
@@ -52,19 +52,14 @@ type StateCLI struct {
 	extendedMethodsFlag   bool
 
 	// Server flags
-	listeningAddrFlag string
-	listeningPortFlag string
-
+	listeningAddrFlag     string
+	listeningPortFlag     string
 	enableHealthCheckFlag bool
 	enableDebugFlag       bool
 
 	// Users list flags
 	limitFlag  int
 	offsetFlag int
-}
-
-type PingResponse struct {
-	Status string `json:"status"`
 }
 
 type UserAccess struct {
@@ -90,6 +85,7 @@ subcommands:
 `, s.addAccessCmd.Name(), s.deleteAccessCmd.Name(), s.serverCmd.Name(), s.usersCmd.Name(), s.versionCmd.Name())
 }
 
+// Check if required flags are set
 func (s *StateCLI) checkRequirements() {
 	if s.helpFlag {
 		switch {
@@ -146,31 +142,11 @@ func (s *StateCLI) checkRequirements() {
 			s.usersCmd.PrintDefaults()
 			os.Exit(1)
 		}
-		if s.configPathFlag == "" {
-			homeDir, err := os.UserHomeDir()
-			if err != nil {
-				log.Fatalf("Unable to find user home directory, %v", err)
-			}
+	}
 
-			configDirPath := fmt.Sprintf("%s/.nodebalancer", homeDir)
-			configPath := fmt.Sprintf("%s/config.txt", configDirPath)
-
-			err = os.MkdirAll(configDirPath, os.ModePerm)
-			if err != nil {
-				log.Fatalf("Unable to create directory, %v", err)
-			}
-
-			_, err = os.Stat(configPath)
-			if err != nil {
-				tempConfigB := []byte("ethereum,http://127.0.0.1,8545")
-				err = os.WriteFile(configPath, tempConfigB, 0644)
-				if err != nil {
-					log.Fatalf("Unable to write config, %v", err)
-				}
-			}
-
-			s.configPathFlag = configPath
-		}
+	if s.configPathFlag == "" {
+		configPath := configs.GenerateDefaultConfig()
+		s.configPathFlag = configPath
 	}
 }
 
@@ -197,13 +173,13 @@ func (s *StateCLI) populateCLI() {
 	// Add user access subcommand flag pointers
 	s.addAccessCmd.StringVar(&s.accessNameFlag, "name", "", "Name of access")
 	s.addAccessCmd.StringVar(&s.accessDescriptionFlag, "description", "", "Description of access")
-	s.addAccessCmd.BoolVar(&s.blockchainAccessFlag, "blockchain-access", false, "Provide if allow to access blockchain nodes")
+	s.addAccessCmd.BoolVar(&s.blockchainAccessFlag, "blockchain-access", false, "Provide if allow direct access to blockchain nodes")
 	s.addAccessCmd.BoolVar(&s.extendedMethodsFlag, "extended-methods", false, "Provide to be able to execute not whitelisted methods")
 
 	// Server subcommand flag pointers
 	s.serverCmd.StringVar(&s.listeningAddrFlag, "host", "127.0.0.1", "Server listening address")
 	s.serverCmd.StringVar(&s.listeningPortFlag, "port", "8544", "Server listening port")
-	s.serverCmd.BoolVar(&s.enableHealthCheckFlag, "healthcheck", false, "To enable healthcheck ser healthcheck flag")
+	s.serverCmd.BoolVar(&s.enableHealthCheckFlag, "healthcheck", false, "To enable healthcheck set healthcheck flag")
 	s.serverCmd.BoolVar(&s.enableDebugFlag, "debug", false, "To enable debug mode with extended log set debug flag")
 
 	// Users list subcommand flag pointers
@@ -217,6 +193,14 @@ func CLI() {
 		stateCLI.usage()
 		os.Exit(1)
 	}
+
+	// Init bugout client
+	bc, err := bugout.ClientFromEnv()
+	if err != nil {
+		fmt.Printf("Unable to initialize bugout client %v", err)
+		os.Exit(1)
+	}
+	bugoutClient = bc
 
 	// Parse subcommands and appropriate FlagSet
 	switch os.Args[1] {
@@ -308,6 +292,8 @@ func CLI() {
 		stateCLI.serverCmd.Parse(os.Args[2:])
 		stateCLI.checkRequirements()
 
+		configs.CheckEnvVarSet()
+
 		Server()
 
 	case "users":
@@ -373,16 +359,4 @@ func CLI() {
 		stateCLI.usage()
 		os.Exit(1)
 	}
-}
-
-func init() {
-	configs.CheckEnvVarSet()
-
-	// Init bugout client
-	bc, err := bugout.ClientFromEnv()
-	if err != nil {
-		fmt.Printf("Unable to initialize bugout client %v", err)
-		os.Exit(1)
-	}
-	bugoutClient = bc
 }
