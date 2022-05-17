@@ -21,7 +21,7 @@ import (
 )
 
 var (
-	internalCrawlersAccess UserAccess
+	internalCrawlersAccess ClientResourceData
 
 	// Crash reporter
 	reporter *humbug.HumbugReporter
@@ -134,23 +134,23 @@ func Server() {
 		fmt.Printf("Unable to encode resource data interface to json %v", err)
 		os.Exit(1)
 	}
-	var userAccess UserAccess
-	err = json.Unmarshal(resource_data, &userAccess)
+	var clientAccess ClientResourceData
+	err = json.Unmarshal(resource_data, &clientAccess)
 	if err != nil {
 		fmt.Printf("Unable to decode resource data json to structure %v", err)
 		os.Exit(1)
 	}
-	internalCrawlersAccess = UserAccess{
-		UserID:           userAccess.UserID,
-		AccessID:         userAccess.AccessID,
-		Name:             userAccess.Name,
-		Description:      userAccess.Description,
-		BlockchainAccess: userAccess.BlockchainAccess,
-		ExtendedMethods:  userAccess.ExtendedMethods,
+	internalCrawlersAccess = ClientResourceData{
+		UserID:           clientAccess.UserID,
+		AccessID:         clientAccess.AccessID,
+		Name:             clientAccess.Name,
+		Description:      clientAccess.Description,
+		BlockchainAccess: clientAccess.BlockchainAccess,
+		ExtendedMethods:  clientAccess.ExtendedMethods,
 	}
 	log.Printf(
 		"Internal crawlers access set, resource id: %s, blockchain access: %t, extended methods: %t",
-		resources.Resources[0].Id, userAccess.BlockchainAccess, userAccess.ExtendedMethods,
+		resources.Resources[0].Id, clientAccess.BlockchainAccess, clientAccess.ExtendedMethods,
 	)
 
 	err = InitDatabaseClient()
@@ -197,6 +197,9 @@ func Server() {
 	serveMux := http.NewServeMux()
 	serveMux.Handle("/nb/", accessMiddleware(http.HandlerFunc(lbHandler)))
 	log.Println("Authentication middleware enabled")
+	if stateCLI.enableDebugFlag {
+		serveMux.HandleFunc("/debug", debugRoute)
+	}
 	serveMux.HandleFunc("/ping", pingRoute)
 
 	// Set common middlewares, from bottom to top

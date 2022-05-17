@@ -124,7 +124,7 @@ func logMiddleware(next http.Handler) http.Handler {
 // Check access id was provided correctly and save user access configuration to request context
 func accessMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var currentUserAccess UserAccess
+		var currentClientAccess ClientResourceData
 
 		accessID := extractAccessID(r)
 		dataSource := extractDataSource(r)
@@ -136,8 +136,8 @@ func accessMiddleware(next http.Handler) http.Handler {
 
 		// If access id does not belong to internal crawlers, then find it in Bugout resources
 		if accessID == configs.NB_CONTROLLER_ACCESS_ID {
-			currentUserAccess = internalCrawlersAccess
-			currentUserAccess.dataSource = dataSource
+			currentClientAccess = internalCrawlersAccess
+			currentClientAccess.dataSource = dataSource
 		} else {
 			resources, err := bugoutClient.Brood.GetResources(
 				configs.NB_CONTROLLER_TOKEN,
@@ -157,25 +157,25 @@ func accessMiddleware(next http.Handler) http.Handler {
 				http.Error(w, "Unable to encode resource data interface to json", http.StatusInternalServerError)
 				return
 			}
-			var userAccess UserAccess
-			err = json.Unmarshal(resource_data, &userAccess)
+			var clientResourceData ClientResourceData
+			err = json.Unmarshal(resource_data, &clientResourceData)
 			if err != nil {
 				http.Error(w, "Unable to decode resource data json to structure", http.StatusInternalServerError)
 				return
 			}
-			currentUserAccess = UserAccess{
-				UserID:           userAccess.UserID,
-				AccessID:         userAccess.AccessID,
-				Name:             userAccess.Name,
-				Description:      userAccess.Description,
-				BlockchainAccess: userAccess.BlockchainAccess,
-				ExtendedMethods:  userAccess.ExtendedMethods,
+			currentClientAccess = ClientResourceData{
+				UserID:           clientResourceData.UserID,
+				AccessID:         clientResourceData.AccessID,
+				Name:             clientResourceData.Name,
+				Description:      clientResourceData.Description,
+				BlockchainAccess: clientResourceData.BlockchainAccess,
+				ExtendedMethods:  clientResourceData.ExtendedMethods,
 
 				dataSource: dataSource,
 			}
 		}
 
-		ctxUser := context.WithValue(r.Context(), "currentUserAccess", currentUserAccess)
+		ctxUser := context.WithValue(r.Context(), "currentClientAccess", currentClientAccess)
 
 		next.ServeHTTP(w, r.WithContext(ctxUser))
 	})

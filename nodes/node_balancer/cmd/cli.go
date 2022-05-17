@@ -62,17 +62,6 @@ type StateCLI struct {
 	offsetFlag int
 }
 
-type UserAccess struct {
-	UserID           string `json:"user_id"`
-	AccessID         string `json:"access_id"`
-	Name             string `json:"name"`
-	Description      string `json:"description"`
-	BlockchainAccess bool   `json:"blockchain_access"`
-	ExtendedMethods  bool   `json:"extended_methods"`
-
-	dataSource string
-}
-
 func (s *StateCLI) usage() {
 	fmt.Printf(`usage: nodebalancer [-h] {%[1]s,%[2]s,%[3]s,%[4]s,%[5]s} ...
 
@@ -208,7 +197,7 @@ func CLI() {
 		stateCLI.addAccessCmd.Parse(os.Args[2:])
 		stateCLI.checkRequirements()
 
-		proposedUserAccess := UserAccess{
+		proposedUserAccess := ClientResourceData{
 			UserID:           stateCLI.userIDFlag,
 			AccessID:         stateCLI.accessIDFlag,
 			Name:             stateCLI.accessNameFlag,
@@ -260,7 +249,7 @@ func CLI() {
 			os.Exit(1)
 		}
 
-		var userAccesses []UserAccess
+		var userAccesses []ClientResourceData
 		for _, resource := range resources.Resources {
 			deletedResource, err := bugoutClient.Brood.DeleteResource(configs.NB_CONTROLLER_TOKEN, resource.Id)
 			if err != nil {
@@ -272,7 +261,7 @@ func CLI() {
 				fmt.Printf("Unable to encode resource %s data interface to json %v", resource.Id, err)
 				continue
 			}
-			var userAccess UserAccess
+			var userAccess ClientResourceData
 			err = json.Unmarshal(resource_data, &userAccess)
 			if err != nil {
 				fmt.Printf("Unable to decode resource %s data json to structure %v", resource.Id, err)
@@ -317,7 +306,7 @@ func CLI() {
 			os.Exit(1)
 		}
 
-		var userAccesses []UserAccess
+		var userAccesses []ClientResourceData
 
 		offset := stateCLI.offsetFlag
 		if stateCLI.offsetFlag > len(resources.Resources) {
@@ -334,7 +323,7 @@ func CLI() {
 				fmt.Printf("Unable to encode resource %s data interface to json %v", resource.Id, err)
 				continue
 			}
-			var userAccess UserAccess
+			var userAccess ClientResourceData
 			err = json.Unmarshal(resource_data, &userAccess)
 			if err != nil {
 				fmt.Printf("Unable to decode resource %s data json to structure %v", resource.Id, err)
