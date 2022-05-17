@@ -219,7 +219,7 @@ const Product = () => {
           flexWrap="wrap"
           spacing={4}
           justifyContent="space-between"
-          px={12}
+          px={[3, 6, 12]}
           placeContent={"center"}
         >
           <TeamCard
@@ -261,6 +261,14 @@ const Product = () => {
             Implementing his own dialect of LISP programming language for
             scientific calculations.`}
           />
+          <TeamCard
+            avatarURL={assets["mantis"]}
+            name={"Kellan Wampler"}
+            atName={"@wampleek"}
+            content={`News junkie. Reformed mathematician. Fantasy Football enthusiast.
+            Enjoys soduku and its variants. Follows artificial intelligence scene for 
+            Chess and Go. Experiments with grilling recipes.`}
+          />
         </Stack>
       </Stack>
       <Stack mx={margin} mb={12} maxW="1700px" w="100%">
@@ -273,7 +281,7 @@ const Product = () => {
           flexWrap="wrap"
           spacing={4}
           justifyContent="space-between"
-          px={12}
+          px={[3, 6, 12]}
           placeContent={"center"}
         >
           <TeamCard
@@ -291,6 +299,23 @@ const Product = () => {
             content={`Mediator. Loves stand-up comedy and
             crying at nights. Volunteered at a horse farm once. Portrait
             artist, puts the pain in painting.`}
+          />
+          <TeamCard
+            avatarURL={assets["spider"]}
+            name={"Dasha Bochkareva"}
+            atName={"@dashab"}
+            content={`Born explorer. Always in search of something
+            new to master. Enjoys being close to the sea. Loves yoga, 
+            dogs and dancing. Can walk 30km when under stress.`}
+          />
+          <TeamCard
+            avatarURL={assets["locust"]}
+            name={"Sam Kamani"}
+            atName={"@samkamani"}
+            content={`Extrovert. Podcaster, Author & Keynote speaker.
+            Loves learning about new technology, macro economics and
+            talking with other ambitious people. Plays multiplayer FPS,
+            tennis or oil painting to relax.`}
           />
         </Stack>
       </Stack>

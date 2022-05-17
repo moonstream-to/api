@@ -8,6 +8,8 @@ import {
   Grid,
   GridItem,
   Center,
+  Text,
+  Link,
 } from "@chakra-ui/react";
 
 const HEADING_PROPS = {
@@ -46,7 +48,19 @@ const _FeatureCard = (props) => {
           alignContent="center"
           h="auto"
         >
-          <Center>
+          <Center flexDirection="column">
+            {props.isMobile && (
+              <Link href="/discordleed" isExternal>
+                <Text
+                  as="u"
+                  display="inline"
+                  fontWeight="semibold"
+                  onClick={props.clickEvent}
+                >
+                  Join our Discord
+                </Text>
+              </Link>
+            )}
             <ChakraImage
               boxSize={["220px", "md", "md", null, "lg"]}
               objectFit="contain"
@@ -59,6 +73,6 @@ const _FeatureCard = (props) => {
   );
 };
 
-const FeatureCard = chakra(_FeatureCard)
+const FeatureCard = chakra(_FeatureCard);
 
 export default FeatureCard;

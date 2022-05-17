@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext} from "react";
 import { Container } from "@chakra-ui/react";
 import RouteButton from "../../src/components/RouteButton";
 import mixpanel from "mixpanel-browser";
@@ -7,6 +7,7 @@ import { AWS_ASSETS_PATH } from "../../src/core/constants";
 import { MIXPANEL_EVENTS } from "../../src/core/providers/AnalyticsProvider/constants";
 import FeatureCard from "../../src/components/FeatureCard";
 import useRouter from "../../src/core/hooks/useRouter";
+import UIContext from "../../src/core/providers/UIProvider/context";
 
 const assets = {
   cryptoTraders: `${AWS_ASSETS_PATH}/crypto+traders.png`,
@@ -17,35 +18,46 @@ const assets = {
 
 const Features = () => {
   const router = useRouter();
+  const ui = useContext(UIContext);
+
+  const mixpanelReport = function (name, section) {
+    const _report = function () {
+      if (mixpanel.get_distinct_id()) {
+        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+          full_url: router.nextRouter.asPath,
+          buttonName: name,
+          page: `features`,
+          section: section,
+        });
+      }
+    };
+    return _report;
+  };
+
   return (
     <Container id="container" maxW="container.xl">
-      <RouteButton
-        variant="orangeAndBlue"
-        onClick={() => {
-          if (mixpanel.get_distinct_id()) {
-            mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-              full_url: router.nextRouter.asPath,
-              buttonName: `Learn More`,
-              page: `features`,
-              section: `main`,
-            });
-          }
-        }}
-        href={"/discordleed"}
-        isExternal
-        minW={["150", "150", "150", "200px", "300px", "300px"]}
-        fontSize={["md", "lg", "xl", "2xl", "3xl", "3xl"]}
-        position="absolute"
-        bottom="10px"
-        right="5px"
-      >
-        Learn More
-      </RouteButton>
+      {!ui.isMobileView && (
+        <RouteButton
+          variant="orangeAndBlue"
+          onClick={mixpanelReport("Learn More", "main")}
+          href={"/discordleed"}
+          isExternal
+          minW={["150", "150", "150", "200px", "300px", "300px"]}
+          fontSize={["md", "lg", "xl", "2xl", "3xl", "3xl"]}
+          position="absolute"
+          bottom="10px"
+          right="5px"
+        >
+          Learn More
+        </RouteButton>
+      )}
       <FeatureCard
         id="airdrops"
         headingText="Airdrops"
         image={assets["lender"]}
         cardOrder={1}
+        isMobile={ui.isMobileView}
+        clickEvent={mixpanelReport("Learn More", "airdrops")}
       >
         <>
           Use Moonstream to distribute ERC20 tokens, NFTs, items, or
@@ -69,6 +81,8 @@ const Features = () => {
         headingText="Minigames"
         image={assets["DAO"]}
         cardOrder={-1}
+        isMobile={ui.isMobileView}
+        clickEvent={mixpanelReport("Learn More", "minigames")}
       >
         <>
           Use Moonstream to deploy on-chain minigames into your project. Our
@@ -86,6 +100,8 @@ const Features = () => {
         headingText="Lootboxes"
         image={assets["cryptoTraders"]}
         cardOrder={1}
+        isMobile={ui.isMobileView}
+        clickEvent={mixpanelReport("Learn More", "lootboxes")}
       >
         <>
           Use Moonstream Lootboxes to reward your players on-chain for
@@ -103,6 +119,8 @@ const Features = () => {
         headingText="Crafting"
         image={assets["NFT"]}
         cardOrder={-1}
+        isMobile={ui.isMobileView}
+        clickEvent={mixpanelReport("Learn More", "crafting")}
       >
         <>
           Use Moonstream to set up a fully on-chain crafting system and give
