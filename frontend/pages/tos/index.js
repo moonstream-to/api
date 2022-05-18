@@ -372,7 +372,7 @@ const TermsOfService = () => (
       <Text mt={4} fontSize="md">
         It is your responsibility to properly cancel your Account with
         Moonstream. You can cancel your Account at any time by contacting us by
-        email (neeraj@simiotics.com).
+        email (info@moonstream.to).
       </Text>
       <Heading as="h3" mt={4} size="md">
         Upon Cancellation

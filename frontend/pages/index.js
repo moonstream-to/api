@@ -39,7 +39,6 @@ const assets = {
   background3840: `${AWS_ASSETS_PATH}/background720.png`,
   cryptoTraders: `${AWS_ASSETS_PATH}/crypto+traders.png`,
   cointelegraph: `${AWS_ASSETS_PATH}/featured_by/Cointelegraph_logo.png`,
-  forte: `${AWS_ASSETS_PATH}/featured_by/forte_logo.png`,
   educativesessions: `${AWS_ASSETS_PATH}/featured_by/educative_logo.png`,
   cryptoinsiders: `${AWS_ASSETS_PATH}/featured_by/crypto_insiders.png`,
   cryptoslate: `${AWS_ASSETS_PATH}/featured_by/cs-media-logo-light.png`,
@@ -371,14 +370,6 @@ const Homepage = () => {
                         boxURL="https://lfg.orangedao.xyz/"
                         bgColor="blue.900"
                       />
-                      <TrustedBadge
-                        scale={1.5}
-                        name="forte"
-                        ImgURL={assets["forte"]}
-                        boxURL="https://www.forte.io/"
-                        bgColor="blue.900"
-                        invertColors={true}
-                      />
                     </Suspense>
                   </Flex>
                 </VStack>
@@ -562,7 +553,7 @@ const Homepage = () => {
                                   full_url: router.nextRouter.asPath,
                                   buttonName: `Join our Discord`,
                                   page: `landing`,
-                                  section: `bottom-line`,
+                                  section: `inline-text`,
                                 }
                               );
                             }

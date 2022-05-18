@@ -187,7 +187,7 @@ const PrivacyPolicy = () => (
         </Heading>
       </a>
       <Text mt={4} fontSize="md">
-        Contact us by reaching out to Neeraj Kashyap (neeraj@simiotics.com).
+        Contact us by reaching out to info@moonstream.to.
       </Text>
     </Box>
   </Box>
