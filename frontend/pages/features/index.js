@@ -1,4 +1,4 @@
-import React, { useContext} from "react";
+import React, { useContext } from "react";
 import { Container } from "@chakra-ui/react";
 import RouteButton from "../../src/components/RouteButton";
 import mixpanel from "mixpanel-browser";
@@ -153,4 +153,5 @@ export async function getStaticProps() {
   layoutProps.props.metaTags = { ...layoutProps.props.metaTags, ...metaTags };
   return { ...layoutProps };
 }
+
 export default Features;

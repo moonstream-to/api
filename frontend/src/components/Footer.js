@@ -149,16 +149,12 @@ const Footer = () => (
           <ListHeader>Legal</ListHeader>
           <RouterLink
             passHref
-            href="https://docs.google.com/document/d/1JXFaX18xLCLZwr7csNp4JUMRUUKCW6GRJrsAQirgDNg/view"
+            href="/privacy-policy"
             key={`footer-list-link-item-privacy`}
           >
             <Link {...LINKS_SIZES}>Privacy Policy</Link>
           </RouterLink>
-          <RouterLink
-            passHref
-            href="https://docs.google.com/document/d/1IxLTiToDEgl8Q0M17RZk3T_LPkdWPglRCYZshugYdoU/view"
-            key={`footer-list-link-item-tos`}
-          >
+          <RouterLink passHref href="/tos" key={`footer-list-link-item-tos`}>
             <Link {...LINKS_SIZES}>Terms of Service</Link>
           </RouterLink>
         </Stack>

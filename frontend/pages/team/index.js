@@ -30,6 +30,9 @@ const assets = {
   spider: `${AWS_ASSETS_PATH}/spider.jpg`,
   ant: `${AWS_ASSETS_PATH}/ant.jpg`,
   firefly: `${AWS_ASSETS_PATH}/firefly.jpg`,
+  scarab: `${AWS_ASSETS_PATH}/scarab.jpg`,
+  bee: `${AWS_ASSETS_PATH}/bee.jpg`,
+  weta: `${AWS_ASSETS_PATH}/weta.jpg`,
 };
 
 const Product = () => {
@@ -262,7 +265,7 @@ const Product = () => {
             scientific calculations.`}
           />
           <TeamCard
-            avatarURL={assets["mantis"]}
+            avatarURL={assets["scarab"]}
             name={"Kellan Wampler"}
             atName={"@wampleek"}
             content={`News junkie. Reformed mathematician. Fantasy Football enthusiast.
@@ -301,7 +304,7 @@ const Product = () => {
             artist, puts the pain in painting.`}
           />
           <TeamCard
-            avatarURL={assets["spider"]}
+            avatarURL={assets["bee"]}
             name={"Dasha Bochkareva"}
             atName={"@dashab"}
             content={`Born explorer. Always in search of something
@@ -309,7 +312,7 @@ const Product = () => {
             dogs and dancing. Can walk 30km when under stress.`}
           />
           <TeamCard
-            avatarURL={assets["locust"]}
+            avatarURL={assets["weta"]}
             name={"Sam Kamani"}
             atName={"@samkamani"}
             content={`Extrovert. Podcaster, Author & Keynote speaker.

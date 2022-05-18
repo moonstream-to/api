@@ -57,7 +57,7 @@ const _FeatureCard = (props) => {
                   fontWeight="semibold"
                   onClick={props.clickEvent}
                 >
-                  Join our Discord
+                  Learn More
                 </Text>
               </Link>
             )}
