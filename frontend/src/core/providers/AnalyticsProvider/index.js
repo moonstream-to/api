@@ -5,7 +5,7 @@ import { useClientID, useUser, useRouter } from "../../hooks";
 import { MIXPANEL_EVENTS, MIXPANEL_PROPS } from "./constants";
 import UIContext from "../UIProvider/context";
 
-const TELEMETRY_SCHEMA_VERSION = 1.0;
+const TELEMETRY_SCHEMA_VERSION = 1.1;
 
 const AnalyticsProvider = ({ children }) => {
   const clientID = useClientID();
