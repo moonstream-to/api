@@ -7,7 +7,7 @@ const PrivacyPolicy = () => (
   <Box>
     <Box px="1.5rem" m="auto" mb={8} maxWidth="1199.98px" minHeight="60vh">
       <Heading my={8} as="h1">
-        Privacy Policy for Simiotics, Inc
+        Privacy Policy for Moonstream
       </Heading>
       <Text fontSize="md">
         At Moonstream, accessible from https://moonstream.to/, one of our main
