@@ -9,7 +9,9 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
+	"sync"
 	"sync/atomic"
 
 	configs "github.com/bugout-dev/moonstream/nodes/node_balancer/configs"
@@ -18,6 +20,38 @@ import (
 // Main variable of pool of blockchains which contains pool of nodes
 // for each blockchain we work during session.
 var blockchainPool BlockchainPool
+
+// Node structure with
+// StatusURL for status server at node endpoint
+// GethURL for geth/bor/etc node http.server endpoint
+type Node struct {
+	StatusURL *url.URL
+	GethURL   *url.URL
+
+	Alive        bool
+	CurrentBlock uint64
+
+	mux sync.RWMutex
+
+	StatusReverseProxy *httputil.ReverseProxy
+	GethReverseProxy   *httputil.ReverseProxy
+}
+
+type NodePool struct {
+	Blockchain string
+	Nodes      []*Node
+
+	// Counter to observe all nodes
+	Current uint64
+}
+
+type BlockchainPool struct {
+	Blockchains []*NodePool
+}
+
+type NodeStatusResponse struct {
+	CurrentBlock uint64 `json:"current_block"`
+}
 
 // AddNode to the nodes pool
 func (bpool *BlockchainPool) AddNode(node *Node, blockchain string) {
