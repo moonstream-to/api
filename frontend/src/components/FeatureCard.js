@@ -50,7 +50,7 @@ const _FeatureCard = (props) => {
         >
           <Center flexDirection="column">
             {props.isMobile && (
-              <Link href="/discordleed" isExternal>
+              // <Link href="/discordleed" isExternal>
                 <Text
                   as="u"
                   display="inline"
@@ -59,7 +59,7 @@ const _FeatureCard = (props) => {
                 >
                   Learn More
                 </Text>
-              </Link>
+              // </Link>
             )}
             <ChakraImage
               boxSize={["220px", "md", "md", null, "lg"]}

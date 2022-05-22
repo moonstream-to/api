@@ -8,6 +8,7 @@ import { MIXPANEL_EVENTS } from "../../src/core/providers/AnalyticsProvider/cons
 import FeatureCard from "../../src/components/FeatureCard";
 import useRouter from "../../src/core/hooks/useRouter";
 import UIContext from "../../src/core/providers/UIProvider/context";
+import AnalyticsContext from "../../src/core/providers/AnalyticsProvider/context";
 
 const assets = {
   cryptoTraders: `${AWS_ASSETS_PATH}/crypto+traders.png`,
@@ -17,29 +18,15 @@ const assets = {
 };
 
 const Features = () => {
-  const router = useRouter();
   const ui = useContext(UIContext);
-
-  const mixpanelReport = function (name, section) {
-    const _report = function () {
-      if (mixpanel.get_distinct_id()) {
-        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-          full_url: router.nextRouter.asPath,
-          buttonName: name,
-          page: `features`,
-          section: section,
-        });
-      }
-    };
-    return _report;
-  };
+  const { buttonReport } = useContext(AnalyticsContext);
 
   return (
     <Container id="container" maxW="container.xl">
       {!ui.isMobileView && (
         <RouteButton
           variant="orangeAndBlue"
-          onClick={mixpanelReport("Learn More", "main")}
+          onClick={() => buttonReport("Learn More", "main")}
           href={"/discordleed"}
           isExternal
           minW={["150", "150", "150", "200px", "300px", "300px"]}
@@ -57,7 +44,7 @@ const Features = () => {
         image={assets["lender"]}
         cardOrder={1}
         isMobile={ui.isMobileView}
-        clickEvent={mixpanelReport("Learn More", "airdrops")}
+        clickEvent={() => buttonReport("Learn More", "airdrops")}
       >
         <>
           Use Moonstream to distribute ERC20 tokens, NFTs, items, or
@@ -82,7 +69,7 @@ const Features = () => {
         image={assets["DAO"]}
         cardOrder={-1}
         isMobile={ui.isMobileView}
-        clickEvent={mixpanelReport("Learn More", "minigames")}
+        clickEvent={() => buttonReport("Learn More", "minigames")}
       >
         <>
           Use Moonstream to deploy on-chain minigames into your project. Our
@@ -101,7 +88,7 @@ const Features = () => {
         image={assets["cryptoTraders"]}
         cardOrder={1}
         isMobile={ui.isMobileView}
-        clickEvent={mixpanelReport("Learn More", "lootboxes")}
+        clickEvent={() => buttonReport("Learn More", "lootboxes")}
       >
         <>
           Use Moonstream Lootboxes to reward your players on-chain for
@@ -120,7 +107,7 @@ const Features = () => {
         image={assets["NFT"]}
         cardOrder={-1}
         isMobile={ui.isMobileView}
-        clickEvent={mixpanelReport("Learn More", "crafting")}
+        clickEvent={() => buttonReport("Learn More", "crafting")}
       >
         <>
           Use Moonstream to set up a fully on-chain crafting system and give
