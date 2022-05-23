@@ -19,7 +19,7 @@ import useModals from "../core/hooks/useModals";
 import UIContext from "../core/providers/UIProvider/context";
 import ChakraAccountIconButton from "./AccountIconButton";
 import RouteButton from "./RouteButton";
-import { SITEMAP, WHITE_LOGO_W_TEXT_URL } from "../core/constants";
+import { PAGETYPE, SITEMAP, WHITE_LOGO_W_TEXT_URL } from "../core/constants";
 import router from "next/router";
 import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 
@@ -67,7 +67,7 @@ const LandingNavbar = () => {
             {SITEMAP.map((item, idx) => {
               return (
                 <React.Fragment key={`Fragment-${idx}`}>
-                  {!item.children && (
+                  {!item.children && item.type !== PAGETYPE.FOOTER_CATEGORY && (
                     <RouteButton
                       key={`${idx}-${item.title}-landing-all-links`}
                       variant="link"
@@ -78,7 +78,7 @@ const LandingNavbar = () => {
                       {item.title}
                     </RouteButton>
                   )}
-                  {!item.footerOnly && item.children && (
+                  {item.type !== PAGETYPE.FOOTER_CATEGORY && item.children && (
                     <Menu>
                       <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
                         {item.title}

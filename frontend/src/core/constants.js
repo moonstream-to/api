@@ -33,6 +33,7 @@ export const PAGETYPE = {
   EMPTY: 0,
   CONTENT: 1,
   EXTERNAL: 2,
+  FOOTER_CATEGORY: 3,
 };
 
 export const SITEMAP = [
@@ -97,8 +98,7 @@ export const SITEMAP = [
   {
     title: "Legal",
     path: "/legal",
-    type: PAGETYPE.EMPTY,
-    footerOnly: true,
+    type: PAGETYPE.FOOTER_CATEGORY,
     children: [
       {
         title: "Privacy Policy",

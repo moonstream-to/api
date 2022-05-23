@@ -37,7 +37,12 @@ const _FeatureCard = ({
       >
         <GridItem order={1}>
           <VStack display="inline-grid">
-            <Heading as={heading || "h1"} {...HEADING_PROPS} pb={[3, 12, null]} pt={0}>
+            <Heading
+              as={heading || "h1"}
+              {...HEADING_PROPS}
+              pb={[3, 12, null]}
+              pt={0}
+            >
               {headingText}
             </Heading>
             <chakra.span

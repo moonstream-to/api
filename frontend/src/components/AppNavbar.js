@@ -39,6 +39,7 @@ import {
   USER_NAV_PATHES,
   SITEMAP,
   WHITE_LOGO_W_TEXT_URL,
+  PAGETYPE,
 } from "../core/constants";
 
 const AppNavbar = () => {
@@ -111,7 +112,10 @@ const AppNavbar = () => {
             <Flex placeSelf="flex-end">
               <ButtonGroup variant="link" spacing={4} colorScheme="orange">
                 {SITEMAP.map((item, idx) => {
-                  if (!item.children) {
+                  if (
+                    !item.children &&
+                    item.type !== PAGETYPE.FOOTER_CATEGORY
+                  ) {
                     return (
                       <RouteButton
                         key={`${idx}-${item.title}-landing-all-links`}
