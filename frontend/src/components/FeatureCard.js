@@ -38,7 +38,7 @@ const _FeatureCard = ({
         <GridItem order={1}>
           <VStack display="inline-grid">
             <Heading
-              as={heading || "h1"}
+              as={heading ?? "h2"}
               {...HEADING_PROPS}
               pb={[3, 12, null]}
               pt={0}

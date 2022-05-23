@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Container } from "@chakra-ui/react";
+import { Container, Heading } from "@chakra-ui/react";
 import RouteButton from "../../src/components/RouteButton";
 import { getLayout, getLayoutProps } from "../../src/layouts/WideInfoPage";
 import { AWS_ASSETS_PATH } from "../../src/core/constants";
@@ -24,6 +24,9 @@ const Features = () => {
       maxW="container.xl"
       px={["10%", "10%", "7%", "0"]}
     >
+      <Heading as="h1" hidden>
+        Moonstream feautes
+      </Heading>
       {!ui.isMobileView && (
         <RouteButton
           variant="orangeAndBlue"

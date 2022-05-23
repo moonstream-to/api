@@ -255,6 +255,7 @@ const Homepage = () => {
                           fontSize={["lg", "4xl", "5xl", "5xl", "5xl", "6xl"]}
                           fontWeight="semibold"
                           color="white"
+                          as="h1"
                         >
                           Build a Sustainable Game Economy in Only a Few Clicks
                         </Heading>
@@ -311,6 +312,7 @@ const Homepage = () => {
                   <Heading
                     fontSize={["lg", "4xl", "5xl", "5xl", "5xl", "6xl"]}
                     fontWeight="semibold"
+                    as="h2"
                   >
                     Major Milestones
                   </Heading>
@@ -375,6 +377,7 @@ const Homepage = () => {
                   textAlign="center"
                   pb={[3, 12, null]}
                   pt={0}
+                  as="h2"
                 >
                   Features
                 </Heading>
@@ -491,13 +494,19 @@ const Homepage = () => {
                 bgColor="white.100"
                 minH="100vh"
               >
-                <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
+                <Heading
+                  {...HEADING_PROPS}
+                  textAlign="center"
+                  pb={14}
+                  pt={0}
+                  as="h2"
+                >
                   Our Workflow
                 </Heading>
                 <HStack alignItems="top" py={5}>
                   <Flex height="100%" width="25%">
                     <Heading
-                      as="h2"
+                      as="h3"
                       fontSize={["lg", "3xl", "4xl", "4xl", "4xl", "5xl"]}
                       display="inline-block"
                       fontWeight="semibold"
@@ -518,7 +527,7 @@ const Homepage = () => {
                 <HStack alignItems="top" py={5}>
                   <Flex bgColor="grey.100" width="25%" height="100%">
                     <Heading
-                      as="h2"
+                      as="h3"
                       fontSize={["lg", "3xl", "4xl", "4xl", "4xl", "5xl"]}
                       display="inline-block"
                       fontWeight="semibold"
@@ -555,7 +564,7 @@ const Homepage = () => {
                 <HStack alignItems="top" py={5}>
                   <Flex bgColor="grey.100" width="25%" height="100%">
                     <Heading
-                      as="h2"
+                      as="h3"
                       fontSize={["lg", "3xl", "4xl", "4xl", "4xl", "5xl"]}
                       display="inline-block"
                       fontWeight="semibold"
@@ -586,6 +595,7 @@ const Homepage = () => {
                 bgColor="blue.900"
                 textColor="white"
                 minH="100vh"
+                as="h2"
               >
                 <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
                   Featured by{" "}
