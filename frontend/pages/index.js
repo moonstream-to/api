@@ -31,6 +31,7 @@ import RouteButton from "../src/components/RouteButton";
 import MilestoneBox from "../src/components/MilestoneBox";
 import AnalyticsContext from "../src/core/providers/AnalyticsProvider/context";
 import RouterLink from "next/link";
+import { ExternalLinkIcon } from "@chakra-ui/icons";
 
 const HEADING_PROPS = {
   fontWeight: "700",
@@ -532,9 +533,11 @@ const Homepage = () => {
                     >
                       <Link
                         href="/discordleed"
-                        display="inline"
-                        fontWeight="semibold"
-                        textDecoration="underline"
+                        // display="inline"
+                        // fontWeight="semibold"
+                        // textDecoration="underline"
+                        fontWeight={"600"}
+                        textColor="blue.700"
                         onClick={() => {
                           buttonReport(
                             "Join our Discord",
@@ -544,7 +547,8 @@ const Homepage = () => {
                         }}
                         isExternal
                       >
-                        Join our Discord
+                        Join our Discord{" "}
+                        <ExternalLinkIcon verticalAlign="text-top" />
                       </Link>{" "}
                       to get in touch with the team (@zomglings). Tell us about
                       your game and schedule a call if needed.
