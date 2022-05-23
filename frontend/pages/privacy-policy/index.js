@@ -197,9 +197,16 @@ PrivacyPolicy.getLayout = getLayout;
 
 export async function getStaticProps() {
   const layoutProps = getLayoutProps();
+  const metaTags = {
+    title: "Moonstream: privacy policy",
+    description: "Privacy policy and legal information",
+    keywords: "moonstream, privacy, policy, legal",
+    url: "https://www.moonstream.to/privacy-policy",
+  };
   layoutProps.props.metaTags = {
     ...layoutProps.props.metaTags,
     ...DEFAULT_METATAGS,
+    ...metaTags,
   };
   return { ...layoutProps };
 }

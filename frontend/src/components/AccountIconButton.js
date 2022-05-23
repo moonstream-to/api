@@ -14,7 +14,7 @@ import {
 import { RiAccountCircleLine } from "react-icons/ri";
 import useLogout from "../core/hooks/useLogout";
 import UIContext from "../core/providers/UIProvider/context";
-import { SITEMAP } from "../core/constants";
+import { PAGETYPE, SITEMAP } from "../core/constants";
 
 const AccountIconButton = (props) => {
   const { logout } = useLogout();
@@ -48,7 +48,7 @@ const AccountIconButton = (props) => {
           <MenuDivider />
           {ui.isMobileView &&
             SITEMAP.map((item, idx) => {
-              if (item.children) {
+              if (item.type !== PAGETYPE.FOOTER_CATEGORY && item.children) {
                 return (
                   <MenuGroup key={`AccountIconButton-MenuGroup-${idx}`}>
                     {item.children.map((child, idx) => {

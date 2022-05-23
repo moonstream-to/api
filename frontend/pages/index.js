@@ -1,4 +1,10 @@
-import React, { useState, Suspense, useEffect, useLayoutEffect } from "react";
+import React, {
+  useState,
+  Suspense,
+  useEffect,
+  useLayoutEffect,
+  useContext,
+} from "react";
 import {
   Fade,
   Flex,
@@ -23,9 +29,9 @@ import { AWS_ASSETS_PATH, DEFAULT_METATAGS } from "../src/core/constants";
 import TrustedBadge from "../src/components/TrustedBadge";
 import RouteButton from "../src/components/RouteButton";
 import MilestoneBox from "../src/components/MilestoneBox";
-import mixpanel from "mixpanel-browser";
-import { MIXPANEL_EVENTS } from "../src/core/providers/AnalyticsProvider/constants";
+import AnalyticsContext from "../src/core/providers/AnalyticsProvider/context";
 import RouterLink from "next/link";
+import { ExternalLinkIcon } from "@chakra-ui/icons";
 
 const HEADING_PROPS = {
   fontWeight: "700",
@@ -53,56 +59,6 @@ const assets = {
   meetup: `${AWS_ASSETS_PATH}/featured_by/meetup_logo.png`,
 };
 
-const Feature = ({
-  title,
-  altText,
-  path,
-  mixpanel_url,
-  mixpanel_name,
-  image,
-}) => {
-  return (
-    <RouterLink
-      href={path}
-      onClick={() => {
-        if (mixpanel.get_distinct_id()) {
-          mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-            full_url: mixpanel_url,
-            buttonName: mixpanel_name,
-            page: `landing`,
-            section: `features`,
-          });
-        }
-      }}
-    >
-      <Stack
-        transition={"1s"}
-        spacing={1}
-        px={1}
-        alignItems="center"
-        borderRadius="12px"
-        borderColor="blue.700"
-        bgColor={"blue.800"}
-        borderWidth={"1px"}
-        _hover={{ transform: "scale(1.05)", transition: "0.42s" }}
-        cursor="pointer"
-        m={[2, 3, null, 4, 8, 12]}
-        pb={2}
-      >
-        <ChakraImage
-          boxSize={["220px", "220px", "xs", null, "xs"]}
-          objectFit="contain"
-          src={image}
-          alt={altText}
-        />
-        <Heading textAlign="center" fontSize={["md", "md", "lg", "3xl", "4xl"]}>
-          {title}
-        </Heading>
-      </Stack>
-    </RouterLink>
-  );
-};
-
 const Homepage = () => {
   const [background, setBackground] = useState("background720");
   const [backgroundLoaded720, setBackgroundLoaded720] = useState(false);
@@ -123,6 +79,8 @@ const Homepage = () => {
     "(min-width: 2880px)",
     "(min-width: 3840px)",
   ]);
+
+  const { buttonReport } = useContext(AnalyticsContext);
 
   useEffect(() => {
     assets["background720"] = `${AWS_ASSETS_PATH}/background720.png`;
@@ -201,6 +159,42 @@ const Homepage = () => {
     };
   }, []);
 
+  const Feature = ({ title, altText, image, ...props }) => {
+    return (
+      <Box onClick={props.onClick}>
+        <RouterLink href={props.href}>
+          <Stack
+            transition={"1s"}
+            spacing={1}
+            px={1}
+            alignItems="center"
+            borderRadius="12px"
+            borderColor="blue.700"
+            bgColor={"blue.800"}
+            borderWidth={"1px"}
+            _hover={{ transform: "scale(1.05)", transition: "0.42s" }}
+            cursor="pointer"
+            m={[2, 3, null, 4, 8, 12]}
+            pb={2}
+          >
+            <ChakraImage
+              boxSize={["220px", "220px", "xs", null, "xs"]}
+              objectFit="contain"
+              src={image}
+              alt={altText}
+            />
+            <Heading
+              textAlign="center"
+              fontSize={["md", "md", "lg", "3xl", "4xl"]}
+            >
+              {title}
+            </Heading>
+          </Stack>
+        </RouterLink>
+      </Box>
+    );
+  };
+
   return (
     <Suspense fallback="">
       <Fade in>
@@ -261,8 +255,9 @@ const Homepage = () => {
                           fontSize={["lg", "4xl", "5xl", "5xl", "5xl", "6xl"]}
                           fontWeight="semibold"
                           color="white"
+                          as="h1"
                         >
-                          Build a Sustainable Game Economy in only a few clicks
+                          Build a Sustainable Game Economy in Only a Few Clicks
                         </Heading>
                         <chakra.span
                           pt={4}
@@ -289,17 +284,11 @@ const Homepage = () => {
                           ]}
                           fontSize={["lg", "xl", "2xl", "3xl", "4xl", "4xl"]}
                           onClick={() => {
-                            if (mixpanel.get_distinct_id()) {
-                              mixpanel.track(
-                                `${MIXPANEL_EVENTS.BUTTON_CLICKED}`,
-                                {
-                                  full_url: router.nextRouter.asPath,
-                                  buttonName: `Join our Discord`,
-                                  page: `landing`,
-                                  section: `front-and-center`,
-                                }
-                              );
-                            }
+                            buttonReport(
+                              "Join our Discord",
+                              "front-and-center",
+                              "landing"
+                            );
                           }}
                           href={"/discordleed"}
                           isExternal
@@ -323,6 +312,7 @@ const Homepage = () => {
                   <Heading
                     fontSize={["lg", "4xl", "5xl", "5xl", "5xl", "6xl"]}
                     fontWeight="semibold"
+                    as="h2"
                   >
                     Major Milestones
                   </Heading>
@@ -387,6 +377,7 @@ const Homepage = () => {
                   textAlign="center"
                   pb={[3, 12, null]}
                   pt={0}
+                  as="h2"
                 >
                   Features
                 </Heading>
@@ -431,17 +422,11 @@ const Homepage = () => {
                         fontSize={["lg", "xl", "2xl", "3xl", "4xl", "4xl"]}
                         px={[4, 4, 4, 8, 8]}
                         onClick={() => {
-                          if (mixpanel.get_distinct_id()) {
-                            mixpanel.track(
-                              `${MIXPANEL_EVENTS.BUTTON_CLICKED}`,
-                              {
-                                full_url: router.nextRouter.asPath,
-                                buttonName: `Explore the Use Cases`,
-                                page: `landing`,
-                                section: `Dive into Engine Features`,
-                              }
-                            );
-                          }
+                          buttonReport(
+                            "Explore the Use Cases",
+                            "Dive into Engine Features",
+                            "landing"
+                          );
                         }}
                         href="https://docs.google.com/document/d/1mjfF8SgRrAZvtCVVxB2qNSUcbbmrH6dTEYSMfHKdEgc/preview"
                         isExternal
@@ -463,33 +448,42 @@ const Homepage = () => {
                     title="Lootboxes"
                     altText="Lootboxes"
                     path="/features/#lootboxes"
-                    mixpanel_name="lootboxes"
-                    mixpanel_url={router.nextRouter.asPath}
                     image={assets["cryptoTraders"]}
+                    href="/features/#lootboxes"
+                    onClick={() => {
+                      console.log("Sending report to mixpanel");
+                      buttonReport("Lootboxes", "features", "landing");
+                    }}
                   />
                   <Feature
                     title="Crafting Recipes"
                     altText="Crafting Recipes"
                     path="/features/#crafting"
-                    mixpanel_name="crafting"
-                    mixpanel_url={router.nextRouter.asPath}
                     image={assets["NFT"]}
+                    href="/features/#crafting"
+                    onClick={() => {
+                      buttonReport("Crafting Recipes", "features", "landing");
+                    }}
                   />
                   <Feature
                     title="Minigames"
                     altText="Minigames"
                     path="/features/#minigames"
-                    mixpanel_name="minigames"
-                    mixpanel_url={router.nextRouter.asPath}
                     image={assets["DAO"]}
+                    href="/features/#minigames"
+                    onClick={() => {
+                      buttonReport("Minigames", "features", "landing");
+                    }}
                   />
                   <Feature
                     title="Airdrops"
                     altText="Airdrops"
                     path="/features/#airdrops"
-                    mixpanel_name="airdrops"
-                    mixpanel_url={router.nextRouter.asPath}
                     image={assets["lender"]}
+                    href="/features/#airdrops"
+                    onClick={() => {
+                      buttonReport("Airdrops", "features", "landing");
+                    }}
                   />
                 </SimpleGrid>
               </GridItem>
@@ -500,13 +494,19 @@ const Homepage = () => {
                 bgColor="white.100"
                 minH="100vh"
               >
-                <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
+                <Heading
+                  {...HEADING_PROPS}
+                  textAlign="center"
+                  pb={14}
+                  pt={0}
+                  as="h2"
+                >
                   Our Workflow
                 </Heading>
                 <HStack alignItems="top" py={5}>
                   <Flex height="100%" width="25%">
                     <Heading
-                      as="h2"
+                      as="h3"
                       fontSize={["lg", "3xl", "4xl", "4xl", "4xl", "5xl"]}
                       display="inline-block"
                       fontWeight="semibold"
@@ -527,7 +527,7 @@ const Homepage = () => {
                 <HStack alignItems="top" py={5}>
                   <Flex bgColor="grey.100" width="25%" height="100%">
                     <Heading
-                      as="h2"
+                      as="h3"
                       fontSize={["lg", "3xl", "4xl", "4xl", "4xl", "5xl"]}
                       display="inline-block"
                       fontWeight="semibold"
@@ -540,27 +540,21 @@ const Homepage = () => {
                       fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
                       display="inline-block"
                     >
-                      <Link href="/discordleed" isExternal>
-                        <Text
-                          as="u"
-                          display="inline"
-                          fontWeight="semibold"
-                          onClick={() => {
-                            if (mixpanel.get_distinct_id()) {
-                              mixpanel.track(
-                                `${MIXPANEL_EVENTS.BUTTON_CLICKED}`,
-                                {
-                                  full_url: router.nextRouter.asPath,
-                                  buttonName: `Join our Discord`,
-                                  page: `landing`,
-                                  section: `inline-text`,
-                                }
-                              );
-                            }
-                          }}
-                        >
-                          Join our Discord
-                        </Text>
+                      <Link
+                        href="/discordleed"
+                        fontWeight={"600"}
+                        textColor="blue.700"
+                        onClick={() => {
+                          buttonReport(
+                            "Join our Discord",
+                            "inline-text",
+                            "landing"
+                          );
+                        }}
+                        isExternal
+                      >
+                        Join our Discord{" "}
+                        <ExternalLinkIcon verticalAlign="text-top" />
                       </Link>{" "}
                       to get in touch with the team (@zomglings). Tell us about
                       your game and schedule a call if needed.
@@ -570,7 +564,7 @@ const Homepage = () => {
                 <HStack alignItems="top" py={5}>
                   <Flex bgColor="grey.100" width="25%" height="100%">
                     <Heading
-                      as="h2"
+                      as="h3"
                       fontSize={["lg", "3xl", "4xl", "4xl", "4xl", "5xl"]}
                       display="inline-block"
                       fontWeight="semibold"
@@ -601,6 +595,7 @@ const Homepage = () => {
                 bgColor="blue.900"
                 textColor="white"
                 minH="100vh"
+                as="h2"
               >
                 <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
                   Featured by{" "}
@@ -663,7 +658,7 @@ const Homepage = () => {
                 py={["98px", "128px", null]}
                 colSpan="12"
                 bgColor="white"
-                minH="100vh"
+                minH="50vh"
               >
                 <Flex
                   w="100%"
@@ -675,9 +670,9 @@ const Homepage = () => {
                   <chakra.span
                     display="block"
                     my={12}
-                    fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
-                    textAlign={["justify", "left", null]}
-                    mr={[0, 12, 14]}
+                    fontSize={["md", "xl", "3xl", "3xl", "4xl", "5xl"]}
+                    textAlign={["justify", "justify", "left", null]}
+                    mr={[0, 0, 14]}
                     letterSpacing="tight"
                   >
                     {`Contact us on Discord to discuss your project and keep up with the latest updates on Moonstream Engine.`}
@@ -693,17 +688,10 @@ const Homepage = () => {
                       "350px",
                       "400px",
                     ]}
-                    fontSize={["lg", "xl", "2xl", "3xl", "4xl", "4xl"]}
-                    onClick={() => {
-                      if (mixpanel.get_distinct_id()) {
-                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          full_url: router.nextRouter.asPath,
-                          buttonName: `Join our Discord`,
-                          page: `landing`,
-                          section: `bottom-line`,
-                        });
-                      }
-                    }}
+                    fontSize={["md", "xl", "3xl", "3xl", "4xl", "5xl"]}
+                    onClick={() =>
+                      buttonReport("Join our Discord", "page-bottom", "landing")
+                    }
                     href={"/discordleed"}
                     isExternal
                   >

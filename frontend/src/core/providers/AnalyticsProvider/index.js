@@ -199,9 +199,31 @@ const AnalyticsProvider = ({ children }) => {
     }
   }, [user, isInit, isMixpanelReady]);
 
+  const buttonReport = React.useCallback(
+    (name, section, pageName) => {
+      pageName = pageName || router.nextRouter.pathname.slice(1);
+      console.log(`Reporting on name ${name} and section ${section}`);
+      if (mixpanel?.get_distinct_id()) {
+        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
+          full_url: router.nextRouter.asPath,
+          buttonName: name,
+          page: pageName,
+          section: section,
+        });
+      }
+    },
+    [router.nextRouter.asPath, router.nextRouter.pathname]
+  );
+
   return (
     <AnalyticsContext.Provider
-      value={{ mixpanel, isMixpanelReady, MIXPANEL_EVENTS, MIXPANEL_PROPS }}
+      value={{
+        mixpanel,
+        buttonReport,
+        isMixpanelReady,
+        MIXPANEL_EVENTS,
+        MIXPANEL_PROPS,
+      }}
     >
       {children}
     </AnalyticsContext.Provider>

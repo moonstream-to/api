@@ -122,42 +122,9 @@ const Footer = () => (
                   );
                 })}
               </>
-              {/* {SITEMAP.filter(
-                (navPath) => navPath.SiteMapCategory === columnEnum
-              ).length > 0 && (
-                <>
-                  <ListHeader>{columnEnum}</ListHeader>
-                  {ALL_NAV_PATHES.filter(
-                    (navPath) => navPath.SiteMapCategory === columnEnum
-                  ).map((linkItem, linkItemIndex) => {
-                    return (
-                      <RouterLink
-                        passHref
-                        href={linkItem.path}
-                        key={`footer-list-link-item-${linkItemIndex}-col-${colIndex}`}
-                      >
-                        <Link {...LINKS_SIZES}>{linkItem.title}</Link>
-                      </RouterLink>
-                    );
-                  })}
-                </>
-              )} */}
             </Stack>
           );
         })}
-        <Stack align={"flex-start"}>
-          <ListHeader>Legal</ListHeader>
-          <RouterLink
-            passHref
-            href="/privacy-policy"
-            key={`footer-list-link-item-privacy`}
-          >
-            <Link {...LINKS_SIZES}>Privacy Policy</Link>
-          </RouterLink>
-          <RouterLink passHref href="/tos" key={`footer-list-link-item-tos`}>
-            <Link {...LINKS_SIZES}>Terms of Service</Link>
-          </RouterLink>
-        </Stack>
       </SimpleGrid>
     </Container>
   </Box>

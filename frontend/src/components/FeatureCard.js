@@ -8,7 +8,6 @@ import {
   Grid,
   GridItem,
   Center,
-  Text,
   Link,
 } from "@chakra-ui/react";
 
@@ -17,9 +16,17 @@ const HEADING_PROPS = {
   fontSize: ["4xl", "5xl", "5xl", "5xl", "6xl", "7xl"],
 };
 
-const _FeatureCard = (props) => {
+const _FeatureCard = ({
+  headingText,
+  cardOrder,
+  isMobile,
+  onClick,
+  image,
+  heading,
+  ...props
+}) => {
   return (
-    <Flex id={props.id} colSpan="12" pt={12}>
+    <Flex colSpan="12" pt={12} {...props}>
       <Grid
         templateColumns={{
           base: "repeat(1, 1fr)",
@@ -30,8 +37,13 @@ const _FeatureCard = (props) => {
       >
         <GridItem order={1}>
           <VStack display="inline-grid">
-            <Heading {...HEADING_PROPS} pb={[3, 12, null]} pt={0}>
-              {props.headingText}
+            <Heading
+              as={heading ?? "h2"}
+              {...HEADING_PROPS}
+              pb={[3, 12, null]}
+              pt={0}
+            >
+              {headingText}
             </Heading>
             <chakra.span
               fontSize={["md", "md", "lg", "lg", "lg", "xl"]}
@@ -43,28 +55,27 @@ const _FeatureCard = (props) => {
           </VStack>
         </GridItem>
         <GridItem
-          order={[2, 2, 2 * props.cardOrder]}
+          order={[2, 2, 2 * cardOrder]}
           justifyContent="right"
           alignContent="center"
           h="auto"
         >
           <Center flexDirection="column">
-            {props.isMobile && (
-              <Link href="/discordleed" isExternal>
-                <Text
-                  as="u"
-                  display="inline"
-                  fontWeight="semibold"
-                  onClick={props.clickEvent}
-                >
-                  Learn More
-                </Text>
+            {isMobile && (
+              <Link
+                href="/discordleed"
+                fontWeight="semibold"
+                textDecoration="underline"
+                onClick={onClick}
+                isExternal
+              >
+                Learn More
               </Link>
             )}
             <ChakraImage
               boxSize={["220px", "md", "md", null, "lg"]}
               objectFit="contain"
-              src={props.image}
+              src={image}
             />
           </Center>
         </GridItem>

@@ -25,7 +25,7 @@ import {
   LockIcon,
 } from "@chakra-ui/icons";
 import { MdSettings, MdDashboard, MdTimeline } from "react-icons/md";
-import { WHITE_LOGO_W_TEXT_URL, SITEMAP } from "../core/constants";
+import { WHITE_LOGO_W_TEXT_URL, SITEMAP, PAGETYPE } from "../core/constants";
 import useDashboard from "../core/hooks/useDashboard";
 import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 import OverlayContext from "../core/providers/OverlayProvider/context";
@@ -103,7 +103,7 @@ const Sidebar = () => {
               </MenuItem>
               {ui.isMobileView &&
                 SITEMAP.map((item, idx) => {
-                  if (item.children) {
+                  if (item.type !== PAGETYPE.FOOTER_CATEGORY && item.children) {
                     return (
                       <React.Fragment key={`Fragment-${idx}`}>
                         {item.children.map((child, idx) => {
