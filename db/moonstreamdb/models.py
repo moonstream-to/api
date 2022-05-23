@@ -273,6 +273,7 @@ class PolygonLabel(Base):  # type: ignore
 class XDaiBlock(Base):  # type: ignore
     __tablename__ = "xdai_blocks"
 
+    author = Column(VARCHAR(128))
     block_number = Column(
         BigInteger, primary_key=True, unique=True, nullable=False, index=True
     )
@@ -284,12 +285,14 @@ class XDaiBlock(Base):  # type: ignore
     hash = Column(VARCHAR(256), index=True)
     logs_bloom = Column(VARCHAR(1024))
     miner = Column(VARCHAR(256))
-    nonce = Column(VARCHAR(256))
+    nonce = Column(VARCHAR(256), nullable=True)
     parent_hash = Column(VARCHAR(256))
     receipt_root = Column(VARCHAR(256))
     uncles = Column(VARCHAR(256))
+    signature = Column(VARCHAR(256))
     size = Column(Integer)
     state_root = Column(VARCHAR(256))
+    step = Column(BigInteger)
     timestamp = Column(BigInteger, index=True)
     total_difficulty = Column(VARCHAR(256))
     transactions_root = Column(VARCHAR(256))
@@ -310,6 +313,7 @@ class XDaiTransaction(Base):  # type: ignore
         nullable=False,
         index=True,
     )
+    data = Column(Text)
     from_address = Column(VARCHAR(256), index=True)
     to_address = Column(VARCHAR(256), index=True)
     gas = Column(Numeric(precision=78, scale=0), index=True)
