@@ -21,11 +21,12 @@ export const DEFAULT_METATAGS = {
 //   PRODUCT: "Product",
 // };
 
-export const SIITEMAP_CATEGORIES = {
+export const SITEMAP_CATEGORIES = {
   SOLUTIONS: "Solutions",
   DEVELOPERS: "Developers",
   RESOURCES: "Resources",
   ABOUT: "About",
+  LEGAL: "Legal",
 };
 
 export const PAGETYPE = {
@@ -88,6 +89,24 @@ export const SITEMAP = [
       },
     ],
   },
+  {
+    title: "Legal",
+    path: "/legal",
+    type: PAGETYPE.EMPTY,
+    footerOnly: true,
+    children: [
+      {
+        title: "Privacy Policy",
+        path: "/privacy-policy",
+        type: PAGETYPE.CONTENT,
+      },
+      {
+        title: "Terms of Service",
+        path: "/tos",
+        type: PAGETYPE.CONTENT,
+      }
+    ]
+  }
 ];
 
 export const USER_NAV_PATHES = [

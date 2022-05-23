@@ -103,7 +103,7 @@ const Sidebar = () => {
               </MenuItem>
               {ui.isMobileView &&
                 SITEMAP.map((item, idx) => {
-                  if (item.children) {
+                  if (!item.footerOnly && item.children) {
                     return (
                       <React.Fragment key={`Fragment-${idx}`}>
                         {item.children.map((child, idx) => {

@@ -78,7 +78,7 @@ const LandingNavbar = () => {
                       {item.title}
                     </RouteButton>
                   )}
-                  {item.children && (
+                  {!item.footerOnly && item.children && (
                     <Menu>
                       <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
                         {item.title}

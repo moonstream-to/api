@@ -123,7 +123,7 @@ const AppNavbar = () => {
                         {item.title}
                       </RouteButton>
                     );
-                  } else {
+                  } else if (!item.footerOnly) {
                     return (
                       <Menu key={`menu-${idx}`}>
                         <MenuButton

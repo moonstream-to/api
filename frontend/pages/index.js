@@ -530,22 +530,21 @@ const Homepage = () => {
                       fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
                       display="inline-block"
                     >
-                      <Link href="/discordleed" isExternal>
-                        <Text
-                          as="u"
-                          display="inline"
-                          fontWeight="semibold"
-                          onClick={() => {
-                            console.log("sending report to mixpanel");
-                            buttonReport(
-                              "Join our Discord",
-                              "inline-text",
-                              "landing"
-                            );
-                          }}
-                        >
-                          Join our Discord
-                        </Text>
+                      <Link
+                        href="/discordleed"
+                        display="inline"
+                        fontWeight="semibold"
+                        textDecoration="underline"
+                        onClick={() => {
+                          buttonReport(
+                            "Join our Discord",
+                            "inline-text",
+                            "landing"
+                          );
+                        }}
+                        isExternal
+                      >
+                        Join our Discord
                       </Link>{" "}
                       to get in touch with the team (@zomglings). Tell us about
                       your game and schedule a call if needed.

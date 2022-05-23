@@ -44,7 +44,7 @@ const Features = () => {
         image={assets["lender"]}
         cardOrder={1}
         isMobile={ui.isMobileView}
-        clickEvent={() => buttonReport("Learn More", "airdrops")}
+        onClick={() => buttonReport("Learn More", "airdrops")}
       >
         <>
           Use Moonstream to distribute ERC20 tokens, NFTs, items, or
@@ -69,7 +69,7 @@ const Features = () => {
         image={assets["DAO"]}
         cardOrder={-1}
         isMobile={ui.isMobileView}
-        clickEvent={() => buttonReport("Learn More", "minigames")}
+        onClick={() => buttonReport("Learn More", "minigames")}
       >
         <>
           Use Moonstream to deploy on-chain minigames into your project. Our
@@ -88,7 +88,7 @@ const Features = () => {
         image={assets["cryptoTraders"]}
         cardOrder={1}
         isMobile={ui.isMobileView}
-        clickEvent={() => buttonReport("Learn More", "lootboxes")}
+        onClick={() => buttonReport("Learn More", "lootboxes")}
       >
         <>
           Use Moonstream Lootboxes to reward your players on-chain for
@@ -107,7 +107,7 @@ const Features = () => {
         image={assets["NFT"]}
         cardOrder={-1}
         isMobile={ui.isMobileView}
-        clickEvent={() => buttonReport("Learn More", "crafting")}
+        onClick={() => buttonReport("Learn More", "crafting")}
       >
         <>
           Use Moonstream to set up a fully on-chain crafting system and give

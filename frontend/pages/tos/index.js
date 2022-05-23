@@ -607,9 +607,16 @@ TermsOfService.getLayout = getLayout;
 
 export async function getStaticProps() {
   const layoutProps = getLayoutProps();
+  const metaTags = {
+    title: "Moonstream: terms of service",
+    description: "Terms of service and legal information",
+    keywords: "moonstream, terms of service, legal",
+    url: "https://www.moonstream.to/tos",
+  };
   layoutProps.props.metaTags = {
     ...layoutProps.props.metaTags,
     ...DEFAULT_METATAGS,
+    ...metaTags,
   };
   return { ...layoutProps };
 }

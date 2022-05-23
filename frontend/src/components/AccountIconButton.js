@@ -48,7 +48,7 @@ const AccountIconButton = (props) => {
           <MenuDivider />
           {ui.isMobileView &&
             SITEMAP.map((item, idx) => {
-              if (item.children) {
+              if (!item.footerOnly && item.children) {
                 return (
                   <MenuGroup key={`AccountIconButton-MenuGroup-${idx}`}>
                     {item.children.map((child, idx) => {
