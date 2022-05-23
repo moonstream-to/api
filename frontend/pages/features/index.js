@@ -1,12 +1,9 @@
 import React, { useContext } from "react";
 import { Container } from "@chakra-ui/react";
 import RouteButton from "../../src/components/RouteButton";
-import mixpanel from "mixpanel-browser";
 import { getLayout, getLayoutProps } from "../../src/layouts/WideInfoPage";
 import { AWS_ASSETS_PATH } from "../../src/core/constants";
-import { MIXPANEL_EVENTS } from "../../src/core/providers/AnalyticsProvider/constants";
 import FeatureCard from "../../src/components/FeatureCard";
-import useRouter from "../../src/core/hooks/useRouter";
 import UIContext from "../../src/core/providers/UIProvider/context";
 import AnalyticsContext from "../../src/core/providers/AnalyticsProvider/context";
 
@@ -22,7 +19,11 @@ const Features = () => {
   const { buttonReport } = useContext(AnalyticsContext);
 
   return (
-    <Container id="container" maxW="container.xl">
+    <Container
+      id="container"
+      maxW="container.xl"
+      px={["10%", "10%", "7%", "0"]}
+    >
       {!ui.isMobileView && (
         <RouteButton
           variant="orangeAndBlue"

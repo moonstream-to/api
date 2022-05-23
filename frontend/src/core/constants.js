@@ -42,6 +42,11 @@ export const SITEMAP = [
     type: PAGETYPE.EMPTY,
     children: [
       {
+        title: "Features",
+        path: "/features",
+        type: PAGETYPE.CONTENT,
+      },
+      {
         title: "Case studies",
         path: "https://docs.google.com/document/d/1mjfF8SgRrAZvtCVVxB2qNSUcbbmrH6dTEYSMfHKdEgc",
         type: PAGETYPE.EXTERNAL,
@@ -104,9 +109,9 @@ export const SITEMAP = [
         title: "Terms of Service",
         path: "/tos",
         type: PAGETYPE.CONTENT,
-      }
-    ]
-  }
+      },
+    ],
+  },
 ];
 
 export const USER_NAV_PATHES = [

@@ -647,7 +647,7 @@ const Homepage = () => {
                 py={["98px", "128px", null]}
                 colSpan="12"
                 bgColor="white"
-                minH="100vh"
+                minH="50vh"
               >
                 <Flex
                   w="100%"
@@ -659,9 +659,9 @@ const Homepage = () => {
                   <chakra.span
                     display="block"
                     my={12}
-                    fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
-                    textAlign={["justify", "left", null]}
-                    mr={[0, 12, 14]}
+                    fontSize={["md", "xl", "3xl", "3xl", "4xl", "5xl"]}
+                    textAlign={["justify", "justify", "left", null]}
+                    mr={[0, 0, 14]}
                     letterSpacing="tight"
                   >
                     {`Contact us on Discord to discuss your project and keep up with the latest updates on Moonstream Engine.`}
@@ -677,7 +677,7 @@ const Homepage = () => {
                       "350px",
                       "400px",
                     ]}
-                    fontSize={["lg", "xl", "2xl", "3xl", "4xl", "4xl"]}
+                    fontSize={["md", "xl", "3xl", "3xl", "4xl", "5xl"]}
                     onClick={() =>
                       buttonReport("Join our Discord", "page-bottom", "landing")
                     }
