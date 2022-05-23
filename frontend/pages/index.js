@@ -533,9 +533,6 @@ const Homepage = () => {
                     >
                       <Link
                         href="/discordleed"
-                        // display="inline"
-                        // fontWeight="semibold"
-                        // textDecoration="underline"
                         fontWeight={"600"}
                         textColor="blue.700"
                         onClick={() => {
