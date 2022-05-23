@@ -1,8 +1,8 @@
 """xdai model
 
-Revision ID: e06d43f8f032
+Revision ID: 2fa541f6f6fc
 Revises: 5f5b8f19570f
-Create Date: 2022-05-23 13:29:06.753274
+Create Date: 2022-05-23 13:52:57.937566
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = 'e06d43f8f032'
+revision = '2fa541f6f6fc'
 down_revision = '5f5b8f19570f'
 branch_labels = None
 depends_on = None
@@ -21,7 +21,7 @@ def upgrade():
     op.create_table('xdai_blocks',
     sa.Column('author', sa.VARCHAR(length=128), nullable=True),
     sa.Column('block_number', sa.BigInteger(), nullable=False),
-    sa.Column('difficulty', sa.BigInteger(), nullable=True),
+    sa.Column('difficulty', sa.VARCHAR(length=128), nullable=True),
     sa.Column('extra_data', sa.VARCHAR(length=128), nullable=True),
     sa.Column('gas_limit', sa.BigInteger(), nullable=True),
     sa.Column('gas_used', sa.BigInteger(), nullable=True),

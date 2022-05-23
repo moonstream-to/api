@@ -277,7 +277,7 @@ class XDaiBlock(Base):  # type: ignore
     block_number = Column(
         BigInteger, primary_key=True, unique=True, nullable=False, index=True
     )
-    difficulty = Column(BigInteger)
+    difficulty = Column(VARCHAR(128))
     extra_data = Column(VARCHAR(128))
     gas_limit = Column(BigInteger)
     gas_used = Column(BigInteger)
