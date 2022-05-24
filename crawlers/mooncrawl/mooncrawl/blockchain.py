@@ -11,6 +11,9 @@ from moonstreamdb.models import (
     PolygonBlock,
     PolygonLabel,
     PolygonTransaction,
+    XDaiBlock,
+    XDaiLabel,
+    XDaiTransaction,
 )
 from psycopg2.errors import UniqueViolation  # type: ignore
 from sqlalchemy import Column, desc, func
@@ -28,6 +31,7 @@ from .settings import (
     MOONSTREAM_CRAWL_WORKERS,
     MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI,
     MOONSTREAM_POLYGON_WEB3_PROVIDER_URI,
+    MOONSTREAM_XDAI_WEB3_PROVIDER_URI,
 )
 
 logger = logging.getLogger(__name__)
@@ -62,6 +66,8 @@ def connect(
             web3_uri = MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.POLYGON:
             web3_uri = MOONSTREAM_POLYGON_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.XDAI:
+            web3_uri = MOONSTREAM_XDAI_WEB3_PROVIDER_URI
         else:
             raise Exception("Wrong blockchain type provided for web3 URI")
 
@@ -91,6 +97,8 @@ def get_block_model(
         block_model = EthereumBlock
     elif blockchain_type == AvailableBlockchainType.POLYGON:
         block_model = PolygonBlock
+    elif blockchain_type == AvailableBlockchainType.XDAI:
+        block_model = XDaiBlock
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -109,6 +117,8 @@ def get_label_model(
         label_model = EthereumLabel
     elif blockchain_type == AvailableBlockchainType.POLYGON:
         label_model = PolygonLabel
+    elif blockchain_type == AvailableBlockchainType.XDAI:
+        label_model = XDaiLabel
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -127,6 +137,8 @@ def get_transaction_model(
         transaction_model = EthereumTransaction
     elif blockchain_type == AvailableBlockchainType.POLYGON:
         transaction_model = PolygonTransaction
+    elif blockchain_type == AvailableBlockchainType.XDAI:
+        transaction_model = XDaiTransaction
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -138,27 +150,27 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
     Add block if doesn't presented in database.
 
     block: web3.types.BlockData
+
+    - BlockData.extraData - doesn't exist at Polygon mainnet
+    - Nonce - doesn't exist at XDai blockchain
     """
     block_model = get_block_model(blockchain_type)
-
-    # BlockData.extraData doesn't exist at Polygon mainnet
-    extra_data = None
-    if block.get("extraData", None) is not None:
-        extra_data = block.get("extraData").hex()
 
     block_obj = block_model(
         block_number=block.number,
         difficulty=block.difficulty,
-        extra_data=extra_data,
+        extra_data=None
+        if block.get("extraData", None) is None
+        else block.get("extraData").hex(),
         gas_limit=block.gasLimit,
         gas_used=block.gasUsed,
         base_fee_per_gas=block.get("baseFeePerGas", None),
         hash=block.hash.hex(),
         logs_bloom=block.logsBloom.hex(),
         miner=block.miner,
-        nonce=block.nonce.hex(),
+        nonce=None if block.get("nonce", None) is None else block.get("nonce").hex(),
         parent_hash=block.parentHash.hex(),
-        receipt_root=block.get("receiptRoot", ""),
+        receipt_root=block.get("receiptsRoot", ""),
         uncles=block.sha3Uncles.hex(),
         size=block.size,
         state_root=block.stateRoot.hex(),
@@ -166,6 +178,11 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
         total_difficulty=block.totalDifficulty,
         transactions_root=block.transactionsRoot.hex(),
     )
+    if blockchain_type == AvailableBlockchainType.XDAI:
+        block_obj.author = block.author
+        block_obj.signature = block.signature
+        block_obj.step = block.step
+
     db_session.add(block_obj)
 
 
@@ -194,6 +211,9 @@ def add_block_transactions(
             transaction_type=int(tx["type"], 0) if tx["type"] is not None else None,
             value=tx.value,
         )
+        if blockchain_type == AvailableBlockchainType.XDAI:
+            tx_obj.data = tx.data
+
         db_session.add(tx_obj)
 
 
