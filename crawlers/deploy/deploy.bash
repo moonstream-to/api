@@ -50,6 +50,8 @@ POLYGON_MOONWORM_CRAWLER_SERVICE_FILE="polygon-moonworm-crawler.service"
 XDAI_SYNCHRONIZE_SERVICE="xdai-synchronize.service"
 XDAI_MISSING_SERVICE_FILE="xdai-missing.service"
 XDAI_MISSING_TIMER_FILE="xdai-missing.timer"
+XDAI_STATISTICS_SERVICE_FILE="xdai-statistics.service"
+XDAI_STATISTICS_TIMER_FILE="xdai-statistics.timer"
 
 set -eu
 
@@ -98,7 +100,7 @@ echo -e "${PREFIX_INFO} Replacing existing Moonstream crawlers HTTP API server s
 chmod 644 "${SCRIPT_DIR}/${MOONCRAWL_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${MOONCRAWL_SERVICE_FILE}" "/etc/systemd/system/${MOONCRAWL_SERVICE_FILE}"
 systemctl daemon-reload
-systemctl restart "${MOONCRAWL_SERVICE_FILE}"
+systemctl restart --no-block "${MOONCRAWL_SERVICE_FILE}"
 
 echo
 echo
@@ -106,7 +108,7 @@ echo -e "${PREFIX_INFO} Replacing existing Ethereum block with transactions sync
 chmod 644 "${SCRIPT_DIR}/${ETHEREUM_SYNCHRONIZE_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${ETHEREUM_SYNCHRONIZE_SERVICE_FILE}" "/etc/systemd/system/${ETHEREUM_SYNCHRONIZE_SERVICE_FILE}"
 systemctl daemon-reload
-systemctl restart "${ETHEREUM_SYNCHRONIZE_SERVICE_FILE}"
+systemctl restart --no-block "${ETHEREUM_SYNCHRONIZE_SERVICE_FILE}"
 
 echo
 echo
@@ -115,7 +117,7 @@ chmod 644 "${SCRIPT_DIR}/${ETHEREUM_TRENDING_SERVICE_FILE}" "${SCRIPT_DIR}/${ETH
 cp "${SCRIPT_DIR}/${ETHEREUM_TRENDING_SERVICE_FILE}" "/etc/systemd/system/${ETHEREUM_TRENDING_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${ETHEREUM_TRENDING_TIMER_FILE}" "/etc/systemd/system/${ETHEREUM_TRENDING_TIMER_FILE}"
 systemctl daemon-reload
-systemctl restart "${ETHEREUM_TRENDING_TIMER_FILE}"
+systemctl restart --no-block "${ETHEREUM_TRENDING_TIMER_FILE}"
 
 # echo
 # echo
@@ -132,7 +134,7 @@ chmod 644 "${SCRIPT_DIR}/${ETHEREUM_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${ETHE
 cp "${SCRIPT_DIR}/${ETHEREUM_MISSING_SERVICE_FILE}" "/etc/systemd/system/${ETHEREUM_MISSING_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${ETHEREUM_MISSING_TIMER_FILE}" "/etc/systemd/system/${ETHEREUM_MISSING_TIMER_FILE}"
 systemctl daemon-reload
-systemctl restart "${ETHEREUM_MISSING_TIMER_FILE}"
+systemctl restart --no-block "${ETHEREUM_MISSING_TIMER_FILE}"
 
 echo
 echo
@@ -140,7 +142,7 @@ echo -e "${PREFIX_INFO} Replacing existing Polygon block with transactions syncr
 chmod 644 "${SCRIPT_DIR}/${POLYGON_SYNCHRONIZE_SERVICE}"
 cp "${SCRIPT_DIR}/${POLYGON_SYNCHRONIZE_SERVICE}" "/etc/systemd/system/${POLYGON_SYNCHRONIZE_SERVICE}"
 systemctl daemon-reload
-systemctl restart "${POLYGON_SYNCHRONIZE_SERVICE}"
+systemctl restart --no-block "${POLYGON_SYNCHRONIZE_SERVICE}"
 
 echo
 echo
@@ -149,7 +151,7 @@ chmod 644 "${SCRIPT_DIR}/${POLYGON_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${POLYG
 cp "${SCRIPT_DIR}/${POLYGON_MISSING_SERVICE_FILE}" "/etc/systemd/system/${POLYGON_MISSING_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${POLYGON_MISSING_TIMER_FILE}" "/etc/systemd/system/${POLYGON_MISSING_TIMER_FILE}"
 systemctl daemon-reload
-systemctl restart "${POLYGON_MISSING_TIMER_FILE}"
+systemctl restart --no-block "${POLYGON_MISSING_TIMER_FILE}"
 
 echo
 echo
@@ -166,7 +168,7 @@ systemctl restart --no-block "${POLYGON_STATISTICS_TIMER_FILE}"
 # chmod 644 "${SCRIPT_DIR}/${POLYGON_TXPOOL_SERVICE_FILE}"
 # cp "${SCRIPT_DIR}/${POLYGON_TXPOOL_SERVICE_FILE}" "/etc/systemd/system/${POLYGON_TXPOOL_SERVICE_FILE}"
 # systemctl daemon-reload
-# systemctl restart "${POLYGON_TXPOOL_SERVICE_FILE}"
+# systemctl restart --no-block "${POLYGON_TXPOOL_SERVICE_FILE}"
 
 echo
 echo
@@ -174,7 +176,7 @@ echo -e "${PREFIX_INFO} Replacing existing Polygon moonworm crawler service defi
 chmod 644 "${SCRIPT_DIR}/${POLYGON_MOONWORM_CRAWLER_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${POLYGON_MOONWORM_CRAWLER_SERVICE_FILE}" "/etc/systemd/system/${POLYGON_MOONWORM_CRAWLER_SERVICE_FILE}"
 systemctl daemon-reload
-systemctl restart "${POLYGON_MOONWORM_CRAWLER_SERVICE_FILE}"
+systemctl restart --no-block "${POLYGON_MOONWORM_CRAWLER_SERVICE_FILE}"
 
 echo
 echo
@@ -182,7 +184,7 @@ echo -e "${PREFIX_INFO} Replacing existing XDai block with transactions syncroni
 chmod 644 "${SCRIPT_DIR}/${XDAI_SYNCHRONIZE_SERVICE}"
 cp "${SCRIPT_DIR}/${XDAI_SYNCHRONIZE_SERVICE}" "/etc/systemd/system/${XDAI_SYNCHRONIZE_SERVICE}"
 systemctl daemon-reload
-systemctl restart "${XDAI_SYNCHRONIZE_SERVICE}"
+systemctl restart --no-block "${XDAI_SYNCHRONIZE_SERVICE}"
 
 echo
 echo
@@ -191,4 +193,13 @@ chmod 644 "${SCRIPT_DIR}/${XDAI_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${XDAI_MIS
 cp "${SCRIPT_DIR}/${XDAI_MISSING_SERVICE_FILE}" "/etc/systemd/system/${XDAI_MISSING_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${XDAI_MISSING_TIMER_FILE}" "/etc/systemd/system/${XDAI_MISSING_TIMER_FILE}"
 systemctl daemon-reload
-systemctl restart "${XDAI_MISSING_TIMER_FILE}"
+systemctl restart --no-block "${XDAI_MISSING_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing XDai statistics dashbord service and timer with: ${XDAI_STATISTICS_SERVICE_FILE}, ${XDAI_STATISTICS_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${XDAI_STATISTICS_SERVICE_FILE}" "${SCRIPT_DIR}/${XDAI_STATISTICS_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${XDAI_STATISTICS_SERVICE_FILE}" "/etc/systemd/system/${XDAI_STATISTICS_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${XDAI_STATISTICS_TIMER_FILE}" "/etc/systemd/system/${XDAI_STATISTICS_TIMER_FILE}"
+systemctl daemon-reload
+systemctl restart --no-block "${XDAI_STATISTICS_TIMER_FILE}"
