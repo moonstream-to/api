@@ -1,4 +1,10 @@
-import React, { useState, Suspense, useEffect, useLayoutEffect } from "react";
+import React, {
+  useState,
+  Suspense,
+  useEffect,
+  useLayoutEffect,
+  useContext,
+} from "react";
 import {
   Fade,
   Flex,
@@ -23,8 +29,9 @@ import { AWS_ASSETS_PATH, DEFAULT_METATAGS } from "../src/core/constants";
 import TrustedBadge from "../src/components/TrustedBadge";
 import RouteButton from "../src/components/RouteButton";
 import MilestoneBox from "../src/components/MilestoneBox";
-import mixpanel from "mixpanel-browser";
-import { MIXPANEL_EVENTS } from "../src/core/providers/AnalyticsProvider/constants";
+import AnalyticsContext from "../src/core/providers/AnalyticsProvider/context";
+import RouterLink from "next/link";
+import { ExternalLinkIcon } from "@chakra-ui/icons";
 
 const HEADING_PROPS = {
   fontWeight: "700",
@@ -38,7 +45,6 @@ const assets = {
   background3840: `${AWS_ASSETS_PATH}/background720.png`,
   cryptoTraders: `${AWS_ASSETS_PATH}/crypto+traders.png`,
   cointelegraph: `${AWS_ASSETS_PATH}/featured_by/Cointelegraph_logo.png`,
-  forte: `${AWS_ASSETS_PATH}/featured_by/forte_logo.png`,
   educativesessions: `${AWS_ASSETS_PATH}/featured_by/educative_logo.png`,
   cryptoinsiders: `${AWS_ASSETS_PATH}/featured_by/crypto_insiders.png`,
   cryptoslate: `${AWS_ASSETS_PATH}/featured_by/cs-media-logo-light.png`,
@@ -51,38 +57,6 @@ const assets = {
   game7io: `${AWS_ASSETS_PATH}/featured_by/game7io_logo.png`,
   orangedao: `${AWS_ASSETS_PATH}/featured_by/orangedao_logo.png`,
   meetup: `${AWS_ASSETS_PATH}/featured_by/meetup_logo.png`,
-};
-
-const Feature = ({ image, altText, heading, description }) => {
-  return (
-    <Stack
-      transition={"1s"}
-      spacing={1}
-      px={1}
-      alignItems="center"
-      borderRadius="12px"
-      borderColor="blue.700"
-      bgColor={"blue.800"}
-      borderWidth={"1px"}
-      _hover={{ transform: "scale(1.05)", transition: "0.42s" }}
-      cursor="pointer"
-      m={[2, 3, null, 4, 8, 12]}
-      pb={2}
-    >
-      <ChakraImage
-        boxSize={["220px", "220px", "xs", null, "xs"]}
-        objectFit="contain"
-        src={image}
-        alt={altText}
-      />
-      <Heading textAlign="center" fontSize={["md", "md", "lg", "3xl", "4xl"]}>
-        {heading}
-      </Heading>
-      <chakra.span textAlign={"center"} textColor="blue.600" px={2}>
-        {description}
-      </chakra.span>
-    </Stack>
-  );
 };
 
 const Homepage = () => {
@@ -105,6 +79,8 @@ const Homepage = () => {
     "(min-width: 2880px)",
     "(min-width: 3840px)",
   ]);
+
+  const { buttonReport } = useContext(AnalyticsContext);
 
   useEffect(() => {
     assets["background720"] = `${AWS_ASSETS_PATH}/background720.png`;
@@ -183,25 +159,39 @@ const Homepage = () => {
     };
   }, []);
 
-  const JoinDiscordButton = () => {
+  const Feature = ({ title, altText, image, ...props }) => {
     return (
-      <RouteButton
-        variant="orangeAndBlue"
-        onClick={() => {
-          if (mixpanel.get_distinct_id()) {
-            mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-              full_url: router.nextRouter.asPath,
-              buttonName: `Join our Discord`,
-              page: `landing`,
-              section: `bottom-line`,
-            });
-          }
-        }}
-        href={"/discordleed"}
-        isExternal
-      >
-        Join our Discord
-      </RouteButton>
+      <Box onClick={props.onClick}>
+        <RouterLink href={props.href}>
+          <Stack
+            transition={"1s"}
+            spacing={1}
+            px={1}
+            alignItems="center"
+            borderRadius="12px"
+            borderColor="blue.700"
+            bgColor={"blue.800"}
+            borderWidth={"1px"}
+            _hover={{ transform: "scale(1.05)", transition: "0.42s" }}
+            cursor="pointer"
+            m={[2, 3, null, 4, 8, 12]}
+            pb={2}
+          >
+            <ChakraImage
+              boxSize={["220px", "220px", "xs", null, "xs"]}
+              objectFit="contain"
+              src={image}
+              alt={altText}
+            />
+            <Heading
+              textAlign="center"
+              fontSize={["md", "md", "lg", "3xl", "4xl"]}
+            >
+              {title}
+            </Heading>
+          </Stack>
+        </RouterLink>
+      </Box>
     );
   };
 
@@ -265,8 +255,9 @@ const Homepage = () => {
                           fontSize={["lg", "4xl", "5xl", "5xl", "5xl", "6xl"]}
                           fontWeight="semibold"
                           color="white"
+                          as="h1"
                         >
-                          Build a Sustainable Game Economy in only a few clicks
+                          Build a Sustainable Game Economy in Only a Few Clicks
                         </Heading>
                         <chakra.span
                           pt={4}
@@ -281,7 +272,29 @@ const Homepage = () => {
                           allow you to integrate our game mechanics with zero
                           effort.
                         </chakra.span>
-                        <JoinDiscordButton />
+                        <RouteButton
+                          variant="orangeAndBlue"
+                          minW={[
+                            "200px",
+                            "250px",
+                            "250px",
+                            "300px",
+                            "350px",
+                            "400px",
+                          ]}
+                          fontSize={["lg", "xl", "2xl", "3xl", "4xl", "4xl"]}
+                          onClick={() => {
+                            buttonReport(
+                              "Join our Discord",
+                              "front-and-center",
+                              "landing"
+                            );
+                          }}
+                          href={"/discordleed"}
+                          isExternal
+                        >
+                          Join our Discord
+                        </RouteButton>
                       </Stack>
                     </Flex>
                   </Box>
@@ -299,6 +312,7 @@ const Homepage = () => {
                   <Heading
                     fontSize={["lg", "4xl", "5xl", "5xl", "5xl", "6xl"]}
                     fontWeight="semibold"
+                    as="h2"
                   >
                     Major Milestones
                   </Heading>
@@ -346,14 +360,6 @@ const Homepage = () => {
                         boxURL="https://lfg.orangedao.xyz/"
                         bgColor="blue.900"
                       />
-                      <TrustedBadge
-                        scale={1.5}
-                        name="forte"
-                        ImgURL={assets["forte"]}
-                        boxURL="https://www.forte.io/"
-                        bgColor="blue.900"
-                        invertColors={true}
-                      />
                     </Suspense>
                   </Flex>
                 </VStack>
@@ -371,6 +377,7 @@ const Homepage = () => {
                   textAlign="center"
                   pb={[3, 12, null]}
                   pt={0}
+                  as="h2"
                 >
                   Features
                 </Heading>
@@ -404,19 +411,22 @@ const Homepage = () => {
                     <Center w="100%" h="100%">
                       <RouteButton
                         variant="orangeAndBlue"
+                        minW={[
+                          "200px",
+                          "250px",
+                          "250px",
+                          "300px",
+                          "350px",
+                          "400px",
+                        ]}
+                        fontSize={["lg", "xl", "2xl", "3xl", "4xl", "4xl"]}
                         px={[4, 4, 4, 8, 8]}
                         onClick={() => {
-                          if (mixpanel.get_distinct_id()) {
-                            mixpanel.track(
-                              `${MIXPANEL_EVENTS.BUTTON_CLICKED}`,
-                              {
-                                full_url: router.nextRouter.asPath,
-                                buttonName: `Explore the Use Cases`,
-                                page: `landing`,
-                                section: `Dive into Engine Features`,
-                              }
-                            );
-                          }
+                          buttonReport(
+                            "Explore the Use Cases",
+                            "Dive into Engine Features",
+                            "landing"
+                          );
                         }}
                         href="https://docs.google.com/document/d/1mjfF8SgRrAZvtCVVxB2qNSUcbbmrH6dTEYSMfHKdEgc/preview"
                         isExternal
@@ -435,24 +445,45 @@ const Homepage = () => {
                   paddingTop="20px"
                 >
                   <Feature
+                    title="Lootboxes"
+                    altText="Lootboxes"
+                    path="/features/#lootboxes"
                     image={assets["cryptoTraders"]}
-                    altText="mined transactions"
-                    heading="Lootboxes"
+                    href="/features/#lootboxes"
+                    onClick={() => {
+                      console.log("Sending report to mixpanel");
+                      buttonReport("Lootboxes", "features", "landing");
+                    }}
                   />
                   <Feature
+                    title="Crafting Recipes"
+                    altText="Crafting Recipes"
+                    path="/features/#crafting"
                     image={assets["NFT"]}
-                    altText="mined transactions"
-                    heading="Crafting Recipes"
+                    href="/features/#crafting"
+                    onClick={() => {
+                      buttonReport("Crafting Recipes", "features", "landing");
+                    }}
                   />
                   <Feature
+                    title="Minigames"
+                    altText="Minigames"
+                    path="/features/#minigames"
                     image={assets["DAO"]}
-                    altText="mined transactions"
-                    heading="Minigames"
+                    href="/features/#minigames"
+                    onClick={() => {
+                      buttonReport("Minigames", "features", "landing");
+                    }}
                   />
                   <Feature
+                    title="Airdrops"
+                    altText="Airdrops"
+                    path="/features/#airdrops"
                     image={assets["lender"]}
-                    altText="mined transactions"
-                    heading="Airdrops"
+                    href="/features/#airdrops"
+                    onClick={() => {
+                      buttonReport("Airdrops", "features", "landing");
+                    }}
                   />
                 </SimpleGrid>
               </GridItem>
@@ -463,13 +494,19 @@ const Homepage = () => {
                 bgColor="white.100"
                 minH="100vh"
               >
-                <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
+                <Heading
+                  {...HEADING_PROPS}
+                  textAlign="center"
+                  pb={14}
+                  pt={0}
+                  as="h2"
+                >
                   Our Workflow
                 </Heading>
                 <HStack alignItems="top" py={5}>
                   <Flex height="100%" width="25%">
                     <Heading
-                      as="h2"
+                      as="h3"
                       fontSize={["lg", "3xl", "4xl", "4xl", "4xl", "5xl"]}
                       display="inline-block"
                       fontWeight="semibold"
@@ -490,7 +527,7 @@ const Homepage = () => {
                 <HStack alignItems="top" py={5}>
                   <Flex bgColor="grey.100" width="25%" height="100%">
                     <Heading
-                      as="h2"
+                      as="h3"
                       fontSize={["lg", "3xl", "4xl", "4xl", "4xl", "5xl"]}
                       display="inline-block"
                       fontWeight="semibold"
@@ -503,8 +540,21 @@ const Homepage = () => {
                       fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
                       display="inline-block"
                     >
-                      <Link href="/discordleed" isExternal>
-                        Join our Discord
+                      <Link
+                        href="/discordleed"
+                        fontWeight={"600"}
+                        textColor="blue.700"
+                        onClick={() => {
+                          buttonReport(
+                            "Join our Discord",
+                            "inline-text",
+                            "landing"
+                          );
+                        }}
+                        isExternal
+                      >
+                        Join our Discord{" "}
+                        <ExternalLinkIcon verticalAlign="text-top" />
                       </Link>{" "}
                       to get in touch with the team (@zomglings). Tell us about
                       your game and schedule a call if needed.
@@ -514,7 +564,7 @@ const Homepage = () => {
                 <HStack alignItems="top" py={5}>
                   <Flex bgColor="grey.100" width="25%" height="100%">
                     <Heading
-                      as="h2"
+                      as="h3"
                       fontSize={["lg", "3xl", "4xl", "4xl", "4xl", "5xl"]}
                       display="inline-block"
                       fontWeight="semibold"
@@ -545,6 +595,7 @@ const Homepage = () => {
                 bgColor="blue.900"
                 textColor="white"
                 minH="100vh"
+                as="h2"
               >
                 <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
                   Featured by{" "}
@@ -607,7 +658,7 @@ const Homepage = () => {
                 py={["98px", "128px", null]}
                 colSpan="12"
                 bgColor="white"
-                minH="100vh"
+                minH="50vh"
               >
                 <Flex
                   w="100%"
@@ -619,15 +670,33 @@ const Homepage = () => {
                   <chakra.span
                     display="block"
                     my={12}
-                    fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
-                    textAlign={["justify", "left", null]}
-                    mr={[0, 12, 14]}
+                    fontSize={["md", "xl", "3xl", "3xl", "4xl", "5xl"]}
+                    textAlign={["justify", "justify", "left", null]}
+                    mr={[0, 0, 14]}
                     letterSpacing="tight"
                   >
                     {`Contact us on Discord to discuss your project and keep up with the latest updates on Moonstream Engine.`}
                   </chakra.span>
 
-                  <JoinDiscordButton />
+                  <RouteButton
+                    variant="orangeAndBlue"
+                    minW={[
+                      "200px",
+                      "250px",
+                      "250px",
+                      "300px",
+                      "350px",
+                      "400px",
+                    ]}
+                    fontSize={["md", "xl", "3xl", "3xl", "4xl", "5xl"]}
+                    onClick={() =>
+                      buttonReport("Join our Discord", "page-bottom", "landing")
+                    }
+                    href={"/discordleed"}
+                    isExternal
+                  >
+                    Join our Discord
+                  </RouteButton>
                 </Flex>
               </GridItem>
             </Grid>

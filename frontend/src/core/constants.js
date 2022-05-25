@@ -21,17 +21,19 @@ export const DEFAULT_METATAGS = {
 //   PRODUCT: "Product",
 // };
 
-export const SIITEMAP_CATEGORIES = {
+export const SITEMAP_CATEGORIES = {
   SOLUTIONS: "Solutions",
   DEVELOPERS: "Developers",
   RESOURCES: "Resources",
   ABOUT: "About",
+  LEGAL: "Legal",
 };
 
 export const PAGETYPE = {
   EMPTY: 0,
   CONTENT: 1,
   EXTERNAL: 2,
+  FOOTER_CATEGORY: 3,
 };
 
 export const SITEMAP = [
@@ -40,6 +42,11 @@ export const SITEMAP = [
     path: "/resources",
     type: PAGETYPE.EMPTY,
     children: [
+      {
+        title: "Features",
+        path: "/features",
+        type: PAGETYPE.CONTENT,
+      },
       {
         title: "Case studies",
         path: "https://docs.google.com/document/d/1mjfF8SgRrAZvtCVVxB2qNSUcbbmrH6dTEYSMfHKdEgc",
@@ -84,6 +91,23 @@ export const SITEMAP = [
       {
         title: "Team",
         path: "/team",
+        type: PAGETYPE.CONTENT,
+      },
+    ],
+  },
+  {
+    title: "Legal",
+    path: "/legal",
+    type: PAGETYPE.FOOTER_CATEGORY,
+    children: [
+      {
+        title: "Privacy Policy",
+        path: "/privacy-policy",
+        type: PAGETYPE.CONTENT,
+      },
+      {
+        title: "Terms of Service",
+        path: "/tos",
         type: PAGETYPE.CONTENT,
       },
     ],
