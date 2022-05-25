@@ -38,7 +38,7 @@ setup(
         "chardet",
         "fastapi",
         "moonstreamdb>=0.2.4",
-        "moonworm==0.1.11",
+        "moonworm==0.2.4",
         "humbug",
         "pydantic",
         "python-dateutil",
