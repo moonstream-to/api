@@ -186,3 +186,7 @@ alembic.dev.ini
 alembic.prod.ini
 alembic.moonstreamdb.ini
 alembic.docker.ini
+
+# Schematic
+srv/
+.schematic.env

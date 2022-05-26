@@ -6,51 +6,111 @@ export const BUGOUT_ENDPOINTS = {
 };
 
 export const DEFAULT_METATAGS = {
-  title: "Moonstream: Open source blockchain analytics",
+  title: "Moonstream: Building blocks for your blockchain game",
   description:
-    "Product analytics for Web3. Moonstream helps you understand exactly how people are using your smart contracts",
+    "Moonstream DAO makes tools that help you build, manage, and secure your blockchain game.",
   keywords:
-    "analytics, blockchain analytics, protocol, protocols, blockchain, crypto, data, trading, smart contracts, web3, smart contract, ethereum, solana, polygon, matic, transactions, defi, finance, decentralized, mempool, NFT, NFTs, DAO, DAOs, DEX, DEXes, DEXs, cryptocurrency, cryptocurrencies, bitcoin",
+    "analytics, blockchain analytics, protocol, protocols, blockchain, crypto, data, NFT gaming, smart contracts, web3, smart contract, ethereum, polygon, matic, transactions, defi, finance, decentralized, mempool, NFT, NFTs, DAO, DAOs, cryptocurrency, cryptocurrencies, bitcoin, blockchain economy, blockchain game, marketplace, blockchain security, loyalty program, Ethereum bridge, Ethereum bridges, NFT game, NFT games",
   url: "https://www.moonstream.to",
   image: `https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/crypto+traders.png`,
 };
 
-export const FOOTER_COLUMNS = {
-  NEWS: "News",
-  COMPANY: "Company",
-  PRODUCT: "Product",
+// export const FOOTER_COLUMNS = {
+//   NEWS: "News",
+//   COMPANY: "Company",
+//   PRODUCT: "Product",
+// };
+
+export const SITEMAP_CATEGORIES = {
+  SOLUTIONS: "Solutions",
+  DEVELOPERS: "Developers",
+  RESOURCES: "Resources",
+  ABOUT: "About",
+  LEGAL: "Legal",
 };
 
-export const ALL_NAV_PATHES = [
+export const PAGETYPE = {
+  EMPTY: 0,
+  CONTENT: 1,
+  EXTERNAL: 2,
+  FOOTER_CATEGORY: 3,
+};
+
+export const SITEMAP = [
   {
-    title: "Product",
-    path: "/product",
-    footerCategory: FOOTER_COLUMNS.PRODUCT,
+    title: "Resources",
+    path: "/resources",
+    type: PAGETYPE.EMPTY,
+    children: [
+      {
+        title: "Features",
+        path: "/features",
+        type: PAGETYPE.CONTENT,
+      },
+      {
+        title: "Case studies",
+        path: "https://docs.google.com/document/d/1mjfF8SgRrAZvtCVVxB2qNSUcbbmrH6dTEYSMfHKdEgc",
+        type: PAGETYPE.EXTERNAL,
+      },
+      {
+        title: "Whitepapers",
+        path: "/whitepapers",
+        type: PAGETYPE.CONTENT,
+      },
+      {
+        title: "Blog",
+        path: "https://blog.moonstream.to",
+        type: PAGETYPE.EXTERNAL,
+      },
+    ],
   },
   {
-    title: "Team",
-    path: "/team",
-    footerCategory: FOOTER_COLUMNS.COMPANY,
+    title: "Developers",
+    path: "/developers",
+    type: PAGETYPE.EMPTY,
+
+    children: [
+      {
+        title: "Docs",
+        path: "/docs",
+        type: PAGETYPE.CONTENT,
+      },
+      {
+        title: "Status",
+        path: "/status",
+        type: PAGETYPE.CONTENT,
+      },
+    ],
+  },
+
+  {
+    title: "About",
+    path: "/about",
+    type: PAGETYPE.EMPTY,
+    children: [
+      {
+        title: "Team",
+        path: "/team",
+        type: PAGETYPE.CONTENT,
+      },
+    ],
   },
   {
-    title: "Docs",
-    path: "/docs",
-    footerCategory: FOOTER_COLUMNS.PRODUCT,
-  },
-  {
-    title: "Whitepapers",
-    path: "/whitepapers",
-    footerCategory: FOOTER_COLUMNS.PRODUCT,
-  },
-  {
-    title: "Blog",
-    path: "https://blog.moonstream.to",
-    footerCategory: FOOTER_COLUMNS.NEWS,
-  },
-  {
-    title: "Status",
-    path: "/status",
-    footerCategory: FOOTER_COLUMNS.PRODUCT,
+    title: "Legal",
+    path: "/legal",
+    type: PAGETYPE.FOOTER_CATEGORY,
+    children: [
+      {
+        title: "Privacy Policy",
+        path: "/privacy-policy",
+        type: PAGETYPE.CONTENT,
+      },
+      {
+        title: "Terms of Service",
+        path: "/tos",
+        type: PAGETYPE.CONTENT,
+      },
+    ],
   },
 ];
 

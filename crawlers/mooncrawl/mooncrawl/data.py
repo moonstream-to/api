@@ -1,14 +1,15 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import List
+from typing import List, Any, Dict
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class AvailableBlockchainType(Enum):
     ETHEREUM = "ethereum"
     POLYGON = "polygon"
+    XDAI = "xdai"
 
 
 class StatsUpdateRequest(BaseModel):
@@ -47,3 +48,10 @@ class NowResponse(BaseModel):
     """
 
     epoch_time: float
+
+
+class QueryDataUpdate(BaseModel):
+
+    file_type: str
+    query: str
+    params: Dict[str, Any] = Field(default_factory=dict)

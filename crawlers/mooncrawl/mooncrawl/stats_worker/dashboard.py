@@ -8,7 +8,7 @@ import logging
 import time
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 from uuid import UUID
 
 import boto3  # type: ignore
@@ -28,6 +28,7 @@ from ..data import AvailableBlockchainType
 from ..reporter import reporter
 from ..settings import (
     CRAWLER_LABEL,
+    NB_CONTROLLER_ACCESS_ID,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
 )
@@ -337,7 +338,9 @@ def generate_list_of_names(
 
 
 def process_external(
-    abi_external_calls: List[Dict[str, Any]], blockchain: AvailableBlockchainType
+    abi_external_calls: List[Dict[str, Any]],
+    blockchain: AvailableBlockchainType,
+    access_id: Optional[UUID] = None,
 ):
     """
     Request all required external data
@@ -383,7 +386,7 @@ def process_external(
             logger.error(f"Error processing external call: {e}")
 
     if external_calls:
-        web3_client = connect(blockchain)
+        web3_client = connect(blockchain, access_id=access_id)
 
     for extcall in external_calls:
         try:
@@ -434,6 +437,7 @@ def generate_web3_metrics(
     address: str,
     crawler_label: str,
     abi_json: Any,
+    access_id: Optional[UUID] = None,
 ) -> List[Any]:
     """
     Generate stats for cards components
@@ -446,6 +450,7 @@ def generate_web3_metrics(
     extention_data = process_external(
         abi_external_calls=abi_external_calls,
         blockchain=blockchain_type,
+        access_id=access_id,
     )
 
     extention_data.append(
@@ -611,6 +616,7 @@ def stats_generate_handler(args: argparse.Namespace):
                         address=address,
                         crawler_label=crawler_label,
                         abi_json=abi_json,
+                        access_id=args.access_id,
                     )
 
                     # Generate blocks state information
@@ -693,6 +699,7 @@ def stats_generate_api_task(
     timescales: List[str],
     dashboard: BugoutResource,
     subscription_by_id: Dict[str, BugoutResource],
+    access_id: Optional[UUID] = None,
 ):
     """
     Start crawler with generate.
@@ -770,6 +777,7 @@ def stats_generate_api_task(
                     address=address,
                     crawler_label=crawler_label,
                     abi_json=abi_json,
+                    access_id=access_id,
                 )
 
                 # Generate blocks state information
@@ -843,6 +851,14 @@ def stats_generate_api_task(
 def main() -> None:
     parser = argparse.ArgumentParser(description="Command Line Interface")
     parser.set_defaults(func=lambda _: parser.print_help())
+
+    parser.add_argument(
+        "--access-id",
+        default=NB_CONTROLLER_ACCESS_ID,
+        type=UUID,
+        help="User access ID",
+    )
+
     subcommands = parser.add_subparsers(
         description="Drone dashboard statistics commands"
     )

@@ -4,104 +4,82 @@ Configurations for load balancer server.
 package configs
 
 import (
+	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"time"
 )
 
-type BlockchainConfig struct {
-	Blockchain string
-	IPs        []string
-	Port       string
-}
+var (
+	// Bugout and application configuration
+	BUGOUT_AUTH_URL          = os.Getenv("BUGOUT_AUTH_URL")
+	BUGOUT_AUTH_CALL_TIMEOUT = time.Second * 5
+	NB_APPLICATION_ID        = os.Getenv("NB_APPLICATION_ID")
+	NB_CONTROLLER_TOKEN      = os.Getenv("NB_CONTROLLER_TOKEN")
+	NB_CONTROLLER_ACCESS_ID  = os.Getenv("NB_CONTROLLER_ACCESS_ID")
 
-type NodeConfig struct {
-	Blockchain string
-	Addr       string
-	Port       uint16
-}
+	NB_CONNECTION_RETRIES          = 2
+	NB_CONNECTION_RETRIES_INTERVAL = time.Millisecond * 10
+	NB_HEALTH_CHECK_INTERVAL       = time.Second * 5
+	NB_HEALTH_CHECK_CALL_TIMEOUT   = time.Second * 2
 
-type NodeConfigList struct {
-	Configs []NodeConfig
-}
+	// Client configuration
+	NB_CLIENT_NODE_KEEP_ALIVE = int64(5) // How long to store node in hot list for client in seconds
 
-var ConfigList NodeConfigList
+	NB_ACCESS_ID_HEADER   = os.Getenv("NB_ACCESS_ID_HEADER")
+	NB_DATA_SOURCE_HEADER = os.Getenv("NB_DATA_SOURCE_HEADER")
 
-var MOONSTREAM_NODE_ETHEREUM_A_IPC_ADDR = os.Getenv("MOONSTREAM_NODE_ETHEREUM_A_IPC_ADDR")
-var MOONSTREAM_NODE_ETHEREUM_B_IPC_ADDR = os.Getenv("MOONSTREAM_NODE_ETHEREUM_B_IPC_ADDR")
-var MOONSTREAM_NODE_ETHEREUM_IPC_PORT = os.Getenv("MOONSTREAM_NODE_ETHEREUM_IPC_PORT")
-var MOONSTREAM_NODE_POLYGON_A_IPC_ADDR = os.Getenv("MOONSTREAM_NODE_POLYGON_A_IPC_ADDR")
-var MOONSTREAM_NODE_POLYGON_B_IPC_ADDR = os.Getenv("MOONSTREAM_NODE_POLYGON_B_IPC_ADDR")
-var MOONSTREAM_NODE_POLYGON_IPC_PORT = os.Getenv("MOONSTREAM_NODE_POLYGON_IPC_PORT")
+	// Humbug configuration
+	HUMBUG_REPORTER_NB_TOKEN = os.Getenv("HUMBUG_REPORTER_NB_TOKEN")
+
+	// Database configuration
+	MOONSTREAM_DB_URI_READ_ONLY         = os.Getenv("MOONSTREAM_DB_URI_READ_ONLY")
+	MOONSTREAM_DB_MAX_IDLE_CONNS    int = 30
+	MOONSTREAM_DB_CONN_MAX_LIFETIME     = 30 * time.Minute
+)
+
 var MOONSTREAM_NODES_SERVER_PORT = os.Getenv("MOONSTREAM_NODES_SERVER_PORT")
-var MOONSTREAM_CLIENT_ID_HEADER = os.Getenv("MOONSTREAM_CLIENT_ID_HEADER")
 
-func checkEnvVarSet() {
-	if MOONSTREAM_NODE_ETHEREUM_A_IPC_ADDR == "" {
-		MOONSTREAM_NODE_ETHEREUM_A_IPC_ADDR = "a.ethereum.moonstream.internal"
+func CheckEnvVarSet() {
+	if NB_ACCESS_ID_HEADER == "" {
+		NB_ACCESS_ID_HEADER = "x-node-balancer-access-id"
 	}
-	if MOONSTREAM_NODE_ETHEREUM_B_IPC_ADDR == "" {
-		MOONSTREAM_NODE_ETHEREUM_B_IPC_ADDR = "b.ethereum.moonstream.internal"
-	}
-
-	if MOONSTREAM_NODE_POLYGON_A_IPC_ADDR == "" {
-		MOONSTREAM_NODE_POLYGON_A_IPC_ADDR = "a.polygon.moonstream.internal"
-	}
-	if MOONSTREAM_NODE_POLYGON_B_IPC_ADDR == "" {
-		MOONSTREAM_NODE_POLYGON_B_IPC_ADDR = "b.polygon.moonstream.internal"
+	if NB_DATA_SOURCE_HEADER == "" {
+		NB_DATA_SOURCE_HEADER = "x-node-balancer-data-source"
 	}
 
-	if MOONSTREAM_CLIENT_ID_HEADER == "" {
-		MOONSTREAM_CLIENT_ID_HEADER = "x-moonstream-client-id"
-	}
-
-	if MOONSTREAM_NODES_SERVER_PORT == "" || MOONSTREAM_NODE_ETHEREUM_IPC_PORT == "" || MOONSTREAM_NODE_POLYGON_IPC_PORT == "" {
-		log.Fatal("Some of environment variables not set")
+	if MOONSTREAM_NODES_SERVER_PORT == "" {
+		fmt.Println("Environment variable MOONSTREAM_NODES_SERVER_PORT not set")
+		os.Exit(1)
 	}
 }
 
-// Return list of NodeConfig structures
-func (nc *NodeConfigList) InitNodeConfigList() {
-	checkEnvVarSet()
+func GenerateDefaultConfig() string {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Printf("Unable to find user home directory, %v", err)
+		os.Exit(1)
+	}
 
-	// Define available blockchain nodes
-	blockchainConfigList := make([]BlockchainConfig, 0, 2)
-	blockchainConfigList = append(blockchainConfigList, BlockchainConfig{
-		Blockchain: "ethereum",
-		IPs:        []string{MOONSTREAM_NODE_ETHEREUM_A_IPC_ADDR, MOONSTREAM_NODE_ETHEREUM_B_IPC_ADDR},
-		Port:       MOONSTREAM_NODE_ETHEREUM_IPC_PORT,
-	})
-	blockchainConfigList = append(blockchainConfigList, BlockchainConfig{
-		Blockchain: "polygon",
-		IPs:        []string{MOONSTREAM_NODE_POLYGON_A_IPC_ADDR, MOONSTREAM_NODE_POLYGON_B_IPC_ADDR},
-		Port:       MOONSTREAM_NODE_POLYGON_IPC_PORT,
-	})
+	configDirPath := fmt.Sprintf("%s/.nodebalancer", homeDir)
+	configPath := fmt.Sprintf("%s/config.txt", configDirPath)
 
-	// Parse node addr, ip and blockchain
-	for _, b := range blockchainConfigList {
-		for _, nodeIP := range b.IPs {
-			port, err := strconv.ParseInt(b.Port, 0, 16)
-			if err != nil {
-				log.Printf("Unable to parse port number: %s", b.Port)
-				continue
-			}
-			nc.Configs = append(nc.Configs, NodeConfig{
-				Blockchain: b.Blockchain,
-				Addr:       nodeIP,
-				Port:       uint16(port),
-			})
+	err = os.MkdirAll(configDirPath, os.ModePerm)
+	if err != nil {
+		fmt.Printf("Unable to create directory, %v", err)
+		os.Exit(1)
+	}
+
+	_, err = os.Stat(configPath)
+	if err != nil {
+		tempConfigB := []byte("ethereum,127.0.0.1,8545")
+		err = os.WriteFile(configPath, tempConfigB, 0644)
+		if err != nil {
+			fmt.Printf("Unable to create directory, %v", err)
+			os.Exit(1)
 		}
+		log.Printf("Config directory were not found, created default configuration at %s", configPath)
 	}
+
+	return configPath
 }
-
-var NB_CONNECTION_RETRIES = 2
-var NB_CONNECTION_RETRIES_INTERVAL = time.Millisecond * 10
-var NB_HEALTH_CHECK_INTERVAL = time.Second * 5
-var NB_HEALTH_CHECK_CALL_TIMEOUT = time.Second * 2
-
-// Client config
-var NB_CLIENT_NODE_KEEP_ALIVE = int64(5) // How long to store node in hot list for client in seconds
-
-// Humbug config
-var HUMBUG_REPORTER_NODE_BALANCER_TOKEN = os.Getenv("HUMBUG_REPORTER_NODE_BALANCER_TOKEN")

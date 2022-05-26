@@ -3,6 +3,7 @@ import time
 import traceback
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
+from uuid import UUID
 
 from moonworm.crawler.moonstream_ethereum_state_provider import (  # type: ignore
     MoonstreamEthereumStateProvider,
@@ -85,6 +86,7 @@ def _retry_connect_web3(
     blockchain_type: AvailableBlockchainType,
     retry_count: int = 10,
     sleep_time: float = 5,
+    access_id: Optional[UUID] = None,
 ) -> Web3:
     """
     Retry connecting to the blockchain.
@@ -92,7 +94,7 @@ def _retry_connect_web3(
     while retry_count > 0:
         retry_count -= 1
         try:
-            web3 = connect(blockchain_type)
+            web3 = connect(blockchain_type, access_id=access_id)
             web3.eth.block_number
             logger.info(f"Connected to {blockchain_type}")
             return web3
@@ -116,11 +118,12 @@ def continuous_crawler(
     function_call_crawl_jobs: List[FunctionCallCrawlJob],
     start_block: int,
     max_blocks_batch: int = 100,
-    min_blocks_batch: int = 10,
+    min_blocks_batch: int = 40,
     confirmations: int = 60,
     min_sleep_time: float = 0.1,
     heartbeat_interval: float = 60,
     new_jobs_refetch_interval: float = 120,
+    access_id: Optional[UUID] = None,
 ):
     crawler_type = "continuous"
     assert (
@@ -139,7 +142,7 @@ def continuous_crawler(
 
     jobs_refetchet_time = crawl_start_time
     if web3 is None:
-        web3 = _retry_connect_web3(blockchain_type)
+        web3 = _retry_connect_web3(blockchain_type, access_id=access_id)
 
     network = (
         Network.ethereum
@@ -172,14 +175,14 @@ def continuous_crawler(
     )
     last_heartbeat_time = datetime.utcnow()
     blocks_cache: Dict[int, int] = {}
-
+    current_sleep_time = min_sleep_time
     failed_count = 0
     try:
         while True:
             try:
                 # query db  with limit 1, to avoid session closing
                 db_session.execute("SELECT 1")
-                time.sleep(min_sleep_time)
+                time.sleep(current_sleep_time)
 
                 end_block = min(
                     web3.eth.blockNumber - confirmations,
@@ -187,12 +190,12 @@ def continuous_crawler(
                 )
 
                 if start_block + min_blocks_batch > end_block:
-                    min_sleep_time *= 2
+                    current_sleep_time += 0.1
                     logger.info(
-                        f"Sleeping for {min_sleep_time} seconds because of low block count"
+                        f"Sleeping for {current_sleep_time} seconds because of low block count"
                     )
                     continue
-                min_sleep_time = max(min_sleep_time, min_sleep_time / 2)
+                current_sleep_time = max(min_sleep_time, current_sleep_time - 0.1)
 
                 logger.info(f"Crawling events from {start_block} to {end_block}")
                 all_events = _crawl_events(
@@ -281,7 +284,7 @@ def continuous_crawler(
                     logger.error("Too many failures, exiting")
                     raise e
                 try:
-                    web3 = _retry_connect_web3(blockchain_type)
+                    web3 = _retry_connect_web3(blockchain_type, access_id=access_id)
                 except Exception as err:
                     logger.error(f"Failed to reconnect: {err}")
                     logger.exception(err)

@@ -38,6 +38,7 @@ import SignUp from "../../../components/SignUp";
 import NewDashboardChart from "../../../components/NewDashboardChart";
 import { useRouter } from "../../hooks";
 import { DASHBOARD_UPDATE_ACTIONS } from "../../constants";
+import UpdateSubscriptionLabelInput from "../../../components/UpdateSubscriptionLabelInput";
 const NewDashboardName = React.lazy(() =>
   import("../../../components/NewDashboardName")
 );
@@ -64,6 +65,7 @@ const OverlayProvider = ({ children }) => {
   const [modal, toggleModal] = useState({
     type: MODAL_TYPES.OFF,
     props: undefined,
+    key: undefined,
   });
   const [drawer, toggleDrawer] = useState({
     type: DRAWER_TYPES.OFF,
@@ -279,6 +281,7 @@ const OverlayProvider = ({ children }) => {
             {modal.type === MODAL_TYPES.UPLOAD_ABI && "Assign ABI"}
             {modal.type === MODAL_TYPES.NEW_DASHBOARD_FLOW &&
               "Would you like to give it a name?"}
+            {modal.type === MODAL_TYPES.MOBILE_INPUT_FIELD && modal.props.title}
           </ModalHeader>
           <Divider />
           <ModalCloseButton />
@@ -315,6 +318,9 @@ const OverlayProvider = ({ children }) => {
               )}
               {modal.type === MODAL_TYPES.NEW_DASHBOARD_FLOW && (
                 <NewDashboardName {...modal.props} />
+              )}
+              {modal.type === MODAL_TYPES.MOBILE_INPUT_FIELD && (
+                <UpdateSubscriptionLabelInput {...modal.props} />
               )}
             </Suspense>
           </ModalBody>

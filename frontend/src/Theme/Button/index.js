@@ -114,6 +114,22 @@ const variantGhost = (props) => {
   };
 };
 
+const variantOrangeAndBlue = () => {
+  return {
+    alignItems: "center",
+    justifyContent: "center",
+    border: "solid transparent",
+    fontWeight: "bold",
+    rounded: ["lg", "xl", "2xl"],
+    shadow: "md",
+    variant: "solid",
+    textColor: "blue.1200",
+    bg: `orange.900`,
+    py: [4, 6, 6, 8, 8],
+    px: [4, 4, 4, 8, 8],
+  };
+};
+
 const Button = {
   // 1. We can update the base styles
   baseStyle: () => ({
@@ -151,6 +167,7 @@ const Button = {
     ghost: variantGhost,
     outline: variantOutline,
     link: variantLink,
+    orangeAndBlue: variantOrangeAndBlue,
   },
 };
 export default Button;

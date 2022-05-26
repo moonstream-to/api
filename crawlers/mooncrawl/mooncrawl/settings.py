@@ -1,5 +1,6 @@
 import os
-from typing import cast
+from typing import cast, Optional
+from uuid import UUID
 
 from bugout.app import Bugout
 
@@ -36,11 +37,18 @@ MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI = os.environ.get(
 )
 if MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI == "":
     raise Exception("MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI env variable is not set")
+
 MOONSTREAM_POLYGON_WEB3_PROVIDER_URI = os.environ.get(
     "MOONSTREAM_POLYGON_WEB3_PROVIDER_URI", ""
 )
 if MOONSTREAM_POLYGON_WEB3_PROVIDER_URI == "":
     raise Exception("MOONSTREAM_POLYGON_WEB3_PROVIDER_URI env variable is not set")
+
+MOONSTREAM_XDAI_WEB3_PROVIDER_URI = os.environ.get(
+    "MOONSTREAM_XDAI_WEB3_PROVIDER_URI", ""
+)
+if MOONSTREAM_XDAI_WEB3_PROVIDER_URI == "":
+    raise Exception("MOONSTREAM_XDAI_WEB3_PROVIDER_URI env variable is not set")
 
 MOONSTREAM_CRAWL_WORKERS = 4
 MOONSTREAM_CRAWL_WORKERS_RAW = os.environ.get("MOONSTREAM_CRAWL_WORKERS")
@@ -84,3 +92,30 @@ if MOONSTREAM_MOONWORM_TASKS_JOURNAL == "":
     raise ValueError(
         "MOONSTREAM_MOONWORM_TASKS_JOURNAL environment variable must be set"
     )
+
+
+MOONSTREAM_S3_QUERIES_BUCKET = os.environ.get("MOONSTREAM_S3_QUERIES_BUCKET", "")
+if MOONSTREAM_S3_QUERIES_BUCKET == "":
+    raise ValueError("MOONSTREAM_S3_QUERIES_BUCKET environment variable must be set")
+
+
+MOONSTREAM_S3_QUERIES_BUCKET_PREFIX = os.environ.get(
+    "MOONSTREAM_S3_QUERIES_BUCKET_PREFIX", ""
+)
+if MOONSTREAM_S3_QUERIES_BUCKET_PREFIX == "":
+    raise ValueError(
+        "MOONSTREAM_S3_QUERIES_BUCKET_PREFIX environment variable must be set"
+    )
+
+# Node balancer
+NB_ACCESS_ID_HEADER = os.environ.get("NB_ACCESS_ID_HEADER", "x-node-balancer-access-id")
+NB_DATA_SOURCE_HEADER = os.environ.get(
+    "NB_DATA_SOURCE_HEADER", "x-node-balancer-data-source"
+)
+
+NB_CONTROLLER_ACCESS_ID: Optional[UUID] = None
+NB_CONTROLLER_ACCESS_ID_RAW = os.environ.get("NB_CONTROLLER_ACCESS_ID", "")
+try:
+    NB_CONTROLLER_ACCESS_ID = UUID(NB_CONTROLLER_ACCESS_ID_RAW)
+except:
+    pass

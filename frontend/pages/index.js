@@ -1,114 +1,41 @@
 import React, {
   useState,
-  useContext,
   Suspense,
   useEffect,
   useLayoutEffect,
+  useContext,
 } from "react";
 import {
   Fade,
   Flex,
   Heading,
   Box,
-  Center,
   chakra,
   Stack,
   Link,
+  Center,
   useMediaQuery,
   Grid,
   Text,
   GridItem,
   SimpleGrid,
-  Button,
   Image as ChakraImage,
+  HStack,
+  VStack,
 } from "@chakra-ui/react";
-import dynamic from "next/dynamic";
 import useUser from "../src/core/hooks/useUser";
-import useModals from "../src/core/hooks/useModals";
 import useRouter from "../src/core/hooks/useRouter";
-import {
-  MIXPANEL_PROPS,
-  MIXPANEL_EVENTS,
-} from "../src/core/providers/AnalyticsProvider/constants";
 import { AWS_ASSETS_PATH, DEFAULT_METATAGS } from "../src/core/constants";
-import mixpanel from "mixpanel-browser";
-import UIContext from "../src/core/providers/UIProvider/context";
 import TrustedBadge from "../src/components/TrustedBadge";
-import Slider from "react-slick";
-import SchematicPlayground from "../src/components/SchematicPlayground";
-import { v4 as uuidv4 } from "uuid";
 import RouteButton from "../src/components/RouteButton";
-import { FaDiscord } from "react-icons/fa";
-import { MODAL_TYPES } from "../src/core/providers/OverlayProvider/constants";
-const SplitWithImage = dynamic(
-  () => import("../src/components/SplitWithImage"),
-  {
-    ssr: false,
-  }
-);
-const FaGithubSquare = dynamic(() =>
-  import("react-icons/fa").then((mod) => mod.FaGithubSquare)
-);
-const GiSuspicious = dynamic(() =>
-  import("react-icons/gi").then((mod) => mod.GiSuspicious)
-);
-
-const GiHook = dynamic(() =>
-  import("react-icons/gi").then((mod) => mod.GiHook)
-);
-
-const IoTelescopeSharp = dynamic(() =>
-  import("react-icons/io5").then((mod) => mod.IoTelescopeSharp)
-);
-
-const AiFillApi = dynamic(() =>
-  import("react-icons/ai").then((mod) => mod.AiFillApi)
-);
-
-const BiTransfer = dynamic(() =>
-  import("react-icons/bi").then((mod) => mod.BiTransfer)
-);
-
-const RiDashboardFill = dynamic(() =>
-  import("react-icons/ri").then((mod) => mod.RiDashboardFill)
-);
-const FaFileContract = dynamic(() =>
-  import("react-icons/fa").then((mod) => mod.FaFileContract)
-);
-const GiMeshBall = dynamic(() =>
-  import("react-icons/gi").then((mod) => mod.GiMeshBall)
-);
-
-const GiLogicGateXor = dynamic(() =>
-  import("react-icons/gi").then((mod) => mod.GiLogicGateXor)
-);
-
-const VscOrganization = dynamic(() =>
-  import("react-icons/vsc").then((mod) => mod.VscOrganization)
-);
-const FaVoteYea = dynamic(() =>
-  import("react-icons/fa").then((mod) => mod.FaVoteYea)
-);
-
-const RiOrganizationChart = dynamic(() =>
-  import("react-icons/ri").then((mod) => mod.RiOrganizationChart)
-);
-const FiActivity = dynamic(() =>
-  import("react-icons/fi").then((mod) => mod.FiActivity)
-);
-
-const RiMapPinUserLine = dynamic(() =>
-  import("react-icons/ri").then((mod) => mod.RiMapPinUserLine)
-);
-const AiOutlinePieChart = dynamic(() =>
-  import("react-icons/ai").then((mod) => mod.AiOutlinePieChart)
-);
-
-const BiBot = dynamic(() => import("react-icons/bi").then((mod) => mod.BiBot));
+import MilestoneBox from "../src/components/MilestoneBox";
+import AnalyticsContext from "../src/core/providers/AnalyticsProvider/context";
+import RouterLink from "next/link";
+import { ExternalLinkIcon } from "@chakra-ui/icons";
 
 const HEADING_PROPS = {
   fontWeight: "700",
-  fontSize: ["4xl", "5xl", "4xl", "5xl", "6xl", "7xl"],
+  fontSize: ["4xl", "5xl", "5xl", "5xl", "6xl", "7xl"],
 };
 
 const assets = {
@@ -116,47 +43,31 @@ const assets = {
   background1920: `${AWS_ASSETS_PATH}/background720.png`,
   background2880: `${AWS_ASSETS_PATH}/background720.png`,
   background3840: `${AWS_ASSETS_PATH}/background720.png`,
-  minedTransactions: `${AWS_ASSETS_PATH}/Ethereum+mined+transactions.png`,
-  pendingTransactions: `${AWS_ASSETS_PATH}/Ethereum+pending+transactions.png`,
-  priceInformation: `${AWS_ASSETS_PATH}/Price+information.png`,
-  socialMediaPosts: `${AWS_ASSETS_PATH}/Social+media+posts.png`,
   cryptoTraders: `${AWS_ASSETS_PATH}/crypto+traders.png`,
-  smartDevelopers: `${AWS_ASSETS_PATH}/smart+contract+developers.png`,
   cointelegraph: `${AWS_ASSETS_PATH}/featured_by/Cointelegraph_logo.png`,
+  educativesessions: `${AWS_ASSETS_PATH}/featured_by/educative_logo.png`,
   cryptoinsiders: `${AWS_ASSETS_PATH}/featured_by/crypto_insiders.png`,
   cryptoslate: `${AWS_ASSETS_PATH}/featured_by/cs-media-logo-light.png`,
-  bitcoinLogo: `${AWS_ASSETS_PATH}/bitcoin.png`,
-  ethereumBlackLogo: `${AWS_ASSETS_PATH}/eth-diamond-black.png`,
-  ethereumRainbowLogo: `${AWS_ASSETS_PATH}/eth-diamond-rainbow.png`,
-  maticLogo: `${AWS_ASSETS_PATH}/matic-token-inverted-icon.png`,
-  erc20: `${AWS_ASSETS_PATH}/ERC 20.png`,
+  cgcConference: `${AWS_ASSETS_PATH}/featured_by/cgc_conference_2022_logo.jpg`,
+  lender: `${AWS_ASSETS_PATH}/lender.png`,
   DAO: `${AWS_ASSETS_PATH}/DAO .png`,
   NFT: `${AWS_ASSETS_PATH}/NFT.png`,
+  bc101: `${AWS_ASSETS_PATH}/featured_by/blockchain101_logo.png`,
+  laguna: `${AWS_ASSETS_PATH}/featured_by/laguna_logo.svg`,
+  game7io: `${AWS_ASSETS_PATH}/featured_by/game7io_logo.png`,
+  orangedao: `${AWS_ASSETS_PATH}/featured_by/orangedao_logo.png`,
+  meetup: `${AWS_ASSETS_PATH}/featured_by/meetup_logo.png`,
 };
 
-const carousel_content = [
-  { title: "Bitcoin coming soon!", img: assets["bitcoinLogo"] },
-  { title: "Ethereum", img: assets["ethereumBlackLogo"] },
-  { title: "Ethereum transaction pool", img: assets["ethereumRainbowLogo"] },
-  { title: "Polygon coming soon!", img: assets["maticLogo"] },
-  { title: "Bitcoin coming soon!", img: assets["bitcoinLogo"] },
-  { title: "Ethereum", img: assets["ethereumBlackLogo"] },
-  { title: "Ethereum transaction pool", img: assets["ethereumRainbowLogo"] },
-  { title: "Polygon coming soon!", img: assets["maticLogo"] },
-];
 const Homepage = () => {
-  const ui = useContext(UIContext);
   const [background, setBackground] = useState("background720");
   const [backgroundLoaded720, setBackgroundLoaded720] = useState(false);
   const [backgroundLoaded1920, setBackgroundLoaded1920] = useState(false);
   const [backgroundLoaded2880, setBackgroundLoaded2880] = useState(false);
   const [backgroundLoaded3840, setBackgroundLoaded3840] = useState(false);
 
-  const [imageIndex, setImageIndex] = useState(0);
-
   const router = useRouter();
   const { isInit } = useUser();
-  const { toggleModal } = useModals();
   const [
     isLargerThan720px,
     isLargerThan1920px,
@@ -168,6 +79,8 @@ const Homepage = () => {
     "(min-width: 2880px)",
     "(min-width: 3840px)",
   ]);
+
+  const { buttonReport } = useContext(AnalyticsContext);
 
   useEffect(() => {
     assets["background720"] = `${AWS_ASSETS_PATH}/background720.png`;
@@ -246,22 +159,40 @@ const Homepage = () => {
     };
   }, []);
 
-  const settings = {
-    infinite: true,
-    lazyLoad: true,
-    speed: 2000,
-    autoplay: true,
-    autoplaySpeed: 0,
-    // cssEase: "linear",
-    cssEase: "cubic-bezier(0.165, 0.840, 0.440, 1.000)",
-    // cssEase: "ease-in",
-    slidesToScroll: 1,
-    slidesToShow: ui.isMobileView ? 3 : 5,
-    centerMode: true,
-    centerPadding: 0,
-    // nextArrow: "",
-    // prevArrow: "",
-    beforeChange: (current, next) => setImageIndex(next),
+  const Feature = ({ title, altText, image, ...props }) => {
+    return (
+      <Box onClick={props.onClick}>
+        <RouterLink href={props.href}>
+          <Stack
+            transition={"1s"}
+            spacing={1}
+            px={1}
+            alignItems="center"
+            borderRadius="12px"
+            borderColor="blue.700"
+            bgColor={"blue.800"}
+            borderWidth={"1px"}
+            _hover={{ transform: "scale(1.05)", transition: "0.42s" }}
+            cursor="pointer"
+            m={[2, 3, null, 4, 8, 12]}
+            pb={2}
+          >
+            <ChakraImage
+              boxSize={["220px", "220px", "xs", null, "xs"]}
+              objectFit="contain"
+              src={image}
+              alt={altText}
+            />
+            <Heading
+              textAlign="center"
+              fontSize={["md", "md", "lg", "3xl", "4xl"]}
+            >
+              {title}
+            </Heading>
+          </Stack>
+        </RouterLink>
+      </Box>
+    );
   };
 
   return (
@@ -272,6 +203,8 @@ const Homepage = () => {
           flexDirection="column"
           sx={{ scrollBehavior: "smooth" }}
           bgSize="cover"
+          id="page:landing"
+          bgColor={"blue.50"}
         >
           <Flex
             direction="column"
@@ -291,12 +224,14 @@ const Homepage = () => {
             >
               <GridItem
                 mt={0}
+                mb={0}
                 px="0"
                 colSpan="12"
-                pb={[1, 2, null, 8]}
                 minH="100vh"
+                bgColor={"blue.50"}
+                id="Header grid item"
               >
-                <chakra.header boxSize="full" minH="100vh">
+                <chakra.header boxSize="full" minH="100vh" mb={0}>
                   <Box
                     bgPos="bottom"
                     bgColor="transparent"
@@ -320,474 +255,449 @@ const Homepage = () => {
                           fontSize={["lg", "4xl", "5xl", "5xl", "5xl", "6xl"]}
                           fontWeight="semibold"
                           color="white"
+                          as="h1"
                         >
-                          Open source blockchain analytics
+                          Build a Sustainable Game Economy in Only a Few Clicks
                         </Heading>
                         <chakra.span
+                          pt={4}
+                          pb={4}
                           my={12}
-                          fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
+                          fontSize={["md", "lg", "xl", "2xl", "3xl", "3xl"]}
                           display="inline-block"
-                          color="blue.200"
+                          color="white"
                         >
-                          Product analytics for Web3. Moonstream helps you
-                          understand exactly how people are using your smart
-                          contracts.
+                          Moonstream Engine empowers web3 game designers to grow
+                          healthy economies. Moonstream smart contracts and APIs
+                          allow you to integrate our game mechanics with zero
+                          effort.
                         </chakra.span>
-                        <Box
-                          w="100vw"
-                          minH="200px"
-                          // px="7%"
-                          py={0}
-                          overflowX="hidden"
-                          overflowY="visible"
+                        <RouteButton
+                          variant="orangeAndBlue"
+                          minW={[
+                            "200px",
+                            "250px",
+                            "250px",
+                            "300px",
+                            "350px",
+                            "400px",
+                          ]}
+                          fontSize={["lg", "xl", "2xl", "3xl", "4xl", "4xl"]}
+                          onClick={() => {
+                            buttonReport(
+                              "Join our Discord",
+                              "front-and-center",
+                              "landing"
+                            );
+                          }}
+                          href={"/discordleed"}
+                          isExternal
                         >
-                          <Slider
-                            {...settings}
-                            // adaptiveHeight={true}
-                            arrows={false}
-                            autoplay={true}
-                            autoplaySpeed={100}
-                          >
-                            {carousel_content.map((content_item, idx) => (
-                              <Box
-                                pt="80px"
-                                h="auto"
-                                w="150px"
-                                maxW="150px"
-                                // size="150px"
-                                key={uuidv4()}
-                                className={
-                                  idx === imageIndex
-                                    ? "slide activeSlide"
-                                    : "slide"
-                                }
-                                // bgColor="blue.900"
-                                // borderRadius="lg"
-                                // boxShadow="lg"
-                              >
-                                <ChakraImage
-                                  fit="contain"
-                                  boxSize={["64px", "96px", "130px", null]}
-                                  src={content_item.img}
-                                />
-                                <Text
-                                  py={2}
-                                  color="blue.300"
-                                  fontSize={["sm", "md", null]}
-                                >
-                                  {content_item.title}
-                                </Text>
-                              </Box>
-                            ))}
-                          </Slider>
-                        </Box>
+                          Join our Discord
+                        </RouteButton>
                       </Stack>
                     </Flex>
                   </Box>
                 </chakra.header>
               </GridItem>
 
-              <GridItem px="7%" colSpan="12" pt={0} minH="100vh">
+              <GridItem
+                px="7%"
+                py={["98px", "128px", null]}
+                colSpan="12"
+                bgColor="white.100"
+                minH="100vh"
+              >
+                <VStack align="center" justify="center" boxSize="full">
+                  <Heading
+                    fontSize={["lg", "4xl", "5xl", "5xl", "5xl", "6xl"]}
+                    fontWeight="semibold"
+                    as="h2"
+                  >
+                    Major Milestones
+                  </Heading>
+                  <Flex wrap="wrap" direction="row" justifyContent="center">
+                    <MilestoneBox headingText="$3B transaction volume" />
+                    <MilestoneBox headingText="22,000 active users" />
+                  </Flex>
+                  <Text
+                    textAlign="center"
+                    fontSize={["md", "xl", "2xl", "3xl", "3xl", "3xl"]}
+                  >
+                    And growing...
+                  </Text>
+                  <chakra.h2
+                    fontSize={{ base: "3xl", sm: "2xl" }}
+                    textAlign="center"
+                    pb={4}
+                    pt={16}
+                    fontWeight="bold"
+                  >
+                    Trusted by{" "}
+                  </chakra.h2>
+                  <Flex wrap="wrap" direction="row" justifyContent="center">
+                    <Suspense fallback={""}>
+                      <TrustedBadge
+                        scale={1.5}
+                        name="Laguna games"
+                        caseURL=""
+                        ImgURL={assets["laguna"]}
+                        boxURL="https://laguna.games/"
+                        bgColor="blue.900"
+                      />
+                      <TrustedBadge
+                        scale={1.5}
+                        name="game7io"
+                        ImgURL={assets["game7io"]}
+                        boxURL="https://game7.io/"
+                        bgColor="blue.900"
+                      />
+
+                      <TrustedBadge
+                        scale={1.5}
+                        name="orangedao"
+                        ImgURL={assets["orangedao"]}
+                        boxURL="https://lfg.orangedao.xyz/"
+                        bgColor="blue.900"
+                      />
+                    </Suspense>
+                  </Flex>
+                </VStack>
+              </GridItem>
+              <GridItem
+                px={["7%", null, "12%", "15%"]}
+                colSpan="12"
+                pt={24}
+                minH="100vh"
+                bgColor={"blue.900"}
+                textColor="white"
+              >
                 <Heading
                   {...HEADING_PROPS}
                   textAlign="center"
-                  mt={[24, 32, 48]}
-                  pb={[12, 12, 12, null, 24]}
+                  pb={[3, 12, null]}
+                  pt={0}
+                  as="h2"
                 >
-                  Get analytics for your:
+                  Features
                 </Heading>
-                <SimpleGrid columns={[1, 2, 2, 4, null, 4]}>
-                  <Stack spacing={1} px={1} alignItems="center">
-                    <ChakraImage
-                      boxSize={["220px", "220px", "xs", null, "xs"]}
-                      objectFit="contain"
-                      src={assets["NFT"]}
-                      alt="mined transactions"
-                    />
-                    <Heading textAlign="center ">NFTs</Heading>
-                  </Stack>
-                  <Stack spacing={1} px={1} alignItems="center">
-                    <ChakraImage
-                      boxSize={["220px", "220px", "xs", null, "xs"]}
-                      objectFit="contain"
-                      src={assets["erc20"]}
-                      alt="mined transactions"
-                    />
-                    <Heading textAlign="center ">Tokens</Heading>
-                  </Stack>
-
-                  <Stack spacing={1} px={1} alignItems="center">
-                    <ChakraImage
-                      boxSize={["220px", "220px", "xs", null, "xs"]}
-                      objectFit="contain"
-                      src={assets["cryptoTraders"]}
-                      alt="mined transactions"
-                    />
-                    <Heading textAlign="center ">DEXs</Heading>
-                  </Stack>
-                  <Stack spacing={1} px={1} alignItems="center">
-                    <ChakraImage
-                      boxSize={["220px", "220px", "xs", null, "xs"]}
-                      objectFit="contain"
-                      src={assets["DAO"]}
-                      alt="mined transactions"
-                    />
-                    <Heading textAlign="center ">{`DAOs`}</Heading>
-                  </Stack>
-                </SimpleGrid>
-                <Center>
-                  <Heading
-                    pt={["32px", "160px", null]}
-                    pb={["12px", "60px", null]}
-                    fontSize={["18px", "32px", null]}
-                    textAlign="center"
-                  >
-                    Your game changer in blockchain analytics
-                  </Heading>
-                </Center>
-                <Flex
-                  w="100%"
-                  direction={["column", "row", "column", null, "column"]}
-                  flexWrap={["nowrap", "nowrap", "nowrap", null, "nowrap"]}
-                  pb="32px"
-                  placeContent="center"
+                <Grid
+                  templateColumns={{
+                    base: "repeat(1, 1fr)",
+                    sm: "repeat(1, 1fr)",
+                    md: "repeat(2, 1fr)",
+                  }}
+                  gap={4}
                 >
-                  <SchematicPlayground />
-                </Flex>
+                  <GridItem>
+                    <Flex>
+                      <chakra.span
+                        fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
+                        display="inline-block"
+                        color="white"
+                      >
+                        Lootboxes, crafting recipes, deck building, you name it!
+                        <br />
+                        <br />
+                        With Moonstream Engine you can deploy on-chain mechanics
+                        with one click.
+                        <br />
+                        <br />
+                        Read our Use Cases or explore the features to know more.
+                      </chakra.span>
+                    </Flex>
+                  </GridItem>
+                  <GridItem>
+                    <Center w="100%" h="100%">
+                      <RouteButton
+                        variant="orangeAndBlue"
+                        minW={[
+                          "200px",
+                          "250px",
+                          "250px",
+                          "300px",
+                          "350px",
+                          "400px",
+                        ]}
+                        fontSize={["lg", "xl", "2xl", "3xl", "4xl", "4xl"]}
+                        px={[4, 4, 4, 8, 8]}
+                        onClick={() => {
+                          buttonReport(
+                            "Explore the Use Cases",
+                            "Dive into Engine Features",
+                            "landing"
+                          );
+                        }}
+                        href="https://docs.google.com/document/d/1mjfF8SgRrAZvtCVVxB2qNSUcbbmrH6dTEYSMfHKdEgc/preview"
+                        isExternal
+                      >
+                        Explore the Use Cases
+                      </RouteButton>
+                    </Center>
+                  </GridItem>
+                </Grid>
+                <SimpleGrid
+                  columns={[1, 2, 2, 4, null, 4]}
+                  justifyContent="center"
+                  w="100%"
+                  placeContent={"space-between"}
+                  mx={[0, -2, -4]}
+                  paddingTop="20px"
+                >
+                  <Feature
+                    title="Lootboxes"
+                    altText="Lootboxes"
+                    path="/features/#lootboxes"
+                    image={assets["cryptoTraders"]}
+                    href="/features/#lootboxes"
+                    onClick={() => {
+                      console.log("Sending report to mixpanel");
+                      buttonReport("Lootboxes", "features", "landing");
+                    }}
+                  />
+                  <Feature
+                    title="Crafting Recipes"
+                    altText="Crafting Recipes"
+                    path="/features/#crafting"
+                    image={assets["NFT"]}
+                    href="/features/#crafting"
+                    onClick={() => {
+                      buttonReport("Crafting Recipes", "features", "landing");
+                    }}
+                  />
+                  <Feature
+                    title="Minigames"
+                    altText="Minigames"
+                    path="/features/#minigames"
+                    image={assets["DAO"]}
+                    href="/features/#minigames"
+                    onClick={() => {
+                      buttonReport("Minigames", "features", "landing");
+                    }}
+                  />
+                  <Feature
+                    title="Airdrops"
+                    altText="Airdrops"
+                    path="/features/#airdrops"
+                    image={assets["lender"]}
+                    href="/features/#airdrops"
+                    onClick={() => {
+                      buttonReport("Airdrops", "features", "landing");
+                    }}
+                  />
+                </SimpleGrid>
               </GridItem>
-
+              <GridItem
+                px={["7%", null, "12%", "15%"]}
+                py={["98px", "128px", null]}
+                colSpan="12"
+                bgColor="white.100"
+                minH="100vh"
+              >
+                <Heading
+                  {...HEADING_PROPS}
+                  textAlign="center"
+                  pb={14}
+                  pt={0}
+                  as="h2"
+                >
+                  Our Workflow
+                </Heading>
+                <HStack alignItems="top" py={5}>
+                  <Flex height="100%" width="25%">
+                    <Heading
+                      as="h3"
+                      fontSize={["lg", "3xl", "4xl", "4xl", "4xl", "5xl"]}
+                      display="inline-block"
+                      fontWeight="semibold"
+                    >
+                      Step 1:
+                    </Heading>
+                  </Flex>
+                  <Flex height="100%" width="75%">
+                    <chakra.span
+                      fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
+                      display="inline-block"
+                    >
+                      So you decided to build a healthy economy on the
+                      blockchain. You are on the right path, traveler!
+                    </chakra.span>
+                  </Flex>
+                </HStack>
+                <HStack alignItems="top" py={5}>
+                  <Flex bgColor="grey.100" width="25%" height="100%">
+                    <Heading
+                      as="h3"
+                      fontSize={["lg", "3xl", "4xl", "4xl", "4xl", "5xl"]}
+                      display="inline-block"
+                      fontWeight="semibold"
+                    >
+                      Step 2:
+                    </Heading>
+                  </Flex>
+                  <Flex width="75%">
+                    <chakra.span
+                      fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
+                      display="inline-block"
+                    >
+                      <Link
+                        href="/discordleed"
+                        fontWeight={"600"}
+                        textColor="blue.700"
+                        onClick={() => {
+                          buttonReport(
+                            "Join our Discord",
+                            "inline-text",
+                            "landing"
+                          );
+                        }}
+                        isExternal
+                      >
+                        Join our Discord{" "}
+                        <ExternalLinkIcon verticalAlign="text-top" />
+                      </Link>{" "}
+                      to get in touch with the team (@zomglings). Tell us about
+                      your game and schedule a call if needed.
+                    </chakra.span>
+                  </Flex>
+                </HStack>
+                <HStack alignItems="top" py={5}>
+                  <Flex bgColor="grey.100" width="25%" height="100%">
+                    <Heading
+                      as="h3"
+                      fontSize={["lg", "3xl", "4xl", "4xl", "4xl", "5xl"]}
+                      display="inline-block"
+                      fontWeight="semibold"
+                    >
+                      Step 3:
+                    </Heading>
+                  </Flex>
+                  <Flex width="75%">
+                    <chakra.span
+                      fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
+                      display="inline-block"
+                    >
+                      Pick game mechanics that you&apos;d like to deploy.
+                      Moonstream Engine provides you with back-end tools to put
+                      them on the blockchain.
+                      <br />
+                      <br />
+                      You&apos;re at the end of your development journey now,
+                      traveler. Time to watch your game economy grow!
+                    </chakra.span>
+                  </Flex>
+                </HStack>
+              </GridItem>
               <GridItem
                 px="7%"
+                py={["98px", "128px", null]}
                 colSpan="12"
-                pt="66px"
-                bgColor="blue.50"
-                pb={["20px", "30px", "92px", null, "92px", "196px"]}
+                bgColor="blue.900"
+                textColor="white"
+                minH="100vh"
+                as="h2"
               >
                 <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
                   Featured by{" "}
                 </Heading>
-                <Flex wrap="wrap" direction="row" justifyContent="center">
-                  <Suspense fallback={""}>
-                    <TrustedBadge
-                      name="cointelegraph"
-                      caseURL=""
-                      ImgURL={assets["cointelegraph"]}
-                    />
-                    <TrustedBadge
-                      name="CryptoInsiders"
-                      ImgURL={assets["cryptoinsiders"]}
-                    />
-
-                    <TrustedBadge
-                      name="cryptoslate"
-                      ImgURL={assets["cryptoslate"]}
-                    />
-                  </Suspense>
-                </Flex>
-              </GridItem>
-              <GridItem
-                px="7%"
-                colSpan="12"
-                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
-                pb={["0", "66px", null, "66px"]}
-                id="txpool"
-                minH={ui.isMobileView ? "100vh" : null}
-              >
-                <SplitWithImage
-                  cta={{
-                    label: "Want to find out more?",
-                    onClick: () => {
-                      mixpanel.get_distinct_id() &&
-                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer txpool button`,
-                        });
-                      toggleModal({ type: MODAL_TYPES.HUBSPOT });
-                    },
-                  }}
-                  elementName={"element1"}
-                  colorScheme="green"
-                  badge={`NFTs`}
-                  title={`Custom analytics for NFTs`}
-                  body={`Moonstream automatically understands smart contracts. Create your own custom dashboards. Doesn’t matter what the custom behavior is, you can track it.`}
-                  bullets={[
-                    {
-                      text: `Who owns your NFTs?`,
-                      icon: AiOutlinePieChart,
-                      color: "green.50",
-                      bgColor: "green.900",
-                    },
-                    {
-                      text: `Who is selling your NFTs?`,
-                      icon: FaFileContract,
-                      color: "green.50",
-                      bgColor: "green.900",
-                    },
-                    {
-                      text: `How much are your NFTs being sold for on OpenSea, Nifty Gateway, Rarible?`,
-                      icon: RiDashboardFill,
-                      color: "green.50",
-                      bgColor: "green.900",
-                    },
-                    {
-                      text: `Who is using the custom features of your NFTs?`,
-                      icon: GiMeshBall,
-                      color: "green.50",
-                      bgColor: "green.900",
-                    },
-                    {
-                      text: `How are they using them?`,
-                      icon: RiMapPinUserLine,
-                      color: "green.50",
-                      bgColor: "green.900",
-                    },
-                  ]}
-                  imgURL={assets["NFT"]}
-                />
-              </GridItem>
-              <GridItem
-                px="7%"
-                colSpan="12"
-                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
-                pb={["0", "66px", null, "66px"]}
-                id="exchanges"
-                minH={ui.isMobileView ? "100vh" : null}
-              >
-                <SplitWithImage
-                  cta={{
-                    label: "Want to find out more?",
-                    onClick: () => {
-                      mixpanel.get_distinct_id() &&
-                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer exchanges button`,
-                        });
-                      toggleModal({ type: MODAL_TYPES.HUBSPOT });
-                    },
-                  }}
-                  elementName={"element2"}
-                  mirror={true}
-                  colorScheme="orange"
-                  badge={`ERC20`}
-                  title={`Feel the pulse of token activity`}
-                  body={`Visualize market activity with Moonstream dashboards. Monitor token activity on the blockchain and in the transaction pool.`}
-                  bullets={[
-                    {
-                      text: `Who owns your tokens?`,
-                      icon: GiSuspicious,
-                      color: "orange.50",
-                      bgColor: "orange.900",
-                    },
-                    {
-                      text: `What is your weekly, daily, or hourly transaction volume?`,
-                      icon: AiFillApi,
-                      color: "orange.50",
-                      bgColor: "orange.900",
-                    },
-                    {
-                      text: `Which exchanges is your token trending on?`,
-                      icon: IoTelescopeSharp,
-                      color: "orange.50",
-                      bgColor: "orange.900",
-                    },
-                    {
-                      text: `Which other tokens is your token being traded for?`,
-                      icon: BiTransfer,
-                      color: "orange.50",
-                      bgColor: "orange.900",
-                    },
-                    {
-                      text: `How many people are holding your token versus actively using it?
-                      `,
-                      icon: GiLogicGateXor,
-                      color: "orange.50",
-                      bgColor: "orange.900",
-                    },
-                  ]}
-                  imgURL={assets["erc20"]}
-                />
-              </GridItem>
-              <GridItem
-                px="7%"
-                colSpan="12"
-                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
-                pb={["0", "66px", null, "66px"]}
-                id="smartDeveloper"
-                minH={ui.isMobileView ? "100vh" : null}
-              >
-                <SplitWithImage
-                  cta={{
-                    label: "Want to find out more?",
-                    onClick: () => {
-                      mixpanel.get_distinct_id() &&
-                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer smartDeveloper button`,
-                        });
-                      toggleModal({ type: MODAL_TYPES.HUBSPOT });
-                    },
-                  }}
-                  elementName={"element3"}
-                  colorScheme="blue"
-                  title={`All the data you need to make a market`}
-                  badge={`DEXs`}
-                  body={`Monitor the performance of your DEX live from the blockchain and from the transaction pool. Build dashboards that show you DEX activity monthly, weekly, daily, hourly, or by the minute.`}
-                  bullets={[
-                    {
-                      text: `Who is providing liquidity on your DEX?`,
-                      icon: GiSuspicious,
-                      color: "blue.50",
-                      bgColor: "blue.900",
-                    },
-                    {
-                      text: `How much liquidity for each token pair?`,
-                      icon: GiMeshBall,
-                      color: "blue.50",
-                      bgColor: "blue.900",
-                    },
-                    {
-                      text: `Bot vs. human activity on your exchange`,
-                      icon: BiBot,
-                      color: "blue.50",
-                      bgColor: "blue.900",
-                    },
-                    {
-                      text: `How large is your transaction pool backlog?`,
-                      icon: GiHook,
-                      color: "blue.50",
-                      bgColor: "blue.900",
-                    },
-                  ]}
-                  imgURL={assets["cryptoTraders"]}
-                />
-              </GridItem>
-              <GridItem
-                px="7%"
-                colSpan="12"
-                pt={["2rem", "2rem", "5.125rem", null, "5.125rem"]}
-                pb={["0", "66px", null, "66px"]}
-                id="analytics"
-                minH={ui.isMobileView ? "100vh" : null}
-              >
-                <SplitWithImage
-                  mirror
-                  cta={{
-                    label: "Want to find out more?",
-                    onClick: () => {
-                      mixpanel.get_distinct_id() &&
-                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          [`${MIXPANEL_PROPS.BUTTON_NAME}`]: `Early access CTA: developer analytics button`,
-                        });
-                      toggleModal({ type: MODAL_TYPES.HUBSPOT });
-                    },
-                  }}
-                  elementName={"element3"}
-                  colorScheme="red"
-                  badge={`DAOs`}
-                  title={`What really matters is community`}
-                  body={`Gain insight into your community. Build community dashboards to make participation more open. Monitor your DAO ecosystem.`}
-                  bullets={[
-                    {
-                      text: `Who are your community members?`,
-                      icon: VscOrganization,
-                      color: "red.50",
-                      bgColor: "red.900",
-                    },
-                    {
-                      text: `Who is actively participating?`,
-                      icon: GiSuspicious,
-                      color: "red.50",
-                      bgColor: "red.900",
-                    },
-                    {
-                      text: `What are the open initiatives for your DAO?`,
-                      icon: FaVoteYea,
-                      color: "red.50",
-                      bgColor: "red.900",
-                    },
-                    {
-                      text: `What is the level of participation for each initiative?`,
-                      icon: FiActivity,
-                      color: "red.50",
-                      bgColor: "red.900",
-                    },
-                    {
-                      text: `Which DAOs or other protocols interact with yours?
-                      `,
-                      icon: RiOrganizationChart,
-                      color: "red.50",
-                      bgColor: "red.900",
-                    },
-                  ]}
-                  imgURL={assets["DAO"]}
-                />
-              </GridItem>
-              <GridItem
-                placeItems="center"
-                w="100%"
-                colSpan="12"
-                pt={["0", "0", "5.125rem", null, "5.125rem"]}
-                pb="120px"
-                px="7%"
-              >
-                <Stack direction="column" justifyContent="center">
-                  <chakra.span
-                    textAlign="center"
-                    fontWeight="600"
-                    fontSize="lg"
-                    w="100%"
-                    h="fit-content"
+                <Center>
+                  <Flex
+                    width="81%"
+                    wrap="wrap"
+                    direction="row"
+                    justifyContent="center"
+                    bgColor="white"
                   >
-                    <Text
-                      mb={18}
-                      fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
-                    >
-                      We believe that the blockchain is for everyone. This
-                      requires complete <b>transparency</b>. That’s why all our
-                      software is{" "}
-                      <chakra.span
-                        display="inline-block"
-                        textColor="orange.900"
-                        as={Link}
-                        href="https://github.com/bugout-dev/moonstream"
-                      >
-                        <i>open source</i>
-                      </chakra.span>
-                    </Text>
-                  </chakra.span>
-                  <Flex direction="row" flexWrap="wrap" placeContent="center">
-                    <RouteButton
-                      placeSelf="center"
-                      href={`https://github.com/bugout-dev/moonstream`}
-                      size="md"
-                      variant="outline"
-                      colorScheme="blue"
-                      w="250px"
-                      leftIcon={<FaGithubSquare />}
-                    >
-                      git clone moonstream
-                    </RouteButton>
-                    <RouteButton
-                      placeSelf="center"
-                      href={"https://discord.gg/K56VNUQGvA"}
-                      size="md"
-                      variant="outline"
-                      colorScheme="blue"
-                      leftIcon={<FaDiscord />}
-                      w="250px"
-                    >
-                      Join our Discord
-                    </RouteButton>
+                    <Suspense fallback={""}>
+                      <TrustedBadge
+                        name="cointelegraph"
+                        caseURL=""
+                        ImgURL={assets["cointelegraph"]}
+                        boxURL="https://cointelegraph.com/news/17-of-addresses-snapped-up-80-of-all-ethereum-nfts-since-april"
+                      />
+                      <TrustedBadge
+                        name="CryptoInsiders"
+                        ImgURL={assets["cryptoinsiders"]}
+                        boxURL="https://www.crypto-insiders.nl/nieuws/altcoin/17-van-ethereum-whales-bezitten-meer-dan-80-van-alle-nfts-op-de-blockchain/"
+                      />
+                      <TrustedBadge
+                        name="cryptoslate"
+                        ImgURL={assets["cryptoslate"]}
+                        boxURL="https://cryptoslate.com/should-investors-care-80-of-all-nfts-belong-to-17-of-addresses/"
+                      />
+                      <TrustedBadge
+                        name="educative sessions"
+                        scale={1.5}
+                        ImgURL={assets["educativesessions"]}
+                        boxURL="https://youtu.be/DN8zRzJuy0M"
+                      />
+                      <TrustedBadge
+                        scale={1.5}
+                        name="bc101"
+                        ImgURL={assets["bc101"]}
+                        boxURL="https://blockchain101.com/"
+                      />
+                      <TrustedBadge
+                        scale={1.5}
+                        name="bc101"
+                        ImgURL={assets["meetup"]}
+                        boxURL="https://www.meetup.com/SF-Bay-Area-Data-Science-Initiative/events/283215538/"
+                      />
+                      <TrustedBadge
+                        scale={1.5}
+                        name="cgc2022"
+                        ImgURL={assets["cgcConference"]}
+                        boxURL="https://www.cgc.one/"
+                      />
+                    </Suspense>
                   </Flex>
-                  <Button
-                    placeSelf="center"
-                    w={["100%", "100%", "fit-content", null]}
-                    maxW={["250px", null, "fit-content"]}
-                    onClick={() => toggleModal({ type: MODAL_TYPES.SIGNUP })}
-                    size="lg"
-                    variant="solid"
-                    colorScheme="orange"
+                </Center>
+              </GridItem>
+              <GridItem
+                px={["7%", null, "12%", "15%"]}
+                py={["98px", "128px", null]}
+                colSpan="12"
+                bgColor="white"
+                minH="50vh"
+              >
+                <Flex
+                  w="100%"
+                  alignItems="center"
+                  justifyContent="center"
+                  direction={["column", "column", "row"]}
+                  maxW="1024px"
+                >
+                  <chakra.span
+                    display="block"
+                    my={12}
+                    fontSize={["md", "xl", "3xl", "3xl", "4xl", "5xl"]}
+                    textAlign={["justify", "justify", "left", null]}
+                    mr={[0, 0, 14]}
+                    letterSpacing="tight"
                   >
-                    Sign up
-                  </Button>
-                </Stack>
+                    {`Contact us on Discord to discuss your project and keep up with the latest updates on Moonstream Engine.`}
+                  </chakra.span>
+
+                  <RouteButton
+                    variant="orangeAndBlue"
+                    minW={[
+                      "200px",
+                      "250px",
+                      "250px",
+                      "300px",
+                      "350px",
+                      "400px",
+                    ]}
+                    fontSize={["md", "xl", "3xl", "3xl", "4xl", "5xl"]}
+                    onClick={() =>
+                      buttonReport("Join our Discord", "page-bottom", "landing")
+                    }
+                    href={"/discordleed"}
+                    isExternal
+                  >
+                    Join our Discord
+                  </RouteButton>
+                </Flex>
               </GridItem>
             </Grid>
           </Flex>

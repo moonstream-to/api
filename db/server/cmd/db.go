@@ -10,7 +10,7 @@ import (
 )
 
 func InitDB() *sql.DB {
-	db, err := sql.Open("postgres", settings.MOONSTREAM_DB_URI)
+	db, err := sql.Open("postgres", settings.MOONSTREAM_DB_URI_READ_ONLY)
 	if err != nil {
 		// DSN parse error or another initialization error
 		log.Fatal(err)

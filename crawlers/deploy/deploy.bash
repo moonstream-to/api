@@ -46,6 +46,11 @@ POLYGON_STATISTICS_TIMER_FILE="polygon-statistics.timer"
 POLYGON_TXPOOL_SERVICE_FILE="polygon-txpool.service"
 POLYGON_MOONWORM_CRAWLER_SERVICE_FILE="polygon-moonworm-crawler.service"
 
+# XDai service file
+XDAI_SYNCHRONIZE_SERVICE="xdai-synchronize.service"
+XDAI_MISSING_SERVICE_FILE="xdai-missing.service"
+XDAI_MISSING_TIMER_FILE="xdai-missing.timer"
+
 set -eu
 
 echo
@@ -80,7 +85,7 @@ HOME=/root /usr/local/go/bin/go install github.com/bugout-dev/checkenv@latest
 echo
 echo
 echo -e "${PREFIX_INFO} Retrieving addition deployment parameters"
-HOME=/root AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" $HOME/go/bin/checkenv show aws_ssm+Product:moonstream >> "${PARAMETERS_ENV_PATH}"
+AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" /root/go/bin/checkenv show aws_ssm+Product:moonstream >> "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
@@ -112,13 +117,13 @@ cp "${SCRIPT_DIR}/${ETHEREUM_TRENDING_TIMER_FILE}" "/etc/systemd/system/${ETHERE
 systemctl daemon-reload
 systemctl restart "${ETHEREUM_TRENDING_TIMER_FILE}"
 
-echo
-echo
-echo -e "${PREFIX_INFO} Replacing existing Ethereum transaction pool crawler service definition with ${ETHEREUM_TXPOOL_SERVICE_FILE}"
-chmod 644 "${SCRIPT_DIR}/${ETHEREUM_TXPOOL_SERVICE_FILE}"
-cp "${SCRIPT_DIR}/${ETHEREUM_TXPOOL_SERVICE_FILE}" "/etc/systemd/system/${ETHEREUM_TXPOOL_SERVICE_FILE}"
-systemctl daemon-reload
-systemctl restart "${ETHEREUM_TXPOOL_SERVICE_FILE}"
+# echo
+# echo
+# echo -e "${PREFIX_INFO} Replacing existing Ethereum transaction pool crawler service definition with ${ETHEREUM_TXPOOL_SERVICE_FILE}"
+# chmod 644 "${SCRIPT_DIR}/${ETHEREUM_TXPOOL_SERVICE_FILE}"
+# cp "${SCRIPT_DIR}/${ETHEREUM_TXPOOL_SERVICE_FILE}" "/etc/systemd/system/${ETHEREUM_TXPOOL_SERVICE_FILE}"
+# systemctl daemon-reload
+# systemctl restart "${ETHEREUM_TXPOOL_SERVICE_FILE}"
 
 echo
 echo
@@ -170,3 +175,20 @@ chmod 644 "${SCRIPT_DIR}/${POLYGON_MOONWORM_CRAWLER_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${POLYGON_MOONWORM_CRAWLER_SERVICE_FILE}" "/etc/systemd/system/${POLYGON_MOONWORM_CRAWLER_SERVICE_FILE}"
 systemctl daemon-reload
 systemctl restart "${POLYGON_MOONWORM_CRAWLER_SERVICE_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing XDai block with transactions syncronizer service definition with ${XDAI_SYNCHRONIZE_SERVICE}"
+chmod 644 "${SCRIPT_DIR}/${XDAI_SYNCHRONIZE_SERVICE}"
+cp "${SCRIPT_DIR}/${XDAI_SYNCHRONIZE_SERVICE}" "/etc/systemd/system/${XDAI_SYNCHRONIZE_SERVICE}"
+systemctl daemon-reload
+systemctl restart "${XDAI_SYNCHRONIZE_SERVICE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing XDai missing service and timer with: ${XDAI_MISSING_SERVICE_FILE}, ${XDAI_MISSING_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${XDAI_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${XDAI_MISSING_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${XDAI_MISSING_SERVICE_FILE}" "/etc/systemd/system/${XDAI_MISSING_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${XDAI_MISSING_TIMER_FILE}" "/etc/systemd/system/${XDAI_MISSING_TIMER_FILE}"
+systemctl daemon-reload
+systemctl restart "${XDAI_MISSING_TIMER_FILE}"

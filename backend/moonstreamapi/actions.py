@@ -8,11 +8,18 @@ import uuid
 
 import boto3  # type: ignore
 
-from bugout.data import BugoutSearchResults, BugoutSearchResult, BugoutResource
+from bugout.data import (
+    BugoutSearchResults,
+    BugoutSearchResult,
+    BugoutResource,
+    BugoutResources,
+)
 from bugout.journal import SearchOrder
+from bugout.exceptions import BugoutResponseException
 from ens.utils import is_valid_ens_name  # type: ignore
 from eth_utils.address import is_address  # type: ignore
 from moonstreamdb.models import EthereumLabel
+from slugify import slugify  # type: ignore
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from web3 import Web3
@@ -47,6 +54,18 @@ blockchain_by_subscription_id = {
 class StatusAPIException(Exception):
     """
     Raised during checking Moonstream API statuses.
+    """
+
+
+class NameNormalizationException(Exception):
+    """
+    Raised on actions when slugify can't normalize name.
+    """
+
+
+class ResourceQueryFetchException(Exception):
+    """
+    Exception in queries API
     """
 
 
@@ -535,3 +554,49 @@ def apply_moonworm_tasks(
             entries=entries_pack,
             timeout=15,
         )
+
+
+def name_normalization(query_name: str) -> str:
+    """
+    Sanitize provided query name.
+    """
+    try:
+        normalized_query_name = slugify(
+            query_name, max_length=50, lowercase=False, separator="_"
+        )
+    except Exception as e:
+        logger.error(f"Error in query normalization. Error: {e}")
+        raise NameNormalizationException(f"Can't normalize name:{query_name}")
+
+    return normalized_query_name
+
+
+def get_query_by_name(query_name: str, token: uuid.UUID) -> str:
+    """
+    Fetch query_id from Brood resources.
+    """
+    try:
+        query_name = name_normalization(query_name)
+    except Exception:
+        raise NameNormalizationException("Unable to normalize query name")
+
+    params = {"type": data.BUGOUT_RESOURCE_QUERY_RESOLVER, "name": query_name}
+    try:
+        resources: BugoutResources = bc.list_resources(token=token, params=params)
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        logger.error(f"Error get query, error: {str(e)}")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    available_queries: Dict[str, str] = {
+        resource.resource_data["name"]: resource.resource_data["entry_id"]
+        for resource in resources.resources
+    }
+
+    if query_name not in available_queries:
+        raise MoonstreamHTTPException(status_code=404, detail="Query not found.")
+
+    query_id = available_queries[query_name]
+
+    return query_id
