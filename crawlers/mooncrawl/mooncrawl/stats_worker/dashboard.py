@@ -16,7 +16,7 @@ import traceback
 import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
 from moonstreamdb.db import yield_db_read_only_session_ctx
-from sqlalchemy import and_, distinct, func, text
+from sqlalchemy import and_, distinct, func, text, extract, cast
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.operators import in_op
 from web3 import Web3
@@ -36,6 +36,7 @@ from ..settings import (
 from ..settings import bugout_client as bc
 
 logging.basicConfig(level=logging.INFO)
+logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -125,58 +126,11 @@ def generate_data(
     time_format = timescales_params[timescale]["timeformat"]
 
     # if end is None:
-    end = datetime.utcnow()
+    # end = datetime.utcnow()
 
-    time_series_subquery = db_session.query(
-        func.generate_series(
-            start,
-            end,
-            time_step,
-        ).label("timeseries_points")
-    )
+    # Get data in selected timerage
 
-    time_series_subquery = time_series_subquery.subquery(name="time_series_subquery")
-
-    # get distinct tags labels in that range
-
-    label_requested = (
-        db_session.query(label_model.label_data["name"].astext.label("label"))
-        .filter(label_model.address == address)
-        .filter(label_model.label == crawler_label)
-        .filter(
-            and_(
-                label_model.label_data["type"].astext == metric_type,
-                in_op(label_model.label_data["name"].astext, functions),
-            )
-        )
-        .distinct()
-    )
-
-    if start is not None:
-        label_requested = label_requested.filter(
-            func.to_timestamp(label_model.block_timestamp) > start
-        )
-    if end is not None:
-        label_requested = label_requested.filter(
-            func.to_timestamp(label_model.block_timestamp) < end
-        )
-
-    label_requested = label_requested.subquery(name="label_requested")
-
-    # empty timeseries with tags
-    empty_time_series_subquery = db_session.query(
-        func.to_char(time_series_subquery.c.timeseries_points, time_format).label(
-            "timeseries_points"
-        ),
-        label_requested.c.label.label("label"),
-    )
-
-    empty_time_series_subquery = empty_time_series_subquery.subquery(
-        name="empty_time_series_subquery"
-    )
-
-    # tags count
-    label_counts = (
+    query_data = (
         db_session.query(
             func.to_char(
                 func.to_timestamp(label_model.block_timestamp), time_format
@@ -186,46 +140,72 @@ def generate_data(
         )
         .filter(label_model.address == address)
         .filter(label_model.label == crawler_label)
+        .filter(label_model.label_data["type"].astext == metric_type)
+        .filter(in_op(label_model.label_data["name"].astext, functions))
         .filter(
-            and_(
-                label_model.label_data["type"].astext == metric_type,
-                in_op(label_model.label_data["name"].astext, functions),
+            label_model.block_timestamp
+            >= cast(extract("epoch", start), label_model.block_timestamp.type)
+        )
+        .filter(
+            label_model.block_timestamp
+            < cast(
+                extract("epoch", (start + timescales_delta[timescale]["timedelta"])),
+                label_model.block_timestamp.type,
             )
         )
+        .group_by(text("timeseries_points"), label_model.label_data["name"].astext)
+        .order_by(text("timeseries_points DESC"))
     )
 
-    if start is not None:
-        label_counts = label_counts.filter(
-            func.to_timestamp(label_model.block_timestamp) > start
-        )
-    if end is not None:
-        label_counts = label_counts.filter(
-            func.to_timestamp(label_model.block_timestamp) < end
-        )
+    with_timetrashold_data = query_data.cte(name="timetrashold_data")
 
-    # split grafics
+    # Get availabel labels
 
-    label_counts_subquery = (
-        label_counts.group_by(
-            text("timeseries_points"), label_model.label_data["name"].astext
-        )
-        .order_by(text("timeseries_points desc"))
-        .subquery(name="label_counts")
+    requested_labels = db_session.query(
+        with_timetrashold_data.c.label.label("label")
+    ).distinct()
+
+    with_requested_labels = requested_labels.cte(name="requested_labels")
+
+    # empty time series
+
+    time_series = db_session.query(
+        func.generate_series(
+            start, start + timescales_delta[timescale]["timedelta"], time_step,
+        ).label("timeseries_points")
     )
 
-    # Join empty tags_time_series with tags count eg apply tags counts to time series.
+    with_time_series = time_series.cte(name="time_series")
+    # empty_times_series_with_tags
+
+    empty_times_series_with_tags = db_session.query(
+        func.to_char(with_time_series.c.timeseries_points, time_format).label(
+            "timeseries_points"
+        ),
+        with_requested_labels.c.label.label("label"),
+    )
+
+    with_empty_times_series_with_tags = empty_times_series_with_tags.cte(
+        name="empty_times_series_with_tags"
+    )
+
+    # fill time series with data
+
     labels_time_series = (
         db_session.query(
-            empty_time_series_subquery.c.timeseries_points.label("timeseries_points"),
-            empty_time_series_subquery.c.label.label("label"),
-            func.coalesce(label_counts_subquery.c.count.label("count"), 0),
+            with_empty_times_series_with_tags.c.timeseries_points.label(
+                "timeseries_points"
+            ),
+            with_empty_times_series_with_tags.c.label.label("label"),
+            with_timetrashold_data.c.count.label("count"),
         )
         .join(
-            label_counts_subquery,
+            with_empty_times_series_with_tags,
             and_(
-                empty_time_series_subquery.c.label == label_counts_subquery.c.label,
-                empty_time_series_subquery.c.timeseries_points
-                == label_counts_subquery.c.timeseries_points,
+                with_empty_times_series_with_tags.c.label
+                == with_timetrashold_data.c.label,
+                with_empty_times_series_with_tags.c.timeseries_points
+                == with_timetrashold_data.c.timeseries_points,
             ),
             isouter=True,
         )
@@ -527,8 +507,7 @@ def generate_web3_metrics(
     abi_external_calls = [item for item in abi_json if item["type"] == "external_call"]
 
     extention_data = process_external(
-        abi_external_calls=abi_external_calls,
-        blockchain=blockchain_type,
+        abi_external_calls=abi_external_calls, blockchain=blockchain_type,
     )
 
     extention_data.append(
@@ -707,10 +686,7 @@ def stats_generate_handler(args: argparse.Namespace):
                         key = subscription_by_id[subscription_id].resource_data[
                             "s3_path"
                         ]
-                        abi = s3_client.get_object(
-                            Bucket=bucket,
-                            Key=key,
-                        )
+                        abi = s3_client.get_object(Bucket=bucket, Key=key,)
                         abi_json = json.loads(abi["Body"].read())
                         methods = generate_list_of_names(
                             type="function",
@@ -820,8 +796,7 @@ def stats_generate_handler(args: argparse.Namespace):
         # result is a {call_hash: value} dictionary.
 
         external_calls_results = process_external_merged(
-            external_calls=merged_external_calls["merged"],
-            blockchain=blockchain_type,
+            external_calls=merged_external_calls["merged"], blockchain=blockchain_type,
         )
 
         for address in address_dashboard_id_subscription_id_tree.keys():
@@ -1049,10 +1024,7 @@ def stats_generate_api_task(
 
                     bucket = subscription_by_id[subscription_id].resource_data["bucket"]
                     key = subscription_by_id[subscription_id].resource_data["s3_path"]
-                    abi = s3_client.get_object(
-                        Bucket=bucket,
-                        Key=key,
-                    )
+                    abi = s3_client.get_object(Bucket=bucket, Key=key,)
                     abi_json = json.loads(abi["Body"].read())
 
                     methods = generate_list_of_names(
