@@ -52,6 +52,7 @@ XDAI_MISSING_SERVICE_FILE="xdai-missing.service"
 XDAI_MISSING_TIMER_FILE="xdai-missing.timer"
 XDAI_STATISTICS_SERVICE_FILE="xdai-statistics.service"
 XDAI_STATISTICS_TIMER_FILE="xdai-statistics.timer"
+XDAI_MOONWORM_CRAWLER_SERVICE_FILE="xdai-moonworm-crawler.service"
 
 set -eu
 
@@ -203,3 +204,11 @@ cp "${SCRIPT_DIR}/${XDAI_STATISTICS_SERVICE_FILE}" "/etc/systemd/system/${XDAI_S
 cp "${SCRIPT_DIR}/${XDAI_STATISTICS_TIMER_FILE}" "/etc/systemd/system/${XDAI_STATISTICS_TIMER_FILE}"
 systemctl daemon-reload
 systemctl restart --no-block "${XDAI_STATISTICS_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing XDai moonworm crawler service definition with ${XDAI_MOONWORM_CRAWLER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${XDAI_MOONWORM_CRAWLER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${XDAI_MOONWORM_CRAWLER_SERVICE_FILE}" "/etc/systemd/system/${XDAI_MOONWORM_CRAWLER_SERVICE_FILE}"
+systemctl daemon-reload
+systemctl restart --no-block "${XDAI_MOONWORM_CRAWLER_SERVICE_FILE}"
