@@ -174,8 +174,8 @@ def main():
         type=str,
         required=True,
         choices=[
-            "ethereum",
-            "polygon",
+            AvailableBlockchainType.ETHEREUM.value,
+            AvailableBlockchainType.POLYGON.value,
         ],
     )
     crawl_parser.add_argument(
