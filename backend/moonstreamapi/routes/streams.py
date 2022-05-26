@@ -81,7 +81,7 @@ async def stream_handler(
     end_time: Optional[int] = Query(None),
     include_start: bool = Query(False),
     include_end: bool = Query(False),
-    db_session: Session = Depends(db.yield_db_read_only_session),
+    db_session: Session = Depends(db.yield_db_session),
 ) -> data.GetEventsResponse:
     """
     Gets all events in the client's stream subject to the constraints defined by the following query
@@ -132,9 +132,7 @@ async def stream_handler(
 
 @router.get("/latest", tags=["streams"])
 async def latest_events_handler(
-    request: Request,
-    q=Query(""),
-    db_session: Session = Depends(db.yield_db_read_only_session),
+    request: Request, q=Query(""), db_session: Session = Depends(db.yield_db_session)
 ) -> List[data.Event]:
     """
     Gets the latest events in the client's stream subject to the constraints defined by the following query
@@ -182,7 +180,7 @@ async def next_event_handler(
     end_time: Optional[int] = Query(None),
     include_start: bool = Query(False),
     include_end: bool = Query(False),
-    db_session: Session = Depends(db.yield_db_read_only_session),
+    db_session: Session = Depends(db.yield_db_session),
 ) -> Optional[data.Event]:
     """
     Gets the next event in the client's stream subject to the constraints defined by the following query
@@ -237,7 +235,7 @@ async def previous_event_handler(
     end_time: Optional[int] = Query(None),
     include_start: bool = Query(False),
     include_end: bool = Query(False),
-    db_session: Session = Depends(db.yield_db_read_only_session),
+    db_session: Session = Depends(db.yield_db_session),
 ) -> Optional[data.Event]:
     """
     Gets the previous event in the client's stream subject to the constraints defined by the following query
