@@ -32,6 +32,7 @@ setup(
     zip_safe=False,
     install_requires=[
         "moonstreamdb",
+        "mooncrawl",
         "humbug",
         "numpy",
         "pandas",

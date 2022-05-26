@@ -26,12 +26,12 @@ from web3.types import BlockData
 
 from .data import AvailableBlockchainType, DateRange
 from .settings import (
-    NB_ACCESS_ID_HEADER,
-    NB_DATA_SOURCE_HEADER,
     MOONSTREAM_CRAWL_WORKERS,
     MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI,
     MOONSTREAM_POLYGON_WEB3_PROVIDER_URI,
     MOONSTREAM_XDAI_WEB3_PROVIDER_URI,
+    NB_ACCESS_ID_HEADER,
+    NB_DATA_SOURCE_HEADER,
 )
 
 logger = logging.getLogger(__name__)
