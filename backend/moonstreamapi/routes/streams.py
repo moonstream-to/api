@@ -132,7 +132,9 @@ async def stream_handler(
 
 @router.get("/latest", tags=["streams"])
 async def latest_events_handler(
-    request: Request, q=Query(""), db_session: Session = Depends(db.yield_db_read_only_session)
+    request: Request,
+    q=Query(""),
+    db_session: Session = Depends(db.yield_db_read_only_session),
 ) -> List[data.Event]:
     """
     Gets the latest events in the client's stream subject to the constraints defined by the following query
