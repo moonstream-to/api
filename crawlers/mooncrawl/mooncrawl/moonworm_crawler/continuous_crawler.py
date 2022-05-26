@@ -250,7 +250,6 @@ def continuous_crawler(
                 ):
                     # Commiting to db
                     commit_session(db_session)
-
                     # Update heartbeat
                     heartbeat_template["last_block"] = end_block
                     heartbeat_template["current_time"] = _date_to_str(current_time)
