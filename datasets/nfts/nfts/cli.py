@@ -5,8 +5,9 @@ import logging
 import os
 import sqlite3
 from shutil import copyfile
-from typing import Optional
+from typing import Optional, Union
 
+from mooncrawl.data import AvailableBlockchainType
 from moonstreamdb.db import yield_db_session_ctx
 from moonstreamdb.models import EthereumLabel, PolygonLabel
 
@@ -53,6 +54,17 @@ def handle_initdb(args: argparse.Namespace) -> None:
         setup_database(conn)
 
 
+def _get_label_model(
+    blockchain: AvailableBlockchainType,
+) -> Union[EthereumLabel, PolygonLabel]:
+    if blockchain == AvailableBlockchainType.ETHEREUM:
+        return EthereumLabel
+    elif blockchain == AvailableBlockchainType.POLYGON:
+        return PolygonLabel
+    else:
+        raise ValueError(f"Unknown blockchain: {blockchain}")
+
+
 def handle_materialize(args: argparse.Namespace) -> None:
 
     if args.start is None or args.end is None:
@@ -65,9 +77,8 @@ def handle_materialize(args: argparse.Namespace) -> None:
     logger.info(f"Materializing NFT events to datastore: {args.datastore}")
     logger.info(f"Block bounds: {bounds}")
 
-    label_model = (
-        EthereumLabel if args.blockchain == Blockchain.ETHEREUM else PolygonLabel
-    )
+    blockchain_type = AvailableBlockchainType(args.blockchain)
+    label_model = _get_label_model(blockchain_type)
 
     with yield_db_session_ctx() as db_session, contextlib.closing(
         sqlite3.connect(args.datastore)
@@ -162,8 +173,8 @@ def main() -> None:
 
     parser_materialize.add_argument(
         "--blockchain",
-        type=Blockchain,
-        choices=[Blockchain.ETHEREUM, Blockchain.POLYGON],
+        type=AvailableBlockchainType,
+        choices=[AvailableBlockchainType.ETHEREUM, AvailableBlockchainType.POLYGON],
         help="Blockchain to use",
     )
 
