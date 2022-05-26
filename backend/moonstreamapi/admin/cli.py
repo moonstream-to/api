@@ -238,7 +238,7 @@ This CLI is configured to work with the following API URLs:
     )
 
     parser_subscription_types_update = subcommands_subscription_types.add_parser(
-        "update", description="Create subscription type"
+        "update", description="Update subscription type"
     )
     parser_subscription_types_update.add_argument(
         "-i", "--id", required=True, type=str, help="ID for the subscription type"

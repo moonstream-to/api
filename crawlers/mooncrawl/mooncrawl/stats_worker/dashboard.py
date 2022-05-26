@@ -37,13 +37,16 @@ logger = logging.getLogger(__name__)
 subscription_ids_by_blockchain = {
     "ethereum": ["ethereum_blockchain", "ethereum_smartcontract"],
     "polygon": ["polygon_blockchain", "polygon_smartcontract"],
+    "xdai": ["xdai_blockchain", "xdai_smartcontract"],
 }
 
 blockchain_by_subscription_id = {
     "ethereum_blockchain": "ethereum",
     "polygon_blockchain": "polygon",
+    "xdai_blockchain": "xdai",
     "ethereum_smartcontract": "ethereum",
     "polygon_smartcontract": "polygon",
+    "xdai_smartcontract": "xdai",
 }
 
 
