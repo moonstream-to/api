@@ -173,10 +173,7 @@ def main():
         "--blockchain_type",
         type=str,
         required=True,
-        choices=[
-            AvailableBlockchainType.ETHEREUM.value,
-            AvailableBlockchainType.POLYGON.value,
-        ],
+        help=f"Available blockchain types: {[member.value for member in AvailableBlockchainType]}",
     )
     crawl_parser.add_argument(
         "--abi",

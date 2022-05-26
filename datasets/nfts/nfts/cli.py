@@ -83,9 +83,7 @@ def handle_materialize(args: argparse.Namespace) -> None:
     with yield_db_session_ctx() as db_session, contextlib.closing(
         sqlite3.connect(args.datastore)
     ) as moonstream_datastore:
-        last_saved_block = get_last_saved_block(
-            moonstream_datastore, args.blockchain.value
-        )
+        last_saved_block = get_last_saved_block(moonstream_datastore, args.blockchain)
         logger.info(f"Last saved block: {last_saved_block}")
         if last_saved_block and last_saved_block >= bounds.starting_block:
             logger.info(
@@ -173,9 +171,8 @@ def main() -> None:
 
     parser_materialize.add_argument(
         "--blockchain",
-        type=AvailableBlockchainType,
-        choices=[AvailableBlockchainType.ETHEREUM, AvailableBlockchainType.POLYGON],
-        help="Blockchain to use",
+        type=str,
+        help=f"Available blockchain types: {[member.value for member in AvailableBlockchainType]}",
     )
 
     parser_materialize.set_defaults(func=handle_materialize)

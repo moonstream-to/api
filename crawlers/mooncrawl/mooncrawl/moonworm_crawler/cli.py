@@ -43,8 +43,6 @@ def handle_crawl(args: argparse.Namespace) -> None:
         f"Initial function call crawl jobs count: {len(initial_function_call_jobs)}"
     )
 
-    # Couldn't figure out how to convert from string to AvailableBlockchainType
-    # AvailableBlockchainType(args.blockchain_type) is not working
     blockchain_type = AvailableBlockchainType(args.blockchain_type)
 
     logger.info(f"Blockchain type: {blockchain_type.value}")
@@ -128,11 +126,7 @@ def main() -> None:
         "--blockchain-type",
         "-b",
         type=str,
-        choices=[
-            AvailableBlockchainType.ETHEREUM.value,
-            AvailableBlockchainType.POLYGON.value,
-        ],
-        required=True,
+        help=f"Available blockchain types: {[member.value for member in AvailableBlockchainType]}",
     )
     crawl_parser.add_argument(
         "--web3",
