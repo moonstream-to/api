@@ -2,7 +2,7 @@ import json
 import logging
 from dataclasses import dataclass
 import time
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Set
 
 import web3
 from eth_typing import ChecksumAddress
@@ -15,8 +15,8 @@ from moonstreamdb.models import (
     PolygonLabel,
     PolygonTransaction,
 )
-from moonworm.crawler.function_call_crawler import ContractFunctionCall, utfy_dict
-from moonworm.crawler.log_scanner import _fetch_events_chunk
+from moonworm.crawler.function_call_crawler import ContractFunctionCall, utfy_dict  # type: ignore
+from moonworm.crawler.log_scanner import _fetch_events_chunk  # type: ignore
 from sqlalchemy.orm.session import Session
 from tqdm import tqdm
 from web3 import Web3
@@ -154,7 +154,7 @@ def process_transaction(
     web3: Web3,
     blockchain_type: AvailableBlockchainType,
     contract: Any,
-    secondary_abi: Dict[str, Any],
+    secondary_abi: List[Dict[str, Any]],
     transaction: Dict[str, Any],
     blocks_cache: Dict[int, int],
 ):
@@ -225,7 +225,7 @@ def _get_transactions(
     db_session: Session,
     web3: Web3,
     blockchain_type: AvailableBlockchainType,
-    transaction_hashes: List[str],
+    transaction_hashes: Set[str],
 ):
     transaction_model = get_transaction_model(blockchain_type)
     transactions = (
@@ -341,7 +341,7 @@ def crawl(
     blockchain_type: AvailableBlockchainType,
     label_name: str,
     abi: Dict[str, Any],
-    secondary_abi: Dict[str, Any],
+    secondary_abi: List[Dict[str, Any]],
     from_block: int,
     to_block: int,
     crawl_transactions: bool = True,
@@ -350,10 +350,10 @@ def crawl(
 ) -> None:
     current_block = from_block
 
-    db_blocks_cache = {}
+    db_blocks_cache: Dict[int, int] = {}
     contract = web3.eth.contract(abi=abi)
     # TODO(yhtiyar): load checkpoint
-    events_abi = [item for item in abi if item["type"] == "event"]
+    events_abi = [item for item in abi if item["type"] == "event"]  # type: ignore
 
     pbar = tqdm(total=(to_block - from_block + 1))
     pbar.set_description(f"Crawling blocks {from_block}-{to_block}")
