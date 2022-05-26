@@ -232,9 +232,6 @@ def continuous_crawler(
                     db_session, all_function_calls, blockchain_type
                 )
 
-                # Commiting to db
-                commit_session(db_session)
-
                 current_time = datetime.utcnow()
 
                 if current_time - jobs_refetchet_time > timedelta(
@@ -251,7 +248,8 @@ def continuous_crawler(
                 if current_time - last_heartbeat_time > timedelta(
                     seconds=heartbeat_interval
                 ):
-
+                    # Commiting to db
+                    commit_session(db_session)
                     # Update heartbeat
                     heartbeat_template["last_block"] = end_block
                     heartbeat_template["current_time"] = _date_to_str(current_time)
