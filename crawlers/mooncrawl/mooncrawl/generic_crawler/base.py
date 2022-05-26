@@ -1,8 +1,8 @@
 import json
 import logging
-from dataclasses import dataclass
 import time
-from typing import Any, Dict, List, Optional, Union, Set
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Set, Union
 
 import web3
 from eth_typing import ChecksumAddress
@@ -15,7 +15,10 @@ from moonstreamdb.models import (
     PolygonLabel,
     PolygonTransaction,
 )
-from moonworm.crawler.function_call_crawler import ContractFunctionCall, utfy_dict  # type: ignore
+from moonworm.crawler.function_call_crawler import (  # type: ignore
+    ContractFunctionCall,
+    utfy_dict,
+)
 from moonworm.crawler.log_scanner import _fetch_events_chunk  # type: ignore
 from sqlalchemy.orm.session import Session
 from tqdm import tqdm

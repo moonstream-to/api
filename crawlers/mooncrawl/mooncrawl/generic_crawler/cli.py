@@ -1,12 +1,14 @@
 import argparse
+import json
 import logging
 from typing import Optional
 
 from moonstreamdb.db import yield_db_session_ctx
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
-import json
+
 from mooncrawl.data import AvailableBlockchainType  # type: ignore
+
 from ..blockchain import connect
 from .base import crawl, get_checkpoint, populate_with_events
 

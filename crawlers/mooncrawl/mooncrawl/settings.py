@@ -1,9 +1,8 @@
 import os
-from typing import cast, Optional
+from typing import Optional, cast
 from uuid import UUID
 
 from bugout.app import Bugout
-
 
 BUGOUT_RESOURCE_TYPE_SUBSCRIPTION = "subscription"
 BUGOUT_RESOURCE_TYPE_DASHBOARD = "dashboards"

@@ -23,7 +23,7 @@ from .blockchain import (
 )
 from .data import AvailableBlockchainType
 from .publish import publish_json
-from .settings import NB_CONTROLLER_ACCESS_ID, MOONSTREAM_CRAWL_WORKERS
+from .settings import MOONSTREAM_CRAWL_WORKERS, NB_CONTROLLER_ACCESS_ID
 from .version import MOONCRAWL_VERSION
 
 logging.basicConfig(level=logging.INFO)
