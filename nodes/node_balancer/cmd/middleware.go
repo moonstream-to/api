@@ -89,7 +89,6 @@ func (ac *AccessCache) Cleanup() (int64, int64) {
 	tsNow := time.Now().Unix()
 	ac.mux.Lock()
 	for aId, aData := range ac.accessIds {
-		fmt.Println(tsNow, aData.LastAccessTs, configs.NB_CACHE_ACCESS_ID_LIFETIME)
 		if tsNow-aData.LastAccessTs > configs.NB_CACHE_ACCESS_ID_LIFETIME {
 			delete(ac.accessIds, aId)
 			removedAccessIds++
