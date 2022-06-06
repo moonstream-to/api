@@ -184,10 +184,16 @@ func logMiddleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 
-		ip, _, err := net.SplitHostPort(r.RemoteAddr)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable to parse client IP: %s", r.RemoteAddr), http.StatusBadRequest)
-			return
+		var ip string
+		realIp := r.Header["X-Real-Ip"]
+		if len(realIp) == 0 {
+			ip, _, err = net.SplitHostPort(r.RemoteAddr)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("Unable to parse client IP: %s", r.RemoteAddr), http.StatusBadRequest)
+				return
+			}
+		} else {
+			ip = realIp[0]
 		}
 		logStr := fmt.Sprintf("%s %s %s", ip, r.Method, r.URL.Path)
 
