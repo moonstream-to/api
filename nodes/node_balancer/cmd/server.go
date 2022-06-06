@@ -104,6 +104,9 @@ func Server() {
 	// Generate map of clients
 	CreateClientPools()
 
+	// Create Access ID cache
+	CreateAccessCache()
+
 	// Configure Humbug reporter to handle errors
 	var err error
 	sessionID := uuid.New().String()

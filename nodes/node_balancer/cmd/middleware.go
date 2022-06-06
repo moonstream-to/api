@@ -1,5 +1,5 @@
 /*
-Server API middlewares.
+Server API middleware.
 */
 package cmd
 
@@ -13,11 +13,76 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/bugout-dev/moonstream/nodes/node_balancer/configs"
 
 	humbug "github.com/bugout-dev/humbug/go/pkg"
 )
+
+var (
+	accessIdCache AccessCache
+)
+
+type AccessCache struct {
+	accessIds map[string]ClientResourceData
+
+	mux sync.RWMutex
+}
+
+func CreateAccessCache() {
+	accessIdCache = AccessCache{
+		accessIds: make(map[string]ClientResourceData),
+	}
+}
+
+// Get access id from cache if exists
+func (ac *AccessCache) FindAccessIdInCache(accessId string) string {
+	// tsNow = time.Now().Unix()
+	var searchAccessId string
+
+	ac.mux.RLock()
+	for id, _ := range ac.accessIds {
+		if id == accessId {
+			searchAccessId = id
+			break
+		}
+	}
+	ac.mux.RUnlock()
+
+	return searchAccessId
+}
+
+// Update last call access timestamp and datasource for access id
+func (ac *AccessCache) UpdateAccessIdAtCache(accessId, dataSource string) {
+	ac.mux.Lock()
+	if accessData, ok := ac.accessIds[accessId]; ok {
+		accessData.LastAccessTs = time.Now().Unix()
+		accessData.dataSource = dataSource
+
+		ac.accessIds[accessId] = accessData
+	}
+	ac.mux.Unlock()
+}
+
+// Add new access id with data to cache
+func (ac *AccessCache) AddAccessIdToCache(clientResourceData ClientResourceData, dataSource string) {
+	ac.mux.Lock()
+	ac.accessIds[clientResourceData.AccessID] = ClientResourceData{
+		UserID:           clientResourceData.UserID,
+		AccessID:         clientResourceData.AccessID,
+		Name:             clientResourceData.Name,
+		Description:      clientResourceData.Description,
+		BlockchainAccess: clientResourceData.BlockchainAccess,
+		ExtendedMethods:  clientResourceData.ExtendedMethods,
+
+		LastAccessTs: time.Now().Unix(),
+
+		dataSource: dataSource,
+	}
+	ac.mux.Unlock()
+}
 
 // Extract access_id from header and query. Query takes precedence over header.
 func extractAccessID(r *http.Request) string {
@@ -134,11 +199,25 @@ func accessMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		// If access id does not belong to internal crawlers, then find it in Bugout resources
+		// If access id does not belong to internal crawlers, then check cache or find it in Bugout resources
 		if accessID == configs.NB_CONTROLLER_ACCESS_ID {
+			if stateCLI.enableDebugFlag {
+				log.Printf("Access id belongs to internal crawlers")
+			}
 			currentClientAccess = internalCrawlersAccess
 			currentClientAccess.dataSource = dataSource
+		} else if accessIdCache.FindAccessIdInCache(accessID) != "" {
+			if stateCLI.enableDebugFlag {
+				log.Printf("Access id found in cache")
+			}
+			// Access id found in cache
+			currentClientAccess = accessIdCache.accessIds[accessID]
+			currentClientAccess.dataSource = dataSource
+			accessIdCache.UpdateAccessIdAtCache(accessID, dataSource)
 		} else {
+			if stateCLI.enableDebugFlag {
+				log.Printf("New access id, looking at Brood resources")
+			}
 			resources, err := bugoutClient.Brood.GetResources(
 				configs.NB_CONTROLLER_TOKEN,
 				configs.NB_APPLICATION_ID,
@@ -173,6 +252,8 @@ func accessMiddleware(next http.Handler) http.Handler {
 
 				dataSource: dataSource,
 			}
+
+			accessIdCache.AddAccessIdToCache(clientResourceData, dataSource)
 		}
 
 		ctxUser := context.WithValue(r.Context(), "currentClientAccess", currentClientAccess)
