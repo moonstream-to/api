@@ -104,6 +104,9 @@ func Server() {
 	// Generate map of clients
 	CreateClientPools()
 
+	// Create Access ID cache
+	CreateAccessCache()
+
 	// Configure Humbug reporter to handle errors
 	var err error
 	sessionID := uuid.New().String()
@@ -218,6 +221,9 @@ func Server() {
 	if stateCLI.enableHealthCheckFlag {
 		go initHealthCheck(stateCLI.enableDebugFlag)
 	}
+
+	// Start access id cache cleaning
+	go initCacheCleaning(stateCLI.enableDebugFlag)
 
 	log.Printf("Starting node load balancer HTTP server at %s:%s\n", stateCLI.listeningAddrFlag, stateCLI.listeningPortFlag)
 	err = server.ListenAndServe()

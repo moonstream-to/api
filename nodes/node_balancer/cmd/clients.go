@@ -23,6 +23,8 @@ type ClientResourceData struct {
 	Description      string `json:"description"`
 	BlockchainAccess bool   `json:"blockchain_access"`
 	ExtendedMethods  bool   `json:"extended_methods"`
+	
+	LastAccessTs int64 `json:"last_access_ts"`
 
 	dataSource string
 }
