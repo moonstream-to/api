@@ -39,19 +39,18 @@ func CreateAccessCache() {
 
 // Get access id from cache if exists
 func (ac *AccessCache) FindAccessIdInCache(accessId string) string {
-	// tsNow = time.Now().Unix()
-	var searchAccessId string
+	var detectedId string
 
 	ac.mux.RLock()
-	for id, _ := range ac.accessIds {
+	for id := range ac.accessIds {
 		if id == accessId {
-			searchAccessId = id
+			detectedId = id
 			break
 		}
 	}
 	ac.mux.RUnlock()
 
-	return searchAccessId
+	return detectedId
 }
 
 // Update last call access timestamp and datasource for access id
@@ -82,6 +81,38 @@ func (ac *AccessCache) AddAccessIdToCache(clientResourceData ClientResourceData,
 		dataSource: dataSource,
 	}
 	ac.mux.Unlock()
+}
+
+// Check each access id in cache if it exceeds lifetime
+func (ac *AccessCache) Cleanup() (int64, int64) {
+	var removedAccessIds, totalAccessIds int64
+	tsNow := time.Now().Unix()
+	ac.mux.Lock()
+	for aId, aData := range ac.accessIds {
+		fmt.Println(tsNow, aData.LastAccessTs, configs.NB_CACHE_ACCESS_ID_LIFETIME)
+		if tsNow-aData.LastAccessTs > configs.NB_CACHE_ACCESS_ID_LIFETIME {
+			delete(ac.accessIds, aId)
+			removedAccessIds++
+		} else {
+			totalAccessIds++
+		}
+	}
+	ac.mux.Unlock()
+	return removedAccessIds, totalAccessIds
+}
+
+func initCacheCleaning(debug bool) {
+	t := time.NewTicker(configs.NB_CACHE_CLEANING_INTERVAL)
+	for {
+		select {
+		case <-t.C:
+			removedAccessIds, totalAccessIds := accessIdCache.Cleanup()
+			if debug {
+				log.Printf("Removed %d elements from access id cache", removedAccessIds)
+			}
+			log.Printf("Elements in access id cache: %d", totalAccessIds)
+		}
+	}
 }
 
 // Extract access_id from header and query. Query takes precedence over header.
@@ -210,7 +241,6 @@ func accessMiddleware(next http.Handler) http.Handler {
 			if stateCLI.enableDebugFlag {
 				log.Printf("Access id found in cache")
 			}
-			// Access id found in cache
 			currentClientAccess = accessIdCache.accessIds[accessID]
 			currentClientAccess.dataSource = dataSource
 			accessIdCache.UpdateAccessIdAtCache(accessID, dataSource)
