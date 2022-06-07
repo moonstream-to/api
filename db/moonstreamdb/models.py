@@ -5,6 +5,7 @@ from sqlalchemy import (
     BigInteger,
     Column,
     DateTime,
+    Index,
     Integer,
     ForeignKey,
     MetaData,
@@ -132,21 +133,9 @@ class EthereumLabel(Base):  # type: ignore
         nullable=False,
     )
     label = Column(VARCHAR(256), nullable=False, index=True)
-    block_number = Column(
-        BigInteger,
-        nullable=True,
-        index=True,
-    )
-    address = Column(
-        VARCHAR(256),
-        nullable=True,
-        index=True,
-    )
-    transaction_hash = Column(
-        VARCHAR(256),
-        nullable=True,
-        index=True,
-    )
+    block_number = Column(BigInteger, nullable=True, index=True,)
+    address = Column(VARCHAR(256), nullable=True, index=True,)
+    transaction_hash = Column(VARCHAR(256), nullable=True, index=True,)
     label_data = Column(JSONB, nullable=True)
     block_timestamp = Column(BigInteger, index=True)
     log_index = Column(Integer, nullable=True)
@@ -230,6 +219,21 @@ class PolygonLabel(Base):  # type: ignore
 
     __tablename__ = "polygon_labels"
 
+    __table_args__ = (
+        Index(
+            "ix_polygon_labels_address_block_number",
+            "address",
+            "block_number",
+            unique=False,
+        ),
+        Index(
+            "ix_polygon_labels_address_block_timestamp",
+            "address",
+            "block_timestamp",
+            unique=False,
+        ),
+    )
+
     id = Column(
         UUID(as_uuid=True),
         primary_key=True,
@@ -238,36 +242,15 @@ class PolygonLabel(Base):  # type: ignore
         nullable=False,
     )
     label = Column(VARCHAR(256), nullable=False, index=True)
-    block_number = Column(
-        BigInteger,
-        nullable=True,
-        index=True,
-    )
-    address = Column(
-        VARCHAR(256),
-        nullable=True,
-        index=True,
-    )
-    transaction_hash = Column(
-        VARCHAR(256),
-        nullable=True,
-        index=True,
-    )
+    block_number = Column(BigInteger, nullable=True, index=True,)
+    address = Column(VARCHAR(256), nullable=True, index=True,)
+    transaction_hash = Column(VARCHAR(256), nullable=True, index=True,)
     label_data = Column(JSONB, nullable=True)
     block_timestamp = Column(BigInteger, index=True)
     log_index = Column(Integer, nullable=True)
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )
-
-    # Undescribed indexes
-    """
-    Migration: alembic\versions\5f5b8f19570f_added_index_for_address_type_and_name_.py
-
-    Index: "ix_polygon_labels_address_label_label_data_type_and_name" created manually.
-    By fields: (address, label, (label_data->>'type'), (label_data->>'name'))
-    Reason: https://github.com/sqlalchemy/alembic/issues/469#issuecomment-441887478
-    """
 
 
 class XDaiBlock(Base):  # type: ignore
@@ -357,21 +340,9 @@ class XDaiLabel(Base):  # type: ignore
         nullable=False,
     )
     label = Column(VARCHAR(256), nullable=False, index=True)
-    block_number = Column(
-        BigInteger,
-        nullable=True,
-        index=True,
-    )
-    address = Column(
-        VARCHAR(256),
-        nullable=True,
-        index=True,
-    )
-    transaction_hash = Column(
-        VARCHAR(256),
-        nullable=True,
-        index=True,
-    )
+    block_number = Column(BigInteger, nullable=True, index=True,)
+    address = Column(VARCHAR(256), nullable=True, index=True,)
+    transaction_hash = Column(VARCHAR(256), nullable=True, index=True,)
     label_data = Column(JSONB, nullable=True)
     block_timestamp = Column(BigInteger, index=True)
     log_index = Column(Integer, nullable=True)
