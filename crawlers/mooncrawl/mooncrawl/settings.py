@@ -1,9 +1,8 @@
 import os
-from typing import cast, Optional
+from typing import Optional, cast
 from uuid import UUID
 
 from bugout.app import Bugout
-
 
 BUGOUT_RESOURCE_TYPE_SUBSCRIPTION = "subscription"
 BUGOUT_RESOURCE_TYPE_DASHBOARD = "dashboards"
@@ -37,11 +36,18 @@ MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI = os.environ.get(
 )
 if MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI == "":
     raise Exception("MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI env variable is not set")
+
 MOONSTREAM_POLYGON_WEB3_PROVIDER_URI = os.environ.get(
     "MOONSTREAM_POLYGON_WEB3_PROVIDER_URI", ""
 )
 if MOONSTREAM_POLYGON_WEB3_PROVIDER_URI == "":
     raise Exception("MOONSTREAM_POLYGON_WEB3_PROVIDER_URI env variable is not set")
+
+MOONSTREAM_XDAI_WEB3_PROVIDER_URI = os.environ.get(
+    "MOONSTREAM_XDAI_WEB3_PROVIDER_URI", ""
+)
+if MOONSTREAM_XDAI_WEB3_PROVIDER_URI == "":
+    raise Exception("MOONSTREAM_XDAI_WEB3_PROVIDER_URI env variable is not set")
 
 MOONSTREAM_CRAWL_WORKERS = 4
 MOONSTREAM_CRAWL_WORKERS_RAW = os.environ.get("MOONSTREAM_CRAWL_WORKERS")

@@ -19,18 +19,14 @@ from sqlalchemy.orm import Query, Session
 from sqlalchemy.sql.operators import in_op
 from web3 import Web3
 
-from ..blockchain import (
-    connect,
-    get_label_model,
-    get_transaction_model,
-)
+from ..blockchain import connect, get_label_model, get_transaction_model
 from ..data import AvailableBlockchainType
 from ..reporter import reporter
 from ..settings import (
     CRAWLER_LABEL,
-    NB_CONTROLLER_ACCESS_ID,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
+    NB_CONTROLLER_ACCESS_ID,
 )
 from ..settings import bugout_client as bc
 
@@ -41,13 +37,16 @@ logger = logging.getLogger(__name__)
 subscription_ids_by_blockchain = {
     "ethereum": ["ethereum_blockchain", "ethereum_smartcontract"],
     "polygon": ["polygon_blockchain", "polygon_smartcontract"],
+    "xdai": ["xdai_blockchain", "xdai_smartcontract"],
 }
 
 blockchain_by_subscription_id = {
     "ethereum_blockchain": "ethereum",
     "polygon_blockchain": "polygon",
+    "xdai_blockchain": "xdai",
     "ethereum_smartcontract": "ethereum",
     "polygon_smartcontract": "polygon",
+    "xdai_smartcontract": "xdai",
 }
 
 
