@@ -14,6 +14,7 @@ RestartSec=15s
 ExecStart=/home/ubuntu/moonstream-env/bin/python -m mooncrawl.moonworm_crawler.cli \
     --access-id "${NB_CONTROLLER_ACCESS_ID}" \
     crawl -b xdai --start 21704746
+CPUWeight=70
 SyslogIdentifier=xdai-moonworm-crawler
 
 [Install]
