@@ -59,6 +59,11 @@ def data_generate(
 
     with yield_db_read_only_session_ctx() as db_session:
 
+        try:
+            db_session.execute("SELECT 1")
+        except Exception as e:
+            db_session.rollback()
+
         if file_type == "csv":
             csv_buffer = StringIO()
             csv_writer = csv.writer(csv_buffer, delimiter=";")

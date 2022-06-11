@@ -11,8 +11,8 @@ from web3 import Web3
 
 from ..blockchain import connect
 from ..data import AvailableBlockchainType
-from .deployment_crawler import ContractDeploymentCrawler, MoonstreamDataStore
 from ..settings import NB_CONTROLLER_ACCESS_ID
+from .deployment_crawler import ContractDeploymentCrawler, MoonstreamDataStore
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

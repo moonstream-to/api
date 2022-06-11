@@ -461,3 +461,10 @@ PolygonTransactions = TransactionsProvider(
     description="Provider for resiving transactions from Polygon tables.",
     streamboaundary_range_limit=2 * 60 * 60,
 )
+
+XDaiTransactions = TransactionsProvider(
+    event_type="xdai_blockchain",
+    blockchain=AvailableBlockchainType("xdai"),
+    description="Provider for resiving transactions from XDai tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)

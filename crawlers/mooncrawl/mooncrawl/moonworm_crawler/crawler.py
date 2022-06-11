@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 class SubscriptionTypes(Enum):
     POLYGON_BLOCKCHAIN = "polygon_smartcontract"
     ETHEREUM_BLOCKCHAIN = "ethereum_smartcontract"
+    XDAI_BLOCKCHAIN = "xdai_smartcontract"
 
 
 def abi_input_signature(input_abi: Dict[str, Any]) -> str:
@@ -99,6 +100,8 @@ def blockchain_type_to_subscription_type(
         return SubscriptionTypes.ETHEREUM_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.POLYGON:
         return SubscriptionTypes.POLYGON_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.XDAI:
+        return SubscriptionTypes.XDAI_BLOCKCHAIN
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 

@@ -19,6 +19,7 @@ logger.setLevel(logging.WARN)
 
 ethereum_event_type = "ethereum_blockchain"
 polygon_event_type = "polygon_blockchain"
+xdai_event_type = "xdai_blockchain"
 allowed_tags = ["tag:erc721"]
 
 description = f"""Event provider for transactions from the Ethereum blockchain.
@@ -400,5 +401,12 @@ PolygonMoonwormProvider = MoonwormProvider(
     event_type="polygon_smartcontract",
     blockchain=AvailableBlockchainType("polygon"),
     description="Provider for resiving transactions from Polygon tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
+XDaiMoonwormProvider = MoonwormProvider(
+    event_type="xdai_smartcontract",
+    blockchain=AvailableBlockchainType("xdai"),
+    description="Provider for resiving transactions from XDai tables.",
     streamboaundary_range_limit=2 * 60 * 60,
 )

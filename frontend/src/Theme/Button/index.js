@@ -116,7 +116,6 @@ const variantGhost = (props) => {
 
 const variantOrangeAndBlue = () => {
   return {
-    minW: ["200px", "250px", "250px", "300px", "350px", "400px"],
     alignItems: "center",
     justifyContent: "center",
     border: "solid transparent",
@@ -126,7 +125,6 @@ const variantOrangeAndBlue = () => {
     variant: "solid",
     textColor: "blue.1200",
     bg: `orange.900`,
-    fontSize: ["lg", "xl", "2xl", "3xl", "4xl", "4xl"],
     py: [4, 6, 6, 8, 8],
     px: [4, 4, 4, 8, 8],
   };
