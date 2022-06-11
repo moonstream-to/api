@@ -14,6 +14,7 @@ RestartSec=15s
 ExecStart=/home/ubuntu/moonstream/crawlers/txpool/txpool \
     -blockchain ethereum \
     -access-id "${NB_CONTROLLER_ACCESS_ID}"
+CPUWeight=30
 SyslogIdentifier=ethereum-txpool
 
 [Install]
