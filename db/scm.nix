@@ -4,7 +4,7 @@ let
         (getEnv "SCM_GIT")
         (fetchGit {
             url = "git@gitlab.com:deltaex/schematic.git";
-            rev = "0d9227335ad83e0ed9a62d82375c1e85aadcc08d";
+            rev = "ba5d7b40255e5da9a74e666dd88e309dae40fbd2";
         })
     ];
     scm_repo = head (filter (x: x != "") scm_repos);
@@ -15,7 +15,7 @@ let
             (getEnv "MDP_GIT")
             (fetchGit {
                 url = "git@gitlab.com:mixrank/mdp.git";
-                rev = "76707e9d08178633471fa3c98ef1b08e1e7bbb1c";
+                rev = "113712ac0e87c46b4021ab90e2cd63af575bea5d";
             })
         ] ++ scm_repos;
     });
