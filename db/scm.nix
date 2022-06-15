@@ -15,7 +15,7 @@ let
             (getEnv "MDP_GIT")
             (fetchGit {
                 url = "git@gitlab.com:mixrank/mdp.git";
-                rev = "113712ac0e87c46b4021ab90e2cd63af575bea5d";
+                rev = "57e5d9903235a171c5be76ebb876d66215e2ed7c";
             })
         ] ++ scm_repos;
     });
