@@ -11,4 +11,5 @@ EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
 ExecStart=/home/ubuntu/moonstream-env/bin/python -m mooncrawl.stats_worker.dashboard \
     --access-id "${NB_CONTROLLER_ACCESS_ID}" \
     generate --blockchain xdai
+CPUWeight=60
 SyslogIdentifier=xdai-statistics
