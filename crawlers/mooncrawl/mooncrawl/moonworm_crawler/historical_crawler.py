@@ -1,5 +1,4 @@
 import logging
-import logging
 import time
 from typing import Dict, List, Optional, Tuple
 from uuid import UUID
@@ -12,15 +11,10 @@ from sqlalchemy.orm.session import Session
 from web3 import Web3
 
 from ..data import AvailableBlockchainType
-from .crawler import (
-    EventCrawlJob,
-    FunctionCallCrawlJob,
-    _retry_connect_web3,
-)
+from .crawler import EventCrawlJob, FunctionCallCrawlJob, _retry_connect_web3
 from .db import add_events_to_session, add_function_calls_to_session, commit_session
 from .event_crawler import _crawl_events
 from .function_call_crawler import _crawl_functions
-
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

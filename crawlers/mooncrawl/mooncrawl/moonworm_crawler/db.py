@@ -1,7 +1,6 @@
 import logging
 from typing import Any, Dict, List, Optional, Union
 
-
 from moonstreamdb.models import Base
 from moonworm.crawler.function_call_crawler import ContractFunctionCall  # type: ignore
 from sqlalchemy.orm import Session

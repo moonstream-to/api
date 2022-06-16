@@ -10,7 +10,6 @@ from web3.middleware import geth_poa_middleware
 from ..blockchain import AvailableBlockchainType
 from ..settings import MOONSTREAM_MOONWORM_TASKS_JOURNAL, NB_CONTROLLER_ACCESS_ID
 from .continuous_crawler import _retry_connect_web3, continuous_crawler
-from .historical_crawler import historical_crawler
 from .crawler import (
     SubscriptionTypes,
     blockchain_type_to_subscription_type,
@@ -19,6 +18,7 @@ from .crawler import (
     make_function_call_crawl_jobs,
 )
 from .db import get_first_labeled_block_number, get_last_labeled_block_number
+from .historical_crawler import historical_crawler
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

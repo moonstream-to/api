@@ -17,6 +17,7 @@ from ..data import AvailableBlockchainType
 from .crawler import (
     EventCrawlJob,
     FunctionCallCrawlJob,
+    _retry_connect_web3,
     blockchain_type_to_subscription_type,
     get_crawl_job_entries,
     heartbeat,
@@ -24,7 +25,6 @@ from .crawler import (
     make_function_call_crawl_jobs,
     merge_event_crawl_jobs,
     merge_function_call_crawl_jobs,
-    _retry_connect_web3,
 )
 from .db import add_events_to_session, add_function_calls_to_session, commit_session
 from .event_crawler import _crawl_events
