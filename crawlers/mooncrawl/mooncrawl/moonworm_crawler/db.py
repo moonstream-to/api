@@ -1,24 +1,14 @@
 import logging
 from typing import Any, Dict, List, Optional, Union
 
-from eth_typing.evm import ChecksumAddress
-from hexbytes.main import HexBytes
-from moonstreamdb.db import yield_db_session_ctx
-from moonstreamdb.models import (
-    Base,
-    EthereumLabel,
-    EthereumTransaction,
-    PolygonLabel,
-    PolygonTransaction,
-)
+
+from moonstreamdb.models import Base
 from moonworm.crawler.function_call_crawler import ContractFunctionCall  # type: ignore
 from sqlalchemy.orm import Session
-from sqlalchemy.sql.expression import label
 
-from ..blockchain import connect, get_block_model, get_label_model
+from ..blockchain import get_label_model
 from ..data import AvailableBlockchainType
 from ..settings import CRAWLER_LABEL
-from .crawler import FunctionCallCrawlJob, _generate_reporter_callback
 from .event_crawler import Event
 
 logging.basicConfig(level=logging.INFO)
@@ -91,6 +81,25 @@ def get_last_labeled_block_number(
     )
 
     return block_number[0] if block_number else None
+
+
+def get_first_labeled_block_number(
+    db_session: Session,
+    blockchain_type: AvailableBlockchainType,
+    address: str,
+    label_name=CRAWLER_LABEL,
+) -> Optional[int]:
+    label_model = get_label_model(blockchain_type)
+
+    block_numbers = (
+        db_session.query(label_model.block_number)
+        .filter(label_model.label == label_name)
+        .filter(label_model.address == address)
+        .order_by(label_model.block_number.asc())
+        .limit(15)
+        .all()
+    )
+    return block_numbers[0][0] if block_numbers else None
 
 
 def commit_session(db_session: Session) -> None:
