@@ -7,4 +7,6 @@ PROGRAM_NAME="moonstreamdb"
 
 go build -o "$PROGRAM_NAME" .
 
-aws s3 cp "$PROGRAM_NAME" "s3://bugout-binaries/prod/moonstream/db/$PROGRAM_NAME"
+sha256sum moonstreamdb > moonstreamdb.checksum
+
+aws s3 cp "$PROGRAM_NAME" "s3://bugout-binaries-public/prod/moonstream/db/$PROGRAM_NAME"
