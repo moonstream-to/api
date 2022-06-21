@@ -808,9 +808,6 @@ def stats_generate_handler(args: argparse.Namespace):
 
             crawler_label = CRAWLER_LABEL
 
-            if address in ("0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",):
-                crawler_label = "moonworm"
-
             for timescale in [timescale.value for timescale in TimeScale]:
                 try:
                     start_date = (
