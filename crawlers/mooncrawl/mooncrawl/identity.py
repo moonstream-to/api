@@ -47,7 +47,7 @@ def identities_cmc_add_handler(args: argparse.Namespace) -> None:
             "listing_status": args.listing_status,
         }
         try:
-            r = requests.get(url=url, headers=headers, params=params)
+            r = requests.get(url=url, headers=headers, params=params)  # type: ignore
             r.raise_for_status()
             response = r.json()
         except Exception as err:
