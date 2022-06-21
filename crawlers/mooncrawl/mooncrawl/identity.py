@@ -2,6 +2,7 @@ import argparse
 import logging
 import os
 import time
+from typing import Any
 
 import requests
 from moonstreamdb.db import yield_db_session_ctx
@@ -25,7 +26,7 @@ def identities_cmc_add_handler(args: argparse.Namespace) -> None:
     """
     Parse metadata for Ethereum tokens.
     """
-    headers = {
+    headers: Any = {
         "X-CMC_PRO_API_KEY": COINMARKETCAP_API_KEY,
         "Accept": "application/json",
         "Accept-Encoding": "deflate, gzip",

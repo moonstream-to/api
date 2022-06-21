@@ -8,7 +8,7 @@ import logging
 import time
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Union
+from typing import Any, Callable, Dict, List, Union, Optional
 from uuid import UUID
 
 import traceback
@@ -21,17 +21,14 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql.operators import in_op
 from web3 import Web3
 
-from ..blockchain import (
-    connect,
-    get_label_model,
-    get_transaction_model,
-)
+from ..blockchain import connect, get_label_model, get_transaction_model
 from ..data import AvailableBlockchainType
 from ..reporter import reporter
 from ..settings import (
     CRAWLER_LABEL,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
+    NB_CONTROLLER_ACCESS_ID,
 )
 from ..settings import bugout_client as bc
 
@@ -42,13 +39,16 @@ logger = logging.getLogger(__name__)
 subscription_ids_by_blockchain = {
     "ethereum": ["ethereum_blockchain", "ethereum_smartcontract"],
     "polygon": ["polygon_blockchain", "polygon_smartcontract"],
+    "xdai": ["xdai_blockchain", "xdai_smartcontract"],
 }
 
 blockchain_by_subscription_id = {
     "ethereum_blockchain": "ethereum",
     "polygon_blockchain": "polygon",
+    "xdai_blockchain": "xdai",
     "ethereum_smartcontract": "ethereum",
     "polygon_smartcontract": "polygon",
+    "xdai_smartcontract": "xdai",
 }
 
 
@@ -334,7 +334,9 @@ def generate_list_of_names(
 
 
 def process_external_merged(
-    external_calls: Dict[str, Dict[str, Any]], blockchain: AvailableBlockchainType
+    external_calls: Dict[str, Dict[str, Any]],
+    blockchain: AvailableBlockchainType,
+    access_id=access_id,
 ):
     """
     Process external calls
@@ -380,7 +382,7 @@ def process_external_merged(
             logger.error(f"Error processing external call: {e}")
 
     if external_calls_normalized:
-        web3_client = connect(blockchain)
+        web3_client = connect(blockchain, access_id=access_id)
 
     for extcall in external_calls_normalized:
         try:
@@ -399,7 +401,9 @@ def process_external_merged(
 
 
 def process_external(
-    abi_external_calls: List[Dict[str, Any]], blockchain: AvailableBlockchainType
+    abi_external_calls: List[Dict[str, Any]],
+    blockchain: AvailableBlockchainType,
+    access_id: Optional[UUID] = None,
 ):
     """
     Request all required external data
@@ -445,7 +449,7 @@ def process_external(
             logger.error(f"Error processing external call: {e}")
 
     if external_calls:
-        web3_client = connect(blockchain)
+        web3_client = connect(blockchain, access_id=access_id)
 
     for extcall in external_calls:
         try:
@@ -496,6 +500,7 @@ def generate_web3_metrics(
     address: str,
     crawler_label: str,
     abi_json: Any,
+    access_id: Optional[UUID] = None,
 ) -> List[Any]:
     """
     Generate stats for cards components
@@ -506,7 +511,9 @@ def generate_web3_metrics(
     abi_external_calls = [item for item in abi_json if item["type"] == "external_call"]
 
     extention_data = process_external(
-        abi_external_calls=abi_external_calls, blockchain=blockchain_type,
+        abi_external_calls=abi_external_calls,
+        blockchain=blockchain_type,
+        access_id=access_id,
     )
 
     extention_data.append(
@@ -795,7 +802,9 @@ def stats_generate_handler(args: argparse.Namespace):
         # result is a {call_hash: value} dictionary.
 
         external_calls_results = process_external_merged(
-            external_calls=merged_external_calls["merged"], blockchain=blockchain_type,
+            external_calls=merged_external_calls["merged"],
+            blockchain=blockchain_type,
+            access_id=access_id,
         )
 
         for address in address_dashboard_id_subscription_id_tree.keys():
@@ -971,6 +980,7 @@ def stats_generate_api_task(
     timescales: List[str],
     dashboard: BugoutResource,
     subscription_by_id: Dict[str, BugoutResource],
+    access_id: Optional[UUID] = None,
 ):
     """
     Start crawler with generate.
@@ -1045,6 +1055,7 @@ def stats_generate_api_task(
                     address=address,
                     crawler_label=crawler_label,
                     abi_json=abi_json,
+                    access_id=access_id,
                 )
 
                 # Generate blocks state information
@@ -1119,6 +1130,14 @@ def stats_generate_api_task(
 def main() -> None:
     parser = argparse.ArgumentParser(description="Command Line Interface")
     parser.set_defaults(func=lambda _: parser.print_help())
+
+    parser.add_argument(
+        "--access-id",
+        default=NB_CONTROLLER_ACCESS_ID,
+        type=UUID,
+        help="User access ID",
+    )
+
     subcommands = parser.add_subparsers(
         description="Drone dashboard statistics commands"
     )

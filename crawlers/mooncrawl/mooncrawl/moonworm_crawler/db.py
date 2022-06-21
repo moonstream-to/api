@@ -25,13 +25,15 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def _event_to_label(blockchain_type: AvailableBlockchainType, event: Event) -> Base:
+def _event_to_label(
+    blockchain_type: AvailableBlockchainType, event: Event, label_name=CRAWLER_LABEL
+) -> Base:
     """
     Creates a label model.
     """
     label_model = get_label_model(blockchain_type)
     label = label_model(
-        label=CRAWLER_LABEL,
+        label=label_name,
         label_data={
             "type": "event",
             "name": event.event_name,
@@ -47,14 +49,16 @@ def _event_to_label(blockchain_type: AvailableBlockchainType, event: Event) -> B
 
 
 def _function_call_to_label(
-    blockchain_type: AvailableBlockchainType, function_call: ContractFunctionCall
+    blockchain_type: AvailableBlockchainType,
+    function_call: ContractFunctionCall,
+    label_name=CRAWLER_LABEL,
 ) -> Base:
     """
     Creates a label model.
     """
     label_model = get_label_model(blockchain_type)
     label = label_model(
-        label=CRAWLER_LABEL,
+        label=label_name,
         label_data={
             "type": "tx_call",
             "name": function_call.function_name,
@@ -73,12 +77,14 @@ def _function_call_to_label(
 
 
 def get_last_labeled_block_number(
-    db_session: Session, blockchain_type: AvailableBlockchainType
+    db_session: Session,
+    blockchain_type: AvailableBlockchainType,
+    label_name=CRAWLER_LABEL,
 ) -> Optional[int]:
     label_model = get_label_model(blockchain_type)
     block_number = (
         db_session.query(label_model.block_number)
-        .filter(label_model.label == CRAWLER_LABEL)
+        .filter(label_model.label == label_name)
         .order_by(label_model.block_number.desc())
         .limit(1)
         .one_or_none()
@@ -101,7 +107,10 @@ def commit_session(db_session: Session) -> None:
 
 
 def add_events_to_session(
-    db_session: Session, events: List[Event], blockchain_type: AvailableBlockchainType
+    db_session: Session,
+    events: List[Event],
+    blockchain_type: AvailableBlockchainType,
+    label_name=CRAWLER_LABEL,
 ) -> None:
     label_model = get_label_model(blockchain_type)
 
@@ -110,7 +119,7 @@ def add_events_to_session(
     existing_labels = (
         db_session.query(label_model.transaction_hash, label_model.log_index)
         .filter(
-            label_model.label == CRAWLER_LABEL,
+            label_model.label == label_name,
             label_model.log_index != None,
             label_model.transaction_hash.in_(events_hashes_to_save),
         )
@@ -128,13 +137,13 @@ def add_events_to_session(
     labels_to_save = []
     for event in events:
         if event.transaction_hash not in existing_labels_transactions:
-            labels_to_save.append(_event_to_label(blockchain_type, event))
+            labels_to_save.append(_event_to_label(blockchain_type, event, label_name))
         elif (
             event.log_index not in existing_log_index_by_tx_hash[event.transaction_hash]
         ):
-            labels_to_save.append(_event_to_label(blockchain_type, event))
+            labels_to_save.append(_event_to_label(blockchain_type, event, label_name))
 
-    logger.info(f"Saving {len(labels_to_save)} labels to session")
+    logger.info(f"Saving {len(labels_to_save)} event labels to session")
     db_session.add_all(labels_to_save)
 
 
@@ -142,6 +151,7 @@ def add_function_calls_to_session(
     db_session: Session,
     function_calls: List[ContractFunctionCall],
     blockchain_type: AvailableBlockchainType,
+    label_name=CRAWLER_LABEL,
 ) -> None:
 
     label_model = get_label_model(blockchain_type)
@@ -152,7 +162,7 @@ def add_function_calls_to_session(
     existing_labels = (
         db_session.query(label_model.transaction_hash)
         .filter(
-            label_model.label == CRAWLER_LABEL,
+            label_model.label == label_name,
             label_model.log_index == None,
             label_model.transaction_hash.in_(transactions_hashes_to_save),
         )

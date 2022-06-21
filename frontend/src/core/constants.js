@@ -6,11 +6,11 @@ export const BUGOUT_ENDPOINTS = {
 };
 
 export const DEFAULT_METATAGS = {
-  title: "Moonstream: Building blocks for your blockchain economy",
+  title: "Moonstream: Building blocks for your blockchain game",
   description:
-    "Moonstream DAO makes tools that help you build, manage, and secure your blockchain economy.",
+    "Moonstream DAO makes tools that help you build, manage, and secure your blockchain game.",
   keywords:
-    "analytics, blockchain analytics, protocol, protocols, blockchain, crypto, data, NFT gaming, smart contracts, web3, smart contract, ethereum, polygon, matic, transactions, defi, finance, decentralized, mempool, NFT, NFTs, DAO, DAOs, cryptocurrency, cryptocurrencies, bitcoin, blockchain economy, marketplace, blockchain security, loyalty program, Ethereum bridge, Ethereum bridges, NFT game, NFT games",
+    "analytics, blockchain analytics, protocol, protocols, blockchain, crypto, data, NFT gaming, smart contracts, web3, smart contract, ethereum, polygon, matic, transactions, defi, finance, decentralized, mempool, NFT, NFTs, DAO, DAOs, cryptocurrency, cryptocurrencies, bitcoin, blockchain economy, blockchain game, marketplace, blockchain security, loyalty program, Ethereum bridge, Ethereum bridges, NFT game, NFT games",
   url: "https://www.moonstream.to",
   image: `https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/crypto+traders.png`,
 };
@@ -21,17 +21,19 @@ export const DEFAULT_METATAGS = {
 //   PRODUCT: "Product",
 // };
 
-export const SIITEMAP_CATEGORIES = {
+export const SITEMAP_CATEGORIES = {
   SOLUTIONS: "Solutions",
   DEVELOPERS: "Developers",
   RESOURCES: "Resources",
   ABOUT: "About",
+  LEGAL: "Legal",
 };
 
 export const PAGETYPE = {
   EMPTY: 0,
   CONTENT: 1,
   EXTERNAL: 2,
+  FOOTER_CATEGORY: 3,
 };
 
 export const SITEMAP = [
@@ -40,6 +42,11 @@ export const SITEMAP = [
     path: "/resources",
     type: PAGETYPE.EMPTY,
     children: [
+      {
+        title: "Features",
+        path: "/features",
+        type: PAGETYPE.CONTENT,
+      },
       {
         title: "Case studies",
         path: "https://docs.google.com/document/d/1mjfF8SgRrAZvtCVVxB2qNSUcbbmrH6dTEYSMfHKdEgc",
@@ -84,6 +91,23 @@ export const SITEMAP = [
       {
         title: "Team",
         path: "/team",
+        type: PAGETYPE.CONTENT,
+      },
+    ],
+  },
+  {
+    title: "Legal",
+    path: "/legal",
+    type: PAGETYPE.FOOTER_CATEGORY,
+    children: [
+      {
+        title: "Privacy Policy",
+        path: "/privacy-policy",
+        type: PAGETYPE.CONTENT,
+      },
+      {
+        title: "Terms of Service",
+        path: "/tos",
         type: PAGETYPE.CONTENT,
       },
     ],

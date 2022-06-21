@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import List, Any, Dict
+from typing import Any, Dict, List
 
 from pydantic import BaseModel, Field
 
@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 class AvailableBlockchainType(Enum):
     ETHEREUM = "ethereum"
     POLYGON = "polygon"
+    XDAI = "xdai"
 
 
 class StatsUpdateRequest(BaseModel):

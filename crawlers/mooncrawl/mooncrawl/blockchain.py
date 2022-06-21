@@ -1,6 +1,7 @@
 import logging
 from concurrent.futures import Future, ProcessPoolExecutor, ThreadPoolExecutor, wait
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
+from uuid import UUID
 
 from moonstreamdb.db import yield_db_session, yield_db_session_ctx
 from moonstreamdb.models import (
@@ -10,6 +11,9 @@ from moonstreamdb.models import (
     PolygonBlock,
     PolygonLabel,
     PolygonTransaction,
+    XDaiBlock,
+    XDaiLabel,
+    XDaiTransaction,
 )
 from psycopg2.errors import UniqueViolation  # type: ignore
 from sqlalchemy import Column, desc, func
@@ -25,6 +29,9 @@ from .settings import (
     MOONSTREAM_CRAWL_WORKERS,
     MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI,
     MOONSTREAM_POLYGON_WEB3_PROVIDER_URI,
+    MOONSTREAM_XDAI_WEB3_PROVIDER_URI,
+    NB_ACCESS_ID_HEADER,
+    NB_DATA_SOURCE_HEADER,
 )
 
 logger = logging.getLogger(__name__)
@@ -37,19 +44,35 @@ class BlockCrawlError(Exception):
     """
 
 
-def connect(blockchain_type: AvailableBlockchainType, web3_uri: Optional[str] = None):
+def connect(
+    blockchain_type: AvailableBlockchainType,
+    web3_uri: Optional[str] = None,
+    access_id: Optional[UUID] = None,
+) -> Web3:
     web3_provider: Union[IPCProvider, HTTPProvider] = Web3.IPCProvider()
+
+    request_kwargs: Any = None
+    if access_id is not None:
+        request_kwargs = {
+            "headers": {
+                NB_ACCESS_ID_HEADER: str(access_id),
+                NB_DATA_SOURCE_HEADER: "blockchain",
+                "Content-Type": "application/json",
+            }
+        }
 
     if web3_uri is None:
         if blockchain_type == AvailableBlockchainType.ETHEREUM:
             web3_uri = MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.POLYGON:
             web3_uri = MOONSTREAM_POLYGON_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.XDAI:
+            web3_uri = MOONSTREAM_XDAI_WEB3_PROVIDER_URI
         else:
             raise Exception("Wrong blockchain type provided for web3 URI")
 
     if web3_uri.startswith("http://") or web3_uri.startswith("https://"):
-        web3_provider = Web3.HTTPProvider(web3_uri)
+        web3_provider = Web3.HTTPProvider(web3_uri, request_kwargs=request_kwargs)
     else:
         web3_provider = Web3.IPCProvider(web3_uri)
     web3_client = Web3(web3_provider)
@@ -74,6 +97,8 @@ def get_block_model(
         block_model = EthereumBlock
     elif blockchain_type == AvailableBlockchainType.POLYGON:
         block_model = PolygonBlock
+    elif blockchain_type == AvailableBlockchainType.XDAI:
+        block_model = XDaiBlock
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -92,6 +117,8 @@ def get_label_model(
         label_model = EthereumLabel
     elif blockchain_type == AvailableBlockchainType.POLYGON:
         label_model = PolygonLabel
+    elif blockchain_type == AvailableBlockchainType.XDAI:
+        label_model = XDaiLabel
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -110,6 +137,8 @@ def get_transaction_model(
         transaction_model = EthereumTransaction
     elif blockchain_type == AvailableBlockchainType.POLYGON:
         transaction_model = PolygonTransaction
+    elif blockchain_type == AvailableBlockchainType.XDAI:
+        transaction_model = XDaiTransaction
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -121,27 +150,27 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
     Add block if doesn't presented in database.
 
     block: web3.types.BlockData
+
+    - BlockData.extraData - doesn't exist at Polygon mainnet
+    - Nonce - doesn't exist at XDai blockchain
     """
     block_model = get_block_model(blockchain_type)
-
-    # BlockData.extraData doesn't exist at Polygon mainnet
-    extra_data = None
-    if block.get("extraData", None) is not None:
-        extra_data = block.get("extraData").hex()
 
     block_obj = block_model(
         block_number=block.number,
         difficulty=block.difficulty,
-        extra_data=extra_data,
+        extra_data=None
+        if block.get("extraData", None) is None
+        else block.get("extraData").hex(),
         gas_limit=block.gasLimit,
         gas_used=block.gasUsed,
         base_fee_per_gas=block.get("baseFeePerGas", None),
         hash=block.hash.hex(),
         logs_bloom=block.logsBloom.hex(),
         miner=block.miner,
-        nonce=block.nonce.hex(),
+        nonce=None if block.get("nonce", None) is None else block.get("nonce").hex(),
         parent_hash=block.parentHash.hex(),
-        receipt_root=block.get("receiptRoot", ""),
+        receipt_root=block.get("receiptsRoot", ""),
         uncles=block.sha3Uncles.hex(),
         size=block.size,
         state_root=block.stateRoot.hex(),
@@ -149,6 +178,11 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
         total_difficulty=block.totalDifficulty,
         transactions_root=block.transactionsRoot.hex(),
     )
+    if blockchain_type == AvailableBlockchainType.XDAI:
+        block_obj.author = block.author
+        block_obj.signature = block.signature
+        block_obj.step = block.step
+
     db_session.add(block_obj)
 
 
@@ -177,11 +211,16 @@ def add_block_transactions(
             transaction_type=int(tx["type"], 0) if tx["type"] is not None else None,
             value=tx.value,
         )
+        if blockchain_type == AvailableBlockchainType.XDAI:
+            tx_obj.data = tx.data
+
         db_session.add(tx_obj)
 
 
 def get_latest_blocks(
-    blockchain_type: AvailableBlockchainType, confirmations: int = 0
+    blockchain_type: AvailableBlockchainType,
+    confirmations: int = 0,
+    access_id: Optional[UUID] = None,
 ) -> Tuple[Optional[int], int]:
     """
     Retrieve the latest block from the connected node (connection is created by the connect(AvailableBlockchainType) method).
@@ -189,7 +228,7 @@ def get_latest_blocks(
     If confirmations > 0, and the latest block on the node has block number N, this returns the block
     with block_number (N - confirmations)
     """
-    web3_client = connect(blockchain_type)
+    web3_client = connect(blockchain_type, access_id=access_id)
     latest_block_number: int = web3_client.eth.block_number
     if confirmations > 0:
         latest_block_number -= confirmations
@@ -212,11 +251,12 @@ def crawl_blocks(
     blockchain_type: AvailableBlockchainType,
     blocks_numbers: List[int],
     with_transactions: bool = False,
+    access_id: Optional[UUID] = None,
 ) -> None:
     """
     Open database and geth sessions and fetch block data from blockchain.
     """
-    web3_client = connect(blockchain_type)
+    web3_client = connect(blockchain_type, access_id=access_id)
     with yield_db_session_ctx() as db_session:
         pbar = tqdm(total=len(blocks_numbers))
         for block_number in blocks_numbers:
@@ -256,6 +296,7 @@ def check_missing_blocks(
     blockchain_type: AvailableBlockchainType,
     blocks_numbers: List[int],
     notransactions=False,
+    access_id: Optional[UUID] = None,
 ) -> List[int]:
     """
     Query block from postgres. If block does not presented in database,
@@ -294,7 +335,7 @@ def check_missing_blocks(
                 [block[0], block[1]] for block in blocks_exist_raw_query.all()
             ]
 
-            web3_client = connect(blockchain_type)
+            web3_client = connect(blockchain_type, access_id=access_id)
 
             blocks_exist_len = len(blocks_exist)
             pbar = tqdm(total=blocks_exist_len)
@@ -304,7 +345,7 @@ def check_missing_blocks(
                 block = web3_client.eth.get_block(
                     block_in_db[0], full_transactions=True
                 )
-                if len(block.transactions) != block_in_db[1]:
+                if len(block.transactions) != block_in_db[1]:  # type: ignore
                     corrupted_blocks.append(block_in_db[0])
                     # Delete existing corrupted block and add to missing list
                     del_block = (
@@ -336,6 +377,7 @@ def crawl_blocks_executor(
     block_numbers_list: List[int],
     with_transactions: bool = False,
     num_processes: int = MOONSTREAM_CRAWL_WORKERS,
+    access_id: Optional[UUID] = None,
 ) -> None:
     """
     Execute crawler in processes.
@@ -363,14 +405,20 @@ def crawl_blocks_executor(
     results: List[Future] = []
     if num_processes == 1:
         logger.warning("Executing block crawler in lazy mod")
-        return crawl_blocks(blockchain_type, block_numbers_list, with_transactions)
+        return crawl_blocks(
+            blockchain_type, block_numbers_list, with_transactions, access_id=access_id
+        )
     else:
         with ThreadPoolExecutor(max_workers=MOONSTREAM_CRAWL_WORKERS) as executor:
             for worker in worker_indices:
                 block_chunk = worker_job_lists[worker]
                 logger.info(f"Spawned process for {len(block_chunk)} blocks")
                 result = executor.submit(
-                    crawl_blocks, blockchain_type, block_chunk, with_transactions
+                    crawl_blocks,
+                    blockchain_type,
+                    block_chunk,
+                    with_transactions,
+                    access_id,
                 )
                 result.add_done_callback(record_error)
                 results.append(result)

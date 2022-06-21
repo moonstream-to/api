@@ -4,7 +4,7 @@ Data structures used in (and as part of the maintenance of) the Moonstream NFTs 
 from dataclasses import dataclass
 from enum import Enum
 from os import name
-from typing import Optional
+from typing import Any, Dict, Optional, Union
 
 
 @dataclass
@@ -13,38 +13,63 @@ class BlockBounds:
     ending_block: Optional[int] = None
 
 
-class EventType(Enum):
-    TRANSFER = "nft_transfer"
-    MINT = "nft_mint"
-    ERC721 = "erc721"
-
-
-event_types = {event_type.value: event_type for event_type in EventType}
-
-
-def nft_event(raw_event: str) -> EventType:
-    try:
-        return event_types[raw_event]
-    except KeyError:
-        raise ValueError(f"Unknown nft event type: {raw_event}")
+@dataclass
+class NftTransaction:
+    blockchain_type: str
+    block_number: int
+    block_timestamp: int
+    transaction_hash: str
+    contract_address: str
+    caller_address: str
+    function_name: str
+    function_args: Union[Dict[str, Any], str]
+    gas_used: int
+    gas_price: int
+    value: int
+    status: int
+    max_fee_per_gas: Optional[int] = None
+    max_priority_fee_per_gas: Optional[int] = None
 
 
 @dataclass
-class NFTEvent:
-    event_id: str
-    event_type: EventType
-    nft_address: str
+class NftApprovalEvent:
+    blockchain_type: str
+    token_address: str
+    owner: str
+    approved: str
     token_id: str
+    transaction_hash: str
+    log_index: int
+
+
+@dataclass
+class NftApprovalForAllEvent:
+    blockchain_type: str
+    token_address: str
+    owner: str
+    approved: str
+    operator: str
+    transaction_hash: str
+    log_index: int
+
+
+@dataclass
+class NftTransferEvent:
+    blockchain_type: str
+    token_address: str
     from_address: str
     to_address: str
+    token_id: str
     transaction_hash: str
-    value: Optional[int] = None
-    block_number: Optional[int] = None
-    timestamp: Optional[int] = None
+    log_index: int
 
 
 @dataclass
-class NFTMetadata:
-    address: str
-    name: str
-    symbol: str
+class Erc20TransferEvent:
+    blockchain_type: str
+    token_address: str
+    from_address: str
+    to_address: str
+    value: int
+    transaction_hash: str
+    log_index: int

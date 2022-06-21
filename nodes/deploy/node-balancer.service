@@ -11,7 +11,11 @@ WorkingDirectory=/home/ubuntu/moonstream/nodes/node_balancer
 EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
 Restart=on-failure
 RestartSec=15s
-ExecStart=/home/ubuntu/moonstream/nodes/node_balancer/nodebalancer -host "${AWS_LOCAL_IPV4}" -port 8544 -healthcheck
+ExecStart=/home/ubuntu/moonstream/nodes/node_balancer/nodebalancer server \
+    -host "${AWS_LOCAL_IPV4}" \
+    -port 8544 \
+    -healthcheck \
+    -config /home/ubuntu/.nodebalancer/config.txt
 SyslogIdentifier=node-balancer
 
 [Install]

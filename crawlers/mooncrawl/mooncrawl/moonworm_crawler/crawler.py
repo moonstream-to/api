@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 class SubscriptionTypes(Enum):
     POLYGON_BLOCKCHAIN = "polygon_smartcontract"
     ETHEREUM_BLOCKCHAIN = "ethereum_smartcontract"
+    XDAI_BLOCKCHAIN = "xdai_smartcontract"
 
 
 def abi_input_signature(input_abi: Dict[str, Any]) -> str:
@@ -99,6 +100,8 @@ def blockchain_type_to_subscription_type(
         return SubscriptionTypes.ETHEREUM_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.POLYGON:
         return SubscriptionTypes.POLYGON_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.XDAI:
+        return SubscriptionTypes.XDAI_BLOCKCHAIN
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 
@@ -206,18 +209,27 @@ def make_function_call_crawl_jobs(
     """
 
     crawl_job_by_address: Dict[str, FunctionCallCrawlJob] = {}
+    method_signature_by_address: Dict[str, List[str]] = {}
 
     for entry in entries:
         contract_address = Web3().toChecksumAddress(_get_tag(entry, "address"))
-        abi = cast(str, entry.content)
+        abi = json.loads(cast(str, entry.content))
+        method_signature = encode_function_signature(abi)
+        if method_signature is None:
+            raise ValueError(f"{abi} is not a function ABI")
         if contract_address not in crawl_job_by_address:
             crawl_job_by_address[contract_address] = FunctionCallCrawlJob(
-                contract_abi=[json.loads(abi)],
+                contract_abi=[abi],
                 contract_address=contract_address,
                 created_at=int(datetime.fromisoformat(entry.created_at).timestamp()),
             )
+            method_signature_by_address[contract_address] = [method_signature]
+
         else:
-            crawl_job_by_address[contract_address].contract_abi.append(json.loads(abi))
+
+            if method_signature not in method_signature_by_address[contract_address]:
+                crawl_job_by_address[contract_address].contract_abi.append(abi)
+                method_signature_by_address[contract_address].append(method_signature)
 
     return [crawl_job for crawl_job in crawl_job_by_address.values()]
 

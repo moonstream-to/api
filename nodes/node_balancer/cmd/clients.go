@@ -3,29 +3,64 @@ package cmd
 import (
 	"errors"
 	"reflect"
+	"sync"
 	"time"
 
 	configs "github.com/bugout-dev/moonstream/nodes/node_balancer/configs"
 )
 
-var ethereumClientPool ClientPool
-var polygonClientPool ClientPool
+var (
+	ethereumClientPool ClientPool
+	polygonClientPool  ClientPool
+	xdaiClientPool     ClientPool
+)
 
-// Generate client pools for different blockchains
+// Structure to define user access according with Brood resources
+type ClientResourceData struct {
+	UserID           string `json:"user_id"`
+	AccessID         string `json:"access_id"`
+	Name             string `json:"name"`
+	Description      string `json:"description"`
+	BlockchainAccess bool   `json:"blockchain_access"`
+	ExtendedMethods  bool   `json:"extended_methods"`
+	
+	LastAccessTs int64 `json:"last_access_ts"`
+
+	dataSource string
+}
+
+// Node - which one node client worked with
+// LastCallTs - timestamp from last call
+type Client struct {
+	Node       *Node
+	LastCallTs int64
+
+	mux sync.RWMutex
+}
+
+// Where id is a key and equal to ClientResourceData -> AccessID
+type ClientPool struct {
+	Client map[string]*Client
+}
+
+// Generate pools for clients for different blockchains
 func CreateClientPools() {
 	ethereumClientPool.Client = make(map[string]*Client)
 	polygonClientPool.Client = make(map[string]*Client)
+	xdaiClientPool.Client = make(map[string]*Client)
 }
 
-// Return client pool correspongin to blockchain
+// Return client pool corresponding to provided blockchain
 func GetClientPool(blockchain string) (*ClientPool, error) {
 	var cpool *ClientPool
 	if blockchain == "ethereum" {
 		cpool = &ethereumClientPool
 	} else if blockchain == "polygon" {
 		cpool = &polygonClientPool
+	} else if blockchain == "xdai" {
+		cpool = &xdaiClientPool
 	} else {
-		return nil, errors.New("Unexisting blockchain provided")
+		return nil, errors.New("Unsupported blockchain provided")
 	}
 	return cpool, nil
 }
@@ -53,7 +88,6 @@ func (client *Client) GetClientLastCallDiff() (lastCallTs int64) {
 // Find clint with same ID and update timestamp or
 // add new one if doesn't exist
 func (cpool *ClientPool) AddClientNode(id string, node *Node) {
-
 	if cpool.Client[id] != nil {
 		if reflect.DeepEqual(cpool.Client[id].Node, node) {
 			cpool.Client[id].UpdateClientLastCall()

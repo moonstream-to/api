@@ -226,8 +226,6 @@ const OverlayProvider = ({ children }) => {
     });
   };
 
-  console.log("_key:", modal._key);
-
   return (
     <OverlayContext.Provider
       value={{ modal, toggleModal, drawer, toggleDrawer, toggleAlert }}

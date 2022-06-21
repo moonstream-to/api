@@ -1,16 +1,18 @@
 import argparse
 import logging
 from typing import Optional
+from uuid import UUID
 
 from moonstreamdb.db import yield_db_session_ctx
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
 from ..blockchain import AvailableBlockchainType
-from ..settings import MOONSTREAM_MOONWORM_TASKS_JOURNAL, bugout_client
+from ..settings import MOONSTREAM_MOONWORM_TASKS_JOURNAL, NB_CONTROLLER_ACCESS_ID
 from .continuous_crawler import _retry_connect_web3, continuous_crawler
 from .crawler import (
     SubscriptionTypes,
+    blockchain_type_to_subscription_type,
     get_crawl_job_entries,
     make_event_crawl_jobs,
     make_function_call_crawl_jobs,
@@ -23,9 +25,12 @@ logger = logging.getLogger(__name__)
 
 def handle_crawl(args: argparse.Namespace) -> None:
 
+    blockchain_type = AvailableBlockchainType(args.blockchain_type)
+    subscription_type = blockchain_type_to_subscription_type(blockchain_type)
+
     initial_event_jobs = make_event_crawl_jobs(
         get_crawl_job_entries(
-            SubscriptionTypes.POLYGON_BLOCKCHAIN,
+            subscription_type,
             "event",
             MOONSTREAM_MOONWORM_TASKS_JOURNAL,
         )
@@ -34,7 +39,7 @@ def handle_crawl(args: argparse.Namespace) -> None:
 
     initial_function_call_jobs = make_function_call_crawl_jobs(
         get_crawl_job_entries(
-            SubscriptionTypes.POLYGON_BLOCKCHAIN,
+            subscription_type,
             "function",
             MOONSTREAM_MOONWORM_TASKS_JOURNAL,
         )
@@ -43,10 +48,6 @@ def handle_crawl(args: argparse.Namespace) -> None:
         f"Initial function call crawl jobs count: {len(initial_function_call_jobs)}"
     )
 
-    # Couldn't figure out how to convert from string to AvailableBlockchainType
-    # AvailableBlockchainType(args.blockchain_type) is not working
-    blockchain_type = AvailableBlockchainType(args.blockchain_type)
-
     logger.info(f"Blockchain type: {blockchain_type.value}")
     with yield_db_session_ctx() as db_session:
         web3: Optional[Web3] = None
@@ -54,7 +55,7 @@ def handle_crawl(args: argparse.Namespace) -> None:
             logger.info(
                 "No web3 provider URL provided, using default (blockchan.py: connect())"
             )
-            web3 = _retry_connect_web3(blockchain_type)
+            web3 = _retry_connect_web3(blockchain_type, access_id=args.access_id)
         else:
             logger.info(f"Using web3 provider URL: {args.web3}")
             web3 = Web3(
@@ -109,11 +110,21 @@ def handle_crawl(args: argparse.Namespace) -> None:
             args.min_sleep_time,
             args.heartbeat_interval,
             args.new_jobs_refetch_interval,
+            access_id=args.access_id,
         )
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
+    parser.set_defaults(func=lambda _: parser.print_help())
+
+    parser.add_argument(
+        "--access-id",
+        default=NB_CONTROLLER_ACCESS_ID,
+        type=UUID,
+        help="User access ID",
+    )
+
     subparsers = parser.add_subparsers()
 
     crawl_parser = subparsers.add_parser("crawl")
@@ -128,11 +139,7 @@ def main() -> None:
         "--blockchain-type",
         "-b",
         type=str,
-        choices=[
-            AvailableBlockchainType.ETHEREUM.value,
-            AvailableBlockchainType.POLYGON.value,
-        ],
-        required=True,
+        help=f"Available blockchain types: {[member.value for member in AvailableBlockchainType]}",
     )
     crawl_parser.add_argument(
         "--web3",
@@ -151,7 +158,7 @@ def main() -> None:
         "--max-blocks-batch",
         "-m",
         type=int,
-        default=100,
+        default=80,
         help="Maximum number of blocks to crawl in a single batch",
     )
 
@@ -159,7 +166,7 @@ def main() -> None:
         "--min-blocks-batch",
         "-n",
         type=int,
-        default=40,
+        default=20,
         help="Minimum number of blocks to crawl in a single batch",
     )
 
@@ -175,7 +182,7 @@ def main() -> None:
         "--min-sleep-time",
         "-t",
         type=float,
-        default=0.01,
+        default=0.1,
         help="Minimum time to sleep between crawl step",
     )
 
@@ -191,7 +198,7 @@ def main() -> None:
         "--new-jobs-refetch-interval",
         "-r",
         type=float,
-        default=120,
+        default=180,
         help="Time to wait before refetching new jobs",
     )
 

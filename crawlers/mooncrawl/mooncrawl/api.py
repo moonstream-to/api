@@ -1,34 +1,34 @@
 """
 The Mooncrawl HTTP API
 """
+import logging
+import time
 from cgi import test
 from datetime import datetime, timedelta
-import logging
 from os import times
-import time
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 from uuid import UUID
 
 import boto3  # type: ignore
-from fastapi import FastAPI, BackgroundTasks
+from bugout.data import BugoutResource, BugoutResources
+from fastapi import BackgroundTasks, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
-
-from bugout.data import BugoutResource, BugoutResources
 
 from . import data
 from .middleware import MoonstreamHTTPException
 from .settings import (
-    DOCS_TARGET_PATH,
-    ORIGINS,
-    bugout_client as bc,
     BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
+    DOCS_TARGET_PATH,
     MOONSTREAM_S3_QUERIES_BUCKET,
     MOONSTREAM_S3_QUERIES_BUCKET_PREFIX,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
+    NB_CONTROLLER_ACCESS_ID,
+    ORIGINS,
 )
-from .version import MOONCRAWL_VERSION
+from .settings import bugout_client as bc
 from .stats_worker import dashboard, queries
+from .version import MOONCRAWL_VERSION
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -119,6 +119,7 @@ async def status_handler(
             timescales=stats_update.timescales,
             dashboard=dashboard_resource,
             subscription_by_id=subscription_by_id,
+            access_id=NB_CONTROLLER_ACCESS_ID,
         )
 
     except Exception as e:

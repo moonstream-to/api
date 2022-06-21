@@ -1,27 +1,37 @@
-import React, { useState, Suspense, useEffect, useLayoutEffect } from "react";
+import React, {
+  useState,
+  Suspense,
+  useEffect,
+  useLayoutEffect,
+  useContext,
+} from "react";
 import {
   Fade,
   Flex,
   Heading,
   Box,
-  Divider,
   chakra,
   Stack,
-  VStack,
+  Link,
+  Center,
   useMediaQuery,
   Grid,
   Text,
   GridItem,
   SimpleGrid,
   Image as ChakraImage,
+  HStack,
+  VStack,
 } from "@chakra-ui/react";
 import useUser from "../src/core/hooks/useUser";
 import useRouter from "../src/core/hooks/useRouter";
 import { AWS_ASSETS_PATH, DEFAULT_METATAGS } from "../src/core/constants";
 import TrustedBadge from "../src/components/TrustedBadge";
 import RouteButton from "../src/components/RouteButton";
-import mixpanel from "mixpanel-browser";
-import { MIXPANEL_EVENTS } from "../src/core/providers/AnalyticsProvider/constants";
+import MilestoneBox from "../src/components/MilestoneBox";
+import AnalyticsContext from "../src/core/providers/AnalyticsProvider/context";
+import RouterLink from "next/link";
+import { ExternalLinkIcon } from "@chakra-ui/icons";
 
 const HEADING_PROPS = {
   fontWeight: "700",
@@ -35,10 +45,10 @@ const assets = {
   background3840: `${AWS_ASSETS_PATH}/background720.png`,
   cryptoTraders: `${AWS_ASSETS_PATH}/crypto+traders.png`,
   cointelegraph: `${AWS_ASSETS_PATH}/featured_by/Cointelegraph_logo.png`,
-  forte: `${AWS_ASSETS_PATH}/featured_by/forte_logo.png`,
   educativesessions: `${AWS_ASSETS_PATH}/featured_by/educative_logo.png`,
   cryptoinsiders: `${AWS_ASSETS_PATH}/featured_by/crypto_insiders.png`,
   cryptoslate: `${AWS_ASSETS_PATH}/featured_by/cs-media-logo-light.png`,
+  cgcConference: `${AWS_ASSETS_PATH}/featured_by/cgc_conference_2022_logo.jpg`,
   lender: `${AWS_ASSETS_PATH}/lender.png`,
   DAO: `${AWS_ASSETS_PATH}/DAO .png`,
   NFT: `${AWS_ASSETS_PATH}/NFT.png`,
@@ -47,40 +57,6 @@ const assets = {
   game7io: `${AWS_ASSETS_PATH}/featured_by/game7io_logo.png`,
   orangedao: `${AWS_ASSETS_PATH}/featured_by/orangedao_logo.png`,
   meetup: `${AWS_ASSETS_PATH}/featured_by/meetup_logo.png`,
-};
-
-const Feature = ({ image, altText, heading, description }) => {
-  return (
-    <Stack
-      transition={"1s"}
-      spacing={1}
-      px={1}
-      alignItems="center"
-      borderRadius="12px"
-      borderColor="blue.700"
-      bgColor={"blue.800"}
-      borderWidth={"1px"}
-      // minW="250px"
-      _hover={{ transform: "scale(1.05)", transition: "0.42s" }}
-      cursor="pointer"
-      // mt={2}
-      m={[2, 3, null, 4, 8, 12]}
-      pb={2}
-    >
-      <ChakraImage
-        boxSize={["220px", "220px", "xs", null, "xs"]}
-        objectFit="contain"
-        src={image}
-        alt={altText}
-      />
-      <Heading textAlign="center" fontSize={["md", "md", "lg", "3xl", "4xl"]}>
-        {heading}
-      </Heading>
-      <chakra.span textAlign={"center"} textColor="blue.600" px={2}>
-        {description}
-      </chakra.span>
-    </Stack>
-  );
 };
 
 const Homepage = () => {
@@ -103,6 +79,8 @@ const Homepage = () => {
     "(min-width: 2880px)",
     "(min-width: 3840px)",
   ]);
+
+  const { buttonReport } = useContext(AnalyticsContext);
 
   useEffect(() => {
     assets["background720"] = `${AWS_ASSETS_PATH}/background720.png`;
@@ -180,6 +158,43 @@ const Homepage = () => {
       setBackgroundLoaded3840(true);
     };
   }, []);
+
+  const Feature = ({ title, altText, image, ...props }) => {
+    return (
+      <Box onClick={props.onClick}>
+        <RouterLink href={props.href}>
+          <Stack
+            transition={"1s"}
+            spacing={1}
+            px={1}
+            alignItems="center"
+            borderRadius="12px"
+            borderColor="blue.700"
+            bgColor={"blue.800"}
+            borderWidth={"1px"}
+            _hover={{ transform: "scale(1.05)", transition: "0.42s" }}
+            cursor="pointer"
+            m={[2, 3, null, 4, 8, 12]}
+            pb={2}
+          >
+            <ChakraImage
+              boxSize={["220px", "220px", "xs", null, "xs"]}
+              objectFit="contain"
+              src={image}
+              alt={altText}
+            />
+            <Heading
+              textAlign="center"
+              fontSize={["md", "md", "lg", "3xl", "4xl"]}
+            >
+              {title}
+            </Heading>
+          </Stack>
+        </RouterLink>
+      </Box>
+    );
+  };
+
   return (
     <Suspense fallback="">
       <Fade in>
@@ -212,7 +227,6 @@ const Homepage = () => {
                 mb={0}
                 px="0"
                 colSpan="12"
-                // pb={[1, 2, null, 8]}
                 minH="100vh"
                 bgColor={"blue.50"}
                 id="Header grid item"
@@ -241,42 +255,46 @@ const Homepage = () => {
                           fontSize={["lg", "4xl", "5xl", "5xl", "5xl", "6xl"]}
                           fontWeight="semibold"
                           color="white"
+                          as="h1"
                         >
-                          Building blocks for your blockchain game
+                          Build a Sustainable Game Economy in Only a Few Clicks
                         </Heading>
                         <chakra.span
+                          pt={4}
+                          pb={4}
                           my={12}
-                          fontSize={["md", "2xl", "3xl", "3xl", "4xl", "5xl"]}
+                          fontSize={["md", "lg", "xl", "2xl", "3xl", "3xl"]}
                           display="inline-block"
-                          color="blue.200"
+                          color="white"
                         >
-                          We are introducing Moonstream Engine - a
-                          groundbreaking set of tools for game design.
+                          Moonstream Engine empowers web3 game designers to grow
+                          healthy economies. Moonstream smart contracts and APIs
+                          allow you to integrate our game mechanics with zero
+                          effort.
                         </chakra.span>
-                        <chakra.span
-                          my={12}
-                          fontSize={["md", "2xl", "3xl", "3xl", "4xl", "5xl"]}
-                          display="inline-block"
-                          color="blue.200"
+                        <RouteButton
+                          variant="orangeAndBlue"
+                          minW={[
+                            "200px",
+                            "250px",
+                            "250px",
+                            "300px",
+                            "350px",
+                            "400px",
+                          ]}
+                          fontSize={["lg", "xl", "2xl", "3xl", "4xl", "4xl"]}
+                          onClick={() => {
+                            buttonReport(
+                              "Join our Discord",
+                              "front-and-center",
+                              "landing"
+                            );
+                          }}
+                          href={"/discordleed"}
+                          isExternal
                         >
-                          Moonstream has handled over{" "}
-                          <Text
-                            fontWeight={600}
-                            textColor="orange.900"
-                            display={"inline-block"}
-                          >
-                            $2.5B
-                          </Text>{" "}
-                          in transaction value to date.
-                        </chakra.span>
-                        <Box
-                          w="100vw"
-                          minH="200px"
-                          // px="7%"
-                          py={0}
-                          overflowX="hidden"
-                          overflowY="visible"
-                        ></Box>
+                          Join our Discord
+                        </RouteButton>
                       </Stack>
                     </Flex>
                   </Box>
@@ -285,49 +303,66 @@ const Homepage = () => {
 
               <GridItem
                 px="7%"
-                // mt={["32px", "64px", null]}
                 py={["98px", "128px", null]}
                 colSpan="12"
                 bgColor="white.100"
+                minH="100vh"
               >
-                <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
-                  Trusted by{" "}
-                </Heading>
-                <Flex wrap="wrap" direction="row" justifyContent="center">
-                  <Suspense fallback={""}>
-                    <TrustedBadge
-                      scale={1.5}
-                      name="Laguna games"
-                      caseURL=""
-                      ImgURL={assets["laguna"]}
-                      boxURL="https://laguna.games/"
-                      bgColor="blue.900"
-                    />
-                    <TrustedBadge
-                      scale={1.5}
-                      name="game7io"
-                      ImgURL={assets["game7io"]}
-                      boxURL="https://game7.io/"
-                      bgColor="blue.900"
-                    />
+                <VStack align="center" justify="center" boxSize="full">
+                  <Heading
+                    fontSize={["lg", "4xl", "5xl", "5xl", "5xl", "6xl"]}
+                    fontWeight="semibold"
+                    as="h2"
+                  >
+                    Major Milestones
+                  </Heading>
+                  <Flex wrap="wrap" direction="row" justifyContent="center">
+                    <MilestoneBox headingText="$3B transaction volume" />
+                    <MilestoneBox headingText="22,000 active users" />
+                  </Flex>
+                  <Text
+                    textAlign="center"
+                    fontSize={["md", "xl", "2xl", "3xl", "3xl", "3xl"]}
+                  >
+                    And growing...
+                  </Text>
+                  <chakra.h2
+                    fontSize={{ base: "3xl", sm: "2xl" }}
+                    textAlign="center"
+                    pb={4}
+                    pt={16}
+                    fontWeight="bold"
+                  >
+                    Trusted by{" "}
+                  </chakra.h2>
+                  <Flex wrap="wrap" direction="row" justifyContent="center">
+                    <Suspense fallback={""}>
+                      <TrustedBadge
+                        scale={1.5}
+                        name="Laguna games"
+                        caseURL=""
+                        ImgURL={assets["laguna"]}
+                        boxURL="https://laguna.games/"
+                        bgColor="blue.900"
+                      />
+                      <TrustedBadge
+                        scale={1.5}
+                        name="game7io"
+                        ImgURL={assets["game7io"]}
+                        boxURL="https://game7.io/"
+                        bgColor="blue.900"
+                      />
 
-                    <TrustedBadge
-                      scale={1.5}
-                      name="orangedao"
-                      ImgURL={assets["orangedao"]}
-                      boxURL="https://lfg.orangedao.xyz/"
-                      bgColor="blue.900"
-                    />
-                    <TrustedBadge
-                      scale={1.5}
-                      name="forte"
-                      ImgURL={assets["forte"]}
-                      boxURL="https://www.forte.io/"
-                      bgColor="blue.900"
-                      invertColors={true}
-                    />
-                  </Suspense>
-                </Flex>
+                      <TrustedBadge
+                        scale={1.5}
+                        name="orangedao"
+                        ImgURL={assets["orangedao"]}
+                        boxURL="https://lfg.orangedao.xyz/"
+                        bgColor="blue.900"
+                      />
+                    </Suspense>
+                  </Flex>
+                </VStack>
               </GridItem>
               <GridItem
                 px={["7%", null, "12%", "15%"]}
@@ -337,6 +372,15 @@ const Homepage = () => {
                 bgColor={"blue.900"}
                 textColor="white"
               >
+                <Heading
+                  {...HEADING_PROPS}
+                  textAlign="center"
+                  pb={[3, 12, null]}
+                  pt={0}
+                  as="h2"
+                >
+                  Features
+                </Heading>
                 <Grid
                   templateColumns={{
                     base: "repeat(1, 1fr)",
@@ -346,200 +390,312 @@ const Homepage = () => {
                   gap={4}
                 >
                   <GridItem>
-                    <VStack
-                      alignItems="flex-start"
-                      spacing="20px"
-                      mb={[12, 12, "initial"]}
-                    >
-                      <Heading
-                        {...HEADING_PROPS}
-                        textAlign={["center", "center", "left"]}
-                        alignSelf={["center", "center", "initial"]}
-                        pb={14}
-                        pt={0}
-                      >
-                        Dive into Engine Features
-                      </Heading>
-                      <RouteButton
-                        colorScheme="orange"
-                        fontSize={["md", "lg", "lg", "xl", "3xl"]}
-                        py={[4, 4, 4, 8, 8]}
-                        px={[4, 4, 4, 8, 8]}
-                        onClick={() => {
-                          if (mixpanel.get_distinct_id()) {
-                            mixpanel.track(
-                              `${MIXPANEL_EVENTS.BUTTON_CLICKED}`,
-                              {
-                                full_url: router.nextRouter.asPath,
-                                buttonName: `Explore case studies`,
-                                page: `landing`,
-                                section: `Dive into Engine Features`,
-                              }
-                            );
-                          }
-                        }}
-                        textColor="blue.900"
-                        alignSelf={["center", "center", "initial"]}
-                        href="https://docs.google.com/document/d/1mjfF8SgRrAZvtCVVxB2qNSUcbbmrH6dTEYSMfHKdEgc/preview"
-                      >
-                        Explore case studies
-                      </RouteButton>
-                    </VStack>
-                  </GridItem>
-                  <GridItem>
                     <Flex>
                       <chakra.span
                         fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
                         display="inline-block"
-                        color="blue.200"
+                        color="white"
                       >
-                        Lootboxes, crafting, deck builder, you name it! Whatever
-                        on-chain mechanics you want incorporated in your
-                        project, contact us to help you launch it. It is fast
-                        and secure. Or explore the features to know more.
+                        Lootboxes, crafting recipes, deck building, you name it!
+                        <br />
+                        <br />
+                        With Moonstream Engine you can deploy on-chain mechanics
+                        with one click.
+                        <br />
+                        <br />
+                        Read our Use Cases or explore the features to know more.
                       </chakra.span>
                     </Flex>
                   </GridItem>
+                  <GridItem>
+                    <Center w="100%" h="100%">
+                      <RouteButton
+                        variant="orangeAndBlue"
+                        minW={[
+                          "200px",
+                          "250px",
+                          "250px",
+                          "300px",
+                          "350px",
+                          "400px",
+                        ]}
+                        fontSize={["lg", "xl", "2xl", "3xl", "4xl", "4xl"]}
+                        px={[4, 4, 4, 8, 8]}
+                        onClick={() => {
+                          buttonReport(
+                            "Explore the Use Cases",
+                            "Dive into Engine Features",
+                            "landing"
+                          );
+                        }}
+                        href="https://docs.google.com/document/d/1mjfF8SgRrAZvtCVVxB2qNSUcbbmrH6dTEYSMfHKdEgc/preview"
+                        isExternal
+                      >
+                        Explore the Use Cases
+                      </RouteButton>
+                    </Center>
+                  </GridItem>
                 </Grid>
-                <Divider mt={12} mb={12} />
                 <SimpleGrid
                   columns={[1, 2, 2, 4, null, 4]}
                   justifyContent="center"
                   w="100%"
                   placeContent={"space-between"}
+                  mx={[0, -2, -4]}
+                  paddingTop="20px"
                 >
                   <Feature
+                    title="Lootboxes"
+                    altText="Lootboxes"
+                    path="/features/#lootboxes"
                     image={assets["cryptoTraders"]}
-                    altText="mined transactions"
-                    heading="ON-CHAIN MECHANICS"
+                    href="/features/#lootboxes"
+                    onClick={() => {
+                      console.log("Sending report to mixpanel");
+                      buttonReport("Lootboxes", "features", "landing");
+                    }}
                   />
                   <Feature
+                    title="Crafting Recipes"
+                    altText="Crafting Recipes"
+                    path="/features/#crafting"
                     image={assets["NFT"]}
-                    altText="mined transactions"
-                    heading="LOYALTY PROGRAMS"
+                    href="/features/#crafting"
+                    onClick={() => {
+                      buttonReport("Crafting Recipes", "features", "landing");
+                    }}
                   />
                   <Feature
-                    image={assets["lender"]}
-                    altText="mined transactions"
-                    heading="SECURE TRANSACTIONS"
-                  />
-                  <Feature
+                    title="Minigames"
+                    altText="Minigames"
+                    path="/features/#minigames"
                     image={assets["DAO"]}
-                    altText="mined transactions"
-                    heading="CONTENT MANAGEMENT"
+                    href="/features/#minigames"
+                    onClick={() => {
+                      buttonReport("Minigames", "features", "landing");
+                    }}
+                  />
+                  <Feature
+                    title="Airdrops"
+                    altText="Airdrops"
+                    path="/features/#airdrops"
+                    image={assets["lender"]}
+                    href="/features/#airdrops"
+                    onClick={() => {
+                      buttonReport("Airdrops", "features", "landing");
+                    }}
                   />
                 </SimpleGrid>
-              </GridItem>
-              <GridItem
-                px="7%"
-                // mt={["32px", "64px", null]}
-                py={["98px", "128px", null]}
-                colSpan="12"
-                bgColor="white.100"
-              >
-                <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
-                  Featured by{" "}
-                </Heading>
-                <Flex wrap="wrap" direction="row" justifyContent="center">
-                  <Suspense fallback={""}>
-                    <TrustedBadge
-                      name="cointelegraph"
-                      caseURL=""
-                      ImgURL={assets["cointelegraph"]}
-                      boxURL="https://cointelegraph.com/news/17-of-addresses-snapped-up-80-of-all-ethereum-nfts-since-april"
-                    />
-                    <TrustedBadge
-                      name="CryptoInsiders"
-                      ImgURL={assets["cryptoinsiders"]}
-                      boxURL="https://www.crypto-insiders.nl/nieuws/altcoin/17-van-ethereum-whales-bezitten-meer-dan-80-van-alle-nfts-op-de-blockchain/"
-                    />
-
-                    <TrustedBadge
-                      name="cryptoslate"
-                      ImgURL={assets["cryptoslate"]}
-                      boxURL="https://cryptoslate.com/should-investors-care-80-of-all-nfts-belong-to-17-of-addresses/"
-                    />
-                    <TrustedBadge
-                      name="educative sessions"
-                      scale={1.5}
-                      ImgURL={assets["educativesessions"]}
-                      boxURL="https://youtu.be/DN8zRzJuy0M"
-                    />
-                    <TrustedBadge
-                      scale={1.5}
-                      name="bc101"
-                      ImgURL={assets["bc101"]}
-                      boxURL="https://blockchain101.com/"
-                    />
-                    <TrustedBadge
-                      scale={1.5}
-                      name="bc101"
-                      ImgURL={assets["meetup"]}
-                      boxURL="https://www.meetup.com/SF-Bay-Area-Data-Science-Initiative/events/283215538/"
-                    />
-                  </Suspense>
-                </Flex>
               </GridItem>
               <GridItem
                 px={["7%", null, "12%", "15%"]}
                 py={["98px", "128px", null]}
                 colSpan="12"
-                bgColor="blue.700"
+                bgColor="white.100"
+                minH="100vh"
+              >
+                <Heading
+                  {...HEADING_PROPS}
+                  textAlign="center"
+                  pb={14}
+                  pt={0}
+                  as="h2"
+                >
+                  Our Workflow
+                </Heading>
+                <HStack alignItems="top" py={5}>
+                  <Flex height="100%" width="25%">
+                    <Heading
+                      as="h3"
+                      fontSize={["lg", "3xl", "4xl", "4xl", "4xl", "5xl"]}
+                      display="inline-block"
+                      fontWeight="semibold"
+                    >
+                      Step 1:
+                    </Heading>
+                  </Flex>
+                  <Flex height="100%" width="75%">
+                    <chakra.span
+                      fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
+                      display="inline-block"
+                    >
+                      So you decided to build a healthy economy on the
+                      blockchain. You are on the right path, traveler!
+                    </chakra.span>
+                  </Flex>
+                </HStack>
+                <HStack alignItems="top" py={5}>
+                  <Flex bgColor="grey.100" width="25%" height="100%">
+                    <Heading
+                      as="h3"
+                      fontSize={["lg", "3xl", "4xl", "4xl", "4xl", "5xl"]}
+                      display="inline-block"
+                      fontWeight="semibold"
+                    >
+                      Step 2:
+                    </Heading>
+                  </Flex>
+                  <Flex width="75%">
+                    <chakra.span
+                      fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
+                      display="inline-block"
+                    >
+                      <Link
+                        href="/discordleed"
+                        fontWeight={"600"}
+                        textColor="blue.700"
+                        onClick={() => {
+                          buttonReport(
+                            "Join our Discord",
+                            "inline-text",
+                            "landing"
+                          );
+                        }}
+                        isExternal
+                      >
+                        Join our Discord{" "}
+                        <ExternalLinkIcon verticalAlign="text-top" />
+                      </Link>{" "}
+                      to get in touch with the team (@zomglings). Tell us about
+                      your game and schedule a call if needed.
+                    </chakra.span>
+                  </Flex>
+                </HStack>
+                <HStack alignItems="top" py={5}>
+                  <Flex bgColor="grey.100" width="25%" height="100%">
+                    <Heading
+                      as="h3"
+                      fontSize={["lg", "3xl", "4xl", "4xl", "4xl", "5xl"]}
+                      display="inline-block"
+                      fontWeight="semibold"
+                    >
+                      Step 3:
+                    </Heading>
+                  </Flex>
+                  <Flex width="75%">
+                    <chakra.span
+                      fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
+                      display="inline-block"
+                    >
+                      Pick game mechanics that you&apos;d like to deploy.
+                      Moonstream Engine provides you with back-end tools to put
+                      them on the blockchain.
+                      <br />
+                      <br />
+                      You&apos;re at the end of your development journey now,
+                      traveler. Time to watch your game economy grow!
+                    </chakra.span>
+                  </Flex>
+                </HStack>
+              </GridItem>
+              <GridItem
+                px="7%"
+                py={["98px", "128px", null]}
+                colSpan="12"
+                bgColor="blue.900"
                 textColor="white"
+                minH="100vh"
+                as="h2"
+              >
+                <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
+                  Featured by{" "}
+                </Heading>
+                <Center>
+                  <Flex
+                    width="81%"
+                    wrap="wrap"
+                    direction="row"
+                    justifyContent="center"
+                    bgColor="white"
+                  >
+                    <Suspense fallback={""}>
+                      <TrustedBadge
+                        name="cointelegraph"
+                        caseURL=""
+                        ImgURL={assets["cointelegraph"]}
+                        boxURL="https://cointelegraph.com/news/17-of-addresses-snapped-up-80-of-all-ethereum-nfts-since-april"
+                      />
+                      <TrustedBadge
+                        name="CryptoInsiders"
+                        ImgURL={assets["cryptoinsiders"]}
+                        boxURL="https://www.crypto-insiders.nl/nieuws/altcoin/17-van-ethereum-whales-bezitten-meer-dan-80-van-alle-nfts-op-de-blockchain/"
+                      />
+                      <TrustedBadge
+                        name="cryptoslate"
+                        ImgURL={assets["cryptoslate"]}
+                        boxURL="https://cryptoslate.com/should-investors-care-80-of-all-nfts-belong-to-17-of-addresses/"
+                      />
+                      <TrustedBadge
+                        name="educative sessions"
+                        scale={1.5}
+                        ImgURL={assets["educativesessions"]}
+                        boxURL="https://youtu.be/DN8zRzJuy0M"
+                      />
+                      <TrustedBadge
+                        scale={1.5}
+                        name="bc101"
+                        ImgURL={assets["bc101"]}
+                        boxURL="https://blockchain101.com/"
+                      />
+                      <TrustedBadge
+                        scale={1.5}
+                        name="bc101"
+                        ImgURL={assets["meetup"]}
+                        boxURL="https://www.meetup.com/SF-Bay-Area-Data-Science-Initiative/events/283215538/"
+                      />
+                      <TrustedBadge
+                        scale={1.5}
+                        name="cgc2022"
+                        ImgURL={assets["cgcConference"]}
+                        boxURL="https://www.cgc.one/"
+                      />
+                    </Suspense>
+                  </Flex>
+                </Center>
+              </GridItem>
+              <GridItem
+                px={["7%", null, "12%", "15%"]}
+                py={["98px", "128px", null]}
+                colSpan="12"
+                bgColor="white"
+                minH="50vh"
               >
                 <Flex
-                  p={50}
                   w="100%"
                   alignItems="center"
                   justifyContent="center"
                   direction={["column", "column", "row"]}
                   maxW="1024px"
                 >
-                  <chakra.h2
-                    mr={[0, 12, 14]}
-                    fontSize={{ base: "2xl", sm: "xl" }}
-                    // fontWeight="extrabold"
+                  <chakra.span
+                    display="block"
+                    my={12}
+                    fontSize={["md", "xl", "3xl", "3xl", "4xl", "5xl"]}
+                    textAlign={["justify", "justify", "left", null]}
+                    mr={[0, 0, 14]}
                     letterSpacing="tight"
-                    // lineHeight="shorter"
-                    // color={useColorModeValue("gray.900", "gray.100")}
                   >
-                    <chakra.span
-                      display="block"
-                      my={12}
-                      fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
-                      color="white"
-                    >
-                      {`Contact us on Discord to discuss your project and keep up with the latest updates on the Moonstream Engine.`}
-                    </chakra.span>
-                  </chakra.h2>
+                    {`Contact us on Discord to discuss your project and keep up with the latest updates on Moonstream Engine.`}
+                  </chakra.span>
 
                   <RouteButton
-                    minW={["300px", "300px", "460px"]}
-                    alignItems="center"
-                    justifyContent="center"
-                    border="solid transparent"
-                    fontWeight="bold"
-                    rounded="md"
-                    shadow="md"
-                    variant="solid"
-                    colorScheme="orange"
-                    textColor="blue.1200"
-                    fontSize={["md", "md", "lg", "xl", "3xl"]}
-                    py={[4, 6, 6, 8, 8]}
-                    px={[4, 4, 4, 8, 8]}
-                    onClick={() => {
-                      if (mixpanel.get_distinct_id()) {
-                        mixpanel.track(`${MIXPANEL_EVENTS.BUTTON_CLICKED}`, {
-                          full_url: router.nextRouter.asPath,
-                          buttonName: `Join our Discord`,
-                          page: `landing`,
-                          section: `bottom-line`,
-                        });
-                      }
-                    }}
+                    variant="orangeAndBlue"
+                    minW={[
+                      "200px",
+                      "250px",
+                      "250px",
+                      "300px",
+                      "350px",
+                      "400px",
+                    ]}
+                    fontSize={["md", "xl", "3xl", "3xl", "4xl", "5xl"]}
+                    onClick={() =>
+                      buttonReport("Join our Discord", "page-bottom", "landing")
+                    }
                     href={"/discordleed"}
+                    isExternal
                   >
-                    Join the community on Discord
+                    Join our Discord
                   </RouteButton>
                 </Flex>
               </GridItem>

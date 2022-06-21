@@ -48,6 +48,8 @@ blockchain_by_subscription_id = {
     "polygon_blockchain": "polygon",
     "ethereum_smartcontract": "ethereum",
     "polygon_smartcontract": "polygon",
+    "xdai_blockchain": "xdai",
+    "xdai_smartcontract": "xdai",
 }
 
 

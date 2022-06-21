@@ -10,6 +10,7 @@ import time
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Iterator, List
+from uuid import UUID
 
 import dateutil.parser
 
@@ -22,7 +23,7 @@ from .blockchain import (
 )
 from .data import AvailableBlockchainType
 from .publish import publish_json
-from .settings import MOONSTREAM_CRAWL_WORKERS
+from .settings import MOONSTREAM_CRAWL_WORKERS, NB_CONTROLLER_ACCESS_ID
 from .version import MOONCRAWL_VERSION
 
 logging.basicConfig(level=logging.INFO)
@@ -93,7 +94,9 @@ def crawler_blocks_sync_handler(args: argparse.Namespace) -> None:
     """
     while True:
         latest_stored_block_number, latest_block_number = get_latest_blocks(
-            AvailableBlockchainType(args.blockchain), args.confirmations
+            AvailableBlockchainType(args.blockchain),
+            args.confirmations,
+            access_id=args.access_id,
         )
         if latest_stored_block_number is None:
             latest_stored_block_number = 0
@@ -137,6 +140,7 @@ def crawler_blocks_sync_handler(args: argparse.Namespace) -> None:
                 block_numbers_list=blocks_numbers_list,
                 with_transactions=True,
                 num_processes=args.jobs,
+                access_id=args.access_id,
             )
         logger.info(
             f"Synchronized blocks from {latest_stored_block_number} to {latest_block_number}"
@@ -155,6 +159,7 @@ def crawler_blocks_add_handler(args: argparse.Namespace) -> None:
             blockchain_type=AvailableBlockchainType(args.blockchain),
             block_numbers_list=blocks_numbers_list,
             with_transactions=True,
+            access_id=args.access_id,
         )
 
     logger.info(
@@ -177,7 +182,9 @@ def crawler_blocks_missing_handler(args: argparse.Namespace) -> None:
         confirmations = 150
         shift = 2000
         _, latest_block_number = get_latest_blocks(
-            AvailableBlockchainType(args.blockchain), confirmations
+            AvailableBlockchainType(args.blockchain),
+            confirmations,
+            access_id=args.access_id,
         )
         block_range = f"{latest_block_number-shift}-{latest_block_number}"
 
@@ -190,6 +197,7 @@ def crawler_blocks_missing_handler(args: argparse.Namespace) -> None:
             blockchain_type=AvailableBlockchainType(args.blockchain),
             blocks_numbers=blocks_numbers_list,
             notransactions=args.notransactions,
+            access_id=args.access_id,
         )
         if len(missing_blocks_numbers) > 0:
             logger.info(f"Found {len(missing_blocks_numbers)} missing blocks")
@@ -206,6 +214,7 @@ def crawler_blocks_missing_handler(args: argparse.Namespace) -> None:
             block_numbers_list=missing_blocks_numbers_total,
             with_transactions=True,
             num_processes=1 if args.lazy else MOONSTREAM_CRAWL_WORKERS,
+            access_id=args.access_id,
         )
     logger.info(
         f"Required {time.time() - startTime} with {MOONSTREAM_CRAWL_WORKERS} workers "
@@ -245,6 +254,13 @@ def main() -> None:
     subcommands = parser.add_subparsers(description="Crawlers commands")
 
     time_now = datetime.now(timezone.utc)
+
+    parser.add_argument(
+        "--access-id",
+        default=NB_CONTROLLER_ACCESS_ID,
+        type=UUID,
+        help="User access ID",
+    )
 
     # Blockchain blocks parser
     parser_crawler_blocks = subcommands.add_parser(
