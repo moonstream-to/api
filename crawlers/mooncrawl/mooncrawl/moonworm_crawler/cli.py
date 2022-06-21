@@ -243,7 +243,10 @@ def main() -> None:
 
     subparsers = parser.add_subparsers()
 
-    crawl_parser = subparsers.add_parser("crawl")
+    crawl_parser = subparsers.add_parser(
+        "crawl",
+        help="continuous crawling the event/function call jobs from bugout journal",
+    )
 
     crawl_parser.add_argument(
         "--start",
