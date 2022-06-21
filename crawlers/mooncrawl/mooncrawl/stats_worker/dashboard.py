@@ -336,7 +336,7 @@ def generate_list_of_names(
 def process_external_merged(
     external_calls: Dict[str, Dict[str, Any]],
     blockchain: AvailableBlockchainType,
-    access_id=access_id,
+    access_id: Optional[UUID] = None,
 ):
     """
     Process external calls
@@ -804,7 +804,7 @@ def stats_generate_handler(args: argparse.Namespace):
         external_calls_results = process_external_merged(
             external_calls=merged_external_calls["merged"],
             blockchain=blockchain_type,
-            access_id=access_id,
+            access_id=args.access_id,
         )
 
         for address in address_dashboard_id_subscription_id_tree.keys():
