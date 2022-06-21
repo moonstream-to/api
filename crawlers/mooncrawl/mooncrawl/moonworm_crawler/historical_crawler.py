@@ -62,7 +62,6 @@ def historical_crawler(
 
     while start_block >= end_block:
         try:
-            # query db  with limit 1, to avoid session closing
 
             time.sleep(min_sleep_time)
 
@@ -91,21 +90,21 @@ def historical_crawler(
             logger.info(
                 f"Crawling function calls from {start_block} to {batch_end_block}"
             )
-            all_function_calls = _crawl_functions(
-                blockchain_type,
-                ethereum_state_provider,
-                function_call_crawl_jobs,
-                batch_end_block,
-                start_block,
-            )
-            logger.info(
-                f"Crawled {len(all_function_calls)} function calls from {start_block} to {batch_end_block}."
-            )
-            logger.info(f"{ethereum_state_provider.metrics}")
+            if function_call_crawl_jobs:
+                all_function_calls = _crawl_functions(
+                    blockchain_type,
+                    ethereum_state_provider,
+                    function_call_crawl_jobs,
+                    batch_end_block,
+                    start_block,
+                )
+                logger.info(
+                    f"Crawled {len(all_function_calls)} function calls from {start_block} to {batch_end_block}."
+                )
 
-            add_function_calls_to_session(
-                db_session, all_function_calls, blockchain_type
-            )
+                add_function_calls_to_session(
+                    db_session, all_function_calls, blockchain_type
+                )
 
             # Commiting to db
             commit_session(db_session)

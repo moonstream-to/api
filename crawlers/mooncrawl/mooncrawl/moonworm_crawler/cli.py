@@ -151,6 +151,10 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
         if job.contract_address in addresses_filter
     ]
 
+    if args.only_events:
+        filtered_function_call_jobs = []
+        logger.info(f"Removing function call crawl jobs since --only-events is set")
+
     logger.info(
         f"Initial function call crawl jobs count: {len(filtered_function_call_jobs)}"
     )
@@ -385,7 +389,12 @@ def main() -> None:
         default=False,
         help="Force start from the start block",
     )
-
+    historical_crawl_parser.add_argument(
+        "--only-events",
+        action="store_true",
+        default=False,
+        help="Only crawl events",
+    )
     historical_crawl_parser.set_defaults(func=handle_historical_crawl)
 
     args = parser.parse_args()

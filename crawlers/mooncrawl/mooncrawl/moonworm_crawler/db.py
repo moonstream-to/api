@@ -87,18 +87,37 @@ def get_first_labeled_block_number(
     blockchain_type: AvailableBlockchainType,
     address: str,
     label_name=CRAWLER_LABEL,
+    only_events: bool = False,
 ) -> Optional[int]:
     label_model = get_label_model(blockchain_type)
-
-    block_numbers = (
+    block_number_query = (
         db_session.query(label_model.block_number)
         .filter(label_model.label == label_name)
         .filter(label_model.address == address)
-        .order_by(label_model.block_number.asc())
-        .limit(15)
+    )
+
+    function_call_block_numbers = (
+        block_number_query.filter(label_model.log_index == None)
+        .order_by(label_model.block_number)
+        .limit(50)
         .all()
     )
-    return block_numbers[0][0] if block_numbers else None
+    event_block_numbers = (
+        block_number_query.filter(label_model.log_index != None)
+        .order_by(label_model.block_number)
+        .limit(50)
+        .all()
+    )
+
+    if only_events:
+        return event_block_numbers[0][0] if event_block_numbers else None
+    else:
+        event_block_number = event_block_numbers[0][0] if event_block_numbers else -1
+        function_call_block_number = (
+            function_call_block_numbers[0][0] if function_call_block_numbers else -1
+        )
+        max_block_number = max(event_block_number, function_call_block_number)
+        return max_block_number if max_block_number != -1 else None
 
 
 def commit_session(db_session: Session) -> None:
