@@ -720,10 +720,6 @@ def stats_generate_handler(args: argparse.Namespace):
                         merged_functions[address] = {}
                         merged_functions[address]["merged"] = set()
 
-                    # if address not in merged_external_calls:
-                    #     merged_external_calls[address] = {}
-                    #     merged_external_calls[address]["merged"] = set()
-
                     if str(dashboard.id) not in merged_events[address]:
                         merged_events[address][str(dashboard.id)] = {}
 
