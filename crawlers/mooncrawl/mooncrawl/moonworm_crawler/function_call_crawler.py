@@ -71,11 +71,12 @@ def function_call_crawler(
     end_block: int,
     batch_size: int,
 ):
-    network = (
-        Network.ethereum
-        if blockchain_type == AvailableBlockchainType.ETHEREUM
-        else Network.polygon
-    )
+    network = Network.ethereum
+    if blockchain_type == AvailableBlockchainType.POLYGON:
+        network = Network.polygon
+    elif blockchain_type == AvailableBlockchainType.XDAI:
+        network = Network.xdai
+
     ethereum_state_provider = MoonstreamEthereumStateProvider(
         web3,
         network,
