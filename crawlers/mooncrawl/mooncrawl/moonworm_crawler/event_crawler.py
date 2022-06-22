@@ -38,6 +38,7 @@ def _get_block_timestamp_from_web3(
     Gets the timestamp of a block from the blockchain.
     will raise an exception if the block is not found.
     """
+    logger.info(f"Getting block timestamp from web3 for block {block_number}")
     return web3.eth.getBlock(block_number).timestamp
 
 

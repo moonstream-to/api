@@ -79,7 +79,7 @@ def historical_crawler(
                 from_block=batch_end_block,
                 to_block=start_block,
                 blocks_cache=blocks_cache,
-                db_block_query_batch=max_blocks_batch * 2,
+                db_block_query_batch=max_blocks_batch,
             )
             logger.info(
                 f"Crawled {len(all_events)} events from {start_block} to {batch_end_block}."
