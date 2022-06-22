@@ -153,8 +153,6 @@ def continuous_crawler(
     try:
         while True:
             try:
-                # query db  with limit 1, to avoid session closing
-                db_session.execute("SELECT 1")
                 time.sleep(current_sleep_time)
 
                 end_block = min(
