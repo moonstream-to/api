@@ -144,11 +144,15 @@ def continuous_crawler(
     if web3 is None:
         web3 = _retry_connect_web3(blockchain_type, access_id=access_id)
 
-    network = (
-        Network.ethereum
-        if blockchain_type == AvailableBlockchainType.ETHEREUM
-        else Network.polygon
-    )
+    if blockchain_type == AvailableBlockchainType.ETHEREUM:
+        network = Network.ethereum
+    elif blockchain_type == AvailableBlockchainType.POLYGON:
+        network = Network.polygon
+    elif blockchain_type == AvailableBlockchainType.XDAI:
+        network = Network.xdai
+    else:
+        raise ValueError(f"Unknown blockchain type: {blockchain_type}")
+
     ethereum_state_provider = MoonstreamEthereumStateProvider(
         web3,
         network,
