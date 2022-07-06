@@ -80,19 +80,25 @@ const _EngineOverviewDiagram = () => {
         <GridItem w="100px" h="100px" bgColor="red.200"></GridItem>
       </Grid> */}
       <Grid
-        templateRows={["repeat(7)", "repeat(7)", "repeat(2)"]}
+        templateRows={["repeat(7)", "repeat(7)", "repeat(2, 1fr)"]}
         templateColumns={["repeat(1, 1fr)", "repeat(1, 1fr)", "repeat(3, 1fr)"]}
         // gap={4}
         rowGap={[10, 10, 20]}
         columnGap={4}
       >
-        <GridItem h={["80px", "80px", "auto"]} order={[2, 2, 0]}>
+        <GridItem
+          h={["80px", "80px", "auto"]}
+          order={[2, 2, 0]}
+          display="inline-grid"
+          justifyItems="center"
+          alignItems="center"
+        >
           <Flex
             ref={smartContract}
             w={["260px", "260px", "400px"]}
             h={["73", "73", "114px"]}
             position="relative"
-            marginLeft="20px"
+            // marginLeft="20px"
           >
             <RoundedRectSVG scale={1} />
             <Center
@@ -117,12 +123,18 @@ const _EngineOverviewDiagram = () => {
           </Flex>
         </GridItem>
         <GridItem h={0} order={[6, 6, 1]}></GridItem>
-        <GridItem h={["160px", "160px", "auto"]} order={[4, 4, 2]}>
+        <GridItem
+          h={["160px", "160px", "auto"]}
+          order={[4, 4, 2]}
+          display="inline-grid"
+          justifyItems="center"
+          alignItems="center"
+        >
           <Flex
             ref={gameClient}
             w={["155px", "155px", "189px"]}
             h={["160px", "160px", "205px"]}
-            marginLeft={["80px", "80px", 0]}
+            // marginLeft={["80px", "80px", 0]}
             position="relative"
           >
             <RectangleSVG></RectangleSVG>
@@ -137,12 +149,18 @@ const _EngineOverviewDiagram = () => {
             </Center>
           </Flex>
         </GridItem>
-        <GridItem h={["160px", "160px", "auto"]} order={[1, 1, 3]}>
-          <Flex
+        <GridItem
+          h={["160px", "160px", "auto"]}
+          order={[1, 1, 3]}
+          display="inline-grid"
+          justifyItems="center"
+          alignItems="center"
+        >
+          <Center
             ref={adminDashboard}
             w={["155px", "155px", "189px"]}
             h={["160px", "160px", "205px"]}
-            marginLeft={["80px", "80px", 0]}
+            // marginLeft={["80px", "80px", 0]}
             position="relative"
           >
             <RectangleSVG scale={0.8}></RectangleSVG>
@@ -164,9 +182,15 @@ const _EngineOverviewDiagram = () => {
                 )}
               </VStack>
             </Center>
-          </Flex>
+          </Center>
         </GridItem>
-        <GridItem h={["160px", "160px", "auto"]} order={[3, 3, 4]}>
+        <GridItem
+          h={["160px", "160px", "auto"]}
+          order={[3, 3, 4]}
+          display="inline-grid"
+          justifyItems="center"
+          alignItems="center"
+        >
           <Center>
             <Flex
               w={["155px", "155px", "189px"]}
@@ -195,12 +219,18 @@ const _EngineOverviewDiagram = () => {
             </Flex>
           </Center>
         </GridItem>
-        <GridItem h={["120px", "120px", "auto"]} order={[5, 5, 5]}>
+        <GridItem
+          h={["120px", "120px", "auto"]}
+          order={[5, 5, 5]}
+          display="inline-grid"
+          justifyItems="center"
+          alignItems="center"
+        >
           <Flex
             ref={gameServer}
             w={["200px", "200px", "305px"]}
             h={["120px", "120px", "188px"]}
-            marginLeft={["60px", "60px", "20px"]}
+            // marginLeft={["60px", "60px", "20px"]}
             position="relative"
           >
             <CloudSVG scale={0.5}></CloudSVG>
@@ -214,14 +244,19 @@ const _EngineOverviewDiagram = () => {
             </Center>
           </Flex>
         </GridItem>
-        <GridItem order={[0, 0, 6]}>
+        <GridItem
+          order={[0, 0, 6]}
+          display="inline-grid"
+          justifyItems="center"
+          alignItems="center"
+        >
           <Center
             ref={user}
             w={[160, 200, 200]}
             h={[160, 200, 200]}
             flexDir="column"
             position="relative"
-            marginLeft={["50px", "50px", 0]}
+            // marginLeft={["50px", "50px", 0]}
           >
             <Icon
               as={BsFillPersonFill}
@@ -247,7 +282,7 @@ const _EngineOverviewDiagram = () => {
           <Xarrow
             start={smartContract}
             end={adminDashboard}
-            startAnchor={{ position: "bottom", offset: { x: -125 } }}
+            startAnchor="bottom"
             endAnchor="top"
             path="straight"
             {...xarrowStyle}
@@ -255,16 +290,15 @@ const _EngineOverviewDiagram = () => {
           <Xarrow
             start={smartContract}
             end={gameServer}
-            startAnchor={{ position: "bottom", offset: { x: 100 } }}
+            startAnchor={{ position: "bottom", offset: { x: 150 } }}
             endAnchor={{ position: "left", offset: { y: 40 } }}
             path="grid"
-            gridBreak="100%"
             {...xarrowStyle}
           />
           <Xarrow
             start={adminDashboard}
             end={user}
-            startAnchor={{ position: "bottom", offset: { x: 5 } }}
+            startAnchor="bottom"
             endAnchor="top"
             path="straight"
             {...xarrowStyle}
@@ -304,7 +338,7 @@ const _EngineOverviewDiagram = () => {
           <Xarrow
             start={adminDashboard}
             end={user}
-            startAnchor={{ position: "top", offset: { x: -7 } }}
+            startAnchor="top"
             endAnchor="bottom"
             path="straight"
             {...xarrowStyle}

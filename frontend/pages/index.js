@@ -22,6 +22,7 @@ import {
   Image as ChakraImage,
   HStack,
   VStack,
+  Accordion,
 } from "@chakra-ui/react";
 import useUser from "../src/core/hooks/useUser";
 import useRouter from "../src/core/hooks/useRouter";
@@ -32,6 +33,8 @@ import MilestoneBox from "../src/components/MilestoneBox";
 import AnalyticsContext from "../src/core/providers/AnalyticsProvider/context";
 import RouterLink from "next/link";
 import { ExternalLinkIcon } from "@chakra-ui/icons";
+import FAQCard from "../src/components/FAQCard";
+import EngineOverviewDiagram from "../src/components/EngineOverviewDiagram";
 
 const HEADING_PROPS = {
   fontWeight: "700",
@@ -326,7 +329,8 @@ const Homepage = () => {
                   >
                     And growing...
                   </Text>
-                  <chakra.h2
+                  <Heading
+                    as="h3"
                     fontSize={{ base: "3xl", sm: "2xl" }}
                     textAlign="center"
                     pb={4}
@@ -334,7 +338,7 @@ const Homepage = () => {
                     fontWeight="bold"
                   >
                     Trusted by{" "}
-                  </chakra.h2>
+                  </Heading>
                   <Flex wrap="wrap" direction="row" justifyContent="center">
                     <Suspense fallback={""}>
                       <TrustedBadge
@@ -501,6 +505,185 @@ const Homepage = () => {
                   pt={0}
                   as="h2"
                 >
+                  FAQ
+                </Heading>
+                <Accordion defaultIndex={[0]} allowMultiple allowToggle>
+                  <FAQCard
+                    heading="I’m a game designer. What can Moonstream engine do for me?"
+                    headingProps={HEADING_PROPS}
+                    panelContent={
+                      <>
+                        {" "}
+                        Moonstream is a hassle-free way to ultimate game design
+                        and superb user experience. You’ll be able to add
+                        on-chain mechanics from our web app into your project
+                        within a click.
+                        <br />
+                        <br />
+                        Imagine you had a menu of ready-to-use game
+                        functionalities... That’s what Moonstream Engine is
+                        about.
+                      </>
+                    }
+                  />
+                  <FAQCard
+                    heading="What on-chain mechanics are we talking about?"
+                    headingProps={HEADING_PROPS}
+                    panelContent={
+                      <>
+                        {" "}
+                        Use Moonstream to add minigames, in-game items,
+                        airdrops, lootboxes, loyalty programs, leaderboards,
+                        crafting, and some other mechanics into your game. If
+                        you want to add something that’s not on the list - feel
+                        free to discuss it with the team.
+                        <br />
+                        <br />
+                        Once you contact us to discuss your project, we’ll
+                        provide you with options.
+                      </>
+                    }
+                  />
+                  <FAQCard
+                    heading="I’m a game developer. How will I benefit?"
+                    headingProps={HEADING_PROPS}
+                    panelContent={
+                      <>
+                        {" "}
+                        Moonstream removes the complexity of smart contact
+                        development. It will save you weeks of time. Moonstream
+                        Engine is your backend.
+                        <br />
+                        <br />
+                        You can find code examples below on this page.
+                        Integration is easy even if you have no experience with
+                        web3.
+                      </>
+                    }
+                  />
+                  <FAQCard
+                    heading="Is it free?"
+                    headingProps={HEADING_PROPS}
+                    panelContent={
+                      <>
+                        {" "}
+                        Everything we build is open source and free to self-host
+                        or modify.
+                        <Link
+                          href="https://github.com/bugout-dev/moonstream"
+                          fontWeight={"600"}
+                          textColor="blue.700"
+                          // onClick={() => {
+                          //   buttonReport(
+                          //     "Join our Discord",
+                          //     "inline-text",
+                          //     "landing"
+                          //   );
+                          // }}
+                          isExternal
+                        >
+                          {" "}
+                          Here&apos;s
+                          <ExternalLinkIcon verticalAlign="text-top" />{" "}
+                        </Link>
+                        our GitHub. We’ll be happy to help you get set up.
+                        <br />
+                        <br />
+                        We also have a managed option, where we manage the smart
+                        contracts and the APIs. This is free for indie projects.
+                        For larger projects, please reach out to @zomglings on
+                        Discord for a quote.
+                      </>
+                    }
+                  />
+                  <FAQCard
+                    heading="I’m a data scientist. Can I use Moonstream for research?"
+                    headingProps={HEADING_PROPS}
+                    panelContent={
+                      <>
+                        You can use Moonworm, our free open source tool, to
+                        build datasets of on-chain data related to market
+                        activity.
+                        <br />
+                        <br />
+                        We also have a dataset with on-chain activity from the
+                        Ethereum NFT market (April 1 to September 25, 2021)
+                        here. And here is our full report on it.
+                        <br />
+                        <br />
+                        We’re working on V2 of the dataset above. You can
+                        collaborate with us and become a co-author, just
+                        @moonstream on Discord to connect with the team. Here
+                        you can find sample V2 datasets.
+                      </>
+                    }
+                  />
+                  <FAQCard
+                    heading="What is the Sign Up button for?"
+                    headingProps={HEADING_PROPS}
+                    panelContent={
+                      <>
+                        One of the tools we built is the Analytics platform.
+                        With it game designers, developers, data scientists and
+                        crypto enthusiasts can create dashboards to track
+                        on-chain activity and gain insights into web3 economy
+                        and its health.
+                        <br />
+                        <br />
+                        Here’s a tutorial on how to use the tool.
+                        <br />
+                        <br />
+                        You can get access to our analytics platform by signing
+                        up for a Moonstream account on our website. It’s free.
+                      </>
+                    }
+                  />
+                  <FAQCard
+                    heading="I’m a player. Does Moonstream have anything for me?"
+                    headingProps={HEADING_PROPS}
+                    panelContent={
+                      <>
+                        The next big thing coming out soon is for players. Join
+                        us on Discord for early access.
+                      </>
+                    }
+                  />
+                </Accordion>
+              </GridItem>
+              <GridItem
+                px={["7%", "7%", "7%", "15%"]}
+                py={["98px", "128px", null]}
+                colSpan="12"
+                bgColor="white.100"
+                minH="100vh"
+              >
+                <Heading
+                  {...HEADING_PROPS}
+                  textAlign="center"
+                  pb={14}
+                  pt={0}
+                  as="h2"
+                >
+                  Engine Overview
+                </Heading>
+                <Center>
+                  <EngineOverviewDiagram />
+                </Center>
+              </GridItem>
+              <GridItem
+                px={["7%", null, "12%", "15%"]}
+                py={["98px", "128px", null]}
+                colSpan="12"
+                bgColor="white.100"
+                minH="100vh"
+              >
+                <Heading
+                  {...HEADING_PROPS}
+                  textAlign="center"
+                  pb={14}
+                  pt={0}
+                  as="h2"
+                >
                   Our Workflow
                 </Heading>
                 <HStack alignItems="top" py={5}>
@@ -595,9 +778,14 @@ const Homepage = () => {
                 bgColor="blue.900"
                 textColor="white"
                 minH="100vh"
-                as="h2"
               >
-                <Heading {...HEADING_PROPS} textAlign="center" pb={14} pt={0}>
+                <Heading
+                  as="h2"
+                  {...HEADING_PROPS}
+                  textAlign="center"
+                  pb={14}
+                  pt={0}
+                >
                   Featured by{" "}
                 </Heading>
                 <Center>
