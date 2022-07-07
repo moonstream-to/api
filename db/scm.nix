@@ -23,6 +23,7 @@ in rec {
     schematic = scm.shell.overrideAttrs ( oldAttrs : {
         shellHook = oldAttrs.shellHook + ''
             [ -n "$ENV" -a "$ENV" != "dev" ] && export BUGSNAG=2b987ca13cd93a4931bb746aace204fb
+            source /home/moonstream/moonstream-secrets/pg.env
         '';
     });
 }
