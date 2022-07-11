@@ -1,7 +1,7 @@
 /*
 Load balancer, based on https://github.com/kasvith/simplelb/
 */
-package cmd
+package main
 
 import (
 	"encoding/json"

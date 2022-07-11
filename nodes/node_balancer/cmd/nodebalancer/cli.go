@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"encoding/json"
@@ -139,7 +139,6 @@ func (s *StateCLI) checkRequirements() {
 	}
 
 	config := configs.GetConfigPath(s.configPathFlag)
-	fmt.Println(config)
 	if !configs.CheckPathExists(config.ConfigPath) {
 		configs.GenerateDefaultConfig(config)
 	}

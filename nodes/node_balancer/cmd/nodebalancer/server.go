@@ -1,7 +1,7 @@
 /*
 Node load balancer API server initialization.
 */
-package cmd
+package main
 
 import (
 	"context"

@@ -58,7 +58,7 @@ echo
 echo -e "${PREFIX_INFO} Building executable load balancer for nodes script with Go"
 EXEC_DIR=$(pwd)
 cd "${APP_NODES_DIR}/node_balancer"
-HOME=/root /usr/local/go/bin/go build -o "${APP_NODES_DIR}/node_balancer/nodebalancer" "${APP_NODES_DIR}/node_balancer/main.go"
+HOME=/root /usr/local/go/bin/go build -o "${APP_NODES_DIR}/node_balancer/nodebalancer" "${APP_NODES_DIR}/node_balancer/cmd/nodebalancer/*.go"
 cd "${EXEC_DIR}"
 
 echo

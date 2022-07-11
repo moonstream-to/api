@@ -1,7 +1,7 @@
 /*
 Handle routes for load balancer API.
 */
-package cmd
+package main
 
 import (
 	"bytes"

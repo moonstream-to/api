@@ -1,7 +1,7 @@
 /*
 Server API middleware.
 */
-package cmd
+package main
 
 import (
 	"bytes"
