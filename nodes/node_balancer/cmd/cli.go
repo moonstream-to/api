@@ -33,11 +33,12 @@ func (i *flagSlice) Set(value string) error {
 
 // Command Line Interface state
 type StateCLI struct {
-	addAccessCmd    *flag.FlagSet
-	deleteAccessCmd *flag.FlagSet
-	serverCmd       *flag.FlagSet
-	usersCmd        *flag.FlagSet
-	versionCmd      *flag.FlagSet
+	addAccessCmd      *flag.FlagSet
+	generateConfigCmd *flag.FlagSet
+	deleteAccessCmd   *flag.FlagSet
+	serverCmd         *flag.FlagSet
+	usersCmd          *flag.FlagSet
+	versionCmd        *flag.FlagSet
 
 	// Common flags
 	configPathFlag string
@@ -63,15 +64,15 @@ type StateCLI struct {
 }
 
 func (s *StateCLI) usage() {
-	fmt.Printf(`usage: nodebalancer [-h] {%[1]s,%[2]s,%[3]s,%[4]s,%[5]s} ...
+	fmt.Printf(`usage: nodebalancer [-h] {%[1]s,%[2]s,%[3]s,%[4]s,%[5]s,%[6]s} ...
 
 Moonstream node balancer CLI
 optional arguments:
     -h, --help         show this help message and exit
 
 subcommands:
-    {%[1]s,%[2]s,%[3]s,%[4]s,%[5]s}
-`, s.addAccessCmd.Name(), s.deleteAccessCmd.Name(), s.serverCmd.Name(), s.usersCmd.Name(), s.versionCmd.Name())
+    {%[1]s,%[2]s,%[3]s,%[4]s,%[5]s,%[6]s}
+`, s.addAccessCmd.Name(), s.generateConfigCmd.Name(), s.deleteAccessCmd.Name(), s.serverCmd.Name(), s.usersCmd.Name(), s.versionCmd.Name())
 }
 
 // Check if required flags are set
@@ -81,6 +82,10 @@ func (s *StateCLI) checkRequirements() {
 		case s.addAccessCmd.Parsed():
 			fmt.Printf("Add new user access token\n\n")
 			s.addAccessCmd.PrintDefaults()
+			os.Exit(0)
+		case s.generateConfigCmd.Parsed():
+			fmt.Printf("Generate new configuration\n\n")
+			s.generateConfigCmd.PrintDefaults()
 			os.Exit(0)
 		case s.deleteAccessCmd.Parsed():
 			fmt.Printf("Delete user access token\n\n")
@@ -133,22 +138,25 @@ func (s *StateCLI) checkRequirements() {
 		}
 	}
 
-	if s.configPathFlag == "" {
-		configPath := configs.GenerateDefaultConfig()
-		s.configPathFlag = configPath
+	config := configs.GetConfigPath(s.configPathFlag)
+	fmt.Println(config)
+	if !configs.CheckPathExists(config.ConfigPath) {
+		configs.GenerateDefaultConfig(config)
 	}
+	s.configPathFlag = config.ConfigPath
 }
 
 func (s *StateCLI) populateCLI() {
 	// Subcommands setup
 	s.addAccessCmd = flag.NewFlagSet("add-access", flag.ExitOnError)
+	s.generateConfigCmd = flag.NewFlagSet("generate-config", flag.ExitOnError)
 	s.deleteAccessCmd = flag.NewFlagSet("delete-access", flag.ExitOnError)
 	s.serverCmd = flag.NewFlagSet("server", flag.ExitOnError)
 	s.usersCmd = flag.NewFlagSet("users", flag.ExitOnError)
 	s.versionCmd = flag.NewFlagSet("version", flag.ExitOnError)
 
 	// Common flag pointers
-	for _, fs := range []*flag.FlagSet{s.addAccessCmd, s.deleteAccessCmd, s.serverCmd, s.usersCmd, s.versionCmd} {
+	for _, fs := range []*flag.FlagSet{s.addAccessCmd, s.generateConfigCmd, s.deleteAccessCmd, s.serverCmd, s.usersCmd, s.versionCmd} {
 		fs.BoolVar(&s.helpFlag, "help", false, "Show help message")
 		fs.StringVar(&s.configPathFlag, "config", "", "Path to configuration file (default: ~/.nodebalancer/config.txt)")
 	}
@@ -227,6 +235,10 @@ func CLI() {
 			os.Exit(1)
 		}
 		fmt.Println(string(resource_data))
+
+	case "generate-config":
+		stateCLI.generateConfigCmd.Parse(os.Args[2:])
+		stateCLI.checkRequirements()
 
 	case "delete-access":
 		stateCLI.deleteAccessCmd.Parse(os.Args[2:])

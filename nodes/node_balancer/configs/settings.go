@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -57,32 +59,73 @@ func CheckEnvVarSet() {
 	}
 }
 
-func GenerateDefaultConfig() string {
-	homeDir, err := os.UserHomeDir()
+type Config struct {
+	ConfigDirPath   string
+	ConfigDirExists bool
+
+	ConfigPath   string
+	ConfigExists bool
+}
+
+func CheckPathExists(path string) bool {
+	var exists = true
+	_, err := os.Stat(path)
 	if err != nil {
-		fmt.Printf("Unable to find user home directory, %v", err)
-		os.Exit(1)
+		if os.IsNotExist(err) {
+			exists = false
+		} else {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 	}
 
-	configDirPath := fmt.Sprintf("%s/.nodebalancer", homeDir)
-	configPath := fmt.Sprintf("%s/config.txt", configDirPath)
+	return exists
+}
 
-	err = os.MkdirAll(configDirPath, os.ModePerm)
-	if err != nil {
-		fmt.Printf("Unable to create directory, %v", err)
-		os.Exit(1)
-	}
-
-	_, err = os.Stat(configPath)
-	if err != nil {
-		tempConfigB := []byte("ethereum,127.0.0.1,8545")
-		err = os.WriteFile(configPath, tempConfigB, 0644)
+func GetConfigPath(providedPath string) *Config {
+	var configDirPath, configPath string
+	if providedPath == "" {
+		homeDir, err := os.UserHomeDir()
 		if err != nil {
+			fmt.Printf("Unable to find user home directory, %v", err)
+			os.Exit(1)
+		}
+		configDirPath = fmt.Sprintf("%s/.nodebalancer", homeDir)
+		configPath = fmt.Sprintf("%s/config.txt", configDirPath)
+	} else {
+		configPath = strings.TrimSuffix(providedPath, "/")
+		configDirPath = filepath.Dir(configPath)
+	}
+
+	defaultConfig := &Config{
+		ConfigDirPath:   configDirPath,
+		ConfigDirExists: CheckPathExists(configDirPath),
+
+		ConfigPath:   configPath,
+		ConfigExists: CheckPathExists(configPath),
+	}
+
+	return defaultConfig
+}
+
+func GenerateDefaultConfig(config *Config) string {
+	if !config.ConfigDirExists {
+		if err := os.MkdirAll(config.ConfigDirPath, os.ModePerm); err != nil {
 			fmt.Printf("Unable to create directory, %v", err)
 			os.Exit(1)
 		}
-		log.Printf("Config directory were not found, created default configuration at %s", configPath)
+		log.Printf("Config directory created at: %s", config.ConfigDirPath)
 	}
 
-	return configPath
+	if !config.ConfigExists {
+		tempConfigB := []byte("ethereum,127.0.0.1,8545")
+		err := os.WriteFile(config.ConfigPath, tempConfigB, 0644)
+		if err != nil {
+			fmt.Printf("Unable to create temp config file, %v", err)
+			os.Exit(1)
+		}
+		log.Printf("Created default configuration at %s", config.ConfigPath)
+	}
+
+	return config.ConfigPath
 }
