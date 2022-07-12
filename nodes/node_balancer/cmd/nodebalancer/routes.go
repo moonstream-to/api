@@ -80,10 +80,6 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 	r.Header.Add("X-Origin-Path", r.URL.Path)
 
 	switch {
-	case strings.HasPrefix(r.URL.Path, fmt.Sprintf("/nb/%s/ping", blockchain)):
-		r.URL.Path = "/ping"
-		node.StatusReverseProxy.ServeHTTP(w, r)
-		return
 	case strings.HasPrefix(r.URL.Path, fmt.Sprintf("/nb/%s/jsonrpc", blockchain)):
 		lbJSONRPCHandler(w, r, blockchain, node, currentClientAccess)
 		return
@@ -122,9 +118,8 @@ func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string,
 			}
 		}
 
+		// Overwrite Path so response will be returned to correct place
 		r.URL.Path = "/"
-		// If required detailed timeout configuration, define node.GethReverseProxy.Transport = &http.Transport{}
-		// as modified structure of DefaultTransport net/http/transport/DefaultTransport
 		node.GethReverseProxy.ServeHTTP(w, r)
 		return
 	case currentClientAccess.dataSource == "database":

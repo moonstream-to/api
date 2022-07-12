@@ -32,8 +32,7 @@ type Node struct {
 
 	mux sync.RWMutex
 
-	StatusReverseProxy *httputil.ReverseProxy
-	GethReverseProxy   *httputil.ReverseProxy
+	GethReverseProxy *httputil.ReverseProxy
 }
 
 type NodePool struct {

@@ -58,8 +58,6 @@ func CheckEnvVarSet() {
 type NodeConfig struct {
 	Blockchain string `json:"blockchain"`
 	Endpoint   string `json:"endpoint"`
-
-	Internal bool `json:"internal"`
 }
 
 func LoadConfig(configPath string) (*[]NodeConfig, error) {
@@ -142,7 +140,7 @@ func GenerateDefaultConfig(config *ConfigPlacement) error {
 
 	if !config.ConfigExists {
 		tempConfig := []NodeConfig{
-			{Blockchain: "ethereum", Endpoint: "http://127.0.0.1:8545", Internal: true},
+			{Blockchain: "ethereum", Endpoint: "http://127.0.0.1:8545"},
 		}
 		tempConfigJson, err := json.Marshal(tempConfig)
 		if err != nil {

@@ -12,6 +12,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	humbug "github.com/bugout-dev/humbug/go/pkg"
@@ -170,7 +171,6 @@ func Server() {
 
 	// Parse nodes and set list of proxies
 	for i, nodeConfig := range *nodeConfig {
-
 		endpoint, err := url.Parse(nodeConfig.Endpoint)
 		if err != nil {
 			fmt.Println(err)
@@ -178,6 +178,18 @@ func Server() {
 		}
 
 		proxyToEndpoint := httputil.NewSingleHostReverseProxy(endpoint)
+		// If required detailed timeout configuration, define node.GethReverseProxy.Transport = &http.Transport{}
+		// as modified structure of DefaultTransport net/http/transport/DefaultTransport
+		director := proxyToEndpoint.Director
+		proxyToEndpoint.Director = func(r *http.Request) {
+			director(r)
+			// Overwrite Query and Headers to not bypass nodebalancer Query and Headers
+			r.URL.RawQuery = ""
+			r.Header.Del(strings.Title(NB_ACCESS_ID_HEADER))
+			r.Header.Del(strings.Title(NB_DATA_SOURCE_HEADER))
+			// Change r.Host from nodebalancer's to end host so TLS check will be passed
+			r.Host = r.URL.Host
+		}
 		proxyErrorHandler(proxyToEndpoint, endpoint)
 
 		blockchainPool.AddNode(&Node{
