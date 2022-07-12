@@ -118,6 +118,8 @@ func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string,
 			}
 		}
 
+		node.IncreaseCallCounter()
+
 		// Overwrite Path so response will be returned to correct place
 		r.URL.Path = "/"
 		node.GethReverseProxy.ServeHTTP(w, r)

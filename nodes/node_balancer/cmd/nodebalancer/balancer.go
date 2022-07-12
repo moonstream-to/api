@@ -29,6 +29,7 @@ type Node struct {
 
 	Alive        bool
 	CurrentBlock uint64
+	CallCounter  uint64
 
 	mux sync.RWMutex
 
@@ -92,19 +93,23 @@ func (node *Node) IsAlive() (alive bool) {
 	return alive
 }
 
-// SetCurrentBlock with mutex for exact node
-func (node *Node) SetCurrentBlock(currentBlock uint64) {
+// UpdateNodeState updates block number and live status,
+// also it returns number of time node appeal
+func (node *Node) UpdateNodeState(currentBlock uint64, alive bool) (callCounter uint64) {
 	node.mux.Lock()
 	node.CurrentBlock = currentBlock
+	node.Alive = alive
+
+	callCounter = node.CallCounter
 	node.mux.Unlock()
+	return callCounter
 }
 
-// GetCurrentBlock returns block number
-func (node *Node) GetCurrentBlock() (currentBlock uint64) {
-	node.mux.RLock()
-	currentBlock = node.CurrentBlock
-	node.mux.RUnlock()
-	return currentBlock
+// IncreaseCallCounter increased to 1 each time node called
+func (node *Node) IncreaseCallCounter() {
+	node.mux.Lock()
+	node.CallCounter++
+	node.mux.Unlock()
 }
 
 // GetNextNode returns next active peer to take a connection
@@ -125,7 +130,7 @@ func (bpool *BlockchainPool) GetNextNode(blockchain string) *Node {
 		}
 	}
 
-	// Increase Current value with 1 to be able to track node appeals
+	// Increase Current value with 1
 	currentInc := atomic.AddUint64(&np.Current, uint64(1))
 
 	// next is an Atomic incrementer, value always in range from 0 to slice length,
@@ -185,6 +190,8 @@ func (bpool *BlockchainPool) StatusLog() {
 func (bpool *BlockchainPool) HealthCheck() {
 	for _, b := range bpool.Blockchains {
 		for _, n := range b.Nodes {
+			alive := false
+
 			httpClient := http.Client{Timeout: NB_HEALTH_CHECK_CALL_TIMEOUT}
 			resp, err := httpClient.Post(
 				n.Endpoint.String(),
@@ -192,8 +199,7 @@ func (bpool *BlockchainPool) HealthCheck() {
 				bytes.NewBuffer([]byte(`{"jsonrpc":"2.0","method":"eth_getBlockByNumber","params":["latest", false],"id":1}`)),
 			)
 			if err != nil {
-				n.SetAlive(false)
-				n.SetCurrentBlock(0)
+				n.UpdateNodeState(0, alive)
 				log.Printf("Unable to reach node: %s", n.Endpoint.Host)
 				continue
 			}
@@ -201,8 +207,7 @@ func (bpool *BlockchainPool) HealthCheck() {
 
 			body, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
-				n.SetAlive(false)
-				n.SetCurrentBlock(0)
+				n.UpdateNodeState(0, alive)
 				log.Printf("Unable to parse response from %s node, err %v", n.Endpoint.Host, err)
 				continue
 			}
@@ -210,8 +215,7 @@ func (bpool *BlockchainPool) HealthCheck() {
 			var statusResponse NodeStatusResponse
 			err = json.Unmarshal(body, &statusResponse)
 			if err != nil {
-				n.SetAlive(false)
-				n.SetCurrentBlock(0)
+				n.UpdateNodeState(0, alive)
 				log.Printf("Unable to read json response from %s node, err: %v", n.Endpoint.Host, err)
 				continue
 			}
@@ -219,25 +223,19 @@ func (bpool *BlockchainPool) HealthCheck() {
 			blockNumberHex := strings.Replace(statusResponse.Result.Number, "0x", "", -1)
 			blockNumber, err := strconv.ParseUint(blockNumberHex, 16, 64)
 			if err != nil {
-				n.SetAlive(false)
-				n.SetCurrentBlock(0)
+				n.UpdateNodeState(0, alive)
 				log.Printf("Unable to parse block number from hex to string, err: %v", err)
 				continue
 			}
 
-			// Mark node in list of nodes as alive or not and update current block
-			var alive bool
+			// Mark node in list of pool as alive and update current block
 			if blockNumber != 0 {
 				alive = true
-			} else {
-				alive = false
 			}
-			n.SetAlive(alive)
-			n.SetCurrentBlock(blockNumber)
+			callCounter := n.UpdateNodeState(blockNumber, alive)
 
 			log.Printf(
-				"Node %s is alive: %t with current block: %d blockchain called: %d times",
-				n.Endpoint.Host, alive, blockNumber, b.Current,
+				"Node %s is alive: %t with current block: %d called: %d times", n.Endpoint.Host, alive, blockNumber, callCounter,
 			)
 		}
 	}
