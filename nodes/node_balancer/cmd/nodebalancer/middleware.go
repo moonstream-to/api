@@ -201,7 +201,7 @@ func logMiddleware(next http.Handler) http.Handler {
 			var jsonrpcRequest JSONRPCRequest
 			err = json.Unmarshal(body, &jsonrpcRequest)
 			if err != nil {
-				log.Printf("Unable to parse body, err: %v", err)
+				log.Printf("Unable to parse body at logging middleware, err: %v", err)
 			}
 			logStr += fmt.Sprintf(" %s", jsonrpcRequest.Method)
 		}
