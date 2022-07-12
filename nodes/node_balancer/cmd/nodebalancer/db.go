@@ -4,8 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	configs "github.com/bugout-dev/moonstream/nodes/node_balancer/configs"
-
 	_ "github.com/lib/pq"
 )
 
@@ -19,18 +17,18 @@ type DatabaseClient struct {
 
 // Establish connection with database
 func InitDatabaseClient() error {
-	db, err := sql.Open("postgres", configs.MOONSTREAM_DB_URI_READ_ONLY)
+	db, err := sql.Open("postgres", MOONSTREAM_DB_URI_READ_ONLY)
 	if err != nil {
 		return fmt.Errorf("DSN parse error or another database initialization error: %v", err)
 	}
 
 	// Set the maximum number of concurrently idle connections,
 	// by default sql.DB allows a maximum of 2 idle connections.
-	db.SetMaxIdleConns(configs.MOONSTREAM_DB_MAX_IDLE_CONNS)
+	db.SetMaxIdleConns(MOONSTREAM_DB_MAX_IDLE_CONNS)
 
 	// Set the maximum lifetime of a connection.
 	// Longer lifetime increase memory usage.
-	db.SetConnMaxLifetime(configs.MOONSTREAM_DB_CONN_MAX_LIFETIME)
+	db.SetConnMaxLifetime(MOONSTREAM_DB_CONN_MAX_LIFETIME)
 
 	databaseClient = DatabaseClient{
 		Client: db,

@@ -4,17 +4,17 @@ Load balancer, based on https://github.com/kasvith/simplelb/
 package main
 
 import (
+	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
-
-	configs "github.com/bugout-dev/moonstream/nodes/node_balancer/configs"
 )
 
 // Main variable of pool of blockchains which contains pool of nodes
@@ -23,10 +23,9 @@ var blockchainPool BlockchainPool
 
 // Node structure with
 // StatusURL for status server at node endpoint
-// GethURL for geth/bor/etc node http.server endpoint
+// Endpoint for geth/bor/etc node http.server endpoint
 type Node struct {
-	StatusURL *url.URL
-	GethURL   *url.URL
+	Endpoint *url.URL
 
 	Alive        bool
 	CurrentBlock uint64
@@ -49,8 +48,13 @@ type BlockchainPool struct {
 	Blockchains []*NodePool
 }
 
+// Node status response struct for HealthCheck
+type NodeStatusResultResponse struct {
+	Number string `json:"number"`
+}
+
 type NodeStatusResponse struct {
-	CurrentBlock uint64 `json:"current_block"`
+	Result NodeStatusResultResponse `json:"result"`
 }
 
 // AddNode to the nodes pool
@@ -153,11 +157,11 @@ func (bpool *BlockchainPool) GetNextNode(blockchain string) *Node {
 	return nil
 }
 
-// SetNodeStatus changes a status of a node by StatusURL or GethURL
+// SetNodeStatus modify status of the node
 func (bpool *BlockchainPool) SetNodeStatus(url *url.URL, alive bool) {
 	for _, b := range bpool.Blockchains {
 		for _, n := range b.Nodes {
-			if n.StatusURL.String() == url.String() || n.GethURL.String() == url.String() {
+			if n.Endpoint.String() == url.String() {
 				n.SetAlive(alive)
 				break
 			}
@@ -165,55 +169,77 @@ func (bpool *BlockchainPool) SetNodeStatus(url *url.URL, alive bool) {
 	}
 }
 
-// StatusLog logs nodes statuses
+// StatusLog logs node status
 // TODO(kompotkot): Print list of alive and dead nodes
 func (bpool *BlockchainPool) StatusLog() {
 	for _, b := range bpool.Blockchains {
 		for _, n := range b.Nodes {
 			log.Printf(
 				"Blockchain %s node %s is alive %t. Blockchain called %d times",
-				b.Blockchain, n.StatusURL, n.Alive, b.Current,
+				b.Blockchain, n.Endpoint.Host, n.Alive, b.Current,
 			)
 		}
 	}
 }
 
-// HealthCheck fetch the node status and current block server
+// HealthCheck fetch the node latest block
 func (bpool *BlockchainPool) HealthCheck() {
 	for _, b := range bpool.Blockchains {
 		for _, n := range b.Nodes {
-			n.SetAlive(false)
-			n.SetCurrentBlock(0)
-
-			// Get response from node /ping endpoint
-			httpClient := http.Client{Timeout: configs.NB_HEALTH_CHECK_CALL_TIMEOUT}
-			resp, err := httpClient.Get(fmt.Sprintf("%s/status", n.StatusURL))
+			httpClient := http.Client{Timeout: NB_HEALTH_CHECK_CALL_TIMEOUT}
+			resp, err := httpClient.Post(
+				n.Endpoint.String(),
+				"application/json",
+				bytes.NewBuffer([]byte(`{"jsonrpc":"2.0","method":"eth_getBlockByNumber","params":["latest", false],"id":1}`)),
+			)
 			if err != nil {
-				log.Printf("Unable to reach node: %s\n", n.StatusURL)
+				n.SetAlive(false)
+				n.SetCurrentBlock(0)
+				log.Printf("Unable to reach node: %s", n.Endpoint.Host)
 				continue
 			}
 			defer resp.Body.Close()
 
 			body, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
-				log.Printf("Unable to parse response from node: %s\n", n.StatusURL)
+				n.SetAlive(false)
+				n.SetCurrentBlock(0)
+				log.Printf("Unable to parse response from %s node, err %v", n.Endpoint.Host, err)
 				continue
 			}
 
 			var statusResponse NodeStatusResponse
 			err = json.Unmarshal(body, &statusResponse)
 			if err != nil {
-				log.Printf("Unable to read json response from node: %s\n", n.StatusURL)
+				n.SetAlive(false)
+				n.SetCurrentBlock(0)
+				log.Printf("Unable to read json response from %s node, err: %v", n.Endpoint.Host, err)
+				continue
+			}
+
+			blockNumberHex := strings.Replace(statusResponse.Result.Number, "0x", "", -1)
+			blockNumber, err := strconv.ParseUint(blockNumberHex, 16, 64)
+			if err != nil {
+				n.SetAlive(false)
+				n.SetCurrentBlock(0)
+				log.Printf("Unable to parse block number from hex to string, err: %v", err)
 				continue
 			}
 
 			// Mark node in list of nodes as alive or not and update current block
-			n.SetAlive(true)
-			if statusResponse.CurrentBlock != 0 {
-				n.SetCurrentBlock(statusResponse.CurrentBlock)
+			var alive bool
+			if blockNumber != 0 {
+				alive = true
+			} else {
+				alive = false
 			}
+			n.SetAlive(alive)
+			n.SetCurrentBlock(blockNumber)
 
-			log.Printf("Node %s is alive: %t with current block: %d blockchain called: %d times\n", n.StatusURL, true, statusResponse.CurrentBlock, b.Current)
+			log.Printf(
+				"Node %s is alive: %t with current block: %d blockchain called: %d times",
+				n.Endpoint.Host, alive, blockNumber, b.Current,
+			)
 		}
 	}
 }

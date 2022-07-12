@@ -4,13 +4,12 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
 	bugout "github.com/bugout-dev/bugout-go/pkg"
 	"github.com/google/uuid"
-
-	"github.com/bugout-dev/moonstream/nodes/node_balancer/configs"
 )
 
 var (
@@ -138,9 +137,20 @@ func (s *StateCLI) checkRequirements() {
 		}
 	}
 
-	config := configs.GetConfigPath(s.configPathFlag)
-	if !configs.CheckPathExists(config.ConfigPath) {
-		configs.GenerateDefaultConfig(config)
+	// Load configuration
+	config, err := GetConfigPath(s.configPathFlag)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	if !config.ConfigExists {
+		if err := GenerateDefaultConfig(config); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	} else {
+		log.Printf("Loaded configuration from %s", config.ConfigPath)
 	}
 	s.configPathFlag = config.ConfigPath
 }
@@ -183,7 +193,7 @@ func (s *StateCLI) populateCLI() {
 	s.usersCmd.IntVar(&s.offsetFlag, "offset", 0, "Result output offset")
 }
 
-func CLI() {
+func cli() {
 	stateCLI.populateCLI()
 	if len(os.Args) < 2 {
 		stateCLI.usage()
@@ -193,7 +203,7 @@ func CLI() {
 	// Init bugout client
 	bc, err := bugout.ClientFromEnv()
 	if err != nil {
-		fmt.Printf("Unable to initialize bugout client %v", err)
+		fmt.Printf("Unable to initialize bugout client, err: %v\n", err)
 		os.Exit(1)
 	}
 	bugoutClient = bc
@@ -213,24 +223,24 @@ func CLI() {
 			ExtendedMethods:  stateCLI.extendedMethodsFlag,
 		}
 		_, err := bugoutClient.Brood.FindUser(
-			configs.NB_CONTROLLER_TOKEN,
+			NB_CONTROLLER_TOKEN,
 			map[string]string{
 				"user_id":        proposedUserAccess.UserID,
-				"application_id": configs.NB_APPLICATION_ID,
+				"application_id": NB_APPLICATION_ID,
 			},
 		)
 		if err != nil {
-			fmt.Printf("User does not exists %v\n", err)
+			fmt.Printf("User does not exists, err: %v\n", err)
 			os.Exit(1)
 		}
-		resource, err := bugoutClient.Brood.CreateResource(configs.NB_CONTROLLER_TOKEN, configs.NB_APPLICATION_ID, proposedUserAccess)
+		resource, err := bugoutClient.Brood.CreateResource(NB_CONTROLLER_TOKEN, NB_APPLICATION_ID, proposedUserAccess)
 		if err != nil {
-			fmt.Printf("Unable to create user access %v\n", err)
+			fmt.Printf("Unable to create user access, err: %v\n", err)
 			os.Exit(1)
 		}
 		resource_data, err := json.Marshal(resource.ResourceData)
 		if err != nil {
-			fmt.Printf("Unable to encode resource %s data interface to json %v", resource.Id, err)
+			fmt.Printf("Unable to encode resource %s data interface to json, err: %v", resource.Id, err)
 			os.Exit(1)
 		}
 		fmt.Println(string(resource_data))
@@ -251,31 +261,31 @@ func CLI() {
 			queryParameters["access_id"] = stateCLI.accessIDFlag
 		}
 		resources, err := bugoutClient.Brood.GetResources(
-			configs.NB_CONTROLLER_TOKEN,
-			configs.NB_APPLICATION_ID,
+			NB_CONTROLLER_TOKEN,
+			NB_APPLICATION_ID,
 			queryParameters,
 		)
 		if err != nil {
-			fmt.Printf("Unable to get Bugout resources %v\n", err)
+			fmt.Printf("Unable to get Bugout resources, err: %v\n", err)
 			os.Exit(1)
 		}
 
 		var userAccesses []ClientResourceData
 		for _, resource := range resources.Resources {
-			deletedResource, err := bugoutClient.Brood.DeleteResource(configs.NB_CONTROLLER_TOKEN, resource.Id)
+			deletedResource, err := bugoutClient.Brood.DeleteResource(NB_CONTROLLER_TOKEN, resource.Id)
 			if err != nil {
-				fmt.Printf("Unable to delete resource %s %v\n", resource.Id, err)
+				fmt.Printf("Unable to delete resource %s, err: %v\n", resource.Id, err)
 				continue
 			}
 			resource_data, err := json.Marshal(deletedResource.ResourceData)
 			if err != nil {
-				fmt.Printf("Unable to encode resource %s data interface to json %v", resource.Id, err)
+				fmt.Printf("Unable to encode resource %s data interface to json, err: %v\n", resource.Id, err)
 				continue
 			}
 			var userAccess ClientResourceData
 			err = json.Unmarshal(resource_data, &userAccess)
 			if err != nil {
-				fmt.Printf("Unable to decode resource %s data json to structure %v", resource.Id, err)
+				fmt.Printf("Unable to decode resource %s data json to structure, err: %v\n", resource.Id, err)
 				continue
 			}
 			userAccesses = append(userAccesses, userAccess)
@@ -283,7 +293,7 @@ func CLI() {
 
 		userAccessesJson, err := json.Marshal(userAccesses)
 		if err != nil {
-			fmt.Printf("Unable to marshal user access struct %v\n", err)
+			fmt.Printf("Unable to marshal user access struct, err: %v\n", err)
 			os.Exit(1)
 		}
 		fmt.Println(string(userAccessesJson))
@@ -292,7 +302,7 @@ func CLI() {
 		stateCLI.serverCmd.Parse(os.Args[2:])
 		stateCLI.checkRequirements()
 
-		configs.CheckEnvVarSet()
+		CheckEnvVarSet()
 
 		Server()
 
@@ -308,12 +318,12 @@ func CLI() {
 			queryParameters["access_id"] = stateCLI.accessIDFlag
 		}
 		resources, err := bugoutClient.Brood.GetResources(
-			configs.NB_CONTROLLER_TOKEN,
-			configs.NB_APPLICATION_ID,
+			NB_CONTROLLER_TOKEN,
+			NB_APPLICATION_ID,
 			queryParameters,
 		)
 		if err != nil {
-			fmt.Printf("Unable to get Bugout resources %v\n", err)
+			fmt.Printf("Unable to get Bugout resources, err: %v\n", err)
 			os.Exit(1)
 		}
 
@@ -331,20 +341,20 @@ func CLI() {
 		for _, resource := range resources.Resources[offset:limit] {
 			resource_data, err := json.Marshal(resource.ResourceData)
 			if err != nil {
-				fmt.Printf("Unable to encode resource %s data interface to json %v", resource.Id, err)
+				fmt.Printf("Unable to encode resource %s data interface to json, err: %v\n", resource.Id, err)
 				continue
 			}
 			var userAccess ClientResourceData
 			err = json.Unmarshal(resource_data, &userAccess)
 			if err != nil {
-				fmt.Printf("Unable to decode resource %s data json to structure %v", resource.Id, err)
+				fmt.Printf("Unable to decode resource %s data json to structure, err: %v\n", resource.Id, err)
 				continue
 			}
 			userAccesses = append(userAccesses, userAccess)
 		}
 		userAccessesJson, err := json.Marshal(userAccesses)
 		if err != nil {
-			fmt.Printf("Unable to marshal user accesses struct %v\n", err)
+			fmt.Printf("Unable to marshal user accesses struct, err: %v\n", err)
 			os.Exit(1)
 		}
 		fmt.Println(string(userAccessesJson))
@@ -353,7 +363,7 @@ func CLI() {
 		stateCLI.versionCmd.Parse(os.Args[2:])
 		stateCLI.checkRequirements()
 
-		fmt.Printf("v%s\n", configs.NB_VERSION)
+		fmt.Printf("v%s\n", NB_VERSION)
 
 	default:
 		stateCLI.usage()

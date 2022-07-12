@@ -1,17 +1,6 @@
 package main
 
-import (
-	"io/ioutil"
-	"log"
-	"strconv"
-	"strings"
-
-	configs "github.com/bugout-dev/moonstream/nodes/node_balancer/configs"
-)
-
 var (
-	nodeConfigs NodeConfigs
-
 	ALLOWED_METHODS = map[string]bool{
 		"eth_blockNumber":                         true,
 		"eth_call":                                true,
@@ -57,49 +46,8 @@ type JSONRPCRequest struct {
 	ID      uint64        `json:"id"`
 }
 
-// Node conf
 type BlockchainConfig struct {
 	Blockchain string
 	IPs        []string
 	Port       string
-}
-
-type NodeConfig struct {
-	Blockchain string
-	Addr       string
-	Port       uint16
-}
-
-type NodeConfigs struct {
-	NodeConfigs []NodeConfig
-}
-
-// Return list of NodeConfig structures
-func (nc *NodeConfigs) InitNodeConfigList(configPath string) {
-	configs.CheckEnvVarSet()
-
-	rawBytes, err := ioutil.ReadFile(configPath)
-	if err != nil {
-		log.Fatalf("Unable to read config file, %v", err)
-	}
-	text := string(rawBytes)
-	lines := strings.Split(text, "\n")
-
-	// Define available blockchain nodes
-	for _, line := range lines {
-		fields := strings.Split(line, ",")
-		if len(fields) == 3 {
-			port, err := strconv.ParseInt(fields[2], 0, 16)
-			if err != nil {
-				log.Printf("Unable to parse port number, %v", err)
-				continue
-			}
-
-			nc.NodeConfigs = append(nc.NodeConfigs, NodeConfig{
-				Blockchain: fields[0],
-				Addr:       fields[1],
-				Port:       uint16(port),
-			})
-		}
-	}
 }

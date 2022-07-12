@@ -1,10 +1,12 @@
 /*
 Configurations for load balancer server.
 */
-package configs
+package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -43,8 +45,6 @@ var (
 	MOONSTREAM_DB_CONN_MAX_LIFETIME     = 30 * time.Minute
 )
 
-var MOONSTREAM_NODES_SERVER_PORT = os.Getenv("MOONSTREAM_NODES_SERVER_PORT")
-
 func CheckEnvVarSet() {
 	if NB_ACCESS_ID_HEADER == "" {
 		NB_ACCESS_ID_HEADER = "x-node-balancer-access-id"
@@ -52,14 +52,31 @@ func CheckEnvVarSet() {
 	if NB_DATA_SOURCE_HEADER == "" {
 		NB_DATA_SOURCE_HEADER = "x-node-balancer-data-source"
 	}
-
-	if MOONSTREAM_NODES_SERVER_PORT == "" {
-		fmt.Println("Environment variable MOONSTREAM_NODES_SERVER_PORT not set")
-		os.Exit(1)
-	}
 }
 
-type Config struct {
+// Nodes configuration
+type NodeConfig struct {
+	Blockchain string `json:"blockchain"`
+	Endpoint   string `json:"endpoint"`
+
+	Internal bool `json:"internal"`
+}
+
+func LoadConfig(configPath string) (*[]NodeConfig, error) {
+	rawBytes, err := ioutil.ReadFile(configPath)
+	if err != nil {
+		return nil, err
+	}
+	nodeConfigs := &[]NodeConfig{}
+	err = json.Unmarshal(rawBytes, nodeConfigs)
+	if err != nil {
+		return nil, err
+	}
+
+	return nodeConfigs, nil
+}
+
+type ConfigPlacement struct {
 	ConfigDirPath   string
 	ConfigDirExists bool
 
@@ -67,28 +84,26 @@ type Config struct {
 	ConfigExists bool
 }
 
-func CheckPathExists(path string) bool {
+func CheckPathExists(path string) (bool, error) {
 	var exists = true
 	_, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
 			exists = false
 		} else {
-			fmt.Println(err)
-			os.Exit(1)
+			return exists, fmt.Errorf("Error due checking file path exists, err: %v", err)
 		}
 	}
 
-	return exists
+	return exists, nil
 }
 
-func GetConfigPath(providedPath string) *Config {
+func GetConfigPath(providedPath string) (*ConfigPlacement, error) {
 	var configDirPath, configPath string
 	if providedPath == "" {
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
-			fmt.Printf("Unable to find user home directory, %v", err)
-			os.Exit(1)
+			return nil, fmt.Errorf("Unable to find user home directory, %v", err)
 		}
 		configDirPath = fmt.Sprintf("%s/.nodebalancer", homeDir)
 		configPath = fmt.Sprintf("%s/config.txt", configDirPath)
@@ -97,35 +112,48 @@ func GetConfigPath(providedPath string) *Config {
 		configDirPath = filepath.Dir(configPath)
 	}
 
-	defaultConfig := &Config{
-		ConfigDirPath:   configDirPath,
-		ConfigDirExists: CheckPathExists(configDirPath),
-
-		ConfigPath:   configPath,
-		ConfigExists: CheckPathExists(configPath),
+	configDirPathExists, err := CheckPathExists(configDirPath)
+	if err != nil {
+		return nil, err
+	}
+	configPathExists, err := CheckPathExists(configPath)
+	if err != nil {
+		return nil, err
 	}
 
-	return defaultConfig
+	config := &ConfigPlacement{
+		ConfigDirPath:   configDirPath,
+		ConfigDirExists: configDirPathExists,
+
+		ConfigPath:   configPath,
+		ConfigExists: configPathExists,
+	}
+
+	return config, nil
 }
 
-func GenerateDefaultConfig(config *Config) string {
+func GenerateDefaultConfig(config *ConfigPlacement) error {
 	if !config.ConfigDirExists {
 		if err := os.MkdirAll(config.ConfigDirPath, os.ModePerm); err != nil {
-			fmt.Printf("Unable to create directory, %v", err)
-			os.Exit(1)
+			return fmt.Errorf("Unable to create directory, %v", err)
 		}
 		log.Printf("Config directory created at: %s", config.ConfigDirPath)
 	}
 
 	if !config.ConfigExists {
-		tempConfigB := []byte("ethereum,127.0.0.1,8545")
-		err := os.WriteFile(config.ConfigPath, tempConfigB, 0644)
+		tempConfig := []NodeConfig{
+			{Blockchain: "ethereum", Endpoint: "http://127.0.0.1:8545", Internal: true},
+		}
+		tempConfigJson, err := json.Marshal(tempConfig)
 		if err != nil {
-			fmt.Printf("Unable to create temp config file, %v", err)
-			os.Exit(1)
+			return fmt.Errorf("Unable to marshal configuration data, err: %v", err)
+		}
+		err = ioutil.WriteFile(config.ConfigPath, tempConfigJson, os.ModePerm)
+		if err != nil {
+			return fmt.Errorf("Unable to write default config to file %s, err: %v", config.ConfigPath, err)
 		}
 		log.Printf("Created default configuration at %s", config.ConfigPath)
 	}
 
-	return config.ConfigPath
+	return nil
 }

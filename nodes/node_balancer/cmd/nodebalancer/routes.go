@@ -12,8 +12,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-
-	configs "github.com/bugout-dev/moonstream/nodes/node_balancer/configs"
 )
 
 type PingResponse struct {
@@ -42,8 +40,8 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	attempts := GetAttemptsFromContext(r)
-	if attempts > configs.NB_CONNECTION_RETRIES {
-		log.Printf("Max attempts reached from %s %s, terminating\n", r.RemoteAddr, r.URL.Path)
+	if attempts > NB_CONNECTION_RETRIES {
+		log.Printf("Max attempts reached from %s %s, terminating", r.RemoteAddr, r.URL.Path)
 		http.Error(w, "Service not available", http.StatusServiceUnavailable)
 		return
 	}
@@ -147,7 +145,7 @@ func lbDatabaseHandler(w http.ResponseWriter, r *http.Request, blockchain string
 
 		block, err := databaseClient.GetBlock(blockchain, blockNumber)
 		if err != nil {
-			fmt.Printf("Unable to get block from database %v", err)
+			log.Printf("Unable to get block from database, err: %v", err)
 			http.Error(w, fmt.Sprintf("no such block %v", blockNumber), http.StatusBadRequest)
 			return
 		}
