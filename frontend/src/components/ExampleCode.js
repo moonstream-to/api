@@ -4,7 +4,7 @@ import { Flex, Heading } from "@chakra-ui/react";
 import showdown from "showdown";
 import showdownHighlight from "showdown-highlight";
 
-const ExampleCode = (props) => {
+const ExampleCode = () => {
   const converter = new showdown.Converter({
     ghCompatibleHeaderId: true,
     parseImgDimensions: true,

@@ -42,7 +42,7 @@ const _EngineOverviewDiagram = () => {
   // const { toggleModal } = useModals();
 
   const xarrowStyle = {
-    color: "#212990",
+    color: "#FF8B73",
     showHead: true,
     headSize: 6,
   };
