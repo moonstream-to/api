@@ -347,9 +347,9 @@ const Homepage = () => {
                         </Stack>
                         <Box
                           bgColor="white"
-                          w="40%"
-                          // h="120px"
+                          w={[null, null, "40%"]}
                           rounded={["lg", "xl", "2xl"]}
+                          px={5}
                         >
                           <Stack
                             direction={[
@@ -362,8 +362,8 @@ const Homepage = () => {
                             ]}
                             h="100%"
                           >
-                            <Center>
-                              <Flex w="40%" h="100%">
+                            <Center w={[null, null, "40%"]} h="100%">
+                              <Flex>
                                 <Center w="100%">
                                   <VStack>
                                     <Text
@@ -390,8 +390,8 @@ const Homepage = () => {
                                 </Center>
                               </Flex>
                             </Center>
-                            <Center>
-                              <Flex w="60%" h="100%">
+                            <Center w={[null, null, "60%"]} h="100%">
+                              <Flex>
                                 {" "}
                                 <Center w="100%">
                                   <VStack>
