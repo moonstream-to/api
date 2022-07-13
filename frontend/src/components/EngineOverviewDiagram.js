@@ -109,7 +109,7 @@ const _EngineOverviewDiagram = () => {
               h={["73", "73", "114px"]}
             >
               <VStack justifyContent="center" py="10px">
-                <Text fontSize={["md", "md", "xl"]}>
+                <Text fontSize={["md", "md", "xl"]} fontWeight="semibold">
                   Moonstream Smart Contracts
                 </Text>
                 {!smallDiagram && (
@@ -122,7 +122,7 @@ const _EngineOverviewDiagram = () => {
             </Center>
           </Flex>
         </GridItem>
-        <GridItem h={0} order={[6, 6, 1]}></GridItem>
+        <GridItem h={0} order={[6, 6, 4]}></GridItem>
         <GridItem
           h={["160px", "160px", "auto"]}
           order={[4, 4, 2]}
@@ -145,7 +145,9 @@ const _EngineOverviewDiagram = () => {
               w={["155px", "155px", "189px"]}
               h={["160px", "160px", "205px"]}
             >
-              <Text fontSize={["md", "md", "xl"]}>Game Client</Text>
+              <Text fontSize={["md", "md", "xl"]} fontWeight="semibold">
+                Game Client
+              </Text>
             </Center>
           </Flex>
         </GridItem>
@@ -174,7 +176,9 @@ const _EngineOverviewDiagram = () => {
                 h={["160px", "160px", "205px"]}
                 justifyContent="center"
               >
-                <Text fontSize={["md", "md", "lg"]}>Admin Dashboard</Text>
+                <Text fontSize={["md", "md", "lg"]} fontWeight="semibold">
+                  Admin Dashboard
+                </Text>
                 {!smallDiagram && (
                   <Text pt="10px" pl={[0, 0, "8px"]} fontSize="md">
                     Choose mechanics at engine.moonstream.to
@@ -186,10 +190,11 @@ const _EngineOverviewDiagram = () => {
         </GridItem>
         <GridItem
           h={["160px", "160px", "auto"]}
-          order={[3, 3, 4]}
+          order={[3, 3, 1]}
           display="inline-grid"
           justifyItems="center"
           alignItems="center"
+          marginTop={[0, 0, 10]}
         >
           <Center>
             <Flex
@@ -198,16 +203,10 @@ const _EngineOverviewDiagram = () => {
               justifyContent="center"
               position="relative"
             >
-              {/* <Icon
-              as={BsFillFileEarmarkCodeFill}
-              w={100}
-              h={100}
-              onClick={() => toggleModal({ type: MODAL_TYPES.EXAMPLE_CODE })}
-            ></Icon> */}
               <Popover>
                 <PopoverTrigger placement="top">
                   <Flex>
-                    <Icon as={BsFillFileEarmarkCodeFill} w={100} h={100}></Icon>
+                    <Icon as={BsFillFileEarmarkCodeFill} w={50} h={50}></Icon>
                   </Flex>
                 </PopoverTrigger>
                 <PopoverContent w={["300px", "300px", "850px"]}>
@@ -240,7 +239,9 @@ const _EngineOverviewDiagram = () => {
               w={["200px", "200px", "305px"]}
               h={["120px", "120px", "188px"]}
             >
-              <Text fontSize={["md", "md", "lg"]}>Game Server</Text>
+              <Text fontSize={["md", "md", "lg"]} fontWeight="semibold">
+                Game Server
+              </Text>
             </Center>
           </Flex>
         </GridItem>
@@ -263,7 +264,9 @@ const _EngineOverviewDiagram = () => {
               w={[120, 120, 160]}
               h={[120, 120, 160]}
             ></Icon>
-            <Text fontSize={["md", "md", "lg"]}>Game Designer</Text>
+            <Text fontSize={["md", "md", "lg"]} fontWeight="semibold">
+              Game Designer
+            </Text>
           </Center>
         </GridItem>
       </Grid>
@@ -273,8 +276,8 @@ const _EngineOverviewDiagram = () => {
             start={smartContract}
             end={gameClient}
             startAnchor="right"
-            endAnchor={{ position: "left", offset: { y: 30 } }}
-            path="grid"
+            endAnchor="left"
+            path="straight"
             gridBreak="50%"
             dashness={true}
             {...xarrowStyle}
@@ -292,7 +295,7 @@ const _EngineOverviewDiagram = () => {
             end={gameServer}
             startAnchor={{ position: "bottom", offset: { x: 150 } }}
             endAnchor={{ position: "left", offset: { y: 40 } }}
-            path="grid"
+            path="straight"
             {...xarrowStyle}
           />
           <Xarrow

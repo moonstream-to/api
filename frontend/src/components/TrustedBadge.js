@@ -12,13 +12,13 @@ const TrustedBadge = ({
   name,
   caseURL,
   ImgURL,
-  scale,
+  scaling,
   isGrayScale,
   boxURL,
   invertColors,
   ...props
 }) => {
-  const _scale = scale ?? 1;
+  const _scale = scaling ?? 1.0;
   const _isGrayScale = isGrayScale ? "grayscale(100%)" : "";
   const _invert = invertColors ? "invert(100%)" : "";
   const filterStr = _isGrayScale + " " + _invert;
@@ -31,7 +31,7 @@ const TrustedBadge = ({
           alignItems="center"
           alignSelf="center"
           wrap="nowrap"
-          p={8}
+          p={4}
           direction="column"
         >
           <Image
