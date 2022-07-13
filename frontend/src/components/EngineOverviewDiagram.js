@@ -162,7 +162,6 @@ const _EngineOverviewDiagram = () => {
             ref={adminDashboard}
             w={["155px", "155px", "189px"]}
             h={["160px", "160px", "205px"]}
-            // marginLeft={["80px", "80px", 0]}
             position="relative"
           >
             <RectangleSVG scale={0.8}></RectangleSVG>

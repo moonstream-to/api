@@ -408,7 +408,7 @@ const Homepage = () => {
                                       textColor={lightOrangeColor}
                                       pt="20px"
                                     >
-                                      &gt;22k
+                                      &gt;44k
                                     </Text>
                                     <Text pb="20px">
                                       active users in game economies
