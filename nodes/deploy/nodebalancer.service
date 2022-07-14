@@ -6,7 +6,7 @@ StartLimitBurst=3
 
 [Service]
 User=ubuntu
-Group=www-data
+Group=ubuntu
 WorkingDirectory=/home/ubuntu/moonstream/nodes/node_balancer
 EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
 Restart=on-failure
@@ -16,7 +16,7 @@ ExecStart=/home/ubuntu/moonstream/nodes/node_balancer/nodebalancer server \
     -port 8544 \
     -healthcheck \
     -config /home/ubuntu/.nodebalancer/config.json
-SyslogIdentifier=node-balancer
+SyslogIdentifier=nodebalancer
 
 [Install]
 WantedBy=multi-user.target
