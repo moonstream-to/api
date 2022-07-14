@@ -122,11 +122,11 @@ const variantOrangeAndBlue = () => {
     borderRadius: "70px",
     shadow: "md",
     variant: "solid",
-    fontSize: ["sm", "sm", "md", "md", "lg", "lg"],
+    fontSize: ["sm", "md", "lg", "lg", "xl", "xl"],
     textColor: "blue.1200",
     bg: "#FF8B73",
-    py: 4,
-    px: 4,
+    py: 5,
+    px: 5,
   };
 };
 

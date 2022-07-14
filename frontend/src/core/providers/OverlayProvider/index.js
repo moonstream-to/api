@@ -56,8 +56,6 @@ const NewSubscription = React.lazy(() =>
 
 const UploadABI = React.lazy(() => import("../../../components/UploadABI"));
 
-// const ExampleCode = React.lazy(() => import("../../../components/ExampleCode"));
-
 const OverlayProvider = ({ children }) => {
   const { params } = useRouter();
   const { dashboardId } = params;
@@ -324,9 +322,6 @@ const OverlayProvider = ({ children }) => {
               {modal.type === MODAL_TYPES.MOBILE_INPUT_FIELD && (
                 <UpdateSubscriptionLabelInput {...modal.props} />
               )}
-              {/* {modal.type === MODAL_TYPES.EXAMPLE_CODE && (
-                <ExampleCode {...modal.props} />
-              )} */}
             </Suspense>
           </ModalBody>
         </ModalContent>

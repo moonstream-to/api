@@ -1,5 +1,4 @@
 import React from "react";
-// import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 import { Flex, Heading } from "@chakra-ui/react";
 import showdown from "showdown";
 import showdownHighlight from "showdown-highlight";
@@ -101,7 +100,6 @@ const ExampleCode = () => {
 
   return (
     <Flex
-      // h={["auto", "auto", "320px"]}
       flexDirection="column"
       textColor="white"
       bgColor="#686464"
@@ -111,41 +109,9 @@ const ExampleCode = () => {
       <Heading as="h3" fontSize="lg" pb="20px">
         We make sure our code is easy to use. Here’s an example:
       </Heading>
-      {/* <Flex dangerouslySetInnerHTML={formattedCode}></Flex> */}
-      {/* <Flex>{formattedCode}</Flex> */}
       <Flex position={"relative"}>
         <HtmlCode />
       </Flex>
-      {/* <Text fontSize="md">
-        {"async function startRandomLootboxOpening( lootboxId ) {"}
-      </Text>
-      <Text fontSize="md">
-        {" "}
-        &nbsp; &nbsp;
-        {"let userAddress = window.ethereum.selectedAddress;"}
-      </Text>
-      <Text fontSize="md">
-        {" "}
-        &nbsp; &nbsp;
-        {
-          "let activeOpening = await checkUsersActiveLootboxOpeningStatus( userAddress );"
-        }
-      </Text>
-      <Text fontSize="md">&nbsp; &nbsp;{"if ( activeOpening != null ) {"}</Text>
-      <Text fontSize="md">
-        &nbsp; &nbsp; &nbsp; &nbsp;
-        {"console.log('User already has active opening');"}
-      </Text>
-      <Text fontSize="md">&nbsp; &nbsp; &nbsp; &nbsp;{"return;"}</Text>
-      <Text fontSize="md">&nbsp; &nbsp;{"}"}</Text>
-      <Text fontSize="md">
-        &nbsp; &nbsp;
-        {"const count = 1; // you can open only 1 random lootbox at a time"}
-      </Text>
-      <Text fontSize="md">
-        &nbsp; &nbsp;{"await openOrdinaryLootbox( lootboxId, count );"}
-      </Text>
-      <Text fontSize="md">{"}"}</Text> */}
     </Flex>
   );
 };

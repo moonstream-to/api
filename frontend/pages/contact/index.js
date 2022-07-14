@@ -1,20 +1,18 @@
 import React from "react";
-import { Box, Center, VStack, Text, Spinner } from "@chakra-ui/react";
+import { Box, Image, Center, VStack, Text, Spinner } from "@chakra-ui/react";
 import { getLayout, getLayoutProps } from "../../src/layouts/WideInfoPage";
 import HubspotForm from "react-hubspot-form";
 
 const Contact = () => (
   <Box>
-    <Box px="1.5rem" m="auto" mb={8} minWidth="1000px" minHeight="60vh">
-      {/* <Heading my={8} as="h1">
-        Contact Us
-      </Heading> */}
+    <Box px="1.5rem" m="auto" mb={8} minWidth="1000px" minHeight="100vh">
+      <Image></Image>
       <Center>
         <VStack>
-          <Text my={10} fontSize={["lg", "xl"]}>
-            Thanks for your interest in Moonstream Engine.
+          <Text my={5} fontSize={["lg", "xl"]} textAlign="center">
+            Thanks for your interest in Moonstream.
             <br />
-            Please answer these questions to get started.
+            Please answer some questions to help us get acquainted with you.
           </Text>
         </VStack>
       </Center>
@@ -23,6 +21,15 @@ const Contact = () => (
         formId="b54d192f-59b1-410a-8ac1-a1e8383c423c"
         loading={<Spinner colorScheme="primary" speed="1s" />}
       />
+      <Center>
+        <Text my={5} fontSize={["md", "lg"]} textAlign="center" width="60%">
+          <i>
+            Click the button to submit your answers. We&apos;ll reach out
+            directly within 3 days. You will not receive any marketing emails
+            from us.
+          </i>
+        </Text>
+      </Center>
     </Box>
   </Box>
 );

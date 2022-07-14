@@ -238,7 +238,7 @@ const Homepage = () => {
               boxSizing="content-box"
             >
               <GridItem colSpan="12" bgColor={"blue.50"} id="Header grid item">
-                <chakra.header boxSize="full" minH="50vh" mb={0}>
+                <chakra.header boxSize="full" minH="100vh" mb={0}>
                   <Box
                     bgPos="bottom"
                     bgColor="transparent"
@@ -250,7 +250,7 @@ const Homepage = () => {
                       align="center"
                       justify="center"
                       boxSize="full"
-                      pt="120px"
+                      pt="150px"
                       pb={10}
                     >
                       <Stack
@@ -266,14 +266,14 @@ const Homepage = () => {
                           fontWeight="semibold"
                           color="white"
                           as="h1"
-                          pb={4}
+                          pb={12}
                           maxW="58%"
                         >
                           Build a Sustainable Game Economy in Only a Few Clicks
                         </Heading>
                         <chakra.span
-                          pb={4}
-                          fontSize={["sm", "sm", "md", "md", "lg", "lg"]}
+                          pb={12}
+                          fontSize={["sm", "md", "lg", "lg", "xl", "xl"]}
                           display="inline-block"
                           color="white"
                           maxW="75%"
@@ -292,7 +292,7 @@ const Homepage = () => {
                             "row",
                             "row",
                           ]}
-                          pb={4}
+                          pb="120px"
                         >
                           <Center>
                             <RouteButton
@@ -346,7 +346,7 @@ const Homepage = () => {
                           </Center>
                         </Stack>
                         <Box
-                          bgColor="white"
+                          bgColor="rgb(255, 255, 255, 0.7)"
                           w={[null, null, "40%"]}
                           rounded={["lg", "xl", "2xl"]}
                           px={5}
@@ -375,7 +375,7 @@ const Homepage = () => {
                                         "3xl",
                                         "3xl",
                                       ]}
-                                      fontWeight="semibold"
+                                      fontWeight="bold"
                                       textColor={lightOrangeColor}
                                       pt="20px"
                                     >
@@ -404,7 +404,7 @@ const Homepage = () => {
                                         "3xl",
                                         "3xl",
                                       ]}
-                                      fontWeight="semibold"
+                                      fontWeight="bold"
                                       textColor={lightOrangeColor}
                                       pt="20px"
                                     >
@@ -880,7 +880,6 @@ const Homepage = () => {
                 py={10}
                 colSpan="12"
                 bgColor="white.100"
-                minH="100vh"
               >
                 <Heading {...HEADING_PROPS} textAlign="center" pb={14} as="h2">
                   Our Workflow

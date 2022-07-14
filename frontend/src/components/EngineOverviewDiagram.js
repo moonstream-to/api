@@ -17,29 +17,17 @@ import {
 import CloudSVG from "./SVGGraphics/Cloud";
 import RectangleSVG from "./SVGGraphics/Rectangle";
 import RoundedRectSVG from "./SVGGraphics/RoundedRect";
-// import { AiFillFile } from "react-icons/ai";
 import { BsFillPersonFill } from "react-icons/bs";
 import { BsFillFileEarmarkCodeFill } from "react-icons/bs";
-// import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 import Xarrow from "react-xarrows";
 import ExampleCode from "./ExampleCode";
 
 const _EngineOverviewDiagram = () => {
-  // const scaleWidth = (width) => {
-  //   return [width * 0.65, width, width, width, width, width * 1.2].map(
-  //     (val) => {
-  //       return val + "px";
-  //     }
-  //   );
-  // };
-
   const smartContract = useRef(null);
   const gameClient = useRef(null);
   const adminDashboard = useRef(null);
   const gameServer = useRef(null);
   const user = useRef(null);
-
-  // const { toggleModal } = useModals();
 
   const xarrowStyle = {
     color: "#FF8B73",
@@ -56,33 +44,11 @@ const _EngineOverviewDiagram = () => {
     "2xl": false,
   });
 
-  // const collapseLayout = useBreakpointValue({
-  //   base: true,
-  //   sm: true,
-  //   md: false,
-  //   lg: false,
-  //   xl: false,
-  //   "2xl": false,
-  // });
-
   return (
     <>
-      {/* <Grid
-        templateRows="repeat(2, 1fr)"
-        templateColumns="repeat(3, 1fr)"
-        gap={4}
-      >
-        <GridItem w="100px" h="100px" bgColor="red.200"></GridItem>
-        <GridItem w="100px" h="100px" bgColor="red.200"></GridItem>
-        <GridItem w="100px" h="100px" bgColor="red.200"></GridItem>
-        <GridItem w="100px" h="100px" bgColor="red.200"></GridItem>
-        <GridItem w="100px" h="100px" bgColor="red.200"></GridItem>
-        <GridItem w="100px" h="100px" bgColor="red.200"></GridItem>
-      </Grid> */}
       <Grid
         templateRows={["repeat(7)", "repeat(7)", "repeat(2, 1fr)"]}
         templateColumns={["repeat(1, 1fr)", "repeat(1, 1fr)", "repeat(3, 1fr)"]}
-        // gap={4}
         rowGap={[10, 10, 20]}
         columnGap={4}
       >
@@ -98,7 +64,6 @@ const _EngineOverviewDiagram = () => {
             w={["260px", "260px", "400px"]}
             h={["73", "73", "114px"]}
             position="relative"
-            // marginLeft="20px"
           >
             <RoundedRectSVG scale={1} />
             <Center
@@ -134,7 +99,6 @@ const _EngineOverviewDiagram = () => {
             ref={gameClient}
             w={["155px", "155px", "189px"]}
             h={["160px", "160px", "205px"]}
-            // marginLeft={["80px", "80px", 0]}
             position="relative"
           >
             <RectangleSVG></RectangleSVG>
@@ -228,7 +192,6 @@ const _EngineOverviewDiagram = () => {
             ref={gameServer}
             w={["200px", "200px", "305px"]}
             h={["120px", "120px", "188px"]}
-            // marginLeft={["60px", "60px", "20px"]}
             position="relative"
           >
             <CloudSVG scale={0.5}></CloudSVG>
@@ -256,7 +219,6 @@ const _EngineOverviewDiagram = () => {
             h={[160, 200, 200]}
             flexDir="column"
             position="relative"
-            // marginLeft={["50px", "50px", 0]}
           >
             <Icon
               as={BsFillPersonFill}
