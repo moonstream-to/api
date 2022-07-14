@@ -62,7 +62,7 @@ const _EngineOverviewDiagram = (props) => {
           <Flex
             ref={smartContract}
             w={["260px", "260px", "400px"]}
-            h={["73", "73", "114px"]}
+            h={["73", "73", "130px"]}
             position="relative"
           >
             <RoundedRectSVG scaling={1.0} />
@@ -71,7 +71,7 @@ const _EngineOverviewDiagram = (props) => {
               left="0"
               top="0"
               w={["260px", "260px", "400px"]}
-              h={["73", "73", "114px"]}
+              h="130px"
             >
               <VStack justifyContent="center" py="10px">
                 <Text fontSize={["md", "md", "xl"]} fontWeight="semibold">
@@ -105,7 +105,7 @@ const _EngineOverviewDiagram = (props) => {
             <Center
               position="absolute"
               left="0"
-              top="0"
+              top={["50px", "50px", "30px", null]}
               w={["155px", "155px", "189px"]}
               h={["160px", "160px", "205px"]}
             >
@@ -124,26 +124,26 @@ const _EngineOverviewDiagram = (props) => {
         >
           <Center
             ref={adminDashboard}
-            w={["155px", "155px", "189px"]}
-            h={["160px", "160px", "205px"]}
+            w={["155px", "155px", "220px"]}
+            h={["160px", "160px", "240px"]}
             position="relative"
           >
-            <RectangleSVG scaling={0.8}></RectangleSVG>
+            <RectangleSVG scaling={1.2}></RectangleSVG>
             <Center
               position="absolute"
-              w={["155px", "155px", "189px"]}
-              h={["160px", "160px", "205px"]}
+              w={["155px", "155px", "220px"]}
+              h={["160px", "160px", "240px"]}
             >
               <VStack
-                w={["155px", "155px", "189px"]}
-                h={["160px", "160px", "205px"]}
+                w={["155px", "155px", "220px"]}
+                h={["160px", "160px", "240px"]}
                 justifyContent="center"
               >
                 <Text fontSize={["md", "md", "lg"]} fontWeight="semibold">
                   Admin Dashboard
                 </Text>
                 {!smallDiagram && (
-                  <Text pt="10px" pl={[0, 0, "8px"]} fontSize="md">
+                  <Text pt="10px" pl={[0, 0, "20px"]} fontSize="md">
                     Choose mechanics at engine.moonstream.to
                   </Text>
                 )}
@@ -183,7 +183,7 @@ const _EngineOverviewDiagram = (props) => {
                     ></Icon>
                   </Flex>
                 </PopoverTrigger>
-                <PopoverContent w={["300px", "300px", "850px"]}>
+                <PopoverContent w={["300px", "400px", "850px"]}>
                   <PopoverBody>
                     <ExampleCode />
                   </PopoverBody>
@@ -205,10 +205,10 @@ const _EngineOverviewDiagram = (props) => {
             h={["120px", "120px", "188px"]}
             position="relative"
           >
-            <CloudSVG scaling={0.5}></CloudSVG>
+            <CloudSVG scaling={0.8}></CloudSVG>
             <Center
               position="absolute"
-              paddingTop="30px"
+              pt={["80px", "80px", "30px", null]}
               w={["200px", "200px", "305px"]}
               h={["120px", "120px", "188px"]}
             >
