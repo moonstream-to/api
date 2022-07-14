@@ -22,7 +22,7 @@ import { BsFillFileEarmarkCodeFill } from "react-icons/bs";
 import Xarrow from "react-xarrows";
 import ExampleCode from "./ExampleCode";
 
-const _EngineOverviewDiagram = () => {
+const _EngineOverviewDiagram = (props) => {
   const smartContract = useRef(null);
   const gameClient = useRef(null);
   const adminDashboard = useRef(null);
@@ -169,7 +169,18 @@ const _EngineOverviewDiagram = () => {
               <Popover>
                 <PopoverTrigger placement="top">
                   <Flex>
-                    <Icon as={BsFillFileEarmarkCodeFill} w={50} h={50}></Icon>
+                    <Icon
+                      as={BsFillFileEarmarkCodeFill}
+                      w={50}
+                      h={50}
+                      onClick={() => {
+                        props.buttonReport(
+                          "Example Code",
+                          "engine-overview-diagram",
+                          "landing"
+                        );
+                      }}
+                    ></Icon>
                   </Flex>
                 </PopoverTrigger>
                 <PopoverContent w={["300px", "300px", "850px"]}>

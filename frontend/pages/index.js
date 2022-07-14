@@ -307,7 +307,7 @@ const Homepage = () => {
                               ]}
                               onClick={() => {
                                 buttonReport(
-                                  "Boost my game economy",
+                                  "Boost",
                                   "front-and-center",
                                   "landing"
                                 );
@@ -333,7 +333,7 @@ const Homepage = () => {
                               ]}
                               onClick={() => {
                                 buttonReport(
-                                  "Join our Discord",
+                                  "Discord",
                                   "front-and-center",
                                   "landing"
                                 );
@@ -631,13 +631,9 @@ const Homepage = () => {
                           "400px",
                         ]}
                         onClick={() => {
-                          buttonReport(
-                            "Boost my game economy",
-                            "front-and-center",
-                            "landing"
-                          );
+                          buttonReport("Features", "features", "landing");
                         }}
-                        href={"/contact"}
+                        href={"/features"}
                       >
                         Learn more about our features
                       </RouteButton>
@@ -657,13 +653,11 @@ const Homepage = () => {
                           "400px",
                         ]}
                         onClick={() => {
-                          buttonReport(
-                            "Join our Discord",
-                            "front-and-center",
-                            "landing"
-                          );
+                          buttonReport("Use Cases", "features", "landing");
                         }}
-                        href={"/discordleed"}
+                        href={
+                          "https://docs.google.com/document/d/1mjfF8SgRrAZvtCVVxB2qNSUcbbmrH6dTEYSMfHKdEgc/view"
+                        }
                         isExternal
                       >
                         Explore the use cases
@@ -746,6 +740,9 @@ const Homepage = () => {
                         or modify.
                         <Link
                           href="https://github.com/bugout-dev/moonstream"
+                          onClick={() => {
+                            buttonReport("Moonstream Github", "faq", "landing");
+                          }}
                           textColor="blue.700"
                           isExternal
                         >
@@ -769,7 +766,10 @@ const Homepage = () => {
                       <>
                         You can use{" "}
                         <Link
-                          href="https://github.com/bugout-dev/moonstream"
+                          href="https://github.com/bugout-dev/moonworm"
+                          onClick={() => {
+                            buttonReport("Moonworm Github", "faq", "landing");
+                          }}
                           isExternal
                         >
                           <u>Moonworm</u>
@@ -782,6 +782,9 @@ const Homepage = () => {
                         Ethereum NFT market (April 1 to September 25, 2021){" "}
                         <Link
                           href="https://www.kaggle.com/datasets/simiotic/ethereum-nfts"
+                          onClick={() => {
+                            buttonReport("Dataset", "faq", "landing");
+                          }}
                           isExternal
                         >
                           <u>here</u>
@@ -789,6 +792,9 @@ const Homepage = () => {
                         . And{" "}
                         <Link
                           href="https://github.com/bugout-dev/moonstream/blob/main/datasets/nfts/papers/ethereum-nfts.pdf"
+                          onClick={() => {
+                            buttonReport("Dataset Report", "faq", "landing");
+                          }}
                           isExternal
                         >
                           <u>here</u>
@@ -801,6 +807,9 @@ const Homepage = () => {
                         @moonstream on Discord to connect with the team.{" "}
                         <Link
                           href="https://scratched-molybdenum-f03.notion.site/NFT-dataset-v2-33a2900cce3840c0bc048bbc4a0425f8"
+                          onClick={() => {
+                            buttonReport("Sample Dataset", "faq", "landing");
+                          }}
                           isExternal
                         >
                           <u>Here</u>
@@ -823,6 +832,9 @@ const Homepage = () => {
                         <br />
                         <Link
                           href="https://voracious-gerbil-120.notion.site/Creating-dashboard-for-a-smart-contract-288b1bfa64984b109b79895f69129fce"
+                          onClick={() => {
+                            buttonReport("Tutorial", "faq", "landing");
+                          }}
                           isExternal
                         >
                           <u>Here&apos;s</u>
@@ -844,11 +856,7 @@ const Homepage = () => {
                         <Link
                           href="/discordleed"
                           onClick={() => {
-                            buttonReport(
-                              "Join our Discord",
-                              "inline-text",
-                              "landing"
-                            );
+                            buttonReport("Discord", "faq", "landing");
                           }}
                           isExternal
                         >
@@ -871,7 +879,7 @@ const Homepage = () => {
                   Engine Overview
                 </Heading>
                 <Center>
-                  <EngineOverviewDiagram />
+                  <EngineOverviewDiagram buttonReport={buttonReport} />
                 </Center>
               </GridItem>
               <GridItem
@@ -923,11 +931,7 @@ const Homepage = () => {
                       <Link
                         href="/discordleed"
                         onClick={() => {
-                          buttonReport(
-                            "Join our Discord",
-                            "inline-text",
-                            "landing"
-                          );
+                          buttonReport("Discord", "workflow", "landing");
                         }}
                         isExternal
                       >
@@ -1071,7 +1075,7 @@ const Homepage = () => {
                       "400px",
                     ]}
                     onClick={() => {
-                      buttonReport("Boost my game", "page-bottom", "landing");
+                      buttonReport("Boost", "page-bottom", "landing");
                     }}
                     href={"/contact"}
                   >
@@ -1113,11 +1117,7 @@ const Homepage = () => {
                       "400px",
                     ]}
                     onClick={() => {
-                      buttonReport(
-                        "Join our Discord",
-                        "page-bottom",
-                        "landing"
-                      );
+                      buttonReport("Discord", "page-bottom", "landing");
                     }}
                     href={"/discordleed"}
                     isExternal
