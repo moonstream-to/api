@@ -190,7 +190,7 @@ const Homepage = () => {
             cursor="pointer"
             m={[2, 3, 3, 4, 8, 12]}
             pb={2}
-            minH={[null, null, "400px", null]}
+            minH={[null, "290px", "400px", null]}
           >
             <ChakraImage
               boxSize={["220px", "220px", "xs", null, "xs"]}
@@ -580,7 +580,6 @@ const Homepage = () => {
                     image={assets["cryptoTraders"]}
                     href="/features/#lootboxes"
                     onClick={() => {
-                      console.log("Sending report to mixpanel");
                       buttonReport("Lootboxes", "features", "landing");
                     }}
                   />
@@ -625,8 +624,8 @@ const Homepage = () => {
                         variant="orangeAndBlue"
                         minW={[
                           "250px",
-                          "250px",
-                          "250px",
+                          "290px",
+                          "300px",
                           "300px",
                           "350px",
                           "400px",
@@ -651,8 +650,8 @@ const Homepage = () => {
                         textColor="white"
                         minW={[
                           "250px",
-                          "250px",
-                          "250px",
+                          "290px",
+                          "300px",
                           "300px",
                           "350px",
                           "400px",
