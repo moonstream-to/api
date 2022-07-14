@@ -65,7 +65,7 @@ const _EngineOverviewDiagram = () => {
             h={["73", "73", "114px"]}
             position="relative"
           >
-            <RoundedRectSVG scale={1} />
+            <RoundedRectSVG scaling={1.0} />
             <Center
               position="absolute"
               left="0"
@@ -128,7 +128,7 @@ const _EngineOverviewDiagram = () => {
             h={["160px", "160px", "205px"]}
             position="relative"
           >
-            <RectangleSVG scale={0.8}></RectangleSVG>
+            <RectangleSVG scaling={0.8}></RectangleSVG>
             <Center
               position="absolute"
               w={["155px", "155px", "189px"]}
@@ -194,7 +194,7 @@ const _EngineOverviewDiagram = () => {
             h={["120px", "120px", "188px"]}
             position="relative"
           >
-            <CloudSVG scale={0.5}></CloudSVG>
+            <CloudSVG scaling={0.5}></CloudSVG>
             <Center
               position="absolute"
               paddingTop="30px"

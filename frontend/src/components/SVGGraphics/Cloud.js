@@ -1,11 +1,11 @@
 import { React } from "react";
 import { chakra } from "@chakra-ui/react";
 
-const _CloudSVG = (scale) => {
-  scale = scale || 1.0;
+const _CloudSVG = (props) => {
+  const _scale = props.scaling || 1.0;
   return (
     <svg
-      height={250 * scale}
+      height={250 * _scale}
       viewBox="0 0 407 250"
       fill="white"
       xmlns="http://www.w3.org/2000/svg"

@@ -1,12 +1,11 @@
 import { React } from "react";
 import { chakra } from "@chakra-ui/react";
 
-const _RoundedRectSVG = (scale) => {
-  scale = scale || 1.0;
-  console.log(scale);
+const _RoundedRectSVG = (props) => {
+  const _scale = props.scaling || 1.0;
   return (
     <svg
-      height={134 * scale}
+      height={134 * _scale}
       viewBox="0 0 472 134"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

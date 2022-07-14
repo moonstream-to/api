@@ -1,11 +1,11 @@
 import { React } from "react";
 import { chakra } from "@chakra-ui/react";
 
-const _RectangleSVG = (scale) => {
-  scale = scale || 1.0;
+const _RectangleSVG = (props) => {
+  const _scale = props.scaling || 1.0;
   return (
     <svg
-      height={265 * scale}
+      height={265 * _scale}
       viewBox="0 0 245 265"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
