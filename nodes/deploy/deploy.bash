@@ -24,11 +24,10 @@ PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
 AWS_SSM_PARAMETER_PATH="${AWS_SSM_PARAMETER_PATH:-/moonstream/prod}"
 SCRIPT_DIR="$(realpath $(dirname $0))"
 PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.py"
-NODE_BALANCER_CONFIG_PATH="${NODE_BALANCER_CONFIG_PATH:-/home/ubuntu/.nodebalancer}"
-NODE_BALANCER_CONFIG_SOURCE_FILE="node-balancer-config.txt"
+NODE_BALANCER_CONFIG_PATH="${NODE_BALANCER_CONFIG_PATH:-/home/ubuntu/.nodebalancer/config.json}"
 
 # Service file
-NODE_BALANCER_SERVICE_FILE="node-balancer.service"
+NODE_BALANCER_SERVICE_FILE="nodebalancer.service"
 
 set -eu
 
@@ -41,12 +40,12 @@ AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" "${PYTHON}" "${PARAMETERS_SCRIPT}" ex
 echo
 echo
 echo -e "${PREFIX_INFO} Install checkenv"
-HOME=/root /usr/local/go/bin/go install github.com/bugout-dev/checkenv@latest
+HOME=/home/ubuntu /usr/local/go/bin/go install github.com/bugout-dev/checkenv@latest
 
 echo
 echo
 echo -e "${PREFIX_INFO} Retrieving addition deployment parameters"
-AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" /root/go/bin/checkenv show aws_ssm+Product:moonstream >> "${PARAMETERS_ENV_PATH}"
+AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" /home/ubuntu/go/bin/checkenv show aws_ssm+Product:moonstream >> "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
@@ -58,22 +57,13 @@ echo
 echo -e "${PREFIX_INFO} Building executable load balancer for nodes script with Go"
 EXEC_DIR=$(pwd)
 cd "${APP_NODES_DIR}/node_balancer"
-HOME=/root /usr/local/go/bin/go build -o "${APP_NODES_DIR}/node_balancer/nodebalancer" "${APP_NODES_DIR}/node_balancer/main.go"
+HOME=/home/ubuntu /usr/local/go/bin/go build -o "${APP_NODES_DIR}/node_balancer/nodebalancer" "${APP_NODES_DIR}/node_balancer/cmd/nodebalancer/"
 cd "${EXEC_DIR}"
-
-echo
-echo
-echo -e "${PREFIX_INFO} Update nodebalancer configuration file"
-if [ ! -d "$NODE_BALANCER_CONFIG_PATH" ]; then
-  mkdir "$NODE_BALANCER_CONFIG_PATH"
-  echo -e "${PREFIX_WARN} Created new node balancer config directory" 
-fi
-cp "${SCRIPT_DIR}/${NODE_BALANCER_CONFIG_SOURCE_FILE}" "${NODE_BALANCER_CONFIG_PATH}/config.txt"
 
 echo
 echo
 echo -e "${PREFIX_INFO} Replacing existing load balancer for nodes service definition with ${NODE_BALANCER_SERVICE_FILE}"
 chmod 644 "${SCRIPT_DIR}/${NODE_BALANCER_SERVICE_FILE}"
-cp "${SCRIPT_DIR}/${NODE_BALANCER_SERVICE_FILE}" "/etc/systemd/system/${NODE_BALANCER_SERVICE_FILE}"
-systemctl daemon-reload
-systemctl restart "${NODE_BALANCER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${NODE_BALANCER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${NODE_BALANCER_SERVICE_FILE}"
+XDG_RUNTIME_DIR="/run/user/$UID" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/$UID" systemctl --user restart "${NODE_BALANCER_SERVICE_FILE}"

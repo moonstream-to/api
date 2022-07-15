@@ -1,7 +1,7 @@
 /*
 Handle routes for load balancer API.
 */
-package cmd
+package main
 
 import (
 	"bytes"
@@ -12,8 +12,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-
-	configs "github.com/bugout-dev/moonstream/nodes/node_balancer/configs"
 )
 
 type PingResponse struct {
@@ -42,8 +40,8 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	attempts := GetAttemptsFromContext(r)
-	if attempts > configs.NB_CONNECTION_RETRIES {
-		log.Printf("Max attempts reached from %s %s, terminating\n", r.RemoteAddr, r.URL.Path)
+	if attempts > NB_CONNECTION_RETRIES {
+		log.Printf("Max attempts reached from %s %s, terminating", r.RemoteAddr, r.URL.Path)
 		http.Error(w, "Service not available", http.StatusServiceUnavailable)
 		return
 	}
@@ -82,10 +80,6 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 	r.Header.Add("X-Origin-Path", r.URL.Path)
 
 	switch {
-	case strings.HasPrefix(r.URL.Path, fmt.Sprintf("/nb/%s/ping", blockchain)):
-		r.URL.Path = "/ping"
-		node.StatusReverseProxy.ServeHTTP(w, r)
-		return
 	case strings.HasPrefix(r.URL.Path, fmt.Sprintf("/nb/%s/jsonrpc", blockchain)):
 		lbJSONRPCHandler(w, r, blockchain, node, currentClientAccess)
 		return
@@ -124,9 +118,10 @@ func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string,
 			}
 		}
 
+		node.IncreaseCallCounter()
+
+		// Overwrite Path so response will be returned to correct place
 		r.URL.Path = "/"
-		// If required detailed timeout configuration, define node.GethReverseProxy.Transport = &http.Transport{}
-		// as modified structure of DefaultTransport net/http/transport/DefaultTransport
 		node.GethReverseProxy.ServeHTTP(w, r)
 		return
 	case currentClientAccess.dataSource == "database":
@@ -147,7 +142,7 @@ func lbDatabaseHandler(w http.ResponseWriter, r *http.Request, blockchain string
 
 		block, err := databaseClient.GetBlock(blockchain, blockNumber)
 		if err != nil {
-			fmt.Printf("Unable to get block from database %v", err)
+			log.Printf("Unable to get block from database, err: %v", err)
 			http.Error(w, fmt.Sprintf("no such block %v", blockNumber), http.StatusBadRequest)
 			return
 		}

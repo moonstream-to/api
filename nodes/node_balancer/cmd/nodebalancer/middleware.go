@@ -1,7 +1,7 @@
 /*
 Server API middleware.
 */
-package cmd
+package main
 
 import (
 	"bytes"
@@ -15,8 +15,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/bugout-dev/moonstream/nodes/node_balancer/configs"
 
 	humbug "github.com/bugout-dev/humbug/go/pkg"
 )
@@ -89,7 +87,7 @@ func (ac *AccessCache) Cleanup() (int64, int64) {
 	tsNow := time.Now().Unix()
 	ac.mux.Lock()
 	for aId, aData := range ac.accessIds {
-		if tsNow-aData.LastAccessTs > configs.NB_CACHE_ACCESS_ID_LIFETIME {
+		if tsNow-aData.LastAccessTs > NB_CACHE_ACCESS_ID_LIFETIME {
 			delete(ac.accessIds, aId)
 			removedAccessIds++
 		} else {
@@ -101,7 +99,7 @@ func (ac *AccessCache) Cleanup() (int64, int64) {
 }
 
 func initCacheCleaning(debug bool) {
-	t := time.NewTicker(configs.NB_CACHE_CLEANING_INTERVAL)
+	t := time.NewTicker(NB_CACHE_CLEANING_INTERVAL)
 	for {
 		select {
 		case <-t.C:
@@ -118,7 +116,7 @@ func initCacheCleaning(debug bool) {
 func extractAccessID(r *http.Request) string {
 	var accessID string
 
-	accessIDHeaders := r.Header[strings.Title(configs.NB_ACCESS_ID_HEADER)]
+	accessIDHeaders := r.Header[strings.Title(NB_ACCESS_ID_HEADER)]
 	for _, h := range accessIDHeaders {
 		accessID = h
 	}
@@ -137,7 +135,7 @@ func extractAccessID(r *http.Request) string {
 func extractDataSource(r *http.Request) string {
 	dataSource := "database"
 
-	dataSources := r.Header[strings.Title(configs.NB_DATA_SOURCE_HEADER)]
+	dataSources := r.Header[strings.Title(NB_DATA_SOURCE_HEADER)]
 	for _, h := range dataSources {
 		dataSource = h
 	}
@@ -203,7 +201,7 @@ func logMiddleware(next http.Handler) http.Handler {
 			var jsonrpcRequest JSONRPCRequest
 			err = json.Unmarshal(body, &jsonrpcRequest)
 			if err != nil {
-				log.Printf("Unable to parse body %v", err)
+				log.Printf("Unable to parse body at logging middleware, err: %v", err)
 			}
 			logStr += fmt.Sprintf(" %s", jsonrpcRequest.Method)
 		}
@@ -236,7 +234,7 @@ func accessMiddleware(next http.Handler) http.Handler {
 		}
 
 		// If access id does not belong to internal crawlers, then check cache or find it in Bugout resources
-		if accessID == configs.NB_CONTROLLER_ACCESS_ID {
+		if accessID == NB_CONTROLLER_ACCESS_ID {
 			if stateCLI.enableDebugFlag {
 				log.Printf("Access id belongs to internal crawlers")
 			}
@@ -254,8 +252,8 @@ func accessMiddleware(next http.Handler) http.Handler {
 				log.Printf("New access id, looking at Brood resources")
 			}
 			resources, err := bugoutClient.Brood.GetResources(
-				configs.NB_CONTROLLER_TOKEN,
-				configs.NB_APPLICATION_ID,
+				NB_CONTROLLER_TOKEN,
+				NB_APPLICATION_ID,
 				map[string]string{"access_id": accessID},
 			)
 			if err != nil {

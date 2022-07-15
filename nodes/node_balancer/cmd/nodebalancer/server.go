@@ -1,7 +1,7 @@
 /*
 Node load balancer API server initialization.
 */
-package cmd
+package main
 
 import (
 	"context"
@@ -12,9 +12,8 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"strings"
 	"time"
-
-	configs "github.com/bugout-dev/moonstream/nodes/node_balancer/configs"
 
 	humbug "github.com/bugout-dev/humbug/go/pkg"
 	"github.com/google/uuid"
@@ -29,7 +28,7 @@ var (
 
 // initHealthCheck runs a routine for check status of the nodes every 5 seconds
 func initHealthCheck(debug bool) {
-	t := time.NewTicker(configs.NB_HEALTH_CHECK_INTERVAL)
+	t := time.NewTicker(NB_HEALTH_CHECK_INTERVAL)
 	for {
 		select {
 		case <-t.C:
@@ -37,7 +36,7 @@ func initHealthCheck(debug bool) {
 			ethereumClients := ethereumClientPool.CleanInactiveClientNodes()
 			polygonClients := polygonClientPool.CleanInactiveClientNodes()
 			xdaiClients := xdaiClientPool.CleanInactiveClientNodes()
-			log.Printf("Active etehereum clients: %d, polygon clients: %d, xdai clients: %d\n", ethereumClients, polygonClients, xdaiClients)
+			log.Printf("Active ethereum clients: %d, polygon clients: %d, xdai clients: %d", ethereumClients, polygonClients, xdaiClients)
 			if debug {
 				blockchainPool.StatusLog()
 			}
@@ -71,13 +70,13 @@ func GetRetryFromContext(r *http.Request) int {
 func proxyErrorHandler(proxy *httputil.ReverseProxy, url *url.URL) {
 	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, e error) {
 		retries := GetRetryFromContext(r)
-		if retries < configs.NB_CONNECTION_RETRIES {
+		if retries < NB_CONNECTION_RETRIES {
 			log.Printf(
-				"An error occurred while proxying to %s, number of retries: %d/%d. Error: %s\n",
-				url, retries+1, configs.NB_CONNECTION_RETRIES, e.Error(),
+				"An error occurred while proxying to %s, number of retries: %d/%d, err: %v",
+				url, retries+1, NB_CONNECTION_RETRIES, e.Error(),
 			)
 			select {
-			case <-time.After(configs.NB_CONNECTION_RETRIES_INTERVAL):
+			case <-time.After(NB_CONNECTION_RETRIES_INTERVAL):
 				ctx := context.WithValue(r.Context(), Retry, retries+1)
 				proxy.ServeHTTP(w, r.WithContext(ctx))
 			}
@@ -94,7 +93,7 @@ func proxyErrorHandler(proxy *httputil.ReverseProxy, url *url.URL) {
 		// If the same request routing for few attempts with different nodes, increase the count
 		// of attempts and send request to next peer
 		attempts := GetAttemptsFromContext(r)
-		log.Printf("Attempting number: %d to fetch node %s\n", attempts, url)
+		log.Printf("Attempting number: %d to fetch node %s", attempts, url)
 		ctx := context.WithValue(r.Context(), Attempts, attempts+1)
 		lbHandler(w, r.WithContext(ctx))
 	}
@@ -111,36 +110,36 @@ func Server() {
 	var err error
 	sessionID := uuid.New().String()
 	consent := humbug.CreateHumbugConsent(humbug.True)
-	reporter, err = humbug.CreateHumbugReporter(consent, "moonstream-node-balancer", sessionID, configs.HUMBUG_REPORTER_NB_TOKEN)
+	reporter, err = humbug.CreateHumbugReporter(consent, "moonstream-node-balancer", sessionID, HUMBUG_REPORTER_NB_TOKEN)
 	if err != nil {
-		fmt.Printf("Invalid Humbug Crash configuration: %v", err)
+		fmt.Printf("Invalid Humbug Crash configuration, err: %v\n", err)
 		os.Exit(1)
 	}
 	// Record system information
 	reporter.Publish(humbug.SystemReport())
 
 	resources, err := bugoutClient.Brood.GetResources(
-		configs.NB_CONTROLLER_TOKEN,
-		configs.NB_APPLICATION_ID,
-		map[string]string{"access_id": configs.NB_CONTROLLER_ACCESS_ID},
+		NB_CONTROLLER_TOKEN,
+		NB_APPLICATION_ID,
+		map[string]string{"access_id": NB_CONTROLLER_ACCESS_ID},
 	)
 	if err != nil {
-		fmt.Printf("Unable to get user with provided access identifier %v", err)
+		fmt.Printf("Unable to get user with provided access identifier, err: %v\n", err)
 		os.Exit(1)
 	}
 	if len(resources.Resources) != 1 {
-		fmt.Printf("User with provided access identifier has wrong number of resources %v", err)
+		fmt.Printf("User with provided access identifier has wrong number of resources, err: %v\n", err)
 		os.Exit(1)
 	}
 	resource_data, err := json.Marshal(resources.Resources[0].ResourceData)
 	if err != nil {
-		fmt.Printf("Unable to encode resource data interface to json %v", err)
+		fmt.Printf("Unable to encode resource data interface to json, err: %v\n", err)
 		os.Exit(1)
 	}
 	var clientAccess ClientResourceData
 	err = json.Unmarshal(resource_data, &clientAccess)
 	if err != nil {
-		fmt.Printf("Unable to decode resource data json to structure %v", err)
+		fmt.Printf("Unable to decode resource data json to structure, err: %v\n", err)
 		os.Exit(1)
 	}
 	internalCrawlersAccess = ClientResourceData{
@@ -158,43 +157,49 @@ func Server() {
 
 	err = InitDatabaseClient()
 	if err != nil {
-		log.Printf("Unable to initialize database connection %v\n", err)
+		log.Printf("Unable to initialize database connection, err: %v", err)
 	} else {
-		log.Printf("Connection with database established\n")
+		log.Printf("Connection with database established")
 	}
 
 	// Fill NodeConfigList with initial nodes from environment variables
-	nodeConfigs.InitNodeConfigList(stateCLI.configPathFlag)
+	nodeConfig, err := LoadConfig(stateCLI.configPathFlag)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 
 	// Parse nodes and set list of proxies
-	for i, nodeConfig := range nodeConfigs.NodeConfigs {
-		gethUrl, err := url.Parse(fmt.Sprintf("http://%s:%d", nodeConfig.Addr, nodeConfig.Port))
+	for i, nodeConfig := range *nodeConfig {
+		endpoint, err := url.Parse(nodeConfig.Endpoint)
 		if err != nil {
-			fmt.Printf("Unable to parse gethUrl with addr: %s and port: %d\n", nodeConfig.Addr, nodeConfig.Port)
-			continue
-		}
-		statusUrl, err := url.Parse(fmt.Sprintf("http://%s:%s", nodeConfig.Addr, configs.MOONSTREAM_NODES_SERVER_PORT))
-		if err != nil {
-			fmt.Printf("Unable to parse statusUrl with addr: %s and port: %s\n", nodeConfig.Addr, configs.MOONSTREAM_NODES_SERVER_PORT)
-			continue
+			fmt.Println(err)
+			os.Exit(1)
 		}
 
-		proxyToStatus := httputil.NewSingleHostReverseProxy(statusUrl)
-		proxyToGeth := httputil.NewSingleHostReverseProxy(gethUrl)
-
-		proxyErrorHandler(proxyToStatus, statusUrl)
-		proxyErrorHandler(proxyToGeth, gethUrl)
+		proxyToEndpoint := httputil.NewSingleHostReverseProxy(endpoint)
+		// If required detailed timeout configuration, define node.GethReverseProxy.Transport = &http.Transport{}
+		// as modified structure of DefaultTransport net/http/transport/DefaultTransport
+		director := proxyToEndpoint.Director
+		proxyToEndpoint.Director = func(r *http.Request) {
+			director(r)
+			// Overwrite Query and Headers to not bypass nodebalancer Query and Headers
+			r.URL.RawQuery = ""
+			r.Header.Del(strings.Title(NB_ACCESS_ID_HEADER))
+			r.Header.Del(strings.Title(NB_DATA_SOURCE_HEADER))
+			// Change r.Host from nodebalancer's to end host so TLS check will be passed
+			r.Host = r.URL.Host
+		}
+		proxyErrorHandler(proxyToEndpoint, endpoint)
 
 		blockchainPool.AddNode(&Node{
-			StatusURL:          statusUrl,
-			GethURL:            gethUrl,
-			Alive:              true,
-			StatusReverseProxy: proxyToStatus,
-			GethReverseProxy:   proxyToGeth,
+			Endpoint:         endpoint,
+			Alive:            true,
+			GethReverseProxy: proxyToEndpoint,
 		}, nodeConfig.Blockchain)
 		log.Printf(
-			"Added new %s proxy blockchain under index %d from config file with geth url: %s and status url: %s\n",
-			nodeConfig.Blockchain, i, gethUrl, statusUrl)
+			"Added new %s proxy blockchain under index %d from config file with geth url: %s://%s",
+			nodeConfig.Blockchain, i, endpoint.Scheme, endpoint.Host)
 	}
 
 	serveMux := http.NewServeMux()
@@ -225,10 +230,10 @@ func Server() {
 	// Start access id cache cleaning
 	go initCacheCleaning(stateCLI.enableDebugFlag)
 
-	log.Printf("Starting node load balancer HTTP server at %s:%s\n", stateCLI.listeningAddrFlag, stateCLI.listeningPortFlag)
+	log.Printf("Starting node load balancer HTTP server at %s:%s", stateCLI.listeningAddrFlag, stateCLI.listeningPortFlag)
 	err = server.ListenAndServe()
 	if err != nil {
-		fmt.Printf("Failed to start server listener %v", err)
+		fmt.Printf("Failed to start server listener, err: %v\n", err)
 		os.Exit(1)
 	}
 }

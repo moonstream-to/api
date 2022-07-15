@@ -1,12 +1,10 @@
-package cmd
+package main
 
 import (
 	"errors"
 	"reflect"
 	"sync"
 	"time"
-
-	configs "github.com/bugout-dev/moonstream/nodes/node_balancer/configs"
 )
 
 var (
@@ -23,7 +21,7 @@ type ClientResourceData struct {
 	Description      string `json:"description"`
 	BlockchainAccess bool   `json:"blockchain_access"`
 	ExtendedMethods  bool   `json:"extended_methods"`
-	
+
 	LastAccessTs int64 `json:"last_access_ts"`
 
 	dataSource string
@@ -104,7 +102,7 @@ func (cpool *ClientPool) AddClientNode(id string, node *Node) {
 func (cpool *ClientPool) GetClientNode(id string) *Node {
 	if cpool.Client[id] != nil {
 		lastCallTs := cpool.Client[id].GetClientLastCallDiff()
-		if lastCallTs < configs.NB_CLIENT_NODE_KEEP_ALIVE {
+		if lastCallTs < NB_CLIENT_NODE_KEEP_ALIVE {
 			cpool.Client[id].UpdateClientLastCall()
 			return cpool.Client[id].Node
 		}
@@ -119,7 +117,7 @@ func (cpool *ClientPool) CleanInactiveClientNodes() int {
 	cnt := 0
 	for id, client := range cpool.Client {
 		lastCallTs := client.GetClientLastCallDiff()
-		if lastCallTs >= configs.NB_CLIENT_NODE_KEEP_ALIVE {
+		if lastCallTs >= NB_CLIENT_NODE_KEEP_ALIVE {
 			delete(cpool.Client, id)
 		} else {
 			cnt += 1

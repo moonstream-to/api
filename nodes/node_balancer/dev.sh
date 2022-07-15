@@ -5,6 +5,6 @@ set -e
 
 PROGRAM_NAME="nodebalancer"
 
-go build -o "$PROGRAM_NAME" .
+go build -o "$PROGRAM_NAME" cmd/nodebalancer/*.go
 
 ./"$PROGRAM_NAME" "$@"
