@@ -193,7 +193,7 @@ const Homepage = () => {
             minH={[null, "290px", "400px", null]}
           >
             <ChakraImage
-              boxSize={["220px", "220px", "xs", null, "xs"]}
+              boxSize={["150px", "220px", "xs", null, "xs"]}
               objectFit="contain"
               src={image}
               alt={altText}
@@ -445,25 +445,25 @@ const Homepage = () => {
                   >
                     <Suspense fallback={""}>
                       <TrustedBadge
+                        scaling={1.5}
                         name="Bullieverse"
                         ImgURL={assets["bulliverse"]}
                         boxURL="https://bullieverisland.com/"
-                        scaling={1.5}
-                      />{" "}
+                      />
                       <TrustedBadge
-                        scaling={1.5}
+                        scaling={[1.5]}
                         name="Crypto Guilds"
                         ImgURL={assets["cryptoGuilds"]}
                         boxURL="https://crypto-guilds.com/"
                       />
                       <TrustedBadge
-                        scaling={1.5}
+                        scaling={[1.5]}
                         name="Crypto Unicorns"
                         ImgURL={assets["cryptoUnicorns"]}
                         boxURL="https://www.cryptounicorns.fun/"
                       />
                       <TrustedBadge
-                        scaling={1.5}
+                        scaling={[1.5]}
                         name="game7io"
                         ImgURL={assets["game7io"]}
                         boxURL="https://game7.io/"
@@ -566,7 +566,7 @@ const Homepage = () => {
                   </chakra.span>
                 </Center>
                 <SimpleGrid
-                  columns={[1, 2, 2, 4, 4, 4]}
+                  columns={[2, 2, 2, 4, 4, 4]}
                   justifyContent="center"
                   w="100%"
                   placeContent={"space-between"}

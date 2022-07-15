@@ -17,8 +17,7 @@ import {
 import CloudSVG from "./SVGGraphics/Cloud";
 import RectangleSVG from "./SVGGraphics/Rectangle";
 import RoundedRectSVG from "./SVGGraphics/RoundedRect";
-import { BsFillPersonFill } from "react-icons/bs";
-import { BsFillFileEarmarkCodeFill } from "react-icons/bs";
+import { BsFillPersonFill, BsFillFileEarmarkCodeFill } from "react-icons/bs";
 import Xarrow from "react-xarrows";
 import ExampleCode from "./ExampleCode";
 
@@ -180,7 +179,7 @@ const _EngineOverviewDiagram = (props) => {
                           "landing"
                         );
                       }}
-                    ></Icon>
+                    ></Icon>{" "}
                   </Flex>
                 </PopoverTrigger>
                 <PopoverContent w={["300px", "400px", "850px"]}>

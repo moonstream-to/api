@@ -37,7 +37,7 @@ const TrustedBadge = ({
           <Image
             sx={{ filter: filterStr }}
             h={[
-              `${2.25 * _scale}rem`,
+              `${1.75 * _scale}rem`,
               null,
               `${3 * _scale}rem`,
               `${3 * _scale}rem`,

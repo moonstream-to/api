@@ -1,10 +1,11 @@
 import React, { useEffect } from "react";
-import { Box, Image, Center, VStack, Text, Spinner } from "@chakra-ui/react";
+import { Box, Center, VStack, Text, Icon, Spinner } from "@chakra-ui/react";
 import { getLayout, getLayoutProps } from "../../src/layouts/WideInfoPage";
 import HubspotForm from "react-hubspot-form";
 import { useRouter } from "next/router";
+import { BiArrowBack } from "react-icons/bi";
 
-const Contact = () => {
+const Contact = (props) => {
   const router = useRouter();
   const formId = "b54d192f-59b1-410a-8ac1-a1e8383c423c";
 
@@ -28,11 +29,26 @@ const Contact = () => {
 
   return (
     <Box>
-      <Box px="1.5rem" m="auto" mb={8} minWidth="1000px" minHeight="100vh">
-        <Image></Image>
+      <Box px="1.5rem" py={10} m="auto" mb={8} minHeight="100vh">
+        <Icon
+          as={BiArrowBack}
+          w={["30px", "40px", "50px"]}
+          h={["30px", "40px", "50px"]}
+          onClick={() => {
+            router.push("/");
+          }}
+          position="absolute"
+          justifySelf="left"
+          alignSelf="left"
+        ></Icon>
         <Center>
           <VStack>
-            <Text my={5} fontSize={["lg", "xl"]} textAlign="center">
+            <Text
+              my={5}
+              px={10}
+              fontSize={["md", "lg", "xl"]}
+              textAlign="center"
+            >
               Thanks for your interest in Moonstream.
               <br />
               Please answer some questions to help us get acquainted with you.
