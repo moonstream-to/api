@@ -30,6 +30,8 @@ var (
 	NB_CACHE_CLEANING_INTERVAL  = time.Second * 10
 	NB_CACHE_ACCESS_ID_LIFETIME = int64(120)
 
+	NB_MAX_COUNTER_NUMBER = uint64(10000000)
+
 	// Client configuration
 	NB_CLIENT_NODE_KEEP_ALIVE = int64(5) // How long to store node in hot list for client in seconds
 
