@@ -5,8 +5,6 @@ StartLimitIntervalSec=300
 StartLimitBurst=3
 
 [Service]
-User=ubuntu
-Group=ubuntu
 WorkingDirectory=/home/ubuntu/moonstream/nodes/node_balancer
 EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
 Restart=on-failure

@@ -57,21 +57,13 @@ echo
 echo -e "${PREFIX_INFO} Building executable load balancer for nodes script with Go"
 EXEC_DIR=$(pwd)
 cd "${APP_NODES_DIR}/node_balancer"
-HOME=/home/ubuntu /usr/local/go/bin/go build -o "${APP_NODES_DIR}/node_balancer/nodebalancer" "${APP_NODES_DIR}/node_balancer/cmd/nodebalancer/*.go"
+HOME=/home/ubuntu /usr/local/go/bin/go build -o "${APP_NODES_DIR}/node_balancer/nodebalancer" "${APP_NODES_DIR}/node_balancer/cmd/nodebalancer/"
 cd "${EXEC_DIR}"
-
-echo
-echo
-echo -e "${PREFIX_INFO} Update nodebalancer configuration file"
-if [ ! -z "$NODE_BALANCER_CONFIG_PATH" ]; then
-  echo -e "${PREFIX_CRIT} Node balancer configuration not found"
-  exit 1
-fi
 
 echo
 echo
 echo -e "${PREFIX_INFO} Replacing existing load balancer for nodes service definition with ${NODE_BALANCER_SERVICE_FILE}"
 chmod 644 "${SCRIPT_DIR}/${NODE_BALANCER_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${NODE_BALANCER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${NODE_BALANCER_SERVICE_FILE}"
-systemctl --user daemon-reload
-systemctl --user restart "${NODE_BALANCER_SERVICE_FILE}"
+XDG_RUNTIME_DIR="/run/user/$UID" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/$UID" systemctl --user restart "${NODE_BALANCER_SERVICE_FILE}"
