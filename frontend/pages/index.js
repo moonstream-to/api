@@ -238,7 +238,7 @@ const Homepage = () => {
               boxSizing="content-box"
             >
               <GridItem colSpan="12" bgColor={"blue.50"} id="Header grid item">
-                <chakra.header boxSize="full" minH="100vh" mb={0}>
+                <chakra.header boxSize="full" minH={["100vh"]} mb={0}>
                   <Box
                     bgPos="bottom"
                     bgColor="transparent"
@@ -250,8 +250,8 @@ const Homepage = () => {
                       align="center"
                       justify="center"
                       boxSize="full"
-                      pt="150px"
-                      pb={10}
+                      pt={["60px", "120px", "150px"]}
+                      pb={[4, 6, 10, 10, 10, 10]}
                     >
                       <Stack
                         textAlign="center"
@@ -259,24 +259,24 @@ const Homepage = () => {
                         spacing={6}
                         maxW={["1620px", null, null, null, "1620px", "2222px"]}
                         w="100%"
-                        px="7%"
+                        px="5%"
                       >
                         <Heading
                           fontSize={["lg", "4xl", "5xl", "5xl", "5xl", "6xl"]}
                           fontWeight="semibold"
                           color="white"
                           as="h1"
-                          pb={12}
-                          maxW="58%"
+                          pb={[4, 6, 12, 12, 12, 12]}
+                          maxW={["85%", "75%", "58%", "58%", "58%", "58%"]}
                         >
                           Build a Sustainable Game Economy in Only a Few Clicks
                         </Heading>
                         <chakra.span
-                          pb={12}
+                          pb={[4, 6, 12, 12, 12, 12]}
                           fontSize={["sm", "md", "lg", "lg", "xl", "xl"]}
                           display="inline-block"
                           color="white"
-                          maxW="75%"
+                          maxW={["90%", "85%", "75%", "75%", "75%", "75%"]}
                         >
                           Moonstream Engine empowers web3 game designers to grow
                           healthy economies. Moonstream smart contracts and APIs
@@ -292,13 +292,13 @@ const Homepage = () => {
                             "row",
                             "row",
                           ]}
-                          pb="120px"
+                          pb={["60px", "60px", "120px"]}
                         >
                           <Center>
                             <RouteButton
                               variant="orangeAndBlue"
                               minW={[
-                                "200px",
+                                "220px",
                                 "250px",
                                 "250px",
                                 "300px",
@@ -324,7 +324,7 @@ const Homepage = () => {
                               borderColor={lightOrangeColor}
                               textColor="white"
                               minW={[
-                                "200px",
+                                "220px",
                                 "250px",
                                 "250px",
                                 "300px",
@@ -353,8 +353,8 @@ const Homepage = () => {
                         >
                           <Stack
                             direction={[
-                              "column",
-                              "column",
+                              "row",
+                              "row",
                               "row",
                               "row",
                               "row",
@@ -434,6 +434,7 @@ const Homepage = () => {
                     {...HEADING_PROPS}
                     fontSize={["md", "lg", "xl", "2xl", "3xl", "3xl"]}
                     fontWeight="semibold"
+                    textAlign="center"
                   >
                     Trusted by visionaries in the industry
                   </Heading>
@@ -481,6 +482,7 @@ const Homepage = () => {
                     {...HEADING_PROPS}
                     fontSize={["md", "lg", "xl", "2xl", "3xl", "3xl"]}
                     fontWeight="semibold"
+                    textAlign="center"
                   >
                     Supported blockchains
                   </Heading>
@@ -516,6 +518,7 @@ const Homepage = () => {
                     {...HEADING_PROPS}
                     fontSize={["md", "lg", "xl", "2xl", "3xl", "3xl"]}
                     fontWeight="semibold"
+                    textAlign="center"
                   >
                     Upcoming Integrations
                   </Heading>
@@ -892,19 +895,19 @@ const Homepage = () => {
                   Our Workflow
                 </Heading>
                 <HStack alignItems="top" py={5}>
-                  <Flex height="100%" width="25%">
+                  <Flex height="100%" width="20%">
                     <Heading
                       as="h3"
-                      fontSize={["lg", "3xl", "4xl", "4xl", "4xl", "5xl"]}
+                      fontSize={["md", "xl", "4xl", "4xl", "4xl", "5xl"]}
                       display="inline-block"
                       fontWeight="semibold"
                     >
                       Step 1:
                     </Heading>
                   </Flex>
-                  <Flex height="100%" width="75%">
+                  <Flex height="100%" width="80%">
                     <chakra.span
-                      fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
+                      fontSize={["sm", "lg", "3xl", "3xl", "3xl", "4xl"]}
                       display="inline-block"
                     >
                       So you decided to build a healthy economy on the
@@ -913,19 +916,19 @@ const Homepage = () => {
                   </Flex>
                 </HStack>
                 <HStack alignItems="top" py={5}>
-                  <Flex bgColor="grey.100" width="25%" height="100%">
+                  <Flex bgColor="grey.100" width="20%" height="100%">
                     <Heading
                       as="h3"
-                      fontSize={["lg", "3xl", "4xl", "4xl", "4xl", "5xl"]}
+                      fontSize={["md", "xl", "4xl", "4xl", "4xl", "5xl"]}
                       display="inline-block"
                       fontWeight="semibold"
                     >
                       Step 2:
                     </Heading>
                   </Flex>
-                  <Flex width="75%">
+                  <Flex width="80%">
                     <chakra.span
-                      fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
+                      fontSize={["sm", "lg", "3xl", "3xl", "3xl", "4xl"]}
                       display="inline-block"
                     >
                       <Link
@@ -943,19 +946,19 @@ const Homepage = () => {
                   </Flex>
                 </HStack>
                 <HStack alignItems="top" py={5}>
-                  <Flex bgColor="grey.100" width="25%" height="100%">
+                  <Flex bgColor="grey.100" width="20%" height="100%">
                     <Heading
                       as="h3"
-                      fontSize={["lg", "3xl", "4xl", "4xl", "4xl", "5xl"]}
+                      fontSize={["md", "xl", "4xl", "4xl", "4xl", "5xl"]}
                       display="inline-block"
                       fontWeight="semibold"
                     >
                       Step 3:
                     </Heading>
                   </Flex>
-                  <Flex width="75%">
+                  <Flex width="80%">
                     <chakra.span
-                      fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
+                      fontSize={["sm", "lg", "3xl", "3xl", "3xl", "4xl"]}
                       display="inline-block"
                     >
                       Pick game mechanics that you&apos;d like to deploy.
@@ -1055,6 +1058,7 @@ const Homepage = () => {
                     as="h2"
                     fontSize={["md", "xl", "3xl", "4xl", "4xl", "5xl"]}
                     letterSpacing="wide"
+                    textAlign="center"
                   >
                     Sign up to grow your economy
                   </Heading>
