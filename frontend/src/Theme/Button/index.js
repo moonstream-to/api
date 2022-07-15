@@ -119,14 +119,14 @@ const variantOrangeAndBlue = () => {
     alignItems: "center",
     justifyContent: "center",
     border: "solid transparent",
-    fontWeight: "bold",
-    rounded: ["lg", "xl", "2xl"],
+    borderRadius: "70px",
     shadow: "md",
     variant: "solid",
+    fontSize: ["sm", "md", "lg", "lg", "xl", "xl"],
     textColor: "blue.1200",
-    bg: `orange.900`,
-    py: [4, 6, 6, 8, 8],
-    px: [4, 4, 4, 8, 8],
+    bg: "#FF8B73",
+    py: 5,
+    px: 5,
   };
 };
 
