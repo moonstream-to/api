@@ -211,8 +211,6 @@ def add_block_transactions(
             transaction_type=int(tx["type"], 0) if tx["type"] is not None else None,
             value=tx.value,
         )
-        if blockchain_type == AvailableBlockchainType.XDAI:
-            tx_obj.data = tx.data
 
         db_session.add(tx_obj)
 
