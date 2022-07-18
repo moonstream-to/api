@@ -267,7 +267,7 @@ const Homepage = () => {
                           color="white"
                           as="h1"
                           pb={[4, 6, 12, 12, 12, 12]}
-                          maxW={["85%", "75%", "58%", "58%", "58%", "58%"]}
+                          maxW={[null, "80%", "58%"]}
                         >
                           Build a Sustainable Game Economy in Only a Few Clicks
                         </Heading>
@@ -276,7 +276,7 @@ const Homepage = () => {
                           fontSize={["sm", "md", "lg", "lg", "xl", "xl"]}
                           display="inline-block"
                           color="white"
-                          maxW={["90%", "85%", "75%", "75%", "75%", "75%"]}
+                          maxW={[null, "85%", "75%"]}
                         >
                           Moonstream Engine empowers web3 game designers to grow
                           healthy economies. Moonstream smart contracts and APIs
