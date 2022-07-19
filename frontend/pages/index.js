@@ -238,7 +238,7 @@ const Homepage = () => {
               boxSizing="content-box"
             >
               <GridItem colSpan="12" bgColor={"blue.50"} id="Header grid item">
-                <chakra.header boxSize="full" minH={["100vh"]} mb={0}>
+                <chakra.header boxSize="full" minH="100vh" mb={0}>
                   <Box
                     bgPos="bottom"
                     bgColor="transparent"
@@ -250,8 +250,8 @@ const Homepage = () => {
                       align="center"
                       justify="center"
                       boxSize="full"
-                      pt={["60px", "120px", "150px"]}
-                      pb={[4, 6, 10, 10, 10, 10]}
+                      pt={["120px", "120px", "150px"]}
+                      pb={10}
                     >
                       <Stack
                         textAlign="center"
@@ -266,22 +266,22 @@ const Homepage = () => {
                           fontWeight="semibold"
                           color="white"
                           as="h1"
-                          pb={[4, 6, 12, 12, 12, 12]}
-                          maxW={[null, "80%", "58%"]}
+                          pb={[8, 8, 12]}
+                          maxW={[null, "90%", "80%", "58%"]}
                         >
-                          Build a Sustainable Game Economy in Only a Few Clicks
+                          Build, Scale, and Monitor Your Game on the Blockchain
                         </Heading>
                         <chakra.span
-                          pb={[4, 6, 12, 12, 12, 12]}
+                          pb={[6, 6, 12]}
                           fontSize={["sm", "md", "lg", "lg", "xl", "xl"]}
                           display="inline-block"
                           color="white"
                           maxW={[null, "85%", "75%"]}
                         >
-                          Moonstream Engine empowers web3 game designers to grow
-                          healthy economies. Moonstream smart contracts and APIs
-                          allow you to integrate our game mechanics with zero
-                          effort.
+                          Moonstream is a no code web3 game engine. Use
+                          Moonstream’s technical blockchain infrastructure to
+                          add on-chain game mechanics. Watch your game’s economy
+                          flourish.
                         </chakra.span>
                         <Stack
                           direction={[
@@ -292,7 +292,7 @@ const Homepage = () => {
                             "row",
                             "row",
                           ]}
-                          pb={["60px", "60px", "120px"]}
+                          pb={"120px"}
                         >
                           <Center>
                             <RouteButton
