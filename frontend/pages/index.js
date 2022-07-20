@@ -353,10 +353,7 @@ const Homepage = () => {
                         rounded={["lg", "xl", "2xl"]}
                         px={5}
                       >
-                        <Stack
-                          direction={["row", "row", "row", "row", "row", "row"]}
-                          h="100%"
-                        >
+                        <HStack h="100%">
                           <Center w={[null, null, "40%"]} h="100%">
                             <Flex>
                               <Center w="100%">
@@ -414,7 +411,7 @@ const Homepage = () => {
                               </Center>
                             </Flex>
                           </Center>
-                        </Stack>
+                        </HStack>
                       </Box>
                     </Flex>
                   </Box>
