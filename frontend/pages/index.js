@@ -252,6 +252,7 @@ const Homepage = () => {
                       boxSize="full"
                       pt={["120px", "120px", "150px"]}
                       pb={10}
+                      flexDir="column"
                     >
                       <Stack
                         textAlign="center"
@@ -314,7 +315,7 @@ const Homepage = () => {
                               }}
                               href={"/contact"}
                             >
-                              Boost my game economy
+                              Make my game web3
                             </RouteButton>
                           </Center>
                           <Center>
@@ -345,83 +346,76 @@ const Homepage = () => {
                             </RouteButton>
                           </Center>
                         </Stack>
-                        <Box
-                          bgColor="rgb(255, 255, 255, 0.7)"
-                          w={[null, null, "40%"]}
-                          rounded={["lg", "xl", "2xl"]}
-                          px={5}
-                        >
-                          <Stack
-                            direction={[
-                              "row",
-                              "row",
-                              "row",
-                              "row",
-                              "row",
-                              "row",
-                            ]}
-                            h="100%"
-                          >
-                            <Center w={[null, null, "40%"]} h="100%">
-                              <Flex>
-                                <Center w="100%">
-                                  <VStack>
-                                    <Text
-                                      fontSize={[
-                                        "md",
-                                        "xl",
-                                        "2xl",
-                                        "3xl",
-                                        "3xl",
-                                        "3xl",
-                                      ]}
-                                      fontWeight="bold"
-                                      textColor={lightOrangeColor}
-                                      pt="20px"
-                                    >
-                                      &gt;$3b
-                                    </Text>
-                                    <Text pb="20px">
-                                      transaction volume.
-                                      <br />
-                                      And growing
-                                    </Text>
-                                  </VStack>
-                                </Center>
-                              </Flex>
-                            </Center>
-                            <Center w={[null, null, "60%"]} h="100%">
-                              <Flex>
-                                {" "}
-                                <Center w="100%">
-                                  <VStack>
-                                    <Text
-                                      fontSize={[
-                                        "md",
-                                        "xl",
-                                        "2xl",
-                                        "3xl",
-                                        "3xl",
-                                        "3xl",
-                                      ]}
-                                      fontWeight="bold"
-                                      textColor={lightOrangeColor}
-                                      pt="20px"
-                                    >
-                                      &gt;44k
-                                    </Text>
-                                    <Text pb="20px">
-                                      active users in game economies
-                                      <br />
-                                      built with our engine
-                                    </Text>
-                                  </VStack>
-                                </Center>
-                              </Flex>
-                            </Center>
-                          </Stack>
-                        </Box>
                       </Stack>
+                      <Box
+                        bgColor="rgb(255, 255, 255, 0.7)"
+                        w={[null, null, "40%"]}
+                        rounded={["lg", "xl", "2xl"]}
+                        px={5}
+                      >
+                        <Stack
+                          direction={["row", "row", "row", "row", "row", "row"]}
+                          h="100%"
+                        >
+                          <Center w={[null, null, "40%"]} h="100%">
+                            <Flex>
+                              <Center w="100%">
+                                <VStack>
+                                  <Text
+                                    fontSize={[
+                                      "md",
+                                      "xl",
+                                      "2xl",
+                                      "3xl",
+                                      "3xl",
+                                      "3xl",
+                                    ]}
+                                    fontWeight="bold"
+                                    textColor={lightOrangeColor}
+                                    pt="20px"
+                                  >
+                                    &gt;$3b
+                                  </Text>
+                                  <Text pb="20px">
+                                    transaction volume.
+                                    <br />
+                                    And growing
+                                  </Text>
+                                </VStack>
+                              </Center>
+                            </Flex>
+                          </Center>
+                          <Center w={[null, null, "60%"]} h="100%">
+                            <Flex>
+                              {" "}
+                              <Center w="100%">
+                                <VStack>
+                                  <Text
+                                    fontSize={[
+                                      "md",
+                                      "xl",
+                                      "2xl",
+                                      "3xl",
+                                      "3xl",
+                                      "3xl",
+                                    ]}
+                                    fontWeight="bold"
+                                    textColor={lightOrangeColor}
+                                    pt="20px"
+                                  >
+                                    &gt;44k
+                                  </Text>
+                                  <Text pb="20px">
+                                    active users in game economies
+                                    <br />
+                                    built with our engine
+                                  </Text>
+                                </VStack>
+                              </Center>
+                            </Flex>
+                          </Center>
+                        </Stack>
+                      </Box>
                     </Flex>
                   </Box>
                 </chakra.header>
