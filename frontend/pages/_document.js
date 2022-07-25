@@ -1,6 +1,6 @@
 import React from "react";
 import Document, { Html, Head, Main, NextScript } from "next/document";
-const GTAG = process.env.NEXT_PUBLIC_GTAG;
+const GTAG = process.env.NEXT_PUBLIC_LANDING_PAGE_GTAG;
 
 export default class MyDocument extends Document {
   render() {
