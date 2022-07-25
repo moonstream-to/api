@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, cast
+from uuid import UUID
 
 from bugout.data import BugoutSearchResult
 from eth_typing.evm import ChecksumAddress
@@ -15,6 +16,7 @@ from web3.main import Web3
 
 from mooncrawl.data import AvailableBlockchainType
 
+from ..blockchain import connect
 from ..reporter import reporter
 from ..settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -91,6 +93,34 @@ def _generate_reporter_callback(
         )
 
     return reporter_callback
+
+
+def _retry_connect_web3(
+    blockchain_type: AvailableBlockchainType,
+    retry_count: int = 10,
+    sleep_time: float = 5,
+    access_id: Optional[UUID] = None,
+) -> Web3:
+    """
+    Retry connecting to the blockchain.
+    """
+    while retry_count > 0:
+        retry_count -= 1
+        try:
+            web3 = connect(blockchain_type, access_id=access_id)
+            web3.eth.block_number
+            logger.info(f"Connected to {blockchain_type}")
+            return web3
+        except Exception as e:
+            if retry_count == 0:
+                error = e
+                break
+            logger.error(f"Failed to connect to {blockchain_type} blockchain: {e}")
+            logger.info(f"Retrying in {sleep_time} seconds")
+            time.sleep(sleep_time)
+    raise Exception(
+        f"Failed to connect to {blockchain_type} blockchain after {retry_count} retries: {error}"
+    )
 
 
 def blockchain_type_to_subscription_type(

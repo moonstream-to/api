@@ -1,24 +1,13 @@
 import logging
 from typing import Any, Dict, List, Optional, Union
 
-from eth_typing.evm import ChecksumAddress
-from hexbytes.main import HexBytes
-from moonstreamdb.db import yield_db_session_ctx
-from moonstreamdb.models import (
-    Base,
-    EthereumLabel,
-    EthereumTransaction,
-    PolygonLabel,
-    PolygonTransaction,
-)
+from moonstreamdb.models import Base
 from moonworm.crawler.function_call_crawler import ContractFunctionCall  # type: ignore
 from sqlalchemy.orm import Session
-from sqlalchemy.sql.expression import label
 
-from ..blockchain import connect, get_block_model, get_label_model
+from ..blockchain import get_label_model
 from ..data import AvailableBlockchainType
 from ..settings import CRAWLER_LABEL
-from .crawler import FunctionCallCrawlJob, _generate_reporter_callback
 from .event_crawler import Event
 
 logging.basicConfig(level=logging.INFO)
@@ -91,6 +80,44 @@ def get_last_labeled_block_number(
     )
 
     return block_number[0] if block_number else None
+
+
+def get_first_labeled_block_number(
+    db_session: Session,
+    blockchain_type: AvailableBlockchainType,
+    address: str,
+    label_name=CRAWLER_LABEL,
+    only_events: bool = False,
+) -> Optional[int]:
+    label_model = get_label_model(blockchain_type)
+    block_number_query = (
+        db_session.query(label_model.block_number)
+        .filter(label_model.label == label_name)
+        .filter(label_model.address == address)
+    )
+
+    function_call_block_numbers = (
+        block_number_query.filter(label_model.log_index == None)
+        .order_by(label_model.block_number)
+        .limit(50)
+        .all()
+    )
+    event_block_numbers = (
+        block_number_query.filter(label_model.log_index != None)
+        .order_by(label_model.block_number)
+        .limit(50)
+        .all()
+    )
+
+    if only_events:
+        return event_block_numbers[0][0] if event_block_numbers else None
+    else:
+        event_block_number = event_block_numbers[0][0] if event_block_numbers else -1
+        function_call_block_number = (
+            function_call_block_numbers[0][0] if function_call_block_numbers else -1
+        )
+        max_block_number = max(event_block_number, function_call_block_number)
+        return max_block_number if max_block_number != -1 else None
 
 
 def commit_session(db_session: Session) -> None:

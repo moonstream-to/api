@@ -11,8 +11,8 @@ from web3.middleware import geth_poa_middleware
 from mooncrawl.data import AvailableBlockchainType  # type: ignore
 
 from ..blockchain import connect
-from .base import crawl, get_checkpoint, populate_with_events
 from ..settings import NB_CONTROLLER_ACCESS_ID
+from .base import crawl, get_checkpoint, populate_with_events
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

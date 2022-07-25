@@ -17,6 +17,7 @@ from ..data import AvailableBlockchainType
 from .crawler import (
     EventCrawlJob,
     FunctionCallCrawlJob,
+    _retry_connect_web3,
     blockchain_type_to_subscription_type,
     get_crawl_job_entries,
     heartbeat,
@@ -80,34 +81,6 @@ def _refetch_new_jobs(
     )
 
     return event_crawl_jobs, function_call_crawl_jobs
-
-
-def _retry_connect_web3(
-    blockchain_type: AvailableBlockchainType,
-    retry_count: int = 10,
-    sleep_time: float = 5,
-    access_id: Optional[UUID] = None,
-) -> Web3:
-    """
-    Retry connecting to the blockchain.
-    """
-    while retry_count > 0:
-        retry_count -= 1
-        try:
-            web3 = connect(blockchain_type, access_id=access_id)
-            web3.eth.block_number
-            logger.info(f"Connected to {blockchain_type}")
-            return web3
-        except Exception as e:
-            if retry_count == 0:
-                error = e
-                break
-            logger.error(f"Failed to connect to {blockchain_type} blockchain: {e}")
-            logger.info(f"Retrying in {sleep_time} seconds")
-            time.sleep(sleep_time)
-    raise Exception(
-        f"Failed to connect to {blockchain_type} blockchain after {retry_count} retries: {error}"
-    )
 
 
 def continuous_crawler(
@@ -184,8 +157,6 @@ def continuous_crawler(
     try:
         while True:
             try:
-                # query db  with limit 1, to avoid session closing
-                db_session.execute("SELECT 1")
                 time.sleep(current_sleep_time)
 
                 end_block = min(
