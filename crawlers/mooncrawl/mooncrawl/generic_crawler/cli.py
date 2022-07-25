@@ -43,12 +43,9 @@ def handle_nft_crawler(args: argparse.Namespace) -> None:
             web3 = connect(blockchain_type, access_id=args.access_id)
         else:
             logger.info(f"Using web3 provider URL: {args.web3}")
-            web3 = Web3(
-                Web3.HTTPProvider(args.web3),
+            web3 = connect(
+                blockchain_type, access_id=args.access_id, web3_uri=args.web3
             )
-            if args.poa:
-                logger.info("Using PoA middleware")
-                web3.middleware_onion.inject(geth_poa_middleware, layer=0)
         last_crawled_block = get_checkpoint(
             db_session, blockchain_type, from_block, to_block, label
         )
@@ -95,12 +92,9 @@ def populate_with_erc20_transfers(args: argparse.Namespace) -> None:
             web3 = connect(blockchain_type, access_id=args.access_id)
         else:
             logger.info(f"Using web3 provider URL: {args.web3}")
-            web3 = Web3(
-                Web3.HTTPProvider(args.web3),
+            web3 = connect(
+                blockchain_type, access_id=args.access_id, web3_uri=args.web3
             )
-            if args.poa:
-                logger.info("Using PoA middleware")
-                web3.middleware_onion.inject(geth_poa_middleware, layer=0)
         last_crawled_block = get_checkpoint(
             db_session, blockchain_type, from_block, to_block, label
         )
@@ -120,6 +114,8 @@ def populate_with_erc20_transfers(args: argparse.Namespace) -> None:
 
 
 def handle_crawl(args: argparse.Namespace) -> None:
+    # TODO(yhtiyar): fix it
+    raise NotImplementedError("Deprecated for now, since blocklist is added")
     logger.info(f"Starting generic crawler")
 
     label = args.label_name
@@ -141,12 +137,10 @@ def handle_crawl(args: argparse.Namespace) -> None:
             web3 = connect(blockchain_type, access_id=args.access_id)
         else:
             logger.info(f"Using web3 provider URL: {args.web3}")
-            web3 = Web3(
-                Web3.HTTPProvider(args.web3),
+
+            web3 = connect(
+                blockchain_type, access_id=args.access_id, web3_uri=args.web3
             )
-            if args.poa:
-                logger.info("Using PoA middleware")
-                web3.middleware_onion.inject(geth_poa_middleware, layer=0)
         last_crawled_block = get_checkpoint(
             db_session, blockchain_type, from_block, to_block, label
         )
