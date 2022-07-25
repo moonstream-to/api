@@ -1,5 +1,6 @@
 import React from "react";
 import Document, { Html, Head, Main, NextScript } from "next/document";
+const GTAG = process.env.NEXT_PUBLIC_ENGINE_GTAG;
 
 export default class MyDocument extends Document {
   render() {
@@ -45,7 +46,7 @@ export default class MyDocument extends Document {
           {/* <!-- Global site tag (gtag.js) - Google Analytics --> */}
           <script
             async
-            src="https://www.googletagmanager.com/gtag/js?id=G-MNVHX36LZ1"
+            src={`https://www.googletagmanager.com/gtag/js?id=${GTAG}`}
           ></script>
           <script
             dangerouslySetInnerHTML={{
@@ -55,7 +56,7 @@ export default class MyDocument extends Document {
                 dataLayer.push(arguments);
               }
               gtag("js", new Date());
-              gtag("config", "G-MNVHX36LZ1");`,
+              gtag("config", "${GTAG}");`,
             }}
           />
         </Head>
