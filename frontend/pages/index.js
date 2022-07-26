@@ -250,8 +250,9 @@ const Homepage = () => {
                       align="center"
                       justify="center"
                       boxSize="full"
-                      pt="150px"
+                      pt={["120px", "120px", "150px"]}
                       pb={10}
+                      flexDir="column"
                     >
                       <Stack
                         textAlign="center"
@@ -259,29 +260,29 @@ const Homepage = () => {
                         spacing={6}
                         maxW={["1620px", null, null, null, "1620px", "2222px"]}
                         w="100%"
-                        px="7%"
+                        px="5%"
                       >
                         <Heading
                           fontSize={["lg", "4xl", "5xl", "5xl", "5xl", "6xl"]}
                           fontWeight="semibold"
                           color="white"
                           as="h1"
-                          pb={12}
-                          maxW="58%"
+                          pb={[8, 8, 12]}
+                          maxW={[null, "90%", "80%", "58%"]}
                         >
-                          Build a Sustainable Game Economy in Only a Few Clicks
+                          Build, Scale, and Monitor Your Game on the Blockchain
                         </Heading>
                         <chakra.span
-                          pb={12}
+                          pb={[6, 6, 12]}
                           fontSize={["sm", "md", "lg", "lg", "xl", "xl"]}
                           display="inline-block"
                           color="white"
-                          maxW="75%"
+                          maxW={[null, "85%", "75%"]}
                         >
-                          Moonstream Engine empowers web3 game designers to grow
-                          healthy economies. Moonstream smart contracts and APIs
-                          allow you to integrate our game mechanics with zero
-                          effort.
+                          Moonstream is a no code web3 game engine. Use
+                          Moonstream’s technical blockchain infrastructure to
+                          add on-chain game mechanics. Watch your game’s economy
+                          flourish.
                         </chakra.span>
                         <Stack
                           direction={[
@@ -292,13 +293,13 @@ const Homepage = () => {
                             "row",
                             "row",
                           ]}
-                          pb="120px"
+                          pb={"120px"}
                         >
                           <Center>
                             <RouteButton
                               variant="orangeAndBlue"
                               minW={[
-                                "200px",
+                                "220px",
                                 "250px",
                                 "250px",
                                 "300px",
@@ -314,7 +315,7 @@ const Homepage = () => {
                               }}
                               href={"/contact"}
                             >
-                              Boost my game economy
+                              Make my game web3
                             </RouteButton>
                           </Center>
                           <Center>
@@ -324,7 +325,7 @@ const Homepage = () => {
                               borderColor={lightOrangeColor}
                               textColor="white"
                               minW={[
-                                "200px",
+                                "220px",
                                 "250px",
                                 "250px",
                                 "300px",
@@ -345,83 +346,73 @@ const Homepage = () => {
                             </RouteButton>
                           </Center>
                         </Stack>
-                        <Box
-                          bgColor="rgb(255, 255, 255, 0.7)"
-                          w={[null, null, "40%"]}
-                          rounded={["lg", "xl", "2xl"]}
-                          px={5}
-                        >
-                          <Stack
-                            direction={[
-                              "column",
-                              "column",
-                              "row",
-                              "row",
-                              "row",
-                              "row",
-                            ]}
-                            h="100%"
-                          >
-                            <Center w={[null, null, "40%"]} h="100%">
-                              <Flex>
-                                <Center w="100%">
-                                  <VStack>
-                                    <Text
-                                      fontSize={[
-                                        "md",
-                                        "xl",
-                                        "2xl",
-                                        "3xl",
-                                        "3xl",
-                                        "3xl",
-                                      ]}
-                                      fontWeight="bold"
-                                      textColor={lightOrangeColor}
-                                      pt="20px"
-                                    >
-                                      &gt;$3b
-                                    </Text>
-                                    <Text pb="20px">
-                                      transaction volume.
-                                      <br />
-                                      And growing
-                                    </Text>
-                                  </VStack>
-                                </Center>
-                              </Flex>
-                            </Center>
-                            <Center w={[null, null, "60%"]} h="100%">
-                              <Flex>
-                                {" "}
-                                <Center w="100%">
-                                  <VStack>
-                                    <Text
-                                      fontSize={[
-                                        "md",
-                                        "xl",
-                                        "2xl",
-                                        "3xl",
-                                        "3xl",
-                                        "3xl",
-                                      ]}
-                                      fontWeight="bold"
-                                      textColor={lightOrangeColor}
-                                      pt="20px"
-                                    >
-                                      &gt;44k
-                                    </Text>
-                                    <Text pb="20px">
-                                      active users in game economies
-                                      <br />
-                                      built with our engine
-                                    </Text>
-                                  </VStack>
-                                </Center>
-                              </Flex>
-                            </Center>
-                          </Stack>
-                        </Box>
                       </Stack>
+                      <Box
+                        bgColor="rgb(255, 255, 255, 0.7)"
+                        w={[null, null, "40%"]}
+                        rounded={["lg", "xl", "2xl"]}
+                        px={5}
+                      >
+                        <HStack h="100%">
+                          <Center w={[null, null, "40%"]} h="100%">
+                            <Flex>
+                              <Center w="100%">
+                                <VStack>
+                                  <Text
+                                    fontSize={[
+                                      "md",
+                                      "xl",
+                                      "2xl",
+                                      "3xl",
+                                      "3xl",
+                                      "3xl",
+                                    ]}
+                                    fontWeight="bold"
+                                    textColor={lightOrangeColor}
+                                    pt="20px"
+                                  >
+                                    &gt;$3b
+                                  </Text>
+                                  <Text pb="20px">
+                                    transaction volume.
+                                    <br />
+                                    And growing
+                                  </Text>
+                                </VStack>
+                              </Center>
+                            </Flex>
+                          </Center>
+                          <Center w={[null, null, "60%"]} h="100%">
+                            <Flex>
+                              {" "}
+                              <Center w="100%">
+                                <VStack>
+                                  <Text
+                                    fontSize={[
+                                      "md",
+                                      "xl",
+                                      "2xl",
+                                      "3xl",
+                                      "3xl",
+                                      "3xl",
+                                    ]}
+                                    fontWeight="bold"
+                                    textColor={lightOrangeColor}
+                                    pt="20px"
+                                  >
+                                    &gt;44k
+                                  </Text>
+                                  <Text pb="20px">
+                                    active users in game economies
+                                    <br />
+                                    built with our engine
+                                  </Text>
+                                </VStack>
+                              </Center>
+                            </Flex>
+                          </Center>
+                        </HStack>
+                      </Box>
                     </Flex>
                   </Box>
                 </chakra.header>
@@ -434,6 +425,7 @@ const Homepage = () => {
                     {...HEADING_PROPS}
                     fontSize={["md", "lg", "xl", "2xl", "3xl", "3xl"]}
                     fontWeight="semibold"
+                    textAlign="center"
                   >
                     Trusted by visionaries in the industry
                   </Heading>
@@ -444,12 +436,12 @@ const Homepage = () => {
                     pb={10}
                   >
                     <Suspense fallback={""}>
-                      <TrustedBadge
+                      {/* <TrustedBadge
                         scaling={1.5}
                         name="Bullieverse"
                         ImgURL={assets["bulliverse"]}
                         boxURL="https://bullieverisland.com/"
-                      />
+                      /> */}
                       <TrustedBadge
                         scaling={[1.5]}
                         name="Crypto Guilds"
@@ -481,6 +473,7 @@ const Homepage = () => {
                     {...HEADING_PROPS}
                     fontSize={["md", "lg", "xl", "2xl", "3xl", "3xl"]}
                     fontWeight="semibold"
+                    textAlign="center"
                   >
                     Supported blockchains
                   </Heading>
@@ -516,6 +509,7 @@ const Homepage = () => {
                     {...HEADING_PROPS}
                     fontSize={["md", "lg", "xl", "2xl", "3xl", "3xl"]}
                     fontWeight="semibold"
+                    textAlign="center"
                   >
                     Upcoming Integrations
                   </Heading>
@@ -892,19 +886,19 @@ const Homepage = () => {
                   Our Workflow
                 </Heading>
                 <HStack alignItems="top" py={5}>
-                  <Flex height="100%" width="25%">
+                  <Flex height="100%" width="20%">
                     <Heading
                       as="h3"
-                      fontSize={["lg", "3xl", "4xl", "4xl", "4xl", "5xl"]}
+                      fontSize={["md", "xl", "4xl", "4xl", "4xl", "5xl"]}
                       display="inline-block"
                       fontWeight="semibold"
                     >
                       Step 1:
                     </Heading>
                   </Flex>
-                  <Flex height="100%" width="75%">
+                  <Flex height="100%" width="80%">
                     <chakra.span
-                      fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
+                      fontSize={["sm", "lg", "3xl", "3xl", "3xl", "4xl"]}
                       display="inline-block"
                     >
                       So you decided to build a healthy economy on the
@@ -913,19 +907,19 @@ const Homepage = () => {
                   </Flex>
                 </HStack>
                 <HStack alignItems="top" py={5}>
-                  <Flex bgColor="grey.100" width="25%" height="100%">
+                  <Flex bgColor="grey.100" width="20%" height="100%">
                     <Heading
                       as="h3"
-                      fontSize={["lg", "3xl", "4xl", "4xl", "4xl", "5xl"]}
+                      fontSize={["md", "xl", "4xl", "4xl", "4xl", "5xl"]}
                       display="inline-block"
                       fontWeight="semibold"
                     >
                       Step 2:
                     </Heading>
                   </Flex>
-                  <Flex width="75%">
+                  <Flex width="80%">
                     <chakra.span
-                      fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
+                      fontSize={["sm", "lg", "3xl", "3xl", "3xl", "4xl"]}
                       display="inline-block"
                     >
                       <Link
@@ -943,19 +937,19 @@ const Homepage = () => {
                   </Flex>
                 </HStack>
                 <HStack alignItems="top" py={5}>
-                  <Flex bgColor="grey.100" width="25%" height="100%">
+                  <Flex bgColor="grey.100" width="20%" height="100%">
                     <Heading
                       as="h3"
-                      fontSize={["lg", "3xl", "4xl", "4xl", "4xl", "5xl"]}
+                      fontSize={["md", "xl", "4xl", "4xl", "4xl", "5xl"]}
                       display="inline-block"
                       fontWeight="semibold"
                     >
                       Step 3:
                     </Heading>
                   </Flex>
-                  <Flex width="75%">
+                  <Flex width="80%">
                     <chakra.span
-                      fontSize={["md", "2xl", "3xl", "3xl", "3xl", "4xl"]}
+                      fontSize={["sm", "lg", "3xl", "3xl", "3xl", "4xl"]}
                       display="inline-block"
                     >
                       Pick game mechanics that you&apos;d like to deploy.
@@ -1055,6 +1049,7 @@ const Homepage = () => {
                     as="h2"
                     fontSize={["md", "xl", "3xl", "4xl", "4xl", "5xl"]}
                     letterSpacing="wide"
+                    textAlign="center"
                   >
                     Sign up to grow your economy
                   </Heading>
