@@ -436,12 +436,12 @@ const Homepage = () => {
                     pb={10}
                   >
                     <Suspense fallback={""}>
-                      <TrustedBadge
+                      {/* <TrustedBadge
                         scaling={1.5}
                         name="Bullieverse"
                         ImgURL={assets["bulliverse"]}
                         boxURL="https://bullieverisland.com/"
-                      />
+                      /> */}
                       <TrustedBadge
                         scaling={[1.5]}
                         name="Crypto Guilds"
