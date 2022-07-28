@@ -48,6 +48,7 @@ const assets = {
   bc101: `${AWS_ASSETS_PATH}/featured_by/blockchain101_logo.png`,
   bulliverse: `${AWS_ASSETS_PATH}/bullieverse_logo.png`,
   cgcConference: `${AWS_ASSETS_PATH}/featured_by/cgc_conference_2022_logo.jpg`,
+  championsAscension: `${AWS_ASSETS_PATH}/featured_by/champions.png`,
   cointelegraph: `${AWS_ASSETS_PATH}/featured_by/Cointelegraph_logo.png`,
   cryptoGuilds: `${AWS_ASSETS_PATH}/crypto_guilds_logo.png`,
   cryptoinsiders: `${AWS_ASSETS_PATH}/featured_by/crypto_insiders.png`,
@@ -69,6 +70,8 @@ const assets = {
   orangedao: `${AWS_ASSETS_PATH}/featured_by/orangedao_logo.png`,
   polygon: `${AWS_ASSETS_PATH}/polygon_blockchain_logo.png`,
 };
+
+console.log(assets["championsAscension"]);
 
 const Homepage = () => {
   const [background, setBackground] = useState("background720");
@@ -190,7 +193,7 @@ const Homepage = () => {
             cursor="pointer"
             m={[2, 3, 3, 4, 8, 12]}
             pb={2}
-            minH={[null, "290px", "400px", null]}
+            minH={["225px", "290px", "400px", null]}
           >
             <ChakraImage
               boxSize={["150px", "220px", "xs", null, "xs"]}
@@ -252,6 +255,7 @@ const Homepage = () => {
                       boxSize="full"
                       pt={["120px", "120px", "150px"]}
                       pb={10}
+                      px="5%"
                       flexDir="column"
                     >
                       <Stack
@@ -260,7 +264,6 @@ const Homepage = () => {
                         spacing={6}
                         maxW={["1620px", null, null, null, "1620px", "2222px"]}
                         w="100%"
-                        px="5%"
                       >
                         <Heading
                           fontSize={["lg", "4xl", "5xl", "5xl", "5xl", "6xl"]}
@@ -447,6 +450,12 @@ const Homepage = () => {
                         name="Crypto Guilds"
                         ImgURL={assets["cryptoGuilds"]}
                         boxURL="https://crypto-guilds.com/"
+                      />
+                      <TrustedBadge
+                        scaling={1.5}
+                        name="Champions Ascension"
+                        ImgURL={assets["championsAscension"]}
+                        boxURL="https://www.champions.io/"
                       />
                       <TrustedBadge
                         scaling={[1.5]}
@@ -1042,6 +1051,7 @@ const Homepage = () => {
                   bgColor="blue.900"
                   rounded={["lg", "xl", "2xl"]}
                   textColor="white"
+                  px={10}
                   py={8}
                   mb={8}
                 >
@@ -1086,10 +1096,11 @@ const Homepage = () => {
                   color="blue.900"
                   rounded={["lg", "xl", "2xl"]}
                   px={10}
+                  pb={[8, 8, 0]}
                 >
                   <chakra.span
                     display="block"
-                    my={12}
+                    py={[6, 6, 12]}
                     fontSize={["sm", "sm", "md", "lg", "xl", "xl"]}
                     textAlign={["justify", "justify", "left", null]}
                     mr={[0, 0, 14]}

@@ -151,17 +151,16 @@ const _EngineOverviewDiagram = (props) => {
           </Center>
         </GridItem>
         <GridItem
-          h={["160px", "160px", "auto"]}
           order={[3, 3, 1]}
           display="inline-grid"
           justifyItems="center"
           alignItems="center"
-          marginTop={[0, 0, 10]}
+          marginTop={10}
         >
           <Center>
             <Flex
               w={["155px", "155px", "189px"]}
-              h={["160px", "160px", "205px"]}
+              h={[null, null, "205px"]}
               justifyContent="center"
               position="relative"
             >
