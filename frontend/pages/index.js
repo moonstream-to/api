@@ -71,8 +71,6 @@ const assets = {
   polygon: `${AWS_ASSETS_PATH}/polygon_blockchain_logo.png`,
 };
 
-console.log(assets["championsAscension"]);
-
 const Homepage = () => {
   const [background, setBackground] = useState("background720");
   const [backgroundLoaded720, setBackgroundLoaded720] = useState(false);
