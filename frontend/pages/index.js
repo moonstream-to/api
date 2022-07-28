@@ -444,16 +444,16 @@ const Homepage = () => {
                         boxURL="https://bullieverisland.com/"
                       /> */}
                       <TrustedBadge
-                        scaling={[1.5]}
-                        name="Crypto Guilds"
-                        ImgURL={assets["cryptoGuilds"]}
-                        boxURL="https://crypto-guilds.com/"
-                      />
-                      <TrustedBadge
                         scaling={1.5}
                         name="Champions Ascension"
                         ImgURL={assets["championsAscension"]}
                         boxURL="https://www.champions.io/"
+                      />
+                      <TrustedBadge
+                        scaling={[1.5]}
+                        name="Crypto Guilds"
+                        ImgURL={assets["cryptoGuilds"]}
+                        boxURL="https://crypto-guilds.com/"
                       />
                       <TrustedBadge
                         scaling={[1.5]}
