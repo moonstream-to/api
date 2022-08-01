@@ -167,6 +167,31 @@ func panicMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// Split JSON RPC request to object and slice and return slice of requests
+func jsonrpcRequestParser(body []byte) ([]JSONRPCRequest, error) {
+	var jsonrpcRequest []JSONRPCRequest
+
+	firstByte := bytes.TrimLeft(body, " \t\r\n")
+	switch {
+	case len(firstByte) > 0 && firstByte[0] == '[':
+		err := json.Unmarshal(body, &jsonrpcRequest)
+		if err != nil {
+			return nil, fmt.Errorf("Unable to parse body, err: %v", err)
+		}
+	case len(firstByte) > 0 && firstByte[0] == '{':
+		var singleJsonrpcRequest JSONRPCRequest
+		err := json.Unmarshal(body, &singleJsonrpcRequest)
+		if err != nil {
+			return nil, fmt.Errorf("Unable to parse body, err: %v", err)
+		}
+		jsonrpcRequest = []JSONRPCRequest{singleJsonrpcRequest}
+	default:
+		return nil, fmt.Errorf("Incorrect first byte in JSON RPC request")
+	}
+
+	return jsonrpcRequest, nil
+}
+
 // Log access requests in proper format
 func logMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -198,12 +223,20 @@ func logMiddleware(next http.Handler) http.Handler {
 		// Parse body and log method if jsonrpc path
 		pathSlice := strings.Split(r.URL.Path, "/")
 		if r.Method == "POST" && pathSlice[len(pathSlice)-1] == "jsonrpc" {
-			var jsonrpcRequest JSONRPCRequest
-			err = json.Unmarshal(body, &jsonrpcRequest)
+			jsonrpcRequests, err := jsonrpcRequestParser(body)
 			if err != nil {
-				log.Printf("Unable to parse body at logging middleware, err: %v", err)
+				log.Println(err)
 			}
-			logStr += fmt.Sprintf(" %s", jsonrpcRequest.Method)
+			for i, jsonrpcRequest := range jsonrpcRequests {
+				if i == 0 {
+					logStr += fmt.Sprintf(" [%s", jsonrpcRequest.Method)
+				} else {
+					logStr += fmt.Sprintf(" %s", jsonrpcRequest.Method)
+				}
+				if i == len(jsonrpcRequests)-1 {
+					logStr += fmt.Sprint("]")
+				}
+			}
 		}
 
 		if stateCLI.enableDebugFlag {
