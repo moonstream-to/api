@@ -97,9 +97,9 @@ func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string,
 	}
 	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 
-	var jsonrpcRequest JSONRPCRequest
-	err = json.Unmarshal(body, &jsonrpcRequest)
+	jsonrpcRequests, err := jsonrpcRequestParser(body)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Unable to parse JSON RPC request", http.StatusBadRequest)
 		return
 	}
@@ -111,10 +111,12 @@ func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string,
 			return
 		}
 		if currentClientAccess.ExtendedMethods == false {
-			_, exists := ALLOWED_METHODS[jsonrpcRequest.Method]
-			if !exists {
-				http.Error(w, "Method for provided access id not allowed", http.StatusForbidden)
-				return
+			for _, jsonrpcRequest := range jsonrpcRequests {
+				_, exists := ALLOWED_METHODS[jsonrpcRequest.Method]
+				if !exists {
+					http.Error(w, "Method for provided access id not allowed", http.StatusForbidden)
+					return
+				}
 			}
 		}
 
