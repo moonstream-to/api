@@ -108,7 +108,12 @@ func (node *Node) UpdateNodeState(currentBlock uint64, alive bool) (callCounter 
 // IncreaseCallCounter increased to 1 each time node called
 func (node *Node) IncreaseCallCounter() {
 	node.mux.Lock()
-	node.CallCounter++
+	if node.CallCounter >= NB_MAX_COUNTER_NUMBER {
+		log.Printf("Number of calls for node %s reached %d limit, reset the counter.", node.Endpoint, NB_MAX_COUNTER_NUMBER)
+		node.CallCounter = uint64(0)
+	} else {
+		node.CallCounter++
+	}
 	node.mux.Unlock()
 }
 
