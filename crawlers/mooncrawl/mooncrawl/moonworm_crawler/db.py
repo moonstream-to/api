@@ -143,6 +143,7 @@ def add_events_to_session(
 
     events_hashes_to_save = [event.transaction_hash for event in events]
 
+    logger.info(f"Querying database for existing events")
     existing_labels = (
         db_session.query(label_model.transaction_hash, label_model.log_index)
         .filter(
@@ -152,6 +153,8 @@ def add_events_to_session(
         )
         .all()
     )
+
+    logger.info(f"Querry finished")
 
     existing_labels_transactions = []
     existing_log_index_by_tx_hash: Dict[str, List[int]] = {}

@@ -2,8 +2,10 @@ import json
 import logging
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Set, Union
-
+from typing import Any, Dict, List, Optional, Set, Union, Callable
+from eth_abi.codec import ABICodec
+from web3._utils.events import get_event_data
+from web3._utils.filters import construct_event_filter_params
 import web3
 from eth_typing import ChecksumAddress
 from hexbytes.main import HexBytes
@@ -19,7 +21,6 @@ from moonworm.crawler.function_call_crawler import (  # type: ignore
     ContractFunctionCall,
     utfy_dict,
 )
-from moonworm.crawler.log_scanner import _fetch_events_chunk  # type: ignore
 from sqlalchemy.orm.session import Session
 from tqdm import tqdm
 from web3 import Web3
@@ -96,7 +97,7 @@ def add_function_calls_with_gas_price_to_session(
     transactions_hashes_to_save = [
         function_call.transaction_hash for function_call in function_calls
     ]
-
+    logger.info(f"Querrying existing labels (function call)")
     existing_labels = (
         db_session.query(label_model.transaction_hash)
         .filter(
@@ -106,6 +107,7 @@ def add_function_calls_with_gas_price_to_session(
         )
         .all()
     )
+    logger.info(f"Querry finished")
 
     existing_labels_transactions = [label[0] for label in existing_labels]
 
@@ -150,6 +152,76 @@ def _transform_to_w3_tx(
     if tx["value"] is not None:
         tx["value"] = int(tx["value"])
     return tx
+
+
+def _fetch_events_chunk(
+    web3,
+    event_abi,
+    from_block: int,
+    to_block: int,
+    addresses: Optional[List[ChecksumAddress]] = None,
+    on_decode_error: Optional[Callable[[Exception], None]] = None,
+    address_block_list: Optional[List[ChecksumAddress]] = None,
+) -> List[Any]:
+    """Get events using eth_getLogs API.
+
+    Event structure:
+    {
+        "event": Event name,
+        "args": dictionary of event arguments,
+        "address": contract address,
+        "blockNumber": block number,
+        "transactionHash": transaction hash,
+        "logIndex": log index
+    }
+
+    """
+
+    if from_block is None:
+        raise TypeError("Missing mandatory keyword argument to getLogs: fromBlock")
+
+    # Depending on the Solidity version used to compile
+    # the contract that uses the ABI,
+    # it might have Solidity ABI encoding v1 or v2.
+    # We just assume the default that you set on Web3 object here.
+    # More information here https://eth-abi.readthedocs.io/en/latest/index.html
+    codec: ABICodec = web3.codec
+
+    _, event_filter_params = construct_event_filter_params(
+        event_abi,
+        codec,
+        fromBlock=from_block,
+        toBlock=to_block,
+    )
+    if addresses:
+        event_filter_params["address"] = addresses
+
+    logs = web3.eth.get_logs(event_filter_params)
+    logger.info(f"Fetched {len(logs)} raw logs")
+    # Convert raw binary data to Python proxy objects as described by ABI
+    all_events = []
+    for log in logs:
+        if address_block_list and log["address"] in address_block_list:
+            continue
+        try:
+            raw_event = get_event_data(codec, event_abi, log)
+            event = {
+                "event": raw_event["event"],
+                "args": json.loads(Web3.toJSON(utfy_dict(dict(raw_event["args"])))),
+                "address": raw_event["address"],
+                "blockNumber": raw_event["blockNumber"],
+                "transactionHash": raw_event["transactionHash"].hex(),
+                "logIndex": raw_event["logIndex"],
+            }
+            all_events.append(event)
+        except Exception as e:
+            if address_block_list is not None:
+                address_block_list.append(log["address"])
+            if on_decode_error:
+                on_decode_error(e)
+            continue
+    logger.info(f"Decoded {len(all_events)} logs")
+    return all_events
 
 
 def process_transaction(
@@ -371,6 +443,7 @@ def crawl(
         logger.info(f"Crawling blocks {current_block}-{current_block + batch_size}")
         events = []
         logger.info("Fetching events")
+        block_list = []
         for event_abi in events_abi:
             raw_events = _fetch_events_chunk(
                 web3,
@@ -378,6 +451,7 @@ def crawl(
                 current_block,
                 batch_end,
                 addresses,
+                address_block_list=block_list,
             )
             for raw_event in raw_events:
                 raw_event["blockTimestamp"] = get_block_timestamp(
@@ -386,7 +460,7 @@ def crawl(
                     blockchain_type,
                     raw_event["blockNumber"],
                     blocks_cache=db_blocks_cache,
-                    max_blocks_batch=1000,
+                    max_blocks_batch=100,
                 )
                 event = _processEvent(raw_event)
                 events.append(event)
@@ -401,6 +475,7 @@ def crawl(
             )
             logger.info(f"Fetched {len(transactions)} transactions")
 
+            logger.info(f"Processing transactions")
             function_calls = []
             for tx in transactions:
                 processed_tx, secondary_logs = process_transaction(
@@ -414,6 +489,8 @@ def crawl(
                 )
                 function_calls.append(processed_tx)
                 events.extend(secondary_logs)
+            logger.info(f"Processed {len(function_calls)} transactions")
+
             add_function_calls_with_gas_price_to_session(
                 db_session,
                 function_calls,
