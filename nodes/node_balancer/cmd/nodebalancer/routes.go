@@ -55,11 +55,7 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Chose one node
 	var node *Node
-	cpool, err := GetClientPool(blockchain)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Unacceptable blockchain provided %s", blockchain), http.StatusBadRequest)
-		return
-	}
+	cpool := GetClientPool(blockchain)
 	node = cpool.GetClientNode(currentClientAccess.AccessID)
 	if node == nil {
 		node = blockchainPool.GetNextNode(blockchain)

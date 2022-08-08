@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"reflect"
 	"sync"
 	"time"
@@ -53,7 +52,7 @@ func CreateClientPools() {
 }
 
 // Return client pool corresponding to provided blockchain
-func GetClientPool(blockchain string) (*ClientPool, error) {
+func GetClientPool(blockchain string) *ClientPool {
 	var cpool *ClientPool
 	for b := range configBlockchains {
 		if b == blockchain {
@@ -61,10 +60,7 @@ func GetClientPool(blockchain string) (*ClientPool, error) {
 			cpool = &c
 		}
 	}
-	if len(cpool.Client) == 0 {
-		return nil, errors.New("Unsupported blockchain provided")
-	}
-	return cpool, nil
+	return cpool
 }
 
 // Updates client last appeal to node

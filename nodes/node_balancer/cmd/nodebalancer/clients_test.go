@@ -1,3 +1,4 @@
+// TODO(kompotkot): Re-write tests for client
 package main
 
 import (
