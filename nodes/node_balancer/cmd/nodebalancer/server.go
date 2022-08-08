@@ -22,6 +22,8 @@ import (
 var (
 	internalCrawlersAccess ClientResourceData
 
+	configBlockchains map[string]bool
+
 	// Crash reporter
 	reporter *humbug.HumbugReporter
 )
@@ -33,10 +35,13 @@ func initHealthCheck(debug bool) {
 		select {
 		case <-t.C:
 			blockchainPool.HealthCheck()
-			ethereumClients := ethereumClientPool.CleanInactiveClientNodes()
-			polygonClients := polygonClientPool.CleanInactiveClientNodes()
-			xdaiClients := xdaiClientPool.CleanInactiveClientNodes()
-			log.Printf("Active ethereum clients: %d, polygon clients: %d, xdai clients: %d", ethereumClients, polygonClients, xdaiClients)
+			logStr := "Client pool healthcheck."
+			for b := range configBlockchains {
+				cp := clientPool[b]
+				clients := cp.CleanInactiveClientNodes()
+				logStr += fmt.Sprintf(" Active %s clients: %d.", b, clients)
+			}
+			log.Println(logStr)
 			if debug {
 				blockchainPool.StatusLog()
 			}
@@ -100,9 +105,6 @@ func proxyErrorHandler(proxy *httputil.ReverseProxy, url *url.URL) {
 }
 
 func Server() {
-	// Generate map of clients
-	CreateClientPools()
-
 	// Create Access ID cache
 	CreateAccessCache()
 
@@ -163,19 +165,23 @@ func Server() {
 	}
 
 	// Fill NodeConfigList with initial nodes from environment variables
-	nodeConfig, err := LoadConfig(stateCLI.configPathFlag)
+	err = LoadConfig(stateCLI.configPathFlag)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+	configBlockchains = make(map[string]bool)
 
 	// Parse nodes and set list of proxies
-	for i, nodeConfig := range *nodeConfig {
+	for i, nodeConfig := range nodeConfigs {
 		endpoint, err := url.Parse(nodeConfig.Endpoint)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
+
+		// Append to supported blockchain set
+		configBlockchains[nodeConfig.Blockchain] = true
 
 		proxyToEndpoint := httputil.NewSingleHostReverseProxy(endpoint)
 		// If required detailed timeout configuration, define node.GethReverseProxy.Transport = &http.Transport{}
@@ -202,12 +208,12 @@ func Server() {
 			nodeConfig.Blockchain, i, endpoint.Scheme, endpoint.Host)
 	}
 
+	// Generate map of clients
+	CreateClientPools()
+
 	serveMux := http.NewServeMux()
 	serveMux.Handle("/nb/", accessMiddleware(http.HandlerFunc(lbHandler)))
 	log.Println("Authentication middleware enabled")
-	if stateCLI.enableDebugFlag {
-		serveMux.HandleFunc("/debug", debugRoute)
-	}
 	serveMux.HandleFunc("/ping", pingRoute)
 
 	// Set common middlewares, from bottom to top

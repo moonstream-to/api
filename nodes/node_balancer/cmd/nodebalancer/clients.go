@@ -8,9 +8,7 @@ import (
 )
 
 var (
-	ethereumClientPool ClientPool
-	polygonClientPool  ClientPool
-	xdaiClientPool     ClientPool
+	clientPool map[string]ClientPool
 )
 
 // Structure to define user access according with Brood resources
@@ -43,21 +41,27 @@ type ClientPool struct {
 
 // Generate pools for clients for different blockchains
 func CreateClientPools() {
-	ethereumClientPool.Client = make(map[string]*Client)
-	polygonClientPool.Client = make(map[string]*Client)
-	xdaiClientPool.Client = make(map[string]*Client)
+	clientPool = make(map[string]ClientPool)
+
+	for b := range configBlockchains {
+		clientPool[b] = ClientPool{}
+		if cp, ok := clientPool[b]; ok {
+			cp.Client = make(map[string]*Client)
+			clientPool[b] = cp
+		}
+	}
 }
 
 // Return client pool corresponding to provided blockchain
 func GetClientPool(blockchain string) (*ClientPool, error) {
 	var cpool *ClientPool
-	if blockchain == "ethereum" {
-		cpool = &ethereumClientPool
-	} else if blockchain == "polygon" {
-		cpool = &polygonClientPool
-	} else if blockchain == "xdai" {
-		cpool = &xdaiClientPool
-	} else {
+	for b := range configBlockchains {
+		if b == blockchain {
+			c := clientPool[blockchain]
+			cpool = &c
+		}
+	}
+	if len(cpool.Client) == 0 {
 		return nil, errors.New("Unsupported blockchain provided")
 	}
 	return cpool, nil

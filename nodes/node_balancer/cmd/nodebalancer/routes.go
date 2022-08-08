@@ -25,11 +25,6 @@ func pingRoute(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-func debugRoute(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Clients: %v", ethereumClientPool)
-	return
-}
-
 // lbHandler load balances the incoming requests to nodes
 func lbHandler(w http.ResponseWriter, r *http.Request) {
 	currentClientAccessRaw := r.Context().Value("currentClientAccess")
@@ -47,14 +42,13 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var blockchain string
-	switch {
-	case strings.HasPrefix(r.URL.Path, "/nb/ethereum"):
-		blockchain = "ethereum"
-	case strings.HasPrefix(r.URL.Path, "/nb/polygon"):
-		blockchain = "polygon"
-	case strings.HasPrefix(r.URL.Path, "/nb/xdai"):
-		blockchain = "xdai"
-	default:
+	for b := range configBlockchains {
+		if strings.HasPrefix(r.URL.Path, fmt.Sprintf("/nb/%s/", b)) {
+			blockchain = b
+			break
+		}
+	}
+	if blockchain == "" {
 		http.Error(w, fmt.Sprintf("Unacceptable blockchain provided %s", blockchain), http.StatusBadRequest)
 		return
 	}

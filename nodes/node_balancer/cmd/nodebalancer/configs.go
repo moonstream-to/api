@@ -15,6 +15,8 @@ import (
 )
 
 var (
+	nodeConfigs []NodeConfig
+
 	// Bugout and application configuration
 	BUGOUT_AUTH_URL          = os.Getenv("BUGOUT_AUTH_URL")
 	BUGOUT_AUTH_CALL_TIMEOUT = time.Second * 5
@@ -62,18 +64,18 @@ type NodeConfig struct {
 	Endpoint   string `json:"endpoint"`
 }
 
-func LoadConfig(configPath string) (*[]NodeConfig, error) {
+func LoadConfig(configPath string) error {
 	rawBytes, err := ioutil.ReadFile(configPath)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	nodeConfigs := &[]NodeConfig{}
-	err = json.Unmarshal(rawBytes, nodeConfigs)
+	nodeConfigsTemp := &[]NodeConfig{}
+	err = json.Unmarshal(rawBytes, nodeConfigsTemp)
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	return nodeConfigs, nil
+	nodeConfigs = *nodeConfigsTemp
+	return nil
 }
 
 type ConfigPlacement struct {
