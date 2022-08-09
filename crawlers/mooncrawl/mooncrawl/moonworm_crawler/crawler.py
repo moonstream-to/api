@@ -10,11 +10,8 @@ from uuid import UUID
 
 from bugout.data import BugoutSearchResult
 from eth_typing.evm import ChecksumAddress
-from moonstreamdb.models import Base
-from sqlalchemy.orm.session import Session
+from moonstream.backend import AvailableBlockchainType
 from web3.main import Web3
-
-from mooncrawl.data import AvailableBlockchainType
 
 from ..blockchain import connect
 from ..reporter import reporter

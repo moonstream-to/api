@@ -1,16 +1,7 @@
 import logging
-from typing import Any, Dict, List, Optional, Union
+from typing import List
 
-from eth_typing.evm import ChecksumAddress
-from hexbytes.main import HexBytes
-from moonstreamdb.db import yield_db_session_ctx
-from moonstreamdb.models import (
-    Base,
-    EthereumLabel,
-    EthereumTransaction,
-    PolygonLabel,
-    PolygonTransaction,
-)
+from moonstream.backend import AvailableBlockchainType
 from moonworm.crawler.function_call_crawler import (  # type: ignore
     ContractFunctionCall,
     FunctionCallCrawler,
@@ -23,9 +14,6 @@ from moonworm.cu_watch import MockState  # type: ignore
 from sqlalchemy.orm import Session
 from web3 import Web3
 
-from ..blockchain import connect, get_block_model, get_label_model
-from ..data import AvailableBlockchainType
-from ..settings import CRAWLER_LABEL
 from .crawler import FunctionCallCrawlJob, _generate_reporter_callback
 
 logging.basicConfig(level=logging.INFO)

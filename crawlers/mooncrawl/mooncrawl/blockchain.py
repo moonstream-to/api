@@ -3,17 +3,15 @@ from concurrent.futures import Future, ProcessPoolExecutor, ThreadPoolExecutor, 
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 from uuid import UUID
 
+from moonstream.backend import (
+    AvailableBlockchainType,
+    get_block_model,
+    get_transaction_model,
+)
 from moonstreamdb.db import yield_db_session, yield_db_session_ctx
 from moonstreamdb.models import (
     EthereumBlock,
-    EthereumLabel,
     EthereumTransaction,
-    PolygonBlock,
-    PolygonLabel,
-    PolygonTransaction,
-    XDaiBlock,
-    XDaiLabel,
-    XDaiTransaction,
 )
 from psycopg2.errors import UniqueViolation  # type: ignore
 from sqlalchemy import Column, desc, func
@@ -24,7 +22,7 @@ from web3 import HTTPProvider, IPCProvider, Web3
 from web3.middleware import geth_poa_middleware
 from web3.types import BlockData
 
-from .data import AvailableBlockchainType, DateRange
+from .data import DateRange
 from .settings import (
     MOONSTREAM_CRAWL_WORKERS,
     MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI,
@@ -83,66 +81,6 @@ def connect(
         web3_client.middleware_onion.inject(geth_poa_middleware, layer=0)
 
     return web3_client
-
-
-def get_block_model(
-    blockchain_type: AvailableBlockchainType,
-) -> Type[Union[EthereumBlock, PolygonBlock]]:
-    """
-    Depends on provided blockchain type: Ethereum or Polygon,
-    set proper blocks model: EthereumBlock or PolygonBlock.
-    """
-    block_model: Type[Union[EthereumBlock, PolygonBlock]]
-    if blockchain_type == AvailableBlockchainType.ETHEREUM:
-        block_model = EthereumBlock
-    elif blockchain_type == AvailableBlockchainType.POLYGON:
-        block_model = PolygonBlock
-    elif blockchain_type == AvailableBlockchainType.XDAI:
-        block_model = XDaiBlock
-    else:
-        raise Exception("Unsupported blockchain type provided")
-
-    return block_model
-
-
-def get_label_model(
-    blockchain_type: AvailableBlockchainType,
-) -> Type[Union[EthereumLabel, PolygonLabel]]:
-    """
-    Depends on provided blockchain type: Ethereum or Polygon,
-    set proper block label model: EthereumLabel or PolygonLabel.
-    """
-    label_model: Type[Union[EthereumLabel, PolygonLabel]]
-    if blockchain_type == AvailableBlockchainType.ETHEREUM:
-        label_model = EthereumLabel
-    elif blockchain_type == AvailableBlockchainType.POLYGON:
-        label_model = PolygonLabel
-    elif blockchain_type == AvailableBlockchainType.XDAI:
-        label_model = XDaiLabel
-    else:
-        raise Exception("Unsupported blockchain type provided")
-
-    return label_model
-
-
-def get_transaction_model(
-    blockchain_type: AvailableBlockchainType,
-) -> Type[Union[EthereumTransaction, PolygonTransaction]]:
-    """
-    Depends on provided blockchain type: Ethereum or Polygon,
-    set proper block transactions model: EthereumTransaction or PolygonTransaction.
-    """
-    transaction_model: Type[Union[EthereumTransaction, PolygonTransaction]]
-    if blockchain_type == AvailableBlockchainType.ETHEREUM:
-        transaction_model = EthereumTransaction
-    elif blockchain_type == AvailableBlockchainType.POLYGON:
-        transaction_model = PolygonTransaction
-    elif blockchain_type == AvailableBlockchainType.XDAI:
-        transaction_model = XDaiTransaction
-    else:
-        raise Exception("Unsupported blockchain type provided")
-
-    return transaction_model
 
 
 def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) -> None:

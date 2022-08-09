@@ -15,14 +15,18 @@ import traceback
 
 import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
+from moonstream.backend import (
+    AvailableBlockchainType,
+    get_label_model,
+    get_transaction_model,
+)
 from moonstreamdb.db import yield_db_read_only_session_ctx
 from sqlalchemy import and_, distinct, func, text, extract, cast
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.operators import in_op
 from web3 import Web3
 
-from ..blockchain import connect, get_label_model, get_transaction_model
-from ..data import AvailableBlockchainType
+from ..blockchain import connect
 from ..reporter import reporter
 from ..settings import (
     CRAWLER_LABEL,

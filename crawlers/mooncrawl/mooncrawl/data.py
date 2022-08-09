@@ -6,12 +6,6 @@ from typing import Any, Dict, List
 from pydantic import BaseModel, Field
 
 
-class AvailableBlockchainType(Enum):
-    ETHEREUM = "ethereum"
-    POLYGON = "polygon"
-    XDAI = "xdai"
-
-
 class StatsUpdateRequest(BaseModel):
     dashboard_id: str
     timescales: List[str]

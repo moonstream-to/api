@@ -4,11 +4,10 @@ import logging
 from typing import Optional
 from uuid import UUID
 
+from moonstream.backend import AvailableBlockchainType
 from moonstreamdb.db import yield_db_session_ctx
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
-
-from mooncrawl.data import AvailableBlockchainType  # type: ignore
 
 from ..blockchain import connect
 from ..settings import NB_CONTROLLER_ACCESS_ID

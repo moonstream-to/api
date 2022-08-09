@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
+from moonstream.backend import AvailableBlockchainType
 from moonworm.crawler.moonstream_ethereum_state_provider import (  # type: ignore
     MoonstreamEthereumStateProvider,
 )
@@ -12,8 +13,6 @@ from moonworm.crawler.networks import Network  # type: ignore
 from sqlalchemy.orm.session import Session
 from web3 import Web3
 
-from ..blockchain import connect
-from ..data import AvailableBlockchainType
 from .crawler import (
     EventCrawlJob,
     FunctionCallCrawlJob,
