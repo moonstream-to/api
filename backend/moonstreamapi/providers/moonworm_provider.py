@@ -19,6 +19,7 @@ logger.setLevel(logging.WARN)
 
 ethereum_event_type = "ethereum_blockchain"
 polygon_event_type = "polygon_blockchain"
+mumbai_event_type = "mumbai_blockchain"
 xdai_event_type = "xdai_blockchain"
 allowed_tags = ["tag:erc721"]
 
@@ -393,20 +394,27 @@ class MoonwormProvider:
 EthereumMoonwormProvider = MoonwormProvider(
     event_type="ethereum_smartcontract",
     blockchain=AvailableBlockchainType("ethereum"),
-    description="Provider for resiving transactions from Ethereum tables.",
+    description="Provider for reviving transactions from Ethereum tables.",
     streamboaundary_range_limit=2 * 60 * 60,
 )
 
 PolygonMoonwormProvider = MoonwormProvider(
     event_type="polygon_smartcontract",
     blockchain=AvailableBlockchainType("polygon"),
-    description="Provider for resiving transactions from Polygon tables.",
+    description="Provider for reviving transactions from Polygon tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
+MumbaiMoonwormProvider = MoonwormProvider(
+    event_type="mumbai_smartcontract",
+    blockchain=AvailableBlockchainType("mumbai"),
+    description="Provider for reviving transactions from Mumbai tables.",
     streamboaundary_range_limit=2 * 60 * 60,
 )
 
 XDaiMoonwormProvider = MoonwormProvider(
     event_type="xdai_smartcontract",
     blockchain=AvailableBlockchainType("xdai"),
-    description="Provider for resiving transactions from XDai tables.",
+    description="Provider for reviving transactions from XDai tables.",
     streamboaundary_range_limit=2 * 60 * 60,
 )
