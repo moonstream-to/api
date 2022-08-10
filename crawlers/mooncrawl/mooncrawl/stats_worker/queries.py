@@ -91,7 +91,9 @@ def data_generate(
                     "block_timestamp": block_timestamp,
                     "data": [
                         {
-                            key: (value if type(value) is any((int, str)) else str(value))
+                            key: (
+                                value if type(value) is any((int, str)) else str(value)
+                            )
                             for key, value in dict(row).items()
                         }
                         for row in db_session.execute(query, params)
