@@ -3,7 +3,7 @@ from concurrent.futures import Future, ProcessPoolExecutor, ThreadPoolExecutor, 
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 from uuid import UUID
 
-from moonstream.backend import (
+from moonstreamdb.blockchain import (
     AvailableBlockchainType,
     get_block_model,
     get_transaction_model,
@@ -27,6 +27,7 @@ from .settings import (
     MOONSTREAM_CRAWL_WORKERS,
     MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI,
     MOONSTREAM_POLYGON_WEB3_PROVIDER_URI,
+    MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI,
     MOONSTREAM_XDAI_WEB3_PROVIDER_URI,
     NB_ACCESS_ID_HEADER,
     NB_DATA_SOURCE_HEADER,
@@ -64,6 +65,8 @@ def connect(
             web3_uri = MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.POLYGON:
             web3_uri = MOONSTREAM_POLYGON_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.MUMBAI:
+            web3_uri = MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.XDAI:
             web3_uri = MOONSTREAM_XDAI_WEB3_PROVIDER_URI
         else:

@@ -12,7 +12,7 @@ from enum import Enum
 from typing import Iterator, List
 from uuid import UUID
 
-from moonstream.backend import AvailableBlockchainType
+from moonstreamdb.blockchain import AvailableBlockchainType
 import dateutil.parser
 
 from .blockchain import (

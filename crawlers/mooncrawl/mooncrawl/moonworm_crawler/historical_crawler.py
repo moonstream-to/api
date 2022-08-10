@@ -3,7 +3,7 @@ import time
 from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
-from moonstream.backend import AvailableBlockchainType
+from moonstreamdb.blockchain import AvailableBlockchainType
 from moonworm.crawler.moonstream_ethereum_state_provider import (  # type: ignore
     MoonstreamEthereumStateProvider,
 )

@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Set, Union
 
 from eth_typing import ChecksumAddress
 from hexbytes.main import HexBytes
-from moonstream.backend import (
+from moonstreamdb.blockchain import (
     AvailableBlockchainType,
     get_label_model,
     get_transaction_model,

@@ -1,7 +1,7 @@
 import logging
 from typing import Dict, List, Optional
 
-from moonstream.backend import AvailableBlockchainType, get_label_model
+from moonstreamdb.blockchain import AvailableBlockchainType, get_label_model
 from moonstreamdb.models import Base
 from moonworm.crawler.function_call_crawler import ContractFunctionCall  # type: ignore
 from sqlalchemy.orm import Session

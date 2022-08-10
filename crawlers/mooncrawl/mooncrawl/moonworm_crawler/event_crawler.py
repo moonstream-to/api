@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-from moonstream.backend import AvailableBlockchainType, get_block_model, get_label_model
+from moonstreamdb.blockchain import AvailableBlockchainType, get_block_model
 from moonworm.crawler.log_scanner import _fetch_events_chunk  # type: ignore
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import and_

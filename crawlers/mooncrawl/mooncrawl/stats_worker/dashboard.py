@@ -15,7 +15,7 @@ import traceback
 
 import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
-from moonstream.backend import (
+from moonstreamdb.blockchain import (
     AvailableBlockchainType,
     get_label_model,
     get_transaction_model,
@@ -43,15 +43,18 @@ logger = logging.getLogger(__name__)
 subscription_ids_by_blockchain = {
     "ethereum": ["ethereum_blockchain", "ethereum_smartcontract"],
     "polygon": ["polygon_blockchain", "polygon_smartcontract"],
+    "mumbai": ["mumbai_blockchain", "mumbai_smartcontract"],
     "xdai": ["xdai_blockchain", "xdai_smartcontract"],
 }
 
 blockchain_by_subscription_id = {
     "ethereum_blockchain": "ethereum",
     "polygon_blockchain": "polygon",
+    "mumbai_blockchain": "mumbai",
     "xdai_blockchain": "xdai",
     "ethereum_smartcontract": "ethereum",
     "polygon_smartcontract": "polygon",
+    "mumbai_smartcontract": "mumbai",
     "xdai_smartcontract": "xdai",
 }
 

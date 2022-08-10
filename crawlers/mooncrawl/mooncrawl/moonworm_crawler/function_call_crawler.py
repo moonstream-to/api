@@ -1,7 +1,7 @@
 import logging
 from typing import List
 
-from moonstream.backend import AvailableBlockchainType
+from moonstreamdb.blockchain import AvailableBlockchainType
 from moonworm.crawler.function_call_crawler import (  # type: ignore
     ContractFunctionCall,
     FunctionCallCrawler,
@@ -63,6 +63,8 @@ def function_call_crawler(
         network = Network.ethereum
     elif blockchain_type == AvailableBlockchainType.POLYGON:
         network = Network.polygon
+    elif blockchain_type == AvailableBlockchainType.MUMBAI:
+        network = Network.mumbai
     elif blockchain_type == AvailableBlockchainType.XDAI:
         network = Network.xdai
     else:
