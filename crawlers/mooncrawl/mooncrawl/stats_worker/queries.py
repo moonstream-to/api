@@ -89,7 +89,15 @@ def data_generate(
                 {
                     "block_number": block_number,
                     "block_timestamp": block_timestamp,
-                    "data": [dict(row) for row in db_session.execute(query, params)],
+                    "data": [
+                        {
+                            key: (
+                                value if type(value) is any((int, str)) else str(value)
+                            )
+                            for key, value in dict(row).items()
+                        }
+                        for row in db_session.execute(query, params)
+                    ],
                 }
             ).encode("utf-8")
             push_statistics(
