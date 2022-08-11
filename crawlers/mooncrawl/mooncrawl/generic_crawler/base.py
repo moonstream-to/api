@@ -4,15 +4,16 @@ import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Set, Union
 
-import web3
 from eth_typing import ChecksumAddress
 from hexbytes.main import HexBytes
-from moonstreamdb.db import yield_db_session_ctx
+from moonstreamdb.blockchain import (
+    AvailableBlockchainType,
+    get_label_model,
+    get_transaction_model,
+)
 from moonstreamdb.models import (
     Base,
-    EthereumLabel,
     EthereumTransaction,
-    PolygonLabel,
     PolygonTransaction,
 )
 from moonworm.crawler.function_call_crawler import (  # type: ignore
@@ -25,19 +26,9 @@ from tqdm import tqdm
 from web3 import Web3
 from web3._utils.events import get_event_data
 
-from mooncrawl.data import AvailableBlockchainType  # type: ignore
-
-from ..blockchain import (
-    connect,
-    get_block_model,
-    get_label_model,
-    get_transaction_model,
-)
 from ..moonworm_crawler.db import (
-    _event_to_label,
     add_events_to_session,
     commit_session,
-    get_last_labeled_block_number,
 )
 from ..moonworm_crawler.event_crawler import Event, get_block_timestamp
 

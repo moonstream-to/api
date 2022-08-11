@@ -10,11 +10,8 @@ from uuid import UUID
 
 from bugout.data import BugoutSearchResult
 from eth_typing.evm import ChecksumAddress
-from moonstreamdb.models import Base
-from sqlalchemy.orm.session import Session
+from moonstreamdb.blockchain import AvailableBlockchainType
 from web3.main import Web3
-
-from mooncrawl.data import AvailableBlockchainType
 
 from ..blockchain import connect
 from ..reporter import reporter
@@ -31,6 +28,7 @@ logger = logging.getLogger(__name__)
 class SubscriptionTypes(Enum):
     POLYGON_BLOCKCHAIN = "polygon_smartcontract"
     ETHEREUM_BLOCKCHAIN = "ethereum_smartcontract"
+    MUMBAI_BLOCKCHAIN = "mumbai_smartcontract"
     XDAI_BLOCKCHAIN = "xdai_smartcontract"
 
 
@@ -130,6 +128,8 @@ def blockchain_type_to_subscription_type(
         return SubscriptionTypes.ETHEREUM_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.POLYGON:
         return SubscriptionTypes.POLYGON_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.MUMBAI:
+        return SubscriptionTypes.MUMBAI_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.XDAI:
         return SubscriptionTypes.XDAI_BLOCKCHAIN
     else:

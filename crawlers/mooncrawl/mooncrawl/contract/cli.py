@@ -1,16 +1,15 @@
 import argparse
-import json
 import logging
 import time
 from typing import Optional
 from uuid import UUID
 
+from moonstreamdb.blockchain import AvailableBlockchainType
 from moonstreamdb.db import yield_db_session_ctx
 from sqlalchemy.orm.session import Session
 from web3 import Web3
 
 from ..blockchain import connect
-from ..data import AvailableBlockchainType
 from ..settings import NB_CONTROLLER_ACCESS_ID
 from .deployment_crawler import ContractDeploymentCrawler, MoonstreamDataStore
 

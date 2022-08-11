@@ -2,4 +2,4 @@
 Moonstream crawlers version.
 """
 
-MOONCRAWL_VERSION = "0.1.7"
+MOONCRAWL_VERSION = "0.2.1"

@@ -12,6 +12,7 @@ from enum import Enum
 from typing import Iterator, List
 from uuid import UUID
 
+from moonstreamdb.blockchain import AvailableBlockchainType
 import dateutil.parser
 
 from .blockchain import (
@@ -21,7 +22,6 @@ from .blockchain import (
     get_latest_blocks,
     trending,
 )
-from .data import AvailableBlockchainType
 from .publish import publish_json
 from .settings import MOONSTREAM_CRAWL_WORKERS, NB_CONTROLLER_ACCESS_ID
 from .version import MOONCRAWL_VERSION

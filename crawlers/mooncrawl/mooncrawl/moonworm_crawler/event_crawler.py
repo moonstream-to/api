@@ -1,18 +1,13 @@
 import logging
-import traceback
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, Dict, List, Optional
 
-from eth_typing.evm import ChecksumAddress
-from moonstreamdb.models import Base
+from moonstreamdb.blockchain import AvailableBlockchainType, get_block_model
 from moonworm.crawler.log_scanner import _fetch_events_chunk  # type: ignore
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import and_
 from web3 import Web3
 
-from ..blockchain import connect, get_block_model, get_label_model
-from ..data import AvailableBlockchainType
-from ..settings import CRAWLER_LABEL
 from .crawler import EventCrawlJob
 
 logging.basicConfig(level=logging.INFO)
