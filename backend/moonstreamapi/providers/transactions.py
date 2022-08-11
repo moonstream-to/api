@@ -462,6 +462,13 @@ PolygonTransactions = TransactionsProvider(
     streamboaundary_range_limit=2 * 60 * 60,
 )
 
+MumbaiTransactions = TransactionsProvider(
+    event_type="mumbai_blockchain",
+    blockchain=AvailableBlockchainType("mumbai"),
+    description="Provider for resiving transactions from Mumbai tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
 XDaiTransactions = TransactionsProvider(
     event_type="xdai_blockchain",
     blockchain=AvailableBlockchainType("xdai"),
