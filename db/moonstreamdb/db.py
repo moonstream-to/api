@@ -35,17 +35,24 @@ try:
         )
 except:
     raise ValueError(
-        f"MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIOS must be an integer: {MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS_RAW}"
+        f"MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS must be an integer: {MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS_RAW}"
     )
 
-# Pooling: https://docs.sqlalchemy.org/en/14/core/pooling.html#sqlalchemy.pool.QueuePool
-# Statement timeout: https://stackoverflow.com/a/44936982
-engine = create_engine(
-    MOONSTREAM_DB_URI,
+
+def create_moonstream_engine(url: str, pool_size: int, statement_timeout: int):
+    # Pooling: https://docs.sqlalchemy.org/en/14/core/pooling.html#sqlalchemy.pool.QueuePool
+    # Statement timeout: https://stackoverflow.com/a/44936982
+    return create_engine(
+        url=url,
+        pool_size=pool_size,
+        connect_args={"options": f"-c statement_timeout={statement_timeout}"},
+    )
+
+
+engine = create_moonstream_engine(
+    url=MOONSTREAM_DB_URI,
     pool_size=MOONSTREAM_POOL_SIZE,
-    connect_args={
-        "options": f"-c statement_timeout={MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS}"
-    },
+    statement_timeout=MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS,
 )
 SessionLocal = sessionmaker(bind=engine)
 
@@ -66,13 +73,10 @@ def yield_db_session() -> Session:
 yield_db_session_ctx = contextmanager(yield_db_session)
 
 # Read only
-
-RO_engine = create_engine(
-    MOONSTREAM_DB_URI_READ_ONLY,
+RO_engine = create_moonstream_engine(
+    url=MOONSTREAM_DB_URI_READ_ONLY,
     pool_size=MOONSTREAM_POOL_SIZE,
-    connect_args={
-        "options": f"-c statement_timeout={MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS}"
-    },
+    statement_timeout=MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS,
 )
 RO_SessionLocal = sessionmaker(bind=RO_engine)
 
