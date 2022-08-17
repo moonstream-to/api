@@ -187,7 +187,7 @@ def get_crawl_job_entries(
             query=query,
             offset=current_offset,
             limit=limit,
-            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
         )
         entries.extend(search_result.results)
 
@@ -339,7 +339,7 @@ def _get_heartbeat_entry_id(
         journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
         query=f"#{crawler_type} #heartbeat #{blockchain_type.value} !#dead",
         limit=1,
-        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS
+        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
     )
     if entries.results:
         return entries.results[0].entry_url.split("/")[-1]
@@ -351,7 +351,7 @@ def _get_heartbeat_entry_id(
             title=f"{crawler_type} Heartbeat - {blockchain_type.value}",
             tags=[crawler_type, "heartbeat", blockchain_type.value],
             content="",
-            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
         )
         return str(entry.id)
 
@@ -380,7 +380,7 @@ def heartbeat(
         entry_id=heartbeat_entry_id,
         title=f"{crawler_type} Heartbeat - {blockchain_type.value}. Status: {crawler_status['status']} - {crawler_status['current_time']}",
         content=f"{json.dumps(crawler_status, indent=2)}",
-        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS
+        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
     )
     if is_dead:
         bugout_client.update_tags(
@@ -388,5 +388,5 @@ def heartbeat(
             journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
             entry_id=heartbeat_entry_id,
             tags=[crawler_type, "heartbeat", blockchain_type.value, "dead"],
-            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
         )

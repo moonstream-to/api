@@ -13,7 +13,9 @@ BUGOUT_BROOD_URL = os.environ.get("BUGOUT_BROOD_URL", "https://auth.bugout.dev")
 BUGOUT_SPIRE_URL = os.environ.get("BUGOUT_SPIRE_URL", "https://spire.bugout.dev")
 bugout_client = Bugout(brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIRE_URL)
 
-BUGOUT_REQUEST_TIMEOUT_SECONDS = int(os.environ.get("BUGOUT_REQUEST_TIMEOUT_SECONDS", "30"))
+BUGOUT_REQUEST_TIMEOUT_SECONDS = int(
+    os.environ.get("BUGOUT_REQUEST_TIMEOUT_SECONDS", "30")
+)
 
 
 HUMBUG_REPORTER_CRAWLERS_TOKEN = os.environ.get("HUMBUG_REPORTER_CRAWLERS_TOKEN")
