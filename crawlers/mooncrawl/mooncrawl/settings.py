@@ -13,6 +13,17 @@ BUGOUT_BROOD_URL = os.environ.get("BUGOUT_BROOD_URL", "https://auth.bugout.dev")
 BUGOUT_SPIRE_URL = os.environ.get("BUGOUT_SPIRE_URL", "https://spire.bugout.dev")
 bugout_client = Bugout(brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIRE_URL)
 
+BUGOUT_REQUEST_TIMEOUT_SECONDS_RAW = os.environ.get(
+    "MOONSTREAM_BUGOUT_TIMEOUT_SECONDS", 30
+)
+try:
+    BUGOUT_REQUEST_TIMEOUT_SECONDS = int(BUGOUT_REQUEST_TIMEOUT_SECONDS_RAW)
+except:
+    raise Exception(
+        f"Could not parse MOONSTREAM_BUGOUT_TIMEOUT_SECONDS_RAW as int: {BUGOUT_REQUEST_TIMEOUT_SECONDS_RAW}"
+    )
+
+
 HUMBUG_REPORTER_CRAWLERS_TOKEN = os.environ.get("HUMBUG_REPORTER_CRAWLERS_TOKEN")
 
 # Origin
