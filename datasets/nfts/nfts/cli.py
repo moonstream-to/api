@@ -98,6 +98,7 @@ def handle_materialize(args: argparse.Namespace) -> None:
             start_block=bounds.starting_block,
             end_block=bounds.ending_block,
             batch_size=args.batch_size,
+            blockchain_type=args.blockchain,
         )
 
 

@@ -1,7 +1,13 @@
 import logging
 import sqlite3
-from typing import Any, Dict, Union, cast, Iterator, List, Optional, Set
+from typing import Any, Dict, Tuple, Union, cast, Iterator, List, Optional, Set
 import json
+from concurrent.futures import (
+    ProcessPoolExecutor,
+    as_completed,
+    ThreadPoolExecutor,
+    Future,
+)
 from dataclasses import dataclass
 
 from moonstreamdb.models import (
@@ -45,16 +51,8 @@ def _get_last_labeled_erc721_block(
 
 
 def parse_transaction_label(
-    label_model: Union[EthereumLabel, PolygonLabel]
+    label_model: Union[EthereumLabel, PolygonLabel], blockchain_type: str
 ) -> NftTransaction:
-    assert (
-        label_model.label_data["type"] == "tx_call"
-    ), "Expected label to be of type 'tx_call'"
-
-    if isinstance(label_model, EthereumLabel):
-        blockchain_type = "ethereum"
-    else:
-        blockchain_type = "polygon"
 
     # TODO: this is done because I forgot to add value in polygon labels
     value = 0
@@ -78,19 +76,9 @@ def parse_transaction_label(
 
 
 def _parse_transfer_event(
-    label_model: Union[EthereumLabel, PolygonLabel]
+    label_model: Union[EthereumLabel, PolygonLabel], blockchain_type: str
 ) -> NftTransferEvent:
-    assert (
-        label_model.label_data["type"] == "event"
-    ), "Expected label to be of type 'event'"
-    assert (
-        label_model.label_data["name"] == "Transfer"
-    ), "Expected label to be of type 'Transfer'"
 
-    if isinstance(label_model, EthereumLabel):
-        blockchain_type = "ethereum"
-    else:
-        blockchain_type = "polygon"
     if label_model.label_data["args"].get("tokenId") is not None:
         return NftTransferEvent(
             blockchain_type=blockchain_type,
@@ -114,19 +102,9 @@ def _parse_transfer_event(
 
 
 def _parse_approval_event(
-    label_model: Union[EthereumLabel, PolygonLabel]
+    label_model: Union[EthereumLabel, PolygonLabel], blockchain_type: str
 ) -> NftApprovalEvent:
-    assert (
-        label_model.label_data["type"] == "event"
-    ), "Expected label to be of type 'event'"
-    assert (
-        label_model.label_data["name"] == "Approval"
-    ), "Expected label to be of type 'Approval'"
 
-    if isinstance(label_model, EthereumLabel):
-        blockchain_type = "ethereum"
-    else:
-        blockchain_type = "polygon"
     return NftApprovalEvent(
         blockchain_type=blockchain_type,
         token_address=label_model.address,
@@ -139,19 +117,8 @@ def _parse_approval_event(
 
 
 def _parse_approval_for_all_event(
-    label_model: Union[EthereumLabel, PolygonLabel]
+    label_model: Union[EthereumLabel, PolygonLabel], blockchain_type: str
 ) -> NftApprovalForAllEvent:
-    assert (
-        label_model.label_data["type"] == "event"
-    ), "Expected label to be of type 'event'"
-    assert (
-        label_model.label_data["name"] == "ApprovalForAll"
-    ), "Expected label to be of type 'ApprovalForAll'"
-
-    if isinstance(label_model, EthereumLabel):
-        blockchain_type = "ethereum"
-    else:
-        blockchain_type = "polygon"
     return NftApprovalForAllEvent(
         blockchain_type=blockchain_type,
         token_address=label_model.address,
@@ -164,14 +131,14 @@ def _parse_approval_for_all_event(
 
 
 def parse_event(
-    label_model: Union[EthereumLabel, PolygonLabel]
+    label_model: Union[EthereumLabel, PolygonLabel], blockchain_type: str
 ) -> Union[NftTransferEvent, NftApprovalEvent, NftApprovalForAllEvent]:
     if label_model.label_data["name"] == "Transfer":
-        return _parse_transfer_event(label_model)
+        return _parse_transfer_event(label_model, blockchain_type)
     elif label_model.label_data["name"] == "Approval":
-        return _parse_approval_event(label_model)
+        return _parse_approval_event(label_model, blockchain_type)
     elif label_model.label_data["name"] == "ApprovalForAll":
-        return _parse_approval_for_all_event(label_model)
+        return _parse_approval_for_all_event(label_model, blockchain_type)
     else:
         raise ValueError(f"Unknown label type: {label_model.label_data['name']}")
 
@@ -182,6 +149,7 @@ def crawl_erc721_labels(
     label_model: Union[EthereumLabel, PolygonLabel],
     start_block: int,
     end_block: int,
+    blockchain_type: str,
     batch_size: int = 10000,
 ):
     logger.info(
@@ -191,26 +159,25 @@ def crawl_erc721_labels(
     pbar.set_description(
         f"Crawling {label_model.__tablename__} blocks {start_block}-{end_block}"
     )
-    current_block = start_block
-    while current_block <= end_block:
-        batch_end = min(current_block + batch_size, end_block)
-        logger.info(f"Crawling {current_block}-{batch_end}")
-        labels = db_session.query(label_model).filter(
-            and_(
-                label_model.block_number >= current_block,
-                label_model.block_number <= batch_end,
-                or_(
-                    label_model.label == ERC721_LABEL, label_model.label == ERC20_LABEL
-                ),
+
+    def _crawl(from_block, to_block):
+        labels = (
+            db_session.query(label_model)
+            .filter(
+                and_(
+                    label_model.block_number >= from_block,
+                    label_model.block_number <= to_block,
+                    or_(
+                        label_model.label == ERC721_LABEL,
+                        label_model.label == ERC20_LABEL,
+                    ),
+                )
             )
+            .all()
         )
-
-        logger.info(f"Found {labels.count()} labels")
-
         transactions = []
         events = []
         for label in labels:
-
             if label.label_data["type"] == "tx_call":
                 transactions.append(parse_transaction_label(label))
             else:
@@ -220,6 +187,19 @@ def crawl_erc721_labels(
         insert_transactions(conn, transactions)
         insert_events(conn, events)
         logger.info(f"Saved {len(events)} events and {len(transactions)} transactions")
-        pbar.update(batch_end - current_block + 1)
 
-        current_block = batch_end + 1
+    current_block = start_block
+
+    futures: Dict[Future, Tuple[int, int]] = {}
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        while current_block <= end_block:
+            batch_end = min(current_block + batch_size, end_block)
+            future = executor.submit(_crawl, current_block, batch_end)
+            print(f"Submitted {current_block}-{batch_end}")
+            futures[future] = (current_block, batch_end)
+            current_block = batch_end + 1
+
+    for future in as_completed(futures):
+        from_block, to_block = futures[future]
+        print(f"Crawled {from_block}-{to_block}")
+        pbar.update(to_block - from_block + 1)
