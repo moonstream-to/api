@@ -186,7 +186,7 @@ def crawl_erc721_labels(
                 events.append(parse_event(label, blockchain_type))
 
         logger.info(f"Parsed {len(events)} events and {len(transactions)} transactions")
-        with contextlib.closing(sqlite3.connect(datastore)) as conn:
+        with contextlib.closing(sqlite3.connect(datastore, timeout=200)) as conn:
             insert_transactions(conn, transactions)
             insert_events(conn, events)
         logger.info(f"Saved {len(events)} events and {len(transactions)} transactions")
