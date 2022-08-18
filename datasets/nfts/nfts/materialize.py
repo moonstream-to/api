@@ -2,7 +2,7 @@ import logging
 import sqlite3
 from typing import Any, Dict, Union, cast, Iterator, List, Optional, Set
 import json
-from attr import dataclass
+from dataclasses import dataclass
 
 from moonstreamdb.models import (
     EthereumLabel,
@@ -70,10 +70,8 @@ def parse_transaction_label(
         caller_address=label_model.label_data["caller"],
         function_name=label_model.label_data["name"],
         function_args=label_model.label_data["args"],
-        gas_used=label_model.label_data["gasUsed"],
         gas_price=label_model.label_data["gasPrice"],
         value=value,
-        status=label_model.label_data["status"],
         max_fee_per_gas=label_model.label_data["maxFeePerGas"],
         max_priority_fee_per_gas=label_model.label_data["maxPriorityFeePerGas"],
     )

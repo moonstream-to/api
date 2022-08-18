@@ -34,7 +34,6 @@ CREATE TABLE IF NOT EXISTS {tabel_name}
         functionName TEXT NOT NULL,
         functionArgs JSON NOT NULL,
         value INTEGER NOT NULL,
-        gasUsed INTEGER NOT NULL,
         gasPrice INTEGER NOT NULL,
         maxFeePerGas INTEGER,
         maxPriorityFeePerGas INTEGER,
@@ -125,14 +124,13 @@ INSERT INTO {tabel_name}
         functionName,
         functionArgs,
         value,
-        gasUsed,
         gasPrice,
         maxFeePerGas,
         maxPriorityFeePerGas
     )
 VALUES
     (
-       ?,?,?,?,?,?,?,?,?,?,?,?,?
+       ?,?,?,?,?,?,?,?,?,?,?,?
     );
     """
     return query
@@ -240,7 +238,6 @@ def nft_transaction_to_tuple(nft_transaction: NftTransaction) -> Tuple[Any]:
         nft_transaction.function_name,
         json.dumps(nft_transaction.function_args),
         str(nft_transaction.value),
-        str(nft_transaction.gas_used),
         str(nft_transaction.gas_price),
         str(nft_transaction.max_fee_per_gas),
         str(nft_transaction.max_priority_fee_per_gas),
@@ -356,7 +353,7 @@ def insert_events(
             raise ValueError(f"Unknown event type: {type(event)}")
 
     if len(nft_transfers) > 0:
-        query = insert_nft_transfers_query("transfers")
+        query = insert_nft_transfers_query("erc721_transfers")
         cur.executemany(
             query,
             nft_transfers,
@@ -405,13 +402,13 @@ def setup_database(conn: sqlite3.Connection) -> None:
     cur.execute(create_transactions_table_query("transactions"))
     cur.execute(create_approvals_table_query("approvals"))
     cur.execute(create_approval_for_all_table_query("approvals_for_all"))
-    cur.execute(create_transfers_table_query("transfers"))
+    cur.execute(create_transfers_table_query("erc721_transfers"))
     cur.execute(create_erc20_transfers_table_query("erc20_transfers"))
 
-    cur.execute(create_blockchain_type_index_query("transactions"))
-    cur.execute(create_blockchain_type_index_query("approvals"))
-    cur.execute(create_blockchain_type_index_query("approvals_for_all"))
-    cur.execute(create_blockchain_type_index_query("transfers"))
-    cur.execute(create_blockchain_type_index_query("erc20_transfers"))
+    # cur.execute(create_blockchain_type_index_query("transactions"))
+    # cur.execute(create_blockchain_type_index_query("approvals"))
+    # cur.execute(create_blockchain_type_index_query("approvals_for_all"))
+    # cur.execute(create_blockchain_type_index_query("erc721_transfers"))
+    # cur.execute(create_blockchain_type_index_query("erc20_transfers"))
 
     conn.commit()

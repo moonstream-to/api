@@ -23,10 +23,8 @@ class NftTransaction:
     caller_address: str
     function_name: str
     function_args: Union[Dict[str, Any], str]
-    gas_used: int
     gas_price: int
     value: int
-    status: int
     max_fee_per_gas: Optional[int] = None
     max_priority_fee_per_gas: Optional[int] = None
 

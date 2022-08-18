@@ -39,7 +39,6 @@ setup(
         "requests",
         "scipy",
         "tqdm",
-        "web3",
     ],
     extras_require={
         "dev": ["black", "mypy", "types-requests"],
