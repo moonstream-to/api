@@ -44,7 +44,10 @@ def handle_nft_crawler(args: argparse.Namespace) -> None:
         else:
             logger.info(f"Using web3 provider URL: {args.web3}")
             web3 = connect(
-                blockchain_type, access_id=args.access_id, web3_uri=args.web3
+                blockchain_type,
+                access_id=args.access_id,
+                web3_uri=args.web3,
+                request_timeout=60,
             )
         last_crawled_block = get_checkpoint(
             db_session, blockchain_type, from_block, to_block, label
@@ -61,6 +64,7 @@ def handle_nft_crawler(args: argparse.Namespace) -> None:
             from_block=last_crawled_block,
             to_block=to_block,
             batch_size=args.max_blocks_batch,
+            skip_decoding_transactions=True,
         )
 
 
@@ -93,7 +97,10 @@ def populate_with_erc20_transfers(args: argparse.Namespace) -> None:
         else:
             logger.info(f"Using web3 provider URL: {args.web3}")
             web3 = connect(
-                blockchain_type, access_id=args.access_id, web3_uri=args.web3
+                blockchain_type,
+                access_id=args.access_id,
+                web3_uri=args.web3,
+                request_timeout=60,
             )
         last_crawled_block = get_checkpoint(
             db_session, blockchain_type, from_block, to_block, label

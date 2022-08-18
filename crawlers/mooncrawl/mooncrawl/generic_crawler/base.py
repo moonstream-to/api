@@ -45,13 +45,21 @@ from ..moonworm_crawler.event_crawler import Event, get_block_timestamp
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# TODO: ADD VALUE!!!
+
 @dataclass
-class ExtededFunctionCall(ContractFunctionCall):
+class ExtededFunctionCall:
+    block_number: int
+    block_timestamp: int
+    transaction_hash: str
+    contract_address: str
+    caller_address: str
+    function_name: str
+    function_args: Dict[str, Any]
     gas_price: int
+    value: int = 0
     max_fee_per_gas: Optional[int] = None
     max_priority_fee_per_gas: Optional[int] = None
-    value: int = 0
+    status: Optional[str] = None
 
 
 def _function_call_with_gas_price_to_label(
@@ -70,8 +78,6 @@ def _function_call_with_gas_price_to_label(
             "name": function_call.function_name,
             "caller": function_call.caller_address,
             "args": function_call.function_args,
-            "status": function_call.status,
-            "gasUsed": function_call.gas_used,
             "gasPrice": function_call.gas_price,
             "maxFeePerGas": function_call.max_fee_per_gas,
             "maxPriorityFeePerGas": function_call.max_priority_fee_per_gas,
@@ -232,19 +238,20 @@ def process_transaction(
     secondary_abi: List[Dict[str, Any]],
     transaction: Dict[str, Any],
     blocks_cache: Dict[int, int],
+    skip_decoding: bool = False,
 ):
+    selector = transaction["input"][:10]
+    function_name = selector
+    function_args = "unknown"
+    if not skip_decoding:
+        try:
+            raw_function_call = contract.decode_function_input(transaction["input"])
+            function_name = raw_function_call[0].fn_name
+            function_args = utfy_dict(raw_function_call[1])
+        except Exception as e:
+            pass
+            # logger.error(f"Failed to decode transaction : {str(e)}")
 
-    try:
-        raw_function_call = contract.decode_function_input(transaction["input"])
-        function_name = raw_function_call[0].fn_name
-        function_args = utfy_dict(raw_function_call[1])
-    except Exception as e:
-        # logger.error(f"Failed to decode transaction : {str(e)}")
-        selector = transaction["input"][:10]
-        function_name = selector
-        function_args = "unknown"
-
-    transaction_reciept = web3.eth.getTransactionReceipt(transaction["hash"])
     block_timestamp = get_block_timestamp(
         db_session,
         web3,
@@ -262,8 +269,6 @@ def process_transaction(
         caller_address=transaction["from"],
         function_name=function_name,
         function_args=function_args,
-        status=transaction_reciept["status"],
-        gas_used=transaction_reciept["gasUsed"],
         gas_price=transaction["gasPrice"],
         max_fee_per_gas=transaction.get(
             "maxFeePerGas",
@@ -272,28 +277,7 @@ def process_transaction(
         value=transaction["value"],
     )
 
-    secondary_logs = []
-    for log in transaction_reciept["logs"]:
-        for abi in secondary_abi:
-            try:
-                raw_event = get_event_data(web3.codec, abi, log)
-                event = {
-                    "event": raw_event["event"],
-                    "args": json.loads(Web3.toJSON(utfy_dict(dict(raw_event["args"])))),
-                    "address": raw_event["address"],
-                    "blockNumber": raw_event["blockNumber"],
-                    "transactionHash": raw_event["transactionHash"].hex(),
-                    "logIndex": raw_event["logIndex"],
-                    "blockTimestamp": block_timestamp,
-                }
-                processed_event = _processEvent(event)
-                secondary_logs.append(processed_event)
-
-                break
-            except:
-                pass
-
-    return function_call, secondary_logs
+    return function_call, []
 
 
 def _get_transactions(
@@ -422,6 +406,7 @@ def crawl(
     crawl_transactions: bool = True,
     addresses: Optional[List[ChecksumAddress]] = None,
     batch_size: int = 100,
+    skip_decoding_transactions: bool = False,
 ) -> None:
     current_block = from_block
 
@@ -486,6 +471,7 @@ def crawl(
                     secondary_abi,
                     tx,
                     db_blocks_cache,
+                    skip_decoding=skip_decoding_transactions,
                 )
                 function_calls.append(processed_tx)
                 events.extend(secondary_logs)

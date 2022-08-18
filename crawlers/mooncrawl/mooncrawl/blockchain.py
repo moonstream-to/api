@@ -48,18 +48,20 @@ def connect(
     blockchain_type: AvailableBlockchainType,
     web3_uri: Optional[str] = None,
     access_id: Optional[UUID] = None,
+    request_timeout: Optional[int] = None,
 ) -> Web3:
     web3_provider: Union[IPCProvider, HTTPProvider] = Web3.IPCProvider()
 
-    request_kwargs: Any = None
+    request_kwargs = {}
     if access_id is not None:
-        request_kwargs = {
-            "headers": {
-                NB_ACCESS_ID_HEADER: str(access_id),
-                NB_DATA_SOURCE_HEADER: "blockchain",
-                "Content-Type": "application/json",
-            }
+        request_kwargs["headers"] = {
+            NB_ACCESS_ID_HEADER: str(access_id),
+            NB_DATA_SOURCE_HEADER: "blockchain",
+            "Content-Type": "application/json",
         }
+
+    if request_timeout is not None:
+        request_kwargs["timeout"] = request_timeout
 
     if web3_uri is None:
         if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -78,7 +80,6 @@ def connect(
     else:
         web3_provider = Web3.IPCProvider(web3_uri)
     web3_client = Web3(web3_provider)
-
     # Inject --dev middleware if it is not Ethereum mainnet
     # Docs: https://web3py.readthedocs.io/en/stable/middleware.html#geth-style-proof-of-authority
     if blockchain_type != AvailableBlockchainType.ETHEREUM:
