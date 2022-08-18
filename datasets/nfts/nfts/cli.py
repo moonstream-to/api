@@ -93,7 +93,7 @@ def handle_materialize(args: argparse.Namespace) -> None:
 
         crawl_erc721_labels(
             db_session,
-            moonstream_datastore,
+            args.datastore,
             label_model,
             start_block=bounds.starting_block,
             end_block=bounds.ending_block,

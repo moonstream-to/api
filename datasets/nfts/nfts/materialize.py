@@ -1,3 +1,4 @@
+import contextlib
 import logging
 import sqlite3
 from typing import Any, Dict, Tuple, Union, cast, Iterator, List, Optional, Set
@@ -7,6 +8,7 @@ from concurrent.futures import (
     as_completed,
     ThreadPoolExecutor,
     Future,
+    wait,
 )
 from dataclasses import dataclass
 
@@ -145,7 +147,7 @@ def parse_event(
 
 def crawl_erc721_labels(
     db_session: Session,
-    conn: sqlite3.Connection,
+    datastore: str,
     label_model: Union[EthereumLabel, PolygonLabel],
     start_block: int,
     end_block: int,
@@ -160,7 +162,7 @@ def crawl_erc721_labels(
         f"Crawling {label_model.__tablename__} blocks {start_block}-{end_block}"
     )
 
-    def _crawl(from_block, to_block):
+    def _crawl(from_block, to_block) -> bool:
         labels = (
             db_session.query(label_model)
             .filter(
@@ -179,27 +181,49 @@ def crawl_erc721_labels(
         events = []
         for label in labels:
             if label.label_data["type"] == "tx_call":
-                transactions.append(parse_transaction_label(label))
+                transactions.append(parse_transaction_label(label, blockchain_type))
             else:
-                events.append(parse_event(label))
+                events.append(parse_event(label, blockchain_type))
 
         logger.info(f"Parsed {len(events)} events and {len(transactions)} transactions")
-        insert_transactions(conn, transactions)
-        insert_events(conn, events)
+        with contextlib.closing(sqlite3.connect(datastore)) as conn:
+            insert_transactions(conn, transactions)
+            insert_events(conn, events)
         logger.info(f"Saved {len(events)} events and {len(transactions)} transactions")
+        return True
+
+    def crawl_with_threads(ranges: List[Tuple[int, int]]):
+        futures: Dict[Future, Tuple[int, int]] = {}
+        with ThreadPoolExecutor(max_workers=20) as executor:
+            for from_block, to_block in ranges:
+                future = executor.submit(_crawl, from_block, to_block)
+                futures[future] = (from_block, to_block)
+
+        for future in as_completed(futures):
+            from_block, to_block = futures[future]
+            logger.info(f"Crawled {from_block}-{to_block}")
+            if future.exception() is not None:
+                logger.error(
+                    f"Error crawling {from_block}-{to_block}", future.exception()
+                )
+
+        wait(list(futures.keys()))
 
     current_block = start_block
 
-    futures: Dict[Future, Tuple[int, int]] = {}
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        while current_block <= end_block:
-            batch_end = min(current_block + batch_size, end_block)
-            future = executor.submit(_crawl, current_block, batch_end)
-            print(f"Submitted {current_block}-{batch_end}")
-            futures[future] = (current_block, batch_end)
-            current_block = batch_end + 1
+    while current_block <= end_block:
+        batch_end = min(current_block + batch_size * 10, end_block)
 
-    for future in as_completed(futures):
-        from_block, to_block = futures[future]
-        print(f"Crawled {from_block}-{to_block}")
-        pbar.update(to_block - from_block + 1)
+        # divide into batches with batch_size
+        ranges = []
+        batch_start = current_block
+        while batch_start <= batch_end:
+            ranges.append((batch_start, min(batch_start + batch_size, batch_end)))
+            batch_start += batch_size + 1
+
+        print(f"Crawling {len(ranges)} ranges")
+        print(ranges)
+        crawl_with_threads(ranges)
+        print(f"Crawled")
+        pbar.update(batch_end - current_block + 1)
+        current_block = batch_end + 1
