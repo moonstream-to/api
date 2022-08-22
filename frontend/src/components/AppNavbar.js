@@ -38,7 +38,7 @@ import AddNewIconButton from "./AddNewIconButton";
 import {
   USER_NAV_PATHES,
   SITEMAP,
-  WHITE_LOGO_W_TEXT_URL,
+  PRIMARY_MOON_LOGO_URL,
   PAGETYPE,
 } from "../core/constants";
 
@@ -244,7 +244,7 @@ const AppNavbar = () => {
                 <Image
                   alignSelf="center"
                   maxH="2.5rem"
-                  src={WHITE_LOGO_W_TEXT_URL}
+                  src={PRIMARY_MOON_LOGO_URL}
                   alt="Go to app root"
                 />
               </Link>

@@ -25,7 +25,7 @@ import {
   LockIcon,
 } from "@chakra-ui/icons";
 import { MdSettings, MdDashboard, MdTimeline } from "react-icons/md";
-import { WHITE_LOGO_W_TEXT_URL, SITEMAP, PAGETYPE } from "../core/constants";
+import { PRIMARY_MOON_LOGO_URL, SITEMAP, PAGETYPE } from "../core/constants";
 import useDashboard from "../core/hooks/useDashboard";
 import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 import OverlayContext from "../core/providers/OverlayProvider/context";
@@ -73,7 +73,7 @@ const Sidebar = () => {
               maxW="120px"
               py="0.75rem"
               pl={5}
-              src={WHITE_LOGO_W_TEXT_URL}
+              src={PRIMARY_MOON_LOGO_URL}
               alt="Moonstream To"
             />
           </RouterLink>
