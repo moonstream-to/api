@@ -19,7 +19,7 @@ import useModals from "../core/hooks/useModals";
 import UIContext from "../core/providers/UIProvider/context";
 import ChakraAccountIconButton from "./AccountIconButton";
 import RouteButton from "./RouteButton";
-import { PAGETYPE, SITEMAP, WHITE_LOGO_W_TEXT_URL } from "../core/constants";
+import { PAGETYPE, SITEMAP, PRIMARY_MOON_LOGO_URL } from "../core/constants";
 import router from "next/router";
 import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 
@@ -40,21 +40,22 @@ const LandingNavbar = () => {
         </>
       )}
       <Flex
-        pl={ui.isMobileView ? 2 : 8}
+        pl={ui.isMobileView ? 2 : 16}
         justifySelf="flex-start"
         h="48px"
         py={1}
         flexBasis="200px"
         flexGrow={1}
         id="Logo Container"
+        alignItems="center"
       >
         <RouterLink href="/" passHref>
           <Link
             as={Image}
             w="auto"
-            h="100%"
+            h={["70%", "85%"]}
             justifyContent="left"
-            src={WHITE_LOGO_W_TEXT_URL}
+            src={PRIMARY_MOON_LOGO_URL}
             alt="Moonstream logo"
           />
         </RouterLink>

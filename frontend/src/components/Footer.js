@@ -12,7 +12,7 @@ import {
   chakra,
 } from "@chakra-ui/react";
 import RouterLink from "next/link";
-import { WHITE_LOGO_W_TEXT_URL, SITEMAP } from "../core/constants";
+import { PRIMARY_MOON_LOGO_URL, SITEMAP } from "../core/constants";
 import { FaGithub, FaTwitter, FaDiscord } from "react-icons/fa";
 import moment from "moment";
 
@@ -79,7 +79,7 @@ const Footer = () => (
                 // to="/"
                 h="2.5rem"
                 minW="2.5rem"
-                src={WHITE_LOGO_W_TEXT_URL}
+                src={PRIMARY_MOON_LOGO_URL}
                 alt="Go to app root"
               />
             </Link>

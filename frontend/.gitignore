@@ -35,6 +35,8 @@ dev.env.local
 .env.test.local
 .env.production.local
 .secrets/
+yarn.lock
+package-lock.json
 
 # vercel
 .vercel
