@@ -239,7 +239,7 @@ const Homepage = () => {
               boxSizing="content-box"
             >
               <GridItem colSpan="12" bgColor={"blue.50"} id="Header grid item">
-                <chakra.header boxSize="full" minH="100vh" mb={0}>
+                <chakra.header boxSize="full" minH={["60vh", "100vh"]} mb={0}>
                   <Box
                     bgPos="bottom"
                     bgColor="transparent"

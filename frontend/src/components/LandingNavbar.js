@@ -40,7 +40,7 @@ const LandingNavbar = () => {
         </>
       )}
       <Flex
-        pl={ui.isMobileView ? 2 : 8}
+        pl={ui.isMobileView ? 2 : "100px"}
         justifySelf="flex-start"
         h="48px"
         py={1}
@@ -53,7 +53,7 @@ const LandingNavbar = () => {
           <Link
             as={Image}
             w="auto"
-            h={["70%", "85%", "100%"]}
+            h={["70%", "85%"]}
             justifyContent="left"
             src={PRIMARY_MOON_LOGO_URL}
             alt="Moonstream logo"
