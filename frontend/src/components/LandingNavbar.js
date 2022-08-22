@@ -40,7 +40,7 @@ const LandingNavbar = () => {
         </>
       )}
       <Flex
-        pl={ui.isMobileView ? 2 : "100px"}
+        pl={ui.isMobileView ? 2 : 16}
         justifySelf="flex-start"
         h="48px"
         py={1}
