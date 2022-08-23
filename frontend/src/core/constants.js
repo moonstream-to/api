@@ -1,5 +1,8 @@
 export const MOONSTREAM_API_URL = process.env.NEXT_PUBLIC_MOONSTREAM_API_URL;
 
+export const AWS_ASSETS_PATH = `https://s3.amazonaws.com/static.simiotics.com/moonstream/assets`;
+export const PRIMARY_MOON_LOGO_URL = `${AWS_ASSETS_PATH}/moonstream-full-logo-2022.png`;
+
 export const BUGOUT_ENDPOINTS = {
   Usage: "usage",
   Web: "parasite",
@@ -12,7 +15,7 @@ export const DEFAULT_METATAGS = {
   keywords:
     "analytics, blockchain analytics, protocol, protocols, blockchain, crypto, data, NFT gaming, smart contracts, web3, smart contract, ethereum, polygon, matic, transactions, defi, finance, decentralized, mempool, NFT, NFTs, DAO, DAOs, cryptocurrency, cryptocurrencies, bitcoin, blockchain economy, blockchain game, marketplace, blockchain security, loyalty program, Ethereum bridge, Ethereum bridges, NFT game, NFT games",
   url: "https://www.moonstream.to",
-  image: `https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/metadata-image.png`,
+  image: `${AWS_ASSETS_PATH}/metadata-image.png`,
 };
 
 // export const FOOTER_COLUMNS = {
@@ -122,9 +125,6 @@ export const USER_NAV_PATHES = [
 ];
 
 export const PAGE_SIZE = 20;
-
-export const AWS_ASSETS_PATH = `https://s3.amazonaws.com/static.simiotics.com/moonstream/assets`;
-export const PRIMARY_MOON_LOGO_URL = `${AWS_ASSETS_PATH}/moonstream-full-logo-2022.png`;
 
 export const TIME_RANGE_SECONDS = {
   day: 86400,
