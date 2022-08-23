@@ -68,11 +68,9 @@ const Sidebar = () => {
           />
           <RouterLink href="/" passHref>
             <Image
-              // h="full"
-              // maxH="100%"
-              maxW="120px"
+              maxW="155px"
               py="0.75rem"
-              pl={5}
+              pl={1}
               src={PRIMARY_MOON_LOGO_URL}
               alt="Moonstream To"
             />
