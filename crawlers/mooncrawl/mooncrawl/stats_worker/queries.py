@@ -79,8 +79,8 @@ def data_generate(
     # Create session
     engine = create_moonstream_engine(
         MOONSTREAM_DB_URI_READ_ONLY,
-        pool_size=MOONSTREAM_POOL_SIZE,
         pool_pre_ping=True,
+        pool_size=MOONSTREAM_POOL_SIZE,
         statement_timeout=MOONSTREAM_QUERY_API_DB_STATEMENT_TIMEOUT_MILLIS,
     )
     process_session = sessionmaker(bind=engine)
