@@ -2,4 +2,4 @@
 Moonstream database version.
 """
 
-MOONSTREAMDB_VERSION = "0.3.1"
+MOONSTREAMDB_VERSION = "0.3.2"
