@@ -6,7 +6,11 @@ from io import StringIO
 from typing import Any, Dict, Optional
 
 import boto3  # type: ignore
-from moonstreamdb.db import create_moonstream_engine, MOONSTREAM_DB_URI_READ_ONLY
+from moonstreamdb.db import (
+    create_moonstream_engine,
+    MOONSTREAM_DB_URI_READ_ONLY,
+    MOONSTREAM_POOL_SIZE,
+)
 from sqlalchemy.orm import sessionmaker
 from ..reporter import reporter
 
@@ -75,18 +79,14 @@ def data_generate(
     # Create session
     engine = create_moonstream_engine(
         MOONSTREAM_DB_URI_READ_ONLY,
-        pool_size=1,
+        pool_size=MOONSTREAM_POOL_SIZE,
+        pool_pre_ping=True,
         statement_timeout=MOONSTREAM_QUERY_API_DB_STATEMENT_TIMEOUT_MILLIS,
     )
     process_session = sessionmaker(bind=engine)
     db_session = process_session()
 
     try:
-
-        try:
-            db_session.execute("SELECT 1")
-        except Exception as e:
-            db_session.rollback()
         try:
             if file_type == "csv":
                 csv_buffer = StringIO()
