@@ -6,9 +6,18 @@ from io import StringIO
 from typing import Any, Dict, Optional
 
 import boto3  # type: ignore
-from moonstreamdb.db import yield_db_read_only_session_ctx
+from moonstreamdb.db import (
+    create_moonstream_engine,
+    MOONSTREAM_DB_URI_READ_ONLY,
+    MOONSTREAM_POOL_SIZE,
+)
+from sqlalchemy.orm import sessionmaker
+from ..reporter import reporter
 
-from ..settings import MOONSTREAM_S3_QUERIES_BUCKET_PREFIX
+from ..settings import (
+    MOONSTREAM_S3_QUERIES_BUCKET_PREFIX,
+    MOONSTREAM_QUERY_API_DB_STATEMENT_TIMEOUT_MILLIS,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -45,6 +54,16 @@ def query_validation(query: str) -> str:
     return query
 
 
+def to_json_types(value):
+
+    if isinstance(value, (str, int, tuple, list, dict)):
+        return value
+    elif isinstance(value, set):
+        return list(value)
+    else:
+        return str(value)
+
+
 def data_generate(
     bucket: str,
     query_id: str,
@@ -57,13 +76,17 @@ def data_generate(
     """
     s3 = boto3.client("s3")
 
-    with yield_db_read_only_session_ctx() as db_session:
+    # Create session
+    engine = create_moonstream_engine(
+        MOONSTREAM_DB_URI_READ_ONLY,
+        pool_pre_ping=True,
+        pool_size=MOONSTREAM_POOL_SIZE,
+        statement_timeout=MOONSTREAM_QUERY_API_DB_STATEMENT_TIMEOUT_MILLIS,
+    )
+    process_session = sessionmaker(bind=engine)
+    db_session = process_session()
 
-        try:
-            db_session.execute("SELECT 1")
-        except Exception as e:
-            db_session.rollback()
-
+    try:
         if file_type == "csv":
             csv_buffer = StringIO()
             csv_writer = csv.writer(csv_buffer, delimiter=";")
@@ -90,12 +113,7 @@ def data_generate(
                     "block_number": block_number,
                     "block_timestamp": block_timestamp,
                     "data": [
-                        {
-                            key: (
-                                value if type(value) is any((int, str)) else str(value)
-                            )
-                            for key, value in dict(row).items()
-                        }
+                        {key: to_json_types(value) for key, value in dict(row).items()}
                         for row in db_session.execute(query, params)
                     ],
                 }
@@ -106,3 +124,15 @@ def data_generate(
                 key=f"{MOONSTREAM_S3_QUERIES_BUCKET_PREFIX}/queries/{query_id}/data.{file_type}",
                 bucket=bucket,
             )
+    except Exception as err:
+        db_session.rollback()
+        reporter.error_report(
+            err,
+            [
+                "queries",
+                "execution",
+                f"query_id:{query_id}" f"file_type:{file_type}",
+            ],
+        )
+    finally:
+        db_session.close()
