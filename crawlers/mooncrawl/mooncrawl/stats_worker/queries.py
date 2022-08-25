@@ -10,7 +10,10 @@ from moonstreamdb.db import create_moonstream_engine, MOONSTREAM_DB_URI_READ_ONL
 from sqlalchemy.orm import sessionmaker
 from ..reporter import reporter
 
-from ..settings import MOONSTREAM_S3_QUERIES_BUCKET_PREFIX, MOONSTREAM_QUERY_API_DB_STATEMENT_TIMEOUT_MILLIS
+from ..settings import (
+    MOONSTREAM_S3_QUERIES_BUCKET_PREFIX,
+    MOONSTREAM_QUERY_API_DB_STATEMENT_TIMEOUT_MILLIS,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -57,7 +60,6 @@ def to_json_types(value):
         return str(value)
 
 
-
 def data_generate(
     bucket: str,
     query_id: str,
@@ -71,7 +73,11 @@ def data_generate(
     s3 = boto3.client("s3")
 
     # Create session
-    engine = create_moonstream_engine(MOONSTREAM_DB_URI_READ_ONLY, pool_size=1, statement_timeout=MOONSTREAM_QUERY_API_DB_STATEMENT_TIMEOUT_MILLIS)
+    engine = create_moonstream_engine(
+        MOONSTREAM_DB_URI_READ_ONLY,
+        pool_size=1,
+        statement_timeout=MOONSTREAM_QUERY_API_DB_STATEMENT_TIMEOUT_MILLIS,
+    )
     process_session = sessionmaker(bind=engine)
     db_session = process_session()
 
@@ -129,8 +135,7 @@ def data_generate(
                 [
                     "queries",
                     "execution",
-                    f"query_id:{query_id}"
-                    f"file_type:{file_type}",
+                    f"query_id:{query_id}" f"file_type:{file_type}",
                 ],
             )
     finally:
