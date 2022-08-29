@@ -11,7 +11,7 @@ export const BUGOUT_ENDPOINTS = {
 export const DEFAULT_METATAGS = {
   title: "Build, Scale, and Monitor Your Game on the Blockchain",
   description:
-    "Moonstream is a web3 game engine. Use Moonstream’s technical blockchain infrastructure to add on-chain game mechanics. Watch your game’s economy flourish.",
+    "Moonstream is a web3 game engine. Use Moonstream’s technical blockchain infrastructure to add on-chain mechanics to your game. Watch your game economy flourish.",
   keywords:
     "analytics, blockchain analytics, protocol, protocols, blockchain, crypto, data, NFT gaming, smart contracts, web3, smart contract, ethereum, polygon, matic, transactions, defi, finance, decentralized, mempool, NFT, NFTs, DAO, DAOs, cryptocurrency, cryptocurrencies, bitcoin, blockchain economy, blockchain game, marketplace, blockchain security, loyalty program, Ethereum bridge, Ethereum bridges, NFT game, NFT games",
   url: "https://www.moonstream.to",
