@@ -39,11 +39,14 @@ except:
     )
 
 
-def create_moonstream_engine(url: str, pool_size: int, statement_timeout: int):
+def create_moonstream_engine(
+    url: str, pool_size: int, statement_timeout: int, pool_pre_ping: bool = False
+):
     # Pooling: https://docs.sqlalchemy.org/en/14/core/pooling.html#sqlalchemy.pool.QueuePool
     # Statement timeout: https://stackoverflow.com/a/44936982
     return create_engine(
         url=url,
+        pool_pre_ping=pool_pre_ping,
         pool_size=pool_size,
         connect_args={"options": f"-c statement_timeout={statement_timeout}"},
     )

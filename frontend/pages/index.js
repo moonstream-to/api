@@ -239,7 +239,7 @@ const Homepage = () => {
               boxSizing="content-box"
             >
               <GridItem colSpan="12" bgColor={"blue.50"} id="Header grid item">
-                <chakra.header boxSize="full" minH="100vh" mb={0}>
+                <chakra.header boxSize="full" minH={["60vh", "100vh"]} mb={0}>
                   <Box
                     bgPos="bottom"
                     bgColor="transparent"
@@ -271,7 +271,7 @@ const Homepage = () => {
                           pb={[8, 8, 12]}
                           maxW={[null, "90%", "80%", "58%"]}
                         >
-                          Build, Scale, and Monitor Your Game on the Blockchain
+                          {DEFAULT_METATAGS.title}
                         </Heading>
                         <chakra.span
                           pb={[6, 6, 12]}
@@ -280,10 +280,7 @@ const Homepage = () => {
                           color="white"
                           maxW={[null, "85%", "75%"]}
                         >
-                          Moonstream is a no code web3 game engine. Use
-                          Moonstream’s technical blockchain infrastructure to
-                          add on-chain game mechanics. Watch your game’s economy
-                          flourish.
+                          {DEFAULT_METATAGS.description}
                         </chakra.span>
                         <Stack
                           direction={[
