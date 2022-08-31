@@ -49,3 +49,11 @@ class QueryDataUpdate(BaseModel):
     file_type: str
     query: str
     params: Dict[str, Any] = Field(default_factory=dict)
+
+
+class TokenURIs(BaseModel):
+    token_id: str
+    token_uri: str
+    block_number: str
+    block_timestamp: str
+    address: str
