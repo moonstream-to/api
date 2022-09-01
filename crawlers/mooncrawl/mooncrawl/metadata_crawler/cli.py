@@ -1,14 +1,9 @@
 import argparse
 import json
-import hashlib
-import itertools
-from pickle import TRUE
-from pprint import pprint
+from urllib.error import HTTPError
+import urllib.request
 import logging
-from random import random
-import requests
-from typing import Dict, List, Any
-from uuid import UUID
+from typing import Dict, Any
 
 from moonstreamdb.blockchain import AvailableBlockchainType
 from moonstreamdb.db import (
@@ -31,6 +26,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+batch_size = 50
+
+
 def crawl_uri(metadata_uri: str) -> Dict[str, Any]:
 
     """
@@ -40,19 +38,26 @@ def crawl_uri(metadata_uri: str) -> Dict[str, Any]:
     result = None
     while retry < 3:
         try:
-            metadata = requests.get(metadata_uri)
-            if metadata.status_code == 200:
-                result = metadata.data
+
+            response = urllib.request.urlopen(metadata_uri, timeout=5)
+
+            if response.status == 200:
+                result = json.loads(response.read())
                 break
             retry += 1
+
+        except HTTPError as error:
+            logger.error(f"request end with error statuscode: {error.code}")
+            retry += 1
+            continue
         except Exception as err:
-            print(err)
+            logger.error(err)
             retry += 1
             continue
     return result
 
 
-def parse_metadata(jobs, blockchain_type, block_number):
+def parse_metadata(blockchain_type: AvailableBlockchainType, batch_size: int):
 
     engine = create_moonstream_engine(
         MOONSTREAM_DB_URI_READ_ONLY,
@@ -81,19 +86,24 @@ def parse_metadata(jobs, blockchain_type, block_number):
                 db_session=db_session, blockchain_type=blockchain_type, address=address
             )
 
-            for token_uri_data in tokens_uri_by_address[address]:
+            for requests_chunk in [
+                tokens_uri_by_address[address][i : i + batch_size]
+                for i in range(0, len(tokens_uri_by_address[address]), batch_size)
+            ]:
 
-                if token_uri_data.token_id not in already_parsed:
-                    metadata = crawl_uri(token_uri_data)
+                for token_uri_data in requests_chunk:
 
-                    db_session.add(
-                        metadata_to_label(
-                            blockchain_type=blockchain_type,
-                            metadata=metadata,
-                            token_uri_data=token_uri_data,
+                    if token_uri_data.token_id not in already_parsed:
+                        metadata = crawl_uri(token_uri_data.token_uri)
+
+                        db_session.add(
+                            metadata_to_label(
+                                blockchain_type=blockchain_type,
+                                metadata=metadata,
+                                token_uri_data=token_uri_data,
+                            )
                         )
-                    )
-        commit_session(db_session)
+                commit_session(db_session)
 
     finally:
         db_session.close()
@@ -107,26 +117,7 @@ def handle_crawl(args: argparse.Namespace) -> None:
 
     blockchain_type = AvailableBlockchainType(args.blockchain_type)
 
-    parse_metadata(blockchain_type)
-
-
-def parse_abi(args: argparse.Namespace) -> None:
-    """
-    Parse the abi of the contract and save it to the database.
-    """
-
-    with open(args.abi_file, "r") as f:
-        # read json and parse only stateMutability equal to view
-        abi = json.load(f)
-
-    output_json = []
-
-    for method in abi:
-        if method.get("stateMutability") and method["stateMutability"] == "view":
-            output_json.append(method)
-
-    with open(f"view+{args.abi_file}", "w") as f:
-        json.dump(output_json, f)
+    parse_metadata(blockchain_type, args.batch_size)
 
 
 def main() -> None:
@@ -137,14 +128,21 @@ def main() -> None:
 
     metadata_crawler_parser = subparsers.add_parser(
         "crawl",
-        help="continuous crawling the event/function call jobs from bugout journal",
+        help="Crawler of tokens metadata.",
     )
     metadata_crawler_parser.add_argument(
         "--blockchain-type",
         "-b",
         type=str,
-        help="Type of blovkchain wich writng in database",
+        help="Type of blockchain wich writng in database",
         required=True,
+    )
+    metadata_crawler_parser.add_argument(
+        "--commit-batch-size",
+        "-c",
+        type=int,
+        default=50,
+        help="Amount of requests before commiting to database",
     )
     metadata_crawler_parser.set_defaults(func=handle_crawl)
 

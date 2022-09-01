@@ -32,10 +32,10 @@ def metadata_to_label(
             "token_id": token_uri_data.token_id,
             "metadata": metadata,
         },
-        address=token_uri_data["address"],
-        block_number=token_uri_data["block_number"],
+        address=token_uri_data.address,
+        block_number=token_uri_data.block_number,
         transaction_hash=None,
-        block_timestamp=token_uri_data["block_timestamp"],
+        block_timestamp=token_uri_data.block_timestamp,
     )
 
     return label
@@ -61,24 +61,24 @@ def get_uris_of_tokens(
     """
     Get meatadata URIs.
     """
-    metadata_for_parsing = db_session.query(
+    metadata_for_parsing = db_session.execute(
         """ SELECT
             DISTINCT ON(label_data -> 'inputs'-> 0 ) label_data -> 'inputs'-> 0 as token_id,
             label_data -> 'result' as token_uri,
             block_number as block_number,
             block_timestamp as block_timestamp,
-            address as address,
+            address as address
 
         FROM
             polygon_labels
         WHERE
-            AND label = 'view-state-alpha'
+            label = 'view-state-alpha'
             AND label_data ->> 'name' = 'tokenURI'
         ORDER BY
             label_data -> 'inputs'-> 0 ASC,
             block_number :: INT DESC;
     """
-    ).execute()
+    )
 
     results = [
         TokenURIs(
@@ -101,7 +101,7 @@ def get_current_metadata_for_address(
     """
     Get existing metadata.
     """
-    current_metadata = db_session.query(
+    current_metadata = db_session.execute(
         """ SELECT
             DISTINCT ON(label_data ->> 'token_id') label_data ->> 'token_id' as token_id
         FROM
@@ -112,8 +112,9 @@ def get_current_metadata_for_address(
         ORDER BY
             label_data ->> 'token_id' ASC,
             block_number :: INT DESC;
-    """
-    ).execute()
+    """,
+        {"address": address},
+    )
 
     result = [data[0] for data in current_metadata]
 
