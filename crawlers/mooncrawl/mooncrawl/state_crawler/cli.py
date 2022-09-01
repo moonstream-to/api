@@ -2,8 +2,6 @@ import argparse
 import json
 import hashlib
 import itertools
-from pickle import TRUE
-from pprint import pprint
 import logging
 from random import random
 from typing import List, Any
@@ -273,8 +271,6 @@ def parse_jobs(jobs, blockchain_type, block_number):
     # reverse call_tree
     call_tree_levels = sorted(calls.keys(), reverse=True)[:-1]
 
-    pprint(calls)
-
     engine = create_moonstream_engine(
         MOONSTREAM_DB_URI_READ_ONLY,
         pool_pre_ping=True,
@@ -317,8 +313,6 @@ def parse_jobs(jobs, blockchain_type, block_number):
 
     finally:
         db_session.close()
-
-    print(responces)
 
 
 def handle_crawl(args: argparse.Namespace) -> None:

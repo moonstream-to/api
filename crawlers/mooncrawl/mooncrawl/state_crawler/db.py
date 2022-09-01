@@ -19,12 +19,6 @@ def view_call_to_label(
     """
     Creates a label model.
 
-                    "result": calls[index]["method"].decode_output(encoded_data[1]),
-                    "hash": calls[index]["hash"],
-                    "address": calls[index]["address"],
-                    "name": calls[index]["method"].name,
-                    "inputs": calls[index]["inputs"],
-                    "block_number": block_number,
     """
     label_model = get_label_model(blockchain_type)
     label = label_model(
