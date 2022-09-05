@@ -1,4 +1,5 @@
 import logging
+import json
 from typing import Dict, List, Optional
 
 from moonstreamdb.blockchain import AvailableBlockchainType, get_label_model
@@ -20,13 +21,19 @@ def _event_to_label(
     Creates a label model.
     """
     label_model = get_label_model(blockchain_type)
+    sanityzed_label_data = json.loads(
+        json.dumps(
+            {
+                "type": "event",
+                "name": event.event_name,
+                "args": event.args,
+            }
+        ).replace(r"\u0000", "")
+    )
+
     label = label_model(
         label=label_name,
-        label_data={
-            "type": "event",
-            "name": event.event_name,
-            "args": event.args,
-        },
+        label_data=sanityzed_label_data,
         address=event.address,
         block_number=event.block_number,
         block_timestamp=event.block_timestamp,
@@ -45,16 +52,23 @@ def _function_call_to_label(
     Creates a label model.
     """
     label_model = get_label_model(blockchain_type)
+
+    sanityzed_label_data = json.loads(
+        json.dumps(
+            {
+                "type": "tx_call",
+                "name": function_call.function_name,
+                "caller": function_call.caller_address,
+                "args": function_call.function_args,
+                "status": function_call.status,
+                "gasUsed": function_call.gas_used,
+            }
+        ).replace(r"\u0000", "")
+    )
+
     label = label_model(
         label=label_name,
-        label_data={
-            "type": "tx_call",
-            "name": function_call.function_name,
-            "caller": function_call.caller_address,
-            "args": function_call.function_args,
-            "status": function_call.status,
-            "gasUsed": function_call.gas_used,
-        },
+        label_data=sanityzed_label_data,
         address=function_call.contract_address,
         block_number=function_call.block_number,
         transaction_hash=function_call.transaction_hash,
