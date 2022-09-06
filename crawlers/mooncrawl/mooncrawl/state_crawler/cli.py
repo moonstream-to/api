@@ -3,26 +3,25 @@ import json
 import hashlib
 import itertools
 import logging
-from random import random
-from typing import List, Any
+from typing import List, Any, Optional
 from uuid import UUID
 
 from moonstreamdb.blockchain import AvailableBlockchainType
+from mooncrawl.moonworm_crawler.crawler import _retry_connect_web3
 from moonstreamdb.db import (
     MOONSTREAM_DB_URI_READ_ONLY,
     MOONSTREAM_POOL_SIZE,
     create_moonstream_engine,
 )
 from sqlalchemy.orm import sessionmaker
+
 from .db import view_call_to_label, commit_session
+from .Multicall2_interface import Contract as Multicall2
 from ..settings import (
     NB_CONTROLLER_ACCESS_ID,
     MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS,
 )
-
-# from .db import get_first_labeled_block_number, get_last_labeled_block_number
-from brownie import Contract, network, chain, web3
-import Multicall2
+from .web3_util import FunctionSignature
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -41,15 +40,13 @@ def make_multicall(
     multicall_calls = [
         (
             call["address"],
-            call["method"].encode_input(*call["inputs"]),
+            call["method"].encode_data(call["inputs"]).hex(),
         )
         for call in calls
     ]
 
-    multicall_result = multicall_method.call(
-        False,  # success not required
-        multicall_calls,
-        block_identifier=block_number,
+    multicall_result = multicall_method(False, calls=multicall_calls).call(
+        block_identifier=block_number
     )
 
     results = []
@@ -59,11 +56,11 @@ def make_multicall(
         if encoded_data[0]:
             results.append(
                 {
-                    "result": calls[index]["method"].decode_output(encoded_data[1]),
+                    "result": calls[index]["method"].decode_data(encoded_data[1])[0],
                     "hash": calls[index]["hash"],
                     "method": calls[index]["method"],
                     "address": calls[index]["address"],
-                    "name": calls[index]["method"].abi["name"],
+                    "name": calls[index]["method"].name,
                     "inputs": calls[index]["inputs"],
                     "call_data": multicall_calls[index][1],
                     "block_number": block_number,
@@ -74,11 +71,11 @@ def make_multicall(
         else:
             results.append(
                 {
-                    "result": None,  # calls[index]["method"].decode_output(encoded_data[1]),
+                    "result": calls[index]["method"].decode_data(encoded_data[1]),
                     "hash": calls[index]["hash"],
                     "method": calls[index]["method"],
                     "address": calls[index]["address"],
-                    "name": calls[index]["method"].abi["name"],
+                    "name": calls[index]["method"].name,
                     "inputs": calls[index]["inputs"],
                     "call_data": multicall_calls[index][1],
                     "block_number": block_number,
@@ -131,8 +128,8 @@ def crawl_calls_level(
             calls_of_level.append(
                 {
                     "address": call["address"],
-                    "method": interfaces[call["address"]].get_method_object(
-                        interfaces[call["address"]].signatures[call["name"]]
+                    "method": FunctionSignature(
+                        interfaces[call["address"]].get_function_by_name(call["name"])
                     ),
                     "hash": call["generated_hash"],
                     "inputs": call_parameters,
@@ -168,27 +165,30 @@ def crawl_calls_level(
         commit_session(db_session)
 
 
-def parse_jobs(jobs, blockchain_type, block_number):
+def parse_jobs(
+    jobs: List[Any],
+    blockchain_type: AvailableBlockchainType,
+    block_number: Optional[int],
+    batch_size: int,
+    access_id: UUID,
+):
 
     contracts_ABIs = {}
     contracts_methods = {}
     calls = {0: []}
 
-    blockchain_type_to_brownie_network = {
-        AvailableBlockchainType.POLYGON: "polygon-main",
-        AvailableBlockchainType.MUMBAI: "polygon-test",
-    }
-
-    network.connect(blockchain_type_to_brownie_network[blockchain_type])
+    web3_client = _retry_connect_web3(
+        blockchain_type=blockchain_type, access_id=access_id
+    )
 
     if block_number is None:
-        block_number = len(chain) - 1
+        block_number = web3_client.eth.get_block("latest").number
 
-    block_timestamp = web3.eth.get_block(block_number).timestamp
+    block_timestamp = web3_client.eth.get_block(block_number).timestamp
 
-    multicaller = Multicall2.Multicall2(Multicall2_address)
+    multicaller = Multicall2(web3=web3_client, contract_address=Multicall2_address)
 
-    multicall_method = multicaller.contract.tryAggregate
+    multicall_method = multicaller.tryAggregate
 
     def recursive_unpack(method_abi: Any, level: int = 0) -> Any:
         have_subcalls = False
@@ -259,14 +259,13 @@ def parse_jobs(jobs, blockchain_type, block_number):
             abis.append(contracts_ABIs[contract_address][method_hash])
 
         # generate interface
-        interfaces[contract_address] = Contract.from_abi(
-            random(), contract_address, abis
+        interfaces[contract_address] = web3_client.eth.contract(
+            address=contract_address, abi=abis
         )
 
     responces = {}
 
     # # create chunks of calls
-    batch_size = 500
 
     # reverse call_tree
     call_tree_levels = sorted(calls.keys(), reverse=True)[:-1]
@@ -353,7 +352,9 @@ def handle_crawl(args: argparse.Namespace) -> None:
 
     blockchain_type = AvailableBlockchainType(args.blockchain_type)
 
-    parse_jobs([my_job], blockchain_type, args.block_number)
+    parse_jobs(
+        [my_job], blockchain_type, args.block_number, args.batch_size, args.access_id
+    )
 
 
 def parse_abi(args: argparse.Namespace) -> None:
@@ -401,6 +402,13 @@ def main() -> None:
     )
     view_state_crawler_parser.add_argument(
         "--block-number", "-N", type=str, help="Block number."
+    )
+    view_state_crawler_parser.add_argument(
+        "--batch-size",
+        "-s",
+        type=int,
+        default=500,
+        help="Size of chunks wich send to Multicall2 contract.",
     )
     view_state_crawler_parser.set_defaults(func=handle_crawl)
 
