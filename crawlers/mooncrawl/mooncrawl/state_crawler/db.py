@@ -1,4 +1,5 @@
 import logging
+import json
 from typing import Dict, Any
 
 from moonstreamdb.blockchain import AvailableBlockchainType, get_label_model
@@ -21,16 +22,23 @@ def view_call_to_label(
 
     """
     label_model = get_label_model(blockchain_type)
+
+    sanityzed_label_data = json.loads(
+        json.dumps(
+            {
+                "type": "view",
+                "name": call["name"],
+                "result": call["result"],
+                "inputs": call["inputs"],
+                "call_data": call["call_data"],
+                "status": call["status"],
+            }
+        ).replace(r"\u0000", "")
+    )
+
     label = label_model(
         label=label_name,
-        label_data={
-            "type": "view",
-            "name": call["name"],
-            "result": call["result"],
-            "inputs": call["inputs"],
-            "call_data": call["call_data"],
-            "status": call["status"],
-        },
+        label_data=sanityzed_label_data,
         address=call["address"],
         block_number=call["block_number"],
         transaction_hash=None,
