@@ -2,14 +2,13 @@ import getpass
 import os
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-import web3
 from eth_account.account import Account  # type: ignore
 from eth_abi import encode_single, decode_single
 from eth_typing.evm import ChecksumAddress
 from eth_utils import function_signature_to_4byte_selector
 from hexbytes.main import HexBytes
 from web3 import Web3
-from web3.contract import Contract, ContractFunction
+from web3.contract import ContractFunction
 from web3.providers.ipc import IPCProvider
 from web3.providers.rpc import HTTPProvider
 from web3.types import ABI, Nonce, TxParams, TxReceipt, Wei
@@ -118,7 +117,7 @@ def deploy_contract_from_constructor_function(
     contract_abi: List[Dict[str, Any]],
     deployer: ChecksumAddress,
     deployer_private_key: str,
-    constructor: ContractConstructor,
+    constructor: ContractFunction,
 ) -> Tuple[HexBytes, ChecksumAddress]:
     """
     Deploys smart contract to blockchain from constructor ContractFunction
@@ -205,7 +204,7 @@ def cast_to_python_type(evm_type: str) -> Callable:
 
 
 class FunctionInput:
-    def __init__(self, name: str, value: any, solidity_type: str):
+    def __init__(self, name: str, value: Any, solidity_type: str):
         self.name = name
         self.value = value
         self.solidity_type = solidity_type
@@ -236,7 +235,7 @@ class FunctionSignature:
 
         self.fourbyte = function_signature_to_4byte_selector(self.signature)
 
-    def encode_data(self, args=None) -> str:
+    def encode_data(self, args=None) -> bytes:
         return (
             self.fourbyte + encode_single(self.input_types_signature, args)
             if args

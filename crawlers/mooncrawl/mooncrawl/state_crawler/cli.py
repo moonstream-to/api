@@ -3,7 +3,8 @@ import json
 import hashlib
 import itertools
 import logging
-from typing import List, Any, Optional
+from this import d
+from typing import Dict, List, Any, Optional
 from uuid import UUID
 
 from moonstreamdb.blockchain import AvailableBlockchainType
@@ -173,20 +174,22 @@ def parse_jobs(
     access_id: UUID,
 ):
 
-    contracts_ABIs = {}
-    contracts_methods = {}
-    calls = {0: []}
+    contracts_ABIs: Dict[str, Any] = {}
+    contracts_methods: Dict[str, Any] = {}
+    calls: Dict[int, Any] = {0: []}
 
     web3_client = _retry_connect_web3(
         blockchain_type=blockchain_type, access_id=access_id
     )
 
     if block_number is None:
-        block_number = web3_client.eth.get_block("latest").number
+        block_number = web3_client.eth.get_block("latest").number  # type: ignore
 
-    block_timestamp = web3_client.eth.get_block(block_number).timestamp
+    block_timestamp = web3_client.eth.get_block(block_number).timestamp  # type: ignore
 
-    multicaller = Multicall2(web3=web3_client, contract_address=Multicall2_address)
+    multicaller = Multicall2(
+        web3_client, web3_client.toChecksumAddress(Multicall2_address)
+    )
 
     multicall_method = multicaller.tryAggregate
 
@@ -260,10 +263,10 @@ def parse_jobs(
 
         # generate interface
         interfaces[contract_address] = web3_client.eth.contract(
-            address=contract_address, abi=abis
+            address=web3_client.toChecksumAddress(contract_address), abi=abis
         )
 
-    responces = {}
+    responces: Dict[str, Any] = {}
 
     # # create chunks of calls
 
