@@ -7,7 +7,7 @@ from typing import Dict, Any
 
 from moonstreamdb.blockchain import AvailableBlockchainType
 from moonstreamdb.db import (
-    MOONSTREAM_DB_URI_READ_ONLY,
+    MOONSTREAM_DB_URI,
     MOONSTREAM_POOL_SIZE,
     create_moonstream_engine,
 )
@@ -67,7 +67,7 @@ def parse_metadata(blockchain_type: AvailableBlockchainType, batch_size: int):
     logger.info(f"Connecting to blockchain {blockchain_type.value}")
 
     engine = create_moonstream_engine(
-        MOONSTREAM_DB_URI_READ_ONLY,
+        MOONSTREAM_DB_URI,
         pool_pre_ping=True,
         pool_size=MOONSTREAM_POOL_SIZE,
         statement_timeout=MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS,
