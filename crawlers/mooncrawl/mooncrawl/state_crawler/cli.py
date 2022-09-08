@@ -3,7 +3,6 @@ import json
 import hashlib
 import itertools
 import logging
-from this import d
 from typing import Dict, List, Any, Optional
 from uuid import UUID
 
@@ -21,6 +20,7 @@ from .Multicall2_interface import Contract as Multicall2
 from ..settings import (
     NB_CONTROLLER_ACCESS_ID,
     MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS,
+    multicall_contracts,
 )
 from .web3_util import FunctionSignature
 
@@ -173,6 +173,9 @@ def parse_jobs(
     batch_size: int,
     access_id: UUID,
 ):
+    """
+    Parse jobs from list and generate web3 interfaces for each contract.
+    """
 
     contracts_ABIs: Dict[str, Any] = {}
     contracts_methods: Dict[str, Any] = {}
@@ -188,12 +191,15 @@ def parse_jobs(
     block_timestamp = web3_client.eth.get_block(block_number).timestamp  # type: ignore
 
     multicaller = Multicall2(
-        web3_client, web3_client.toChecksumAddress(Multicall2_address)
+        web3_client, web3_client.toChecksumAddress(multicall_contracts[blockchain_type])
     )
 
     multicall_method = multicaller.tryAggregate
 
     def recursive_unpack(method_abi: Any, level: int = 0) -> Any:
+        """
+        Generate tree of calls for crawling
+        """
         have_subcalls = False
 
         abi = {
@@ -268,8 +274,6 @@ def parse_jobs(
 
     responces: Dict[str, Any] = {}
 
-    # # create chunks of calls
-
     # reverse call_tree
     call_tree_levels = sorted(calls.keys(), reverse=True)[:-1]
 
@@ -284,7 +288,7 @@ def parse_jobs(
 
     # run crawling of levels
     try:
-        # initial call
+        # initial call of level 0 all call without subcall mode there directly
         crawl_calls_level(
             db_session,
             calls[0],
@@ -353,7 +357,7 @@ def handle_crawl(args: argparse.Namespace) -> None:
         "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
     }
 
-    blockchain_type = AvailableBlockchainType(args.blockchain_type)
+    blockchain_type = AvailableBlockchainType(args.blockchain)
 
     parse_jobs(
         [my_job], blockchain_type, args.block_number, args.batch_size, args.access_id
@@ -393,11 +397,11 @@ def main() -> None:
     subparsers = parser.add_subparsers()
 
     view_state_crawler_parser = subparsers.add_parser(
-        "crawl_jobs",
-        help="continuous crawling the event/function call jobs from bugout journal",
+        "crawl-jobs",
+        help="continuous crawling the view methods from job structure",  # TODO(ANDREY): move tasks to journal
     )
     view_state_crawler_parser.add_argument(
-        "--blockchain-type",
+        "--blockchain",
         "-b",
         type=str,
         help="Type of blovkchain wich writng in database",
@@ -417,14 +421,14 @@ def main() -> None:
 
     generate_view_parser = subparsers.add_parser(
         "parse-abi",
-        help="parse the abi of the contract",
+        help="Parse view methods from the abi file.",
     )
 
     generate_view_parser.add_argument(
         "--abi-file",
         "-a",
         type=str,
-        help="abi file",
+        help="Path to abi file.",
     )
     generate_view_parser.set_defaults(func=parse_abi)
 
