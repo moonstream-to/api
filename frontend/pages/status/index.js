@@ -11,8 +11,6 @@ const Status = () => {
 
   const { serverListStatusCache } = useStatus();
 
-  console.log(serverListStatusCache?.data);
-
   const moonstreamapiStatus = serverListStatusCache?.data?.filter(
     (i) => i.name === "moonstream_api"
   )[0];
@@ -39,9 +37,6 @@ const Status = () => {
   )[0];
   const dbReplicaServerStatus = serverListStatusCache?.data?.filter(
     (i) => i.name === "moonstream_database_replica"
-  )[0];
-  const unimLeaderboardStatus = serverListStatusCache?.data?.filter(
-    (i) => i.name === "unim_leaderboard"
   )[0];
 
   const StatusRow = (props) => {
@@ -259,25 +254,6 @@ const Status = () => {
             {dbReplicaServerStatus?.response?.polygon_block_latest
               ? dbReplicaServerStatus.response.polygon_block_latest
               : 0}
-          </Text>
-        </StatusRow>
-
-        <br />
-
-        <StatusRow
-          title="Unim Leaderboard server"
-          cache={serverListStatusCache}
-        >
-          <Text
-            color={
-              unimLeaderboardStatus?.status_code == 200
-                ? healthyStatusColor
-                : downStatusColor
-            }
-          >
-            {unimLeaderboardStatus?.status_code == 200
-              ? healthyStatusText
-              : downStatusText}
           </Text>
         </StatusRow>
       </chakra.span>
