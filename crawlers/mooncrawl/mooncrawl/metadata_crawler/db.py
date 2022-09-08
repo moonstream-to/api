@@ -80,14 +80,16 @@ def get_uris_of_tokens(
             address as address
 
         FROM
-            :table
+            {}
         WHERE
             label = :label
             AND label_data ->> 'name' = :name
         ORDER BY
             label_data -> 'inputs'-> 0 ASC,
             block_number :: INT DESC;
-    """,
+    """.format(
+            table
+        ),
         {"table": table, "label": VIEW_STATE_CRAWLER_LABEL, "name": "tokenURI"},
     )
 
@@ -111,18 +113,25 @@ def get_current_metadata_for_address(
     """
     Get existing metadata.
     """
+
+    label_model = get_label_model(blockchain_type)
+
+    table = label_model.__tablename__
+
     current_metadata = db_session.execute(
         """ SELECT
             DISTINCT ON(label_data ->> 'token_id') label_data ->> 'token_id' as token_id
         FROM
-            polygon_labels
+            {}
         WHERE
             address = :address
             AND label = :label
         ORDER BY
             label_data ->> 'token_id' ASC,
             block_number :: INT DESC;
-    """,
+    """.format(
+            table
+        ),
         {"address": address, "label": METADATA_CRAWLER_LABEL},
     )
 

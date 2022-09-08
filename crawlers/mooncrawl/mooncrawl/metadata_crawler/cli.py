@@ -126,7 +126,7 @@ def handle_crawl(args: argparse.Namespace) -> None:
 
     blockchain_type = AvailableBlockchainType(args.blockchain)
 
-    parse_metadata(blockchain_type, args.batch_size)
+    parse_metadata(blockchain_type, args.commit_batch_size)
 
 
 def main() -> None:
