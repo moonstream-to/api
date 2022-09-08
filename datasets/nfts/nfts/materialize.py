@@ -34,7 +34,7 @@ from .datastore import insert_events, insert_transactions
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-ERC721_LABEL = "erc721"
+ERC721_LABEL = "erc721-v2"
 ERC20_LABEL = "test-erc20"
 
 
@@ -194,7 +194,7 @@ def crawl_erc721_labels(
 
     def crawl_with_threads(ranges: List[Tuple[int, int]]):
         futures: Dict[Future, Tuple[int, int]] = {}
-        with ThreadPoolExecutor(max_workers=20) as executor:
+        with ThreadPoolExecutor(max_workers=30) as executor:
             for from_block, to_block in ranges:
                 future = executor.submit(_crawl, from_block, to_block)
                 futures[future] = (from_block, to_block)
