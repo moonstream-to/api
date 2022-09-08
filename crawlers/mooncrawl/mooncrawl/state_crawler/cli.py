@@ -9,7 +9,7 @@ from uuid import UUID
 from moonstreamdb.blockchain import AvailableBlockchainType
 from mooncrawl.moonworm_crawler.crawler import _retry_connect_web3
 from moonstreamdb.db import (
-    MOONSTREAM_DB_URI_READ_ONLY,
+    MOONSTREAM_DB_URI,
     MOONSTREAM_POOL_SIZE,
     create_moonstream_engine,
 )
@@ -278,7 +278,7 @@ def parse_jobs(
     call_tree_levels = sorted(calls.keys(), reverse=True)[:-1]
 
     engine = create_moonstream_engine(
-        MOONSTREAM_DB_URI_READ_ONLY,
+        MOONSTREAM_DB_URI,
         pool_pre_ping=True,
         pool_size=MOONSTREAM_POOL_SIZE,
         statement_timeout=MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS,
