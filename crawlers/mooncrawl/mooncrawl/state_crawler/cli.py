@@ -154,16 +154,18 @@ def crawl_calls_level(
             except ValueError:
                 continue
         # results parsing and writing to database
-
+        add_to_session_count = 0
         for result in make_multicall_result:
 
             db_view = view_call_to_label(blockchain_type, result)
             db_session.add(db_view)
+            add_to_session_count += 1
 
             if result["hash"] not in responces:
                 responces[result["hash"]] = []
             responces[result["hash"]].append(result["result"])
         commit_session(db_session)
+        logger.info(f"{add_to_session_count} labels commit to database.")
 
 
 def parse_jobs(
@@ -185,8 +187,12 @@ def parse_jobs(
         blockchain_type=blockchain_type, access_id=access_id
     )
 
+    logger.info(f"Crawler started connected to blockchain: {blockchain_type}")
+
     if block_number is None:
         block_number = web3_client.eth.get_block("latest").number  # type: ignore
+
+    logger.info(f"Current block number: {block_number}")
 
     block_timestamp = web3_client.eth.get_block(block_number).timestamp  # type: ignore
 
@@ -288,7 +294,10 @@ def parse_jobs(
 
     # run crawling of levels
     try:
-        # initial call of level 0 all call without subcall mode there directly
+        # initial call of level 0 all call without subcalls directly moved there
+        logger.info("Crawl level: 0")
+        logger.info(f"Jobs amount: {len(calls[0])}")
+
         crawl_calls_level(
             db_session,
             calls[0],
@@ -303,6 +312,9 @@ def parse_jobs(
         )
 
         for level in call_tree_levels:
+
+            logger.info(f"Crawl level: {level}")
+            logger.info(f"Jobs amount: {len(calls[level])}")
 
             crawl_calls_level(
                 db_session,
