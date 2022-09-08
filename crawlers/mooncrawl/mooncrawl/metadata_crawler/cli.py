@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 batch_size = 50
 
 
-def crawl_uri(metadata_uri: str) -> Dict[str, Any]:
+def crawl_uri(metadata_uri: str) -> Any:
 
     """
     Get metadata from URI
@@ -59,6 +59,13 @@ def crawl_uri(metadata_uri: str) -> Dict[str, Any]:
 
 def parse_metadata(blockchain_type: AvailableBlockchainType, batch_size: int):
 
+    """
+    Parse all metadata of tokens.
+    """
+
+    logger.info("Starting metadata crawler")
+    logger.info(f"Connecting to blockchain {blockchain_type.value}")
+
     engine = create_moonstream_engine(
         MOONSTREAM_DB_URI_READ_ONLY,
         pool_pre_ping=True,
@@ -73,7 +80,7 @@ def parse_metadata(blockchain_type: AvailableBlockchainType, batch_size: int):
 
         uris_of_tokens = get_uris_of_tokens(db_session, blockchain_type)
 
-        tokens_uri_by_address = {}
+        tokens_uri_by_address: Dict[str, Any] = {}
 
         for token_uri_data in uris_of_tokens:
             if token_uri_data.address not in tokens_uri_by_address:
@@ -90,7 +97,7 @@ def parse_metadata(blockchain_type: AvailableBlockchainType, batch_size: int):
                 tokens_uri_by_address[address][i : i + batch_size]
                 for i in range(0, len(tokens_uri_by_address[address]), batch_size)
             ]:
-
+                writed_labels = 0
                 for token_uri_data in requests_chunk:
 
                     if token_uri_data.token_id not in already_parsed:
@@ -103,7 +110,9 @@ def parse_metadata(blockchain_type: AvailableBlockchainType, batch_size: int):
                                 token_uri_data=token_uri_data,
                             )
                         )
+                        writed_labels += 1
                 commit_session(db_session)
+                logger.info(f"Write {writed_labels} labels for {address}")
 
     finally:
         db_session.close()
@@ -115,7 +124,7 @@ def handle_crawl(args: argparse.Namespace) -> None:
     Parse all metadata of tokens.
     """
 
-    blockchain_type = AvailableBlockchainType(args.blockchain_type)
+    blockchain_type = AvailableBlockchainType(args.blockchain)
 
     parse_metadata(blockchain_type, args.batch_size)
 
@@ -131,7 +140,7 @@ def main() -> None:
         help="Crawler of tokens metadata.",
     )
     metadata_crawler_parser.add_argument(
-        "--blockchain-type",
+        "--blockchain",
         "-b",
         type=str,
         help="Type of blockchain wich writng in database",

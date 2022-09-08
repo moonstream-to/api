@@ -1,8 +1,6 @@
-from cgitb import reset
-from genericpath import exists
 import logging
-from typing import Dict, Any, Optional
-from unittest import result
+import json
+from typing import Dict, Any, Optional, List
 
 from moonstreamdb.blockchain import AvailableBlockchainType, get_label_model
 from sqlalchemy.orm import Session
@@ -17,7 +15,7 @@ logger = logging.getLogger(__name__)
 def metadata_to_label(
     blockchain_type: AvailableBlockchainType,
     metadata: Optional[Dict[str, Any]],
-    token_uri_data: Dict[str, Any],
+    token_uri_data: TokenURIs,
     label_name=METADATA_CRAWLER_LABEL,
 ):
 
@@ -25,13 +23,20 @@ def metadata_to_label(
     Creates a label model.
     """
     label_model = get_label_model(blockchain_type)
+
+    sanityzed_label_data = json.loads(
+        json.dumps(
+            {
+                "type": "metadata",
+                "token_id": token_uri_data.token_id,
+                "metadata": metadata,
+            }
+        ).replace(r"\u0000", "")
+    )
+
     label = label_model(
         label=label_name,
-        label_data={
-            "type": "metadata",
-            "token_id": token_uri_data.token_id,
-            "metadata": metadata,
-        },
+        label_data=sanityzed_label_data,
         address=token_uri_data.address,
         block_number=token_uri_data.block_number,
         transaction_hash=None,
@@ -56,11 +61,16 @@ def commit_session(db_session: Session) -> None:
 
 def get_uris_of_tokens(
     db_session: Session, blockchain_type: AvailableBlockchainType
-) -> Dict[str, str]:
+) -> List[TokenURIs]:
 
     """
     Get meatadata URIs.
     """
+
+    label_model = get_label_model(blockchain_type)
+
+    table = label_model.__tablename__
+
     metadata_for_parsing = db_session.execute(
         """ SELECT
             DISTINCT ON(label_data -> 'inputs'-> 0 ) label_data -> 'inputs'-> 0 as token_id,
@@ -70,14 +80,15 @@ def get_uris_of_tokens(
             address as address
 
         FROM
-            polygon_labels
+            :table
         WHERE
-            label = 'view-state-alpha'
-            AND label_data ->> 'name' = 'tokenURI'
+            label = :label
+            AND label_data ->> 'name' = :name
         ORDER BY
             label_data -> 'inputs'-> 0 ASC,
             block_number :: INT DESC;
-    """
+    """,
+        {"table": table, "label": VIEW_STATE_CRAWLER_LABEL, "name": "tokenURI"},
     )
 
     results = [
@@ -91,7 +102,6 @@ def get_uris_of_tokens(
         for data in metadata_for_parsing
     ]
 
-    # results = {key: value for key, value in metadata_for_parsing}
     return results
 
 
@@ -108,12 +118,12 @@ def get_current_metadata_for_address(
             polygon_labels
         WHERE
             address = :address
-            AND label = 'metadata-crawler'
+            AND label = :label
         ORDER BY
             label_data ->> 'token_id' ASC,
             block_number :: INT DESC;
     """,
-        {"address": address},
+        {"address": address, "label": METADATA_CRAWLER_LABEL},
     )
 
     result = [data[0] for data in current_metadata]
