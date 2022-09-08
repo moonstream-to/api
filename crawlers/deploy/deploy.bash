@@ -45,6 +45,8 @@ POLYGON_STATISTICS_SERVICE_FILE="polygon-statistics.service"
 POLYGON_STATISTICS_TIMER_FILE="polygon-statistics.timer"
 POLYGON_TXPOOL_SERVICE_FILE="polygon-txpool.service"
 POLYGON_MOONWORM_CRAWLER_SERVICE_FILE="polygon-moonworm-crawler.service"
+POLYGON_STATE_SERVICE_FILE="polygon-state.service"
+POLYGON_STATE_TIMER_FILE="polygon-state.timer"
 
 # XDai service file
 XDAI_SYNCHRONIZE_SERVICE="xdai-synchronize.service"
@@ -212,3 +214,12 @@ chmod 644 "${SCRIPT_DIR}/${XDAI_MOONWORM_CRAWLER_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${XDAI_MOONWORM_CRAWLER_SERVICE_FILE}" "/etc/systemd/system/${XDAI_MOONWORM_CRAWLER_SERVICE_FILE}"
 systemctl daemon-reload
 systemctl restart --no-block "${XDAI_MOONWORM_CRAWLER_SERVICE_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Polygon state service and timer with: ${POLYGON_STATE_SERVICE_FILE}, ${POLYGON_STATE_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${POLYGON_STATE_SERVICE_FILE}" "${SCRIPT_DIR}/${POLYGON_STATE_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${POLYGON_STATE_SERVICE_FILE}" "/etc/systemd/system/${POLYGON_STATE_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${POLYGON_STATE_TIMER_FILE}" "/etc/systemd/system/${POLYGON_STATE_TIMER_FILE}"
+systemctl daemon-reload
+systemctl restart --no-block "${POLYGON_STATE_TIMER_FILE}"

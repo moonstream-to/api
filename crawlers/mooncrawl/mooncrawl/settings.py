@@ -1,8 +1,10 @@
 import os
-from typing import Optional, cast
+from typing import Optional, Dict
 from uuid import UUID
 
 from bugout.app import Bugout
+from moonstreamdb.blockchain import AvailableBlockchainType
+
 
 BUGOUT_RESOURCE_TYPE_SUBSCRIPTION = "subscription"
 BUGOUT_RESOURCE_TYPE_DASHBOARD = "dashboards"
@@ -40,6 +42,22 @@ DOCS_TARGET_PATH = "docs"
 
 # Crawler label
 CRAWLER_LABEL = "moonworm-alpha"
+VIEW_STATE_CRAWLER_LABEL = "view-state-alpha"
+
+
+MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS = 30000
+MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS_RAW = os.environ.get(
+    "MOONSTREAM_QUERY_API_DB_STATEMENT_TIMEOUT_MILLIS"
+)
+try:
+    if MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS_RAW is not None:
+        MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS = int(
+            MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS_RAW
+        )
+except:
+    raise Exception(
+        f"Could not parse MOONSTREAM_QUERY_API_DB_STATEMENT_TIMEOUT_MILLIS as int: {MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS_RAW}"
+    )
 
 # Geth connection address
 MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI = os.environ.get(
@@ -151,3 +169,10 @@ try:
     NB_CONTROLLER_ACCESS_ID = UUID(NB_CONTROLLER_ACCESS_ID_RAW)
 except:
     pass
+
+
+multicall_contracts: Dict[AvailableBlockchainType, str] = {
+    AvailableBlockchainType.POLYGON: "0xc8E51042792d7405184DfCa245F2d27B94D013b6",
+    AvailableBlockchainType.MUMBAI: "0xe9939e7Ea7D7fb619Ac57f648Da7B1D425832631",
+    AvailableBlockchainType.ETHEREUM: "0x5BA1e12693Dc8F9c48aAD8770482f4739bEeD696",
+}
