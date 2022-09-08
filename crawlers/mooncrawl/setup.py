@@ -62,7 +62,8 @@ setup(
             "moonworm-crawler=mooncrawl.moonworm_crawler.cli:main",
             "nft=mooncrawl.nft.cli:main",
             "statistics=mooncrawl.stats_worker.dashboard:main",
-            "state-crawler=mooncrawl.state_crawler.cli:main"
+            "state-crawler=mooncrawl.state_crawler.cli:main",
+            "metadata-crawler=mooncrawl.metadata_crawler.cli:main",
         ]
     },
 )
