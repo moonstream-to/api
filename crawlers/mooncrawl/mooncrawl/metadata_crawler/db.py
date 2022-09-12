@@ -29,6 +29,7 @@ def metadata_to_label(
             {
                 "type": "metadata",
                 "token_id": token_uri_data.token_id,
+                "token_uri": token_uri_data.token_uri,
                 "metadata": metadata,
             }
         ).replace(r"\u0000", "")
