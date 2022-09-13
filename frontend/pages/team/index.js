@@ -4,6 +4,7 @@ import {
   Text,
   Flex,
   Link,
+  Image as ChakraImage,
   Stack,
   chakra,
   useMediaQuery,
@@ -11,31 +12,34 @@ import {
   ListItem,
   Box,
   SimpleGrid,
+  Center,
 } from "@chakra-ui/react";
-import { DEFAULT_METATAGS, AWS_ASSETS_PATH } from "../../src/core/constants";
+import { AWS_ASSETS_PATH } from "../../src/core/constants";
 import UIContext from "../../src/core/providers/UIProvider/context";
 import TeamCard from "../../src/components/TeamCard";
+import { getLayout, getLayoutProps } from "../../src/layouts/WideInfoPage";
+
+const TEAM_PATH = `${AWS_ASSETS_PATH}/team`;
 
 const assets = {
   background720: `${AWS_ASSETS_PATH}/blog-background-720x405.png`,
   background1920: `${AWS_ASSETS_PATH}/blog-background-720x405.png`,
   background2880: `${AWS_ASSETS_PATH}/blog-background-720x405.png`,
   background3840: `${AWS_ASSETS_PATH}/blog-background-720x405.png`,
-  team: `${AWS_ASSETS_PATH}/Team-page-illustration.png`,
-  dragonfly: `${AWS_ASSETS_PATH}/dragonfly.jpg`,
-  ladybird: `${AWS_ASSETS_PATH}/ladybird.jpg`,
-  locust: `${AWS_ASSETS_PATH}/locust.jpg`,
-  mantis: `${AWS_ASSETS_PATH}/mantis.jpg`,
-  centipede: `${AWS_ASSETS_PATH}/centipede.jpg`,
-  spider: `${AWS_ASSETS_PATH}/spider.jpg`,
-  ant: `${AWS_ASSETS_PATH}/ant.jpg`,
-  firefly: `${AWS_ASSETS_PATH}/firefly.jpg`,
-  scarab: `${AWS_ASSETS_PATH}/scarab.jpg`,
-  bee: `${AWS_ASSETS_PATH}/bee.jpg`,
-  weta: `${AWS_ASSETS_PATH}/weta.jpg`,
+  rocket: `${TEAM_PATH}/rocket.png`,
+  ant: `${TEAM_PATH}/ant.png`,
+  bee: `${TEAM_PATH}/bee.png`,
+  centipede: `${TEAM_PATH}/centipede.png`,
+  firefly: `${TEAM_PATH}/firefly.png`,
+  ladybug: `${TEAM_PATH}/ladybug.png`,
+  locust: `${TEAM_PATH}/locust.png`,
+  mantis: `${TEAM_PATH}/mantis.png`,
+  scarab: `${TEAM_PATH}/scarab.png`,
+  spider: `${TEAM_PATH}/carpenter-spider.png`,
+  weta: `${TEAM_PATH}/weta.png`,
 };
 
-const Product = () => {
+const Team = () => {
   const ui = useContext(UIContext);
   const [background, setBackground] = useState("background720");
   const [backgroundLoaded720, setBackgroundLoaded720] = useState(false);
@@ -139,7 +143,7 @@ const Product = () => {
           px={12}
           alignItems="start"
           columns={{ base: 1, md: 2 }}
-          // mb={24}
+          mb={24}
           spacingY={{ base: 10, md: 32 }}
           spacingX={{ base: 10, md: 24 }}
         >
@@ -165,14 +169,9 @@ const Product = () => {
               </Text>
             </chakra.span>
           </Box>
-          <Box
-            w="full"
-            py={48}
-            backgroundImage={`url(${assets[`team`]})`}
-            backgroundSize="cover"
-            bgPos="bottom"
-            bgColor="transparent"
-          ></Box>
+          <Center w="100%" h="100%">
+            <ChakraImage w="40%" src={assets["rocket"]} alt="rocket" />
+          </Center>
         </SimpleGrid>
       </Stack>
       <Stack mx={margin} mb={6} mt={0} maxW="1700px" w="100%">
@@ -248,14 +247,6 @@ const Product = () => {
             the guitar in between data witchcraft.`}
           />
           <TeamCard
-            avatarURL={assets["dragonfly"]}
-            name={"Tim Pechersky"}
-            atName={"@peersky"}
-            content={`Spectral hopper. Has special ability to perceive world trough spectral domain. Occasionaly
-            shifts in time domain to spend some in doing flow
-            arts, surfing, and connecting with nature.`}
-          />
-          <TeamCard
             avatarURL={assets["centipede"]}
             name={"Yhtyyar Sahatov"}
             atName={"@Yhtiyar"}
@@ -288,7 +279,7 @@ const Product = () => {
           placeContent={"center"}
         >
           <TeamCard
-            avatarURL={assets["ladybird"]}
+            avatarURL={assets["ladybug"]}
             name={"Sophia Aryan"}
             atName={"@pahita"}
             content={`Dreamer. An alien who pretends to be a human.
@@ -312,19 +303,46 @@ const Product = () => {
             dogs and dancing. Can walk 30km when under stress.`}
           />
           <TeamCard
+            avatarURL={assets["firefly"]}
+            name={"Ishkhan Balgudanian"}
+            atName={"@ishihssihshihishsi"}
+            content={`Lighter. Designer to the bone. Constantly
+            working on self-development. Sometimes plays guitar
+            and ukulele. Loves meat, went from well done to blue
+            rare in a few months.`}
+          />
+        </Stack>
+      </Stack>
+      <Stack mx={margin} mb={12} maxW="1700px" w="100%">
+        <Heading as="h2" size="md" w="100%" px={12} py={2} borderTopRadius="xl">
+          Our marketing and growth team
+        </Heading>
+        <Stack
+          w="100%"
+          direction={"row"}
+          flexWrap="wrap"
+          spacing={4}
+          justifyContent="space-between"
+          px={[3, 6, 12]}
+          placeContent={"center"}
+        >
+          {/* Saving Sam for DAO */}
+          <TeamCard
             avatarURL={assets["weta"]}
             name={"Sam Kamani"}
             atName={"@samkamani"}
             content={`Extrovert. Podcaster, Author & Keynote speaker.
-            Loves learning about new technology, macro economics and
-            talking with other ambitious people. Plays multiplayer FPS,
-            tennis or oil painting to relax.`}
+                      Loves learning about new technology, macro economics and
+                      talking with other ambitious people. Plays multiplayer FPS,
+                      tennis or oil painting to relax.`}
           />
         </Stack>
       </Stack>
     </Flex>
   );
 };
+
+Team.getLayout = getLayout;
 
 export async function getStaticProps() {
   const assetPreload = Object.keys(assets).map((key) => {
@@ -338,8 +356,16 @@ export async function getStaticProps() {
 
   const preloads = assetPreload.concat(preconnects);
 
-  return {
-    props: { metaTags: { ...DEFAULT_METATAGS }, preloads },
+  const metaTags = {
+    title: "Moonstream: Team page",
+    description: "Moonstream team members",
+    keywords:
+      "blockchain, crypto, data, trading, smart contracts, ethereum, solana, transactions, defi, finance, decentralized, analytics, product, whitepapers",
+    url: "https://www.moonstream.to/team"
   };
+  const layoutProps = getLayoutProps();
+  layoutProps.props.metaTags = { ...layoutProps.props.metaTags, ...metaTags };
+  layoutProps.props = { ...layoutProps.props, ...preloads };
+  return { ...layoutProps };
 }
-export default Product;
+export default Team;
