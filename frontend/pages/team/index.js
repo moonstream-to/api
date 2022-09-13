@@ -357,7 +357,7 @@ export async function getStaticProps() {
     description: "Moonstream team members",
     keywords:
       "blockchain, crypto, data, trading, smart contracts, ethereum, solana, transactions, defi, finance, decentralized, analytics, product, whitepapers",
-    url: "https://www.moonstream.to/team"
+    url: "https://www.moonstream.to/team",
   };
   const layoutProps = getLayoutProps();
   layoutProps.props.metaTags = { ...layoutProps.props.metaTags, ...metaTags };

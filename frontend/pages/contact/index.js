@@ -5,7 +5,7 @@ import HubspotForm from "react-hubspot-form";
 import { useRouter } from "next/router";
 import { BiArrowBack } from "react-icons/bi";
 
-const Contact = (props) => {
+const Contact = () => {
   const router = useRouter();
   const formId = "b54d192f-59b1-410a-8ac1-a1e8383c423c";
 
