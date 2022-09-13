@@ -311,29 +311,6 @@ const Team = () => {
           />
         </Stack>
       </Stack>
-      {/* <Stack mx={margin} mb={12} maxW="1700px" w="100%">
-        <Heading as="h2" size="md" w="100%" px={12} py={2} borderTopRadius="xl">
-          Moonstream DAO
-        </Heading>
-        <Stack
-          w="100%"
-          direction={"row"}
-          flexWrap="wrap"
-          spacing={4}
-          justifyContent="space-between"
-          px={[3, 6, 12]}
-        >
-          <TeamCard
-            avatarURL={assets["weta"]}
-            name={"Sam Kamani"}
-            atName={"@samkamani"}
-            content={`Extrovert. Podcaster, Author & Keynote speaker.
-                      Loves learning about new technology, macro economics and
-                      talking with other ambitious people. Plays multiplayer FPS,
-                      tennis or oil painting to relax.`}
-          />
-        </Stack>
-      </Stack> */}
     </Flex>
   );
 };
