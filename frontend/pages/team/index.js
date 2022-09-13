@@ -219,10 +219,9 @@ const Team = () => {
           w="100%"
           direction={"row"}
           flexWrap="wrap"
-          spacing={4}
           justifyContent="space-between"
           px={[3, 6, 12]}
-          placeContent={"center"}
+          alignContent="left"
         >
           <TeamCard
             avatarURL={assets["ant"]}
@@ -273,10 +272,9 @@ const Team = () => {
           w="100%"
           direction={"row"}
           flexWrap="wrap"
-          spacing={4}
           justifyContent="space-between"
           px={[3, 6, 12]}
-          placeContent={"center"}
+          alignContent="left"
         >
           <TeamCard
             avatarURL={assets["ladybug"]}
@@ -313,9 +311,9 @@ const Team = () => {
           />
         </Stack>
       </Stack>
-      <Stack mx={margin} mb={12} maxW="1700px" w="100%">
+      {/* <Stack mx={margin} mb={12} maxW="1700px" w="100%">
         <Heading as="h2" size="md" w="100%" px={12} py={2} borderTopRadius="xl">
-          Our marketing and growth team
+          Moonstream DAO
         </Heading>
         <Stack
           w="100%"
@@ -324,9 +322,7 @@ const Team = () => {
           spacing={4}
           justifyContent="space-between"
           px={[3, 6, 12]}
-          placeContent={"center"}
         >
-          {/* Saving Sam for DAO */}
           <TeamCard
             avatarURL={assets["weta"]}
             name={"Sam Kamani"}
@@ -337,7 +333,7 @@ const Team = () => {
                       tennis or oil painting to relax.`}
           />
         </Stack>
-      </Stack>
+      </Stack> */}
     </Flex>
   );
 };
