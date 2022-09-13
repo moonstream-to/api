@@ -15,7 +15,7 @@ from moonstreamdb.db import (
 )
 from sqlalchemy.orm import sessionmaker
 
-from .db import view_call_to_label, commit_session
+from .db import view_call_to_label, commit_session, clean_labels
 from .Multicall2_interface import Contract as Multicall2
 from ..settings import (
     NB_CONTROLLER_ACCESS_ID,
@@ -395,6 +395,35 @@ def parse_abi(args: argparse.Namespace) -> None:
         json.dump(output_json, f)
 
 
+def clean_labels_handler(args: argparse.Namespace) -> None:
+
+    blockchain_type = AvailableBlockchainType(args.blockchain)
+
+    web3_client = _retry_connect_web3(
+        blockchain_type=blockchain_type, access_id=args.access_id
+    )
+
+    logger.info(f"Label cleaner connected to blockchain: {blockchain_type}")
+
+    block_number = web3_client.eth.get_block("latest").number  # type: ignore
+
+    engine = create_moonstream_engine(
+        MOONSTREAM_DB_URI,
+        pool_pre_ping=True,
+        pool_size=MOONSTREAM_POOL_SIZE,
+        statement_timeout=MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS,
+    )
+    process_session = sessionmaker(bind=engine)
+    db_session = process_session()
+
+    try:
+        clean_labels(
+            db_session, blockchain_type, args.block_number_cutoff, block_number
+        )
+    finally:
+        db_session.close()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.set_defaults(func=lambda _: parser.print_help())
@@ -430,6 +459,25 @@ def main() -> None:
         help="Size of chunks wich send to Multicall2 contract.",
     )
     view_state_crawler_parser.set_defaults(func=handle_crawl)
+
+    view_state_cleaner = subparsers.add_parser(
+        "clean-state-labels",
+        help="Clean labels from database",
+    )
+    view_state_cleaner.add_argument(
+        "--blockchain",
+        "-b",
+        type=str,
+        help="Type of blovkchain wich writng in database",
+        required=True,
+    )
+    view_state_cleaner.add_argument(
+        "--blocks-cutoff",
+        "-N",
+        type=str,
+        help="Amount blocks back after wich data will be remove.",
+    )
+    view_state_cleaner.set_defaults(func=clean_labels_handler)
 
     generate_view_parser = subparsers.add_parser(
         "parse-abi",
