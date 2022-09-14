@@ -472,8 +472,9 @@ def main() -> None:
     view_state_cleaner.add_argument(
         "--blocks-cutoff",
         "-N",
+        required=True,
         type=int,
-        help="Amount blocks back after wich data will be remove.",
+        help="Amount blocks back, after wich data will be remove.",
     )
     view_state_cleaner.set_defaults(func=clean_labels_handler)
 
