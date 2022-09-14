@@ -85,6 +85,7 @@ def clean_labels(
             label_model.block_number < block_number - blocks_cutoff,
         )
         result = query.delete(synchronize_session=False)
+        db_session.commit()
         logger.info(f"Removed {result} rows from {table}")
     except Exception as e:
         logger.error(f"Failed to remove labels: {e}")
