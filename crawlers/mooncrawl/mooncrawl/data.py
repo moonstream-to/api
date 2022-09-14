@@ -54,6 +54,6 @@ class QueryDataUpdate(BaseModel):
 class TokenURIs(BaseModel):
     token_id: str
     token_uri: str
-    block_number: str
+    block_number: int
     block_timestamp: str
     address: str

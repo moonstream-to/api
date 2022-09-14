@@ -1,9 +1,11 @@
 import argparse
 import json
+from time import time, sleep
 from urllib.error import HTTPError
 import urllib.request
 import logging
-from typing import Dict, Any
+import requests
+from typing import Any
 from concurrent.futures import ThreadPoolExecutor
 
 from moonstreamdb.blockchain import AvailableBlockchainType
@@ -15,8 +17,8 @@ from moonstreamdb.db import (
 from sqlalchemy.orm import sessionmaker
 from .db import (
     commit_session,
-    get_uris_of_tokens,
-    get_current_metadata_for_address,
+    get_uri_addresses,
+    get_not_updated_metadata_for_address,
     metadata_to_label,
 )
 from ..settings import (
@@ -41,8 +43,14 @@ def crawl_uri(token_uri_data: TokenURIs) -> Any:
     result = None
     while retry < 3:
         try:
-
-            response = urllib.request.urlopen(token_uri_data.token_uri, timeout=5)
+            req = urllib.request.Request(
+                token_uri_data.token_uri,
+                None,
+                {
+                    "User-agent": "Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.9.1.5) Gecko/20091102 Firefox/3.5.5"
+                },
+            )
+            response = urllib.request.urlopen(req, timeout=5)
 
             if response.status == 200:
                 result = json.loads(response.read())
@@ -51,12 +59,17 @@ def crawl_uri(token_uri_data: TokenURIs) -> Any:
 
         except HTTPError as error:
             logger.error(f"request end with error statuscode: {error.code}")
+            logger.error(f"requested uri: {token_uri_data.token_uri}")
             retry += 1
+            sleep(2)
             continue
         except Exception as err:
             logger.error(err)
+            logger.error(f"requested uri: {token_uri_data.token_uri}")
             retry += 1
+            sleep(2)
             continue
+    sleep(0.5)
     return result, token_uri_data
 
 
@@ -81,20 +94,23 @@ def parse_metadata(blockchain_type: AvailableBlockchainType, batch_size: int):
     # run crawling of levels
     try:
 
-        uris_of_tokens = get_uris_of_tokens(db_session, blockchain_type)
+        meradata_addresses = get_uri_addresses(db_session, blockchain_type)
 
-        tokens_uri_by_address: Dict[str, Any] = {}
+        for address in meradata_addresses:
 
-        for token_uri_data in uris_of_tokens:
-            if token_uri_data.address not in tokens_uri_by_address:
-                tokens_uri_by_address[token_uri_data.address] = []
-            tokens_uri_by_address[token_uri_data.address].append(token_uri_data)
+            not_updated_tokens = get_not_updated_metadata_for_address(
+                db_session,
+                blockchain_type,
+                address=address,
+            )
 
-        for address in tokens_uri_by_address:
+            logger.info(
+                f"Start crawling {len(not_updated_tokens)} tokens of address {address}"
+            )
 
             for requests_chunk in [
-                tokens_uri_by_address[address][i : i + batch_size]
-                for i in range(0, len(tokens_uri_by_address[address]), batch_size)
+                not_updated_tokens[i : i + batch_size]
+                for i in range(0, len(not_updated_tokens), batch_size)
             ]:
                 writed_labels = 0
 

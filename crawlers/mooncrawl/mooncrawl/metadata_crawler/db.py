@@ -1,6 +1,7 @@
 import logging
 import json
 from typing import Dict, Any, Optional, List
+from unittest import result
 
 from moonstreamdb.blockchain import AvailableBlockchainType, get_label_model
 from sqlalchemy.orm import Session
@@ -60,9 +61,9 @@ def commit_session(db_session: Session) -> None:
         raise e
 
 
-def get_uris_of_tokens(
+def get_uri_addresses(
     db_session: Session, blockchain_type: AvailableBlockchainType
-) -> List[TokenURIs]:
+) -> List[str]:
 
     """
     Get meatadata URIs.
@@ -70,47 +71,22 @@ def get_uris_of_tokens(
 
     label_model = get_label_model(blockchain_type)
 
-    table = label_model.__tablename__
+    addresses = (
+        db_session.query(label_model.address.distinct())
+        .filter(label_model.label == VIEW_STATE_CRAWLER_LABEL)
+        .filter(label_model.label_data["name"].astext == "tokenURI")
+    ).all()
 
-    metadata_for_parsing = db_session.execute(
-        """ SELECT
-            DISTINCT ON(label_data -> 'inputs'-> 0 ) label_data -> 'inputs'-> 0 as token_id,
-            label_data -> 'result' as token_uri,
-            block_number as block_number,
-            block_timestamp as block_timestamp,
-            address as address
+    result = [address[0] for address in addresses]
 
-        FROM
-            {}
-        WHERE
-            label = :label
-            AND label_data ->> 'name' = :name
-        ORDER BY
-            label_data -> 'inputs'-> 0 ASC,
-            block_number :: INT DESC;
-    """.format(
-            table
-        ),
-        {"table": table, "label": VIEW_STATE_CRAWLER_LABEL, "name": "tokenURI"},
-    )
-
-    results = [
-        TokenURIs(
-            token_id=data[0],
-            token_uri=data[1],
-            block_number=data[2],
-            block_timestamp=data[3],
-            address=data[4],
-        )
-        for data in metadata_for_parsing
-    ]
-
-    return results
+    return result
 
 
-def get_current_metadata_for_address(
-    db_session: Session, blockchain_type: AvailableBlockchainType, address: str
-):
+def get_not_updated_metadata_for_address(
+    db_session: Session,
+    blockchain_type: AvailableBlockchainType,
+    address: str,
+) -> List[TokenURIs]:
     """
     Get existing metadata.
     """
@@ -120,22 +96,79 @@ def get_current_metadata_for_address(
     table = label_model.__tablename__
 
     current_metadata = db_session.execute(
-        """ SELECT
-            DISTINCT ON(label_data ->> 'token_id') label_data ->> 'token_id' as token_id
-        FROM
-            {}
-        WHERE
-            address = :address
-            AND label = :label
-        ORDER BY
-            label_data ->> 'token_id' ASC,
-            block_number :: INT DESC;
-    """.format(
-            table
+        """ with current_tokens_uri as (
+                SELECT
+                    DISTINCT ON((label_data -> 'inputs' -> 0) :: int) (label_data -> 'inputs' -> 0) :: text as token_id,
+                    label_data ->> 'result' as token_uri,
+                    block_number,
+                    address,
+                    block_timestamp
+                from
+                    {}
+                where
+                    label = :view_state_label
+                    AND address = :address
+                    and label_data ->> 'name' = 'tokenURI'
+                order by
+                    (label_data -> 'inputs' -> 0) :: INT ASC,
+                    block_number :: INT DESC
+            ),
+            tokens_metadata as (
+                SELECT
+                    DISTINCT ON((label_data ->> 'token_id') :: int) (label_data ->> 'token_id') :: text as token_id,
+                    label_data ->>'token_uri' as token_uri,
+                    block_number
+                from
+                    {}
+                where
+                    label = :metadata_label
+                    AND address = :address
+                order by
+                    (label_data ->> 'token_id') :: INT ASC,
+                    block_number :: INT DESC
+            ),
+            tokens_state as (
+            SELECT
+                current_tokens_uri.token_id,
+                current_tokens_uri.token_uri as state_token_uri,
+                current_tokens_uri.block_number as view_state_block_number,
+                current_tokens_uri.block_timestamp as block_timestamp,
+                current_tokens_uri.address as address,
+                tokens_metadata.block_number as metadata_block_number,
+                tokens_metadata.token_uri as metadata_token_uri
+            from
+                current_tokens_uri
+                left JOIN tokens_metadata ON current_tokens_uri.token_id = tokens_metadata.token_id
+            )
+            SELECT
+                token_id,
+                state_token_uri,
+                view_state_block_number,
+                block_timestamp,
+                address
+            from
+                tokens_state
+            where
+                view_state_block_number > metadata_block_number OR metadata_token_uri is null OR metadata_token_uri != state_token_uri;
+        """.format(
+            table, table
         ),
-        {"address": address, "label": METADATA_CRAWLER_LABEL},
-    )
+        {
+            "metadata_label": METADATA_CRAWLER_LABEL,
+            "view_state_label": VIEW_STATE_CRAWLER_LABEL,
+            "address": address,
+        },
+    ).all()
 
-    result = [data[0] for data in current_metadata]
+    results = [
+        TokenURIs(
+            token_id=data[0],
+            token_uri=data[1],
+            block_number=data[2],
+            block_timestamp=data[3],
+            address=data[4],
+        )
+        for data in current_metadata
+    ]
 
-    return result
+    return results
