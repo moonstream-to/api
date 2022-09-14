@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
+from uuid import UUID
 
 from pydantic import BaseModel, Field
 
@@ -57,3 +58,4 @@ class TokenURIs(BaseModel):
     block_number: int
     block_timestamp: str
     address: str
+    metadata_id: Optional[UUID] = None

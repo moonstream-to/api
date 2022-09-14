@@ -117,7 +117,8 @@ def get_not_updated_metadata_for_address(
                 SELECT
                     DISTINCT ON((label_data ->> 'token_id') :: int) (label_data ->> 'token_id') :: text as token_id,
                     label_data ->>'token_uri' as token_uri,
-                    block_number
+                    block_number,
+                    id
                 from
                     {}
                 where
@@ -135,7 +136,8 @@ def get_not_updated_metadata_for_address(
                 current_tokens_uri.block_timestamp as block_timestamp,
                 current_tokens_uri.address as address,
                 tokens_metadata.block_number as metadata_block_number,
-                tokens_metadata.token_uri as metadata_token_uri
+                tokens_metadata.token_uri as metadata_token_uri,
+                tokens_metadata.id as metadata_id
             from
                 current_tokens_uri
                 left JOIN tokens_metadata ON current_tokens_uri.token_id = tokens_metadata.token_id
@@ -145,7 +147,8 @@ def get_not_updated_metadata_for_address(
                 state_token_uri,
                 view_state_block_number,
                 block_timestamp,
-                address
+                address,
+                metadata_id
             from
                 tokens_state
             where
@@ -167,8 +170,31 @@ def get_not_updated_metadata_for_address(
             block_number=data[2],
             block_timestamp=data[3],
             address=data[4],
+            metadata_id=data[5],
         )
         for data in current_metadata
     ]
 
     return results
+
+
+def update_metadata(
+    db_session: Session,
+    blockchain_type: AvailableBlockchainType,
+    id: Dict[str, Any],
+    label: Any,
+) -> None:
+    """
+    Update metadata.
+    """
+
+    label_model = get_label_model(blockchain_type)
+
+    db_session.query(label_model).filter(label_model.id == id).update(
+        {
+            "label_data": label.label_data,
+            "block_number": label.block_number,
+            "block_timestamp": label.block_timestamp,
+        },
+        synchronize_session=False,
+    )

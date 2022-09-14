@@ -20,6 +20,7 @@ from .db import (
     get_uri_addresses,
     get_not_updated_metadata_for_address,
     metadata_to_label,
+    update_metadata,
 )
 from ..settings import (
     MOONSTREAM_METADATA_CRAWLER_THREADS,
@@ -121,12 +122,26 @@ def parse_metadata(blockchain_type: AvailableBlockchainType, batch_size: int):
                     for result in executor.map(
                         crawl_uri, [request for request in requests_chunk]
                     ):
-                        db_session.add(
-                            metadata_to_label(
-                                metadata=result[0],
-                                blockchain_type=blockchain_type,
-                                token_uri_data=result[1],
-                            )
+
+                        metadata = result[0]
+                        token_uri_data = result[1]
+                        label = metadata_to_label(
+                            metadata=metadata,
+                            blockchain_type=blockchain_type,
+                            token_uri_data=token_uri_data,
+                        )
+
+                        if token_uri_data.metadata_id is None:
+
+                            db_session.add(label)
+                            writed_labels += 1
+                            continue
+
+                        update_metadata(
+                            db_session,
+                            blockchain_type,
+                            token_uri_data.metadata_id,
+                            label,
                         )
                         writed_labels += 1
 
