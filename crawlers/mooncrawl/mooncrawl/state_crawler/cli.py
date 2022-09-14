@@ -417,9 +417,7 @@ def clean_labels_handler(args: argparse.Namespace) -> None:
     db_session = process_session()
 
     try:
-        clean_labels(
-            db_session, blockchain_type, args.block_number_cutoff, block_number
-        )
+        clean_labels(db_session, blockchain_type, args.blocks_cutoff, block_number)
     finally:
         db_session.close()
 
@@ -474,7 +472,7 @@ def main() -> None:
     view_state_cleaner.add_argument(
         "--blocks-cutoff",
         "-N",
-        type=str,
+        type=int,
         help="Amount blocks back after wich data will be remove.",
     )
     view_state_cleaner.set_defaults(func=clean_labels_handler)

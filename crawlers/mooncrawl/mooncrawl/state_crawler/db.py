@@ -64,7 +64,7 @@ def commit_session(db_session: Session) -> None:
 def clean_labels(
     db_session: Session,
     blockchain_type: AvailableBlockchainType,
-    block_number_cutoff: int,
+    blocks_cutoff: int,
     block_number: int,
 ) -> None:
     """
@@ -74,18 +74,18 @@ def clean_labels(
     label_model = get_label_model(blockchain_type)
 
     table = label_model.__tablename__
+    print(f"Cleaning labels from table {table}")
+    print(f"Current block number: {block_number} - blocks cutoff: {blocks_cutoff}")
+    print(f"Deleting labels with block_number < {block_number - blocks_cutoff}")
 
     try:
         logger.info("Removing labels from database")
-        db_session.execute(
-            """DELETE FROM {} WHERE label =:label and block_number < :block_number""".format(
-                table
-            ),
-            {
-                "label": VIEW_STATE_CRAWLER_LABEL,
-                "block_number": block_number - block_number_cutoff,
-            },
+        query = db_session.query(label_model).filter(
+            label_model.label == VIEW_STATE_CRAWLER_LABEL,
+            label_model.block_number < block_number - blocks_cutoff,
         )
+        result = query.delete(synchronize_session=False)
+        logger.info(f"Removed {result} rows from {table}")
     except Exception as e:
         logger.error(f"Failed to remove labels: {e}")
         db_session.rollback()
