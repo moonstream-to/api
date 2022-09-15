@@ -2,7 +2,7 @@
 Description=Fill missing blocks at XDai database
 
 [Timer]
-OnBootSec=10s
+OnBootSec=35s
 OnUnitActiveSec=15m
 
 [Install]

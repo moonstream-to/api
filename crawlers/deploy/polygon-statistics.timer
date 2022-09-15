@@ -2,7 +2,7 @@
 Description=Update Polygon statistics dashboards each 6 hours
 
 [Timer]
-OnBootSec=10s
+OnBootSec=20s
 OnUnitActiveSec=6h
 
 [Install]
