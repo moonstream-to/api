@@ -47,6 +47,8 @@ POLYGON_TXPOOL_SERVICE_FILE="polygon-txpool.service"
 POLYGON_MOONWORM_CRAWLER_SERVICE_FILE="polygon-moonworm-crawler.service"
 POLYGON_STATE_SERVICE_FILE="polygon-state.service"
 POLYGON_STATE_TIMER_FILE="polygon-state.timer"
+POLYGON_STATE_CLEAN_SERVICE_FILE="polygon-state-clean.service"
+POLYGON_STATE_CLEAN_TIMER_FILE="polygon-state-clean.timer"
 POLYGON_METADATA_SERVICE_FILE="polygon-metadata.service"
 POLYGON_METADATA_TIMER_FILE="polygon-metadata.timer"
 
@@ -225,6 +227,15 @@ cp "${SCRIPT_DIR}/${POLYGON_STATE_SERVICE_FILE}" "/etc/systemd/system/${POLYGON_
 cp "${SCRIPT_DIR}/${POLYGON_STATE_TIMER_FILE}" "/etc/systemd/system/${POLYGON_STATE_TIMER_FILE}"
 systemctl daemon-reload
 systemctl restart --no-block "${POLYGON_STATE_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Polygon state clean service and timer with: ${POLYGON_STATE_CLEAN_SERVICE_FILE}, ${POLYGON_STATE_CLEAN_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${POLYGON_STATE_CLEAN_SERVICE_FILE}" "${SCRIPT_DIR}/${POLYGON_STATE_CLEAN_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${POLYGON_STATE_CLEAN_SERVICE_FILE}" "/etc/systemd/system/${POLYGON_STATE_CLEAN_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${POLYGON_STATE_CLEAN_TIMER_FILE}" "/etc/systemd/system/${POLYGON_STATE_CLEAN_TIMER_FILE}"
+systemctl daemon-reload
+systemctl restart --no-block "${POLYGON_STATE_CLEAN_TIMER_FILE}"
 
 echo
 echo
