@@ -24,8 +24,9 @@ SCRIPT_DIR="$(realpath $(dirname $0))"
 # Node status server service file
 NODE_STATUS_SERVER_SERVICE_FILE="node-status.service"
 
-# Ethereum geth service file
+# Ethereum service files
 ETHEREUM_GETH_SERVICE_FILE="geth.service"
+ETHEREUM_LIGHTHOUSE_BEACON_SERVICE_FILE="lighthousebeacon.service"
 
 set -eu
 
@@ -74,3 +75,12 @@ cp "${SCRIPT_DIR}/${ETHEREUM_GETH_SERVICE_FILE}" "/etc/systemd/system/${ETHEREUM
 systemctl daemon-reload
 systemctl disable "${ETHEREUM_GETH_SERVICE_FILE}"
 echo -e "${PREFIX_WARN} Geth service updated, but not restarted!"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Ethereum Lighthouse service definition with ${ETHEREUM_LIGHTHOUSE_BEACON_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ETHEREUM_LIGHTHOUSE_BEACON_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_LIGHTHOUSE_BEACON_SERVICE_FILE}" "/etc/systemd/system/${ETHEREUM_LIGHTHOUSE_BEACON_SERVICE_FILE}"
+systemctl daemon-reload
+systemctl disable "${ETHEREUM_LIGHTHOUSE_BEACON_SERVICE_FILE}"
+echo -e "${PREFIX_WARN} Lighouse service updated, but not restarted!"
