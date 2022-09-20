@@ -89,6 +89,16 @@ def get_not_updated_metadata_for_address(
 ) -> List[TokenURIs]:
     """
     Get existing metadata.
+
+    We want update metadata in 3 posible condition:
+        1) State of tokenURI have higher block_number then block_number of alredy crawled metadata.
+        2) metadata_token_uri is none for this token_id(we not crawl that token metadata yet).
+        3) metadata_token_uri is different then token_uri from state.
+
+    Query use both labels view_state_crawler and metadata_crawler
+
+    TODO(Andrey): Replace exexute to query builder syntax.
+
     """
 
     label_model = get_label_model(blockchain_type)
