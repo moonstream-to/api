@@ -2,7 +2,7 @@
 Description=Execute Polygon state clean labels crawler each 25m
 
 [Timer]
-OnBootSec=10s
+OnBootSec=50s
 OnUnitActiveSec=25m
 
 [Install]

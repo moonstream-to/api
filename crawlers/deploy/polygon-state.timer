@@ -2,7 +2,7 @@
 Description=Execute Polygon state crawler each 10m
 
 [Timer]
-OnBootSec=10s
+OnBootSec=15s
 OnUnitActiveSec=10m
 
 [Install]
