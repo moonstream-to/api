@@ -119,7 +119,9 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
     blockchain_type = AvailableBlockchainType(args.blockchain_type)
     subscription_type = blockchain_type_to_subscription_type(blockchain_type)
 
-    addresses_filter = [args.address]
+    addresses_filter = []
+    if args.address is not None:
+        addresses_filter = [args.address]
     all_event_jobs = make_event_crawl_jobs(
         get_crawl_job_entries(
             subscription_type,
@@ -129,9 +131,12 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
     )
     filtered_event_jobs = []
     for job in all_event_jobs:
-        intersection = [
-            address for address in job.contracts if address in addresses_filter
-        ]
+        if addresses_filter:
+            intersection = [
+                address for address in job.contracts if address in addresses_filter
+            ]
+        else:
+            intersection = job.contracts
         if intersection:
             job.contracts = intersection
             filtered_event_jobs.append(job)
@@ -145,11 +150,14 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
             MOONSTREAM_MOONWORM_TASKS_JOURNAL,
         )
     )
-    filtered_function_call_jobs = [
-        job
-        for job in all_function_call_jobs
-        if job.contract_address in addresses_filter
-    ]
+    if addresses_filter:
+        filtered_function_call_jobs = [
+            job
+            for job in all_function_call_jobs
+            if job.contract_address in addresses_filter
+        ]
+    else:
+        filtered_function_call_jobs = all_function_call_jobs
 
     if args.only_events:
         filtered_function_call_jobs = []
@@ -336,7 +344,7 @@ def main() -> None:
     historical_crawl_parser.add_argument(
         "--address",
         "-a",
-        required=True,
+        required=False,
         type=str,
     )
     historical_crawl_parser.add_argument(
