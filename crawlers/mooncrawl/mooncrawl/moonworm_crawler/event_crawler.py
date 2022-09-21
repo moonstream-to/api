@@ -119,7 +119,6 @@ def _crawl_events(
             ),  # TODO report via humbug
         )
         for raw_event in raw_events:
-            logger.info(f"block_number type:{type(raw_event['blockNumber'])}")
             raw_event["blockTimestamp"] = get_block_timestamp(
                 db_session,
                 web3,
