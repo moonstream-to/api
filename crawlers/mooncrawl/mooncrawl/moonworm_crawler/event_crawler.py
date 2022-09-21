@@ -155,41 +155,7 @@ def _autoscale_crawl_events(
 ) -> Tuple[List[Event], int]:
 
     """
-            def _crawl_events(
-        web3: Web3,
-        event_abi: Any,
-        from_block: int,
-        to_block: int,
-        batch_size: int,
-        contract_address: ChecksumAddress,
-        batch_size_update_threshold: int = 1000,
-        max_blocks_batch: int = 10000,
-        min_blocks_batch: int = 100,
-    ) -> Tuple[List[Dict[str, Any]], int]:
-
-        events = []
-        current_from_block = from_block
-
-        while current_from_block <= to_block:
-            current_to_block = min(current_from_block + batch_size, to_block)
-            try:
-                events_chunk = _fetch_events_chunk(
-                    web3,
-                    event_abi,
-                    current_from_block,
-                    current_to_block,
-                    [contract_address],
-                )
-                events.extend(events_chunk)
-                current_from_block = current_to_block + 1
-                if len(events) <= batch_size_update_threshold:
-                    batch_size = min(batch_size * 2, max_blocks_batch)
-            except Exception as e:
-                if batch_size <= min_blocks_batch:
-                    raise e
-                time.sleep(0.1)
-                batch_size = max(batch_size // 2, min_blocks_batch)
-        return events, batch_size
+    Crawl events with auto regulated batch_size.
     """
     all_events = []
     for job in jobs:
