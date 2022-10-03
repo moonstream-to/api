@@ -71,8 +71,8 @@ def get_block_timestamp(
         db_session.query(block_model.block_number, block_model.timestamp)
         .filter(
             and_(
-                block_model.block_number >= block_number,
-                block_model.block_number <= block_number + max_blocks_batch - 1,
+                block_model.block_number >= block_number - max_blocks_batch - 1,
+                block_model.block_number <= block_number + max_blocks_batch + 1,
             )
         )
         .order_by(block_model.block_number.asc())
@@ -86,7 +86,7 @@ def get_block_timestamp(
     if target_block_timestamp is None:
         target_block_timestamp = _get_block_timestamp_from_web3(web3, block_number)
 
-    if len(blocks_cache) > max_blocks_batch * 2:
+    if len(blocks_cache) > (max_blocks_batch * 3 + 2):
         blocks_cache.clear()
 
     blocks_cache[block_number] = target_block_timestamp
