@@ -68,7 +68,7 @@ def get_block_timestamp(
     block_model = get_block_model(blockchain_type)
 
     blocks = (
-        db_session.query(block_model)
+        db_session.query(block_model.block_number, block_model.timestamp)
         .filter(
             and_(
                 block_model.block_number >= block_number,
