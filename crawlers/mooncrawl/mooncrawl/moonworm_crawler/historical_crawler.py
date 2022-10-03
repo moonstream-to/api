@@ -102,10 +102,10 @@ def historical_crawler(
 
             add_events_to_session(db_session, all_events, blockchain_type)
 
-            logger.info(
-                f"Crawling function calls from {start_block} to {batch_end_block}"
-            )
             if function_call_crawl_jobs:
+                logger.info(
+                    f"Crawling function calls from {start_block} to {batch_end_block}"
+                )
                 all_function_calls = _crawl_functions(
                     blockchain_type,
                     ethereum_state_provider,
