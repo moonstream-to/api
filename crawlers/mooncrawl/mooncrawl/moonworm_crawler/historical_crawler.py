@@ -13,7 +13,7 @@ from web3 import Web3
 
 from .crawler import EventCrawlJob, FunctionCallCrawlJob, _retry_connect_web3
 from .db import add_events_to_session, add_function_calls_to_session, commit_session
-from .event_crawler import _crawl_events
+from .event_crawler import _crawl_events, _autoscale_crawl_events
 from .function_call_crawler import _crawl_functions
 
 logging.basicConfig(level=logging.INFO)
@@ -71,26 +71,41 @@ def historical_crawler(
             )
 
             logger.info(f"Crawling events from {start_block} to {batch_end_block}")
-            all_events = _crawl_events(
-                db_session=db_session,
-                blockchain_type=blockchain_type,
-                web3=web3,
-                jobs=event_crawl_jobs,
-                from_block=batch_end_block,
-                to_block=start_block,
-                blocks_cache=blocks_cache,
-                db_block_query_batch=max_blocks_batch,
-            )
+
+            if function_call_crawl_jobs:
+                all_events = _crawl_events(
+                    db_session=db_session,
+                    blockchain_type=blockchain_type,
+                    web3=web3,
+                    jobs=event_crawl_jobs,
+                    from_block=batch_end_block,
+                    to_block=start_block,
+                    blocks_cache=blocks_cache,
+                    db_block_query_batch=max_blocks_batch,
+                )
+
+            else:
+
+                all_events, max_blocks_batch = _autoscale_crawl_events(
+                    db_session=db_session,
+                    blockchain_type=blockchain_type,
+                    web3=web3,
+                    jobs=event_crawl_jobs,
+                    from_block=batch_end_block,
+                    to_block=start_block,
+                    blocks_cache=blocks_cache,
+                    db_block_query_batch=max_blocks_batch,
+                )
             logger.info(
                 f"Crawled {len(all_events)} events from {start_block} to {batch_end_block}."
             )
 
             add_events_to_session(db_session, all_events, blockchain_type)
 
-            logger.info(
-                f"Crawling function calls from {start_block} to {batch_end_block}"
-            )
             if function_call_crawl_jobs:
+                logger.info(
+                    f"Crawling function calls from {start_block} to {batch_end_block}"
+                )
                 all_function_calls = _crawl_functions(
                     blockchain_type,
                     ethereum_state_provider,

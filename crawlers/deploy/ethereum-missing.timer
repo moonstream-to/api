@@ -2,7 +2,7 @@
 Description=Fill missing blocks at Ethereum database
 
 [Timer]
-OnBootSec=10s
+OnBootSec=40s
 OnUnitActiveSec=15m
 
 [Install]

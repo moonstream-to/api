@@ -2,7 +2,7 @@
 Description=Update XDai statistics dashboards each 6 hours
 
 [Timer]
-OnBootSec=10s
+OnBootSec=25s
 OnUnitActiveSec=6h
 
 [Install]

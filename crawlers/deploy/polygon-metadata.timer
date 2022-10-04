@@ -2,7 +2,7 @@
 Description=Execute Polygon metadata crawler each 10m
 
 [Timer]
-OnBootSec=10s
+OnBootSec=20s
 OnUnitActiveSec=60m
 
 [Install]
