@@ -25,12 +25,18 @@ def metadata_to_label(
     """
     label_model = get_label_model(blockchain_type)
 
+    status = 1
+
+    if metadata is None:
+        status = 0
+
     sanityzed_label_data = json.loads(
         json.dumps(
             {
                 "type": "metadata",
                 "token_id": token_uri_data.token_id,
                 "token_uri": token_uri_data.token_uri,
+                "status": status,
                 "metadata": metadata,
             }
         ).replace(r"\u0000", "")
