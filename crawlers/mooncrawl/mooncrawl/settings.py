@@ -140,7 +140,7 @@ try:
         )
 except:
     raise Exception(
-        f"Could not parse MOONSTREAM_QUERY_API_DB_STATEMENT_TIMEOUT_MILLIS as int: {MOONSTREAM_CRAWL_WORKERS_RAW}"
+        f"Could not parse MOONSTREAM_QUERY_API_DB_STATEMENT_TIMEOUT_MILLIS as int: {MOONSTREAM_QUERY_API_DB_STATEMENT_TIMEOUT_MILLIS_RAW}"
     )
 
 
@@ -169,6 +169,23 @@ try:
     NB_CONTROLLER_ACCESS_ID = UUID(NB_CONTROLLER_ACCESS_ID_RAW)
 except:
     pass
+
+
+# HTTPProvider for web3 client
+
+WEB3_CLIENT_REQUEST_TIMEOUT_SECONDS = 600
+WEB3_CLIENT_REQUEST_TIMEOUT_SECONDS_RAW = os.environ.get(
+    "WEB3_CLIENT_REQUEST_TIMEOUT_SECONDS"
+)
+try:
+    if WEB3_CLIENT_REQUEST_TIMEOUT_SECONDS_RAW is not None:
+        WEB3_CLIENT_REQUEST_TIMEOUT_SECONDS = int(
+            WEB3_CLIENT_REQUEST_TIMEOUT_SECONDS_RAW
+        )
+except:
+    raise Exception(
+        f"Could not parse WEB3_CLIENT_REQUEST_TIMEOUT_SECONDS as int: {WEB3_CLIENT_REQUEST_TIMEOUT_SECONDS_RAW}"
+    )
 
 
 multicall_contracts: Dict[AvailableBlockchainType, str] = {

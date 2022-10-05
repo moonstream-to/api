@@ -31,6 +31,7 @@ from .settings import (
     MOONSTREAM_XDAI_WEB3_PROVIDER_URI,
     NB_ACCESS_ID_HEADER,
     NB_DATA_SOURCE_HEADER,
+    WEB3_CLIENT_REQUEST_TIMEOUT_SECONDS,
 )
 
 logger = logging.getLogger(__name__)
@@ -73,6 +74,7 @@ def connect(
             raise Exception("Wrong blockchain type provided for web3 URI")
 
     if web3_uri.startswith("http://") or web3_uri.startswith("https://"):
+        request_kwargs["timeout"] = WEB3_CLIENT_REQUEST_TIMEOUT_SECONDS
         web3_provider = Web3.HTTPProvider(web3_uri, request_kwargs=request_kwargs)
     else:
         web3_provider = Web3.IPCProvider(web3_uri)
