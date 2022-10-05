@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  Suspense,
-  useEffect,
-  useLayoutEffect,
-  useContext,
-} from "react";
+import React, { useState, Suspense, useEffect, useContext } from "react";
 import {
   Fade,
   Flex,
@@ -26,7 +20,11 @@ import {
 } from "@chakra-ui/react";
 import useUser from "../src/core/hooks/useUser";
 import useRouter from "../src/core/hooks/useRouter";
-import { AWS_ASSETS_PATH, DEFAULT_METATAGS } from "../src/core/constants";
+import {
+  AWS_ASSETS_PATH,
+  DEFAULT_METATAGS,
+  BACKGROUND_COLOR,
+} from "../src/core/constants";
 import TrustedBadge from "../src/components/TrustedBadge";
 import RouteButton from "../src/components/RouteButton";
 import AnalyticsContext from "../src/core/providers/AnalyticsProvider/context";
@@ -40,6 +38,7 @@ const HEADING_PROPS = {
 };
 
 const assets = {
+  airdrop: `${AWS_ASSETS_PATH}/airdrop.png`,
   arbitrum: `${AWS_ASSETS_PATH}/arbitrum_logo.png`,
   background720: `${AWS_ASSETS_PATH}/background720.png`,
   background1920: `${AWS_ASSETS_PATH}/background720.png`,
@@ -50,12 +49,11 @@ const assets = {
   cgcConference: `${AWS_ASSETS_PATH}/featured_by/cgc_conference_2022_logo.jpg`,
   championsAscension: `${AWS_ASSETS_PATH}/featured_by/champions.png`,
   cointelegraph: `${AWS_ASSETS_PATH}/featured_by/Cointelegraph_logo.png`,
+  craftingRecipe: `${AWS_ASSETS_PATH}/crafting-recipe.png`,
   cryptoGuilds: `${AWS_ASSETS_PATH}/crypto_guilds_logo.png`,
   cryptoinsiders: `${AWS_ASSETS_PATH}/featured_by/crypto_insiders.png`,
   cryptoslate: `${AWS_ASSETS_PATH}/featured_by/cs-media-logo-light.png`,
-  cryptoTraders: `${AWS_ASSETS_PATH}/crypto+traders.png`,
   cryptoUnicorns: `${AWS_ASSETS_PATH}/crypto_unicorns_logo.png`,
-  DAO: `${AWS_ASSETS_PATH}/DAO .png`,
   educativesessions: `${AWS_ASSETS_PATH}/featured_by/educative_logo.png`,
   ethereum_blockchain: `${AWS_ASSETS_PATH}/ethereum_blockchain_logo.png`,
   evmos: `${AWS_ASSETS_PATH}/evmos_logo.png`,
@@ -63,9 +61,9 @@ const assets = {
   game7io: `${AWS_ASSETS_PATH}/featured_by/game7io_logo.png`,
   gnosis: `${AWS_ASSETS_PATH}/gnosis_chain_logo.png`,
   laguna: `${AWS_ASSETS_PATH}/featured_by/laguna_logo.svg`,
-  lender: `${AWS_ASSETS_PATH}/lender.png`,
   meetup: `${AWS_ASSETS_PATH}/featured_by/meetup_logo.png`,
-  NFT: `${AWS_ASSETS_PATH}/NFT.png`,
+  minigame: `${AWS_ASSETS_PATH}/minigame.png`,
+  openLootbox: `${AWS_ASSETS_PATH}/open-lootbox.png`,
   optimism: `${AWS_ASSETS_PATH}/optimism_logo.png`,
   orangedao: `${AWS_ASSETS_PATH}/featured_by/orangedao_logo.png`,
   polygon: `${AWS_ASSETS_PATH}/polygon_blockchain_logo.png`,
@@ -94,33 +92,33 @@ const Homepage = () => {
 
   const { buttonReport } = useContext(AnalyticsContext);
 
-  useEffect(() => {
-    assets["background720"] = `${AWS_ASSETS_PATH}/background720.png`;
-    assets["background1920"] = `${AWS_ASSETS_PATH}/background1920.png`;
-    assets["background2880"] = `${AWS_ASSETS_PATH}/background2880.png`;
-    assets["background3840"] = `${AWS_ASSETS_PATH}/background3840.png`;
-  }, []);
+  // useEffect(() => {
+  //   assets["background720"] = `${AWS_ASSETS_PATH}/background720.png`;
+  //   assets["background1920"] = `${AWS_ASSETS_PATH}/background1920.png`;
+  //   assets["background2880"] = `${AWS_ASSETS_PATH}/background2880.png`;
+  //   assets["background3840"] = `${AWS_ASSETS_PATH}/background3840.png`;
+  // }, []);
 
-  useLayoutEffect(() => {
-    if (backgroundLoaded3840) {
-      setBackground("background3840");
-    } else if (backgroundLoaded2880) {
-      setBackground("background2880");
-    } else if (backgroundLoaded1920) {
-      setBackground("background1920");
-    } else {
-      setBackground("background720");
-    }
-  }, [
-    isLargerThan720px,
-    isLargerThan1920px,
-    isLargerThan2880px,
-    isLargerThan3840px,
-    backgroundLoaded720,
-    backgroundLoaded1920,
-    backgroundLoaded2880,
-    backgroundLoaded3840,
-  ]);
+  // useLayoutEffect(() => {
+  //   if (backgroundLoaded3840) {
+  //     setBackground("background3840");
+  //   } else if (backgroundLoaded2880) {
+  //     setBackground("background2880");
+  //   } else if (backgroundLoaded1920) {
+  //     setBackground("background1920");
+  //   } else {
+  //     setBackground("background720");
+  //   }
+  // }, [
+  //   isLargerThan720px,
+  //   isLargerThan1920px,
+  //   isLargerThan2880px,
+  //   isLargerThan3840px,
+  //   backgroundLoaded720,
+  //   backgroundLoaded1920,
+  //   backgroundLoaded2880,
+  //   backgroundLoaded3840,
+  // ]);
 
   useEffect(() => {
     if (
@@ -139,40 +137,41 @@ const Homepage = () => {
     }
   }, [isInit, router]);
 
-  useLayoutEffect(() => {
-    const imageLoader720 = new Image();
-    imageLoader720.src = `${AWS_ASSETS_PATH}/background720.png`;
-    imageLoader720.onload = () => {
-      setBackgroundLoaded720(true);
-    };
-  }, []);
+  // useLayoutEffect(() => {
+  //   const imageLoader720 = new Image();
+  //   imageLoader720.src = `${AWS_ASSETS_PATH}/background720.png`;
+  //   imageLoader720.onload = () => {
+  //     setBackgroundLoaded720(true);
+  //   };
+  // }, []);
 
-  useLayoutEffect(() => {
-    const imageLoader1920 = new Image();
-    imageLoader1920.src = `${AWS_ASSETS_PATH}/background1920.png`;
-    imageLoader1920.onload = () => {
-      setBackgroundLoaded1920(true);
-    };
-  }, []);
+  // useLayoutEffect(() => {
+  //   const imageLoader1920 = new Image();
+  //   imageLoader1920.src = `${AWS_ASSETS_PATH}/background1920.png`;
+  //   imageLoader1920.onload = () => {
+  //     setBackgroundLoaded1920(true);
+  //   };
+  // }, []);
 
-  useLayoutEffect(() => {
-    const imageLoader2880 = new Image();
-    imageLoader2880.src = `${AWS_ASSETS_PATH}/background2880.png`;
-    imageLoader2880.onload = () => {
-      setBackgroundLoaded2880(true);
-    };
-  }, []);
+  // useLayoutEffect(() => {
+  //   const imageLoader2880 = new Image();
+  //   imageLoader2880.src = `${AWS_ASSETS_PATH}/background2880.png`;
+  //   imageLoader2880.onload = () => {
+  //     setBackgroundLoaded2880(true);
+  //   };
+  // }, []);
 
-  useLayoutEffect(() => {
-    const imageLoader3840 = new Image();
-    imageLoader3840.src = `${AWS_ASSETS_PATH}/background3840.png`;
-    imageLoader3840.onload = () => {
-      setBackgroundLoaded3840(true);
-    };
-  }, []);
+  // useLayoutEffect(() => {
+  //   const imageLoader3840 = new Image();
+  //   imageLoader3840.src = `${AWS_ASSETS_PATH}/background3840.png`;
+  //   imageLoader3840.onload = () => {
+  //     setBackgroundLoaded3840(true);
+  //   };
+  // }, []);
 
   const blueBackgroundColor = "#212698";
   const lightOrangeColor = "#FF9473";
+  const cardBackgroundColor = "#353535";
 
   const Feature = ({ title, altText, image, ...props }) => {
     return (
@@ -184,24 +183,27 @@ const Homepage = () => {
             px={1}
             alignItems="center"
             borderRadius="12px"
-            borderColor="blue.700"
-            bgColor={"blue.800"}
+            borderColor="white"
+            bgColor={cardBackgroundColor}
             borderWidth={"1px"}
             _hover={{ transform: "scale(1.05)", transition: "0.42s" }}
             cursor="pointer"
             m={[2, 3, 3, 4, 8, 12]}
             pb={2}
-            minH={["225px", "290px", "400px", null]}
+            py={4}
+            w="240px"
+            h="300px"
           >
             <ChakraImage
-              boxSize={["150px", "220px", "xs", null, "xs"]}
+              boxSize={["150px", "220px", "200px", null]}
               objectFit="contain"
               src={image}
               alt={altText}
             />
             <Heading
               textAlign="center"
-              fontSize={["md", "md", "lg", "3xl", "4xl"]}
+              fontSize={["sm", "sm", "md", "md", null]}
+              fontWeight="normal"
             >
               {title}
             </Heading>
@@ -220,7 +222,7 @@ const Homepage = () => {
           sx={{ scrollBehavior: "smooth" }}
           bgSize="cover"
           id="page:landing"
-          bgColor={"blue.50"}
+          bgColor={BACKGROUND_COLOR}
         >
           <Flex
             direction="column"
@@ -238,12 +240,16 @@ const Homepage = () => {
               border="none"
               boxSizing="content-box"
             >
-              <GridItem colSpan="12" bgColor={"blue.50"} id="Header grid item">
+              <GridItem
+                colSpan="12"
+                bgColor={BACKGROUND_COLOR}
+                id="Header grid item"
+              >
                 <chakra.header boxSize="full" minH={["60vh", "100vh"]} mb={0}>
                   <Box
                     bgPos="bottom"
-                    bgColor="transparent"
-                    backgroundImage={`url(${assets[`${background}`]})`}
+                    // bgColor="transparent"
+                    // backgroundImage={`url(${assets[`${background}`]})`}
                     bgSize="cover"
                     boxSize="full"
                   >
@@ -295,7 +301,7 @@ const Homepage = () => {
                         >
                           <Center>
                             <RouteButton
-                              variant="orangeAndBlue"
+                              variant="whiteOnOrange"
                               minW={[
                                 "220px",
                                 "250px",
@@ -313,14 +319,15 @@ const Homepage = () => {
                               }}
                               href={"/contact"}
                             >
-                              Make my game web3
+                              Boost my game economy
                             </RouteButton>
                           </Center>
                           <Center>
                             <RouteButton
                               variant="orangeAndBlue"
-                              bg={blueBackgroundColor}
-                              borderColor={lightOrangeColor}
+                              bg="transparent"
+                              borderWidth="2px"
+                              borderColor="white"
                               textColor="white"
                               minW={[
                                 "220px",
@@ -346,67 +353,57 @@ const Homepage = () => {
                         </Stack>
                       </Stack>
                       <Box
-                        bgColor="rgb(255, 255, 255, 0.7)"
-                        w={[null, null, "40%"]}
-                        rounded={["lg", "xl", "2xl"]}
-                        px={5}
+                        // bgColor="rgb(255, 255, 255, 0.7)"
+                        w={[null, null, "55%"]}
+                        // rounded={["lg", "xl", "2xl"]}
                       >
                         <HStack h="100%">
-                          <Center w={[null, null, "40%"]} h="100%">
-                            <Flex>
-                              <Center w="100%">
-                                <VStack>
-                                  <Text
-                                    fontSize={[
-                                      "md",
-                                      "xl",
-                                      "2xl",
-                                      "3xl",
-                                      "3xl",
-                                      "3xl",
-                                    ]}
-                                    fontWeight="bold"
-                                    textColor={lightOrangeColor}
-                                    pt="20px"
-                                  >
-                                    &gt;$3b
-                                  </Text>
-                                  <Text pb="20px">
-                                    transaction volume.
-                                    <br />
-                                    And growing
-                                  </Text>
-                                </VStack>
-                              </Center>
+                          <Center w={[null, null, "43%"]} h="100%">
+                            <Flex w="100%">
+                              <HStack>
+                                <Text
+                                  fontSize={[
+                                    "md",
+                                    "xl",
+                                    "2xl",
+                                    "5xl",
+                                    "5xl",
+                                    "5xl",
+                                  ]}
+                                  pr={4}
+                                >
+                                  &gt;$4b
+                                </Text>
+                                <Text>
+                                  transaction volume.
+                                  <br />
+                                  And growing
+                                </Text>
+                              </HStack>
                             </Flex>
                           </Center>
-                          <Center w={[null, null, "60%"]} h="100%">
-                            <Flex>
-                              {" "}
-                              <Center w="100%">
-                                <VStack>
-                                  <Text
-                                    fontSize={[
-                                      "md",
-                                      "xl",
-                                      "2xl",
-                                      "3xl",
-                                      "3xl",
-                                      "3xl",
-                                    ]}
-                                    fontWeight="bold"
-                                    textColor={lightOrangeColor}
-                                    pt="20px"
-                                  >
-                                    &gt;44k
-                                  </Text>
-                                  <Text pb="20px">
-                                    active users in game economies
-                                    <br />
-                                    built with our engine
-                                  </Text>
-                                </VStack>
-                              </Center>
+                          <Center w={[null, null, "57%"]} h="100%">
+                            <Flex w="100%" justifyContent="right">
+                              <HStack>
+                                <Text
+                                  fontSize={[
+                                    "md",
+                                    "xl",
+                                    "2xl",
+                                    "5xl",
+                                    "5xl",
+                                    "5xl",
+                                  ]}
+                                  pr={4}
+                                >
+                                  &gt;44k
+                                </Text>
+                                <Text w="100%">
+                                  active users in game economies
+                                  <br />
+                                  built with our engine
+                                </Text>
+                              </HStack>
                             </Flex>
                           </Center>
                         </HStack>
@@ -416,8 +413,13 @@ const Homepage = () => {
                 </chakra.header>
               </GridItem>
 
-              <GridItem px="7%" py={10} colSpan="12" bgColor="white.100">
-                <VStack>
+              <GridItem px="7%" py={10} colSpan="12" bgColor={BACKGROUND_COLOR}>
+                <VStack
+                  bgColor="white"
+                  rounded="3xl"
+                  textColor="#1A1D22"
+                  py={10}
+                >
                   <Heading
                     as="h3"
                     {...HEADING_PROPS}
@@ -551,7 +553,7 @@ const Homepage = () => {
                 px={["7%", null, "12%", "15%"]}
                 colSpan="12"
                 pt={12}
-                bgColor={"blue.900"}
+                bgColor={BACKGROUND_COLOR}
                 textColor="white"
               >
                 <Heading {...HEADING_PROPS} textAlign="center" pb={6} as="h2">
@@ -575,7 +577,7 @@ const Homepage = () => {
                     title="Assemble Lootboxes"
                     altText="Lootboxes"
                     path="/features/#lootboxes"
-                    image={assets["cryptoTraders"]}
+                    image={assets["openLootbox"]}
                     href="/features/#lootboxes"
                     onClick={() => {
                       buttonReport("Lootboxes", "features", "landing");
@@ -585,7 +587,7 @@ const Homepage = () => {
                     title="Create Crafting Recipes"
                     altText="Crafting Recipes"
                     path="/features/#crafting"
-                    image={assets["NFT"]}
+                    image={assets["craftingRecipe"]}
                     href="/features/#crafting"
                     onClick={() => {
                       buttonReport("Crafting Recipes", "features", "landing");
@@ -595,7 +597,7 @@ const Homepage = () => {
                     title="Deploy Minigames"
                     altText="Minigames"
                     path="/features/#minigames"
-                    image={assets["DAO"]}
+                    image={assets["minigame"]}
                     href="/features/#minigames"
                     onClick={() => {
                       buttonReport("Minigames", "features", "landing");
@@ -605,7 +607,7 @@ const Homepage = () => {
                     title="Manage Airdrops"
                     altText="Airdrops"
                     path="/features/#airdrops"
-                    image={assets["lender"]}
+                    image={assets["airdrop"]}
                     href="/features/#airdrops"
                     onClick={() => {
                       buttonReport("Airdrops", "features", "landing");
@@ -619,7 +621,8 @@ const Homepage = () => {
                   >
                     <Center>
                       <RouteButton
-                        variant="orangeAndBlue"
+                        variant="whiteOnOrange"
+                        backgroundColor="#F56646"
                         minW={[
                           "250px",
                           "290px",
@@ -639,13 +642,14 @@ const Homepage = () => {
                     <Center>
                       <RouteButton
                         variant="orangeAndBlue"
-                        bg={blueBackgroundColor}
-                        borderColor={lightOrangeColor}
+                        bg="transparent"
+                        borderWidth="2px"
+                        borderColor="white"
                         textColor="white"
                         minW={[
+                          "220px",
                           "250px",
-                          "290px",
-                          "300px",
+                          "250px",
                           "300px",
                           "350px",
                           "400px",
@@ -668,7 +672,7 @@ const Homepage = () => {
                 px={["7%", null, "12%", "15%"]}
                 py={10}
                 colSpan="12"
-                bgColor="white.100"
+                bgColor={BACKGROUND_COLOR}
                 minH="50vh"
               >
                 <Heading {...HEADING_PROPS} textAlign="center" as="h2" pb={10}>
@@ -870,7 +874,7 @@ const Homepage = () => {
                 px={["7%", "7%", "7%", "15%"]}
                 py={10}
                 colSpan="12"
-                bgColor="white.100"
+                bgColor={BACKGROUND_COLOR}
                 minH="100vh"
               >
                 <Heading {...HEADING_PROPS} textAlign="center" as="h2" pb={10}>
@@ -884,7 +888,7 @@ const Homepage = () => {
                 px={["7%", null, "12%", "15%"]}
                 py={10}
                 colSpan="12"
-                bgColor="white.100"
+                bgColor={BACKGROUND_COLOR}
               >
                 <Heading {...HEADING_PROPS} textAlign="center" pb={14} as="h2">
                   Our Workflow
@@ -971,7 +975,7 @@ const Homepage = () => {
                 px="7%"
                 py={12}
                 colSpan="12"
-                bgColor="blue.900"
+                bgColor={BACKGROUND_COLOR}
                 textColor="white"
                 minH="40vh"
               >
@@ -1039,7 +1043,7 @@ const Homepage = () => {
                 px={["7%", null, "12%", "15%"]}
                 py={10}
                 colSpan="12"
-                bgColor="white"
+                bgColor={BACKGROUND_COLOR}
                 minH="50vh"
               >
                 <VStack

@@ -8,6 +8,8 @@ export const BUGOUT_ENDPOINTS = {
   Web: "parasite",
 };
 
+export const BACKGROUND_COLOR = "#1A1D22";
+
 export const DEFAULT_METATAGS = {
   title: "Build, Scale, and Monitor Your Game on the Blockchain",
   description:

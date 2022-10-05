@@ -130,6 +130,22 @@ const variantOrangeAndBlue = () => {
   };
 };
 
+const variantWhiteOnOrange = () => {
+  return {
+    alignItems: "center",
+    justifyContent: "center",
+    border: "solid transparent",
+    borderRadius: "70px",
+    shadow: "md",
+    variant: "solid",
+    fontSize: ["sm", "md", "lg", "lg", "xl", "xl"],
+    textColor: "white",
+    bg: "#FF8B73",
+    py: 5,
+    px: 5,
+  };
+};
+
 const Button = {
   // 1. We can update the base styles
   baseStyle: () => ({
@@ -168,6 +184,7 @@ const Button = {
     outline: variantOutline,
     link: variantLink,
     orangeAndBlue: variantOrangeAndBlue,
+    whiteOnOrange: variantWhiteOnOrange,
   },
 };
 export default Button;

@@ -64,7 +64,7 @@ const LandingNavbar = () => {
       {!ui.isMobileView && (
         <>
           <Spacer />
-          <ButtonGroup variant="link" colorScheme="orange" spacing={4} pr={16}>
+          <ButtonGroup variant="link" spacing={4} pr={16}>
             {SITEMAP.map((item, idx) => {
               return (
                 <React.Fragment key={`Fragment-${idx}`}>

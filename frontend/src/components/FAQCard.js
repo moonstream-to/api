@@ -10,6 +10,8 @@ import {
 import { AddIcon, MinusIcon } from "@chakra-ui/icons";
 
 const _FAQCard = ({ heading, headingProps, panelContent }) => {
+  const iconColor = "#F56646";
+
   return (
     <AccordionItem>
       {({ isExpanded }) => (
@@ -25,9 +27,9 @@ const _FAQCard = ({ heading, headingProps, panelContent }) => {
               </Heading>
             </Box>
             {isExpanded ? (
-              <MinusIcon fontSize="12px" />
+              <MinusIcon color={iconColor} fontSize="12px" />
             ) : (
-              <AddIcon fontSize="12px" />
+              <AddIcon color={iconColor} fontSize="12px" />
             )}
           </AccordionButton>
           <AccordionPanel
