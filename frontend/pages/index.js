@@ -289,9 +289,9 @@ const Homepage = () => {
                                   ]}
                                   fontSize={["sm", "md"]}
                                 >
-                                  transaction volume.
+                                  transaction volume
                                   <br />
-                                  And growing
+                                  and growing
                                 </Text>
                               </Stack>
                             </Flex>
