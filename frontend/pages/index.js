@@ -192,7 +192,7 @@ const Homepage = () => {
             _hover={{ transform: "scale(1.05)", transition: "0.42s" }}
             cursor="pointer"
             m={[2, 3, 3, 4, 8, 12]}
-            w={["155px", "240px"]}
+            minW={["155px", "180px", "200px", "240px"]}
             h={["200px", "300px"]}
           >
             <ChakraImage
@@ -203,7 +203,7 @@ const Homepage = () => {
             />
             <Heading
               textAlign="center"
-              fontSize={["sm", "sm", "md", "md", null]}
+              fontSize={["md", "md", "lg", "lg", null]}
               fontWeight="normal"
             >
               {title}
@@ -247,7 +247,7 @@ const Homepage = () => {
                 bgColor={BACKGROUND_COLOR}
                 id="Header grid item"
               >
-                <chakra.header boxSize="full" minH={["60vh", "100vh"]} mb={0}>
+                <chakra.header boxSize="full" mb={0}>
                   <Box
                     bgPos="bottom"
                     // bgColor="transparent"
@@ -259,7 +259,7 @@ const Homepage = () => {
                       align="center"
                       justify="center"
                       boxSize="full"
-                      pt={["120px", "120px", "150px"]}
+                      pt={["90px", "120px"]}
                       pb={10}
                       px="5%"
                       flexDir="column"
@@ -272,34 +272,34 @@ const Homepage = () => {
                         w="100%"
                       >
                         <Heading
-                          fontSize={["lg", "4xl", "5xl", "5xl", "5xl", "6xl"]}
-                          fontWeight="semibold"
+                          fontSize={["4xl", "4xl", "5xl", "5xl", "5xl", "6xl"]}
+                          fontWeight="bold"
                           color="white"
                           as="h1"
-                          pb={[8, 8, 12]}
-                          maxW={[null, "90%", "80%", "58%"]}
+                          pb={[2, 4]}
+                          maxW={[null, "90%", "80%", "40%"]}
                         >
                           {DEFAULT_METATAGS.title}
                         </Heading>
                         <chakra.span
-                          pb={[6, 6, 12]}
-                          fontSize={["sm", "md", "lg", "lg", "xl", "xl"]}
+                          pb={[2, 6]}
+                          fontSize={["md", "md", "md", "md", null]}
                           display="inline-block"
                           color="white"
-                          maxW={[null, "85%", "75%"]}
+                          maxW={[null, "85%", "75%", "55%"]}
                         >
                           {DEFAULT_METATAGS.description}
                         </chakra.span>
                         <Stack
                           direction={[
                             "column",
-                            "column",
+                            "row",
                             "row",
                             "row",
                             "row",
                             "row",
                           ]}
-                          pb={"120px"}
+                          pb={10}
                         >
                           <Center>
                             <RouteButton
@@ -307,7 +307,7 @@ const Homepage = () => {
                               bg={
                                 "linear-gradient(92.26deg, #F56646 8.41%, #FFFFFF 255.37%);"
                               }
-                              minW={["150px", null]}
+                              minW={["320px", "150px", null]}
                               onClick={() => {
                                 buttonReport(
                                   "Boost",
@@ -327,7 +327,7 @@ const Homepage = () => {
                               borderWidth="2px"
                               borderColor="white"
                               textColor="white"
-                              minW={["200px", null]}
+                              minW={["320px", "200px", null]}
                               onClick={() => {
                                 buttonReport(
                                   "Discord",
@@ -366,7 +366,7 @@ const Homepage = () => {
                                 >
                                   &gt;$4b
                                 </Text>
-                                <Text>
+                                <Text alignSelf="center">
                                   transaction volume.
                                   <br />
                                   And growing
@@ -408,7 +408,7 @@ const Homepage = () => {
 
               <GridItem
                 px={["5%", null, "12%", "15%"]}
-                py={10}
+                py={8}
                 colSpan="12"
                 bgColor={BACKGROUND_COLOR}
               >
@@ -421,17 +421,19 @@ const Homepage = () => {
                   <Heading
                     as="h3"
                     {...HEADING_PROPS}
-                    fontSize={["md", "lg", "xl", "2xl", "3xl", "3xl"]}
+                    fontSize={["2xl", null]}
                     fontWeight="semibold"
                     textAlign="center"
+                    px="20px"
                   >
-                    Trusted by visionaries in the industry
+                    <Text>Trusted by visionaries</Text>
+                    <Text>in the industry</Text>
                   </Heading>
                   <Flex
                     wrap="wrap"
                     direction="row"
                     justifyContent="center"
-                    pb={10}
+                    pb={[4, 10]}
                   >
                     <Suspense fallback={""}>
                       {/* <TrustedBadge
@@ -475,9 +477,10 @@ const Homepage = () => {
                   <Heading
                     as="h3"
                     {...HEADING_PROPS}
-                    fontSize={["md", "lg", "xl", "2xl", "3xl", "3xl"]}
+                    fontSize={["2xl", null]}
                     fontWeight="semibold"
                     textAlign="center"
+                    px="20px"
                   >
                     Supported blockchains
                   </Heading>
@@ -485,7 +488,7 @@ const Homepage = () => {
                     wrap="wrap"
                     direction="row"
                     justifyContent="center"
-                    pb={10}
+                    pb={[4, 10]}
                   >
                     <Suspense fallback={""}>
                       <TrustedBadge
@@ -513,16 +516,17 @@ const Homepage = () => {
                   <Heading
                     as="h3"
                     {...HEADING_PROPS}
-                    fontSize={["md", "lg", "xl", "2xl", "3xl", "3xl"]}
+                    fontSize={["2xl", null]}
                     fontWeight="semibold"
                     textAlign="center"
+                    px="20px"
                   >
                     Upcoming Integrations
                   </Heading>
                   <Flex wrap="wrap" direction="row" justifyContent="center">
                     <Suspense fallback={""}>
                       <TrustedBadge
-                        scaling={0.6}
+                        scaling={0.8}
                         name="forte"
                         ImgURL={assets["forte"]}
                         boxURL="https://www.forte.io/"
@@ -550,7 +554,7 @@ const Homepage = () => {
                 </VStack>
               </GridItem>
               <GridItem
-                px={["3%", null, "12%", "15%"]}
+                px={["5%", null, "12%", "15%"]}
                 colSpan="12"
                 pt={12}
                 bgColor={BACKGROUND_COLOR}
@@ -560,17 +564,21 @@ const Homepage = () => {
                   Features
                 </Heading>
                 <Center fontSize={["sm", "sm", "md", "md", "lg", "lg"]} py={4}>
-                  <chakra.span textAlign="center" width="85%">
-                    {`Lootboxes, crafting recipes, deck building, you name it! With Moonstream Engine you can deploy on-chain mechanics with one click.
-                    Read our Use Cases or explore the features to know more.   `}
-                  </chakra.span>
+                  <VStack>
+                    <Text textAlign="center">
+                      {`Lootboxes, crafting recipes, deck building, you name it! With Moonstream Engine you can deploy`}
+                    </Text>
+                    <Text textAlign="center">
+                      {`on-chain mechanics with one click. Read our Use Cases or explore the features to know more.`}
+                    </Text>
+                  </VStack>
                 </Center>
                 <SimpleGrid
                   columns={[2, 2, 4, null]}
-                  justifyContent={["flex-end", "center"]}
+                  justifyContent={["flex-end", "flex-end", "center"]}
                   w="100%"
                   spacing={["0px", "40px"]}
-                  mx={[0, -2, -4]}
+                  mx={[-1, -2, -4]}
                   paddingTop="20px"
                 >
                   <Feature
@@ -623,14 +631,7 @@ const Homepage = () => {
                       <RouteButton
                         variant="whiteOnOrange"
                         backgroundColor="#F56646"
-                        minW={[
-                          "250px",
-                          "290px",
-                          "300px",
-                          "300px",
-                          "350px",
-                          "400px",
-                        ]}
+                        minW={["320px", "300px", null]}
                         onClick={() => {
                           buttonReport("Features", "features", "landing");
                         }}
@@ -646,14 +647,7 @@ const Homepage = () => {
                         borderWidth="2px"
                         borderColor="white"
                         textColor="white"
-                        minW={[
-                          "220px",
-                          "250px",
-                          "250px",
-                          "300px",
-                          "350px",
-                          "400px",
-                        ]}
+                        minW={["320px", "300px", null]}
                         onClick={() => {
                           buttonReport("Use Cases", "features", "landing");
                         }}
@@ -670,7 +664,7 @@ const Homepage = () => {
               </GridItem>
               <GridItem
                 px={["7%", null, "12%", "15%"]}
-                py={10}
+                py={[4, 10]}
                 colSpan="12"
                 bgColor={BACKGROUND_COLOR}
               >
@@ -682,12 +676,15 @@ const Homepage = () => {
                 >
                   Our Workflow
                 </Heading>
-                <Stack textAlign="center" direction={["column", "row"]}>
+                <Stack
+                  textAlign="center"
+                  direction={["column", "column", "row"]}
+                >
                   <VStack alignItems="center" px={4} py={4}>
                     <Flex mb={5}>
                       <Heading
                         as="h3"
-                        fontSize={["md", "md", "lg", "lg"]}
+                        fontSize={["lg", "lg", null]}
                         display="inline-block"
                         fontWeight="semibold"
                       >
@@ -696,7 +693,7 @@ const Homepage = () => {
                     </Flex>
                     <Flex>
                       <chakra.span
-                        fontSize={["sm", "sm", "md", "md"]}
+                        fontSize={["md", "md", null]}
                         display="inline-block"
                       >
                         So you decided to build a healthy economy on the
@@ -708,7 +705,7 @@ const Homepage = () => {
                     <Flex mb={5}>
                       <Heading
                         as="h3"
-                        fontSize={["md", "md", "lg", "lg"]}
+                        fontSize={["lg", "lg", null]}
                         display="inline-block"
                         fontWeight="semibold"
                       >
@@ -717,7 +714,7 @@ const Homepage = () => {
                     </Flex>
                     <Flex>
                       <chakra.span
-                        fontSize={["sm", "sm", "md", "md"]}
+                        fontSize={["md", "md", null]}
                         display="inline-block"
                       >
                         Sign up to get whitelisted. We&apos;ll reach out to you
@@ -730,7 +727,7 @@ const Homepage = () => {
                     <Flex mb={5}>
                       <Heading
                         as="h3"
-                        fontSize={["md", "md", "lg", "lg"]}
+                        fontSize={["lg", "lg", null]}
                         display="inline-block"
                         fontWeight="semibold"
                       >
@@ -739,7 +736,7 @@ const Homepage = () => {
                     </Flex>
                     <Flex mb={5}>
                       <chakra.span
-                        fontSize={["sm", "sm", "md", "md"]}
+                        fontSize={["md", "md", null]}
                         display="inline-block"
                       >
                         During onboarding pick game mechanics that you&apos;d
@@ -757,7 +754,7 @@ const Homepage = () => {
                     >
                       <Heading
                         as="h3"
-                        fontSize={["md", "md", "lg", "lg"]}
+                        fontSize={["lg", "lg", null]}
                         display="inline-block"
                         fontWeight="semibold"
                       >
@@ -766,7 +763,7 @@ const Homepage = () => {
                     </Center>
                     <Flex>
                       <chakra.span
-                        fontSize={["sm", "sm", "md", "md"]}
+                        fontSize={["md", "md", null]}
                         display="inline-block"
                       >
                         You&apos;re at the end of your blockchain development
@@ -778,7 +775,7 @@ const Homepage = () => {
                 </Stack>
                 <Center pt={14}>
                   <Icon as={HiOutlineChatAlt2} mr={2}></Icon>
-                  <Text>
+                  <Text fontSize={["xs", "sm", "md", "md", null]}>
                     Have something to discuss before signing up?{" "}
                     <Link
                       href="/discordleed"
@@ -794,11 +791,10 @@ const Homepage = () => {
                 </Center>
               </GridItem>
               <GridItem
-                px={["7%", null, "12%", "15%"]}
-                py={10}
+                px={["5%", null, "12%", "15%"]}
+                py={[4, 10]}
                 colSpan="12"
                 bgColor={BACKGROUND_COLOR}
-                minH="50vh"
               >
                 <Heading {...HEADING_PROPS} textAlign="center" as="h2" pb={10}>
                   FAQ
@@ -870,7 +866,7 @@ const Homepage = () => {
                           onClick={() => {
                             buttonReport("Moonstream Github", "faq", "landing");
                           }}
-                          textColor="blue.700"
+                          textColor="white"
                           isExternal
                         >
                           {" "}
@@ -1001,7 +997,6 @@ const Homepage = () => {
                 colSpan="12"
                 bgColor={BACKGROUND_COLOR}
                 textColor="white"
-                minH="40vh"
               >
                 <Heading
                   as="h2"
@@ -1014,10 +1009,10 @@ const Homepage = () => {
                 </Heading>
                 <Center>
                   <Flex
-                    width="81%"
                     wrap="wrap"
                     direction="row"
                     rounded={["lg", "xl", "2xl", "3xl", "4xl", "4xl"]}
+                    justifyContent="center"
                   >
                     <Suspense fallback={""}>
                       <TrustedBadge
@@ -1068,35 +1063,38 @@ const Homepage = () => {
                 </Center>
               </GridItem>
               <GridItem
-                px={["7%", null, "12%", "15%"]}
-                py={10}
+                px={["5%", null, "12%", "15%"]}
+                pt={10}
+                pb={20}
                 colSpan="12"
                 bgColor={BACKGROUND_COLOR}
-                minH="50vh"
               >
                 <Stack
-                  direction={["column", "row"]}
+                  direction={["column", "column", "row"]}
+                  alignItems="center"
                   bgColor={lightOrangeColor}
                   borderWidth="2px"
                   borderColor="white"
                   borderRadius="30px"
                   textColor="white"
-                  px={10}
-                  py={8}
+                  px={[0, 10]}
+                  py={6}
                   mb={8}
                 >
                   <Box>
                     <Heading
                       as="h2"
-                      fontSize={["lg", "xl", null]}
+                      fontSize={["4xl", "4xl", null]}
                       letterSpacing="wide"
-                      pb={4}
+                      px={2}
+                      pb={1}
                       textAlign={["center", "left"]}
                     >
                       Sign up to grow your economy
                     </Heading>
                     <Text
                       fontSize={["sm", "sm", "md", "md", null]}
+                      px={2}
                       py={4}
                       textAlign={["center", "left"]}
                     >
@@ -1108,6 +1106,7 @@ const Homepage = () => {
                     variant="orangeAndBlue"
                     bg="white"
                     minW={["250px", "250px", null]}
+                    textColor={BACKGROUND_COLOR}
                     onClick={() => {
                       buttonReport("Boost", "page-bottom", "landing");
                     }}

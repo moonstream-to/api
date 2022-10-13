@@ -13,11 +13,11 @@ const _FAQCard = ({ heading, headingProps, panelContent }) => {
   const iconColor = "#F56646";
 
   return (
-    <AccordionItem borderWidth={0} borderBottomWidth="0!important">
+    <AccordionItem borderWidth={0} borderBottomWidth="0!important" px={0}>
       {({ isExpanded }) => (
         <>
-          <AccordionButton>
-            <Box flex="1" textAlign="left" pr="10px">
+          <AccordionButton px={0}>
+            <Box flex="1" textAlign="left">
               <Heading
                 {...headingProps}
                 as="h3"
@@ -32,7 +32,11 @@ const _FAQCard = ({ heading, headingProps, panelContent }) => {
               <AddIcon color={iconColor} fontSize="12px" />
             )}
           </AccordionButton>
-          <AccordionPanel pb={4} fontSize={["sm", "sm", "md", "md", null]}>
+          <AccordionPanel
+            px={0}
+            pb={4}
+            fontSize={["sm", "sm", "md", "md", null]}
+          >
             {panelContent}
           </AccordionPanel>
         </>

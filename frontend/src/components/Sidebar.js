@@ -74,7 +74,7 @@ const Sidebar = () => {
           />
           <RouterLink href="/" passHref>
             <Image
-              maxW="155px"
+              w="160px"
               py="0.75rem"
               pl={1}
               src={PRIMARY_MOON_LOGO_URL}

@@ -122,10 +122,10 @@ const variantOrangeAndBlue = () => {
     borderRadius: "70px",
     shadow: "md",
     variant: "solid",
-    fontSize: ["sm", "md", "lg", "lg", "xl", "xl"],
-    textColor: "blue.1200",
+    fontSize: ["md", "md", "lg", "lg", "xl", "xl"],
+    textColor: "white",
     bg: "#FF8B73",
-    py: 5,
+    py: 3,
     px: 5,
   };
 };
@@ -138,10 +138,10 @@ const variantWhiteOnOrange = () => {
     borderRadius: "70px",
     shadow: "md",
     variant: "solid",
-    fontSize: ["sm", "md", "lg", "lg", "xl", "xl"],
+    fontSize: ["md", "md", "lg", "lg", "xl", "xl"],
     textColor: "white",
     bg: "#FF8B73",
-    py: 5,
+    py: 3,
     px: 5,
   };
 };

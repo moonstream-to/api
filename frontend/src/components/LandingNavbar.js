@@ -46,7 +46,7 @@ const LandingNavbar = () => {
         </>
       )}
       <Flex
-        pl={ui.isMobileView ? 2 : 16}
+        pl={ui.isMobileView ? 2 : "100px"}
         justifySelf="flex-start"
         h="48px"
         py={1}
@@ -58,8 +58,7 @@ const LandingNavbar = () => {
         <RouterLink href="/" passHref>
           <Link
             as={Image}
-            w="auto"
-            h={["70%", "85%"]}
+            w={"160px"}
             justifyContent="left"
             src={PRIMARY_MOON_LOGO_URL}
             alt="Moonstream logo"
@@ -133,11 +132,11 @@ const LandingNavbar = () => {
                 variant="solid"
                 onClick={() => toggleModal({ type: MODAL_TYPES.SIGNUP })}
                 size="sm"
-                fontWeight="400"
+                fontWeight="bold"
                 borderRadius="2xl"
                 textColor="white"
               >
-                Sign Up
+                Sign up
               </Button>
             )}
             {!ui.isLoggedIn && (
