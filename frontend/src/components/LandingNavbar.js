@@ -46,12 +46,12 @@ const LandingNavbar = () => {
         </>
       )}
       <Flex
-        pl={ui.isMobileView ? 2 : "100px"}
+        pl={ui.isMobileView ? 2 : "60px"}
         justifySelf="flex-start"
         h="48px"
         py={1}
         flexBasis="200px"
-        flexGrow={1}
+        flexGrow={0.6}
         id="Logo Container"
         alignItems="center"
       >
@@ -68,8 +68,7 @@ const LandingNavbar = () => {
 
       {!ui.isMobileView && (
         <>
-          <Spacer />
-          <ButtonGroup variant="link" spacing={4} pr={16}>
+          <ButtonGroup variant="link" spacing={4} pr={16} flexGrow={0.5}>
             {SITEMAP.map((item, idx) => {
               return (
                 <React.Fragment key={`Fragment-${idx}`}>
@@ -110,7 +109,8 @@ const LandingNavbar = () => {
                 </React.Fragment>
               );
             })}
-
+          </ButtonGroup>
+          <ButtonGroup variant="link" spacing={4} pr={16}>
             {ui.isLoggedIn && (
               <RouterLink href="/welcome" passHref>
                 <Button

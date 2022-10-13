@@ -74,10 +74,7 @@ const Footer = () => (
             <Link href="/" alignSelf="center">
               <ChakraImage
                 alignSelf="center"
-                // as={Link}
-                // to="/"
-                h="2.5rem"
-                minW="2.5rem"
+                w="160px"
                 src={PRIMARY_MOON_LOGO_URL}
                 alt="Go to app root"
               />

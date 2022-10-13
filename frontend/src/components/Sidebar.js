@@ -184,10 +184,10 @@ const Sidebar = () => {
             </>
           )}
           <Divider
-            colorScheme="blue"
+            colorScheme="white"
             bgColor="gray.300"
-            color="blue.700"
-            borderColor="blue.700"
+            color="white"
+            borderColor="white"
           />
         </Menu>
       </SidebarContent>

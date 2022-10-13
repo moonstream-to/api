@@ -1,4 +1,4 @@
-import React, { useState, Suspense, useEffect, useContext } from "react";
+import React, { Suspense, useEffect, useContext } from "react";
 import {
   Fade,
   Flex,
@@ -8,14 +8,13 @@ import {
   Stack,
   Link,
   Center,
-  useMediaQuery,
   Grid,
   Text,
   GridItem,
   SimpleGrid,
   Image as ChakraImage,
-  HStack,
   VStack,
+  HStack,
   Accordion,
   Icon,
   Spacer,
@@ -72,25 +71,8 @@ const assets = {
 };
 
 const Homepage = () => {
-  const [background, setBackground] = useState("background720");
-  const [backgroundLoaded720, setBackgroundLoaded720] = useState(false);
-  const [backgroundLoaded1920, setBackgroundLoaded1920] = useState(false);
-  const [backgroundLoaded2880, setBackgroundLoaded2880] = useState(false);
-  const [backgroundLoaded3840, setBackgroundLoaded3840] = useState(false);
-
   const router = useRouter();
   const { isInit } = useUser();
-  const [
-    isLargerThan720px,
-    isLargerThan1920px,
-    isLargerThan2880px,
-    isLargerThan3840px,
-  ] = useMediaQuery([
-    "(min-width: 720px)",
-    "(min-width: 1920px)",
-    "(min-width: 2880px)",
-    "(min-width: 3840px)",
-  ]);
 
   const { buttonReport } = useContext(AnalyticsContext);
 
@@ -276,11 +258,14 @@ const Homepage = () => {
                           </Center>
                         </Stack>
                       </Stack>
-                      <Box w={[null, null, "55%"]}>
-                        <HStack h="100%">
-                          <Center w={["50%", "43%"]} h={["auto", "100%"]}>
+                      <Box w={["100%", "70%", "60%"]}>
+                        <HStack h="100%" alignItems="flex-start">
+                          <Flex w={["50%", "43%"]} h={["auto", "100%"]}>
                             <Flex w="100%">
-                              <Stack direction={["column", "row"]}>
+                              <Stack
+                                direction={["column", "column", "row"]}
+                                textAlign="center"
+                              >
                                 <Text
                                   fontSize={[
                                     "xl",
@@ -295,17 +280,28 @@ const Homepage = () => {
                                 >
                                   &gt;$4b
                                 </Text>
-                                <Text alignSelf="center">
+                                <Text
+                                  w="100%"
+                                  alignSelf={[
+                                    "flex-start",
+                                    "flex-start",
+                                    "center",
+                                  ]}
+                                  fontSize={["sm", "md"]}
+                                >
                                   transaction volume.
                                   <br />
                                   And growing
                                 </Text>
                               </Stack>
                             </Flex>
-                          </Center>
+                          </Flex>
                           <Center w={["50%", "57%"]} h="100%">
                             <Flex w="100%" justifyContent="right">
-                              <Stack direction={["column", "row"]}>
+                              <Stack
+                                direction={["column", "column", "row"]}
+                                textAlign="center"
+                              >
                                 <Text
                                   fontSize={[
                                     "xl",
@@ -320,7 +316,15 @@ const Homepage = () => {
                                 >
                                   &gt;44k
                                 </Text>
-                                <Text w="100%" alignSelf="center">
+                                <Text
+                                  w="100%"
+                                  alignSelf={[
+                                    "flex-start",
+                                    "flex-start",
+                                    "center",
+                                  ]}
+                                  fontSize={["sm", "md"]}
+                                >
                                   active users in game economies
                                   <br />
                                   built with our engine
@@ -337,7 +341,7 @@ const Homepage = () => {
 
               <GridItem
                 px={["5%", null, "12%", "15%"]}
-                py={8}
+                py={(4, 8)}
                 colSpan="12"
                 bgColor={BACKGROUND_COLOR}
               >
@@ -486,13 +490,17 @@ const Homepage = () => {
                 <Heading {...HEADING_PROPS} textAlign="center" pb={6} as="h2">
                   Features
                 </Heading>
-                <Center fontSize={["sm", "sm", "md", "md", "lg", "lg"]} py={4}>
+                <Center fontSize={["md", "md", null]} py={4}>
                   <VStack>
-                    <Text textAlign="center">
-                      {`Lootboxes, crafting recipes, deck building, you name it! With Moonstream Engine you can deploy`}
-                    </Text>
-                    <Text textAlign="center">
-                      {`on-chain mechanics with one click. Read our Use Cases or explore the features to know more.`}
+                    <Text
+                      textAlign="center"
+                      display="inline-block"
+                      w={["100%", "100%", "70%"]}
+                    >
+                      Lootboxes, crafting recipes, deck building, you name it!
+                      With Moonstream Engine you can deploy on-chain mechanics
+                      with one click. Read our Use Cases or explore the features
+                      to know more.
                     </Text>
                   </VStack>
                 </Center>

@@ -65,13 +65,13 @@
   z-index: 101;
 }
 .pro-sidebar > .pro-sidebar-inner > .pro-sidebar-layout .pro-sidebar-header {
-  border-bottom: 1px solid #212990;
+  border-bottom: 1px solid gray;
 }
 .pro-sidebar > .pro-sidebar-inner > .pro-sidebar-layout .pro-sidebar-content {
   flex-grow: 1;
 }
 .pro-sidebar > .pro-sidebar-inner > .pro-sidebar-layout .pro-sidebar-footer {
-  border-top: 1px solid #212990;
+  border-top: 1px solid gray;
 }
 .pro-sidebar > .pro-sidebar-inner > .pro-sidebar-layout ul {
   list-style-type: none;
