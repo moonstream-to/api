@@ -41,7 +41,7 @@ const theme = extendTheme({
   styles: {
     global: {
       body: {
-        color: "white",
+        color: "blue.1200",
       },
     },
   },
@@ -62,9 +62,9 @@ const theme = extendTheme({
   },
 
   fonts: {
-    heading: '"Work Sans", sans-serif',
-    body: '"Work Sans", sans-serif',
-    mono: '"Work Sans", monospace',
+    heading: '"Space Grotesk", sans-serif',
+    body: '"Space Grotesk", sans-serif',
+    mono: '"Space Grotesk", monospace',
   },
   fontSizes: {
     xs: "0.625rem", //10px

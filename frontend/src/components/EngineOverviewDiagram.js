@@ -8,18 +8,13 @@ import {
   VStack,
   Text,
   Icon,
-  Popover,
-  PopoverTrigger,
-  PopoverBody,
-  PopoverContent,
   useBreakpointValue,
 } from "@chakra-ui/react";
 import CloudSVG from "./SVGGraphics/Cloud";
 import RectangleSVG from "./SVGGraphics/Rectangle";
 import RoundedRectSVG from "./SVGGraphics/RoundedRect";
-import { BsFillPersonFill, BsFillFileEarmarkCodeFill } from "react-icons/bs";
+import { BsFillPersonFill } from "react-icons/bs";
 import Xarrow from "react-xarrows";
-import ExampleCode from "./ExampleCode";
 
 const _EngineOverviewDiagram = (props) => {
   const smartContract = useRef(null);
@@ -50,6 +45,7 @@ const _EngineOverviewDiagram = (props) => {
         templateColumns={["repeat(1, 1fr)", "repeat(1, 1fr)", "repeat(3, 1fr)"]}
         rowGap={[10, 10, 20]}
         columnGap={4}
+        textColor="black"
       >
         <GridItem
           h={["80px", "80px", "auto"]}
@@ -164,7 +160,7 @@ const _EngineOverviewDiagram = (props) => {
               justifyContent="center"
               position="relative"
             >
-              <Popover>
+              {/* <Popover>
                 <PopoverTrigger placement="top">
                   <Flex>
                     <Icon
@@ -186,7 +182,7 @@ const _EngineOverviewDiagram = (props) => {
                     <ExampleCode />
                   </PopoverBody>
                 </PopoverContent>
-              </Popover>
+              </Popover> */}
             </Flex>
           </Center>
         </GridItem>
@@ -233,8 +229,13 @@ const _EngineOverviewDiagram = (props) => {
               as={BsFillPersonFill}
               w={[120, 120, 160]}
               h={[120, 120, 160]}
+              color="white"
             ></Icon>
-            <Text fontSize={["md", "md", "lg"]} fontWeight="semibold">
+            <Text
+              fontSize={["md", "md", "lg"]}
+              fontWeight="semibold"
+              textColor="white"
+            >
               Game Designer
             </Text>
           </Center>

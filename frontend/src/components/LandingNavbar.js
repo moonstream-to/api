@@ -19,7 +19,12 @@ import useModals from "../core/hooks/useModals";
 import UIContext from "../core/providers/UIProvider/context";
 import ChakraAccountIconButton from "./AccountIconButton";
 import RouteButton from "./RouteButton";
-import { PAGETYPE, SITEMAP, PRIMARY_MOON_LOGO_URL } from "../core/constants";
+import {
+  PAGETYPE,
+  SITEMAP,
+  PRIMARY_MOON_LOGO_URL,
+  BACKGROUND_COLOR,
+} from "../core/constants";
 import router from "next/router";
 import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 
@@ -32,7 +37,8 @@ const LandingNavbar = () => {
         <>
           <IconButton
             alignSelf="flex-start"
-            colorScheme="blue"
+            colorScheme="blackAlpha"
+            bgColor={BACKGROUND_COLOR}
             variant="solid"
             onClick={() => ui.setSidebarToggled(!ui.sidebarToggled)}
             icon={<HamburgerIcon />}
@@ -80,7 +86,7 @@ const LandingNavbar = () => {
                     </RouteButton>
                   )}
                   {item.type !== PAGETYPE.FOOTER_CATEGORY && item.children && (
-                    <Menu>
+                    <Menu colorScheme="blackAlpha">
                       <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
                         {item.title}
                       </MenuButton>
@@ -123,12 +129,13 @@ const LandingNavbar = () => {
             )}
             {!ui.isLoggedIn && (
               <Button
-                colorScheme="orange"
+                bg="#F56646"
                 variant="solid"
                 onClick={() => toggleModal({ type: MODAL_TYPES.SIGNUP })}
                 size="sm"
                 fontWeight="400"
                 borderRadius="2xl"
+                textColor="white"
               >
                 Sign Up
               </Button>

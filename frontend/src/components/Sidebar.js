@@ -25,7 +25,12 @@ import {
   LockIcon,
 } from "@chakra-ui/icons";
 import { MdSettings, MdDashboard, MdTimeline } from "react-icons/md";
-import { PRIMARY_MOON_LOGO_URL, SITEMAP, PAGETYPE } from "../core/constants";
+import {
+  PRIMARY_MOON_LOGO_URL,
+  SITEMAP,
+  PAGETYPE,
+  BACKGROUND_COLOR,
+} from "../core/constants";
 import useDashboard from "../core/hooks/useDashboard";
 import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 import OverlayContext from "../core/providers/OverlayProvider/context";
@@ -49,7 +54,8 @@ const Sidebar = () => {
           <IconButton
             ml={4}
             justifySelf="flex-start"
-            colorScheme="blue"
+            colorScheme="blackAlpha"
+            bgColor={BACKGROUND_COLOR}
             aria-label="App navigation"
             icon={
               ui.isMobileView ? (
@@ -78,7 +84,7 @@ const Sidebar = () => {
         </Flex>
       </SidebarHeader>
       <SidebarContent>
-        <Divider borderColor="blue.600" />
+        <Divider borderColor={BACKGROUND_COLOR} />
         <Menu iconShape="square">
           {!ui.isLoggedIn && (
             <>

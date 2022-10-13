@@ -13,7 +13,7 @@ const _FAQCard = ({ heading, headingProps, panelContent }) => {
   const iconColor = "#F56646";
 
   return (
-    <AccordionItem>
+    <AccordionItem borderWidth={0} borderBottomWidth="0!important">
       {({ isExpanded }) => (
         <>
           <AccordionButton>
@@ -21,7 +21,7 @@ const _FAQCard = ({ heading, headingProps, panelContent }) => {
               <Heading
                 {...headingProps}
                 as="h3"
-                fontSize={["lg", "2xl", "3xl"]}
+                fontSize={["md", "md", "lg", "lg", null]}
               >
                 {heading}
               </Heading>
@@ -32,10 +32,7 @@ const _FAQCard = ({ heading, headingProps, panelContent }) => {
               <AddIcon color={iconColor} fontSize="12px" />
             )}
           </AccordionButton>
-          <AccordionPanel
-            pb={4}
-            fontSize={["md", "lg", "xl", "2xl", "3xl", "3xl"]}
-          >
+          <AccordionPanel pb={4} fontSize={["sm", "sm", "md", "md", null]}>
             {panelContent}
           </AccordionPanel>
         </>
