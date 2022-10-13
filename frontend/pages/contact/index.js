@@ -36,6 +36,7 @@ const Contact = () => {
         mb={8}
         minHeight="100vh"
         textColor="black"
+        position="relative"
       >
         <Icon
           as={BiArrowBack}
@@ -56,9 +57,9 @@ const Contact = () => {
               fontSize={["md", "lg", "xl"]}
               textAlign="center"
             >
-              Thanks for your interest in Moonstream.
-              <br />
-              Please answer some questions to help us get acquainted with you.
+              Thanks for your interest in Moonstream. Our tools are fully
+              customized to your project. <br /> Please answer these questions
+              to get started:
             </Text>
           </VStack>
         </Center>
