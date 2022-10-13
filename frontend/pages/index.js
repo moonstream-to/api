@@ -94,34 +94,6 @@ const Homepage = () => {
 
   const { buttonReport } = useContext(AnalyticsContext);
 
-  // useEffect(() => {
-  //   assets["background720"] = `${AWS_ASSETS_PATH}/background720.png`;
-  //   assets["background1920"] = `${AWS_ASSETS_PATH}/background1920.png`;
-  //   assets["background2880"] = `${AWS_ASSETS_PATH}/background2880.png`;
-  //   assets["background3840"] = `${AWS_ASSETS_PATH}/background3840.png`;
-  // }, []);
-
-  // useLayoutEffect(() => {
-  //   if (backgroundLoaded3840) {
-  //     setBackground("background3840");
-  //   } else if (backgroundLoaded2880) {
-  //     setBackground("background2880");
-  //   } else if (backgroundLoaded1920) {
-  //     setBackground("background1920");
-  //   } else {
-  //     setBackground("background720");
-  //   }
-  // }, [
-  //   isLargerThan720px,
-  //   isLargerThan1920px,
-  //   isLargerThan2880px,
-  //   isLargerThan3840px,
-  //   backgroundLoaded720,
-  //   backgroundLoaded1920,
-  //   backgroundLoaded2880,
-  //   backgroundLoaded3840,
-  // ]);
-
   useEffect(() => {
     if (
       router.nextRouter.asPath !== "/" &&
@@ -139,39 +111,6 @@ const Homepage = () => {
     }
   }, [isInit, router]);
 
-  // useLayoutEffect(() => {
-  //   const imageLoader720 = new Image();
-  //   imageLoader720.src = `${AWS_ASSETS_PATH}/background720.png`;
-  //   imageLoader720.onload = () => {
-  //     setBackgroundLoaded720(true);
-  //   };
-  // }, []);
-
-  // useLayoutEffect(() => {
-  //   const imageLoader1920 = new Image();
-  //   imageLoader1920.src = `${AWS_ASSETS_PATH}/background1920.png`;
-  //   imageLoader1920.onload = () => {
-  //     setBackgroundLoaded1920(true);
-  //   };
-  // }, []);
-
-  // useLayoutEffect(() => {
-  //   const imageLoader2880 = new Image();
-  //   imageLoader2880.src = `${AWS_ASSETS_PATH}/background2880.png`;
-  //   imageLoader2880.onload = () => {
-  //     setBackgroundLoaded2880(true);
-  //   };
-  // }, []);
-
-  // useLayoutEffect(() => {
-  //   const imageLoader3840 = new Image();
-  //   imageLoader3840.src = `${AWS_ASSETS_PATH}/background3840.png`;
-  //   imageLoader3840.onload = () => {
-  //     setBackgroundLoaded3840(true);
-  //   };
-  // }, []);
-
-  const blueBackgroundColor = "#212698";
   const lightOrangeColor = "#F56646";
   const cardBackgroundColor = "#353535";
 
@@ -248,13 +187,7 @@ const Homepage = () => {
                 id="Header grid item"
               >
                 <chakra.header boxSize="full" mb={0}>
-                  <Box
-                    bgPos="bottom"
-                    // bgColor="transparent"
-                    // backgroundImage={`url(${assets[`${background}`]})`}
-                    bgSize="cover"
-                    boxSize="full"
-                  >
+                  <Box bgPos="bottom" bgSize="cover" boxSize="full">
                     <Flex
                       align="center"
                       justify="center"
@@ -343,11 +276,7 @@ const Homepage = () => {
                           </Center>
                         </Stack>
                       </Stack>
-                      <Box
-                        // bgColor="rgb(255, 255, 255, 0.7)"
-                        w={[null, null, "55%"]}
-                        // rounded={["lg", "xl", "2xl"]}
-                      >
+                      <Box w={[null, null, "55%"]}>
                         <HStack h="100%">
                           <Center w={["50%", "43%"]} h={["auto", "100%"]}>
                             <Flex w="100%">
@@ -436,12 +365,6 @@ const Homepage = () => {
                     pb={[4, 10]}
                   >
                     <Suspense fallback={""}>
-                      {/* <TrustedBadge
-                        scaling={1.5}
-                        name="Bullieverse"
-                        ImgURL={assets["bulliverse"]}
-                        boxURL="https://bullieverisland.com/"
-                      /> */}
                       <TrustedBadge
                         scaling={0.8}
                         name="Champions Ascension"
