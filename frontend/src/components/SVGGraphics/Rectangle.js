@@ -16,7 +16,7 @@ const _RectangleSVG = (props) => {
         stroke="url(#paint0_linear_293_56)"
         strokeWidth="5"
       />
-      <defs>
+      {/* <defs>
         <linearGradient
           id="paint0_linear_293_56"
           x1="242"
@@ -28,7 +28,7 @@ const _RectangleSVG = (props) => {
           <stop stopColor="#212698" />
           <stop offset="1" stopColor="#FF8B73" />
         </linearGradient>
-      </defs>
+      </defs> */}
     </svg>
   );
 };

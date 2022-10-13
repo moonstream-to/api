@@ -1,6 +1,7 @@
 import React, { Suspense, useContext } from "react";
 import { Flex } from "@chakra-ui/react";
 import UIContext from "../core/providers/UIProvider/context";
+import { BACKGROUND_COLOR } from "../core/constants";
 
 import LandingNavbar from "./LandingNavbar";
 const AppNavbar = React.lazy(() => import("./AppNavbar"));
@@ -16,7 +17,8 @@ const Navbar = () => {
       id="Navbar"
       minH="3rem"
       maxH="3rem"
-      bgColor="blue.1200"
+      bgColor={BACKGROUND_COLOR}
+      borderBottom="1px solid white"
       direction="row"
       w="100%"
       overflow="hidden"

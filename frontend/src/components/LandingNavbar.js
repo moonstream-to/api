@@ -19,7 +19,12 @@ import useModals from "../core/hooks/useModals";
 import UIContext from "../core/providers/UIProvider/context";
 import ChakraAccountIconButton from "./AccountIconButton";
 import RouteButton from "./RouteButton";
-import { PAGETYPE, SITEMAP, PRIMARY_MOON_LOGO_URL } from "../core/constants";
+import {
+  PAGETYPE,
+  SITEMAP,
+  PRIMARY_MOON_LOGO_URL,
+  BACKGROUND_COLOR,
+} from "../core/constants";
 import router from "next/router";
 import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 
@@ -32,7 +37,8 @@ const LandingNavbar = () => {
         <>
           <IconButton
             alignSelf="flex-start"
-            colorScheme="blue"
+            colorScheme="blackAlpha"
+            bgColor={BACKGROUND_COLOR}
             variant="solid"
             onClick={() => ui.setSidebarToggled(!ui.sidebarToggled)}
             icon={<HamburgerIcon />}
@@ -40,20 +46,19 @@ const LandingNavbar = () => {
         </>
       )}
       <Flex
-        pl={ui.isMobileView ? 2 : 16}
+        pl={ui.isMobileView ? 2 : "60px"}
         justifySelf="flex-start"
         h="48px"
         py={1}
         flexBasis="200px"
-        flexGrow={1}
+        flexGrow={0.6}
         id="Logo Container"
         alignItems="center"
       >
         <RouterLink href="/" passHref>
           <Link
             as={Image}
-            w="auto"
-            h={["70%", "85%"]}
+            w={"160px"}
             justifyContent="left"
             src={PRIMARY_MOON_LOGO_URL}
             alt="Moonstream logo"
@@ -63,8 +68,7 @@ const LandingNavbar = () => {
 
       {!ui.isMobileView && (
         <>
-          <Spacer />
-          <ButtonGroup variant="link" colorScheme="orange" spacing={4} pr={16}>
+          <ButtonGroup variant="link" spacing={4} pr={16} flexGrow={0.5}>
             {SITEMAP.map((item, idx) => {
               return (
                 <React.Fragment key={`Fragment-${idx}`}>
@@ -80,7 +84,7 @@ const LandingNavbar = () => {
                     </RouteButton>
                   )}
                   {item.type !== PAGETYPE.FOOTER_CATEGORY && item.children && (
-                    <Menu>
+                    <Menu colorScheme="blackAlpha">
                       <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
                         {item.title}
                       </MenuButton>
@@ -105,7 +109,8 @@ const LandingNavbar = () => {
                 </React.Fragment>
               );
             })}
-
+          </ButtonGroup>
+          <ButtonGroup variant="link" spacing={4} pr={16}>
             {ui.isLoggedIn && (
               <RouterLink href="/welcome" passHref>
                 <Button
@@ -123,14 +128,15 @@ const LandingNavbar = () => {
             )}
             {!ui.isLoggedIn && (
               <Button
-                colorScheme="orange"
+                bg="#F56646"
                 variant="solid"
                 onClick={() => toggleModal({ type: MODAL_TYPES.SIGNUP })}
                 size="sm"
-                fontWeight="400"
+                fontWeight="bold"
                 borderRadius="2xl"
+                textColor="white"
               >
-                Sign Up
+                Sign up
               </Button>
             )}
             {!ui.isLoggedIn && (

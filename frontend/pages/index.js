@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  Suspense,
-  useEffect,
-  useLayoutEffect,
-  useContext,
-} from "react";
+import React, { Suspense, useEffect, useContext } from "react";
 import {
   Fade,
   Flex,
@@ -14,25 +8,30 @@ import {
   Stack,
   Link,
   Center,
-  useMediaQuery,
   Grid,
   Text,
   GridItem,
   SimpleGrid,
   Image as ChakraImage,
-  HStack,
   VStack,
+  HStack,
   Accordion,
+  Icon,
+  Spacer,
 } from "@chakra-ui/react";
+import { HiOutlineChatAlt2 } from "react-icons/hi";
 import useUser from "../src/core/hooks/useUser";
 import useRouter from "../src/core/hooks/useRouter";
-import { AWS_ASSETS_PATH, DEFAULT_METATAGS } from "../src/core/constants";
+import {
+  AWS_ASSETS_PATH,
+  DEFAULT_METATAGS,
+  BACKGROUND_COLOR,
+} from "../src/core/constants";
 import TrustedBadge from "../src/components/TrustedBadge";
 import RouteButton from "../src/components/RouteButton";
 import AnalyticsContext from "../src/core/providers/AnalyticsProvider/context";
 import RouterLink from "next/link";
 import FAQCard from "../src/components/FAQCard";
-import EngineOverviewDiagram from "../src/components/EngineOverviewDiagram";
 
 const HEADING_PROPS = {
   fontWeight: "700",
@@ -40,87 +39,42 @@ const HEADING_PROPS = {
 };
 
 const assets = {
+  airdrop: `${AWS_ASSETS_PATH}/airdrop.png`,
   arbitrum: `${AWS_ASSETS_PATH}/arbitrum_logo.png`,
   background720: `${AWS_ASSETS_PATH}/background720.png`,
   background1920: `${AWS_ASSETS_PATH}/background720.png`,
   background2880: `${AWS_ASSETS_PATH}/background720.png`,
   background3840: `${AWS_ASSETS_PATH}/background720.png`,
-  bc101: `${AWS_ASSETS_PATH}/featured_by/blockchain101_logo.png`,
+  bc101: `${AWS_ASSETS_PATH}/featured_by/blockchain-101-white.png`,
   bulliverse: `${AWS_ASSETS_PATH}/bullieverse_logo.png`,
   cgcConference: `${AWS_ASSETS_PATH}/featured_by/cgc_conference_2022_logo.jpg`,
   championsAscension: `${AWS_ASSETS_PATH}/featured_by/champions.png`,
-  cointelegraph: `${AWS_ASSETS_PATH}/featured_by/Cointelegraph_logo.png`,
+  cointelegraph: `${AWS_ASSETS_PATH}/featured_by/cointelegraph-white.png`,
+  craftingRecipe: `${AWS_ASSETS_PATH}/crafting-recipe.png`,
   cryptoGuilds: `${AWS_ASSETS_PATH}/crypto_guilds_logo.png`,
-  cryptoinsiders: `${AWS_ASSETS_PATH}/featured_by/crypto_insiders.png`,
-  cryptoslate: `${AWS_ASSETS_PATH}/featured_by/cs-media-logo-light.png`,
-  cryptoTraders: `${AWS_ASSETS_PATH}/crypto+traders.png`,
+  cryptoinsiders: `${AWS_ASSETS_PATH}/featured_by/crypto-insiders-white.png`,
+  cryptoslate: `${AWS_ASSETS_PATH}/featured_by/cryptoslate-white.png`,
   cryptoUnicorns: `${AWS_ASSETS_PATH}/crypto_unicorns_logo.png`,
-  DAO: `${AWS_ASSETS_PATH}/DAO .png`,
-  educativesessions: `${AWS_ASSETS_PATH}/featured_by/educative_logo.png`,
+  educativesessions: `${AWS_ASSETS_PATH}/featured_by/educative-white.png`,
   ethereum_blockchain: `${AWS_ASSETS_PATH}/ethereum_blockchain_logo.png`,
   evmos: `${AWS_ASSETS_PATH}/evmos_logo.png`,
   forte: `${AWS_ASSETS_PATH}/forte_logo.png`,
   game7io: `${AWS_ASSETS_PATH}/featured_by/game7io_logo.png`,
   gnosis: `${AWS_ASSETS_PATH}/gnosis_chain_logo.png`,
   laguna: `${AWS_ASSETS_PATH}/featured_by/laguna_logo.svg`,
-  lender: `${AWS_ASSETS_PATH}/lender.png`,
-  meetup: `${AWS_ASSETS_PATH}/featured_by/meetup_logo.png`,
-  NFT: `${AWS_ASSETS_PATH}/NFT.png`,
+  meetup: `${AWS_ASSETS_PATH}/featured_by/meetup-white.png`,
+  minigame: `${AWS_ASSETS_PATH}/minigame.png`,
+  openLootbox: `${AWS_ASSETS_PATH}/open-lootbox.png`,
   optimism: `${AWS_ASSETS_PATH}/optimism_logo.png`,
   orangedao: `${AWS_ASSETS_PATH}/featured_by/orangedao_logo.png`,
   polygon: `${AWS_ASSETS_PATH}/polygon_blockchain_logo.png`,
 };
 
 const Homepage = () => {
-  const [background, setBackground] = useState("background720");
-  const [backgroundLoaded720, setBackgroundLoaded720] = useState(false);
-  const [backgroundLoaded1920, setBackgroundLoaded1920] = useState(false);
-  const [backgroundLoaded2880, setBackgroundLoaded2880] = useState(false);
-  const [backgroundLoaded3840, setBackgroundLoaded3840] = useState(false);
-
   const router = useRouter();
   const { isInit } = useUser();
-  const [
-    isLargerThan720px,
-    isLargerThan1920px,
-    isLargerThan2880px,
-    isLargerThan3840px,
-  ] = useMediaQuery([
-    "(min-width: 720px)",
-    "(min-width: 1920px)",
-    "(min-width: 2880px)",
-    "(min-width: 3840px)",
-  ]);
 
   const { buttonReport } = useContext(AnalyticsContext);
-
-  useEffect(() => {
-    assets["background720"] = `${AWS_ASSETS_PATH}/background720.png`;
-    assets["background1920"] = `${AWS_ASSETS_PATH}/background1920.png`;
-    assets["background2880"] = `${AWS_ASSETS_PATH}/background2880.png`;
-    assets["background3840"] = `${AWS_ASSETS_PATH}/background3840.png`;
-  }, []);
-
-  useLayoutEffect(() => {
-    if (backgroundLoaded3840) {
-      setBackground("background3840");
-    } else if (backgroundLoaded2880) {
-      setBackground("background2880");
-    } else if (backgroundLoaded1920) {
-      setBackground("background1920");
-    } else {
-      setBackground("background720");
-    }
-  }, [
-    isLargerThan720px,
-    isLargerThan1920px,
-    isLargerThan2880px,
-    isLargerThan3840px,
-    backgroundLoaded720,
-    backgroundLoaded1920,
-    backgroundLoaded2880,
-    backgroundLoaded3840,
-  ]);
 
   useEffect(() => {
     if (
@@ -139,40 +93,8 @@ const Homepage = () => {
     }
   }, [isInit, router]);
 
-  useLayoutEffect(() => {
-    const imageLoader720 = new Image();
-    imageLoader720.src = `${AWS_ASSETS_PATH}/background720.png`;
-    imageLoader720.onload = () => {
-      setBackgroundLoaded720(true);
-    };
-  }, []);
-
-  useLayoutEffect(() => {
-    const imageLoader1920 = new Image();
-    imageLoader1920.src = `${AWS_ASSETS_PATH}/background1920.png`;
-    imageLoader1920.onload = () => {
-      setBackgroundLoaded1920(true);
-    };
-  }, []);
-
-  useLayoutEffect(() => {
-    const imageLoader2880 = new Image();
-    imageLoader2880.src = `${AWS_ASSETS_PATH}/background2880.png`;
-    imageLoader2880.onload = () => {
-      setBackgroundLoaded2880(true);
-    };
-  }, []);
-
-  useLayoutEffect(() => {
-    const imageLoader3840 = new Image();
-    imageLoader3840.src = `${AWS_ASSETS_PATH}/background3840.png`;
-    imageLoader3840.onload = () => {
-      setBackgroundLoaded3840(true);
-    };
-  }, []);
-
-  const blueBackgroundColor = "#212698";
-  const lightOrangeColor = "#FF9473";
+  const lightOrangeColor = "#F56646";
+  const cardBackgroundColor = "#353535";
 
   const Feature = ({ title, altText, image, ...props }) => {
     return (
@@ -181,27 +103,29 @@ const Homepage = () => {
           <Stack
             transition={"1s"}
             spacing={1}
-            px={1}
+            px={2}
+            py={4}
             alignItems="center"
             borderRadius="12px"
-            borderColor="blue.700"
-            bgColor={"blue.800"}
+            borderColor="white"
+            bgColor={cardBackgroundColor}
             borderWidth={"1px"}
             _hover={{ transform: "scale(1.05)", transition: "0.42s" }}
             cursor="pointer"
             m={[2, 3, 3, 4, 8, 12]}
-            pb={2}
-            minH={["225px", "290px", "400px", null]}
+            minW={["155px", "180px", "200px", "240px"]}
+            h={["200px", "300px"]}
           >
             <ChakraImage
-              boxSize={["150px", "220px", "xs", null, "xs"]}
+              boxSize={["120px", "200px", null]}
               objectFit="contain"
               src={image}
               alt={altText}
             />
             <Heading
               textAlign="center"
-              fontSize={["md", "md", "lg", "3xl", "4xl"]}
+              fontSize={["md", "md", "lg", "lg", null]}
+              fontWeight="normal"
             >
               {title}
             </Heading>
@@ -220,7 +144,8 @@ const Homepage = () => {
           sx={{ scrollBehavior: "smooth" }}
           bgSize="cover"
           id="page:landing"
-          bgColor={"blue.50"}
+          bgColor={BACKGROUND_COLOR}
+          textColor="white"
         >
           <Flex
             direction="column"
@@ -238,20 +163,18 @@ const Homepage = () => {
               border="none"
               boxSizing="content-box"
             >
-              <GridItem colSpan="12" bgColor={"blue.50"} id="Header grid item">
-                <chakra.header boxSize="full" minH={["60vh", "100vh"]} mb={0}>
-                  <Box
-                    bgPos="bottom"
-                    bgColor="transparent"
-                    backgroundImage={`url(${assets[`${background}`]})`}
-                    bgSize="cover"
-                    boxSize="full"
-                  >
+              <GridItem
+                colSpan="12"
+                bgColor={BACKGROUND_COLOR}
+                id="Header grid item"
+              >
+                <chakra.header boxSize="full" mb={0}>
+                  <Box bgPos="bottom" bgSize="cover" boxSize="full">
                     <Flex
                       align="center"
                       justify="center"
                       boxSize="full"
-                      pt={["120px", "120px", "150px"]}
+                      pt={["90px", "120px"]}
                       pb={10}
                       px="5%"
                       flexDir="column"
@@ -264,46 +187,42 @@ const Homepage = () => {
                         w="100%"
                       >
                         <Heading
-                          fontSize={["lg", "4xl", "5xl", "5xl", "5xl", "6xl"]}
-                          fontWeight="semibold"
+                          fontSize={["4xl", "4xl", "5xl", "5xl", "5xl", "6xl"]}
+                          fontWeight="bold"
                           color="white"
                           as="h1"
-                          pb={[8, 8, 12]}
-                          maxW={[null, "90%", "80%", "58%"]}
+                          pb={[2, 4]}
+                          maxW={[null, "90%", "80%", "40%"]}
                         >
                           {DEFAULT_METATAGS.title}
                         </Heading>
                         <chakra.span
-                          pb={[6, 6, 12]}
-                          fontSize={["sm", "md", "lg", "lg", "xl", "xl"]}
+                          pb={[2, 6]}
+                          fontSize={["md", "md", "md", "md", null]}
                           display="inline-block"
                           color="white"
-                          maxW={[null, "85%", "75%"]}
+                          maxW={[null, "85%", "75%", "55%"]}
                         >
                           {DEFAULT_METATAGS.description}
                         </chakra.span>
                         <Stack
                           direction={[
                             "column",
-                            "column",
+                            "row",
                             "row",
                             "row",
                             "row",
                             "row",
                           ]}
-                          pb={"120px"}
+                          pb={10}
                         >
                           <Center>
                             <RouteButton
-                              variant="orangeAndBlue"
-                              minW={[
-                                "220px",
-                                "250px",
-                                "250px",
-                                "300px",
-                                "350px",
-                                "400px",
-                              ]}
+                              variant="whiteOnOrange"
+                              bg={
+                                "linear-gradient(92.26deg, #F56646 8.41%, #FFFFFF 255.37%);"
+                              }
+                              minW={["320px", "150px", null]}
                               onClick={() => {
                                 buttonReport(
                                   "Boost",
@@ -313,23 +232,17 @@ const Homepage = () => {
                               }}
                               href={"/contact"}
                             >
-                              Make my game web3
+                              Get Started
                             </RouteButton>
                           </Center>
                           <Center>
                             <RouteButton
                               variant="orangeAndBlue"
-                              bg={blueBackgroundColor}
-                              borderColor={lightOrangeColor}
+                              bg="transparent"
+                              borderWidth="2px"
+                              borderColor="white"
                               textColor="white"
-                              minW={[
-                                "220px",
-                                "250px",
-                                "250px",
-                                "300px",
-                                "350px",
-                                "400px",
-                              ]}
+                              minW={["320px", "200px", null]}
                               onClick={() => {
                                 buttonReport(
                                   "Discord",
@@ -345,68 +258,78 @@ const Homepage = () => {
                           </Center>
                         </Stack>
                       </Stack>
-                      <Box
-                        bgColor="rgb(255, 255, 255, 0.7)"
-                        w={[null, null, "40%"]}
-                        rounded={["lg", "xl", "2xl"]}
-                        px={5}
-                      >
-                        <HStack h="100%">
-                          <Center w={[null, null, "40%"]} h="100%">
-                            <Flex>
-                              <Center w="100%">
-                                <VStack>
-                                  <Text
-                                    fontSize={[
-                                      "md",
-                                      "xl",
-                                      "2xl",
-                                      "3xl",
-                                      "3xl",
-                                      "3xl",
-                                    ]}
-                                    fontWeight="bold"
-                                    textColor={lightOrangeColor}
-                                    pt="20px"
-                                  >
-                                    &gt;$3b
-                                  </Text>
-                                  <Text pb="20px">
-                                    transaction volume.
-                                    <br />
-                                    And growing
-                                  </Text>
-                                </VStack>
-                              </Center>
+                      <Box w={["100%", "70%", "60%"]}>
+                        <HStack h="100%" alignItems="flex-start">
+                          <Flex w={["50%", "43%"]} h={["auto", "100%"]}>
+                            <Flex w="100%">
+                              <Stack
+                                direction={["column", "column", "row"]}
+                                textAlign="center"
+                              >
+                                <Text
+                                  fontSize={[
+                                    "xl",
+                                    "xl",
+                                    "2xl",
+                                    "5xl",
+                                    "5xl",
+                                    "5xl",
+                                  ]}
+                                  fontWeight="medium"
+                                  pr={4}
+                                >
+                                  &gt;$4b
+                                </Text>
+                                <Text
+                                  w="100%"
+                                  alignSelf={[
+                                    "flex-start",
+                                    "flex-start",
+                                    "center",
+                                  ]}
+                                  fontSize={["sm", "md"]}
+                                >
+                                  transaction volume.
+                                  <br />
+                                  And growing
+                                </Text>
+                              </Stack>
                             </Flex>
-                          </Center>
-                          <Center w={[null, null, "60%"]} h="100%">
-                            <Flex>
-                              {" "}
-                              <Center w="100%">
-                                <VStack>
-                                  <Text
-                                    fontSize={[
-                                      "md",
-                                      "xl",
-                                      "2xl",
-                                      "3xl",
-                                      "3xl",
-                                      "3xl",
-                                    ]}
-                                    fontWeight="bold"
-                                    textColor={lightOrangeColor}
-                                    pt="20px"
-                                  >
-                                    &gt;44k
-                                  </Text>
-                                  <Text pb="20px">
-                                    active users in game economies
-                                    <br />
-                                    built with our engine
-                                  </Text>
-                                </VStack>
-                              </Center>
+                          </Flex>
+                          <Center w={["50%", "57%"]} h="100%">
+                            <Flex w="100%" justifyContent="right">
+                              <Stack
+                                direction={["column", "column", "row"]}
+                                textAlign="center"
+                              >
+                                <Text
+                                  fontSize={[
+                                    "xl",
+                                    "xl",
+                                    "2xl",
+                                    "5xl",
+                                    "5xl",
+                                    "5xl",
+                                  ]}
+                                  fontWeight="medium"
+                                  pr={4}
+                                >
+                                  &gt;44k
+                                </Text>
+                                <Text
+                                  w="100%"
+                                  alignSelf={[
+                                    "flex-start",
+                                    "flex-start",
+                                    "center",
+                                  ]}
+                                  fontSize={["sm", "md"]}
+                                >
+                                  active users in game economies
+                                  <br />
+                                  built with our engine
+                                </Text>
+                              </Stack>
                             </Flex>
                           </Center>
                         </HStack>
@@ -416,56 +339,62 @@ const Homepage = () => {
                 </chakra.header>
               </GridItem>
 
-              <GridItem px="7%" py={10} colSpan="12" bgColor="white.100">
-                <VStack>
+              <GridItem
+                px={["5%", null, "12%", "15%"]}
+                py={(4, 8)}
+                colSpan="12"
+                bgColor={BACKGROUND_COLOR}
+              >
+                <VStack
+                  bgColor="white"
+                  rounded="3xl"
+                  textColor="#1A1D22"
+                  py={10}
+                >
                   <Heading
                     as="h3"
                     {...HEADING_PROPS}
-                    fontSize={["md", "lg", "xl", "2xl", "3xl", "3xl"]}
+                    fontSize={["2xl", null]}
                     fontWeight="semibold"
                     textAlign="center"
+                    px="20px"
                   >
-                    Trusted by visionaries in the industry
+                    <Text>Trusted by visionaries</Text>
+                    <Text>in the industry</Text>
                   </Heading>
                   <Flex
                     wrap="wrap"
                     direction="row"
                     justifyContent="center"
-                    pb={10}
+                    pb={[4, 10]}
                   >
                     <Suspense fallback={""}>
-                      {/* <TrustedBadge
-                        scaling={1.5}
-                        name="Bullieverse"
-                        ImgURL={assets["bulliverse"]}
-                        boxURL="https://bullieverisland.com/"
-                      /> */}
                       <TrustedBadge
-                        scaling={1.5}
+                        scaling={0.8}
                         name="Champions Ascension"
                         ImgURL={assets["championsAscension"]}
                         boxURL="https://www.champions.io/"
                       />
                       <TrustedBadge
-                        scaling={[1.5]}
+                        scaling={0.8}
                         name="Crypto Guilds"
                         ImgURL={assets["cryptoGuilds"]}
                         boxURL="https://crypto-guilds.com/"
                       />
                       <TrustedBadge
-                        scaling={[1.5]}
+                        scaling={0.8}
                         name="Crypto Unicorns"
                         ImgURL={assets["cryptoUnicorns"]}
                         boxURL="https://www.cryptounicorns.fun/"
                       />
                       <TrustedBadge
-                        scaling={[1.5]}
+                        scaling={0.8}
                         name="game7io"
                         ImgURL={assets["game7io"]}
                         boxURL="https://game7.io/"
                       />
                       <TrustedBadge
-                        scaling={1.5}
+                        scaling={0.8}
                         name="orangedao"
                         ImgURL={assets["orangedao"]}
                         boxURL="https://lfg.orangedao.xyz/"
@@ -475,9 +404,10 @@ const Homepage = () => {
                   <Heading
                     as="h3"
                     {...HEADING_PROPS}
-                    fontSize={["md", "lg", "xl", "2xl", "3xl", "3xl"]}
+                    fontSize={["2xl", null]}
                     fontWeight="semibold"
                     textAlign="center"
+                    px="20px"
                   >
                     Supported blockchains
                   </Heading>
@@ -485,97 +415,108 @@ const Homepage = () => {
                     wrap="wrap"
                     direction="row"
                     justifyContent="center"
-                    pb={10}
+                    pb={[4, 10]}
                   >
                     <Suspense fallback={""}>
                       <TrustedBadge
-                        scaling={1.5}
+                        scaling={0.5}
+                        pt="10px"
+                        name="polygon"
+                        ImgURL={assets["polygon"]}
+                        boxURL="https://polygon.technology/"
+                      />
+                      <TrustedBadge
+                        scaling={0.8}
                         name="ethereum"
                         ImgURL={assets["ethereum_blockchain"]}
                         boxURL="https://ethereum.org/"
                       />
                       <TrustedBadge
-                        scaling={1.3}
+                        scaling={0.6}
+                        pt="8px"
                         name="gnosis"
                         ImgURL={assets["gnosis"]}
                         boxURL="https://gnosis.io/"
-                      />
-                      <TrustedBadge
-                        scaling={1.1}
-                        name="polygon"
-                        ImgURL={assets["polygon"]}
-                        boxURL="https://polygon.technology/"
                       />
                     </Suspense>
                   </Flex>
                   <Heading
                     as="h3"
                     {...HEADING_PROPS}
-                    fontSize={["md", "lg", "xl", "2xl", "3xl", "3xl"]}
+                    fontSize={["2xl", null]}
                     fontWeight="semibold"
                     textAlign="center"
+                    px="20px"
                   >
                     Upcoming Integrations
                   </Heading>
                   <Flex wrap="wrap" direction="row" justifyContent="center">
                     <Suspense fallback={""}>
                       <TrustedBadge
-                        scaling={1.2}
-                        name="arbitrum"
-                        ImgURL={assets["arbitrum"]}
-                        boxURL="https://bridge.arbitrum.io/"
-                      />
-                      <TrustedBadge
-                        scaling={1.2}
-                        name="evmos"
-                        ImgURL={assets["evmos"]}
-                        boxURL="https://evmos.org/"
-                      />
-                      <TrustedBadge
-                        scaling={1.2}
+                        scaling={0.8}
                         name="forte"
                         ImgURL={assets["forte"]}
                         boxURL="https://www.forte.io/"
                       />
                       <TrustedBadge
-                        scaling={1.2}
+                        scaling={0.6}
                         name="optimism"
                         ImgURL={assets["optimism"]}
                         boxURL="https://www.optimism.io/"
+                      />
+                      <TrustedBadge
+                        scaling={0.6}
+                        name="evmos"
+                        ImgURL={assets["evmos"]}
+                        boxURL="https://evmos.org/"
+                      />
+                      <TrustedBadge
+                        scaling={0.6}
+                        name="arbitrum"
+                        ImgURL={assets["arbitrum"]}
+                        boxURL="https://bridge.arbitrum.io/"
                       />
                     </Suspense>
                   </Flex>
                 </VStack>
               </GridItem>
               <GridItem
-                px={["7%", null, "12%", "15%"]}
+                px={["5%", null, "12%", "15%"]}
                 colSpan="12"
                 pt={12}
-                bgColor={"blue.900"}
+                bgColor={BACKGROUND_COLOR}
                 textColor="white"
               >
                 <Heading {...HEADING_PROPS} textAlign="center" pb={6} as="h2">
                   Features
                 </Heading>
-                <Center fontSize={["sm", "sm", "md", "md", "lg", "lg"]} py={4}>
-                  <chakra.span textAlign="center" width="85%">
-                    {`Lootboxes, crafting recipes, deck building, you name it! With Moonstream Engine you can deploy on-chain mechanics with one click.
-                    Read our Use Cases or explore the features to know more.   `}
-                  </chakra.span>
+                <Center fontSize={["md", "md", null]} py={4}>
+                  <VStack>
+                    <Text
+                      textAlign="center"
+                      display="inline-block"
+                      w={["100%", "100%", "70%"]}
+                    >
+                      Lootboxes, crafting recipes, deck building, you name it!
+                      With Moonstream Engine you can deploy on-chain mechanics
+                      with one click. Read our Use Cases or explore the features
+                      to know more.
+                    </Text>
+                  </VStack>
                 </Center>
                 <SimpleGrid
-                  columns={[2, 2, 2, 4, 4, 4]}
-                  justifyContent="center"
+                  columns={[2, 2, 4, null]}
+                  justifyContent={["flex-end", "flex-end", "center"]}
                   w="100%"
-                  placeContent={"space-between"}
-                  mx={[0, -2, -4]}
+                  spacing={["0px", "40px"]}
+                  mx={[-1, -2, -4]}
                   paddingTop="20px"
                 >
                   <Feature
                     title="Assemble Lootboxes"
                     altText="Lootboxes"
                     path="/features/#lootboxes"
-                    image={assets["cryptoTraders"]}
+                    image={assets["openLootbox"]}
                     href="/features/#lootboxes"
                     onClick={() => {
                       buttonReport("Lootboxes", "features", "landing");
@@ -585,7 +526,7 @@ const Homepage = () => {
                     title="Create Crafting Recipes"
                     altText="Crafting Recipes"
                     path="/features/#crafting"
-                    image={assets["NFT"]}
+                    image={assets["craftingRecipe"]}
                     href="/features/#crafting"
                     onClick={() => {
                       buttonReport("Crafting Recipes", "features", "landing");
@@ -595,7 +536,7 @@ const Homepage = () => {
                     title="Deploy Minigames"
                     altText="Minigames"
                     path="/features/#minigames"
-                    image={assets["DAO"]}
+                    image={assets["minigame"]}
                     href="/features/#minigames"
                     onClick={() => {
                       buttonReport("Minigames", "features", "landing");
@@ -605,7 +546,7 @@ const Homepage = () => {
                     title="Manage Airdrops"
                     altText="Airdrops"
                     path="/features/#airdrops"
-                    image={assets["lender"]}
+                    image={assets["airdrop"]}
                     href="/features/#airdrops"
                     onClick={() => {
                       buttonReport("Airdrops", "features", "landing");
@@ -619,15 +560,9 @@ const Homepage = () => {
                   >
                     <Center>
                       <RouteButton
-                        variant="orangeAndBlue"
-                        minW={[
-                          "250px",
-                          "290px",
-                          "300px",
-                          "300px",
-                          "350px",
-                          "400px",
-                        ]}
+                        variant="whiteOnOrange"
+                        backgroundColor="#F56646"
+                        minW={["320px", "300px", null]}
                         onClick={() => {
                           buttonReport("Features", "features", "landing");
                         }}
@@ -639,17 +574,11 @@ const Homepage = () => {
                     <Center>
                       <RouteButton
                         variant="orangeAndBlue"
-                        bg={blueBackgroundColor}
-                        borderColor={lightOrangeColor}
+                        bg="transparent"
+                        borderWidth="2px"
+                        borderColor="white"
                         textColor="white"
-                        minW={[
-                          "250px",
-                          "290px",
-                          "300px",
-                          "300px",
-                          "350px",
-                          "400px",
-                        ]}
+                        minW={["320px", "300px", null]}
                         onClick={() => {
                           buttonReport("Use Cases", "features", "landing");
                         }}
@@ -666,10 +595,137 @@ const Homepage = () => {
               </GridItem>
               <GridItem
                 px={["7%", null, "12%", "15%"]}
-                py={10}
+                py={[4, 10]}
                 colSpan="12"
-                bgColor="white.100"
-                minH="50vh"
+                bgColor={BACKGROUND_COLOR}
+              >
+                <Heading
+                  {...HEADING_PROPS}
+                  textAlign="center"
+                  pb={[4, 14]}
+                  as="h2"
+                >
+                  Our Workflow
+                </Heading>
+                <Stack
+                  textAlign="center"
+                  direction={["column", "column", "row"]}
+                >
+                  <VStack alignItems="center" px={4} py={4}>
+                    <Flex mb={5}>
+                      <Heading
+                        as="h3"
+                        fontSize={["lg", "lg", null]}
+                        display="inline-block"
+                        fontWeight="semibold"
+                      >
+                        Step 1
+                      </Heading>
+                    </Flex>
+                    <Flex>
+                      <chakra.span
+                        fontSize={["md", "md", null]}
+                        display="inline-block"
+                      >
+                        So you decided to build a healthy economy on the
+                        blockchain. You are on the right path, traveler!
+                      </chakra.span>
+                    </Flex>
+                  </VStack>
+                  <VStack alignItems="center" px={4} py={4}>
+                    <Flex mb={5}>
+                      <Heading
+                        as="h3"
+                        fontSize={["lg", "lg", null]}
+                        display="inline-block"
+                        fontWeight="semibold"
+                      >
+                        Step 2
+                      </Heading>
+                    </Flex>
+                    <Flex>
+                      <chakra.span
+                        fontSize={["md", "md", null]}
+                        display="inline-block"
+                      >
+                        Sign up to get whitelisted. We&apos;ll reach out to you
+                        within 3 days to schedule a call or make a partnership
+                        proposal.
+                      </chakra.span>
+                    </Flex>
+                  </VStack>
+                  <VStack alignItems="center" px={4} py={4}>
+                    <Flex mb={5}>
+                      <Heading
+                        as="h3"
+                        fontSize={["lg", "lg", null]}
+                        display="inline-block"
+                        fontWeight="semibold"
+                      >
+                        Step 3
+                      </Heading>
+                    </Flex>
+                    <Flex mb={5}>
+                      <chakra.span
+                        fontSize={["md", "md", null]}
+                        display="inline-block"
+                      >
+                        During onboarding pick game mechanics that you&apos;d
+                        like to deploy. Moonstream Engine provides you with
+                        back-end tools to put them on the blockchain.
+                      </chakra.span>
+                    </Flex>
+                  </VStack>
+                  <VStack alignItems="center" px={4} py={4}>
+                    <Center
+                      mb={5}
+                      w="100%"
+                      bg="linear-gradient(92.04deg, #FFD337 36.28%, rgba(48, 222, 76, 0.871875) 43.18%, rgba(114, 162, 255, 0.91) 50.43%, rgba(255, 160, 245, 0.86) 55.02%, rgba(255, 101, 157, 0.71) 60.64%, rgba(255, 97, 154, 0.59) 64.7%), #1A1D22;"
+                      backgroundClip="text"
+                    >
+                      <Heading
+                        as="h3"
+                        fontSize={["lg", "lg", null]}
+                        display="inline-block"
+                        fontWeight="semibold"
+                      >
+                        Enjoy
+                      </Heading>
+                    </Center>
+                    <Flex>
+                      <chakra.span
+                        fontSize={["md", "md", null]}
+                        display="inline-block"
+                      >
+                        You&apos;re at the end of your blockchain development
+                        journey now, traveler. Time to watch your game economy
+                        grow!
+                      </chakra.span>
+                    </Flex>
+                  </VStack>
+                </Stack>
+                <Center pt={14}>
+                  <Icon as={HiOutlineChatAlt2} mr={2}></Icon>
+                  <Text fontSize={["xs", "sm", "md", "md", null]}>
+                    Have something to discuss before signing up?{" "}
+                    <Link
+                      href="/discordleed"
+                      onClick={() => {
+                        buttonReport("Discord", "workflow", "landing");
+                      }}
+                      isExternal
+                    >
+                      <u>Join our Discord</u>{" "}
+                    </Link>
+                    to get in touch with the team (@zomglings).
+                  </Text>
+                </Center>
+              </GridItem>
+              <GridItem
+                px={["5%", null, "12%", "15%"]}
+                py={[4, 10]}
+                colSpan="12"
+                bgColor={BACKGROUND_COLOR}
               >
                 <Heading {...HEADING_PROPS} textAlign="center" as="h2" pb={10}>
                   FAQ
@@ -741,7 +797,7 @@ const Homepage = () => {
                           onClick={() => {
                             buttonReport("Moonstream Github", "faq", "landing");
                           }}
-                          textColor="blue.700"
+                          textColor="white"
                           isExternal
                         >
                           {" "}
@@ -867,166 +923,68 @@ const Homepage = () => {
                 </Accordion>
               </GridItem>
               <GridItem
-                px={["7%", "7%", "7%", "15%"]}
+                px={["5%", null, "12%", "15%"]}
                 py={10}
                 colSpan="12"
-                bgColor="white.100"
-                minH="100vh"
-              >
-                <Heading {...HEADING_PROPS} textAlign="center" as="h2" pb={10}>
-                  Engine Overview
-                </Heading>
-                <Center>
-                  <EngineOverviewDiagram buttonReport={buttonReport} />
-                </Center>
-              </GridItem>
-              <GridItem
-                px={["7%", null, "12%", "15%"]}
-                py={10}
-                colSpan="12"
-                bgColor="white.100"
-              >
-                <Heading {...HEADING_PROPS} textAlign="center" pb={14} as="h2">
-                  Our Workflow
-                </Heading>
-                <HStack alignItems="top" py={5}>
-                  <Flex height="100%" width="20%">
-                    <Heading
-                      as="h3"
-                      fontSize={["md", "xl", "4xl", "4xl", "4xl", "5xl"]}
-                      display="inline-block"
-                      fontWeight="semibold"
-                    >
-                      Step 1:
-                    </Heading>
-                  </Flex>
-                  <Flex height="100%" width="80%">
-                    <chakra.span
-                      fontSize={["sm", "lg", "3xl", "3xl", "3xl", "4xl"]}
-                      display="inline-block"
-                    >
-                      So you decided to build a healthy economy on the
-                      blockchain. You are on the right path, traveler!
-                    </chakra.span>
-                  </Flex>
-                </HStack>
-                <HStack alignItems="top" py={5}>
-                  <Flex bgColor="grey.100" width="20%" height="100%">
-                    <Heading
-                      as="h3"
-                      fontSize={["md", "xl", "4xl", "4xl", "4xl", "5xl"]}
-                      display="inline-block"
-                      fontWeight="semibold"
-                    >
-                      Step 2:
-                    </Heading>
-                  </Flex>
-                  <Flex width="80%">
-                    <chakra.span
-                      fontSize={["sm", "lg", "3xl", "3xl", "3xl", "4xl"]}
-                      display="inline-block"
-                    >
-                      <Link
-                        href="/discordleed"
-                        onClick={() => {
-                          buttonReport("Discord", "workflow", "landing");
-                        }}
-                        isExternal
-                      >
-                        <u>Join our Discord</u>{" "}
-                      </Link>{" "}
-                      to get in touch with the team (@zomglings). Tell us about
-                      your game and schedule a call if needed.
-                    </chakra.span>
-                  </Flex>
-                </HStack>
-                <HStack alignItems="top" py={5}>
-                  <Flex bgColor="grey.100" width="20%" height="100%">
-                    <Heading
-                      as="h3"
-                      fontSize={["md", "xl", "4xl", "4xl", "4xl", "5xl"]}
-                      display="inline-block"
-                      fontWeight="semibold"
-                    >
-                      Step 3:
-                    </Heading>
-                  </Flex>
-                  <Flex width="80%">
-                    <chakra.span
-                      fontSize={["sm", "lg", "3xl", "3xl", "3xl", "4xl"]}
-                      display="inline-block"
-                    >
-                      Pick game mechanics that you&apos;d like to deploy.
-                      Moonstream Engine provides you with back-end tools to put
-                      them on the blockchain.
-                      <br />
-                      <br />
-                      You&apos;re at the end of your development journey now,
-                      traveler. Time to watch your game economy grow!
-                    </chakra.span>
-                  </Flex>
-                </HStack>
-              </GridItem>
-              <GridItem
-                px="7%"
-                py={12}
-                colSpan="12"
-                bgColor="blue.900"
+                bgColor={BACKGROUND_COLOR}
                 textColor="white"
-                minH="40vh"
               >
-                <Heading as="h2" {...HEADING_PROPS} textAlign="center" pb={10}>
+                <Heading
+                  as="h2"
+                  {...HEADING_PROPS}
+                  textAlign="center"
+                  pb={10}
+                  fontWeight="semibold"
+                >
                   Featured by{" "}
                 </Heading>
                 <Center>
                   <Flex
-                    width="81%"
                     wrap="wrap"
                     direction="row"
-                    justifyContent="center"
-                    bgColor="white"
                     rounded={["lg", "xl", "2xl", "3xl", "4xl", "4xl"]}
+                    justifyContent="center"
                   >
                     <Suspense fallback={""}>
                       <TrustedBadge
-                        scaling={0.9}
+                        scaling={0.5}
                         name="cointelegraph"
                         caseURL=""
                         ImgURL={assets["cointelegraph"]}
                         boxURL="https://cointelegraph.com/news/17-of-addresses-snapped-up-80-of-all-ethereum-nfts-since-april"
                       />
                       <TrustedBadge
-                        scaling={0.9}
+                        scaling={0.5}
                         name="CryptoInsiders"
                         ImgURL={assets["cryptoinsiders"]}
                         boxURL="https://www.crypto-insiders.nl/nieuws/altcoin/17-van-ethereum-whales-bezitten-meer-dan-80-van-alle-nfts-op-de-blockchain/"
                       />
                       <TrustedBadge
-                        scaling={0.8}
+                        scaling={0.5}
                         name="cryptoslate"
                         ImgURL={assets["cryptoslate"]}
                         boxURL="https://cryptoslate.com/should-investors-care-80-of-all-nfts-belong-to-17-of-addresses/"
                       />
                       <TrustedBadge
-                        scaling={1.2}
+                        scaling={0.5}
                         name="bc101"
                         ImgURL={assets["meetup"]}
                         boxURL="https://www.meetup.com/SF-Bay-Area-Data-Science-Initiative/events/283215538/"
                       />
                       <TrustedBadge
                         name="educative sessions"
-                        scaling={1.5}
+                        scaling={0.5}
                         ImgURL={assets["educativesessions"]}
                         boxURL="https://youtu.be/DN8zRzJuy0M"
                       />
                       <TrustedBadge
-                        scaling={1.5}
+                        scaling={0.5}
                         name="bc101"
                         ImgURL={assets["bc101"]}
                         boxURL="https://blockchain101.com/"
                       />
                       <TrustedBadge
-                        scaling={1.2}
+                        scaling={0.5}
                         name="cgc2022"
                         ImgURL={assets["cgcConference"]}
                         boxURL="https://www.cgc.one/"
@@ -1036,87 +994,88 @@ const Homepage = () => {
                 </Center>
               </GridItem>
               <GridItem
-                px={["7%", null, "12%", "15%"]}
-                py={10}
+                px={["5%", null, "12%", "15%"]}
+                pt={10}
+                pb={20}
                 colSpan="12"
-                bgColor="white"
-                minH="50vh"
+                bgColor={BACKGROUND_COLOR}
               >
-                <VStack
-                  bgColor="blue.900"
-                  rounded={["lg", "xl", "2xl"]}
+                <Stack
+                  direction={["column", "column", "row"]}
+                  alignItems="center"
+                  bgColor={lightOrangeColor}
+                  borderWidth="2px"
+                  borderColor="white"
+                  borderRadius="30px"
                   textColor="white"
-                  px={10}
-                  py={8}
+                  px={[0, 10]}
+                  py={6}
                   mb={8}
                 >
-                  <Heading
-                    as="h2"
-                    fontSize={["md", "xl", "3xl", "4xl", "4xl", "5xl"]}
-                    letterSpacing="wide"
-                    textAlign="center"
-                  >
-                    Sign up to grow your economy
-                  </Heading>
-                  <chakra.span
-                    fontSize={["xs", "xs", "sm", "md", "lg", "lg"]}
-                    py={4}
-                  >
-                    {`Answer 5 questions about your project to get whitelisted.`}
-                  </chakra.span>
+                  <Box>
+                    <Heading
+                      as="h2"
+                      fontSize={["4xl", "4xl", null]}
+                      letterSpacing="wide"
+                      px={2}
+                      pb={1}
+                      textAlign={["center", "left"]}
+                    >
+                      Sign up to grow your economy
+                    </Heading>
+                    <Text
+                      fontSize={["sm", "sm", "md", "md", null]}
+                      px={2}
+                      py={4}
+                      textAlign={["center", "left"]}
+                    >
+                      {`Answer 5 questions about your project to get whitelisted.`}
+                    </Text>
+                  </Box>
+                  <Spacer />
                   <RouteButton
                     variant="orangeAndBlue"
-                    minW={[
-                      "200px",
-                      "250px",
-                      "250px",
-                      "300px",
-                      "350px",
-                      "400px",
-                    ]}
+                    bg="white"
+                    minW={["250px", "250px", null]}
+                    textColor={BACKGROUND_COLOR}
                     onClick={() => {
                       buttonReport("Boost", "page-bottom", "landing");
                     }}
                     href={"/contact"}
                   >
-                    Boost my game
+                    Boost my game economy
                   </RouteButton>
-                </VStack>
+                </Stack>
                 <Flex
                   w="100%"
                   alignItems="center"
                   justifyContent="center"
                   direction={["column", "column", "row"]}
-                  border="2px"
-                  color="blue.900"
-                  rounded={["lg", "xl", "2xl"]}
+                  borderWidth="2px"
+                  borderColor={lightOrangeColor}
+                  borderRadius="30px"
+                  bgColor="white"
+                  textColor="black"
                   px={10}
-                  pb={[8, 8, 0]}
+                  py={6}
                 >
-                  <chakra.span
+                  <Text
                     display="block"
-                    py={[6, 6, 12]}
-                    fontSize={["sm", "sm", "md", "lg", "xl", "xl"]}
-                    textAlign={["justify", "justify", "left", null]}
+                    fontSize={["sm", "sm", "md", "md", null]}
+                    textAlign={["center", "left"]}
                     mr={[0, 0, 14]}
+                    pb={[4, 0]}
                     letterSpacing="tight"
                   >
                     {`Learn more about crypto, NFT and DAOs, find links to educational resources, discuss gaming projects, and laugh at memes.`}
-                  </chakra.span>
+                  </Text>
 
                   <RouteButton
                     variant="orangeAndBlue"
                     bg="white"
                     borderColor={lightOrangeColor}
-                    textColor="blue.900"
-                    minW={[
-                      "200px",
-                      "250px",
-                      "250px",
-                      "300px",
-                      "350px",
-                      "400px",
-                    ]}
+                    textColor={lightOrangeColor}
+                    minW={["200px", "250px", "250px", "250px", null]}
                     onClick={() => {
                       buttonReport("Discord", "page-bottom", "landing");
                     }}

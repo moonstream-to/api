@@ -29,7 +29,14 @@ const Contact = () => {
 
   return (
     <Box>
-      <Box px="1.5rem" py={10} m="auto" mb={8} minHeight="100vh">
+      <Box
+        px="1.5rem"
+        py={10}
+        m="auto"
+        mb={8}
+        minHeight="100vh"
+        textColor="black"
+      >
         <Icon
           as={BiArrowBack}
           w={["30px", "40px", "50px"]}
@@ -63,9 +70,9 @@ const Contact = () => {
         <Center>
           <Text my={5} fontSize={["md", "lg"]} textAlign="center" width="60%">
             <i>
-              Click the button to submit your answers. We&apos;ll reach out
-              directly within 3 days. You will not receive any marketing emails
-              from us.
+              We&apos;ll reach out directly within 3 business days after you
+              submit this form. You won&apos;t be receiving any spam emails from
+              us, only the most important technical updates.
             </i>
           </Text>
         </Center>

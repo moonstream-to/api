@@ -12,25 +12,22 @@ import {
   chakra,
 } from "@chakra-ui/react";
 import RouterLink from "next/link";
-import { PRIMARY_MOON_LOGO_URL, SITEMAP } from "../core/constants";
+import {
+  PRIMARY_MOON_LOGO_URL,
+  SITEMAP,
+  BACKGROUND_COLOR,
+} from "../core/constants";
 import { FaGithub, FaTwitter, FaDiscord } from "react-icons/fa";
 import moment from "moment";
 
 const LINKS_SIZES = {
   fontWeight: "300",
-  fontSize: "lg",
+  fontSize: "md",
 };
 
 const ListHeader = ({ children }) => {
   return (
-    <Text
-      fontWeight={"500"}
-      fontSize={"lg"}
-      mb={2}
-      borderBottom="1px"
-      borderColor="blue.700"
-      textColor="blue.500"
-    >
+    <Text fontWeight="semibold" fontSize={"md"} mb={2}>
       {children}
     </Text>
   );
@@ -62,12 +59,14 @@ const SocialButton = ({ children, label, href }) => {
 
 const Footer = () => (
   <Box
-    bg={useColorModeValue("blue.900", "gray.900")}
-    color={useColorModeValue("gray.700", "gray.200")}
+    bg={BACKGROUND_COLOR}
+    textColor="white"
+    borderTop="1px"
+    borderColor="white"
   >
     <Container as={Stack} maxW={"8xl"} py={10}>
       <SimpleGrid
-        templateColumns={{ sm: "1fr 1fr", md: "2fr 1fr 1fr 1fr 1fr" }}
+        templateColumns={{ sm: "1fr 1fr", md: "2fr 1fr 1fr 1fr 1fr 1fr" }}
         spacing={8}
       >
         <Stack spacing={6}>
@@ -75,10 +74,7 @@ const Footer = () => (
             <Link href="/" alignSelf="center">
               <ChakraImage
                 alignSelf="center"
-                // as={Link}
-                // to="/"
-                h="2.5rem"
-                minW="2.5rem"
+                w="160px"
                 src={PRIMARY_MOON_LOGO_URL}
                 alt="Go to app root"
               />
@@ -87,6 +83,9 @@ const Footer = () => (
           <Text fontSize={"sm"}>
             © {moment().year()} Moonstream.to All rights reserved
           </Text>
+        </Stack>
+        <Stack>
+          <Text fontWeight="semibold">Follow Us</Text>
           <Stack direction={"row"} spacing={6}>
             <SocialButton
               label={"Twitter"}
