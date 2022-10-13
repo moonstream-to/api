@@ -112,12 +112,12 @@ const Homepage = () => {
             borderWidth={"1px"}
             _hover={{ transform: "scale(1.05)", transition: "0.42s" }}
             cursor="pointer"
-            m={[2, 3, 3, 4, 8, 12]}
-            minW={["155px", "180px", "200px", "240px"]}
-            h={["200px", "300px"]}
+            m={2}
+            minW={["120px", "120px", "200px", "240px"]}
+            h={["200px", "200px", "300px"]}
           >
             <ChakraImage
-              boxSize={["120px", "200px", null]}
+              boxSize={["120px", "120px", "200px", null]}
               objectFit="contain"
               src={image}
               alt={altText}
@@ -509,7 +509,6 @@ const Homepage = () => {
                   justifyContent={["flex-end", "flex-end", "center"]}
                   w="100%"
                   spacing={["0px", "40px"]}
-                  mx={[-1, -2, -4]}
                   paddingTop="20px"
                 >
                   <Feature
