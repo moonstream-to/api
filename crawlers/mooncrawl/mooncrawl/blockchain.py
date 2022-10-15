@@ -215,8 +215,9 @@ def crawl_blocks(
 
                 db_session.commit()
             except IntegrityError as err:
+                db_session.rollback()
                 assert isinstance(err.orig, UniqueViolation)
-                logger.warning(
+                logger.error(
                     "UniqueViolation error occurred, it means block already exists"
                 )
             except Exception as err:
