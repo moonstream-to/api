@@ -190,3 +190,6 @@ alembic.docker.ini
 # Schematic
 srv/
 .schematic.env
+
+# Custom
+scratch/
