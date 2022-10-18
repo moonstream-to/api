@@ -5,6 +5,7 @@ import itertools
 import logging
 from typing import Dict, List, Any, Optional
 from uuid import UUID
+import time
 
 from moonstreamdb.blockchain import AvailableBlockchainType
 from mooncrawl.moonworm_crawler.crawler import _retry_connect_web3
@@ -26,6 +27,9 @@ from .web3_util import FunctionSignature
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Sqlalchemy session
+logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
 
 
 Multicall2_address = "0xc8E51042792d7405184DfCa245F2d27B94D013b6"
@@ -141,18 +145,30 @@ def crawl_calls_level(
         calls_of_level[i : i + batch_size]
         for i in range(0, len(calls_of_level), batch_size)
     ]:
-
+        retry = 0
         while True:
             try:
+                logger.info(
+                    f"Calling multicall2 with {len(call_chunk)} calls at block {block_number}"
+                )
                 make_multicall_result = make_multicall(
                     multicall_method=multicall_method,
                     calls=call_chunk,
                     block_number=block_number,
                     block_timestamp=block_timestamp,
                 )
+                logger.info(
+                    f"Multicall2 returned {len(make_multicall_result)} results at block {block_number}"
+                )
+                retry = 0
                 break
-            except ValueError:
-                continue
+            except ValueError as e:
+                time.sleep(3)
+                logger.info(f"ValueError: {e}, retrying")
+                retry = +1
+                if retry > 5:
+                    raise (e)
+                raise (e)
         # results parsing and writing to database
         add_to_session_count = 0
         for result in make_multicall_result:
