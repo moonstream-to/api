@@ -121,7 +121,8 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
 
     addresses_filter = []
     if args.address is not None:
-        addresses_filter = [args.address]
+        addresses_filter = [Web3.toChecksumAddress(args.address)]
+
     all_event_jobs = make_event_crawl_jobs(
         get_crawl_job_entries(
             subscription_type,
