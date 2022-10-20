@@ -1,4 +1,6 @@
 import argparse
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures._base import TimeoutError
 import json
 import hashlib
 import itertools
@@ -27,9 +29,6 @@ from .web3_util import FunctionSignature
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# Sqlalchemy session
-logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
 
 
 Multicall2_address = "0xc8E51042792d7405184DfCa245F2d27B94D013b6"
@@ -148,27 +147,36 @@ def crawl_calls_level(
         retry = 0
         while True:
             try:
+
                 logger.info(
                     f"Calling multicall2 with {len(call_chunk)} calls at block {block_number}"
                 )
-                make_multicall_result = make_multicall(
-                    multicall_method=multicall_method,
-                    calls=call_chunk,
-                    block_number=block_number,
-                    block_timestamp=block_timestamp,
-                )
+                with ThreadPoolExecutor(max_workers=1) as executor:
+                    future = executor.submit(
+                        make_multicall,
+                        multicall_method,
+                        call_chunk,
+                        block_timestamp,
+                        block_number,
+                    )
+                    make_multicall_result = future.result(timeout=20)
                 logger.info(
                     f"Multicall2 returned {len(make_multicall_result)} results at block {block_number}"
                 )
                 retry = 0
                 break
             except ValueError as e:
-                time.sleep(3)
                 logger.info(f"ValueError: {e}, retrying")
                 retry = +1
                 if retry > 5:
                     raise (e)
-                raise (e)
+            except TimeoutError as e:
+                logger.info(f"TimeoutError: {e}, retrying")
+                retry = +1
+                if retry > 5:
+                    raise (e)
+            time.sleep(2)
+
         # results parsing and writing to database
         add_to_session_count = 0
         for result in make_multicall_result:
@@ -469,7 +477,7 @@ def main() -> None:
         "--batch-size",
         "-s",
         type=int,
-        default=500,
+        default=1000,
         help="Size of chunks wich send to Multicall2 contract.",
     )
     view_state_crawler_parser.set_defaults(func=handle_crawl)
