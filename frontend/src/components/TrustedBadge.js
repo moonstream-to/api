@@ -31,7 +31,7 @@ const TrustedBadge = ({
           alignItems="center"
           alignSelf="center"
           wrap="nowrap"
-          p={[2, 4]}
+          p={[2, 3]}
           direction="column"
         >
           <Image

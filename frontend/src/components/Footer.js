@@ -17,7 +17,7 @@ import {
   SITEMAP,
   BACKGROUND_COLOR,
 } from "../core/constants";
-import { FaGithub, FaTwitter, FaDiscord } from "react-icons/fa";
+import { FaGithub, FaTwitter, FaDiscord, FaLinkedin } from "react-icons/fa";
 import moment from "moment";
 
 const LINKS_SIZES = {
@@ -87,6 +87,9 @@ const Footer = () => (
         <Stack>
           <Text fontWeight="semibold">Follow Us</Text>
           <Stack direction={"row"} spacing={6}>
+            <SocialButton label={"Discord"} href={"/discordleed"}>
+              <FaDiscord />
+            </SocialButton>
             <SocialButton
               label={"Twitter"}
               href={"https://twitter.com/moonstreamto"}
@@ -99,8 +102,11 @@ const Footer = () => (
             >
               <FaGithub />
             </SocialButton>
-            <SocialButton label={"Discord"} href={"/discordleed"}>
-              <FaDiscord />
+            <SocialButton
+              label={"LinkedIn"}
+              href={"https://www.linkedin.com/company/moonstream/"}
+            >
+              <FaLinkedin />
             </SocialButton>
           </Stack>
         </Stack>

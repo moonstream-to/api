@@ -59,11 +59,7 @@ export default function SocialProfileSimple({
         <Text fontWeight={600} color={"gray.900"} mb={4}>
           {atName}
         </Text>
-        <Text
-          textAlign={"center"}
-          color={useColorModeValue("blue.500", "gray.100")}
-          px={3}
-        >
+        <Text textAlign={"center"} px={3}>
           {content}
         </Text>
 

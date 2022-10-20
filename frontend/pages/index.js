@@ -11,13 +11,13 @@ import {
   Grid,
   Text,
   GridItem,
-  SimpleGrid,
   Image as ChakraImage,
   VStack,
   HStack,
   Accordion,
   Icon,
   Spacer,
+  SimpleGrid,
 } from "@chakra-ui/react";
 import { HiOutlineChatAlt2 } from "react-icons/hi";
 import useUser from "../src/core/hooks/useUser";
@@ -101,10 +101,9 @@ const Homepage = () => {
       <Box onClick={props.onClick}>
         <RouterLink href={props.href}>
           <Stack
+            h="100%"
             transition={"1s"}
-            spacing={1}
-            px={2}
-            py={4}
+            p={4}
             alignItems="center"
             borderRadius="12px"
             borderColor="white"
@@ -112,16 +111,8 @@ const Homepage = () => {
             borderWidth={"1px"}
             _hover={{ transform: "scale(1.05)", transition: "0.42s" }}
             cursor="pointer"
-            m={2}
-            minW={["120px", "120px", "200px", "240px"]}
-            h={["200px", "200px", "300px"]}
           >
-            <ChakraImage
-              boxSize={["120px", "120px", "200px", null]}
-              objectFit="contain"
-              src={image}
-              alt={altText}
-            />
+            <ChakraImage objectFit="contain" src={image} alt={altText} />
             <Heading
               textAlign="center"
               fontSize={["md", "md", "lg", "lg", null]}
@@ -223,6 +214,7 @@ const Homepage = () => {
                                 "linear-gradient(92.26deg, #F56646 8.41%, #FFFFFF 255.37%);"
                               }
                               minW={["320px", "150px", null]}
+                              border="none"
                               onClick={() => {
                                 buttonReport(
                                   "Boost",
@@ -264,7 +256,7 @@ const Homepage = () => {
                             <Flex w="100%">
                               <Stack
                                 direction={["column", "column", "row"]}
-                                textAlign="center"
+                                textAlign={["center", "center", "left"]}
                               >
                                 <Text
                                   fontSize={[
@@ -300,7 +292,7 @@ const Homepage = () => {
                             <Flex w="100%" justifyContent="right">
                               <Stack
                                 direction={["column", "column", "row"]}
-                                textAlign="center"
+                                textAlign={["center", "center", "left"]}
                               >
                                 <Text
                                   fontSize={[
@@ -508,7 +500,7 @@ const Homepage = () => {
                   columns={[2, 2, 4, null]}
                   justifyContent={["flex-end", "flex-end", "center"]}
                   w="100%"
-                  spacing={["0px", "40px"]}
+                  spacing={["20px", "20px", "40px"]}
                   paddingTop="20px"
                 >
                   <Feature
@@ -704,7 +696,7 @@ const Homepage = () => {
                   </VStack>
                 </Stack>
                 <Center pt={14}>
-                  <Icon as={HiOutlineChatAlt2} mr={2}></Icon>
+                  <Icon as={HiOutlineChatAlt2} w={6} h={6} mr={2}></Icon>
                   <Text fontSize={["xs", "sm", "md", "md", null]}>
                     Have something to discuss before signing up?{" "}
                     <Link
@@ -946,7 +938,7 @@ const Homepage = () => {
                   >
                     <Suspense fallback={""}>
                       <TrustedBadge
-                        scaling={0.5}
+                        scaling={0.7}
                         name="cointelegraph"
                         caseURL=""
                         ImgURL={assets["cointelegraph"]}
@@ -965,7 +957,7 @@ const Homepage = () => {
                         boxURL="https://cryptoslate.com/should-investors-care-80-of-all-nfts-belong-to-17-of-addresses/"
                       />
                       <TrustedBadge
-                        scaling={0.5}
+                        scaling={0.7}
                         name="bc101"
                         ImgURL={assets["meetup"]}
                         boxURL="https://www.meetup.com/SF-Bay-Area-Data-Science-Initiative/events/283215538/"
@@ -1018,7 +1010,7 @@ const Homepage = () => {
                       letterSpacing="wide"
                       px={2}
                       pb={1}
-                      textAlign={["center", "left"]}
+                      textAlign={["center", "center", "left"]}
                     >
                       Sign up to grow your economy
                     </Heading>
@@ -1026,7 +1018,7 @@ const Homepage = () => {
                       fontSize={["sm", "sm", "md", "md", null]}
                       px={2}
                       py={4}
-                      textAlign={["center", "left"]}
+                      textAlign={["center", "center", "left"]}
                     >
                       {`Answer 5 questions about your project to get whitelisted.`}
                     </Text>
@@ -1061,9 +1053,9 @@ const Homepage = () => {
                   <Text
                     display="block"
                     fontSize={["sm", "sm", "md", "md", null]}
-                    textAlign={["center", "left"]}
+                    textAlign={["center", "center", "left"]}
                     mr={[0, 0, 14]}
-                    pb={[4, 0]}
+                    pb={[4, 4, 0]}
                     letterSpacing="tight"
                   >
                     {`Learn more about crypto, NFT and DAOs, find links to educational resources, discuss gaming projects, and laugh at memes.`}
