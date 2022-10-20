@@ -365,38 +365,119 @@ def handle_crawl(args: argparse.Namespace) -> None:
     Read all view methods of the contracts and crawl
     """
 
-    my_job = {
-        "type": "function",
-        "stateMutability": "view",
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "tokenId",
-                "type": "uint256",
-                "value": {
-                    "type": "function",
-                    "name": "totalSupply",
-                    "outputs": [
-                        {
-                            "internalType": "uint256",
-                            "name": "",
-                            "type": "uint256",
-                        }
-                    ],
-                    "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
-                    "inputs": [],
-                },
-            }
-        ],
-        "name": "tokenURI",
-        "outputs": [{"internalType": "string", "name": "", "type": "string"}],
-        "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
-    }
+    my_jobs = [
+        {
+            "type": "function",
+            "stateMutability": "view",
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "tokenId",
+                    "type": "uint256",
+                    "value": {
+                        "type": "function",
+                        "name": "totalSupply",
+                        "outputs": [
+                            {
+                                "internalType": "uint256",
+                                "name": "",
+                                "type": "uint256",
+                            }
+                        ],
+                        "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+                        "inputs": [],
+                    },
+                }
+            ],
+            "name": "tokenURI",
+            "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+            "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+        },
+        {
+            "type": "function",
+            "stateMutability": "view",
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "tokenId",
+                    "type": "uint256",
+                    "value": {
+                        "type": "function",
+                        "name": "totalSupply",
+                        "outputs": [
+                            {
+                                "internalType": "uint256",
+                                "name": "",
+                                "type": "uint256",
+                            }
+                        ],
+                        "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+                        "inputs": [],
+                    },
+                }
+            ],
+            "name": "getDNA",
+            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+            "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "_dna",
+                    "type": "uint256",
+                    "value": {
+                        "type": "function",
+                        "stateMutability": "view",
+                        "inputs": [
+                            {
+                                "internalType": "uint256",
+                                "name": "tokenId",
+                                "type": "uint256",
+                                "value": {
+                                    "type": "function",
+                                    "name": "totalSupply",
+                                    "outputs": [
+                                        {
+                                            "internalType": "uint256",
+                                            "name": "",
+                                            "type": "uint256",
+                                        }
+                                    ],
+                                    "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+                                    "inputs": [],
+                                },
+                            }
+                        ],
+                        "name": "getDNA",
+                        "outputs": [
+                            {"internalType": "uint256", "name": "", "type": "uint256"}
+                        ],
+                        "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+                    },
+                }
+            ],
+            "name": "getStats",
+            "outputs": [
+                {"internalType": "uint256", "name": "attack", "type": "uint256"},
+                {"internalType": "uint256", "name": "accuracy", "type": "uint256"},
+                {"internalType": "uint256", "name": "movementSpeed", "type": "uint256"},
+                {"internalType": "uint256", "name": "attackSpeed", "type": "uint256"},
+                {"internalType": "uint256", "name": "defense", "type": "uint256"},
+                {"internalType": "uint256", "name": "vitality", "type": "uint256"},
+                {"internalType": "uint256", "name": "resistance", "type": "uint256"},
+                {"internalType": "uint256", "name": "magic", "type": "uint256"},
+            ],
+            "stateMutability": "view",
+            "type": "function",
+            "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+        },
+    ]
 
     blockchain_type = AvailableBlockchainType(args.blockchain)
 
     parse_jobs(
-        [my_job], blockchain_type, args.block_number, args.batch_size, args.access_id
+        my_jobs, blockchain_type, args.block_number, args.batch_size, args.access_id
     )
 
 
@@ -477,7 +558,7 @@ def main() -> None:
         "--batch-size",
         "-s",
         type=int,
-        default=1000,
+        default=500,
         help="Size of chunks wich send to Multicall2 contract.",
     )
     view_state_crawler_parser.set_defaults(func=handle_crawl)
