@@ -1,61 +1,31 @@
 import csv
 import json
 import logging
-import re
 from io import StringIO
 from typing import Any, Dict, Optional
 
-import boto3  # type: ignore
 from moonstreamdb.db import (
-    create_moonstream_engine,
     MOONSTREAM_DB_URI_READ_ONLY,
     MOONSTREAM_POOL_SIZE,
+    create_moonstream_engine,
 )
 from sqlalchemy.orm import sessionmaker
-from ..reporter import reporter
 
+from ..actions import push_data_to_bucket
+from ..reporter import reporter
 from ..settings import (
-    MOONSTREAM_S3_QUERIES_BUCKET_PREFIX,
     MOONSTREAM_QUERY_API_DB_STATEMENT_TIMEOUT_MILLIS,
+    MOONSTREAM_S3_QUERIES_BUCKET_PREFIX,
 )
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-QUERY_REGEX = re.compile("[\[\]@#$%^&?;`/]")
-
-
-class QueryNotValid(Exception):
-    """
-    Raised when query validation not passed.
-    """
-
-
-def push_statistics(s3: Any, data: Any, key: str, bucket: str) -> None:
-
-    s3.put_object(
-        Body=data,
-        Bucket=bucket,
-        Key=key,
-        ContentType="application/json",
-        Metadata={"drone_query": "data"},
-    )
-
-    logger.info(f"Statistics push to bucket: s3://{bucket}/{key}")
-
-
-def query_validation(query: str) -> str:
-    """
-    Sanitize provided query.
-    """
-    if QUERY_REGEX.search(query) != None:
-        raise QueryNotValid("Query contains restricted symbols")
-
-    return query
-
 
 def to_json_types(value):
-
+    """
+    Validate types from database to json types.
+    """
     if isinstance(value, (str, int, tuple, list, dict)):
         return value
     elif isinstance(value, set):
@@ -74,8 +44,6 @@ def data_generate(
     """
     Generate query and push it to S3
     """
-    s3 = boto3.client("s3")
-
     # Create session
     engine = create_moonstream_engine(
         MOONSTREAM_DB_URI_READ_ONLY,
@@ -85,6 +53,8 @@ def data_generate(
     )
     process_session = sessionmaker(bind=engine)
     db_session = process_session()
+
+    bucket_metadata = {"drone_query": "data"}
 
     try:
         if file_type == "csv":
@@ -97,11 +67,11 @@ def data_generate(
             csv_writer.writerow(result.keys())
             csv_writer.writerows(result.fetchAll())
 
-            push_statistics(
-                s3=s3,
+            push_data_to_bucket(
                 data=csv_buffer.getvalue().encode("utf-8"),
                 key=f"queries/{query_id}/data.{file_type}",
                 bucket=bucket,
+                metadata=bucket_metadata,
             )
         else:
             block_number, block_timestamp = db_session.execute(
@@ -118,11 +88,12 @@ def data_generate(
                     ],
                 }
             ).encode("utf-8")
-            push_statistics(
-                s3=s3,
+
+            push_data_to_bucket(
                 data=data,
                 key=f"{MOONSTREAM_S3_QUERIES_BUCKET_PREFIX}/queries/{query_id}/data.{file_type}",
                 bucket=bucket,
+                metadata=bucket_metadata,
             )
     except Exception as err:
         db_session.rollback()

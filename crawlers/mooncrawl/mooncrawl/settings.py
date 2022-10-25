@@ -127,7 +127,10 @@ if MOONSTREAM_MOONWORM_TASKS_JOURNAL == "":
         "MOONSTREAM_MOONWORM_TASKS_JOURNAL environment variable must be set"
     )
 
-# queries
+# Queries
+MOONSTREAM_QUERIES_JOURNAL_ID = os.environ.get("MOONSTREAM_QUERIES_JOURNAL_ID", "")
+if MOONSTREAM_QUERIES_JOURNAL_ID == "":
+    raise ValueError("MOONSTREAM_QUERIES_JOURNAL_ID env variable is not set")
 
 MOONSTREAM_QUERY_API_DB_STATEMENT_TIMEOUT_MILLIS = 30000
 MOONSTREAM_QUERY_API_DB_STATEMENT_TIMEOUT_MILLIS_RAW = os.environ.get(
@@ -147,14 +150,23 @@ except:
 MOONSTREAM_S3_QUERIES_BUCKET = os.environ.get("MOONSTREAM_S3_QUERIES_BUCKET", "")
 if MOONSTREAM_S3_QUERIES_BUCKET == "":
     raise ValueError("MOONSTREAM_S3_QUERIES_BUCKET environment variable must be set")
-
-
 MOONSTREAM_S3_QUERIES_BUCKET_PREFIX = os.environ.get(
     "MOONSTREAM_S3_QUERIES_BUCKET_PREFIX", ""
 )
 if MOONSTREAM_S3_QUERIES_BUCKET_PREFIX == "":
     raise ValueError(
         "MOONSTREAM_S3_QUERIES_BUCKET_PREFIX environment variable must be set"
+    )
+
+MOONSTREAM_S3_DATA_BUCKET = os.environ.get("MOONSTREAM_S3_DATA_BUCKET", "")
+if MOONSTREAM_S3_DATA_BUCKET == "":
+    raise ValueError("MOONSTREAM_S3_DATA_BUCKET environment variable must be set")
+MOONSTREAM_S3_DATA_BUCKET_PREFIX = os.environ.get(
+    "MOONSTREAM_S3_DATA_BUCKET_PREFIX", ""
+)
+if MOONSTREAM_S3_DATA_BUCKET_PREFIX == "":
+    raise ValueError(
+        "MOONSTREAM_S3_DATA_BUCKET_PREFIX environment variable must be set"
     )
 
 # Node balancer
