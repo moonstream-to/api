@@ -3,6 +3,7 @@ import json
 import logging
 import re
 import uuid
+from datetime import datetime, timezone
 from enum import Enum
 from io import StringIO
 from typing import Any, Dict, List, Optional, Tuple
@@ -16,7 +17,6 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
 
 from ..reporter import reporter
-from ..stats_worker.queries import to_json_types
 from ..settings import (
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -24,6 +24,10 @@ from ..settings import (
     MOONSTREAM_QUERY_API_DB_STATEMENT_TIMEOUT_MILLIS,
     bugout_client,
 )
+from ..stats_worker.queries import to_json_types
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 QUERY_REGEX = re.compile("[\[\]@#$%^&?;`/]")
 
@@ -94,6 +98,8 @@ def fetch_data_from_db(
     process_session = sessionmaker(bind=engine)
     db_session = process_session()
 
+    time_now = datetime.now(timezone.utc)
+
     try:
         result = db_session.execute(text(query), params)
         data_keys = result.keys()
@@ -112,6 +118,11 @@ def fetch_data_from_db(
     finally:
         db_session.close()
 
+    exec_timedelta = datetime.now(timezone.utc) - time_now
+    logger.info(
+        f"Database query finished in {int(exec_timedelta.total_seconds())} seconds"
+    )
+
     return data_keys, data_rows
 
 
@@ -121,7 +132,10 @@ def prepare_output(
     """
     Parse incoming data from database to proper format OutputType.
     """
-    def prepare_dict(data_temp_keys: Tuple[Any], data_temp_rows: Tuple[List[Any]]) -> List[Dict[str, Any]]:
+
+    def prepare_dict(
+        data_temp_keys: Tuple[Any], data_temp_rows: Tuple[List[Any]]
+    ) -> List[Dict[str, Any]]:
         output_raw = []
         for row in data_temp_rows:
             data_r = {}

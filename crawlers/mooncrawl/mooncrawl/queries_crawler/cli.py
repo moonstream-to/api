@@ -1,14 +1,10 @@
 import argparse
 import logging
-from datetime import datetime, timezone
 
 from moonstreamdb.blockchain import AvailableBlockchainType
 
 from ..actions import push_data_to_bucket
-from ..settings import (
-    MOONSTREAM_S3_DATA_BUCKET,
-    MOONSTREAM_S3_DATA_BUCKET_PREFIX,
-)
+from ..settings import MOONSTREAM_S3_DATA_BUCKET, MOONSTREAM_S3_DATA_BUCKET_PREFIX
 from .actions import (
     OutputType,
     fetch_data_from_db,
@@ -58,8 +54,6 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Moonstream query crawlers CLI")
     parser.set_defaults(func=lambda _: parser.print_help())
     subcommands = parser.add_subparsers(description="Query crawlers commands")
-
-    time_now = datetime.now(timezone.utc)
 
     parser_queries_execute = subcommands.add_parser(
         "execute", description="Execute query"
