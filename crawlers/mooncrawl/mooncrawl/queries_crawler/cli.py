@@ -39,14 +39,17 @@ def parser_queries_execute_handler(args: argparse.Namespace) -> None:
             data_rows=data_rows,
         )
 
-        if args.output is not None and args.upload:
-            bucket_metadata = {"source": "queries-crawler"}
-            push_data_to_bucket(
-                data=output,
-                key=f"{MOONSTREAM_S3_DATA_BUCKET_PREFIX}/queries/{str(args.id)}/data.{args.output}",
-                bucket=MOONSTREAM_S3_DATA_BUCKET,
-                metadata=bucket_metadata,
-            )
+        if args.output is not None:
+            if args.upload:
+                bucket_metadata = {"source": "queries-crawler"}
+                push_data_to_bucket(
+                    data=output,
+                    key=f"{MOONSTREAM_S3_DATA_BUCKET_PREFIX}/queries/{str(args.id)}/data.{args.output}",
+                    bucket=MOONSTREAM_S3_DATA_BUCKET,
+                    metadata=bucket_metadata,
+                )
+        else:
+            print(output)
     except Exception as e:
         logger.error(e)
 

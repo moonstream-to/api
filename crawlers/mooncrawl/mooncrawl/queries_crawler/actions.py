@@ -121,6 +121,16 @@ def prepare_output(
     """
     Parse incoming data from database to proper format OutputType.
     """
+    def prepare_dict(data_temp_keys: Tuple[Any], data_temp_rows: Tuple[List[Any]]) -> List[Dict[str, Any]]:
+        output_raw = []
+        for row in data_temp_rows:
+            data_r = {}
+            for i, k in enumerate(data_temp_keys):
+                data_r[k] = to_json_types(row[i])
+            output_raw.append(data_r)
+
+        return output_raw
+
     output: Any = None
     if output_type.value == "csv":
         csv_buffer = StringIO()
@@ -131,19 +141,10 @@ def prepare_output(
 
         output = csv_buffer.getvalue().encode("utf-8")
     elif output_type.value == "json":
-        output_raw = []
-        for row in data_rows:
-            for i, k in enumerate(data_keys):
-                output_raw.append({k: to_json_types(row[i])})
-
+        output_raw = prepare_dict(data_keys, data_rows)
         output = json.dumps(output_raw).encode("utf-8")
     elif output_type.value is None:
-        output_raw = []
-        for row in data_rows:
-            for i, k in enumerate(data_keys):
-                output_raw.append({k: to_json_types(row[i])})
-
-        output = output_raw
+        output = prepare_dict(data_keys, data_rows)
     else:
         raise Exception("Unsupported output type")
 
