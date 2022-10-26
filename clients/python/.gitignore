@@ -143,5 +143,10 @@ cython_debug/
 
 # End of https://www.toptal.com/developers/gitignore/api/python
 
+# Custom
 .moonstream-py/
 .venv/
+.secrets/
+prod.env
+dev.env
+test.env

@@ -11,7 +11,7 @@ setup(
     version=MOONSTREAM_CLIENT_VERSION,
     packages=find_packages(),
     package_data={"moonstream": ["py.typed"]},
-    install_requires=["requests", "dataclasses; python_version=='3.6'"],
+    install_requires=["requests", "pydantic", "dataclasses; python_version=='3.6'"],
     extras_require={
         "dev": [
             "black",
