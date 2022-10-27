@@ -3,6 +3,10 @@ from typing import Any, Dict, Union
 
 import requests
 
+try:
+    from .aws.bucket import upload_to_aws_s3_bucket
+except Exception as e:
+    pass
 from .data import (
     APISpec,
     AuthType,
@@ -68,12 +72,12 @@ class Moonstream:
                 method.value, url=url, timeout=timeout, **kwargs
             )
             response.raise_for_status()
-        except requests.exceptions.RequestException as err:
-            r = err.response
-            if not err.response:
+        except requests.exceptions.RequestException as e:
+            r = e.response
+            if not e.response:
                 # Connection errors, timeouts, etc...
                 raise MoonstreamResponseException(
-                    "Network error", status_code=599, detail=str(err)
+                    "Network error", status_code=599, detail=str(e)
                 )
             if r.headers.get("Content-Type") == "application/json":
                 exception_detail = r.json()["detail"]
@@ -222,6 +226,23 @@ class Moonstream:
             output = response.json()
 
         return output
+
+    def upload_query_results(
+        self, data: str, bucket: str, key: str, metadata: Dict[str, Any] = {}
+    ) -> str:
+        """
+        Uploads data to AWS S3 bucket.
+
+        Requirements: "pip install -e .[aws]" with "boto3" module.
+        """
+        try:
+            url = upload_to_aws_s3_bucket(
+                data=data, bucket=bucket, key=key, metadata=metadata
+            )
+        except Exception as e:
+            raise Exception(str(e))
+
+        return url
 
     def delete_query(
         self,

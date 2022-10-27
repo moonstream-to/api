@@ -13,6 +13,7 @@ setup(
     package_data={"moonstream": ["py.typed"]},
     install_requires=["requests", "pydantic", "dataclasses; python_version=='3.6'"],
     extras_require={
+        "aws": ["boto3"],
         "dev": [
             "black",
             "mypy",
