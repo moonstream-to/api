@@ -1,9 +1,8 @@
 name: Publish Moonstream Python client library
 
 on:
-  push:
-    tags:
-      - "clients/python/v*"
+  release:
+    types: [published]
 
 defaults:
   run:
@@ -29,17 +28,3 @@ jobs:
         run: |
           python setup.py sdist bdist_wheel
           twine upload dist/*
-  create_release:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/create-release@v1
-        id: create_release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: "Moonstream Python client library - ${{ github.ref }}"
-          body: |
-            Version ${{ github.ref }} of the Moonstream Python client library.
-          draft: true
-          prerelease: false
