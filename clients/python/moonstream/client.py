@@ -128,7 +128,7 @@ class Moonstream:
         }
         response = self._call(
             method=Method.POST,
-            url=f"{self.api.endpoints[ENDPOINT_QUERIES]}",
+            url=f"{self.api.endpoints[ENDPOINT_QUERIES]}/",
             headers=headers,
             json=json,
             timeout=timeout,
