@@ -12,6 +12,7 @@ from .data import (
     MoonstreamQueryResultUrl,
 )
 from .exceptions import MoonstreamResponseException, MoonstreamUnexpectedResponse
+from .settings import MOONSTREAM_API_URL, MOONSTREAM_REQUEST_TIMEOUT
 
 ENDPOINT_PING = "/ping"
 ENDPOINT_VERSION = "/version"
@@ -43,9 +44,7 @@ class Moonstream:
     A Moonstream client configured to communicate with a given Moonstream API server.
     """
 
-    def __init__(
-        self, moonstream_api_url: str = "https://api.moonstream.to", timeout: float = 1
-    ):
+    def __init__(self, moonstream_api_url: str = MOONSTREAM_API_URL):
         """
         Initializes a Moonstream API client.
 
@@ -55,11 +54,18 @@ class Moonstream:
         """
         endpoints = moonstream_endpoints(moonstream_api_url)
         self.api = APISpec(url=moonstream_api_url, endpoints=endpoints)
-        self.timeout = timeout
 
-    def _call(self, method: Method, url: str, **kwargs):
+    def _call(
+        self,
+        method: Method,
+        url: str,
+        timeout: float = MOONSTREAM_REQUEST_TIMEOUT,
+        **kwargs,
+    ):
         try:
-            response = requests.request(method.value, url=url, **kwargs)
+            response = requests.request(
+                method.value, url=url, timeout=timeout, **kwargs
+            )
             response.raise_for_status()
         except requests.exceptions.RequestException as err:
             r = err.response
@@ -102,6 +108,7 @@ class Moonstream:
         name: str,
         public: bool = False,
         auth_type: AuthType = AuthType.bearer,
+        timeout: float = MOONSTREAM_REQUEST_TIMEOUT,
     ) -> MoonstreamQuery:
         """
         Creates new query.
@@ -119,6 +126,7 @@ class Moonstream:
             url=f"{self.api.endpoints[ENDPOINT_QUERIES]}",
             headers=headers,
             json=json,
+            timeout=timeout,
         )
 
         return MoonstreamQuery(
@@ -135,6 +143,7 @@ class Moonstream:
         self,
         token: Union[str, uuid.UUID],
         auth_type: AuthType = AuthType.bearer,
+        timeout: float = MOONSTREAM_REQUEST_TIMEOUT,
     ) -> MoonstreamQueries:
         """
         Returns list of all queries available to user.
@@ -146,6 +155,7 @@ class Moonstream:
             method=Method.GET,
             url=f"{self.api.endpoints[ENDPOINT_QUERIES]}/list",
             headers=headers,
+            timeout=timeout,
         )
 
         return MoonstreamQueries(
@@ -167,6 +177,7 @@ class Moonstream:
         name: str,
         params: Dict[str, Any] = {},
         auth_type: AuthType = AuthType.bearer,
+        timeout: float = MOONSTREAM_REQUEST_TIMEOUT,
     ) -> MoonstreamQueryResultUrl:
         """
         Executes queries and upload data to external storage.
@@ -182,6 +193,7 @@ class Moonstream:
             url=f"{self.api.endpoints[ENDPOINT_QUERIES]}/{name}/update_data",
             headers=headers,
             json=json,
+            timeout=timeout,
         )
 
         return MoonstreamQueryResultUrl(url=response["url"])
@@ -191,6 +203,7 @@ class Moonstream:
         token: Union[str, uuid.UUID],
         name: str,
         auth_type: AuthType = AuthType.bearer,
+        timeout: float = MOONSTREAM_REQUEST_TIMEOUT,
     ) -> uuid.UUID:
         """
         Deletes query specified by name.
@@ -202,6 +215,7 @@ class Moonstream:
             method=Method.DELETE,
             url=f"{self.api.endpoints[ENDPOINT_QUERIES]}/{name}",
             headers=headers,
+            timeout=timeout,
         )
 
         return response["id"]
