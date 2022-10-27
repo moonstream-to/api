@@ -10,6 +10,7 @@ from .data import (
     MoonstreamQueries,
     MoonstreamQuery,
     MoonstreamQueryResultUrl,
+    OutputType,
 )
 from .exceptions import MoonstreamResponseException, MoonstreamUnexpectedResponse
 from .settings import MOONSTREAM_API_URL, MOONSTREAM_REQUEST_TIMEOUT
@@ -197,6 +198,30 @@ class Moonstream:
         )
 
         return MoonstreamQueryResultUrl(url=response["url"])
+
+    def download_query_results(
+        self,
+        url: str,
+        output_type: OutputType = OutputType.JSON,
+        timeout: float = MOONSTREAM_REQUEST_TIMEOUT,
+        **kwargs,
+    ) -> Any:
+        """
+        Fetch results of query from url.
+        """
+        try:
+            response = requests.request(
+                Method.GET.value, url=url, timeout=timeout, **kwargs
+            )
+            response.raise_for_status()
+        except Exception as e:
+            raise Exception(str(e))
+
+        output = response
+        if output_type == OutputType.JSON:
+            output = response.json()
+
+        return output
 
     def delete_query(
         self,

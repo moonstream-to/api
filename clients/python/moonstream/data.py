@@ -23,6 +23,11 @@ class Method(Enum):
     PUT = "put"
 
 
+class OutputType(Enum):
+    CSV = "csv"
+    JSON = "json"
+
+
 @dataclass(frozen=True)
 class MoonstreamQuery:
     id: uuid.UUID
