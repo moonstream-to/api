@@ -217,9 +217,85 @@ def init_game_bank_queries_handler(args: argparse.Namespace):
         FROM
             withdoraws_total
         ORDER BY
-            amount DESC;
+            amount DESC
         """,
     )
+
+
+def init_tokenomics_queries_handler(args: argparse.Namespace):
+
+    """
+    Create the tokenomics queries.
+    """
+
+    client = Moonstream()
+
+    query = """
+        select
+            sum(value),
+            time,
+            count(*) as activity
+        from (
+            select (label_data->'args'->>'value')::decimal as value, to_char(to_timestamp(block_timestamp), :time_format) as time from polygon_labels
+            where label='moonworm-alpha'
+                and address='0x64060aB139Feaae7f06Ca4E63189D86aDEb51691'
+                and label_data->>'name'='Transfer'
+                and block_timestamp >= extract(epoch from now() - interval :time_range)::int
+            ) interval_transfers
+        GROUP BY time
+    """
+
+    # Create
+    client.create_query(
+        token=args.moonstream_token,
+        name="cu-voluem",
+        query=query,
+    )
+
+
+def run_tokenomics_queries_handler(args: argparse.Namespace):
+
+    client = Moonstream()
+
+    # for query in client.list_queries(
+    #     token=args.moonstream_token,
+    # ).queries:
+
+    query_name = "cu-volume"
+    params = {}
+
+    # if (
+    #     query.name == "cu-bank-withdrawals-total"
+    #     or query.name == "cu-bank-withdrawals-events"
+    # ):
+    #     blocktimestamp = int(time.time())
+    #
+    params = {"time_format": "YYYY-MM-DD HH24:00:00", "time_range": "24 hours"}
+
+    keep_going = True
+
+    if_modified_since_datetime = datetime.datetime.utcnow()
+    if_modified_since = if_modified_since_datetime.strftime("%a, %d %b %Y %H:%M:%S GMT")
+
+    data_url = client.exec_query(
+        token=args.token,
+        query_name=query_name,
+        params=params,
+    )  # S3 presign_url
+    while keep_going:
+        data_response = requests.get(
+            data_url,
+            headers={"If-Modified-Since": if_modified_since},
+            timeout=10,
+        )
+        # push to s3
+
+        if data_response.status_code == 200:
+            json.dumps(data_response.json())
+            break
+        else:
+            # You can put a sleep in here if you want
+            continue
 
 
 def list_user_queries_handler(args: argparse.Namespace):
@@ -292,7 +368,7 @@ def generate_game_bank_report(args: argparse.Namespace):
             # push to s3
 
             if data_response.status_code == 200:
-                json.dump(data_response.json())
+                json.dumps(data_response.json())
                 break
             else:
                 # You can put a sleep in here if you want
@@ -313,7 +389,7 @@ def main():
 
     cu_reports_subparsers = cu_reports_parser.add_subparsers()
 
-    cu_reports_subparsers.add_argument(
+    cu_reports_parser.add_argument(
         "--moonstream-token",
         required=True,
         type=str,
@@ -334,10 +410,22 @@ def main():
     ).set_defaults(func=list_user_queries_handler)
 
     queries_subparsers.add_parser(
-        "init",
+        "init-game-bank",
         help="Create all predifind query",
         description="Create all predifind query",
     ).set_defaults(func=init_game_bank_queries_handler)
+
+    queries_subparsers.add_parser(
+        "init-tokenonomics",
+        help="Create all predifind query",
+        description="Create all predifind query",
+    ).set_defaults(func=init_tokenomics_queries_handler)
+
+    queries_subparsers.add_parser(
+        "run-tokenonomics",
+        help="Create all predifind query",
+        description="Create all predifind query",
+    ).set_defaults(func=run_tokenomics_queries_handler)
 
     delete_query = queries_subparsers.add_parser(
         "delete",
@@ -357,26 +445,26 @@ def main():
         "generate-reports",
         help="Generate cu-bank state reports",
     )
-    cu_bank_parser.add_argument("--addresses", type=str, required=True)
-    cu_bank_parser.add_argument(
-        "--output",
-        required=True,
-        type=str,
-        help="Output file name",
-    )
-    cu_bank_parser.add_argument("--blockchain", type=str, help="Blockchain")
-    cu_bank_parser.add_argument(
-        "--limit",
-        type=int,
-        default=100,
-        help="Limit of the search results",
-    )
+    # cu_bank_parser.add_argument("--addresses", type=str, required=True)
+    # cu_bank_parser.add_argument(
+    #     "--output",
+    #     required=True,
+    #     type=str,
+    #     help="Output file name",
+    # )
+    # cu_bank_parser.add_argument("--blockchain", type=str, help="Blockchain")
+    # cu_bank_parser.add_argument(
+    #     "--limit",
+    #     type=int,
+    #     default=100,
+    #     help="Limit of the search results",
+    # )
 
-    cu_bank_parser.add_argument(
-        "--",
-        type=str,
-        help="Filter by created_at",
-    )
+    # cu_bank_parser.add_argument(
+    #     "--",
+    #     type=str,
+    #     help="Filter by created_at",
+    # )
 
     cu_bank_parser.set_defaults(func=generate_game_bank_report)
     args = parser.parse_args()
