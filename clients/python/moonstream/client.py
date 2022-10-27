@@ -72,22 +72,6 @@ class Moonstream:
                 method.value, url=url, timeout=timeout, **kwargs
             )
             response.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            r = e.response
-            if not e.response:
-                # Connection errors, timeouts, etc...
-                raise MoonstreamResponseException(
-                    "Network error", status_code=599, detail=str(e)
-                )
-            if r.headers.get("Content-Type") == "application/json":
-                exception_detail = r.json()["detail"]
-            else:
-                exception_detail = r.text
-            raise MoonstreamResponseException(
-                "An exception occurred at Bugout API side",
-                status_code=r.status_code,
-                detail=exception_detail,
-            )
         except Exception as e:
             raise MoonstreamUnexpectedResponse(str(e))
         return response.json()
