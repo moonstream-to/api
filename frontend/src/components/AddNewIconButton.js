@@ -7,6 +7,7 @@ import {
   MenuGroup,
   MenuDivider,
   IconButton,
+  Text,
   chakra,
 } from "@chakra-ui/react";
 import { PlusSquareIcon } from "@chakra-ui/icons";
@@ -44,7 +45,7 @@ const AddNewIconButton = (props) => {
               })
             }
           >
-            New Dashboard...
+            <Text color="black">New Dashboard...</Text>
           </MenuItem>
           <MenuItem
             onClick={() =>
@@ -54,7 +55,7 @@ const AddNewIconButton = (props) => {
               })
             }
           >
-            New Subscription...
+            <Text color="black">New Subscription...</Text>
           </MenuItem>
 
           {ui.isInDashboard && <MenuItem>New report...</MenuItem>}

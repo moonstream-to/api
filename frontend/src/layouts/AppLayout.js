@@ -3,6 +3,7 @@ import { getLayout as getSiteLayout } from "./RootLayout";
 import React, { useContext, useEffect } from "react";
 import UIContext from "../core/providers/UIProvider/context";
 import AppNavbar from "../components/AppNavbar";
+import { BACKGROUND_COLOR } from "../core/constants";
 
 const AppLayout = ({ children }) => {
   const ui = useContext(UIContext);
@@ -18,6 +19,7 @@ const AppLayout = ({ children }) => {
   return (
     <Flex
       id="JournalsWrapper"
+      bgColor={BACKGROUND_COLOR}
       flexGrow={1}
       maxH="100%"
       w="100%"
@@ -45,7 +47,12 @@ const AppLayout = ({ children }) => {
           zIndex={1010}
         />
       )}
-      <Flex direction={"column"} bgColor="blue.900" id="Navbar">
+      <Flex
+        direction={"column"}
+        bgColor={BACKGROUND_COLOR}
+        borderBottom="1px solid white"
+        id="Navbar"
+      >
         <AppNavbar />
       </Flex>
       {ui.isAppReady && ui.isLoggedIn && children}
