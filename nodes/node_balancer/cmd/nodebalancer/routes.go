@@ -69,6 +69,8 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 	// Save origin path, to use in proxyErrorHandler if node will not response
 	r.Header.Add("X-Origin-Path", r.URL.Path)
 
+	w.Header().Add("X-Node-URL", node.Endpoint.String())
+
 	switch {
 	case strings.HasPrefix(r.URL.Path, fmt.Sprintf("/nb/%s/jsonrpc", blockchain)):
 		lbJSONRPCHandler(w, r, blockchain, node, currentClientAccess)
