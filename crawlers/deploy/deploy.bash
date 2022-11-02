@@ -56,6 +56,7 @@ POLYGON_METADATA_TIMER_FILE="polygon-metadata.timer"
 MUMBAI_SYNCHRONIZE_SERVICE="mumbai-synchronize.service"
 MUMBAI_MISSING_SERVICE_FILE="mumbai-missing.service"
 MUMBAI_MISSING_TIMER_FILE="mumbai-missing.timer"
+MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE="mumbai-moonworm-crawler.service"
 
 # XDai service files
 XDAI_SYNCHRONIZE_SERVICE="xdai-synchronize.service"
@@ -206,6 +207,14 @@ cp "${SCRIPT_DIR}/${MUMBAI_MISSING_SERVICE_FILE}" "/etc/systemd/system/${MUMBAI_
 cp "${SCRIPT_DIR}/${MUMBAI_MISSING_TIMER_FILE}" "/etc/systemd/system/${MUMBAI_MISSING_TIMER_FILE}"
 systemctl daemon-reload
 systemctl restart --no-block "${MUMBAI_MISSING_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Mumbai moonworm crawler service definition with ${MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE}" "/etc/systemd/system/${MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE}"
+systemctl daemon-reload
+systemctl restart --no-block "${MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE}"
 
 echo
 echo
