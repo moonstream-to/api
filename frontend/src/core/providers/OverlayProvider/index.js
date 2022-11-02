@@ -270,7 +270,7 @@ const OverlayProvider = ({ children }) => {
       >
         <ModalOverlay />
 
-        <ModalContent>
+        <ModalContent textColor="black">
           <ModalHeader bgColor="white.200" py={2} fontSize="lg">
             {modal.type === MODAL_TYPES.NEW_SUBSCRIPTON &&
               "Subscribe to a new address"}
@@ -345,7 +345,7 @@ const OverlayProvider = ({ children }) => {
         }}
       >
         <DrawerOverlay />
-        <DrawerContent overflowY="scroll">
+        <DrawerContent overflowY="scroll" textColor="black">
           <DrawerCloseButton />
           <DrawerHeader borderBottomWidth="1px">
             {drawer.type === DRAWER_TYPES.NEW_DASHBOARD && "New dashboard"}

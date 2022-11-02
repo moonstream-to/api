@@ -105,7 +105,11 @@ const SubscriptionReport = ({
       flexBasis={plotMinW}
       direction="column"
     >
-      <Text fontSize="xs" textAlign="right">{`Latest block number: ${
+      <Text
+        fontSize="xs"
+        textAlign="right"
+        textColor="white"
+      >{`Latest block number: ${
         data?.blocks_state?.latest_labelled_block ?? "Not available"
       }`}</Text>
       <Flex
@@ -154,7 +158,7 @@ const SubscriptionReport = ({
           flexBasis={plotMinW}
           direction="column"
         >
-          <Heading size="md" pt={4}>
+          <Heading size="md" pt={4} textColor="white">
             Events
           </Heading>
           {eventKeys.map((key) => {
