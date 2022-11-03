@@ -1,8 +1,9 @@
 name: Publish Moonstream Python client library
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - "clients/python/v*"
 
 defaults:
   run:
