@@ -1,11 +1,98 @@
 import argparse
 import datetime
-from timeit import repeat
-from eth_typing import Address
 from moonstream.client import Moonstream
 import time
 import requests
 import json
+
+from typing import Any, Dict, Union
+
+from uuid import UUID
+
+from .queries import tokenomics_queries, cu_bank_queries
+
+from ..settings import CUSTOM_CRAWLER_S3_BUCKET, CUSTOM_CRAWLER_S3_BUCKET_PREFIX
+
+
+def recive_S3_data_from_query(
+    client: Moonstream,
+    token: Union[str, UUID],
+    query_name: str,
+    params: Dict[str, Any],
+    time_await: int = 2,
+    max_retries: int = 20,
+) -> Any:
+
+    """
+    Await the query to be update data on S3 with if_modified_since and return new the data.
+    """
+
+    keep_going = True
+
+    repeat = 0
+
+    if_modified_since_datetime = datetime.datetime.utcnow()
+    if_modified_since = if_modified_since_datetime.strftime("%a, %d %b %Y %H:%M:%S GMT")
+
+    time.sleep(2)
+
+    data_url = client.exec_query(
+        token=token,
+        name=query_name,
+        params=params,
+    )  # S3 presign_url
+
+    while keep_going:
+        time.sleep(time_await)
+        data_response = requests.get(
+            data_url.url,
+            headers={"If-Modified-Since": if_modified_since},
+            timeout=10,
+        )
+
+        if data_response.status_code == 200:
+            break
+
+        repeat += 1
+
+        if repeat > max_retries:
+            print("Too many retries")
+            break
+    return data_response.json()
+
+
+def generate_report(
+    client: Moonstream,
+    token: Union[str, UUID],
+    query_name: str,
+    params: Dict[str, Any],
+    bucket_prefix: str,
+    bucket: str,
+    key: str,
+):
+    """
+    Generate the report.
+    """
+
+    try:
+
+        json_data = recive_S3_data_from_query(
+            client=client,
+            token=token,
+            query_name=query_name,
+            params=params,
+        )
+
+        client.upload_query_results(
+            json.dumps(json_data),
+            bucket,
+            f"{bucket_prefix}/{key}",
+        )
+        print(f"https://{bucket}/{bucket_prefix}/{key}")
+    except Exception as err:
+        print(
+            f"Cant recive or load data for s3, for query: {query_name}, bucket: {bucket}, key: {key}. End with error: {err}"
+        )
 
 
 def init_game_bank_queries_handler(args: argparse.Namespace):
@@ -16,212 +103,20 @@ def init_game_bank_queries_handler(args: argparse.Namespace):
 
     client = Moonstream()
 
-    # Create
-    client.create_query(
-        token=args.moonstream_token,
-        name="cu-bank-blances",
-        query="""
-        WITH game_contract as (
-            SELECT
-                *
-            from
-                polygon_labels
-            where
-                address = '0x94f557dDdb245b11d031F57BA7F2C4f28C4A203e'
-                and label = 'moonworm-alpha'
-        )
-        SELECT
-            address,
-            div(sum(
-                CASE
-                    WHEN result_balances.token_address = '0x64060aB139Feaae7f06Ca4E63189D86aDEb51691' THEN amount
-                    ELSE 0
-                END
-            ), 10^18::decimal) as UNIM_BALANCE,
-            div(sum(
-                CASE
-                    WHEN result_balances.token_address = '0x431CD3C9AC9Fc73644BF68bF5691f4B83F9E104f' THEN amount
-                    ELSE 0
-                END
-            ), 10^18::decimal) as RBW_BALANCE
-        FROM
-            (
-                select
-                    transaction_hash,
-                    label_data -> 'args' ->> 'player' as address,
-                    jsonb_array_elements(label_data -> 'args' -> 'tokenAddresses') ->> 0 as token_address,
-                    - jsonb_array_elements(label_data -> 'args' -> 'tokenAmounts') :: decimal as amount
-                from
-                    game_contract
-                where
-                    label_data ->> 'name' = 'UnstashedMultiple'
-                union
-                ALL
-                select
-                    transaction_hash,
-                    label_data -> 'args' ->> 'player' as address,
-                    label_data -> 'args' ->> 'token' as token_address,
-                    -((label_data -> 'args' -> 'amount') :: decimal) as amount
-                from
-                    game_contract
-                where
-                    label_data ->> 'name' = 'Unstashed'
-                union
-                ALL
-                select
-                    transaction_hash,
-                    label_data -> 'args' ->> 'player' as address,
-                    label_data -> 'args' ->> 'token' as token_address,
-                    (label_data -> 'args' ->> 'amount') :: decimal as amount
-                from
-                    game_contract
-                where
-                    label_data ->> 'name' = 'Stashed'
-                union
-                ALL
-                        select
-                    transaction_hash,
-                    label_data -> 'args' ->> 'player' as address,
-                    jsonb_array_elements(label_data -> 'args' -> 'tokenAddresses') ->> 0 as token_address,
-                    jsonb_array_elements(label_data -> 'args' -> 'tokenAmounts') :: decimal as amount
-                from
-                    game_contract
-                where
-                    label_data ->> 'name' = 'StashedMultiple'
-                
-            ) result_balances
-        group by
-            address
-        ORDER BY
-            UNIM_BALANCE DESC,
-            RBW_BALANCE DESC;
-        """,
-    )
+    for query in cu_bank_queries:
 
-    client.create_query(
-        token=args.moonstream_token,
-        name="cu-bank-withdrawals-total",
-        query="""
-        WITH game_contract as (
-            SELECT
-                *
-            from
-                polygon_labels
-            where
-                address = '0x94f557dDdb245b11d031F57BA7F2C4f28C4A203e'
-                and label = 'moonworm-alpha'
-                block_timestamp >= :block_timestamp
-        ), withdoraws_total as (
-        SELECT
-            address,
-            div(sum(
-                CASE
-                    WHEN result_balances.token_address = '0x64060aB139Feaae7f06Ca4E63189D86aDEb51691' THEN amount
-                    ELSE 0
-                END
-            ), 10^18::decimal) as UNIM_BALANCE,
-            div(sum(
-                CASE
-                    WHEN result_balances.token_address = '0x431CD3C9AC9Fc73644BF68bF5691f4B83F9E104f' THEN amount
-                    ELSE 0
-                END
-            ), 10^18::decimal) as RBW_BALANCE
-        FROM
-            (
-                select
-                    transaction_hash,
-                    label_data -> 'args' ->> 'player' as address,
-                    jsonb_array_elements(label_data -> 'args' -> 'tokenAddresses') ->> 0 as token_address,
-                    jsonb_array_elements(label_data -> 'args' -> 'tokenAmounts') :: decimal as amount
-                from
-                    game_contract
-                where
-                    label_data ->> 'name' = 'UnstashedMultiple'
-                union
-                ALL
-                select
-                    transaction_hash,
-                    label_data -> 'args' ->> 'player' as address,
-                    label_data -> 'args' ->> 'token' as token_address,
-                    ((label_data -> 'args' -> 'amount') :: decimal) as amount
-                from
-                    game_contract
-                where
-                    label_data ->> 'name' = 'Unstashed'
-            ) result_balances
-                group by
-            address
-        ORDER BY
-            UNIM_BALANCE DESC,
-            RBW_BALANCE DESC
-        )
-        SELECT
-            address,
-            UNIM_BALANCE,
-            RBW_BALANCE,
-            UNIM_BALANCE + RBW_BALANCE as TOTAL
-        FROM
-            withdoraws_total
-        ORDER BY
-            TOTAL DESC;
-        """,
-    )
-
-    client.create_query(
-        token=args.moonstream_token,
-        name="cu-bank-withdrawals-events",
-        query="""
-        WITH game_contract as (
-            SELECT
-                *
-            from
-                polygon_labels
-            where
-                address = '0x94f557dDdb245b11d031F57BA7F2C4f28C4A203e'
-                and label = 'moonworm-alpha'
-                block_timestamp >= :block_timestamp
-        ), withdoraws_total as (
-        SELECT
-            address,
-            CASE
-                WHEN result_balances.token_address = '0x64060aB139Feaae7f06Ca4E63189D86aDEb51691' THEN 'UNIM'
-                WHEN result_balances.token_address = '0x431CD3C9AC9Fc73644BF68bF5691f4B83F9E104f' THEN  'RBW'
-            END as currency,
-            div(amount, 10^18::decimal) as amount
-        FROM
-            (
-                select
-                    transaction_hash,
-                    label_data -> 'args' ->> 'player' as address,
-                    jsonb_array_elements(label_data -> 'args' -> 'tokenAddresses') ->> 0 as token_address,
-                    jsonb_array_elements(label_data -> 'args' -> 'tokenAmounts') :: decimal as amount
-                from
-                    game_contract
-                where
-                    label_data ->> 'name' = 'UnstashedMultiple'
-                union
-                ALL
-                select
-                    transaction_hash,
-                    label_data -> 'args' ->> 'player' as address,
-                    label_data -> 'args' ->> 'token' as token_address,
-                    ((label_data -> 'args' -> 'amount') :: decimal) as amount
-                from
-                    game_contract
-                where
-                    label_data ->> 'name' = 'Unstashed'
-            ) result_balances
-        )
-        SELECT
-            address,
-            currency,
-            amount,
-        FROM
-            withdoraws_total
-        ORDER BY
-            amount DESC
-        """,
-    )
+        try:
+            created_entry = client.create_query(
+                token=args.moonstream_token,
+                name=query["name"],
+                query=query["query"],
+            )
+            print(
+                f"Created query {query['name']} please validate it in the UI url {created_entry.journal_url}/entries/{created_entry.id}/"
+            )
+        except Exception as e:
+            print(e)
+            pass
 
 
 def init_tokenomics_queries_handler(args: argparse.Namespace):
@@ -232,64 +127,20 @@ def init_tokenomics_queries_handler(args: argparse.Namespace):
 
     client = Moonstream()
 
-    query = """
-        select
-            sum(value) as volume,
-            time as time,
-            count(*) as activity
-        from (
-            select
-            CASE
-                WHEN :type ='NFT' THEN 1
-                ELSE (label_data->'args'->>'value')::decimal
-            END as value
-            , to_char(to_timestamp(block_timestamp), :time_format) as time from polygon_labels
-            where label='moonworm-alpha'
-                and address=:address
-                and label_data->>'name'='Transfer'
-                and block_timestamp >= extract(epoch from now() - interval :time_range)::int
-            ) interval_transfers
-        GROUP BY time
-    """
-    try:
-        # Create
-        client.create_query(
-            token=args.moonstream_token,
-            name="cu-volume",
-            query=query,
-        )
-    except Exception as e:
-        print(e)
-        pass
+    for query in tokenomics_queries:
 
-    # query = """
-    #     select
-    #         sum(value) as volume,
-    #         time as time,
-    #         count(*) as activity
-    #     from (
-    #         select
-    #         CASE
-    #             WHEN :type ='NFT' THEN 1
-    #             ELSE (label_data->'args'->>'value')::decimal
-    #         END as value
-    #         , to_char(to_timestamp(block_timestamp), :time_format) as time from polygon_labels
-    #         where label='moonworm-alpha'
-    #             and address=:address
-    #             and label_data->>'name'='Transfer'
-    #             and block_timestamp >= extract(epoch from now() - interval :time_range)::int
-    #         ) interval_transfers
-    #     GROUP BY time
-    # """
-    # try:
-    #     # Create
-    #     client.create_query(
-    #         token=args.moonstream_token,
-    #         name="cu-volume",
-    #         query=query,
-    #     )
-    # except Exception as e:
-    #     pass
+        try:
+            created_entry = client.create_query(
+                token=args.moonstream_token,
+                name=query["name"],
+                query=query["query"],
+            )
+            print(
+                f"Created query {query['name']} please validate it in the UI url {created_entry.journal_url}/entries/{created_entry.id}/"
+            )
+        except Exception as e:
+            print(e)
+            pass
 
 
 def run_tokenomics_queries_handler(args: argparse.Namespace):
@@ -300,7 +151,7 @@ def run_tokenomics_queries_handler(args: argparse.Namespace):
     #     token=args.moonstream_token,
     # ).queries:
 
-    query_name = "cu_voluem"
+    query_name = "erc20_721_volume"
 
     ### Run voluem query
 
@@ -310,61 +161,197 @@ def run_tokenomics_queries_handler(args: argparse.Namespace):
         {"time_format": "YYYY-MM-DD", "time_range": "30 days"},
     ]
 
-    addresess = {
+    addresess_erc20_721 = {
         "0x64060aB139Feaae7f06Ca4E63189D86aDEb51691": "ERC20",  # UNIM
         "0x431CD3C9AC9Fc73644BF68bF5691f4B83F9E104f": "ERC20",  # RBW
         "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f": "NFT",  # unicorns
         "0xA2a13cE1824F3916fC84C65e559391fc6674e6e8": "NFT",  # lands
+        "0xa7D50EE3D7485288107664cf758E877a0D351725": "NFT",  # shadowcorns
     }
 
-    for address, type in addresess.items():
+    # volume of erc20 and erc721
+
+    for address, type in addresess_erc20_721.items():
         for range in ranges:
 
-            params = {
+            params: Dict[str, Any] = {
                 "address": address,
                 "type": type,
                 "time_format": range["time_format"],
                 "time_range": range["time_range"],
             }
 
-            keep_going = True
-
-            repeat = 0
-
-            if_modified_since_datetime = datetime.datetime.utcnow()
-            if_modified_since = if_modified_since_datetime.strftime(
-                "%a, %d %b %Y %H:%M:%S GMT"
+            generate_report(
+                client=client,
+                token=args.moonstream_token,
+                query_name=query_name,
+                params=params,
+                bucket_prefix=CUSTOM_CRAWLER_S3_BUCKET_PREFIX,
+                bucket=CUSTOM_CRAWLER_S3_BUCKET,
+                key=f'{query_name}/{address}/{range["time_range"].replace(" ","_")}/data.json',
             )
 
-            data_url = client.exec_query(
+    query_name = "erc1155_volume"
+
+    # volume of erc1155
+
+    addresess_erc1155 = ["0x99A558BDBdE247C2B2716f0D4cFb0E246DFB697D"]
+
+    for address in addresess_erc1155:
+        for range in ranges:
+
+            params = {
+                "address": address,
+                "time_format": range["time_format"],
+                "time_range": range["time_range"],
+            }
+
+            generate_report(
+                client=client,
                 token=args.moonstream_token,
-                name=query_name,
+                query_name=query_name,
                 params=params,
-            )  # S3 presign_url
-            print(f"Data URL: {data_url.url}")
-            while keep_going:
-                time.sleep(2)
-                data_response = requests.get(
-                    data_url.url,
-                    headers={"If-Modified-Since": if_modified_since},
-                    timeout=10,
+                bucket_prefix=CUSTOM_CRAWLER_S3_BUCKET_PREFIX,
+                bucket=CUSTOM_CRAWLER_S3_BUCKET,
+                key=f"{query_name}/{address}/{range['time_range'].replace(' ','_')}/data.json",
+            )
+
+    # most_recent_sale
+
+    query_name = "most_recent_sale"
+
+    for address, type in addresess_erc20_721.items():
+        if type == "NFT":
+            for amount in [10, 100]:
+                params = {
+                    "address": address,
+                    "amount": amount,
+                }
+
+                generate_report(
+                    client=client,
+                    token=args.moonstream_token,
+                    query_name=query_name,
+                    params=params,
+                    bucket_prefix=CUSTOM_CRAWLER_S3_BUCKET_PREFIX,
+                    bucket=CUSTOM_CRAWLER_S3_BUCKET,
+                    key=f"{query_name}/{address}/{amount}/data.json",
                 )
-                # push to s3
 
-                if data_response.status_code == 200:
-                    # print(json.dumps(data_response.json()))
-                    client.upload_query_results(
-                        json.dumps(data_response.json()),
-                        "data.moonstream.to",
-                        f'dev/{query_name}/{address}/{range["time_range"].replace(" ","_")}/data.json',
-                    )
-                    break
+    # most_active_buyers
 
-                repeat += 1
+    query_name = "most_active_buyers"
 
-                if repeat > 20:
-                    print("Too many retries")
-                    break
+    for address, type in addresess_erc20_721.items():
+
+        if type == "NFT":
+
+            for range in ranges:
+
+                params = {
+                    "address": address,
+                    "time_range": range["time_range"],
+                }
+
+                generate_report(
+                    client=client,
+                    token=args.moonstream_token,
+                    query_name=query_name,
+                    params=params,
+                    bucket_prefix=CUSTOM_CRAWLER_S3_BUCKET_PREFIX,
+                    bucket=CUSTOM_CRAWLER_S3_BUCKET,
+                    key=f"{query_name}/{address}/{range['time_range'].replace(' ','_')}/data.json",
+                )
+
+    # most_active_sellers
+
+    query_name = "most_active_sellers"
+
+    for address, type in addresess_erc20_721.items():
+
+        if type == "NFT":
+
+            for range in ranges:
+
+                params = {
+                    "address": address,
+                    "time_range": range["time_range"],
+                }
+
+                generate_report(
+                    client=client,
+                    token=args.moonstream_token,
+                    query_name=query_name,
+                    params=params,
+                    bucket_prefix=CUSTOM_CRAWLER_S3_BUCKET_PREFIX,
+                    bucket=CUSTOM_CRAWLER_S3_BUCKET,
+                    key=f"{query_name}/{address}/{range['time_range'].replace(' ','_')}/data.json",
+                )
+
+    # lagerst_owners
+
+    query_name = "lagerst_owners"
+    for address, type in addresess_erc20_721.items():
+
+        if type == "NFT":
+
+            params = {
+                "address": address,
+            }
+
+            generate_report(
+                client=client,
+                token=args.moonstream_token,
+                query_name=query_name,
+                params=params,
+                bucket_prefix=CUSTOM_CRAWLER_S3_BUCKET_PREFIX,
+                bucket=CUSTOM_CRAWLER_S3_BUCKET,
+                key=f"{query_name}/{address}/data.json",
+            )
+
+    # total_supply_erc721
+
+    query_name = "total_supply_erc721"
+
+    for address, type in addresess_erc20_721.items():
+
+        if type == "NFT":
+
+            params = {
+                "address": address,
+            }
+
+            generate_report(
+                client=client,
+                token=args.moonstream_token,
+                query_name=query_name,
+                params=params,
+                bucket_prefix=CUSTOM_CRAWLER_S3_BUCKET_PREFIX,
+                bucket=CUSTOM_CRAWLER_S3_BUCKET,
+                key=f"{query_name}/{address}/data.json",
+            )
+
+    # total_supply_terminus
+
+    query_name = "total_supply_terminus"
+
+    for address in addresess_erc1155:
+
+        params = {
+            "address": address,
+        }
+
+        generate_report(
+            client=client,
+            token=args.moonstream_token,
+            query_name=query_name,
+            params=params,
+            bucket_prefix=CUSTOM_CRAWLER_S3_BUCKET_PREFIX,
+            bucket=CUSTOM_CRAWLER_S3_BUCKET,
+            key=f"{query_name}/{address}/data.json",
+        )
+
+    print("Done")
 
 
 def list_user_queries_handler(args: argparse.Namespace):
@@ -491,11 +478,13 @@ def main():
         description="Create all predifind query",
     ).set_defaults(func=init_tokenomics_queries_handler)
 
-    queries_subparsers.add_parser(
+    generate_report = queries_subparsers.add_parser(
         "run-tokenonomics",
         help="Create all predifind query",
         description="Create all predifind query",
-    ).set_defaults(func=run_tokenomics_queries_handler)
+    )
+
+    generate_report.set_defaults(func=run_tokenomics_queries_handler)
 
     delete_query = queries_subparsers.add_parser(
         "delete",
@@ -515,26 +504,6 @@ def main():
         "generate-reports",
         help="Generate cu-bank state reports",
     )
-    # cu_bank_parser.add_argument("--addresses", type=str, required=True)
-    # cu_bank_parser.add_argument(
-    #     "--output",
-    #     required=True,
-    #     type=str,
-    #     help="Output file name",
-    # )
-    # cu_bank_parser.add_argument("--blockchain", type=str, help="Blockchain")
-    # cu_bank_parser.add_argument(
-    #     "--limit",
-    #     type=int,
-    #     default=100,
-    #     help="Limit of the search results",
-    # )
-
-    # cu_bank_parser.add_argument(
-    #     "--",
-    #     type=str,
-    #     help="Filter by created_at",
-    # )
 
     cu_bank_parser.set_defaults(func=generate_game_bank_report)
     args = parser.parse_args()
@@ -543,97 +512,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-"""
-    Select
-        difference.address,
-        (
-            difference.transfers_in - difference.transfers_out
-        ) as owned_nfts,
-        block_timestamp as last_activity,
-        opensea_sales
-    from
-        (
-            SELECT
-                total.address,
-                sum(total.transfer_out) as transfers_out,
-                sum(total.transfer_in) as transfers_in,
-                max(total.block_timestamp) as block_timestamp,
-                sum(total.is_opensea_sale) as opensea_sales
-            from
-                (
-                    SELECT
-                        label_data -> 'args' ->> 'from' as address,
-                        jsonb_array_elements(label_data -> 'args' -> 'values') :: int as transfer_out,
-                        0 as transfer_in,
-                        block_timestamp as block_timestamp,
-                        CASE
-                            WHEN to_address in (
-                                select
-                                    addresses
-                                from
-                                    OpenSea_contracts
-                            ) THEN 1
-                            ELSE 0
-                        END as is_opensea_sale
-                    from
-                        erc_1155_721_contracts_transfers_with_trashhold_ethereum,
-                        OpenSea_contracts
-                    where
-                        label_data ->> 'name' = 'TransferBatch'
-                    UNION
-                    ALL
-                    SELECT
-                        label_data -> 'args' ->> 'from' as address,
-                        (label_data -> 'args' ->> 'value') :: int as transfer_out,
-                        0 as transfer_in,
-                        block_timestamp as block_timestamp,
-                        CASE
-                            WHEN to_address in (
-                                select
-                                    addresses
-                                from
-                                    OpenSea_contracts
-                            ) THEN 1
-                            ELSE 0
-                        END as is_opensea_sale
-                    from
-                        erc_1155_721_contracts_transfers_with_trashhold_ethereum,
-                        OpenSea_contracts
-                    where
-                        label_data ->> 'name' = 'TransferSingle'
-                    UNION
-                    ALL
-                    select
-                        label_data -> 'args' ->> 'to' as address,
-                        0 as transfer_out,
-                        (label_data -> 'args' ->> 'value') :: int as transfer_in,
-                        block_timestamp as block_timestamp,
-                        0 as is_opensea_sale
-                    from
-                        erc_1155_721_contracts_transfers_with_trashhold_ethereum,
-                        OpenSea_contracts
-                    where
-                        label_data ->> 'name' = 'TransferSingle'
-                    UNION
-                    ALL
-                    select
-                        label_data -> 'args' ->> 'to' as address,
-                        0 as transfer_out,
-                        jsonb_array_elements(label_data -> 'args' -> 'values') :: int as transfer_in,
-                        jsonb_array_elements(label_data -> 'args' -> 'ids') ::
-                        block_timestamp as block_timestamp,
-                        0 as is_opensea_sale
-                    from
-                        erc_1155_721_contracts_transfers_with_trashhold_ethereum,
-                        OpenSea_contracts
-                    where
-                        label_data ->> 'name' = 'TransferBatch'
-                ) as total
-            group by
-                address
-        ) difference
-    order by
-        owned_nfts desc
-"""

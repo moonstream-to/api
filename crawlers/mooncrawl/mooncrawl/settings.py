@@ -193,3 +193,9 @@ multicall_contracts: Dict[AvailableBlockchainType, str] = {
     AvailableBlockchainType.MUMBAI: "0xe9939e7Ea7D7fb619Ac57f648Da7B1D425832631",
     AvailableBlockchainType.ETHEREUM: "0x5BA1e12693Dc8F9c48aAD8770482f4739bEeD696",
 }
+
+
+# Custom Crawler
+
+CUSTOM_CRAWLER_S3_BUCKET = os.environ.get("CUSTOM_CRAWLER_S3_BUCKET", "") # S3 bucket for storing custom crawler data
+CUSTOM_CRAWLER_S3_BUCKET_PREFIX = os.environ.get("CUSTOM_CRAWLER_S3_BUCKET_PREFIX", "dev")
