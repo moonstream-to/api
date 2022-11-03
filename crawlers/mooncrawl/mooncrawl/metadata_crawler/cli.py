@@ -1,9 +1,12 @@
 import argparse
 import json
+from time import time, sleep
 from urllib.error import HTTPError
 import urllib.request
 import logging
-from typing import Dict, Any
+import requests
+from typing import Any
+from concurrent.futures import ThreadPoolExecutor
 
 from moonstreamdb.blockchain import AvailableBlockchainType
 from moonstreamdb.db import (
@@ -14,13 +17,16 @@ from moonstreamdb.db import (
 from sqlalchemy.orm import sessionmaker
 from .db import (
     commit_session,
-    get_uris_of_tokens,
-    get_current_metadata_for_address,
+    get_uri_addresses,
+    get_not_updated_metadata_for_address,
     metadata_to_label,
+    update_metadata,
 )
 from ..settings import (
+    MOONSTREAM_METADATA_CRAWLER_THREADS,
     MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS,
 )
+from ..data import TokenURIs
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -29,7 +35,7 @@ logger = logging.getLogger(__name__)
 batch_size = 50
 
 
-def crawl_uri(metadata_uri: str) -> Any:
+def crawl_uri(token_uri_data: TokenURIs) -> Any:
 
     """
     Get metadata from URI
@@ -38,8 +44,14 @@ def crawl_uri(metadata_uri: str) -> Any:
     result = None
     while retry < 3:
         try:
-
-            response = urllib.request.urlopen(metadata_uri, timeout=5)
+            req = urllib.request.Request(
+                token_uri_data.token_uri,
+                None,
+                {
+                    "User-agent": "Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.9.1.5) Gecko/20091102 Firefox/3.5.5"
+                },
+            )
+            response = urllib.request.urlopen(req, timeout=5)
 
             if response.status == 200:
                 result = json.loads(response.read())
@@ -48,13 +60,18 @@ def crawl_uri(metadata_uri: str) -> Any:
 
         except HTTPError as error:
             logger.error(f"request end with error statuscode: {error.code}")
+            logger.error(f"requested uri: {token_uri_data.token_uri}")
             retry += 1
+            sleep(2)
             continue
         except Exception as err:
             logger.error(err)
+            logger.error(f"requested uri: {token_uri_data.token_uri}")
             retry += 1
+            sleep(2)
             continue
-    return result
+    sleep(0.5)
+    return result, token_uri_data
 
 
 def parse_metadata(blockchain_type: AvailableBlockchainType, batch_size: int):
@@ -78,39 +95,56 @@ def parse_metadata(blockchain_type: AvailableBlockchainType, batch_size: int):
     # run crawling of levels
     try:
 
-        uris_of_tokens = get_uris_of_tokens(db_session, blockchain_type)
+        meradata_addresses = get_uri_addresses(db_session, blockchain_type)
 
-        tokens_uri_by_address: Dict[str, Any] = {}
+        for address in meradata_addresses:
 
-        for token_uri_data in uris_of_tokens:
-            if token_uri_data.address not in tokens_uri_by_address:
-                tokens_uri_by_address[token_uri_data.address] = []
-            tokens_uri_by_address[token_uri_data.address].append(token_uri_data)
+            not_updated_tokens = get_not_updated_metadata_for_address(
+                db_session,
+                blockchain_type,
+                address=address,
+            )
 
-        for address in tokens_uri_by_address:
-
-            already_parsed = get_current_metadata_for_address(
-                db_session=db_session, blockchain_type=blockchain_type, address=address
+            logger.info(
+                f"Start crawling {len(not_updated_tokens)} tokens of address {address}"
             )
 
             for requests_chunk in [
-                tokens_uri_by_address[address][i : i + batch_size]
-                for i in range(0, len(tokens_uri_by_address[address]), batch_size)
+                not_updated_tokens[i : i + batch_size]
+                for i in range(0, len(not_updated_tokens), batch_size)
             ]:
                 writed_labels = 0
-                for token_uri_data in requests_chunk:
 
-                    if token_uri_data.token_id not in already_parsed:
-                        metadata = crawl_uri(token_uri_data.token_uri)
+                with ThreadPoolExecutor(
+                    max_workers=MOONSTREAM_METADATA_CRAWLER_THREADS
+                ) as executor:
 
-                        db_session.add(
-                            metadata_to_label(
-                                blockchain_type=blockchain_type,
-                                metadata=metadata,
-                                token_uri_data=token_uri_data,
-                            )
+                    for result in executor.map(
+                        crawl_uri, [request for request in requests_chunk]
+                    ):
+
+                        metadata = result[0]
+                        token_uri_data = result[1]
+                        label = metadata_to_label(
+                            metadata=metadata,
+                            blockchain_type=blockchain_type,
+                            token_uri_data=token_uri_data,
+                        )
+
+                        if token_uri_data.metadata_id is None:
+
+                            db_session.add(label)
+                            writed_labels += 1
+                            continue
+
+                        update_metadata(
+                            db_session,
+                            blockchain_type,
+                            token_uri_data.metadata_id,
+                            label,
                         )
                         writed_labels += 1
+
                 commit_session(db_session)
                 logger.info(f"Write {writed_labels} labels for {address}")
 

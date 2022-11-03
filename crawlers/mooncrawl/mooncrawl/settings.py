@@ -193,3 +193,21 @@ multicall_contracts: Dict[AvailableBlockchainType, str] = {
     AvailableBlockchainType.MUMBAI: "0xe9939e7Ea7D7fb619Ac57f648Da7B1D425832631",
     AvailableBlockchainType.ETHEREUM: "0x5BA1e12693Dc8F9c48aAD8770482f4739bEeD696",
 }
+
+
+# Metadata crawler
+
+MOONSTREAM_METADATA_CRAWLER_THREADS = 10
+
+MOONSTREAM_METADATA_CRAWLER_THREADS_RAW = os.environ.get(
+    "MOONSTREAM_METADATA_CRAWLER_THREADS"
+)
+try:
+    if MOONSTREAM_METADATA_CRAWLER_THREADS_RAW is not None:
+        MOONSTREAM_METADATA_CRAWLER_THREADS = int(
+            MOONSTREAM_METADATA_CRAWLER_THREADS_RAW
+        )
+except:
+    raise Exception(
+        f"Could not parse MOONSTREAM_METADATA_CRAWLER_THREADS as int: {MOONSTREAM_METADATA_CRAWLER_THREADS_RAW}"
+    )
