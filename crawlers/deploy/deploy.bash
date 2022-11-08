@@ -37,7 +37,7 @@ ETHEREUM_TXPOOL_SERVICE_FILE="ethereum-txpool.service"
 ETHEREUM_MISSING_SERVICE_FILE="ethereum-missing.service"
 ETHEREUM_MISSING_TIMER_FILE="ethereum-missing.timer"
 
-# Polygon service file
+# Polygon service files
 POLYGON_SYNCHRONIZE_SERVICE="polygon-synchronize.service"
 POLYGON_MISSING_SERVICE_FILE="polygon-missing.service"
 POLYGON_MISSING_TIMER_FILE="polygon-missing.timer"
@@ -52,7 +52,13 @@ POLYGON_STATE_CLEAN_TIMER_FILE="polygon-state-clean.timer"
 POLYGON_METADATA_SERVICE_FILE="polygon-metadata.service"
 POLYGON_METADATA_TIMER_FILE="polygon-metadata.timer"
 
-# XDai service file
+# Mumbai service files
+MUMBAI_SYNCHRONIZE_SERVICE="mumbai-synchronize.service"
+MUMBAI_MISSING_SERVICE_FILE="mumbai-missing.service"
+MUMBAI_MISSING_TIMER_FILE="mumbai-missing.timer"
+MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE="mumbai-moonworm-crawler.service"
+
+# XDai service files
 XDAI_SYNCHRONIZE_SERVICE="xdai-synchronize.service"
 XDAI_MISSING_SERVICE_FILE="xdai-missing.service"
 XDAI_MISSING_TIMER_FILE="xdai-missing.timer"
@@ -184,6 +190,31 @@ chmod 644 "${SCRIPT_DIR}/${POLYGON_MOONWORM_CRAWLER_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${POLYGON_MOONWORM_CRAWLER_SERVICE_FILE}" "/etc/systemd/system/${POLYGON_MOONWORM_CRAWLER_SERVICE_FILE}"
 systemctl daemon-reload
 systemctl restart --no-block "${POLYGON_MOONWORM_CRAWLER_SERVICE_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Mumbai block with transactions syncronizer service definition with ${MUMBAI_SYNCHRONIZE_SERVICE}"
+chmod 644 "${SCRIPT_DIR}/${MUMBAI_SYNCHRONIZE_SERVICE}"
+cp "${SCRIPT_DIR}/${MUMBAI_SYNCHRONIZE_SERVICE}" "/etc/systemd/system/${MUMBAI_SYNCHRONIZE_SERVICE}"
+systemctl daemon-reload
+systemctl restart --no-block "${MUMBAI_SYNCHRONIZE_SERVICE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Mumbai missing service and timer with: ${MUMBAI_MISSING_SERVICE_FILE}, ${MUMBAI_MISSING_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${MUMBAI_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${MUMBAI_MISSING_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${MUMBAI_MISSING_SERVICE_FILE}" "/etc/systemd/system/${MUMBAI_MISSING_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${MUMBAI_MISSING_TIMER_FILE}" "/etc/systemd/system/${MUMBAI_MISSING_TIMER_FILE}"
+systemctl daemon-reload
+systemctl restart --no-block "${MUMBAI_MISSING_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Mumbai moonworm crawler service definition with ${MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE}" "/etc/systemd/system/${MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE}"
+systemctl daemon-reload
+systemctl restart --no-block "${MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE}"
 
 echo
 echo

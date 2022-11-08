@@ -29,7 +29,15 @@ const Contact = () => {
 
   return (
     <Box>
-      <Box px="1.5rem" py={10} m="auto" mb={8} minHeight="100vh">
+      <Box
+        px="1.5rem"
+        py={10}
+        m="auto"
+        mb={8}
+        minHeight="100vh"
+        textColor="black"
+        position="relative"
+      >
         <Icon
           as={BiArrowBack}
           w={["30px", "40px", "50px"]}
@@ -49,9 +57,9 @@ const Contact = () => {
               fontSize={["md", "lg", "xl"]}
               textAlign="center"
             >
-              Thanks for your interest in Moonstream.
-              <br />
-              Please answer some questions to help us get acquainted with you.
+              Thanks for your interest in Moonstream. Our tools are fully
+              customized to your project. <br /> Please answer these questions
+              to get started:
             </Text>
           </VStack>
         </Center>
@@ -63,9 +71,9 @@ const Contact = () => {
         <Center>
           <Text my={5} fontSize={["md", "lg"]} textAlign="center" width="60%">
             <i>
-              Click the button to submit your answers. We&apos;ll reach out
-              directly within 3 days. You will not receive any marketing emails
-              from us.
+              We&apos;ll reach out directly within 3 business days after you
+              submit this form. You won&apos;t be receiving any spam emails from
+              us, only the most important technical updates.
             </i>
           </Text>
         </Center>

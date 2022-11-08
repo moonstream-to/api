@@ -100,6 +100,9 @@ const Report = ({ data, timeRange }) => {
       enableSlices={false}
       enableGridX={true}
       enableGridY={true}
+      theme={{
+        textColor: "white",
+      }}
     />
   );
 };

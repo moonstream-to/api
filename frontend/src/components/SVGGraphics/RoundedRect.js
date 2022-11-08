@@ -16,7 +16,7 @@ const _RoundedRectSVG = (props) => {
         stroke="url(#paint0_linear_291_337)"
         strokeWidth="5"
       />
-      <defs>
+      {/* <defs>
         <linearGradient
           id="paint0_linear_291_337"
           x1="229.821"
@@ -28,7 +28,7 @@ const _RoundedRectSVG = (props) => {
           <stop stopColor="#212698" />
           <stop offset="1" stopColor="#FF8B73" />
         </linearGradient>
-      </defs>
+      </defs> */}
     </svg>
   );
 };

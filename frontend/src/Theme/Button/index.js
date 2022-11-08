@@ -120,12 +120,26 @@ const variantOrangeAndBlue = () => {
     justifyContent: "center",
     border: "solid transparent",
     borderRadius: "70px",
-    shadow: "md",
     variant: "solid",
-    fontSize: ["sm", "md", "lg", "lg", "xl", "xl"],
-    textColor: "blue.1200",
+    fontSize: ["md", "md", "lg", "lg", "xl", "xl"],
+    textColor: "white",
     bg: "#FF8B73",
-    py: 5,
+    py: 3,
+    px: 5,
+  };
+};
+
+const variantWhiteOnOrange = () => {
+  return {
+    alignItems: "center",
+    justifyContent: "center",
+    border: "solid transparent",
+    borderRadius: "70px",
+    variant: "solid",
+    fontSize: ["md", "md", "lg", "lg", "xl", "xl"],
+    textColor: "white",
+    bg: "#FF8B73",
+    py: 3,
     px: 5,
   };
 };
@@ -168,6 +182,7 @@ const Button = {
     outline: variantOutline,
     link: variantLink,
     orangeAndBlue: variantOrangeAndBlue,
+    whiteOnOrange: variantWhiteOnOrange,
   },
 };
 export default Button;

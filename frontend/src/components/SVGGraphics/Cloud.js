@@ -17,7 +17,7 @@ const _CloudSVG = (props) => {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <defs>
+      {/* <defs>
         <linearGradient
           id="paint0_linear_293_70"
           x1="203.5"
@@ -29,7 +29,7 @@ const _CloudSVG = (props) => {
           <stop stopColor="#212698" />
           <stop offset="0.932309" stopColor="#FF9473" />
         </linearGradient>
-      </defs>
+      </defs> */}
     </svg>
   );
 };

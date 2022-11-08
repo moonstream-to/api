@@ -31,19 +31,12 @@ const TrustedBadge = ({
           alignItems="center"
           alignSelf="center"
           wrap="nowrap"
-          p={4}
+          p={[2, 3]}
           direction="column"
         >
           <Image
             sx={{ filter: filterStr }}
-            h={[
-              `${1.75 * _scale}rem`,
-              null,
-              `${3 * _scale}rem`,
-              `${3 * _scale}rem`,
-              `${4 * _scale}rem`,
-              `${6 * _scale}rem`,
-            ]}
+            h={[`${2.25 * _scale}rem`, `${3 * _scale}rem`, null]}
             src={ImgURL}
             alt={name}
           ></Image>

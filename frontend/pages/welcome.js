@@ -27,7 +27,7 @@ const Welcome = () => {
 
   return (
     <Scrollable>
-      <Stack px="7%" pt={4} w="100%" spacing={4} ref={scrollRef}>
+      <Stack px="7%" pt={4} w="100%" color="black" spacing={4} ref={scrollRef}>
         {/* <StepProgress
           numSteps={ui.onboardingSteps.length}
           currentStep={ui.onboardingStep}
