@@ -16,7 +16,7 @@ const ConfirmationRequest = (props) => {
       {({ onClose }) => (
         <Fragment>
           <PopoverTrigger>{props.children}</PopoverTrigger>
-          <PopoverContent zIndex={100} bg="White">
+          <PopoverContent zIndex={100} bg="White" color="Black">
             <PopoverCloseButton />
             <PopoverHeader fontWeight="bold">{props.header}</PopoverHeader>
             <PopoverBody fontSize="md">{props.bodyMessage}</PopoverBody>

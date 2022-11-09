@@ -22,9 +22,7 @@ PYTHON="${PYTHON_ENV_DIR}/bin/python"
 PIP="${PYTHON_ENV_DIR}/bin/pip"
 SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/moonstream-secrets}"
 PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
-AWS_SSM_PARAMETER_PATH="${AWS_SSM_PARAMETER_PATH:-/moonstream/prod}"
 SCRIPT_DIR="$(realpath $(dirname $0))"
-PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.py"
 
 # Service files
 MOONCRAWL_SERVICE_FILE="mooncrawl.service"
@@ -58,6 +56,7 @@ POLYGON_CU_REPORTS_TOKENONOMICS_TIMER_FILE="polygon-cu-reports-tokenonomics.time
 MUMBAI_SYNCHRONIZE_SERVICE="mumbai-synchronize.service"
 MUMBAI_MISSING_SERVICE_FILE="mumbai-missing.service"
 MUMBAI_MISSING_TIMER_FILE="mumbai-missing.timer"
+MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE="mumbai-moonworm-crawler.service"
 
 # XDai service files
 XDAI_SYNCHRONIZE_SERVICE="xdai-synchronize.service"
@@ -89,19 +88,14 @@ echo -e "${PREFIX_INFO} Installing Python dependencies"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Retrieving deployment parameters"
-mkdir -p "${SECRETS_DIR}"
-AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" "${PYTHON}" "${PARAMETERS_SCRIPT}" extract -p "${AWS_SSM_PARAMETER_PATH}" -o "${PARAMETERS_ENV_PATH}"
-
-echo
-echo
 echo -e "${PREFIX_INFO} Install checkenv"
 HOME=/root /usr/local/go/bin/go install github.com/bugout-dev/checkenv@latest
 
 echo
 echo
 echo -e "${PREFIX_INFO} Retrieving addition deployment parameters"
-AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" /root/go/bin/checkenv show aws_ssm+Product:moonstream >> "${PARAMETERS_ENV_PATH}"
+mkdir -p "${SECRETS_DIR}"
+AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" /root/go/bin/checkenv show aws_ssm+moonstream:true > "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
@@ -208,6 +202,14 @@ cp "${SCRIPT_DIR}/${MUMBAI_MISSING_SERVICE_FILE}" "/etc/systemd/system/${MUMBAI_
 cp "${SCRIPT_DIR}/${MUMBAI_MISSING_TIMER_FILE}" "/etc/systemd/system/${MUMBAI_MISSING_TIMER_FILE}"
 systemctl daemon-reload
 systemctl restart --no-block "${MUMBAI_MISSING_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Mumbai moonworm crawler service definition with ${MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE}" "/etc/systemd/system/${MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE}"
+systemctl daemon-reload
+systemctl restart --no-block "${MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE}"
 
 echo
 echo

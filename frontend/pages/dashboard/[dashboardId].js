@@ -112,6 +112,7 @@ const Analytics = () => {
         direction="column"
         alignItems="center"
         minH="100vh"
+        color="black"
       >
         <Stack
           direction={["column", "row", null]}
@@ -122,6 +123,7 @@ const Analytics = () => {
           <Editable
             as={Heading}
             colorScheme="blue"
+            textColor="white"
             placeholder="enter note here"
             defaultValue={dashboardCache.data.resource_data.name}
             onSubmit={(nextValue) =>

@@ -77,7 +77,7 @@ const LandingNavbar = () => {
                       key={`${idx}-${item.title}-landing-all-links`}
                       variant="link"
                       href={item.path}
-                      color="white"
+                      color="black"
                       isActive={!!(router.pathname === item.path)}
                     >
                       {item.title}

@@ -76,7 +76,7 @@ const AppNavbar = () => {
             icon={<QuestionOutlineIcon />}
           />
         </PopoverTrigger>
-        <PopoverContent bgColor="white.100">
+        <PopoverContent bgColor="white.100" color="black">
           <PopoverArrow />
           <PopoverCloseButton />
           <PopoverHeader>Support</PopoverHeader>
@@ -110,7 +110,7 @@ const AppNavbar = () => {
           <Flex px={2}>
             <Spacer />
             <Flex placeSelf="flex-end">
-              <ButtonGroup variant="link" spacing={4} colorScheme="orange">
+              <ButtonGroup variant="link" spacing={4}>
                 {SITEMAP.map((item, idx) => {
                   if (
                     !item.children &&
@@ -121,10 +121,9 @@ const AppNavbar = () => {
                         key={`${idx}-${item.title}-landing-all-links`}
                         variant="link"
                         href={item.path}
-                        color="white"
                         isActive={!!(router.pathname === item.path)}
                       >
-                        {item.title}
+                        <Text color="black">{item.title}</Text>
                       </RouteButton>
                     );
                   } else if (!item.footerOnly) {
@@ -147,7 +146,7 @@ const AppNavbar = () => {
                                 passHref
                               >
                                 <MenuItem key={`menu-${idx}`} as={"a"} m={0}>
-                                  {child.title}
+                                  <Text color="black">{child.title}</Text>
                                 </MenuItem>
                               </RouterLink>
                             ))}
@@ -163,7 +162,6 @@ const AppNavbar = () => {
                       key={`${idx}-${item.title}-navlink`}
                       variant="link"
                       href={item.path}
-                      color="white"
                       isActive={!!(router.nextRouter.pathname === item.path)}
                     >
                       {item.title}
