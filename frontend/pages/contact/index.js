@@ -36,6 +36,7 @@ const Contact = () => {
         mb={8}
         minHeight="100vh"
         textColor="black"
+        bgColor="white"
         position="relative"
       >
         <Icon
