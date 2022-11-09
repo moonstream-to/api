@@ -95,6 +95,19 @@ def generate_report(
         )
 
 
+def delete_user_query(client: Moonstream, token: str, query_name: str):
+    """
+    Delete the user's queries.
+    """
+
+    id = client.delete_query(
+        token=token,
+        name=query_name,
+    )
+
+    print(f"Query with name:{query_name} and id: {id} was deleted")
+
+
 def init_game_bank_queries_handler(args: argparse.Namespace):
 
     """
@@ -106,6 +119,14 @@ def init_game_bank_queries_handler(args: argparse.Namespace):
     for query in cu_bank_queries:
 
         try:
+            try:
+                # delete
+                delete_user_query(
+                    client=client, token=args.moonstream_token, query_name=query["name"]
+                )
+            except Exception as err:
+                print(err)
+            # create
             created_entry = client.create_query(
                 token=args.moonstream_token,
                 name=query["name"],
@@ -130,6 +151,14 @@ def init_tokenomics_queries_handler(args: argparse.Namespace):
     for query in tokenomics_queries:
 
         try:
+            try:
+                # delete
+                delete_user_query(
+                    client=client, token=args.moonstream_token, query_name=query["name"]
+                )
+            except Exception as err:
+                print(err)
+            # create
             created_entry = client.create_query(
                 token=args.moonstream_token,
                 name=query["name"],
@@ -369,18 +398,13 @@ def list_user_queries_handler(args: argparse.Namespace):
         print(query.name, query.id)
 
 
-def delete_user_query(args: argparse.Namespace):
+def delete_user_query_handler(args: argparse.Namespace):
     """
     Delete the user's queries.
     """
     client = Moonstream()
 
-    id = client.delete_query(
-        token=args.moonstream_token,
-        name=args.name,
-    )
-
-    print(f"Query with name:{args.name} and id: {id} was deleted")
+    delete_user_query(client=client, token=args.moonstream_token, query_name=args.name)
 
 
 def generate_game_bank_report(args: argparse.Namespace):
@@ -498,7 +522,7 @@ def main():
         type=str,
     )
 
-    delete_query.set_defaults(func=delete_user_query)
+    delete_query.set_defaults(func=delete_user_query_handler)
 
     cu_bank_parser = cu_reports_subparsers.add_parser(
         "generate-reports",
