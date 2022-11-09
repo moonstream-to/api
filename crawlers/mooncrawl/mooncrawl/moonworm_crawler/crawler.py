@@ -156,7 +156,7 @@ def get_crawl_job_entries(
     subscription_type: SubscriptionTypes,
     crawler_type: str,
     journal_id: str = MOONSTREAM_MOONWORM_TASKS_JOURNAL,
-    created_at_filter: int = None,
+    created_at_filter: Optional[int] = None,
     limit: int = 200,
 ) -> List[BugoutSearchResult]:
     """

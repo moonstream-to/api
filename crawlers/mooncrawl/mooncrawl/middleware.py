@@ -19,7 +19,7 @@ class MoonstreamHTTPException(HTTPException):
         status_code: int,
         detail: Any = None,
         headers: Optional[Dict[str, Any]] = None,
-        internal_error: Exception = None,
+        internal_error: Optional[Exception] = None,
     ):
         super().__init__(status_code, detail, headers)
         if internal_error is not None:

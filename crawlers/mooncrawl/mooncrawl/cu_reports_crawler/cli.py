@@ -1,6 +1,6 @@
 import argparse
 import datetime
-from moonstream.client import Moonstream
+from moonstream.client import Moonstream  # type: ignore
 import time
 import requests
 import json
