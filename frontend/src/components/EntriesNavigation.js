@@ -227,7 +227,7 @@ const EntriesNavigation = () => {
         <>
           <Drawer onClose={onClose} isOpen={isOpen} size="lg">
             <DrawerOverlay />
-            <DrawerContent bgColor="gray.100">
+            <DrawerContent bgColor="gray.100" color="Black">
               <DrawerCloseButton />
               <DrawerHeader>{`Filter results`}</DrawerHeader>
               <DrawerBody>
