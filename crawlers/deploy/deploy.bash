@@ -22,9 +22,7 @@ PYTHON="${PYTHON_ENV_DIR}/bin/python"
 PIP="${PYTHON_ENV_DIR}/bin/pip"
 SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/moonstream-secrets}"
 PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
-AWS_SSM_PARAMETER_PATH="${AWS_SSM_PARAMETER_PATH:-/moonstream/prod}"
 SCRIPT_DIR="$(realpath $(dirname $0))"
-PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.py"
 
 # Service files
 MOONCRAWL_SERVICE_FILE="mooncrawl.service"
@@ -88,19 +86,13 @@ echo -e "${PREFIX_INFO} Installing Python dependencies"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Retrieving deployment parameters"
-mkdir -p "${SECRETS_DIR}"
-AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" "${PYTHON}" "${PARAMETERS_SCRIPT}" extract -p "${AWS_SSM_PARAMETER_PATH}" -o "${PARAMETERS_ENV_PATH}"
-
-echo
-echo
 echo -e "${PREFIX_INFO} Install checkenv"
 HOME=/root /usr/local/go/bin/go install github.com/bugout-dev/checkenv@latest
 
 echo
 echo
 echo -e "${PREFIX_INFO} Retrieving addition deployment parameters"
-AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" /root/go/bin/checkenv show aws_ssm+Product:moonstream >> "${PARAMETERS_ENV_PATH}"
+AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" /root/go/bin/checkenv show aws_ssm+moonstream:true > "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
