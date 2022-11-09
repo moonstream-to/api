@@ -40,7 +40,7 @@ setup(
         "moonstreamdb>=0.3.2",
         "moonworm[moonstream]>=0.5.2",
         "humbug",
-        "pydantic",
+        "pydantic==1.9.2",
         "python-dateutil",
         "requests",
         "tqdm",

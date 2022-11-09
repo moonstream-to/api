@@ -8,6 +8,7 @@ import logging
 from typing import Dict, List, Any, Optional
 from uuid import UUID
 import time
+from pprint import pprint
 
 from moonstreamdb.blockchain import AvailableBlockchainType
 from mooncrawl.moonworm_crawler.crawler import _retry_connect_web3
@@ -16,8 +17,10 @@ from moonstreamdb.db import (
     MOONSTREAM_POOL_SIZE,
     create_moonstream_engine,
 )
+import requests
 from sqlalchemy.orm import sessionmaker
 
+from web3._utils.request import cache_session
 from .db import view_call_to_label, commit_session, clean_labels
 from .Multicall2_interface import Contract as Multicall2
 from ..settings import (
@@ -133,6 +136,7 @@ def make_multicall(
 
 
 def crawl_calls_level(
+    web3_client,
     db_session,
     calls,
     responces,
@@ -148,10 +152,14 @@ def crawl_calls_level(
 ):
 
     calls_of_level = []
-    make_multicall_result = []
 
     for call in calls:
+
+        if call["generated_hash"] in responces:
+            continue
         parameters = []
+
+        logger.info(f"Call: {call}")
 
         for input in call["inputs"]:
 
@@ -167,14 +175,21 @@ def crawl_calls_level(
                         parameters.append(
                             list(range(1, responces[input["value"]][0][0] + 1))
                         )
+                        # parameters.append(list(range(40000, 46000)))
                     else:
                         parameters.append(responces[input["value"]])
+                        # if call["name"] == "getStats":
+                        #     pprint(responces[input["value"]])
             elif type(input["value"]) == list:
                 parameters.append(input["value"])
             else:
                 raise
 
         for call_parameters in itertools.product(*parameters):
+
+            # hack for tuples product
+            if len(call_parameters) == 1 and type(call_parameters[0]) == tuple:
+                call_parameters = call_parameters[0]
             calls_of_level.append(
                 {
                     "address": call["address"],
@@ -186,13 +201,12 @@ def crawl_calls_level(
                 }
             )
 
-    # for call_chunk in [
-    #     calls_of_level[i : i + batch_size]
-    #     for i in range(0, len(calls_of_level), batch_size)
-    # ]:
     retry = 0
+    print(dir(web3_client))
 
     while len(calls_of_level) > 0:
+
+        make_multicall_result = []
         try:
 
             call_chunk = calls_of_level[:batch_size]
@@ -213,13 +227,15 @@ def crawl_calls_level(
                 f"Multicall2 returned {len(make_multicall_result)} results at block {block_number}"
             )
             retry = 0
-            batch_size = min(batch_size * 2, max_batch_size)
             calls_of_level = calls_of_level[batch_size:]
+            logger.info(f"lenght of task left {len(calls_of_level)}.")
+            batch_size = min(batch_size * 2, max_batch_size)
         except ValueError as e:
             logger.info(f"ValueError: {e}, retrying")
             retry += 1
             if "missing trie node" in str(e):
-                time.sleep(20)
+                cache_session(web3_client.HTTPProvider.endpoint_uri, requests.Session())
+                time.sleep(4)
             if retry > 5:
                 raise (e)
             batch_size = max(batch_size // 3, min_batch_size)
@@ -247,7 +263,6 @@ def crawl_calls_level(
             responces[result["hash"]].append(result["result"])
         commit_session(db_session)
         logger.info(f"{add_to_session_count} labels commit to database.")
-        make_multicall_result = []
 
     return batch_size
 
@@ -313,7 +328,11 @@ def parse_jobs(
                     have_subcalls = True
                 abi["inputs"].append(input)
         abi["address"] = method_abi["address"]
-        generated_hash = hashlib.md5(json.dumps(abi).encode("utf-8")).hexdigest()
+        generated_hash = hashlib.md5(
+            json.dumps(abi, sort_keys=True, indent=4, separators=(",", ": ")).encode(
+                "utf-8"
+            )
+        ).hexdigest()
 
         abi["generated_hash"] = generated_hash
         if have_subcalls:
@@ -344,6 +363,8 @@ def parse_jobs(
             contracts_ABIs[job["address"]] = []
 
         recursive_unpack(job, 0)
+
+    pprint(calls)
 
     # generate contracts interfaces
 
@@ -381,8 +402,10 @@ def parse_jobs(
         # initial call of level 0 all call without subcalls directly moved there
         logger.info("Crawl level: 0")
         logger.info(f"Jobs amount: {len(calls[0])}")
+        logger.info(f"call_tree_levels: {call_tree_levels}")
 
         batch_size = crawl_calls_level(
+            web3_client,
             db_session,
             calls[0],
             responces,
@@ -401,6 +424,7 @@ def parse_jobs(
             logger.info(f"Jobs amount: {len(calls[level])}")
 
             batch_size = crawl_calls_level(
+                web3_client,
                 db_session,
                 calls[level],
                 responces,
@@ -480,6 +504,58 @@ def handle_crawl(args: argparse.Namespace) -> None:
             "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
             "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
         },
+        # {
+        #     "inputs": [
+        #         {
+        #             "internalType": "uint256",
+        #             "name": "_dna",
+        #             "type": "uint256",
+        #             "value": {
+        #                 "type": "function",
+        #                 "stateMutability": "view",
+        #                 "inputs": [
+        #                     {
+        #                         "internalType": "uint256",
+        #                         "name": "tokenId",
+        #                         "type": "uint256",
+        #                         "value": {
+        #                             "type": "function",
+        #                             "name": "totalSupply",
+        #                             "outputs": [
+        #                                 {
+        #                                     "internalType": "uint256",
+        #                                     "name": "",
+        #                                     "type": "uint256",
+        #                                 }
+        #                             ],
+        #                             "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+        #                             "inputs": [],
+        #                         },
+        #                     }
+        #                 ],
+        #                 "name": "getDNA",
+        #                 "outputs": [
+        #                     {"internalType": "uint256", "name": "", "type": "uint256"}
+        #                 ],
+        #                 "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+        #             },
+        #         }
+        #     ],
+        #     "name": "getStats",
+        #     "outputs": [
+        #         {"internalType": "uint256", "name": "attack", "type": "uint256"},
+        #         {"internalType": "uint256", "name": "accuracy", "type": "uint256"},
+        #         {"internalType": "uint256", "name": "movementSpeed", "type": "uint256"},
+        #         {"internalType": "uint256", "name": "attackSpeed", "type": "uint256"},
+        #         {"internalType": "uint256", "name": "defense", "type": "uint256"},
+        #         {"internalType": "uint256", "name": "vitality", "type": "uint256"},
+        #         {"internalType": "uint256", "name": "resistance", "type": "uint256"},
+        #         {"internalType": "uint256", "name": "magic", "type": "uint256"},
+        #     ],
+        #     "stateMutability": "view",
+        #     "type": "function",
+        #     "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+        # },
         {
             "inputs": [
                 {
@@ -517,17 +593,309 @@ def handle_crawl(args: argparse.Namespace) -> None:
                     },
                 }
             ],
-            "name": "getStats",
-            "outputs": [
-                {"internalType": "uint256", "name": "attack", "type": "uint256"},
-                {"internalType": "uint256", "name": "accuracy", "type": "uint256"},
-                {"internalType": "uint256", "name": "movementSpeed", "type": "uint256"},
-                {"internalType": "uint256", "name": "attackSpeed", "type": "uint256"},
-                {"internalType": "uint256", "name": "defense", "type": "uint256"},
-                {"internalType": "uint256", "name": "vitality", "type": "uint256"},
-                {"internalType": "uint256", "name": "resistance", "type": "uint256"},
-                {"internalType": "uint256", "name": "magic", "type": "uint256"},
+            "name": "getAttack",
+            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+            "stateMutability": "view",
+            "type": "function",
+            "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "_dna",
+                    "type": "uint256",
+                    "value": {
+                        "type": "function",
+                        "stateMutability": "view",
+                        "inputs": [
+                            {
+                                "internalType": "uint256",
+                                "name": "tokenId",
+                                "type": "uint256",
+                                "value": {
+                                    "type": "function",
+                                    "name": "totalSupply",
+                                    "outputs": [
+                                        {
+                                            "internalType": "uint256",
+                                            "name": "",
+                                            "type": "uint256",
+                                        }
+                                    ],
+                                    "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+                                    "inputs": [],
+                                },
+                            }
+                        ],
+                        "name": "getDNA",
+                        "outputs": [
+                            {"internalType": "uint256", "name": "", "type": "uint256"}
+                        ],
+                        "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+                    },
+                }
             ],
+            "name": "getAccuracy",
+            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+            "stateMutability": "view",
+            "type": "function",
+            "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "_dna",
+                    "type": "uint256",
+                    "value": {
+                        "type": "function",
+                        "stateMutability": "view",
+                        "inputs": [
+                            {
+                                "internalType": "uint256",
+                                "name": "tokenId",
+                                "type": "uint256",
+                                "value": {
+                                    "type": "function",
+                                    "name": "totalSupply",
+                                    "outputs": [
+                                        {
+                                            "internalType": "uint256",
+                                            "name": "",
+                                            "type": "uint256",
+                                        }
+                                    ],
+                                    "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+                                    "inputs": [],
+                                },
+                            }
+                        ],
+                        "name": "getDNA",
+                        "outputs": [
+                            {"internalType": "uint256", "name": "", "type": "uint256"}
+                        ],
+                        "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+                    },
+                }
+            ],
+            "name": "getMovementSpeed",
+            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+            "stateMutability": "view",
+            "type": "function",
+            "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "_dna",
+                    "type": "uint256",
+                    "value": {
+                        "type": "function",
+                        "stateMutability": "view",
+                        "inputs": [
+                            {
+                                "internalType": "uint256",
+                                "name": "tokenId",
+                                "type": "uint256",
+                                "value": {
+                                    "type": "function",
+                                    "name": "totalSupply",
+                                    "outputs": [
+                                        {
+                                            "internalType": "uint256",
+                                            "name": "",
+                                            "type": "uint256",
+                                        }
+                                    ],
+                                    "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+                                    "inputs": [],
+                                },
+                            }
+                        ],
+                        "name": "getDNA",
+                        "outputs": [
+                            {"internalType": "uint256", "name": "", "type": "uint256"}
+                        ],
+                        "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+                    },
+                }
+            ],
+            "name": "getAttackSpeed",
+            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+            "stateMutability": "view",
+            "type": "function",
+            "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "_dna",
+                    "type": "uint256",
+                    "value": {
+                        "type": "function",
+                        "stateMutability": "view",
+                        "inputs": [
+                            {
+                                "internalType": "uint256",
+                                "name": "tokenId",
+                                "type": "uint256",
+                                "value": {
+                                    "type": "function",
+                                    "name": "totalSupply",
+                                    "outputs": [
+                                        {
+                                            "internalType": "uint256",
+                                            "name": "",
+                                            "type": "uint256",
+                                        }
+                                    ],
+                                    "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+                                    "inputs": [],
+                                },
+                            }
+                        ],
+                        "name": "getDNA",
+                        "outputs": [
+                            {"internalType": "uint256", "name": "", "type": "uint256"}
+                        ],
+                        "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+                    },
+                }
+            ],
+            "name": "getDefense",
+            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+            "stateMutability": "view",
+            "type": "function",
+            "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "_dna",
+                    "type": "uint256",
+                    "value": {
+                        "type": "function",
+                        "stateMutability": "view",
+                        "inputs": [
+                            {
+                                "internalType": "uint256",
+                                "name": "tokenId",
+                                "type": "uint256",
+                                "value": {
+                                    "type": "function",
+                                    "name": "totalSupply",
+                                    "outputs": [
+                                        {
+                                            "internalType": "uint256",
+                                            "name": "",
+                                            "type": "uint256",
+                                        }
+                                    ],
+                                    "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+                                    "inputs": [],
+                                },
+                            }
+                        ],
+                        "name": "getDNA",
+                        "outputs": [
+                            {"internalType": "uint256", "name": "", "type": "uint256"}
+                        ],
+                        "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+                    },
+                }
+            ],
+            "name": "getVitality",
+            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+            "stateMutability": "view",
+            "type": "function",
+            "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "_dna",
+                    "type": "uint256",
+                    "value": {
+                        "type": "function",
+                        "stateMutability": "view",
+                        "inputs": [
+                            {
+                                "internalType": "uint256",
+                                "name": "tokenId",
+                                "type": "uint256",
+                                "value": {
+                                    "type": "function",
+                                    "name": "totalSupply",
+                                    "outputs": [
+                                        {
+                                            "internalType": "uint256",
+                                            "name": "",
+                                            "type": "uint256",
+                                        }
+                                    ],
+                                    "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+                                    "inputs": [],
+                                },
+                            }
+                        ],
+                        "name": "getDNA",
+                        "outputs": [
+                            {"internalType": "uint256", "name": "", "type": "uint256"}
+                        ],
+                        "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+                    },
+                }
+            ],
+            "name": "getResistance",
+            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+            "stateMutability": "view",
+            "type": "function",
+            "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "_dna",
+                    "type": "uint256",
+                    "value": {
+                        "type": "function",
+                        "stateMutability": "view",
+                        "inputs": [
+                            {
+                                "internalType": "uint256",
+                                "name": "tokenId",
+                                "type": "uint256",
+                                "value": {
+                                    "type": "function",
+                                    "name": "totalSupply",
+                                    "outputs": [
+                                        {
+                                            "internalType": "uint256",
+                                            "name": "",
+                                            "type": "uint256",
+                                        }
+                                    ],
+                                    "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+                                    "inputs": [],
+                                },
+                            }
+                        ],
+                        "name": "getDNA",
+                        "outputs": [
+                            {"internalType": "uint256", "name": "", "type": "uint256"}
+                        ],
+                        "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+                    },
+                }
+            ],
+            "name": "getMagic",
+            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
             "stateMutability": "view",
             "type": "function",
             "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
