@@ -79,6 +79,7 @@ const Sidebar = () => {
               pl={1}
               src={PRIMARY_MOON_LOGO_URL}
               alt="Moonstream To"
+              cursor="pointer"
             />
           </RouterLink>
         </Flex>
