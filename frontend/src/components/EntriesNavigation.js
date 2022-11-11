@@ -222,6 +222,9 @@ const EntriesNavigation = () => {
       overflow="hidden"
       direction="column"
       flexGrow={1}
+      mt="10px"
+      mr="5px"
+      ml="5px"
     >
       {streamCache && !eventsIsLoading ? (
         <>
@@ -433,7 +436,7 @@ const EntriesNavigation = () => {
               w="100%"
               //onScroll={(e) => handleScroll(e)}
             >
-              <Stack direction="row" justifyContent="space-between">
+              <Stack mt="5px" direction="row" justifyContent="space-around">
                 {!loadNewerEventsIsFetching && !nextEventIsFetching ? (
                   <Button
                     onClick={() => {
@@ -452,53 +455,53 @@ const EntriesNavigation = () => {
                     colorScheme="green"
                   ></Button>
                 )}
-              </Stack>
-              {streamCache
-                .slice(
-                  cursor,
-                  streamCache.length <= cursor + PAGE_SIZE
-                    ? streamCache.length
-                    : cursor + PAGE_SIZE
-                )
-                .map((entry, idx) => (
-                  <StreamEntry
-                    showOnboardingTooltips={false}
-                    key={`entry-list-${idx}`}
-                    entry={entry}
-                    disableDelete={!canDelete}
-                    disableCopy={!canCreate}
-                    filterCallback={handleFilterStateCallback}
-                    filterConstants={{ DIRECTIONS, CONDITION, FILTER_TYPES }}
-                  />
-                ))}
-              {previousEvent &&
-              !loadOlderEventsIsFetching &&
-              !previousEventIsFetching ? (
-                <Center>
-                  <Button
-                    onClick={() => {
-                      loadPreviousEventHandler();
-                    }}
-                    variant="outline"
-                    colorScheme="green"
-                  >
-                    Load older events
-                  </Button>
-                </Center>
-              ) : (
-                <Center>
-                  {!previousEventIsFetching && !loadOlderEventsIsFetching ? (
-                    "Тransactions not found. You can subscribe to more addresses in Subscriptions menu."
-                  ) : (
+                {streamCache
+                  .slice(
+                    cursor,
+                    streamCache.length <= cursor + PAGE_SIZE
+                      ? streamCache.length
+                      : cursor + PAGE_SIZE
+                  )
+                  .map((entry, idx) => (
+                    <StreamEntry
+                      showOnboardingTooltips={false}
+                      key={`entry-list-${idx}`}
+                      entry={entry}
+                      disableDelete={!canDelete}
+                      disableCopy={!canCreate}
+                      filterCallback={handleFilterStateCallback}
+                      filterConstants={{ DIRECTIONS, CONDITION, FILTER_TYPES }}
+                    />
+                  ))}
+                {previousEvent &&
+                !loadOlderEventsIsFetching &&
+                !previousEventIsFetching ? (
+                  <Center>
                     <Button
-                      isLoading
-                      loadingText="Loading"
+                      onClick={() => {
+                        loadPreviousEventHandler();
+                      }}
                       variant="outline"
                       colorScheme="green"
-                    ></Button>
-                  )}
-                </Center>
-              )}
+                    >
+                      Load older events
+                    </Button>
+                  </Center>
+                ) : (
+                  <Center>
+                    {!previousEventIsFetching && !loadOlderEventsIsFetching ? (
+                      "Тransactions not found. You can subscribe to more addresses in Subscriptions menu."
+                    ) : (
+                      <Button
+                        isLoading
+                        loadingText="Loading"
+                        variant="outline"
+                        colorScheme="green"
+                      ></Button>
+                    )}
+                  </Center>
+                )}
+              </Stack>
             </Flex>
           </Flex>
         </>
