@@ -108,6 +108,17 @@ const AppNavbar = () => {
       {!ui.isMobileView && (
         <>
           <Flex px={2}>
+            <RouterLink href="/" passHref>
+              <Image
+                w="160px"
+                py="0.75rem"
+                pl={1}
+                ml="15px"
+                src={PRIMARY_MOON_LOGO_URL}
+                alt="Moonstream To"
+                cursor="pointer"
+              />
+            </RouterLink>
             <Spacer />
             <Flex placeSelf="flex-end">
               <ButtonGroup variant="link" spacing={4}>

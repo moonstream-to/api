@@ -2,35 +2,17 @@ import {
   ProSidebar,
   Menu,
   MenuItem,
-  SidebarHeader,
   SidebarFooter,
   SidebarContent,
 } from "react-pro-sidebar";
 import { useContext } from "react";
 import RouterLink from "next/link";
-import {
-  Flex,
-  Image,
-  IconButton,
-  Divider,
-  Text,
-  Button,
-} from "@chakra-ui/react";
+import { Divider, Text, Button } from "@chakra-ui/react";
 import UIContext from "../core/providers/UIProvider/context";
 import React from "react";
-import {
-  HamburgerIcon,
-  ArrowLeftIcon,
-  ArrowRightIcon,
-  LockIcon,
-} from "@chakra-ui/icons";
+import { LockIcon } from "@chakra-ui/icons";
 import { MdSettings, MdDashboard, MdTimeline } from "react-icons/md";
-import {
-  PRIMARY_MOON_LOGO_URL,
-  SITEMAP,
-  PAGETYPE,
-  BACKGROUND_COLOR,
-} from "../core/constants";
+import { SITEMAP, PAGETYPE, BACKGROUND_COLOR } from "../core/constants";
 import useDashboard from "../core/hooks/useDashboard";
 import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 import OverlayContext from "../core/providers/OverlayProvider/context";
@@ -49,7 +31,7 @@ const Sidebar = () => {
       collapsed={ui.sidebarCollapsed}
       hidden={!ui.sidebarVisible}
     >
-      <SidebarHeader>
+      {/* <SidebarHeader>
         <Flex>
           <IconButton
             ml={4}
@@ -83,7 +65,7 @@ const Sidebar = () => {
             />
           </RouterLink>
         </Flex>
-      </SidebarHeader>
+      </SidebarHeader> */}
       <SidebarContent>
         <Divider borderColor={BACKGROUND_COLOR} />
         <Menu iconShape="square">
