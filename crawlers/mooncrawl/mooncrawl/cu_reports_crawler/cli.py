@@ -504,8 +504,8 @@ def main():
 
     generate_report = queries_subparsers.add_parser(
         "run-tokenonomics",
-        help="Create all predifind query",
-        description="Create all predifind query",
+        help="Run tokenomics queries and push to S3 public backet",
+        description="Run tokenomics queries and push to S3 public backet",
     )
 
     generate_report.set_defaults(func=run_tokenomics_queries_handler)
