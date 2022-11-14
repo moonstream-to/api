@@ -57,7 +57,22 @@ const AccountIconButton = (props) => {
                   <MenuGroup key={`AccountIconButton-MenuGroup-${idx}`}>
                     {item.children.map((child, idx) => {
                       return (
-                        <MenuItem key={`AccountIconButton-SITEMAP-${idx}`}>
+                        <MenuItem
+                          key={`AccountIconButton-SITEMAP-${idx}`}
+                          m={0}
+                          color="white"
+                          fontWeight="400"
+                          fontSize="16px"
+                          px="0px"
+                          mb="10px"
+                          h="22px"
+                          _hover={{
+                            backgroundColor: "#1A1D22",
+                            color: "#F56646",
+                            fontWeight: "700",
+                          }}
+                          _focus={{ backgroundColor: "#1A1D22" }}
+                        >
                           <RouterLink href={child.path}>
                             {child.title}
                           </RouterLink>
