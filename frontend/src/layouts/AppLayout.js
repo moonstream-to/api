@@ -1,6 +1,6 @@
 import { Flex, Spinner, Box } from "@chakra-ui/react";
 import { getLayout as getSiteLayout } from "./RootLayout";
-import React, { useContext, useEffect } from "react";
+import React, { Suspense, useContext, useEffect } from "react";
 import UIContext from "../core/providers/UIProvider/context";
 import AppNavbar from "../components/AppNavbar";
 import { BACKGROUND_COLOR } from "../core/constants";
@@ -64,7 +64,9 @@ const AppLayout = ({ children }) => {
         h="100%"
         maxH="100%"
       >
-        <Sidebar />
+        <Suspense fallback="">
+          <Sidebar />
+        </Suspense>
         {ui.isAppReady && ui.isLoggedIn && children}
       </Flex>
     </Flex>
