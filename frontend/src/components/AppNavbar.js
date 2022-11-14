@@ -107,7 +107,7 @@ const AppNavbar = () => {
     <>
       {!ui.isMobileView && (
         <>
-          <Flex px={2}>
+          <Flex px={2} minH="72px" maxH="72px" alignItems="center">
             <RouterLink href="/" passHref>
               <Image
                 w="160px"
@@ -120,7 +120,7 @@ const AppNavbar = () => {
               />
             </RouterLink>
             <Spacer />
-            <Flex placeSelf="flex-end">
+            <Flex h="100%" alignItems="center">
               <ButtonGroup variant="link" spacing={4}>
                 {SITEMAP.map((item, idx) => {
                   if (

@@ -13,6 +13,8 @@ import {
   MenuList,
   MenuItem,
   Portal,
+  Box,
+  Text,
 } from "@chakra-ui/react";
 import { ChevronDownIcon, HamburgerIcon } from "@chakra-ui/icons";
 import useModals from "../core/hooks/useModals";
@@ -78,6 +80,7 @@ const LandingNavbar = () => {
                       variant="link"
                       href={item.path}
                       color="black"
+                      fontSize="16px"
                       isActive={!!(router.pathname === item.path)}
                     >
                       {item.title}
@@ -89,6 +92,7 @@ const LandingNavbar = () => {
                         as={Button}
                         rightIcon={<ChevronDownIcon />}
                         color="white"
+                        fontSize="16px"
                         _expanded={{ color: "white" }}
                       >
                         {item.title}
@@ -116,6 +120,7 @@ const LandingNavbar = () => {
                                 m={0}
                                 color="white"
                                 fontWeight="400"
+                                fontSize="16px"
                                 px="0px"
                                 mb="10px"
                                 h="22px"
@@ -141,17 +146,24 @@ const LandingNavbar = () => {
           <ButtonGroup variant="link" spacing={4} pr={16}>
             {ui.isLoggedIn && (
               <RouterLink href="/welcome" passHref>
-                <Button
+                <Box
+                  bg="#F56646"
                   alignSelf={"center"}
-                  as={Link}
-                  colorScheme="orange"
-                  variant="outline"
-                  size="sm"
-                  fontWeight="400"
-                  borderRadius="2xl"
+                  fontWeight="700"
+                  borderRadius="15px"
+                  w="51px"
+                  h="32px"
+                  textAlign="center"
+                  px="10px"
+                  cursor="pointer"
+                  _hover={{
+                    backgroundColor: "#F4532F",
+                  }}
                 >
-                  App
-                </Button>
+                  <Text fontSize="16px" lineHeight="32px">
+                    App
+                  </Text>
+                </Box>
               </RouterLink>
             )}
             {!ui.isLoggedIn && (
@@ -160,9 +172,12 @@ const LandingNavbar = () => {
                 variant="solid"
                 onClick={() => toggleModal({ type: MODAL_TYPES.SIGNUP })}
                 size="sm"
-                fontWeight="bold"
+                fontWeight="700"
                 borderRadius="2xl"
                 textColor="white"
+                _hover={{
+                  backgroundColor: "#F4532F",
+                }}
               >
                 Sign up
               </Button>
