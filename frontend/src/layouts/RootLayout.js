@@ -1,6 +1,6 @@
 import { CloseIcon } from "@chakra-ui/icons";
 import { Flex, Center, Text, Link, IconButton } from "@chakra-ui/react";
-import React, { Suspense, useContext, useState } from "react";
+import React, { useContext, useState, Suspense } from "react";
 import UIContext from "../core/providers/UIProvider/context";
 const Sidebar = React.lazy(() => import("../components/Sidebar"));
 
@@ -17,9 +17,12 @@ const RootLayout = (props) => {
       h="100%"
       maxH="100%"
     >
-      <Suspense fallback="">
-        <Sidebar />
-      </Suspense>
+      {" "}
+      {!ui.isAppView && (
+        <Suspense fallback="">
+          <Sidebar />
+        </Suspense>
+      )}
       <Flex
         direction="column"
         flexGrow={1}
