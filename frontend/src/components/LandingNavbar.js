@@ -6,7 +6,6 @@ import {
   ButtonGroup,
   Spacer,
   Link,
-  IconButton,
   Flex,
   Menu,
   MenuButton,
@@ -14,60 +13,44 @@ import {
   MenuItem,
   Portal,
 } from "@chakra-ui/react";
-import { ChevronDownIcon, HamburgerIcon } from "@chakra-ui/icons";
+import { ChevronDownIcon } from "@chakra-ui/icons";
 import useModals from "../core/hooks/useModals";
 import UIContext from "../core/providers/UIProvider/context";
 import ChakraAccountIconButton from "./AccountIconButton";
 import RouteButton from "./RouteButton";
-import {
-  PAGETYPE,
-  SITEMAP,
-  PRIMARY_MOON_LOGO_URL,
-  BACKGROUND_COLOR,
-} from "../core/constants";
+import { PAGETYPE, SITEMAP, PRIMARY_MOON_LOGO_URL } from "../core/constants";
 import router from "next/router";
 import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
+import LandingBarMobile from "./LandingBarMobile";
 
 const LandingNavbar = () => {
   const ui = useContext(UIContext);
   const { toggleModal } = useModals();
   return (
     <>
-      {ui.isMobileView && (
-        <>
-          <IconButton
-            alignSelf="flex-start"
-            colorScheme="blackAlpha"
-            bgColor={BACKGROUND_COLOR}
-            variant="solid"
-            onClick={() => ui.setSidebarToggled(!ui.sidebarToggled)}
-            icon={<HamburgerIcon />}
-          />
-        </>
-      )}
-      <Flex
-        pl={ui.isMobileView ? 2 : "60px"}
-        justifySelf="flex-start"
-        h="48px"
-        py={1}
-        flexBasis="200px"
-        flexGrow={0.6}
-        id="Logo Container"
-        alignItems="center"
-      >
-        <RouterLink href="/" passHref>
-          <Link
-            as={Image}
-            w={"160px"}
-            justifyContent="left"
-            src={PRIMARY_MOON_LOGO_URL}
-            alt="Moonstream logo"
-          />
-        </RouterLink>
-      </Flex>
-
+      {ui.isMobileView && <LandingBarMobile />}
       {!ui.isMobileView && (
         <>
+          <Flex
+            pl={ui.isMobileView ? 2 : "60px"}
+            justifySelf="flex-start"
+            h="48px"
+            py={1}
+            flexBasis="200px"
+            flexGrow={0.6}
+            id="Logo Container"
+            alignItems="center"
+          >
+            <RouterLink href="/" passHref>
+              <Link
+                as={Image}
+                w={"160px"}
+                justifyContent="left"
+                src={PRIMARY_MOON_LOGO_URL}
+                alt="Moonstream logo"
+              />
+            </RouterLink>
+          </Flex>
           <ButtonGroup variant="link" spacing={4} pr={16} flexGrow={0.5}>
             {SITEMAP.map((item, idx) => {
               return (
