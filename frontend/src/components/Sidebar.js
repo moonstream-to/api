@@ -30,6 +30,7 @@ const Sidebar = () => {
       onToggle={ui.setSidebarToggled}
       collapsed={ui.sidebarCollapsed}
       hidden={!ui.sidebarVisible}
+      className={ui.isMobileView ? "t40" : "t0"}
     >
       {/* <SidebarHeader>
         <Flex>
