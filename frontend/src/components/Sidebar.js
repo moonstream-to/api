@@ -32,41 +32,6 @@ const Sidebar = () => {
       hidden={!ui.sidebarVisible}
       className={ui.isMobileView ? "t40" : "t0"}
     >
-      {/* <SidebarHeader>
-        <Flex>
-          <IconButton
-            ml={4}
-            justifySelf="flex-start"
-            colorScheme="blackAlpha"
-            bgColor={BACKGROUND_COLOR}
-            aria-label="App navigation"
-            icon={
-              ui.isMobileView ? (
-                <HamburgerIcon />
-              ) : ui.sidebarCollapsed ? (
-                <ArrowRightIcon />
-              ) : (
-                <ArrowLeftIcon />
-              )
-            }
-            onClick={() => {
-              ui.isMobileView
-                ? ui.setSidebarToggled(!ui.sidebarToggled)
-                : ui.setSidebarCollapsed(!ui.sidebarCollapsed);
-            }}
-          />
-          <RouterLink href="/" passHref>
-            <Image
-              w="160px"
-              py="0.75rem"
-              pl={1}
-              src={PRIMARY_MOON_LOGO_URL}
-              alt="Moonstream To"
-              cursor="pointer"
-            />
-          </RouterLink>
-        </Flex>
-      </SidebarHeader> */}
       <SidebarContent>
         <Divider borderColor={BACKGROUND_COLOR} />
         <Menu iconShape="square">
