@@ -19,7 +19,7 @@ For a sample, view [`sample.env`](./sample.env).
 ### Ethereum Signature Database
 
 This crawler retrieves Ethereum function signatures from the Ethereum Signature Database at
-[https://4byte.directory](https://4byte.directory).
+[https://www.4byte.directory](https://www.4byte.directory).
 
 #### Crawling ESD function signatures
 
