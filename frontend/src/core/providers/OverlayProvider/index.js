@@ -30,7 +30,6 @@ import {
   AlertDialogOverlay,
   Button,
   Spinner,
-  Divider,
 } from "@chakra-ui/react";
 import UIContext from "../UIProvider/context";
 import useDashboard from "../../hooks/useDashboard";
@@ -264,14 +263,26 @@ const OverlayProvider = ({ children }) => {
       <Modal
         isOpen={modalDisclosure.isOpen}
         onClose={() => toggleModal({ type: MODAL_TYPES.OFF })}
-        size="2xl"
+        size={modal.type === MODAL_TYPES.LOGIN ? "lg" : "2xl"}
         scrollBehavior="outside"
         trapFocus={false}
       >
-        <ModalOverlay />
+        <ModalOverlay backdropFilter="auto" backdropBrightness="60%" />
 
-        <ModalContent textColor="black">
-          <ModalHeader bgColor="white.200" py={2} fontSize="lg">
+        <ModalContent
+          bg="#1A1D22"
+          borderRadius="15px"
+          border="1px white solid"
+          p="30px"
+          textColor="white"
+        >
+          <ModalHeader
+            p="0px"
+            fontSize="24px"
+            lineHeight="24px"
+            fontWeight="700"
+            mb="30px"
+          >
             {modal.type === MODAL_TYPES.NEW_SUBSCRIPTON &&
               "Subscribe to a new address"}
             {modal.type === MODAL_TYPES.FORGOT && "Forgot Password"}
@@ -283,9 +294,9 @@ const OverlayProvider = ({ children }) => {
               "Would you like to give it a name?"}
             {modal.type === MODAL_TYPES.MOBILE_INPUT_FIELD && modal.props.title}
           </ModalHeader>
-          <Divider />
-          <ModalCloseButton />
+          <ModalCloseButton color="white" top="25px" right="25px" />
           <ModalBody
+            p="0px"
             zIndex={100002}
             bgColor={
               modal.type === MODAL_TYPES.UPLOAD_ABI ? "white.200" : undefined
