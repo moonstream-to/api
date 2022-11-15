@@ -1,10 +1,11 @@
 import React, { useContext } from "react";
 import RouterLink from "next/link";
-import { Button, Image, Link, Flex, Spacer, Text, Box } from "@chakra-ui/react";
+import { Image, Link, Flex, Spacer, Text, Box } from "@chakra-ui/react";
 import { PRIMARY_MOON_LOGO_URL } from "../core/constants";
 import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 import useModals from "../core/hooks/useModals";
 import UIContext from "../core/providers/UIProvider/context";
+import PlainButton from "./atoms/PlainButton";
 
 const LandingBarMobile = () => {
   const ui = useContext(UIContext);
@@ -24,18 +25,15 @@ const LandingBarMobile = () => {
         </RouterLink>
         <Spacer />
         {!ui.isLoggedIn && (
-          <Button
-            bg="#F56646"
-            variant="solid"
+          <PlainButton
+            style={{
+              marginRight: "12px",
+              fontSize: "14px",
+            }}
             onClick={() => toggleModal({ type: MODAL_TYPES.SIGNUP })}
-            size="sm"
-            fontWeight="bold"
-            borderRadius="2xl"
-            textColor="white"
-            mr="12px"
           >
             Sign up
-          </Button>
+          </PlainButton>
         )}
         {!ui.isLoggedIn && (
           <Text
