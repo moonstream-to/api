@@ -22,7 +22,7 @@ from ..settings import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-QUERY_REGEX = re.compile("[\[\]@#$%^&?;`/]")
+QUERY_REGEX = re.compile("[\[\]@#$%^&?;`]")
 
 
 class QueryNotValid(Exception):
