@@ -44,16 +44,27 @@ def recive_S3_data_from_query(
 
     while keep_going:
         time.sleep(time_await)
-        data_response = requests.get(
-            data_url.url,
-            headers={"If-Modified-Since": if_modified_since},
-            timeout=10,
-        )
+        try:
+            data_response = requests.get(
+                data_url.url,
+                headers={"If-Modified-Since": if_modified_since},
+                timeout=5,
+            )
+        except Exception as e:
+            print(e)
+            continue
 
         if data_response.status_code == 200:
             break
 
         repeat += 1
+
+        if repeat == max_retries // 2:
+            data_url = client.exec_query(
+                token=token,
+                name=query_name,
+                params=params,
+            )
 
         if repeat > max_retries:
             print("Too many retries")
@@ -93,6 +104,22 @@ def generate_report(
         print(
             f"Cant recive or load data for s3, for query: {query_name}, bucket: {bucket}, key: {key}. End with error: {err}"
         )
+
+
+def create_user_query(
+    client: Moonstream,
+    token: Union[str, UUID],
+    query_name: str,
+    query: str,
+):
+    """
+    Create a user query.
+    """
+
+    try:
+        client.create_query(token=token, name=query_name, query=query)
+    except Exception as err:
+        print(f"Cant create user query: {query_name}. End with error: {err}")
 
 
 def delete_user_query(client: Moonstream, token: str, query_name: str):
@@ -176,10 +203,6 @@ def run_tokenomics_queries_handler(args: argparse.Namespace):
 
     client = Moonstream()
 
-    # for query in client.list_queries(
-    #     token=args.moonstream_token,
-    # ).queries:
-
     query_name = "erc20_721_volume"
 
     ### Run voluem query
@@ -207,6 +230,29 @@ def run_tokenomics_queries_handler(args: argparse.Namespace):
                 "address": address,
                 "type": type,
                 "time_format": range["time_format"],
+                "time_range": range["time_range"],
+            }
+
+            generate_report(
+                client=client,
+                token=args.moonstream_token,
+                query_name=query_name,
+                params=params,
+                bucket_prefix=CUSTOM_CRAWLER_S3_BUCKET_PREFIX,
+                bucket=CUSTOM_CRAWLER_S3_BUCKET,
+                key=f'{query_name}/{address}/{range["time_range"].replace(" ","_")}/data.json',
+            )
+
+    # volume change of erc20 and erc721
+
+    query_name = "volume_change"
+
+    for address, type in addresess_erc20_721.items():
+        for range in ranges:
+
+            params: Dict[str, Any] = {
+                "address": address,
+                "type": type,
                 "time_range": range["time_range"],
             }
 
@@ -407,6 +453,24 @@ def delete_user_query_handler(args: argparse.Namespace):
     delete_user_query(client=client, token=args.moonstream_token, query_name=args.name)
 
 
+def create_user_query_handler(args: argparse.Namespace):
+    """
+    Create the user's queries.
+    """
+    client = Moonstream()
+
+    for query in tokenomics_queries:
+
+        if query["name"] == args.name:
+
+            create_user_query(
+                client=client,
+                token=args.moonstream_token,
+                query_name=query["name"],
+                query=query["query"],
+            )
+
+
 def generate_game_bank_report(args: argparse.Namespace):
     """
     han
@@ -523,6 +587,20 @@ def main():
     )
 
     delete_query.set_defaults(func=delete_user_query_handler)
+
+    create_query = queries_subparsers.add_parser(
+        "create",
+        help="Create all predifind query",
+        description="Create all predifind query",
+    )
+
+    create_query.add_argument(
+        "--name",
+        required=True,
+        type=str,
+    )
+
+    create_query.set_defaults(func=create_user_query_handler)
 
     cu_bank_parser = cu_reports_subparsers.add_parser(
         "generate-reports",

@@ -204,6 +204,60 @@ cu_bank_queries = [
 
 tokenomics_queries = [
     {
+        "name": "volume_change",
+        "query": """
+            with all_transfers as (
+                    select
+                        transaction_hash,
+                        CASE
+                            WHEN type: ='NFT' THEN 1
+                            ELSE (label_data->'args'->>'value')::decimal
+                        END as value,
+                        block_timestamp as block_timestamp
+                    from polygon_labels
+                        where label='moonworm-alpha'
+                            and address= :address
+                            and label_data->>'name'='Transfer'
+            ), after_range_transfer as (
+                select 
+                    *
+                FROM 
+                    all_transfers
+                where block_timestamp >= extract(epoch from now() - interval :time_range)::int
+            ), current_volume as (
+                SELECT
+                    sum(all_transfers.value) as value,
+                    sum(
+                    CASE
+                        WHEN to_address in ('0xF715bEb51EC8F63317d66f491E37e7BB048fCc2d','0xfede379e48C873C75F3cc0C81F7C784aD730a8F7','0x00000000006c3852cbef3e08e8df289169ede581')
+                        THEN 1
+                        else 0
+                    END
+                    ) as os_sales
+                from all_transfers
+                    LEFT JOIN polygon_transactions ON all_transfers.transaction_hash = polygon_transactions.hash
+            ), volume_different as (
+                select 
+                    sum(after_range_transfer.value) as value,
+                    sum(
+                        CASE
+                            WHEN to_address in ('0xF715bEb51EC8F63317d66f491E37e7BB048fCc2d','0xfede379e48C873C75F3cc0C81F7C784aD730a8F7','0x00000000006c3852cbef3e08e8df289169ede581')
+                            THEN 1
+                            else 0
+                        END
+                    ) as os_sales
+                from after_range_transfer
+                    LEFT JOIN polygon_transactions ON after_range_transfer.transaction_hash = polygon_transactions.hash
+            )
+            SELECT
+                volume_different.value as diff,
+                volume_different.os_sales as os_diff,
+                current_volume.value as current,
+                current_volume.os_sales as os_current
+            from current_volume, volume_different
+        """,
+    },
+    {
         "name": "erc20_721_volume",
         "query": """
     with interval_transfers as (

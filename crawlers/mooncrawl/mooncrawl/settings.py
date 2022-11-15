@@ -200,6 +200,14 @@ multicall_contracts: Dict[AvailableBlockchainType, str] = {
 CUSTOM_CRAWLER_S3_BUCKET = os.environ.get(
     "CUSTOM_CRAWLER_S3_BUCKET", ""
 )  # S3 bucket for storing custom crawler data
+
+if CUSTOM_CRAWLER_S3_BUCKET == "":
+    raise ValueError(
+        "CUSTOM_CRAWLER_S3_BUCKET environment variable must be set"
+    )
+
+
+
 CUSTOM_CRAWLER_S3_BUCKET_PREFIX = os.environ.get(
     "CUSTOM_CRAWLER_S3_BUCKET_PREFIX", "dev"
 )
