@@ -64,6 +64,7 @@ setup(
             "statistics=mooncrawl.stats_worker.dashboard:main",
             "state-crawler=mooncrawl.state_crawler.cli:main",
             "metadata-crawler=mooncrawl.metadata_crawler.cli:main",
+            "queries-crawler=mooncrawl.queries_crawler.cli:main",
         ]
     },
 )

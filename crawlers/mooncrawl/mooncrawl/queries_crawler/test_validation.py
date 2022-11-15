@@ -1,15 +1,15 @@
 import unittest
 
-from . import queries
+from .actions import QueryNotValid, query_validation
 
 
 class TestQueries(unittest.TestCase):
     def test_query_validation(self):
         q = "SELECT * FROM ethereum_blocks"
-        self.assertEqual(queries.query_validation(q), q)
+        self.assertEqual(query_validation(q), q)
 
         q = "select count(*), tx_dublicates from ( select count(*) as tx_dublicates from polygon_labels where address = '0x123' and label_data->>'name' = 'Transfer' group by transaction_hash, log_index order by tx_dublicates desc) as dublicates group by dublicates.tx_dublicates"
-        self.assertEqual(queries.query_validation(q), q)
+        self.assertEqual(query_validation(q), q)
 
         q = """
         Select difference.address,
@@ -41,25 +41,25 @@ class TestQueries(unittest.TestCase):
             ) difference
         order by count desc
         """
-        self.assertEqual(queries.query_validation(q), q)
+        self.assertEqual(query_validation(q), q)
 
-        with self.assertRaises(queries.QueryNotValid):
-            queries.query_validation("SELECT hash FROM ethereum_transaction;")
+        with self.assertRaises(QueryNotValid):
+            query_validation("SELECT hash FROM ethereum_transaction;")
 
-        with self.assertRaises(queries.QueryNotValid):
-            queries.query_validation("%20UNION")
+        with self.assertRaises(QueryNotValid):
+            query_validation("%20UNION")
 
-        with self.assertRaises(queries.QueryNotValid):
-            queries.query_validation("?id=1")
+        with self.assertRaises(QueryNotValid):
+            query_validation("?id=1")
 
-        with self.assertRaises(queries.QueryNotValid):
-            queries.query_validation("FROM`")
+        with self.assertRaises(QueryNotValid):
+            query_validation("FROM`")
 
-        with self.assertRaises(queries.QueryNotValid):
-            queries.query_validation("WHERE login='[USER]'")
+        with self.assertRaises(QueryNotValid):
+            query_validation("WHERE login='[USER]'")
 
-        with self.assertRaises(queries.QueryNotValid):
-            queries.query_validation("OR(1=1)#")
+        with self.assertRaises(QueryNotValid):
+            query_validation("OR(1=1)#")
 
-        with self.assertRaises(queries.QueryNotValid):
-            queries.query_validation("/etc/hosts")
+        with self.assertRaises(QueryNotValid):
+            query_validation("/etc/hosts")

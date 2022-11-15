@@ -16,6 +16,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
 from . import data
+from .queries_crawler.actions import QueryNotValid, query_validation
 from .middleware import MoonstreamHTTPException
 from .settings import (
     BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
@@ -202,8 +203,8 @@ async def queries_data_update_handler(
         )
 
     try:
-        valid_query = queries.query_validation(request_data.query)
-    except queries.QueryNotValid:
+        valid_query = query_validation(request_data.query)
+    except QueryNotValid:
         logger.error(f"Incorrect query provided with id: {query_id}")
         raise MoonstreamHTTPException(
             status_code=401, detail="Incorrect query provided"
