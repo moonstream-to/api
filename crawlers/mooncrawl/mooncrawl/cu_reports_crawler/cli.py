@@ -459,7 +459,7 @@ def list_user_queries_handler(args: argparse.Namespace):
     )
 
     for query in queries.queries:
-        logger.info(query.name, query.id)
+        logger.info(f"{query.name}: {query.id}")
 
 
 def delete_user_query_handler(args: argparse.Namespace):
