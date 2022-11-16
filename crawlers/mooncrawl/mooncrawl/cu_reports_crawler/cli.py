@@ -240,7 +240,7 @@ def run_tokenomics_queries_handler(args: argparse.Namespace):
     for address, type in addresess_erc20_721.items():
         for range in ranges:
 
-            params = {
+            params: Dict[str, Any] = {
                 "address": address,
                 "type": type,
                 "time_format": range["time_format"],
@@ -315,7 +315,7 @@ def run_tokenomics_queries_handler(args: argparse.Namespace):
                 params = {
                     "address": address,
                     "amount": amount,
-                }  # type: ignore
+                }
 
                 generate_report(
                     client=client,
