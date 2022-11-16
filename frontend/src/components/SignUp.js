@@ -20,7 +20,6 @@ const SignUp = ({ toggleModal }) => {
   const [showPassword, togglePassword] = useState(false);
 
   useEffect(() => {
-    console.log(toggleModal);
     if (isSuccess) {
       toggleModal({ type: MODAL_TYPES.OFF });
     }

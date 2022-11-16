@@ -11,7 +11,6 @@ const ForgotPassword = ({ toggleModal }) => {
 
   useEffect(() => {
     if (!data) return;
-    console.log(toggleModal);
     toggleModal({ type: MODAL_TYPES.OFF });
   }, [data, toggleModal, toast]);
 
