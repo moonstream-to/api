@@ -158,12 +158,15 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                           // style={comboboxStyles}
                           {...getRootProps({}, { suppressRefError: true })}
                         >
-                          <InputGroup>
+                          <InputGroup
+                            border="1px solid white"
+                            borderRadius="7px"
+                          >
                             <InputLeftAddon
                               isTruncated
                               maxW="60px"
                               fontSize="sm"
-                              bgColor={"gray.100"}
+                              bgColor="#1A1D22"
                             >
                               <Image h="24px" src={selectedItem?.icon_url} />
                             </InputLeftAddon>
@@ -172,15 +175,30 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                               placeholder="What do you want to subscribe to"
                               isTruncated
                               fontSize="sm"
+                              bg="#1A1D22"
+                              _hover={{
+                                backgroundColor: "#1A1D22",
+                              }}
+                              _focus={{
+                                backgroundColor: "#1A1D22",
+                              }}
                               {...getInputProps()}
                             ></Input>
                             <InputRightAddon p={0}>
                               <Button
-                                variant="outline"
+                                // variant="none"
+                                borderStyle="none"
+                                borderColor="black"
                                 w="100%"
                                 m={0}
                                 p={0}
-                                colorScheme="gray"
+                                bg="#1A1D22"
+                                _hover={{
+                                  backgroundColor: "#1A1D22",
+                                }}
+                                _focus={{
+                                  backgroundColor: "#1A1D22",
+                                }}
                                 {...getToggleButtonProps({})}
                                 aria-label={"toggle menu"}
                               >
@@ -194,7 +212,7 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                             direction="column"
                             className="menuListTim"
                             {...getMenuProps()}
-                            bgColor="gray.300"
+                            bgColor="#1A1D22"
                             borderRadius="md"
                             boxShadow="lg"
                             pos="absolute"
@@ -213,6 +231,7 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                                       px={4}
                                       py={1}
                                       alignItems="center"
+                                      cursor="pointer"
                                       key={item.value}
                                       {...getItemProps({
                                         key: item.value,
@@ -221,14 +240,9 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                                       })}
                                       direction="row"
                                       w="100%"
-                                      bgColor={
-                                        index === highlightedIndex
-                                          ? "orange.900"
-                                          : "inherit"
-                                      }
                                       color={
                                         index === highlightedIndex
-                                          ? "gray.100"
+                                          ? "#F56646"
                                           : "inherit"
                                       }
                                       justifyContent="space-between"
@@ -237,6 +251,11 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                                         h="24px"
                                         src={item.icon_url}
                                         alignSelf="flex-start"
+                                        ml={
+                                          index === highlightedIndex
+                                            ? "3px"
+                                            : "inherit"
+                                        }
                                       />
                                       <chakra.span
                                         whiteSpace="nowrap"
@@ -272,8 +291,13 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
             <VStack w="100%" spacing={0}>
               <Flex w="100%">
                 <FormControl isInvalid={errors?.address}>
-                  <InputGroup my={2} fontSize="xs">
-                    <InputLeftAddon>
+                  <InputGroup
+                    my={2}
+                    fontSize="xs"
+                    border="1px solid white"
+                    borderRadius="7px"
+                  >
+                    <InputLeftAddon bg="#1A1D22">
                       <FormLabel
                         fontWeight="600"
                         // alignSelf="flex-start"
@@ -283,8 +307,15 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                       </FormLabel>
                     </InputLeftAddon>
                     <Input
+                      bg="#1A1D22"
                       type="text"
                       autoComplete="off"
+                      _hover={{
+                        backgroundColor: "#1A1D22",
+                      }}
+                      _focus={{
+                        backgroundColor: "#1A1D22",
+                      }}
                       placeholder="Address to subscribe to"
                       name="address"
                       value={address}
@@ -292,7 +323,7 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                       ref={register({ required: "address is required!" })}
                     ></Input>
                   </InputGroup>
-                  <FormErrorMessage color="red.400" pl="1">
+                  <FormErrorMessage color="#EE8686" pl="1">
                     {errors?.address && errors?.address.message}
                   </FormErrorMessage>
                 </FormControl>
@@ -306,8 +337,13 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
             <VStack w="100%" spacing={0}>
               <Flex w="100%">
                 <FormControl isInvalid={errors?.label}>
-                  <InputGroup my={2} fontSize="xs">
-                    <InputLeftAddon>
+                  <InputGroup
+                    my={2}
+                    fontSize="xs"
+                    border="1px solid white"
+                    borderRadius="7px"
+                  >
+                    <InputLeftAddon bgColor="#1A1D22">
                       <FormLabel
                         fontWeight="600"
                         // alignSelf="flex-start"
@@ -319,6 +355,13 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                     <Input
                       type="text"
                       autoComplete="off"
+                      bg="#1A1D22"
+                      _hover={{
+                        backgroundColor: "#1A1D22",
+                      }}
+                      _focus={{
+                        backgroundColor: "#1A1D22",
+                      }}
                       placeholder="Name your label"
                       name="label"
                       value={label}
@@ -326,7 +369,7 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                       ref={register({ required: "label is required!" })}
                     ></Input>
                   </InputGroup>
-                  <FormErrorMessage color="red.400" pl="1">
+                  <FormErrorMessage color="#EE8686" pl="1">
                     {errors?.label && errors?.label.message}
                   </FormErrorMessage>
                 </FormControl>
@@ -336,7 +379,7 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
         )}
 
         {type && (
-          <FormControl isInvalid={errors?.color}>
+          <FormControl isInvalid={errors?.color} bg="#1A1D22">
             {!isModal ? (
               <Flex
                 direction="row"
@@ -364,6 +407,14 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                     icon={<BiRefresh />}
                   />
                   <Input
+                    variant="outline"
+                    backgroundColor="#1A1D22"
+                    _hover={{
+                      backgroundColor: "#1A1D22",
+                    }}
+                    _focus={{
+                      backgroundColor: "#1A1D22",
+                    }}
                     type="input"
                     placeholder="color"
                     name="color"
@@ -401,6 +452,14 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                     type="input"
                     placeholder="color"
                     name="color"
+                    variant="outline"
+                    backgroundColor="#1A1D22"
+                    _hover={{
+                      backgroundColor: "#1A1D22",
+                    }}
+                    _focus={{
+                      backgroundColor: "#1A1D22",
+                    }}
                     ref={register({ required: "color is required!" })}
                     value={color}
                     onChange={() => null}
@@ -408,7 +467,21 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                   ></Input>
                 </Stack>
 
-                <GithubPicker onChangeComplete={handleChangeColorComplete} />
+                <GithubPicker
+                  styles={{
+                    default: {
+                      card: {
+                        background: "#1A1D22",
+                        border: "1px solid white",
+                      },
+                      triangle: {
+                        borderBottomColor: "white",
+                        // border: "1px solid white",
+                      },
+                    },
+                  }}
+                  onChangeComplete={handleChangeColorComplete}
+                />
               </>
             )}
             <FormErrorMessage color="red.400" pl="1">
