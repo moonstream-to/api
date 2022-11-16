@@ -210,7 +210,7 @@ tokenomics_queries = [
                     select
                         transaction_hash,
                         CASE
-                            WHEN type: ='NFT' THEN 1
+                            WHEN :type ='NFT' THEN 1
                             ELSE (label_data->'args'->>'value')::decimal
                         END as value,
                         block_timestamp as block_timestamp
