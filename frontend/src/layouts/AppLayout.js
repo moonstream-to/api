@@ -26,6 +26,7 @@ const AppLayout = ({ children }) => {
       w="100%"
       overflow="hidden"
       direction="column"
+      pb="85px"
     >
       {(!ui.isAppReady || !ui.isLoggedIn) && (
         <Spinner
