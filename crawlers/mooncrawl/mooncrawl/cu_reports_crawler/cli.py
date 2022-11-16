@@ -11,7 +11,21 @@ from uuid import UUID
 
 from .queries import tokenomics_queries, cu_bank_queries
 
-from ..settings import CUSTOM_CRAWLER_S3_BUCKET, CUSTOM_CRAWLER_S3_BUCKET_PREFIX
+from ..settings import (
+    MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
+    MOONSTREAM_S3_PUBLIC_DATA_BUCKET_PREFIX,
+)
+
+
+addresess_erc20_721 = {
+    "0x64060aB139Feaae7f06Ca4E63189D86aDEb51691": "ERC20",  # UNIM
+    "0x431CD3C9AC9Fc73644BF68bF5691f4B83F9E104f": "ERC20",  # RBW
+    "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f": "NFT",  # unicorns
+    "0xA2a13cE1824F3916fC84C65e559391fc6674e6e8": "NFT",  # lands
+    "0xa7D50EE3D7485288107664cf758E877a0D351725": "NFT",  # shadowcorns
+}
+
+addresess_erc1155 = ["0x99A558BDBdE247C2B2716f0D4cFb0E246DFB697D"]
 
 
 def recive_S3_data_from_query(
@@ -99,7 +113,9 @@ def generate_report(
             bucket,
             f"{bucket_prefix}/{key}",
         )
-        print(f"https://{bucket}/{bucket_prefix}/{key}")
+        print(
+            f"Report generated and results uploaded at: https://{bucket}/{bucket_prefix}/{key}"
+        )
     except Exception as err:
         print(
             f"Cant recive or load data for s3, for query: {query_name}, bucket: {bucket}, key: {key}. End with error: {err}"
@@ -146,13 +162,16 @@ def init_game_bank_queries_handler(args: argparse.Namespace):
     for query in cu_bank_queries:
 
         try:
-            try:
-                # delete
-                delete_user_query(
-                    client=client, token=args.moonstream_token, query_name=query["name"]
-                )
-            except Exception as err:
-                print(err)
+            if args.overwrite:
+                try:
+                    # delete
+                    delete_user_query(
+                        client=client,
+                        token=args.moonstream_token,
+                        query_name=query["name"],
+                    )
+                except Exception as err:
+                    print(err)
             # create
             created_entry = client.create_query(
                 token=args.moonstream_token,
@@ -178,13 +197,16 @@ def init_tokenomics_queries_handler(args: argparse.Namespace):
     for query in tokenomics_queries:
 
         try:
-            try:
-                # delete
-                delete_user_query(
-                    client=client, token=args.moonstream_token, query_name=query["name"]
-                )
-            except Exception as err:
-                print(err)
+            if args.overwrite:
+                try:
+                    # delete
+                    delete_user_query(
+                        client=client,
+                        token=args.moonstream_token,
+                        query_name=query["name"],
+                    )
+                except Exception as err:
+                    print(err)
             # create
             created_entry = client.create_query(
                 token=args.moonstream_token,
@@ -213,14 +235,6 @@ def run_tokenomics_queries_handler(args: argparse.Namespace):
         {"time_format": "YYYY-MM-DD", "time_range": "30 days"},
     ]
 
-    addresess_erc20_721 = {
-        "0x64060aB139Feaae7f06Ca4E63189D86aDEb51691": "ERC20",  # UNIM
-        "0x431CD3C9AC9Fc73644BF68bF5691f4B83F9E104f": "ERC20",  # RBW
-        "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f": "NFT",  # unicorns
-        "0xA2a13cE1824F3916fC84C65e559391fc6674e6e8": "NFT",  # lands
-        "0xa7D50EE3D7485288107664cf758E877a0D351725": "NFT",  # shadowcorns
-    }
-
     # volume of erc20 and erc721
 
     for address, type in addresess_erc20_721.items():
@@ -238,8 +252,8 @@ def run_tokenomics_queries_handler(args: argparse.Namespace):
                 token=args.moonstream_token,
                 query_name=query_name,
                 params=params,
-                bucket_prefix=CUSTOM_CRAWLER_S3_BUCKET_PREFIX,
-                bucket=CUSTOM_CRAWLER_S3_BUCKET,
+                bucket_prefix=MOONSTREAM_S3_PUBLIC_DATA_BUCKET_PREFIX,
+                bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
                 key=f'{query_name}/{address}/{range["time_range"].replace(" ","_")}/data.json',
             )
 
@@ -261,8 +275,8 @@ def run_tokenomics_queries_handler(args: argparse.Namespace):
                 token=args.moonstream_token,
                 query_name=query_name,
                 params=params,
-                bucket_prefix=CUSTOM_CRAWLER_S3_BUCKET_PREFIX,
-                bucket=CUSTOM_CRAWLER_S3_BUCKET,
+                bucket_prefix=MOONSTREAM_S3_PUBLIC_DATA_BUCKET_PREFIX,
+                bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
                 key=f'{query_name}/{address}/{range["time_range"].replace(" ","_")}/data.json',
             )
 
@@ -286,8 +300,8 @@ def run_tokenomics_queries_handler(args: argparse.Namespace):
                 token=args.moonstream_token,
                 query_name=query_name,
                 params=params,
-                bucket_prefix=CUSTOM_CRAWLER_S3_BUCKET_PREFIX,
-                bucket=CUSTOM_CRAWLER_S3_BUCKET,
+                bucket_prefix=MOONSTREAM_S3_PUBLIC_DATA_BUCKET_PREFIX,
+                bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
                 key=f"{query_name}/{address}/{range['time_range'].replace(' ','_')}/data.json",
             )
 
@@ -308,8 +322,8 @@ def run_tokenomics_queries_handler(args: argparse.Namespace):
                     token=args.moonstream_token,
                     query_name=query_name,
                     params=params,
-                    bucket_prefix=CUSTOM_CRAWLER_S3_BUCKET_PREFIX,
-                    bucket=CUSTOM_CRAWLER_S3_BUCKET,
+                    bucket_prefix=MOONSTREAM_S3_PUBLIC_DATA_BUCKET_PREFIX,
+                    bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
                     key=f"{query_name}/{address}/{amount}/data.json",
                 )
 
@@ -333,8 +347,8 @@ def run_tokenomics_queries_handler(args: argparse.Namespace):
                     token=args.moonstream_token,
                     query_name=query_name,
                     params=params,
-                    bucket_prefix=CUSTOM_CRAWLER_S3_BUCKET_PREFIX,
-                    bucket=CUSTOM_CRAWLER_S3_BUCKET,
+                    bucket_prefix=MOONSTREAM_S3_PUBLIC_DATA_BUCKET_PREFIX,
+                    bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
                     key=f"{query_name}/{address}/{range['time_range'].replace(' ','_')}/data.json",
                 )
 
@@ -358,8 +372,8 @@ def run_tokenomics_queries_handler(args: argparse.Namespace):
                     token=args.moonstream_token,
                     query_name=query_name,
                     params=params,
-                    bucket_prefix=CUSTOM_CRAWLER_S3_BUCKET_PREFIX,
-                    bucket=CUSTOM_CRAWLER_S3_BUCKET,
+                    bucket_prefix=MOONSTREAM_S3_PUBLIC_DATA_BUCKET_PREFIX,
+                    bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
                     key=f"{query_name}/{address}/{range['time_range'].replace(' ','_')}/data.json",
                 )
 
@@ -379,8 +393,8 @@ def run_tokenomics_queries_handler(args: argparse.Namespace):
                 token=args.moonstream_token,
                 query_name=query_name,
                 params=params,
-                bucket_prefix=CUSTOM_CRAWLER_S3_BUCKET_PREFIX,
-                bucket=CUSTOM_CRAWLER_S3_BUCKET,
+                bucket_prefix=MOONSTREAM_S3_PUBLIC_DATA_BUCKET_PREFIX,
+                bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
                 key=f"{query_name}/{address}/data.json",
             )
 
@@ -401,8 +415,8 @@ def run_tokenomics_queries_handler(args: argparse.Namespace):
                 token=args.moonstream_token,
                 query_name=query_name,
                 params=params,
-                bucket_prefix=CUSTOM_CRAWLER_S3_BUCKET_PREFIX,
-                bucket=CUSTOM_CRAWLER_S3_BUCKET,
+                bucket_prefix=MOONSTREAM_S3_PUBLIC_DATA_BUCKET_PREFIX,
+                bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
                 key=f"{query_name}/{address}/data.json",
             )
 
@@ -421,8 +435,8 @@ def run_tokenomics_queries_handler(args: argparse.Namespace):
             token=args.moonstream_token,
             query_name=query_name,
             params=params,
-            bucket_prefix=CUSTOM_CRAWLER_S3_BUCKET_PREFIX,
-            bucket=CUSTOM_CRAWLER_S3_BUCKET,
+            bucket_prefix=MOONSTREAM_S3_PUBLIC_DATA_BUCKET_PREFIX,
+            bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
             key=f"{query_name}/{address}/data.json",
         )
 
@@ -516,7 +530,7 @@ def generate_game_bank_report(args: argparse.Namespace):
                 json.dumps(data_response.json())
                 break
             else:
-                # You can put a sleep in here if you want
+                time.sleep(2)
                 continue
 
     pass
@@ -554,17 +568,25 @@ def main():
         description="List all queries",
     ).set_defaults(func=list_user_queries_handler)
 
-    queries_subparsers.add_parser(
+    init_game_bank_parser = queries_subparsers.add_parser(
         "init-game-bank",
         help="Create all predifind query",
         description="Create all predifind query",
-    ).set_defaults(func=init_game_bank_queries_handler)
+    )
 
-    queries_subparsers.add_parser(
+    init_game_bank_parser.add_argument("--overwrite", type=bool, default=False)
+
+    init_game_bank_parser.set_defaults(func=init_game_bank_queries_handler)
+
+    init_tokenonomics_parser = queries_subparsers.add_parser(
         "init-tokenonomics",
         help="Create all predifind query",
         description="Create all predifind query",
-    ).set_defaults(func=init_tokenomics_queries_handler)
+    )
+
+    init_tokenonomics_parser.add_argument("--overwrite", type=bool, default=False)
+
+    init_tokenonomics_parser.set_defaults(func=init_tokenomics_queries_handler)
 
     generate_report = queries_subparsers.add_parser(
         "run-tokenonomics",

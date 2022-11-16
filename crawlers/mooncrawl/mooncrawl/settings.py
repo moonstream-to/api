@@ -197,17 +197,16 @@ multicall_contracts: Dict[AvailableBlockchainType, str] = {
 
 # Custom Crawler
 
-CUSTOM_CRAWLER_S3_BUCKET = os.environ.get(
-    "CUSTOM_CRAWLER_S3_BUCKET", ""
+MOONSTREAM_S3_PUBLIC_DATA_BUCKET = os.environ.get(
+    "MOONSTREAM_S3_PUBLIC_DATA_BUCKET", ""
 )  # S3 bucket for storing custom crawler data
 
-if CUSTOM_CRAWLER_S3_BUCKET == "":
+if MOONSTREAM_S3_PUBLIC_DATA_BUCKET == "":
     raise ValueError(
-        "CUSTOM_CRAWLER_S3_BUCKET environment variable must be set"
+        "MOONSTREAM_S3_PUBLIC_DATA_BUCKET environment variable must be set"
     )
 
 
-
-CUSTOM_CRAWLER_S3_BUCKET_PREFIX = os.environ.get(
-    "CUSTOM_CRAWLER_S3_BUCKET_PREFIX", "dev"
+MOONSTREAM_S3_PUBLIC_DATA_BUCKET_PREFIX = os.environ.get(
+    "MOONSTREAM_S3_PUBLIC_DATA_BUCKET_PREFIX", "dev"
 )
