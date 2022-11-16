@@ -310,7 +310,9 @@ const OverlayProvider = ({ children }) => {
                   {...modal.props}
                 />
               )}
-              {modal.type === MODAL_TYPES.FORGOT && <ForgotPassword />}
+              {modal.type === MODAL_TYPES.FORGOT && (
+                <ForgotPassword toggleModal={toggleModal} />
+              )}
               {modal.type === MODAL_TYPES.HUBSPOT && (
                 <HubspotForm
                   toggleModal={toggleModal}
