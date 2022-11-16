@@ -20,6 +20,7 @@ const SignUp = ({ toggleModal }) => {
   const [showPassword, togglePassword] = useState(false);
 
   useEffect(() => {
+    console.log(toggleModal);
     if (isSuccess) {
       toggleModal({ type: MODAL_TYPES.OFF });
     }
@@ -100,7 +101,7 @@ const SignUp = ({ toggleModal }) => {
                 placeholder="Enter your email"
                 name="email"
                 autoComplete="email"
-                ref={register({ required: "Email is required!" })}
+                ref={register({ required: "Email is required" })}
               />
             </InputGroup>
           </FormControl>
