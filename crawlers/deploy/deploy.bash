@@ -49,6 +49,8 @@ POLYGON_STATE_CLEAN_SERVICE_FILE="polygon-state-clean.service"
 POLYGON_STATE_CLEAN_TIMER_FILE="polygon-state-clean.timer"
 POLYGON_METADATA_SERVICE_FILE="polygon-metadata.service"
 POLYGON_METADATA_TIMER_FILE="polygon-metadata.timer"
+POLYGON_CU_REPORTS_TOKENONOMICS_SERVICE_FILE="polygon-cu-reports-tokenonomics.service"
+POLYGON_CU_REPORTS_TOKENONOMICS_TIMER_FILE="polygon-cu-reports-tokenonomics.timer"
 
 # Mumbai service files
 MUMBAI_SYNCHRONIZE_SERVICE="mumbai-synchronize.service"
@@ -269,3 +271,12 @@ cp "${SCRIPT_DIR}/${POLYGON_METADATA_SERVICE_FILE}" "/etc/systemd/system/${POLYG
 cp "${SCRIPT_DIR}/${POLYGON_METADATA_TIMER_FILE}" "/etc/systemd/system/${POLYGON_METADATA_TIMER_FILE}"
 systemctl daemon-reload
 systemctl restart --no-block "${POLYGON_METADATA_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Polygon CU reports tokenonomics service and timer with: ${POLYGON_CU_REPORTS_TOKENONOMICS_SERVICE_FILE}, ${POLYGON_CU_REPORTS_TOKENONOMICS_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${POLYGON_CU_REPORTS_TOKENONOMICS_SERVICE_FILE}" "${SCRIPT_DIR}/${POLYGON_CU_REPORTS_TOKENONOMICS_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${POLYGON_CU_REPORTS_TOKENONOMICS_SERVICE_FILE}" "/etc/systemd/system/${POLYGON_CU_REPORTS_TOKENONOMICS_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${POLYGON_CU_REPORTS_TOKENONOMICS_TIMER_FILE}" "/etc/systemd/system/${POLYGON_CU_REPORTS_TOKENONOMICS_TIMER_FILE}"
+systemctl daemon-reload
+systemctl restart --no-block "${POLYGON_CU_REPORTS_TOKENONOMICS_TIMER_FILE}"

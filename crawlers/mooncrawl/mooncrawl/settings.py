@@ -193,3 +193,20 @@ multicall_contracts: Dict[AvailableBlockchainType, str] = {
     AvailableBlockchainType.MUMBAI: "0xe9939e7Ea7D7fb619Ac57f648Da7B1D425832631",
     AvailableBlockchainType.ETHEREUM: "0x5BA1e12693Dc8F9c48aAD8770482f4739bEeD696",
 }
+
+
+# Custom Crawler
+
+MOONSTREAM_S3_PUBLIC_DATA_BUCKET = os.environ.get(
+    "MOONSTREAM_S3_PUBLIC_DATA_BUCKET", ""
+)  # S3 bucket for storing custom crawler data
+
+if MOONSTREAM_S3_PUBLIC_DATA_BUCKET == "":
+    raise ValueError(
+        "MOONSTREAM_S3_PUBLIC_DATA_BUCKET environment variable must be set"
+    )
+
+
+MOONSTREAM_S3_PUBLIC_DATA_BUCKET_PREFIX = os.environ.get(
+    "MOONSTREAM_S3_PUBLIC_DATA_BUCKET_PREFIX", "dev"
+)
