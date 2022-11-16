@@ -268,7 +268,7 @@ def run_tokenomics_queries_handler(args: argparse.Namespace):
                 "address": address,
                 "type": type,
                 "time_range": range["time_range"],
-            }
+            } # type: ignore
 
             generate_report(
                 client=client,
