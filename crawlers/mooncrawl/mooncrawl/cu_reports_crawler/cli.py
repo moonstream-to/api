@@ -1,5 +1,6 @@
 import argparse
 import datetime
+import logging
 from moonstream.client import Moonstream  # type: ignore
 import time
 import requests
@@ -16,6 +17,9 @@ from ..settings import (
     MOONSTREAM_S3_PUBLIC_DATA_BUCKET_PREFIX,
 )
 
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 addresess_erc20_721 = {
     "0x64060aB139Feaae7f06Ca4E63189D86aDEb51691": "ERC20",  # UNIM
@@ -65,7 +69,7 @@ def recive_S3_data_from_query(
                 timeout=5,
             )
         except Exception as e:
-            print(e)
+            logger.error(e)
             continue
 
         if data_response.status_code == 200:
@@ -81,7 +85,7 @@ def recive_S3_data_from_query(
             )
 
         if repeat > max_retries:
-            print("Too many retries")
+            logger.info("Too many retries")
             break
     return data_response.json()
 
@@ -113,11 +117,11 @@ def generate_report(
             bucket,
             f"{bucket_prefix}/{key}",
         )
-        print(
+        logger.info(
             f"Report generated and results uploaded at: https://{bucket}/{bucket_prefix}/{key}"
         )
     except Exception as err:
-        print(
+        logger.error(
             f"Cant recive or load data for s3, for query: {query_name}, bucket: {bucket}, key: {key}. End with error: {err}"
         )
 
@@ -135,7 +139,7 @@ def create_user_query(
     try:
         client.create_query(token=token, name=query_name, query=query)
     except Exception as err:
-        print(f"Cant create user query: {query_name}. End with error: {err}")
+        logger.error(f"Cant create user query: {query_name}. End with error: {err}")
 
 
 def delete_user_query(client: Moonstream, token: str, query_name: str):
@@ -148,7 +152,7 @@ def delete_user_query(client: Moonstream, token: str, query_name: str):
         name=query_name,
     )
 
-    print(f"Query with name:{query_name} and id: {id} was deleted")
+    logger.info(f"Query with name:{query_name} and id: {id} was deleted")
 
 
 def init_game_bank_queries_handler(args: argparse.Namespace):
@@ -171,18 +175,18 @@ def init_game_bank_queries_handler(args: argparse.Namespace):
                         query_name=query["name"],
                     )
                 except Exception as err:
-                    print(err)
+                    logger.error(err)
             # create
             created_entry = client.create_query(
                 token=args.moonstream_token,
                 name=query["name"],
                 query=query["query"],
             )
-            print(
+            logger.info(
                 f"Created query {query['name']} please validate it in the UI url {created_entry.journal_url}/entries/{created_entry.id}/"
             )
         except Exception as e:
-            print(e)
+            logger.error(e)
             pass
 
 
@@ -206,18 +210,18 @@ def init_tokenomics_queries_handler(args: argparse.Namespace):
                         query_name=query["name"],
                     )
                 except Exception as err:
-                    print(err)
+                    logger.error(err)
             # create
             created_entry = client.create_query(
                 token=args.moonstream_token,
                 name=query["name"],
                 query=query["query"],
             )
-            print(
+            logger.info(
                 f"Created query {query['name']} please validate it in the UI url {created_entry.journal_url}/entries/{created_entry.id}/"
             )
         except Exception as e:
-            print(e)
+            logger.error(e)
             pass
 
 
@@ -440,7 +444,7 @@ def run_tokenomics_queries_handler(args: argparse.Namespace):
             key=f"{query_name}/{address}/data.json",
         )
 
-    print("Done")
+    logger.info("Done")
 
 
 def list_user_queries_handler(args: argparse.Namespace):
@@ -455,7 +459,7 @@ def list_user_queries_handler(args: argparse.Namespace):
     )
 
     for query in queries.queries:
-        print(query.name, query.id)
+        logger.info(query.name, query.id)
 
 
 def delete_user_query_handler(args: argparse.Namespace):
