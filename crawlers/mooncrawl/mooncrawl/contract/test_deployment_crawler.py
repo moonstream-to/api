@@ -13,7 +13,7 @@ class TestDeploymentCrawler(TestCase):
         batch_size = 10
         result = get_batch_block_range(from_block, to_block, batch_size)
 
-        last_end: Optional[int] = None
+        last_end: Optional[int] = None  # type: ignore
         for batch_start, batch_end in result:
             if last_end is not None:
                 self.assertEqual(batch_start, last_end + 1)
@@ -30,7 +30,7 @@ class TestDeploymentCrawler(TestCase):
         batch_size = 10
         result = get_batch_block_range(from_block, to_block, batch_size)
 
-        last_end: Optional[int] = None
+        last_end: Optional[int] = None  # type: ignore
         for batch_start, batch_end in result:
             if last_end is not None:
                 self.assertEqual(batch_start, last_end - 1)
