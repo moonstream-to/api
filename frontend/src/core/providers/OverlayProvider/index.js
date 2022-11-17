@@ -270,7 +270,7 @@ const OverlayProvider = ({ children }) => {
         <ModalOverlay backdropFilter="auto" backdropBrightness="60%" />
 
         <ModalContent
-          bg="#1A1D22"
+          bg="black.300"
           borderRadius="15px"
           border="1px white solid"
           p="30px"
@@ -357,8 +357,8 @@ const OverlayProvider = ({ children }) => {
           }
         }}
       >
-        <DrawerOverlay />
-        <DrawerContent overflowY="scroll" textColor="black">
+        <DrawerOverlay backdropFilter="auto" backdropBrightness="60%" />
+        <DrawerContent overflowY="scroll" textColor="white" bg="black.300">
           <DrawerCloseButton />
           <DrawerHeader borderBottomWidth="1px">
             {drawer.type === DRAWER_TYPES.NEW_DASHBOARD && "New dashboard"}
