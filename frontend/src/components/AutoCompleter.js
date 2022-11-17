@@ -53,8 +53,13 @@ const AutoCompleter = ({
         return (
           <Box pos="relative">
             <Box {...getRootProps({}, { suppressRefError: true })}>
-              <InputGroup>
+              <InputGroup
+                border="1px solid white"
+                bg="black.300"
+                borderRadius="7px"
+              >
                 <InputLeftAddon
+                  borderStyle="none"
                   isTruncated
                   maxW="60px"
                   fontSize={ui.isMobileView ? "xs" : "sm"}
@@ -75,6 +80,9 @@ const AutoCompleter = ({
                 </InputLeftAddon>
 
                 <Input
+                  variant="bw"
+                  borderStyle="none none none"
+                  borderLeft="1px solid white"
                   placeholder={placeholder}
                   isTruncated
                   fontSize="sm"
@@ -82,9 +90,10 @@ const AutoCompleter = ({
                     // defaultValue: getDefaultValue(selectedItem),
                   })}
                 ></Input>
-                <InputRightAddon>
+                <InputRightAddon bg="black.300">
                   {" "}
                   <button
+                    style={{ backgroundColor: "black.300" }}
                     {...getToggleButtonProps()}
                     aria-label={"toggle menu"}
                   >
@@ -99,7 +108,7 @@ const AutoCompleter = ({
                 direction="column"
                 className="menuListTim"
                 {...getMenuProps()}
-                bgColor="gray.300"
+                bgColor="black.300"
                 borderRadius="md"
                 boxShadow="lg"
                 pos="absolute"
@@ -123,6 +132,7 @@ const AutoCompleter = ({
                           px={4}
                           py={1}
                           alignItems="center"
+                          border="1px solid white"
                           key={`autocomplete-item-${index}`}
                           {...getItemProps({
                             index,
@@ -130,13 +140,8 @@ const AutoCompleter = ({
                           })}
                           direction="row"
                           w="100%"
-                          bgColor={
-                            index === highlightedIndex
-                              ? "orange.900"
-                              : "inherit"
-                          }
-                          color={
-                            index === highlightedIndex ? "gray.100" : "inherit"
+                          fontWeight={
+                            index === highlightedIndex ? "600" : "inherit"
                           }
                         >
                           {dropdownItem(item)}

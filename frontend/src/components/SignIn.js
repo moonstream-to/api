@@ -17,7 +17,7 @@ import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 const SignIn = ({ toggleModal }) => {
   const { handleSubmit, errors, register } = useForm();
   const { login, isLoading, data } = useLogin();
-  const [showPassword, togglePassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (!data) {
@@ -43,29 +43,12 @@ const SignIn = ({ toggleModal }) => {
           <FormControl isInvalid={errors.username}>
             <InputGroup bg="black">
               <Input
-                borderColor="white"
-                bg="#1A1D22"
-                color="white"
-                _placeholder={{ textColor: "#CDCDCD" }}
                 autoComplete="username"
-                variant="outline"
+                variant="bw"
                 placeholder="Enter your username or email"
-                errorBorderColor="#EE8686"
                 name="username"
                 {...register("username", { required: true })}
                 ref={register({ required: "Username is required" })}
-                _hover={{
-                  backgroundColor: "#1A1D22",
-                }}
-                _focus={{
-                  backgroundColor: "#1A1D22",
-                }}
-                _autofill={{
-                  backgroundColor: "#1A1D22",
-                  textFillColor: "white",
-                  boxShadow: "0 0 0px 1000px #1A1D22 inset",
-                  transition: "background-color 5000s ease-in-out 0s",
-                }}
               />
             </InputGroup>
           </FormControl>
@@ -80,31 +63,14 @@ const SignIn = ({ toggleModal }) => {
           <FormControl isInvalid={errors.password}>
             <InputGroup bg="black">
               <Input
-                borderColor="white"
-                bg="#1A1D22"
-                color="white"
-                _placeholder={{ textColor: "#CDCDCD" }}
                 autoComplete="current-password"
-                variant="outline"
+                variant="bw"
                 placeholder="Enter your password"
-                errorBorderColor="#EE8686"
                 name="password"
                 type={showPassword ? "text" : "password"}
                 ref={register({ required: "Password is required" })}
-                _hover={{
-                  backgroundColor: "#1A1D22",
-                }}
-                _focus={{
-                  backgroundColor: "#1A1D22",
-                }}
-                _autofill={{
-                  backgroundColor: "#1A1D22",
-                  textFillColor: "white",
-                  boxShadow: "0 0 0px 1000px #1A1D22 inset",
-                  transition: "background-color 5000s ease-in-out 0s",
-                }}
               />
-              <InputRightElement onClick={() => togglePassword(!showPassword)}>
+              <InputRightElement onClick={() => setShowPassword(!showPassword)}>
                 <CustomIcon icon="password" />
               </InputRightElement>
             </InputGroup>
@@ -125,26 +91,12 @@ const SignIn = ({ toggleModal }) => {
         <Button
           mt="30px"
           mb="10px"
-          bg="#F56646"
-          fontWeight="700"
-          borderRadius="30px"
-          padding="10px 30px"
-          fontSize="20px"
-          height="46px"
-          color="#ffffff"
+          h="46px"
+          fontSize="lg"
+          variant="plainOrange"
           type="submit"
           width="100%"
-          variant="solid"
           isLoading={isLoading}
-          _hover={{
-            backgroundColor: "#F4532F",
-          }}
-          _focus={{
-            backgroundColor: "#F4532F",
-          }}
-          _active={{
-            backgroundColor: "#F4532F",
-          }}
         >
           Login
         </Button>

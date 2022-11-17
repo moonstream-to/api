@@ -160,7 +160,8 @@ const Analytics = () => {
               })
             }
             size="md"
-            colorScheme="blue"
+            color="orange.1000"
+            borderColor="1000"
             variant="outline"
             icon={<BsGear />}
           />

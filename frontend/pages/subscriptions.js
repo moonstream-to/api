@@ -63,7 +63,7 @@ const Subscriptions = () => {
               <Flex
                 h="3rem"
                 w="100%"
-                bgColor="#1A1D22"
+                bgColor="black.300"
                 borderColor="white"
                 borderTopRadius="xl"
                 justifyContent="flex-end"
