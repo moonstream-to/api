@@ -28,24 +28,7 @@ const ForgotPassword = ({ toggleModal }) => {
       <FormControl isInvalid={errors.email} my={4}>
         <InputGroup>
           <Input
-            borderColor="white"
-            bg="#1A1D22"
-            color="white"
-            _placeholder={{ textColor: "#CDCDCD" }}
-            variant="outline"
-            errorBorderColor="#EE8686"
-            _hover={{
-              backgroundColor: "#1A1D22",
-            }}
-            _focus={{
-              backgroundColor: "#1A1D22",
-            }}
-            _autofill={{
-              backgroundColor: "#1A1D22",
-              textFillColor: "white",
-              boxShadow: "0 0 0px 1000px #1A1D22 inset",
-              transition: "background-color 5000s ease-in-out 0s",
-            }}
+            variant="bw"
             placeholder="Enter your email"
             name="email"
             autoComplete="email"
@@ -56,26 +39,12 @@ const ForgotPassword = ({ toggleModal }) => {
       <Button
         mt="30px"
         mb="10px"
-        bg="#F56646"
-        fontWeight="700"
-        borderRadius="30px"
-        padding="10px 30px"
-        fontSize="20px"
-        height="46px"
-        color="#ffffff"
+        fontSize="lg"
+        h="46px"
         type="submit"
         width="100%"
-        variant="solid"
+        variant="plainOrange"
         isLoading={isLoading}
-        _hover={{
-          backgroundColor: "#F4532F",
-        }}
-        _focus={{
-          backgroundColor: "#F4532F",
-        }}
-        _active={{
-          backgroundColor: "#F4532F",
-        }}
       >
         Send
       </Button>
