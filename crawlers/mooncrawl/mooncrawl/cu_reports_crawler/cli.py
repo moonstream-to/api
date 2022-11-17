@@ -38,7 +38,7 @@ def recive_S3_data_from_query(
     query_name: str,
     params: Dict[str, Any],
     time_await: int = 2,
-    max_retries: int = 20,
+    max_retries: int = 30,
 ) -> Any:
 
     """
