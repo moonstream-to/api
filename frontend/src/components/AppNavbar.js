@@ -107,9 +107,20 @@ const AppNavbar = () => {
     <>
       {!ui.isMobileView && (
         <>
-          <Flex px={2}>
+          <Flex px={2} minH="72px" maxH="72px" alignItems="center">
+            <RouterLink href="/" passHref>
+              <Image
+                w="160px"
+                py="0.75rem"
+                pl={1}
+                ml="15px"
+                src={PRIMARY_MOON_LOGO_URL}
+                alt="Moonstream To"
+                cursor="pointer"
+              />
+            </RouterLink>
             <Spacer />
-            <Flex placeSelf="flex-end">
+            <Flex h="100%" alignItems="center">
               <ButtonGroup variant="link" spacing={4}>
                 {SITEMAP.map((item, idx) => {
                   if (
@@ -133,11 +144,21 @@ const AppNavbar = () => {
                           key={`menu-button-${idx}`}
                           as={Button}
                           rightIcon={<ChevronDownIcon />}
+                          color="white"
+                          _expanded={{ color: "white" }}
                         >
                           {item.title}
                         </MenuButton>
                         <Portal>
-                          <MenuList zIndex={100}>
+                          <MenuList
+                            zIndex={100}
+                            bg="#1A1D22"
+                            w="auto"
+                            minW="auto"
+                            borderRadius="10px"
+                            p="20px 20px 10px 20px"
+                            border="1px solid white"
+                          >
                             {item.children.map((child, idx) => (
                               <RouterLink
                                 shallow={true}
@@ -145,8 +166,23 @@ const AppNavbar = () => {
                                 href={child.path}
                                 passHref
                               >
-                                <MenuItem key={`menu-${idx}`} as={"a"} m={0}>
-                                  <Text color="black">{child.title}</Text>
+                                <MenuItem
+                                  key={`menu-${idx}`}
+                                  as={"a"}
+                                  m={0}
+                                  color="white"
+                                  fontWeight="400"
+                                  px="0px"
+                                  mb="10px"
+                                  h="22px"
+                                  _hover={{
+                                    backgroundColor: "#1A1D22",
+                                    color: "#F56646",
+                                    fontWeight: "700",
+                                  }}
+                                  _focus={{ backgroundColor: "#1A1D22" }}
+                                >
+                                  {child.title}
                                 </MenuItem>
                               </RouterLink>
                             ))}
@@ -164,7 +200,7 @@ const AppNavbar = () => {
                       href={item.path}
                       isActive={!!(router.nextRouter.pathname === item.path)}
                     >
-                      {item.title}
+                      <Text color="white">{item.title}</Text>
                     </RouteButton>
                   );
                 })}
