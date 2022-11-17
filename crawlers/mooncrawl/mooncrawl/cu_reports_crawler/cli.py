@@ -77,13 +77,6 @@ def recive_S3_data_from_query(
 
         repeat += 1
 
-        if repeat == max_retries // 2:
-            data_url = client.exec_query(
-                token=token,
-                name=query_name,
-                params=params,
-            )
-
         if repeat > max_retries:
             logger.info("Too many retries")
             break
