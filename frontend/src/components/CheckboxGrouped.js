@@ -28,7 +28,7 @@ const CheckboxGroupped = ({
               px={2}
               key={`list-item-checkbox-${idx}`}
               direction="row"
-              bgColor={idx % 2 == 0 ? "gray.50" : "gray.100"}
+              bgColor={idx % 2 == 0 ? "black.400" : "black.300"}
             >
               <Checkbox
                 isChecked={isItemChecked(listItem)}

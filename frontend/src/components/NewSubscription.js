@@ -166,7 +166,7 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                               isTruncated
                               maxW="60px"
                               fontSize="sm"
-                              bgColor="#1A1D22"
+                              bgColor="black.300"
                             >
                               <Image h="24px" src={selectedItem?.icon_url} />
                             </InputLeftAddon>
@@ -175,13 +175,7 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                               placeholder="What do you want to subscribe to"
                               isTruncated
                               fontSize="sm"
-                              bg="#1A1D22"
-                              _hover={{
-                                backgroundColor: "#1A1D22",
-                              }}
-                              _focus={{
-                                backgroundColor: "#1A1D22",
-                              }}
+                              variant="bw"
                               {...getInputProps()}
                             ></Input>
                             <InputRightAddon p={0}>
@@ -192,12 +186,12 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                                 w="100%"
                                 m={0}
                                 p={0}
-                                bg="#1A1D22"
+                                bg="black.300"
                                 _hover={{
-                                  backgroundColor: "#1A1D22",
+                                  backgroundColor: "black.300",
                                 }}
                                 _focus={{
-                                  backgroundColor: "#1A1D22",
+                                  backgroundColor: "black.300",
                                 }}
                                 {...getToggleButtonProps({})}
                                 aria-label={"toggle menu"}
@@ -212,7 +206,7 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                             direction="column"
                             className="menuListTim"
                             {...getMenuProps()}
-                            bgColor="#1A1D22"
+                            bgColor="black.300"
                             borderRadius="md"
                             boxShadow="lg"
                             pos="absolute"
@@ -297,7 +291,7 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                     border="1px solid white"
                     borderRadius="7px"
                   >
-                    <InputLeftAddon bg="#1A1D22">
+                    <InputLeftAddon bg="black.300">
                       <FormLabel
                         fontWeight="600"
                         // alignSelf="flex-start"
@@ -307,15 +301,9 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                       </FormLabel>
                     </InputLeftAddon>
                     <Input
-                      bg="#1A1D22"
                       type="text"
                       autoComplete="off"
-                      _hover={{
-                        backgroundColor: "#1A1D22",
-                      }}
-                      _focus={{
-                        backgroundColor: "#1A1D22",
-                      }}
+                      variant="bw"
                       placeholder="Address to subscribe to"
                       name="address"
                       value={address}
@@ -343,7 +331,7 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                     border="1px solid white"
                     borderRadius="7px"
                   >
-                    <InputLeftAddon bgColor="#1A1D22">
+                    <InputLeftAddon bgColor="black.300">
                       <FormLabel
                         fontWeight="600"
                         // alignSelf="flex-start"
@@ -355,13 +343,7 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                     <Input
                       type="text"
                       autoComplete="off"
-                      bg="#1A1D22"
-                      _hover={{
-                        backgroundColor: "#1A1D22",
-                      }}
-                      _focus={{
-                        backgroundColor: "#1A1D22",
-                      }}
+                      variant="bw"
                       placeholder="Name your label"
                       name="label"
                       value={label}
@@ -379,7 +361,7 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
         )}
 
         {type && (
-          <FormControl isInvalid={errors?.color} bg="#1A1D22">
+          <FormControl isInvalid={errors?.color} bg="black.300">
             {!isModal ? (
               <Flex
                 direction="row"
@@ -398,7 +380,6 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                 >
                   <IconButton
                     size="md"
-                    // colorScheme="blue"
                     color={"white.100"}
                     _hover={{ bgColor: { color } }}
                     bgColor={color}
@@ -407,14 +388,7 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                     icon={<BiRefresh />}
                   />
                   <Input
-                    variant="outline"
-                    backgroundColor="#1A1D22"
-                    _hover={{
-                      backgroundColor: "#1A1D22",
-                    }}
-                    _focus={{
-                      backgroundColor: "#1A1D22",
-                    }}
+                    variant="bw"
                     type="input"
                     placeholder="color"
                     name="color"
@@ -452,14 +426,7 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                     type="input"
                     placeholder="color"
                     name="color"
-                    variant="outline"
-                    backgroundColor="#1A1D22"
-                    _hover={{
-                      backgroundColor: "#1A1D22",
-                    }}
-                    _focus={{
-                      backgroundColor: "#1A1D22",
-                    }}
+                    variant="bw"
                     ref={register({ required: "color is required!" })}
                     value={color}
                     onChange={() => null}
@@ -471,12 +438,11 @@ const _NewSubscription = ({ onClose, setIsLoading, isModal, initialValue }) => {
                   styles={{
                     default: {
                       card: {
-                        background: "#1A1D22",
+                        background: "black.300",
                         border: "1px solid white",
                       },
                       triangle: {
                         borderBottomColor: "white",
-                        // border: "1px solid white",
                       },
                     },
                   }}
