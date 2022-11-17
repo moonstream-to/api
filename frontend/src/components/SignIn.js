@@ -70,7 +70,10 @@ const SignIn = ({ toggleModal }) => {
                 type={showPassword ? "text" : "password"}
                 ref={register({ required: "Password is required" })}
               />
-              <InputRightElement onClick={() => setShowPassword(!showPassword)}>
+              <InputRightElement
+                onClick={() => setShowPassword(!showPassword)}
+                style={{ cursor: "pointer" }}
+              >
                 <CustomIcon icon="password" />
               </InputRightElement>
             </InputGroup>
