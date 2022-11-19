@@ -244,7 +244,6 @@ const NewDashboardChart = () => {
                               </Button>
                             )}
                             dropdownItem={(item) => {
-                              const badgeColor = color(`${item.color}`);
                               return (
                                 <Stack cursor="pointer" direction="row">
                                   <chakra.span whiteSpace="nowrap">
