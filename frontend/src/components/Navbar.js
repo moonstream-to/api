@@ -15,8 +15,8 @@ const Navbar = () => {
       zIndex={1}
       alignItems="center"
       id="Navbar"
-      minH={isMobileView ? "48px" : "72px"}
-      maxH={isMobileView ? "48px" : "72px"}
+      minH={isMobileView && !isAppView ? "89px" : "72px"}
+      maxH={isMobileView && !isAppView ? "89px" : "72px"}
       bgColor={BACKGROUND_COLOR}
       borderBottom="1px solid white"
       direction="row"

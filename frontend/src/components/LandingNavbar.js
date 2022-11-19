@@ -4,7 +4,6 @@ import {
   Button,
   Image,
   ButtonGroup,
-  Spacer,
   Link,
   Flex,
   Menu,
@@ -36,7 +35,7 @@ const LandingNavbar = () => {
           <Flex
             pl={ui.isMobileView ? 2 : "60px"}
             justifySelf="flex-start"
-            h="48px"
+            h={ui.isMobileView && !ui.isAppView ? "89px" : "72px"}
             py={1}
             flexBasis="200px"
             flexGrow={0.6}
@@ -178,12 +177,6 @@ const LandingNavbar = () => {
               <ChakraAccountIconButton variant="link" colorScheme="orange" />
             )}
           </ButtonGroup>
-        </>
-      )}
-      {ui.isLoggedIn && ui.isMobileView && (
-        <>
-          <Spacer />
-          <ChakraAccountIconButton variant="link" colorScheme="orange" />
         </>
       )}
     </>
