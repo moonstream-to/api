@@ -115,12 +115,7 @@ const TokenRequest = ({ setNewToken, onClose }) => {
             >
               Submit
             </Button>
-            <Button
-              variant="solid"
-              colorScheme="red"
-              type="submit"
-              onClick={() => onClose()}
-            >
+            <Button variant="solid" colorScheme="red" onClick={() => onClose()}>
               Cancel
             </Button>
           </Stack>
