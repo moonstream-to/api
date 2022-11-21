@@ -142,6 +142,8 @@ const LandingBarMobile = () => {
                             m={0}
                             fontSize="sm"
                             _focus={{ backgroundColor: "black.300" }}
+                            _active={{ backgroundColor: "black.300" }}
+                            _hover={{ backgroundColor: "black.300" }}
                           >
                             {child.title}
                           </MenuItem>

@@ -145,7 +145,10 @@ const AppNavbar = () => {
                           as={Button}
                           rightIcon={<ChevronDownIcon />}
                           color="white"
-                          _expanded={{ color: "white" }}
+                          fontWeight="500"
+                          _expanded={{ color: "white", fontWeight: "700" }}
+                          _focus={{ textDecoration: "none" }}
+                          _hover={{ textDecoration: "none", fontWeight: "700" }}
                         >
                           {item.title}
                         </MenuButton>
@@ -176,11 +179,11 @@ const AppNavbar = () => {
                                   mb="10px"
                                   h="22px"
                                   _hover={{
-                                    backgroundColor: "#1A1D22",
+                                    backgroundColor: "black.300",
                                     color: "#F56646",
                                     fontWeight: "700",
                                   }}
-                                  _focus={{ backgroundColor: "#1A1D22" }}
+                                  _focus={{ backgroundColor: "black.300" }}
                                 >
                                   {child.title}
                                 </MenuItem>
