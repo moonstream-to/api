@@ -1,7 +1,7 @@
 const mobileVariant = () => {
   return {
     _active: {
-      backgroundColor: "black.300 !important",
+      backgroundColor: "black.300",
       color: "white",
       textDecoration: "none",
     },
