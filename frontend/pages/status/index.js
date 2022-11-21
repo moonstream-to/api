@@ -58,6 +58,7 @@ const Status = () => {
         px={12}
         py={2}
         borderTopRadius="xl"
+        mt="72px"
       >
         {`Status page`}
       </Heading>

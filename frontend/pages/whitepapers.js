@@ -6,7 +6,9 @@ import { MdPictureAsPdf } from "react-icons/md";
 const Papers = () => {
   return (
     <VStack>
-      <Heading py={12}>Whitepapers</Heading>
+      <Heading pb={12} pt="72px">
+        Whitepapers
+      </Heading>
       <Link
         color="orange.900"
         href="https://github.com/bugout-dev/moonstream/blob/main/datasets/nfts/papers/ethereum-nfts.pdf"

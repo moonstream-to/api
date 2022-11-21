@@ -4,7 +4,6 @@ import {
   Button,
   Image,
   ButtonGroup,
-  Spacer,
   Link,
   Flex,
   Menu,
@@ -36,7 +35,7 @@ const LandingNavbar = () => {
           <Flex
             pl={ui.isMobileView ? 2 : "60px"}
             justifySelf="flex-start"
-            h="48px"
+            h={ui.isMobileView && !ui.isAppView ? "89px" : "72px"}
             py={1}
             flexBasis="200px"
             flexGrow={0.6}
@@ -75,15 +74,18 @@ const LandingNavbar = () => {
                         as={Button}
                         rightIcon={<ChevronDownIcon />}
                         color="white"
+                        fontWeight="500"
                         fontSize="16px"
-                        _expanded={{ color: "white" }}
+                        _expanded={{ color: "white", fontWeight: "700" }}
+                        _focus={{ textDecoration: "none" }}
+                        _hover={{ textDecoration: "none", fontWeight: "700" }}
                       >
                         {item.title}
                       </MenuButton>
                       <Portal>
                         <MenuList
                           zIndex={100}
-                          bg="#1A1D22"
+                          bg="black.300"
                           w="auto"
                           minW="auto"
                           borderRadius="10px"
@@ -108,11 +110,11 @@ const LandingNavbar = () => {
                                 mb="10px"
                                 h="22px"
                                 _hover={{
-                                  backgroundColor: "#1A1D22",
-                                  color: "#F56646",
+                                  backgroundColor: "black.300",
+                                  color: "orange.1000",
                                   fontWeight: "700",
                                 }}
-                                _focus={{ backgroundColor: "#1A1D22" }}
+                                _focus={{ backgroundColor: "black.300" }}
                               >
                                 {child.title}
                               </MenuItem>
@@ -130,7 +132,7 @@ const LandingNavbar = () => {
             {ui.isLoggedIn && (
               <RouterLink href="/welcome" passHref>
                 <Box
-                  bg="#F56646"
+                  bg="orange.1000"
                   alignSelf={"center"}
                   fontWeight="700"
                   borderRadius="15px"
@@ -151,7 +153,7 @@ const LandingNavbar = () => {
             )}
             {!ui.isLoggedIn && (
               <Button
-                bg="#F56646"
+                bg="orange.1000"
                 variant="solid"
                 onClick={() => toggleModal({ type: MODAL_TYPES.SIGNUP })}
                 size="sm"
@@ -178,12 +180,6 @@ const LandingNavbar = () => {
               <ChakraAccountIconButton variant="link" colorScheme="orange" />
             )}
           </ButtonGroup>
-        </>
-      )}
-      {ui.isLoggedIn && ui.isMobileView && (
-        <>
-          <Spacer />
-          <ChakraAccountIconButton variant="link" colorScheme="orange" />
         </>
       )}
     </>

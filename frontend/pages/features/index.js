@@ -23,6 +23,7 @@ const Features = () => {
       id="container"
       maxW="container.xl"
       px={["10%", "10%", "7%", "0"]}
+      mt="72px"
     >
       <Heading as="h1" hidden>
         Moonstream feautes
