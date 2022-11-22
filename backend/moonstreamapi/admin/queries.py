@@ -6,7 +6,7 @@ import json
 
 from bugout.data import BugoutResources
 from bugout.exceptions import BugoutResponseException
-from moonstream.client import Moonstream
+from moonstream.client import Moonstream  # type: ignore
 import logging
 from typing import Dict, Any
 
