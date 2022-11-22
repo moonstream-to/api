@@ -27,9 +27,8 @@ export default function SocialProfileSimple({
         maxW={"320px"}
         h="420px"
         w={"full"}
-        bg={useColorModeValue("white.50", "gray.900")}
-        boxShadow={"2xl"}
-        rounded={"lg"}
+        borderRadius="20px"
+        border="1px solid white"
         p={6}
         textAlign={"center"}
       >
@@ -56,7 +55,7 @@ export default function SocialProfileSimple({
         <Heading fontSize={"2xl"} fontFamily={"body"}>
           {name}
         </Heading>
-        <Text fontWeight={600} color={"gray.900"} mb={4}>
+        <Text fontWeight={600} color={"blue.850"} mb={4}>
           {atName}
         </Text>
         <Text textAlign={"center"} px={3}>
