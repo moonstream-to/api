@@ -21,6 +21,31 @@ const flushedVariant = (props) => {
   };
 };
 
+const bwVariant = () => {
+  return {
+    field: {
+      border: "1px solid white",
+      borderRadius: "7px",
+      color: "white",
+      backgroundColor: "black.300",
+      errorBorderColor: "#EE8686",
+      _hover: {
+        backgroundColor: "black.300",
+      },
+      _focus: {
+        backgroundColor: "black.300",
+      },
+      _placeholder: { color: "#CDCDCD" },
+      _autofill: {
+        backgroundColor: "black.300",
+        textFillColor: "white",
+        boxShadow: "0 0 0px 1000px black.300 inset",
+        transition: "background-color 5000s ease-in-out 0s",
+      },
+    },
+  };
+};
+
 const outlineVariant = (props) => {
   const { colorScheme: c, theme } = props;
   const bgColor = transparentize(`${c}.50`, 0.8)(theme);
@@ -79,6 +104,7 @@ const Input = {
     flushed: flushedVariant,
     newTag: newTagVariant,
     filled: filledVariant,
+    bw: bwVariant,
   },
 
   defaultProps: {

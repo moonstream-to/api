@@ -38,6 +38,7 @@ const Contact = () => {
         textColor="black"
         bgColor="white"
         position="relative"
+        pt="72px"
       >
         <Icon
           as={BiArrowBack}

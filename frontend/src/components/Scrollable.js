@@ -27,10 +27,11 @@ const Scrollable = (props) => {
       }
     }
 
+    const navbar = document.getElementById("Navbar");
     if (dir === -1) {
-      document.getElementById("Navbar").style.top = "-48px";
+      navbar.style.top = `${-navbar.offsetHeight}px`;
     } else {
-      document.getElementById("Navbar").style.top = "-0";
+      navbar.style.top = "-0";
     }
     setY(currentScroll);
     if (currentScroll > scrollDepth) {
@@ -69,6 +70,7 @@ const Scrollable = (props) => {
         ref={scrollerRef}
         overflowY="scroll"
         onScroll={(e) => handleScroll(e)}
+        // pt="72px"
       >
         {props.children}
       </Box>

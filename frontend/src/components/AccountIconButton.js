@@ -6,7 +6,6 @@ import {
   MenuList,
   MenuItem,
   MenuGroup,
-  MenuDivider,
   IconButton,
   chakra,
   Portal,
@@ -33,20 +32,24 @@ const AccountIconButton = (props) => {
       />
       <Portal>
         <MenuList
-          zIndex="dropdown"
-          width={["100vw", "100vw", "18rem", "20rem", "22rem", "24rem"]}
-          borderRadius={0}
-          color="black"
+          zIndex={100}
+          bg="#1A1D22"
+          w="auto"
+          minW="auto"
+          borderRadius="10px"
+          p="20px 20px 10px 20px"
+          border="1px solid white"
         >
           <MenuGroup>
             <RouterLink href="/account/security" passHref>
-              <MenuItem>Security</MenuItem>
+              <div className="desktop-menu-item">Security</div>
             </RouterLink>
             <RouterLink href="/account/tokens" passHref>
-              <MenuItem>API tokens</MenuItem>
+              <div className="desktop-menu-item" title="API tokens">
+                API tokens
+              </div>
             </RouterLink>
           </MenuGroup>
-          <MenuDivider />
           {ui.isMobileView &&
             SITEMAP.map((item, idx) => {
               if (item.type !== PAGETYPE.FOOTER_CATEGORY && item.children) {
@@ -54,7 +57,22 @@ const AccountIconButton = (props) => {
                   <MenuGroup key={`AccountIconButton-MenuGroup-${idx}`}>
                     {item.children.map((child, idx) => {
                       return (
-                        <MenuItem key={`AccountIconButton-SITEMAP-${idx}`}>
+                        <MenuItem
+                          key={`AccountIconButton-SITEMAP-${idx}`}
+                          m={0}
+                          color="white"
+                          fontWeight="400"
+                          fontSize="16px"
+                          px="0px"
+                          mb="10px"
+                          h="22px"
+                          _hover={{
+                            backgroundColor: "#1A1D22",
+                            color: "#F56646",
+                            fontWeight: "700",
+                          }}
+                          _focus={{ backgroundColor: "#1A1D22" }}
+                        >
                           <RouterLink href={child.path}>
                             {child.title}
                           </RouterLink>
@@ -65,14 +83,14 @@ const AccountIconButton = (props) => {
                 );
               }
             })}
-          <MenuDivider />
-          <MenuItem
+          <div
+            className="desktop-menu-item"
             onClick={() => {
               logout();
             }}
           >
             Logout
-          </MenuItem>
+          </div>
         </MenuList>
       </Portal>
     </Menu>

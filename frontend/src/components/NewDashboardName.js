@@ -57,9 +57,12 @@ const NewDashboardName = (props) => {
   return (
     <>
       <Stack direction={["column", "row", null]}>
-        <InputGroup>
-          <InputLeftAddon>Name:</InputLeftAddon>
+        <InputGroup border="1px solid white" borderRadius="7px">
+          <InputLeftAddon bg="black.300">Name:</InputLeftAddon>
           <Input
+            borderStyle="none none none"
+            borderLeft="1px solid white"
+            variant="bw"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={placeholder}

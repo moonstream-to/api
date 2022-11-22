@@ -7,7 +7,7 @@ import LandingNavbar from "./LandingNavbar";
 const AppNavbar = React.lazy(() => import("./AppNavbar"));
 
 const Navbar = () => {
-  const { isAppView, isLoggedIn } = useContext(UIContext);
+  const { isAppView, isLoggedIn, isMobileView } = useContext(UIContext);
 
   return (
     <Flex
@@ -15,8 +15,8 @@ const Navbar = () => {
       zIndex={1}
       alignItems="center"
       id="Navbar"
-      minH="3rem"
-      maxH="3rem"
+      minH={isMobileView && !isAppView ? "89px" : "72px"}
+      maxH={isMobileView && !isAppView ? "89px" : "72px"}
       bgColor={BACKGROUND_COLOR}
       borderBottom="1px solid white"
       direction="row"

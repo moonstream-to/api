@@ -41,3 +41,4 @@ package-lock.json
 # vercel
 .vercel
 
+.todo

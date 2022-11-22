@@ -61,7 +61,6 @@ const SubscriptionCard = ({ subscription, isDesktopView, iconLink }) => {
     <>
       {!isDesktopView && (
         <AccordionItem
-          bgColor="blue.50"
           borderBottomColor="blue.500"
           key={`token-row-${subscription.id}`}
         >
@@ -108,7 +107,7 @@ const SubscriptionCard = ({ subscription, isDesktopView, iconLink }) => {
               <AccordionIcon />
             </AccordionButton>
           </h2>
-          <AccordionPanel pb={4} bgColor="blue.100" boxShadow="md">
+          <AccordionPanel pb={4} boxShadow="md">
             <Stack>
               <Stack fontSize="sm" h="min-content" pr={0}>
                 <Text placeSelf="flex-start">Address:</Text>

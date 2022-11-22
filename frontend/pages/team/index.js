@@ -49,7 +49,7 @@ const Team = () => {
       alignItems="center"
       w="100%"
     >
-      <Stack mx={margin} maxW="1700px" w="100%">
+      <Stack mt="72px" mx={margin} maxW="1700px" w="100%">
         <SimpleGrid
           px={12}
           alignItems="start"

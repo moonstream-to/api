@@ -2,6 +2,7 @@ import { extendTheme } from "@chakra-ui/react";
 import Button from "./Button";
 import Tag from "./Tag";
 import Menu from "./Menu";
+import MenuButton from "./MenuButton";
 import Input from "./Input";
 // import Spinner from "./Spinner";
 import NumberInput from "./NumberInput";
@@ -59,6 +60,7 @@ const theme = extendTheme({
     Spinner,
     Tooltip,
     Heading,
+    MenuButton,
   },
 
   fonts: {
@@ -165,6 +167,7 @@ const theme = extendTheme({
       700: "#fd7835",
       800: "#fd671b",
       900: "#FD5602",
+      1000: "#F56646",
     },
 
     green: {
@@ -184,6 +187,8 @@ const theme = extendTheme({
     black: {
       100: "#333399",
       200: "#111442",
+      300: "#1A1D22",
+      400: "#292929",
     },
   },
 });
