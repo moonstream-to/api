@@ -1,6 +1,10 @@
+![github read me header](https://user-images.githubusercontent.com/8016073/203381867-f7b56861-04ca-4ae4-a5e6-53e97804817a.png)
+
 # moonstream
 
-\[[Live at https://moonstream.to/](https://moonstream.to)\] | \[[Join us on Discord](https://discord.gg/pYE65FuNSz)\]
+[Website](https://moonstream.to)
+
+[Join our Discord](https://discord.gg/pYE65FuNSz)
 
 ## What is Moonstream?
 
