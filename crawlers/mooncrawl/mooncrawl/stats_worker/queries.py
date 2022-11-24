@@ -1,17 +1,20 @@
 import csv
+from collections import OrderedDict
+import hashlib
 import json
 import logging
 import re
 from io import StringIO
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
-import boto3  # type: ignore
 from moonstreamdb.db import (
     create_moonstream_engine,
     MOONSTREAM_DB_URI_READ_ONLY,
     MOONSTREAM_POOL_SIZE,
 )
 from sqlalchemy.orm import sessionmaker
+
+from ..actions import push_data_to_bucket
 from ..reporter import reporter
 
 from ..settings import (
@@ -31,17 +34,18 @@ class QueryNotValid(Exception):
     """
 
 
-def push_statistics(s3: Any, data: Any, key: str, bucket: str) -> None:
+# def push_statistics(s3: Any, data: Any, key: str, bucket: str) -> None:
 
-    s3.put_object(
-        Body=data,
-        Bucket=bucket,
-        Key=key,
-        ContentType="application/json",
-        Metadata={"drone_query": "data"},
-    )
 
-    logger.info(f"Statistics push to bucket: s3://{bucket}/{key}")
+#     s3.put_object(
+#         Body=data,
+#         Bucket=bucket,
+#         Key=key,
+#         ContentType="application/json",
+#         Metadata={"drone_query": "data"},
+#     )
+
+#     logger.info(f"Statistics push to bucket: s3://{bucket}/{key}")
 
 
 def query_validation(query: str) -> str:
@@ -56,8 +60,10 @@ def query_validation(query: str) -> str:
 
 def to_json_types(value):
 
-    if isinstance(value, (str, int, tuple, list, dict)):
+    if isinstance(value, (str, int, tuple, dict)):
         return value
+    if isinstance(value, list):  # psycopg2 issue with list support
+        return tuple(value)
     elif isinstance(value, set):
         return list(value)
     else:
@@ -69,12 +75,11 @@ def data_generate(
     query_id: str,
     file_type: str,
     query: str,
-    params: Optional[Dict[str, Any]],
+    params: Dict[str, Any],
 ):
     """
     Generate query and push it to S3
     """
-    s3 = boto3.client("s3")
 
     # Create session
     engine = create_moonstream_engine(
@@ -85,6 +90,19 @@ def data_generate(
     )
     process_session = sessionmaker(bind=engine)
     db_session = process_session()
+
+    metadata = {
+        "source": "drone-query-generation",
+        "query_id": query_id,
+        "file_type": file_type,
+        "params": json.dumps(params),
+    }
+
+    # parameters hash
+
+    params_hash = hashlib.md5(
+        json.dumps(OrderedDict(params)).encode("utf-8")
+    ).hexdigest()
 
     try:
         if file_type == "csv":
@@ -97,11 +115,11 @@ def data_generate(
             csv_writer.writerow(result.keys())
             csv_writer.writerows(result.fetchAll())
 
-            push_statistics(
-                s3=s3,
+            push_data_to_bucket(
                 data=csv_buffer.getvalue().encode("utf-8"),
-                key=f"queries/{query_id}/data.{file_type}",
+                key=f"{MOONSTREAM_S3_QUERIES_BUCKET_PREFIX}/queries/{query_id}/{params_hash}/data.{file_type}",
                 bucket=bucket,
+                metadata=metadata,
             )
         else:
             block_number, block_timestamp = db_session.execute(
@@ -118,11 +136,11 @@ def data_generate(
                     ],
                 }
             ).encode("utf-8")
-            push_statistics(
-                s3=s3,
+            push_data_to_bucket(
                 data=data,
-                key=f"{MOONSTREAM_S3_QUERIES_BUCKET_PREFIX}/queries/{query_id}/data.{file_type}",
+                key=f"{MOONSTREAM_S3_QUERIES_BUCKET_PREFIX}/queries/{query_id}/{params_hash}/data.{file_type}",
                 bucket=bucket,
+                metadata=metadata,
             )
     except Exception as err:
         db_session.rollback()
