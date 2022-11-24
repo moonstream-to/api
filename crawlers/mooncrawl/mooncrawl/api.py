@@ -4,8 +4,10 @@ The Mooncrawl HTTP API
 import logging
 import time
 from cgi import test
-from datetime import datetime, timedelta
-from os import times
+from datetime import timedelta
+from collections import OrderedDict
+import hashlib
+import json
 from typing import Any, Dict, List
 from uuid import UUID
 
@@ -212,6 +214,10 @@ async def queries_data_update_handler(
         logger.error(f"Unhandled query execute exception, error: {e}")
         raise MoonstreamHTTPException(status_code=500)
 
+    params_hash = hashlib.md5(
+        json.dumps(OrderedDict(passed_params)).encode("utf-8")
+    ).hexdigest()
+
     try:
 
         background_tasks.add_task(
@@ -220,7 +226,8 @@ async def queries_data_update_handler(
             query_id=f"{query_id}",
             file_type=request_data.file_type,
             query=valid_query,
-            params=request_data.params,
+            params=passed_params,
+            params_hash=params_hash,
         )
 
     except Exception as e:
@@ -231,7 +238,7 @@ async def queries_data_update_handler(
         "get_object",
         Params={
             "Bucket": MOONSTREAM_S3_QUERIES_BUCKET,
-            "Key": f"{MOONSTREAM_S3_QUERIES_BUCKET_PREFIX}/queries/{query_id}/data.{request_data.file_type}",
+            "Key": f"{MOONSTREAM_S3_QUERIES_BUCKET_PREFIX}/queries/{query_id}/{params_hash}/data.{request_data.file_type}",
         },
         ExpiresIn=43200,  # 12 hours
         HttpMethod="GET",

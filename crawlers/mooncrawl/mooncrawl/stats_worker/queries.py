@@ -34,20 +34,6 @@ class QueryNotValid(Exception):
     """
 
 
-# def push_statistics(s3: Any, data: Any, key: str, bucket: str) -> None:
-
-
-#     s3.put_object(
-#         Body=data,
-#         Bucket=bucket,
-#         Key=key,
-#         ContentType="application/json",
-#         Metadata={"drone_query": "data"},
-#     )
-
-#     logger.info(f"Statistics push to bucket: s3://{bucket}/{key}")
-
-
 def query_validation(query: str) -> str:
     """
     Sanitize provided query.
@@ -76,6 +62,7 @@ def data_generate(
     file_type: str,
     query: str,
     params: Dict[str, Any],
+    params_hash: str,
 ):
     """
     Generate query and push it to S3
