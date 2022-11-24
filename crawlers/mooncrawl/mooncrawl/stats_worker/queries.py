@@ -51,7 +51,7 @@ def to_json_types(value):
     if isinstance(value, list):  # psycopg2 issue with list support
         return tuple(value)
     elif isinstance(value, set):
-        return list(value)
+        return tuple(value)
     else:
         return str(value)
 
@@ -92,15 +92,23 @@ def data_generate(
     ).hexdigest()
 
     try:
+
+        # TODO:(Andrey) Need optimization that information is usefull but incomplete
+        block_number, block_timestamp = db_session.execute(
+            "SELECT block_number, block_timestamp FROM polygon_labels WHERE block_number=(SELECT max(block_number) FROM polygon_labels where label='moonworm-alpha') limit 1;",
+        ).one()
+
         if file_type == "csv":
             csv_buffer = StringIO()
             csv_writer = csv.writer(csv_buffer, delimiter=";")
 
-            # engine.execution_options(stream_results=True)
             result = db_session.execute(query, params).keys()
 
             csv_writer.writerow(result.keys())
             csv_writer.writerows(result.fetchAll())
+
+            metadata["block_number"] = block_number
+            metadata["block_timestamp"] = block_timestamp
 
             push_data_to_bucket(
                 data=csv_buffer.getvalue().encode("utf-8"),
@@ -109,9 +117,6 @@ def data_generate(
                 metadata=metadata,
             )
         else:
-            block_number, block_timestamp = db_session.execute(
-                "SELECT block_number, block_timestamp FROM polygon_labels WHERE block_number=(SELECT max(block_number) FROM polygon_labels where label='moonworm-alpha') limit 1;",
-            ).one()
 
             data = json.dumps(
                 {
