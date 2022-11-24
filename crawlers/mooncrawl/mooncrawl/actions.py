@@ -20,3 +20,24 @@ def push_data_to_bucket(
     )
 
     logger.info(f"Data pushed to bucket: s3://{bucket}/{key}")
+
+
+def generate_s3_access_links(
+    method_name: str,
+    bucket: str,
+    key: str,
+    http_method: str,
+    expiration: int = 300,  # 12 hours
+) -> str:
+    s3 = boto3.client("s3")
+    stats_presigned_url = s3.generate_presigned_url(
+        method_name,
+        Params={
+            "Bucket": bucket,
+            "Key": key,
+        },
+        ExpiresIn=expiration,
+        HttpMethod=http_method,
+    )
+
+    return stats_presigned_url
