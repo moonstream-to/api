@@ -27,7 +27,7 @@ def generate_s3_access_links(
     bucket: str,
     key: str,
     http_method: str,
-    expiration: int = 300,  # 12 hours
+    expiration: int = 300,
 ) -> str:
     s3 = boto3.client("s3")
     stats_presigned_url = s3.generate_presigned_url(
