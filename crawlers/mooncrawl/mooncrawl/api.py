@@ -231,13 +231,17 @@ async def queries_data_update_handler(
         json.dumps(OrderedDict(passed_params)).encode("utf-8")
     ).hexdigest()
 
+    bucket = MOONSTREAM_S3_QUERIES_BUCKET
+    key = f"{MOONSTREAM_S3_QUERIES_BUCKET_PREFIX}/queries/{query_id}/{params_hash}/data.{request_data.file_type}"
+
     try:
 
         background_tasks.add_task(
             queries.data_generate,
-            bucket=MOONSTREAM_S3_QUERIES_BUCKET,
             query_id=f"{query_id}",
             file_type=request_data.file_type,
+            bucket=bucket,
+            key=key,
             query=query,
             params=passed_params,
             params_hash=params_hash,
@@ -249,8 +253,8 @@ async def queries_data_update_handler(
 
     stats_presigned_url = generate_s3_access_links(
         method_name="get_object",
-        bucket=MOONSTREAM_S3_QUERIES_BUCKET,
-        key=f"{MOONSTREAM_S3_QUERIES_BUCKET_PREFIX}/queries/{query_id}/{params_hash}/data.{request_data.file_type}",
+        bucket=bucket,
+        key=key,
         expiration=LINKS_EXPIRATION_TIME,
         http_method="GET",
     )

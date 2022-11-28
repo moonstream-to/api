@@ -56,10 +56,15 @@ def to_json_types(value):
         return str(value)
 
 
+def to_csv_types(value):
+    return str(value)
+
+
 def data_generate(
-    bucket: str,
     query_id: str,
     file_type: str,
+    bucket: str,
+    key: str,
     query: str,
     params: Dict[str, Any],
     params_hash: str,
@@ -82,14 +87,9 @@ def data_generate(
         "source": "drone-query-generation",
         "query_id": query_id,
         "file_type": file_type,
+        "params_hash": params_hash,
         "params": json.dumps(params),
     }
-
-    # parameters hash
-
-    params_hash = hashlib.md5(
-        json.dumps(OrderedDict(params)).encode("utf-8")
-    ).hexdigest()
 
     try:
 
@@ -110,12 +110,8 @@ def data_generate(
             metadata["block_number"] = block_number
             metadata["block_timestamp"] = block_timestamp
 
-            push_data_to_bucket(
-                data=csv_buffer.getvalue().encode("utf-8"),
-                key=f"{MOONSTREAM_S3_QUERIES_BUCKET_PREFIX}/queries/{query_id}/{params_hash}/data.{file_type}",
-                bucket=bucket,
-                metadata=metadata,
-            )
+            data = csv_buffer.getvalue().encode("utf-8")
+
         else:
 
             data = json.dumps(
@@ -128,12 +124,12 @@ def data_generate(
                     ],
                 }
             ).encode("utf-8")
-            push_data_to_bucket(
-                data=data,
-                key=f"{MOONSTREAM_S3_QUERIES_BUCKET_PREFIX}/queries/{query_id}/{params_hash}/data.{file_type}",
-                bucket=bucket,
-                metadata=metadata,
-            )
+        push_data_to_bucket(
+            data=data,
+            key=key,
+            bucket=bucket,
+            metadata=metadata,
+        )
     except Exception as err:
         db_session.rollback()
         reporter.error_report(
