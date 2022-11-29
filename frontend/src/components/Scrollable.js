@@ -28,7 +28,8 @@ const Scrollable = (props) => {
     }
 
     const navbar = document.getElementById("Navbar");
-    if (dir === -1) {
+
+    if (dir === -1 && e.target.scrollTop > 0) {
       navbar.style.top = `${-navbar.offsetHeight}px`;
     } else {
       navbar.style.top = "-0";
