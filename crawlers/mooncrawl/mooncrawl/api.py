@@ -188,7 +188,7 @@ async def queries_data_update_handler(
 
     # request.params validations
     passed_params = {
-        key: value
+        key: queries.from_json_types(value)
         for key, value in request_data.params.items()
         if key in expected_query_parameters
     }

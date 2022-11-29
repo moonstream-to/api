@@ -63,6 +63,15 @@ def to_json_types(value):
     else:
         return str(value)
 
+def from_json_types(value):
+
+    if isinstance(value, (str, int, tuple, dict)):
+        return value
+    elif isinstance(value, list): # psycopg2 issue with list support
+        return tuple(value)
+    else:
+        return str(value)
+
 
 def data_generate(
     bucket: str,
