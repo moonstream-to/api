@@ -34,6 +34,7 @@ ETHEREUM_TRENDING_TIMER_FILE="ethereum-trending.timer"
 ETHEREUM_TXPOOL_SERVICE_FILE="ethereum-txpool.service"
 ETHEREUM_MISSING_SERVICE_FILE="ethereum-missing.service"
 ETHEREUM_MISSING_TIMER_FILE="ethereum-missing.timer"
+ETHEREUM_MOONWORM_CRAWLER_SERVICE_FILE="ethereum-moonworm-crawler.service"
 
 # Polygon service files
 POLYGON_SYNCHRONIZE_SERVICE="polygon-synchronize.service"
@@ -143,6 +144,14 @@ cp "${SCRIPT_DIR}/${ETHEREUM_MISSING_SERVICE_FILE}" "/etc/systemd/system/${ETHER
 cp "${SCRIPT_DIR}/${ETHEREUM_MISSING_TIMER_FILE}" "/etc/systemd/system/${ETHEREUM_MISSING_TIMER_FILE}"
 systemctl daemon-reload
 systemctl restart --no-block "${ETHEREUM_MISSING_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Ethereum moonworm crawler service definition with ${ETHEREUM_MOONWORM_CRAWLER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ETHEREUM_MOONWORM_CRAWLER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_MOONWORM_CRAWLER_SERVICE_FILE}" "/etc/systemd/system/${ETHEREUM_MOONWORM_CRAWLER_SERVICE_FILE}"
+systemctl daemon-reload
+systemctl restart --no-block "${ETHEREUM_MOONWORM_CRAWLER_SERVICE_FILE}"
 
 echo
 echo
