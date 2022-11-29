@@ -220,7 +220,7 @@ async def queries_data_update_handler(
             query_id=f"{query_id}",
             file_type=request_data.file_type,
             query=valid_query,
-            params=request_data.params,
+            params=passed_params,
         )
 
     except Exception as e:
