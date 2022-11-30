@@ -10,7 +10,7 @@ const Papers = () => {
         Whitepapers
       </Heading>
       <Link
-        color="orange.900"
+        color="orange.1000"
         href="https://github.com/bugout-dev/moonstream/blob/main/datasets/nfts/papers/ethereum-nfts.pdf"
       >
         An analysis of 7,020,950 NFT transactions on the Ethereum blockchain -

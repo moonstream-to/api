@@ -56,8 +56,14 @@ def to_json_types(value):
         return str(value)
 
 
-def to_csv_types(value):
-    return str(value)
+def from_json_types(value):
+
+    if isinstance(value, (str, int, tuple, dict)):
+        return value
+    elif isinstance(value, list):  # psycopg2 issue with list support
+        return tuple(value)
+    else:
+        return str(value)
 
 
 def data_generate(
@@ -131,6 +137,7 @@ def data_generate(
             metadata=metadata,
         )
     except Exception as err:
+        logger.error(f"Error while generating data: {err}")
         db_session.rollback()
         reporter.error_report(
             err,

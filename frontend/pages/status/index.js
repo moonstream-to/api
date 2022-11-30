@@ -6,7 +6,7 @@ import { getLayout, getLayoutProps } from "../../src/layouts/InfoPageLayout";
 const Status = () => {
   const healthyStatusText = "Available";
   const downStatusText = "Unavailable";
-  const healthyStatusColor = "green.900";
+  const healthyStatusColor = "green.1000";
   const downStatusColor = "red.600";
 
   const { serverListStatusCache } = useStatus();
