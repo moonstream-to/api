@@ -5,9 +5,6 @@ import logging
 import time
 from cgi import test
 from datetime import timedelta
-from collections import OrderedDict
-import hashlib
-import json
 from typing import Any, Dict, List
 from uuid import UUID
 
@@ -18,7 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.sql.elements import TextClause
 
-from .actions import generate_s3_access_links
+from .actions import generate_s3_access_links, query_parameter_hash
 from . import data
 from .middleware import MoonstreamHTTPException
 from .settings import (
@@ -227,9 +224,7 @@ async def queries_data_update_handler(
             status_code=500, detail="Unmatched amount of applying query parameters"
         )
 
-    params_hash = hashlib.md5(
-        json.dumps(OrderedDict(passed_params)).encode("utf-8")
-    ).hexdigest()
+    params_hash = query_parameter_hash(passed_params)
 
     bucket = MOONSTREAM_S3_QUERIES_BUCKET
     key = f"{MOONSTREAM_S3_QUERIES_BUCKET_PREFIX}/queries/{query_id}/{params_hash}/data.{request_data.file_type}"

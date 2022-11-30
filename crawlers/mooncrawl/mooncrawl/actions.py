@@ -1,3 +1,6 @@
+from collections import OrderedDict
+import hashlib
+import json
 import logging
 from typing import Any, Dict
 
@@ -41,3 +44,13 @@ def generate_s3_access_links(
     )
 
     return stats_presigned_url
+
+
+def query_parameter_hash(params: Dict[str, Any]) -> str:
+    """
+    Generate a hash of the query parameters
+    """
+
+    hash = hashlib.md5(json.dumps(OrderedDict(params)).encode("utf-8")).hexdigest()
+
+    return hash

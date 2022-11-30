@@ -46,10 +46,8 @@ def query_validation(query: str) -> str:
 
 def to_json_types(value):
 
-    if isinstance(value, (str, int, tuple, dict)):
+    if isinstance(value, (str, int, tuple, dict, list)):
         return value
-    if isinstance(value, list):  # psycopg2 issue with list support
-        return tuple(value)
     elif isinstance(value, set):
         return tuple(value)
     else:
