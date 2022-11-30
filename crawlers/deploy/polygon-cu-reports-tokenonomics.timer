@@ -1,0 +1,9 @@
+[Unit]
+Description=Runs custom crawler for CU tokenonomics
+
+[Timer]
+OnBootSec=60s
+OnUnitActiveSec=60m
+
+[Install]
+WantedBy=timers.target

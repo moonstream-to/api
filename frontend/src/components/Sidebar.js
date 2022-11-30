@@ -2,35 +2,17 @@ import {
   ProSidebar,
   Menu,
   MenuItem,
-  SidebarHeader,
   SidebarFooter,
   SidebarContent,
 } from "react-pro-sidebar";
 import { useContext } from "react";
 import RouterLink from "next/link";
-import {
-  Flex,
-  Image,
-  IconButton,
-  Divider,
-  Text,
-  Button,
-} from "@chakra-ui/react";
+import { Divider, Text, Button } from "@chakra-ui/react";
 import UIContext from "../core/providers/UIProvider/context";
 import React from "react";
-import {
-  HamburgerIcon,
-  ArrowLeftIcon,
-  ArrowRightIcon,
-  LockIcon,
-} from "@chakra-ui/icons";
+import { LockIcon } from "@chakra-ui/icons";
 import { MdSettings, MdDashboard, MdTimeline } from "react-icons/md";
-import {
-  PRIMARY_MOON_LOGO_URL,
-  SITEMAP,
-  PAGETYPE,
-  BACKGROUND_COLOR,
-} from "../core/constants";
+import { SITEMAP, PAGETYPE, BACKGROUND_COLOR } from "../core/constants";
 import useDashboard from "../core/hooks/useDashboard";
 import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 import OverlayContext from "../core/providers/OverlayProvider/context";
@@ -48,41 +30,8 @@ const Sidebar = () => {
       onToggle={ui.setSidebarToggled}
       collapsed={ui.sidebarCollapsed}
       hidden={!ui.sidebarVisible}
+      className={ui.isMobileView ? "t40" : "t0"}
     >
-      <SidebarHeader>
-        <Flex>
-          <IconButton
-            ml={4}
-            justifySelf="flex-start"
-            colorScheme="blackAlpha"
-            bgColor={BACKGROUND_COLOR}
-            aria-label="App navigation"
-            icon={
-              ui.isMobileView ? (
-                <HamburgerIcon />
-              ) : ui.sidebarCollapsed ? (
-                <ArrowRightIcon />
-              ) : (
-                <ArrowLeftIcon />
-              )
-            }
-            onClick={() => {
-              ui.isMobileView
-                ? ui.setSidebarToggled(!ui.sidebarToggled)
-                : ui.setSidebarCollapsed(!ui.sidebarCollapsed);
-            }}
-          />
-          <RouterLink href="/" passHref>
-            <Image
-              w="160px"
-              py="0.75rem"
-              pl={1}
-              src={PRIMARY_MOON_LOGO_URL}
-              alt="Moonstream To"
-            />
-          </RouterLink>
-        </Flex>
-      </SidebarHeader>
       <SidebarContent>
         <Divider borderColor={BACKGROUND_COLOR} />
         <Menu iconShape="square">

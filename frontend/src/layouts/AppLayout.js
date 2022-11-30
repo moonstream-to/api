@@ -1,9 +1,10 @@
 import { Flex, Spinner, Box } from "@chakra-ui/react";
 import { getLayout as getSiteLayout } from "./RootLayout";
-import React, { useContext, useEffect } from "react";
+import React, { Suspense, useContext, useEffect } from "react";
 import UIContext from "../core/providers/UIProvider/context";
 import AppNavbar from "../components/AppNavbar";
 import { BACKGROUND_COLOR } from "../core/constants";
+import Sidebar from "../components/Sidebar";
 
 const AppLayout = ({ children }) => {
   const ui = useContext(UIContext);
@@ -25,6 +26,7 @@ const AppLayout = ({ children }) => {
       w="100%"
       overflow="hidden"
       direction="column"
+      pb="85px"
     >
       {(!ui.isAppReady || !ui.isLoggedIn) && (
         <Spinner
@@ -55,7 +57,19 @@ const AppLayout = ({ children }) => {
       >
         <AppNavbar />
       </Flex>
-      {ui.isAppReady && ui.isLoggedIn && children}
+      <Flex
+        direction="row"
+        // id="Bugout"
+        className="Main"
+        w="100%"
+        h="100%"
+        maxH="100%"
+      >
+        <Suspense fallback="">
+          <Sidebar />
+        </Suspense>
+        {ui.isAppReady && ui.isLoggedIn && children}
+      </Flex>
     </Flex>
   );
 };

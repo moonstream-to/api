@@ -1,15 +1,7 @@
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useToast, useForgotPassword } from "../core/hooks";
-import {
-  FormControl,
-  InputGroup,
-  FormErrorMessage,
-  Button,
-  Input,
-  InputRightElement,
-} from "@chakra-ui/react";
-import CustomIcon from "./CustomIcon";
+import { FormControl, InputGroup, Button, Input } from "@chakra-ui/react";
 import { MODAL_TYPES } from "../core/providers/OverlayProvider/constants";
 
 const ForgotPassword = ({ toggleModal }) => {
@@ -19,34 +11,39 @@ const ForgotPassword = ({ toggleModal }) => {
 
   useEffect(() => {
     if (!data) return;
-
     toggleModal({ type: MODAL_TYPES.OFF });
   }, [data, toggleModal, toast]);
 
   return (
     <form onSubmit={handleSubmit(forgotPassword)}>
+      <div
+        style={{
+          fontSize: "18px",
+          fontWeight: 400,
+          color: errors.username ? "#EE8686" : "white",
+        }}
+      >
+        {errors.email ? errors.email.message : "Email"}
+      </div>
       <FormControl isInvalid={errors.email} my={4}>
         <InputGroup>
           <Input
-            colorScheme="blue"
-            variant="filled"
-            placeholder="Your email here"
+            variant="bw"
+            placeholder="Enter your email"
             name="email"
-            ref={register({ required: "Email is required!" })}
+            autoComplete="email"
+            ref={register({ required: "Email is required" })}
           />
-          <InputRightElement>
-            <CustomIcon icon="name" />
-          </InputRightElement>
         </InputGroup>
-        <FormErrorMessage color="red.400" pl="1">
-          {errors.email && errors.email.message}
-        </FormErrorMessage>
       </FormControl>
       <Button
+        mt="30px"
+        mb="10px"
+        fontSize="lg"
+        h="46px"
         type="submit"
-        variant="solid"
-        colorScheme="blue"
         width="100%"
+        variant="plainOrange"
         isLoading={isLoading}
       >
         Send

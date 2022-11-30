@@ -72,7 +72,7 @@ const Tokens = () => {
         <ScaleFade in>
           <Modal isOpen={isOpen} onClose={onClose} size="lg" trapFocus={false}>
             <ModalOverlay />
-            <ModalContent>
+            <ModalContent bg="black.300">
               <ModalHeader>New API access token</ModalHeader>
               <ModalCloseButton />
               <ModalBody>
@@ -85,6 +85,7 @@ const Tokens = () => {
             <Stack direction={["column", "row", null]} w="100%">
               <InputGroup size="sm" variant="outline">
                 <Input
+                  variant="bw"
                   type="search"
                   maxW="300px"
                   flexBasis="50px"

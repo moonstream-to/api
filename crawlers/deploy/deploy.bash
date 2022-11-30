@@ -34,6 +34,7 @@ ETHEREUM_TRENDING_TIMER_FILE="ethereum-trending.timer"
 ETHEREUM_TXPOOL_SERVICE_FILE="ethereum-txpool.service"
 ETHEREUM_MISSING_SERVICE_FILE="ethereum-missing.service"
 ETHEREUM_MISSING_TIMER_FILE="ethereum-missing.timer"
+ETHEREUM_MOONWORM_CRAWLER_SERVICE_FILE="ethereum-moonworm-crawler.service"
 
 # Polygon service files
 POLYGON_SYNCHRONIZE_SERVICE="polygon-synchronize.service"
@@ -49,6 +50,8 @@ POLYGON_STATE_CLEAN_SERVICE_FILE="polygon-state-clean.service"
 POLYGON_STATE_CLEAN_TIMER_FILE="polygon-state-clean.timer"
 POLYGON_METADATA_SERVICE_FILE="polygon-metadata.service"
 POLYGON_METADATA_TIMER_FILE="polygon-metadata.timer"
+POLYGON_CU_REPORTS_TOKENONOMICS_SERVICE_FILE="polygon-cu-reports-tokenonomics.service"
+POLYGON_CU_REPORTS_TOKENONOMICS_TIMER_FILE="polygon-cu-reports-tokenonomics.timer"
 
 # Mumbai service files
 MUMBAI_SYNCHRONIZE_SERVICE="mumbai-synchronize.service"
@@ -141,6 +144,14 @@ cp "${SCRIPT_DIR}/${ETHEREUM_MISSING_SERVICE_FILE}" "/etc/systemd/system/${ETHER
 cp "${SCRIPT_DIR}/${ETHEREUM_MISSING_TIMER_FILE}" "/etc/systemd/system/${ETHEREUM_MISSING_TIMER_FILE}"
 systemctl daemon-reload
 systemctl restart --no-block "${ETHEREUM_MISSING_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Ethereum moonworm crawler service definition with ${ETHEREUM_MOONWORM_CRAWLER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ETHEREUM_MOONWORM_CRAWLER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_MOONWORM_CRAWLER_SERVICE_FILE}" "/etc/systemd/system/${ETHEREUM_MOONWORM_CRAWLER_SERVICE_FILE}"
+systemctl daemon-reload
+systemctl restart --no-block "${ETHEREUM_MOONWORM_CRAWLER_SERVICE_FILE}"
 
 echo
 echo
@@ -269,3 +280,12 @@ cp "${SCRIPT_DIR}/${POLYGON_METADATA_SERVICE_FILE}" "/etc/systemd/system/${POLYG
 cp "${SCRIPT_DIR}/${POLYGON_METADATA_TIMER_FILE}" "/etc/systemd/system/${POLYGON_METADATA_TIMER_FILE}"
 systemctl daemon-reload
 systemctl restart --no-block "${POLYGON_METADATA_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Polygon CU reports tokenonomics service and timer with: ${POLYGON_CU_REPORTS_TOKENONOMICS_SERVICE_FILE}, ${POLYGON_CU_REPORTS_TOKENONOMICS_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${POLYGON_CU_REPORTS_TOKENONOMICS_SERVICE_FILE}" "${SCRIPT_DIR}/${POLYGON_CU_REPORTS_TOKENONOMICS_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${POLYGON_CU_REPORTS_TOKENONOMICS_SERVICE_FILE}" "/etc/systemd/system/${POLYGON_CU_REPORTS_TOKENONOMICS_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${POLYGON_CU_REPORTS_TOKENONOMICS_TIMER_FILE}" "/etc/systemd/system/${POLYGON_CU_REPORTS_TOKENONOMICS_TIMER_FILE}"
+systemctl daemon-reload
+systemctl restart --no-block "${POLYGON_CU_REPORTS_TOKENONOMICS_TIMER_FILE}"

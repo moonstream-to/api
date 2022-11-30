@@ -64,6 +64,7 @@ const TokenRequest = ({ setNewToken, onClose }) => {
             <chakra.label for="pwd">API key label:</chakra.label>
             <Input
               w="100%"
+              variant="bw"
               ref={register}
               name="token_note"
               placeholder="My API key label"
@@ -81,7 +82,7 @@ const TokenRequest = ({ setNewToken, onClose }) => {
                 <Input
                   id="pwd"
                   colorScheme="blue"
-                  variant="filled"
+                  variant="bw"
                   isDisabled={createToken.isLoading}
                   placeholder="This action requires your password to confirm"
                   name="password"
@@ -114,12 +115,7 @@ const TokenRequest = ({ setNewToken, onClose }) => {
             >
               Submit
             </Button>
-            <Button
-              variant="solid"
-              colorScheme="red"
-              type="submit"
-              onClick={() => onClose()}
-            >
+            <Button variant="solid" colorScheme="red" onClick={() => onClose()}>
               Cancel
             </Button>
           </Stack>
