@@ -210,7 +210,7 @@ tokenomics_queries = [
                     select
                         transaction_hash,
                         CASE
-                            WHEN type: ='NFT' THEN 1
+                            WHEN :type ='NFT' THEN 1
                             ELSE (label_data->'args'->>'value')::decimal
                         END as value,
                         block_timestamp as block_timestamp
@@ -229,7 +229,7 @@ tokenomics_queries = [
                     sum(all_transfers.value) as value,
                     sum(
                     CASE
-                        WHEN to_address in ('0xF715bEb51EC8F63317d66f491E37e7BB048fCc2d','0xfede379e48C873C75F3cc0C81F7C784aD730a8F7','0x00000000006c3852cbef3e08e8df289169ede581')
+                        WHEN to_address in ('0xF715bEb51EC8F63317d66f491E37e7BB048fCc2d','0xfede379e48C873C75F3cc0C81F7C784aD730a8F7','0x00000000006c3852cbEf3e08E8dF289169EdE581')
                         THEN 1
                         else 0
                     END
@@ -241,7 +241,7 @@ tokenomics_queries = [
                     sum(after_range_transfer.value) as value,
                     sum(
                         CASE
-                            WHEN to_address in ('0xF715bEb51EC8F63317d66f491E37e7BB048fCc2d','0xfede379e48C873C75F3cc0C81F7C784aD730a8F7','0x00000000006c3852cbef3e08e8df289169ede581')
+                            WHEN to_address in ('0xF715bEb51EC8F63317d66f491E37e7BB048fCc2d','0xfede379e48C873C75F3cc0C81F7C784aD730a8F7','0x00000000006c3852cbEf3e08E8dF289169EdE581')
                             THEN 1
                             else 0
                         END
@@ -281,7 +281,7 @@ tokenomics_queries = [
         sum(interval_transfers.value) as value,
         sum(
         CASE
-            WHEN to_address in ('0xF715bEb51EC8F63317d66f491E37e7BB048fCc2d','0xfede379e48C873C75F3cc0C81F7C784aD730a8F7','0x00000000006c3852cbef3e08e8df289169ede581')
+            WHEN to_address in ('0xF715bEb51EC8F63317d66f491E37e7BB048fCc2d','0xfede379e48C873C75F3cc0C81F7C784aD730a8F7','0x00000000006c3852cbEf3e08E8dF289169EdE581')
             THEN 1
             else 0
         END
@@ -334,7 +334,7 @@ tokenomics_queries = [
             sum(nfts_data.value) as value,
             sum(
             CASE
-                WHEN to_address in ('0xF715bEb51EC8F63317d66f491E37e7BB048fCc2d','0xfede379e48C873C75F3cc0C81F7C784aD730a8F7','0x00000000006c3852cbef3e08e8df289169ede581')
+                WHEN to_address in ('0xF715bEb51EC8F63317d66f491E37e7BB048fCc2d','0xfede379e48C873C75F3cc0C81F7C784aD730a8F7','0x00000000006c3852cbEf3e08E8dF289169EdE581')
                 THEN 1
                 else 0
             END
@@ -372,7 +372,7 @@ tokenomics_queries = [
         contract_erc721_transfers.seller as seller
     from polygon_transactions
         inner JOIN contract_erc721_transfers ON contract_erc721_transfers.transaction_hash = polygon_transactions.hash
-    where polygon_transactions.to_address in ('0xF715bEb51EC8F63317d66f491E37e7BB048fCc2d','0xfede379e48C873C75F3cc0C81F7C784aD730a8F7', '0x00000000006c3852cbef3e08e8df289169ede581') 
+    where polygon_transactions.to_address in ('0xF715bEb51EC8F63317d66f491E37e7BB048fCc2d','0xfede379e48C873C75F3cc0C81F7C784aD730a8F7', '0x00000000006c3852cbEf3e08E8dF289169EdE581') 
     limit :amount
 """,
     },
