@@ -28,10 +28,10 @@ This repository contains Moonstream's complete data analysis stack. The emphasis
 People from different backgrounds who are interested in data, crypto and code.
 Moonstream tools are often used by game designers and economists, data scientists, smart contract developers, backend engineers, and teams managing loyalty programs for blockchain projects.
 
-Some of the prominents customers:
+Some projects currently using Moonstream:
 
 1. [Laguna Games](https://laguna.games), makers of [Crypto Unicorns](https://cryptounicorns.fun)
-2. [RealtyBits](https://realtybits.com)
+2. [Game7](https://game7.io)
 3. [Champions Ascension](https://www.champions.io/)
 
 Please read [the Game Master's Guide to Moonstream Solutions](https://docs.google.com/document/d/1mjfF8SgRrAZvtCVVxB2qNSUcbbmrH6dTEYSMfHKdEgc/view) if you want to know how Moonstream tools are applied in web3 games. 
