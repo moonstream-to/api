@@ -341,6 +341,11 @@ def handle_crawl(args: argparse.Namespace) -> None:
     Read all view methods of the contracts and crawl
     """
 
+    address = "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f"
+
+    if args.address:
+        address = args.address
+
     my_job = {
         "type": "function",
         "stateMutability": "view",
@@ -359,14 +364,14 @@ def handle_crawl(args: argparse.Namespace) -> None:
                             "type": "uint256",
                         }
                     ],
-                    "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+                    "address": address,
                     "inputs": [],
                 },
             }
         ],
         "name": "tokenURI",
         "outputs": [{"internalType": "string", "name": "", "type": "string"}],
-        "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+        "address": address,
     }
 
     blockchain_type = AvailableBlockchainType(args.blockchain)
@@ -455,6 +460,13 @@ def main() -> None:
         type=int,
         default=500,
         help="Size of chunks wich send to Multicall2 contract.",
+    )
+    view_state_crawler_parser.add_argument(
+        "--address",
+        "-a",
+        type=str,
+        default="0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
+        help="Contract address.",
     )
     view_state_crawler_parser.set_defaults(func=handle_crawl)
 
