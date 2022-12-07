@@ -14,6 +14,7 @@ from moonstreamdb.db import (
     create_moonstream_engine,
 )
 from sqlalchemy.orm import sessionmaker
+from web3 import Web3
 
 from .db import view_call_to_label, commit_session, clean_labels
 from .Multicall2_interface import Contract as Multicall2
@@ -344,7 +345,7 @@ def handle_crawl(args: argparse.Namespace) -> None:
     address = "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f"
 
     if args.address:
-        address = args.address
+        address = Web3.toChecksumAddress(args.address)
 
     my_job = {
         "type": "function",
