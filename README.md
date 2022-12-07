@@ -8,18 +8,31 @@
 
 ## What is Moonstream?
 
-Moonstream makes tools that help people build, manage, and maintain their blockchain economies.
+Moonstream creates comprehensive economic infrastructure for web3 projects with a focus on blockchain games. 
+To do this, we created data analytics tools which help people gather actionable data; plus, we are continually creating on-chain mechanics, so that users can act on the data gathered. 
 
-In order to provide this functionality, we build a lot of technology to crawl blockchains and makes sense of crawled transactions and events. This repository contains that code.
+We build a lot of technology to crawl blockchains and make sense of crawled transactions and events. This repository contains that code.
+
+## Important resources
+1. [Documentation](https://docs.moonstream.to/)
+2. [Status page](https://moonstream.to/status/)
+3. [On-chain mechanics](https://moonstream.to/features/)
+4. [How to create a dashboard to analyze a smart contract?](https://voracious-gerbil-120.notion.site/Creating-dashboard-for-a-smart-contract-288b1bfa64984b109b79895f69129fce)
 
 ## Who uses Moonstream?
 
-Game designers and economists, data scientists, smart contract developers, backend engineers, and teams managing loyalty programs for blockchain projects.
+People from different backgrounds who are interested in data, crypto and code.
+We know especially well how Moonstream tools can benefit web3 games, and some of the people who can use the tools to advance their projects are game designers and economists, data scientists, smart contract developers, backend engineers, and teams managing loyalty programs for blockchain projects.
 
 Some of our prominents customers:
 
 1. [Laguna Games](https://laguna.games), makers of [Crypto Unicorns](https://cryptounicorns.fun)
 2. [RealtyBits](https://realtybits.com)
+3. [Champions Ascension](https://www.champions.io/)
+
+To know more about our web3 games related use cases please read [the Game Master's Guide to Moonstream Solutions](https://docs.google.com/document/d/1mjfF8SgRrAZvtCVVxB2qNSUcbbmrH6dTEYSMfHKdEgc/view).
+
+Our [Moonworm tool](https://github.com/bugout-dev/moonworm) is used to build datasets of on-chain data related to market activity. We have a dataset with on-chain activity from the Ethereum NFT market (April 1 to September 25, 2021) [on Kaggle](https://www.kaggle.com/datasets/simiotic/ethereum-nfts). And [here](https://github.com/bugout-dev/moonstream/blob/main/datasets/nfts/papers/ethereum-nfts.pdf) is our full report on it. We’re working on V2 of the dataset above, you can collaborate with us. Reach out to @zomglings on the [Moonstream Discord](https://discord.gg/pYE65FuNSz) if interested.  
 
 ## Free software
 
@@ -66,4 +79,4 @@ docker-compose up --build
 
 ## Contributing
 
-If you would like to contribute to Moonstream, please reach out to @zomglings on the [Moonstream Discord](https://discord.gg/pYE65FuNSz).
+We are working on contributing guidelines. In the meantime, please reach out to @zomglings on the [Moonstream Discord](https://discord.gg/pYE65FuNSz).
