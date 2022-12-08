@@ -39,7 +39,7 @@ def crawl_uri(metadata_uri: str) -> Any:
     while retry < 3:
         try:
 
-            response = urllib.request.urlopen(metadata_uri, timeout=5)
+            response = urllib.request.urlopen(metadata_uri, timeout=30.0)
 
             if response.status == 200:
                 result = json.loads(response.read())
