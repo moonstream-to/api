@@ -55,6 +55,7 @@ const MobileFiledInput = ({
   return (
     <>
       <Input
+        variant="bw"
         ref={inputRef}
         type="text"
         value={value}

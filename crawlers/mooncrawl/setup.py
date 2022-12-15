@@ -38,6 +38,7 @@ setup(
         "chardet",
         "fastapi",
         "moonstreamdb>=0.3.2",
+        "moonstream>=0.1.1",
         "moonworm[moonstream]>=0.5.2",
         "humbug",
         "pydantic==1.9.2",
@@ -64,6 +65,7 @@ setup(
             "statistics=mooncrawl.stats_worker.dashboard:main",
             "state-crawler=mooncrawl.state_crawler.cli:main",
             "metadata-crawler=mooncrawl.metadata_crawler.cli:main",
+            "custom-crawler=mooncrawl.cu_reports_crawler.cli:main",
         ]
     },
 )

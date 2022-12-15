@@ -77,7 +77,7 @@ export const SITEMAP = [
     children: [
       {
         title: "Docs",
-        path: "/docs",
+        path: "https://docs.moonstream.to/",
         type: PAGETYPE.CONTENT,
       },
       {

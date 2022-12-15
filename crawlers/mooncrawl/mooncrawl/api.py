@@ -188,7 +188,7 @@ async def queries_data_update_handler(
 
     # request.params validations
     passed_params = {
-        key: value
+        key: queries.from_json_types(value)
         for key, value in request_data.params.items()
         if key in expected_query_parameters
     }
@@ -220,7 +220,7 @@ async def queries_data_update_handler(
             query_id=f"{query_id}",
             file_type=request_data.file_type,
             query=valid_query,
-            params=request_data.params,
+            params=passed_params,
         )
 
     except Exception as e:

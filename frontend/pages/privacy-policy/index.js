@@ -4,7 +4,7 @@ import { DEFAULT_METATAGS } from "../../src/core/constants";
 import { getLayout, getLayoutProps } from "../../src/layouts/WideInfoPage";
 
 const PrivacyPolicy = () => (
-  <Box>
+  <Box mt="72px">
     <Box px="1.5rem" m="auto" mb={8} maxWidth="1199.98px" minHeight="60vh">
       <Heading my={8} as="h1">
         Privacy Policy for Moonstream

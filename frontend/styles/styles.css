@@ -267,3 +267,32 @@ code {
     linear-gradient(to right, transparent 6px, white 6px),
     linear-gradient(to bottom, #444 1px, transparent 1px);
 }
+
+
+.desktop-menu-item {
+  color: white;
+  font-weight: 400;
+  padding-left: 0px;
+  padding-right: 0px;
+  margin-bottom: 10px;
+  height: 22px;
+  cursor: pointer;
+}
+
+.desktop-menu-item:hover {
+  color: #F56646;
+  font-weight: 700;
+}
+
+/* to dont change div size when bolding text. 
+Need 'title' attr in the longest item's tag*/
+.desktop-menu-item::after {
+  display: block;
+  content: attr(title);
+  font-weight: 700;
+  height: 1px;
+  color: transparent;
+  overflow: hidden;
+  visibility: hidden;
+}
+

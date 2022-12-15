@@ -4,7 +4,6 @@ import {
   FormLabel,
   Stack,
   Button,
-  Badge,
   Spinner,
   Accordion,
   AccordionItem,
@@ -13,6 +12,7 @@ import {
   AccordionIcon,
   Box,
   IconButton,
+  Text,
 } from "@chakra-ui/react";
 import { useSubscriptions } from "../core/hooks";
 import color from "color";
@@ -78,7 +78,7 @@ const NewDashboardChart = () => {
                   });
                 }
                 return (
-                  <AccordionItem key={`new-chart-component-${idx}`}>
+                  <AccordionItem pt="5px" key={`new-chart-component-${idx}`}>
                     {subscribedItem?.subscription_id &&
                       subscriptionItemFromCache && (
                         <>
@@ -244,33 +244,25 @@ const NewDashboardChart = () => {
                               </Button>
                             )}
                             dropdownItem={(item) => {
-                              const badgeColor = color(`${item.color}`);
                               return (
-                                <>
+                                <Stack cursor="pointer" direction="row">
                                   <chakra.span whiteSpace="nowrap">
                                     {item.label}
                                   </chakra.span>
-                                  <Badge
-                                    size="sm"
-                                    placeSelf="self-end"
-                                    colorScheme={item.abi ? "green" : "gray"}
+                                  <Text
+                                    fontSize="md"
+                                    color={item.abi ? "white" : "gray"}
                                   >
                                     ABI
-                                  </Badge>
-                                  <Badge
+                                  </Text>
+                                  <Text
                                     isTruncated
-                                    size="sm"
-                                    placeSelf="self-end"
-                                    bgColor={item.color}
-                                    color={
-                                      badgeColor.isDark()
-                                        ? badgeColor.lighten(100).hex()
-                                        : badgeColor.darken(0.6).hex()
-                                    }
+                                    fontSize="md"
+                                    placeSelf="self-center"
                                   >
                                     {item.address}
-                                  </Badge>
-                                </>
+                                  </Text>
+                                </Stack>
                               );
                             }}
                           />
@@ -299,7 +291,8 @@ const NewDashboardChart = () => {
       )}
 
       <Button
-        colorScheme="green"
+        variant="plainOrange"
+        fontSize="md"
         size="md"
         onClick={() =>
           ui.dispatchDashboardUpdate({

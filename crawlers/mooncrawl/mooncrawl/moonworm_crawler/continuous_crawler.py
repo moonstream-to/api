@@ -252,6 +252,7 @@ def continuous_crawler(
                 start_block = end_block + 1
                 failed_count = 0
             except Exception as e:
+                db_session.rollback()
                 logger.error(f"Internal error: {e}")
                 logger.exception(e)
                 failed_count += 1
