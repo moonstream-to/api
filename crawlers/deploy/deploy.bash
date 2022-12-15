@@ -58,6 +58,10 @@ MUMBAI_SYNCHRONIZE_SERVICE="mumbai-synchronize.service"
 MUMBAI_MISSING_SERVICE_FILE="mumbai-missing.service"
 MUMBAI_MISSING_TIMER_FILE="mumbai-missing.timer"
 MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE="mumbai-moonworm-crawler.service"
+MUMBAI_STATE_SERVICE_FILE="mumbai-state.service"
+MUMBAI_STATE_TIMER_FILE="mumbai-state.timer"
+MUMBAI_STATE_CLEAN_SERVICE_FILE="mumbai-state-clean.service"
+MUMBAI_STATE_CLEAN_TIMER_FILE="mumbai-state-clean.timer"
 
 # XDai service files
 XDAI_SYNCHRONIZE_SERVICE="xdai-synchronize.service"
@@ -289,3 +293,23 @@ cp "${SCRIPT_DIR}/${POLYGON_CU_REPORTS_TOKENONOMICS_SERVICE_FILE}" "/etc/systemd
 cp "${SCRIPT_DIR}/${POLYGON_CU_REPORTS_TOKENONOMICS_TIMER_FILE}" "/etc/systemd/system/${POLYGON_CU_REPORTS_TOKENONOMICS_TIMER_FILE}"
 systemctl daemon-reload
 systemctl restart --no-block "${POLYGON_CU_REPORTS_TOKENONOMICS_TIMER_FILE}"
+
+
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing MUMBAI state service and timer with: ${MUMBAI_STATE_SERVICE_FILE}, ${MUMBAI_STATE_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${MUMBAI_STATE_SERVICE_FILE}" "${SCRIPT_DIR}/${MUMBAI_STATE_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${MUMBAI_STATE_SERVICE_FILE}" "/etc/systemd/system/${MUMBAI_STATE_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${MUMBAI_STATE_TIMER_FILE}" "/etc/systemd/system/${MUMBAI_STATE_TIMER_FILE}"
+systemctl daemon-reload
+systemctl restart --no-block "${MUMBAI_STATE_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing MUMBAI state clean service and timer with: ${MUMBAI_STATE_CLEAN_SERVICE_FILE}, ${MUMBAI_STATE_CLEAN_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${MUMBAI_STATE_CLEAN_SERVICE_FILE}" "${SCRIPT_DIR}/${MUMBAI_STATE_CLEAN_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${MUMBAI_STATE_CLEAN_SERVICE_FILE}" "/etc/systemd/system/${MUMBAI_STATE_CLEAN_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${MUMBAI_STATE_CLEAN_TIMER_FILE}" "/etc/systemd/system/${MUMBAI_STATE_CLEAN_TIMER_FILE}"
+systemctl daemon-reload
+systemctl restart --no-block "${MUMBAI_STATE_CLEAN_TIMER_FILE}"
