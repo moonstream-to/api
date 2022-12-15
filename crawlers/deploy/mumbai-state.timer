@@ -1,0 +1,9 @@
+[Unit]
+Description=Execute Polygon state crawler each 10m
+
+[Timer]
+OnBootSec=15s
+OnUnitActiveSec=10m
+
+[Install]
+WantedBy=timers.target

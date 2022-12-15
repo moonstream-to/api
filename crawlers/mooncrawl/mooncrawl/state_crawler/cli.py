@@ -28,9 +28,11 @@ from .Multicall2_interface import Contract as Multicall2
 from ..settings import (
     NB_CONTROLLER_ACCESS_ID,
     MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS,
+    INFURA_PROJECT_ID,
     multicall_contracts,
+    infura_networks,
 )
-from .web3_util import FunctionSignature
+from .web3_util import FunctionSignature, connect
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -272,18 +274,13 @@ def parse_jobs(
     contracts_methods: Dict[str, Any] = {}
     calls: Dict[int, Any] = {0: []}
 
-    if web3_provider_uri is None:
-
-        logger.info(f"Connecting to blockchain: {blockchain_type} with Node balancer.")
-        web3_client = _retry_connect_web3(
-            blockchain_type=blockchain_type, access_id=access_id
-        )
-    else:
+    if web3_provider_uri is not None:
         try:
             logger.info(
                 f"Connecting to blockchain: {blockchain_type} with custom provider!"
             )
-            web3_client = Web3(HTTPProvider(web3_provider_uri))
+
+            web3_client = connect(web3_provider_uri)
 
             if blockchain_type != AvailableBlockchainType.ETHEREUM:
                 web3_client.middleware_onion.inject(geth_poa_middleware, layer=0)
@@ -292,6 +289,11 @@ def parse_jobs(
                 f"Web3 connection to custom provider {web3_provider_uri} failed error: {e}"
             )
             raise (e)
+    else:
+        logger.info(f"Connecting to blockchain: {blockchain_type} with Node balancer.")
+        web3_client = _retry_connect_web3(
+            blockchain_type=blockchain_type, access_id=access_id
+        )
 
     logger.info(f"Crawler started connected to blockchain: {blockchain_type}")
 
@@ -459,10 +461,20 @@ def handle_crawl(args: argparse.Namespace) -> None:
 
     blockchain_type = AvailableBlockchainType(args.blockchain)
 
+    custom_web3_provider = args.custom_web3_provider
+
+    if args.infura and INFURA_PROJECT_ID is not None:
+        if blockchain_type not in infura_networks:
+            raise ValueError(
+                f"Infura is not supported for {blockchain_type} blockchain type"
+            )
+        logger.info(f"Using Infura!")
+        custom_web3_provider = infura_networks[blockchain_type]["url"]
+
     parse_jobs(
         jobs,
         blockchain_type,
-        args.custom_web3_provider,
+        custom_web3_provider,
         args.block_number,
         args.batch_size,
         args.access_id,
@@ -538,6 +550,11 @@ def main() -> None:
         type=str,
         help="Type of blovkchain wich writng in database",
         required=True,
+    )
+    view_state_crawler_parser.add_argument(
+        "--infura",
+        action="store_true",
+        help="Use infura as web3 provider",
     )
     view_state_crawler_parser.add_argument(
         "--custom-web3-provider",
