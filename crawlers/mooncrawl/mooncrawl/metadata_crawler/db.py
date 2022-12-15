@@ -93,13 +93,6 @@ def get_uris_of_tokens(
         {"table": table, "label": VIEW_STATE_CRAWLER_LABEL, "name": "tokenURI"},
     )
 
-    index = 0
-    for data in metadata_for_parsing:
-        index += 1
-        print(data)
-        if index == 100:
-            break
-
     results = [
         TokenURIs(
             token_id=data[0],
