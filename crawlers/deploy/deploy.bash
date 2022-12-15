@@ -62,6 +62,8 @@ MUMBAI_STATE_SERVICE_FILE="mumbai-state.service"
 MUMBAI_STATE_TIMER_FILE="mumbai-state.timer"
 MUMBAI_STATE_CLEAN_SERVICE_FILE="mumbai-state-clean.service"
 MUMBAI_STATE_CLEAN_TIMER_FILE="mumbai-state-clean.timer"
+MUMBAI_METADATA_SERVICE_FILE="mumbai-metadata.service"
+MUMBAI_METADATA_TIMER_FILE="mumbai-metadata.timer"
 
 # XDai service files
 XDAI_SYNCHRONIZE_SERVICE="xdai-synchronize.service"
@@ -313,3 +315,13 @@ cp "${SCRIPT_DIR}/${MUMBAI_STATE_CLEAN_SERVICE_FILE}" "/etc/systemd/system/${MUM
 cp "${SCRIPT_DIR}/${MUMBAI_STATE_CLEAN_TIMER_FILE}" "/etc/systemd/system/${MUMBAI_STATE_CLEAN_TIMER_FILE}"
 systemctl daemon-reload
 systemctl restart --no-block "${MUMBAI_STATE_CLEAN_TIMER_FILE}"
+
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing MUMBAI metadata service and timer with: ${MUMBAI_METADATA_SERVICE_FILE}, ${MUMBAI_METADATA_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${MUMBAI_METADATA_SERVICE_FILE}" "${SCRIPT_DIR}/${MUMBAI_METADATA_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${MUMBAI_METADATA_SERVICE_FILE}" "/etc/systemd/system/${MUMBAI_METADATA_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${MUMBAI_METADATA_TIMER_FILE}" "/etc/systemd/system/${MUMBAI_METADATA_TIMER_FILE}"
+systemctl daemon-reload
+systemctl restart --no-block "${MUMBAI_METADATA_TIMER_FILE}"
