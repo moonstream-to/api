@@ -1,5 +1,5 @@
 [Unit]
-Description=Execute Polygon state crawler each 10m
+Description=Execute Mumbai state crawler each 10m
 
 [Timer]
 OnBootSec=15s

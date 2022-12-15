@@ -1,5 +1,5 @@
 [Unit]
-Description=Execute Polygon state clean labels crawler each 25m
+Description=Execute Mumbai state clean labels crawler each 25m
 
 [Timer]
 OnBootSec=50s
