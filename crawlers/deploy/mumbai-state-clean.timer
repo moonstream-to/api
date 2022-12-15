@@ -1,0 +1,9 @@
+[Unit]
+Description=Execute Mumbai state clean labels crawler each 25m
+
+[Timer]
+OnBootSec=50s
+OnUnitActiveSec=25m
+
+[Install]
+WantedBy=timers.target
