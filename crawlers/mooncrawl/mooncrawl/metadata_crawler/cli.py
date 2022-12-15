@@ -39,7 +39,7 @@ def crawl_uri(metadata_uri: str) -> Any:
     while retry < 3:
         try:
 
-            response = urllib.request.urlopen(metadata_uri, timeout=5)
+            response = urllib.request.urlopen(metadata_uri, timeout=10)
 
             if response.status == 200:
                 result = json.loads(response.read())
@@ -52,6 +52,7 @@ def crawl_uri(metadata_uri: str) -> Any:
             continue
         except Exception as err:
             logger.error(err)
+            logger.error(f"request end with error for url: {metadata_uri}")
             retry += 1
             continue
     return result
