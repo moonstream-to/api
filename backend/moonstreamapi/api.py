@@ -33,7 +33,6 @@ tags_metadata = [
     },
     {"name": "dashboards", "description": "Operations with user dashboards."},
     {"name": "queries", "description": "Operations with user queries."},
-    {"name": "public", "description": "Operations with public endpoints."},
     {"name": "streams", "description": "Operations with data streams and filters."},
     {"name": "subscriptions", "description": "Operations with user subscriptions."},
     {"name": "time", "description": "Server timestamp endpoints."},
