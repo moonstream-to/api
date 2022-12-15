@@ -210,3 +210,24 @@ if MOONSTREAM_S3_PUBLIC_DATA_BUCKET == "":
 MOONSTREAM_S3_PUBLIC_DATA_BUCKET_PREFIX = os.environ.get(
     "MOONSTREAM_S3_PUBLIC_DATA_BUCKET_PREFIX", "dev"
 )
+
+
+# infura config
+
+
+INFURA_PROJECT_ID = os.environ.get("INFURA_PROJECT_ID")
+
+infura_networks = {
+    AvailableBlockchainType.ETHEREUM: {
+        "name": "mainnet",
+        "url": f"https://mainnet.infura.io/v3/{INFURA_PROJECT_ID}",
+    },
+    AvailableBlockchainType.POLYGON: {
+        "name": "polygon",
+        "url": f"https://polygon-mainnet.infura.io/v3/{INFURA_PROJECT_ID}",
+    },
+    AvailableBlockchainType.MUMBAI: {
+        "name": "mumbai",
+        "url": f"https://polygon-mumbai.infura.io/v3/{INFURA_PROJECT_ID}",
+    },
+}

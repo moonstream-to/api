@@ -41,7 +41,7 @@ setup(
         "moonstream>=0.1.1",
         "moonworm[moonstream]>=0.5.2",
         "humbug",
-        "pydantic",
+        "pydantic==1.9.2",
         "python-dateutil",
         "requests",
         "tqdm",
