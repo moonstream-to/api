@@ -47,9 +47,6 @@ def make_multicall(
 
     multicall_calls = []
 
-    # Remove!
-    logger.info(f"multicall for methods {set([call['method'].name for call in calls])}")
-
     for call in calls:
         try:
             multicall_calls.append(
@@ -222,22 +219,21 @@ def crawl_calls_level(
             logger.info(f"lenght of task left {len(calls_of_level)}.")
             batch_size = min(batch_size * 2, max_batch_size)
         except ValueError as e:  # missing trie node
-            logger.info(f"ValueError: {e}, retrying")
+            logger.error(f"ValueError: {e}, retrying")
             retry += 1
             if "missing trie node" in str(e):
-                cache_session(web3_client.HTTPProvider.endpoint_uri, requests.Session())
                 time.sleep(4)
             if retry > 5:
                 raise (e)
             batch_size = max(batch_size // 3, min_batch_size)
         except TimeoutError as e:  # timeout
-            logger.info(f"TimeoutError: {e}, retrying")
+            logger.error(f"TimeoutError: {e}, retrying")
             retry += 1
             if retry > 5:
                 raise (e)
             batch_size = max(batch_size // 3, min_batch_size)
         except Exception as e:
-            logger.info(f"Exception: {e}")
+            logger.error(f"Exception: {e}")
             raise (e)
         time.sleep(2)
         print(f"retry: {retry}")
@@ -285,7 +281,7 @@ def parse_jobs(
             if blockchain_type != AvailableBlockchainType.ETHEREUM:
                 web3_client.middleware_onion.inject(geth_poa_middleware, layer=0)
         except Exception as e:
-            logger.info(
+            logger.error(
                 f"Web3 connection to custom provider {web3_provider_uri} failed error: {e}"
             )
             raise (e)
