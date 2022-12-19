@@ -196,7 +196,7 @@ const Homepage = () => {
                           />
                         </Link>
                         <Box
-                          fontSize={["30px", "50px"]}
+                          fontSize={["30px", "30px", "50px"]}
                           fontWeight="700"
                           maxW="613px"
                           mt="0px"
