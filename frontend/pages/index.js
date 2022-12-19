@@ -18,6 +18,7 @@ import {
   Icon,
   Spacer,
   SimpleGrid,
+  Button,
 } from "@chakra-ui/react";
 import { HiOutlineChatAlt2 } from "react-icons/hi";
 import useUser from "../src/core/hooks/useUser";
@@ -28,7 +29,6 @@ import {
   BACKGROUND_COLOR,
 } from "../src/core/constants";
 import TrustedBadge from "../src/components/TrustedBadge";
-import RouteButton from "../src/components/RouteButton";
 import AnalyticsContext from "../src/core/providers/AnalyticsProvider/context";
 import RouterLink from "next/link";
 import FAQCard from "../src/components/FAQCard";
@@ -68,6 +68,7 @@ const assets = {
   optimism: `${AWS_ASSETS_PATH}/optimism_logo.png`,
   orangedao: `${AWS_ASSETS_PATH}/featured_by/orangedao_logo.png`,
   polygon: `${AWS_ASSETS_PATH}/polygon_blockchain_logo.png`,
+  tech_crunch_winner: `${AWS_ASSETS_PATH}/tc_crypto_sessions_transparent.png`,
 };
 
 const Homepage = () => {
@@ -165,7 +166,7 @@ const Homepage = () => {
                       align="center"
                       justify="center"
                       boxSize="full"
-                      pt={["90px", "120px"]}
+                      pt={["90px", "142px"]}
                       pb={10}
                       px="5%"
                       flexDir="column"
@@ -173,20 +174,35 @@ const Homepage = () => {
                       <Stack
                         textAlign="center"
                         alignItems="center"
-                        spacing={6}
                         maxW={["1620px", null, null, null, "1620px", "2222px"]}
                         w="100%"
                       >
-                        <Heading
-                          fontSize={["4xl", "4xl", "5xl", "5xl", "5xl", "6xl"]}
-                          fontWeight="bold"
-                          color="white"
-                          as="h1"
-                          pb={[2, 4]}
-                          maxW={[null, "90%", "80%", "40%"]}
+                        <Link
+                          mb="60px"
+                          isExternal
+                          href="https://www.crypto-reporter.com/press-releases/moonstream-to-wins-techcrunch-pitch-off-earning-a-spot-at-disrupt-2023-39287/
+                      "
+                        >
+                          <ChakraImage
+                            src={assets.tech_crunch_winner}
+                            w="272px"
+                            h="59px"
+                            cursor="pointer"
+                            bg="#46C370"
+                            borderRadius="10px"
+                            _hover={{
+                              bg: "#3BB563",
+                            }}
+                          />
+                        </Link>
+                        <Box
+                          fontSize={["30px", "50px"]}
+                          fontWeight="700"
+                          maxW="613px"
+                          mt="0px"
                         >
                           {DEFAULT_METATAGS.title}
-                        </Heading>
+                        </Box>
                         <chakra.span
                           pb={[2, 6]}
                           fontSize={["md", "md", "md", "md", null]}
@@ -208,45 +224,34 @@ const Homepage = () => {
                           pb={10}
                         >
                           <Center>
-                            <RouteButton
-                              variant="whiteOnOrange"
-                              bg={
-                                "linear-gradient(92.26deg, #F56646 8.41%, #FFFFFF 255.37%);"
-                              }
-                              minW={["320px", "150px", null]}
-                              border="none"
+                            <Button
+                              variant="orangeGradient"
                               onClick={() => {
                                 buttonReport(
                                   "Boost",
                                   "front-and-center",
                                   "landing"
                                 );
+                                router.push("/contact");
                               }}
-                              href={"/contact"}
                             >
                               Get Started
-                            </RouteButton>
+                            </Button>
                           </Center>
                           <Center>
-                            <RouteButton
-                              variant="orangeAndBlue"
-                              bg="transparent"
-                              borderWidth="2px"
-                              borderColor="white"
-                              textColor="white"
-                              minW={["320px", "200px", null]}
+                            <Button
+                              variant="whiteOutline"
                               onClick={() => {
                                 buttonReport(
                                   "Discord",
                                   "front-and-center",
                                   "landing"
                                 );
+                                router.push("/discordleed");
                               }}
-                              href={"/discordleed"}
-                              isExternal
                             >
                               Join our Discord
-                            </RouteButton>
+                            </Button>
                           </Center>
                         </Stack>
                       </Stack>
@@ -550,36 +555,28 @@ const Homepage = () => {
                     pb={4}
                   >
                     <Center>
-                      <RouteButton
-                        variant="whiteOnOrange"
-                        backgroundColor="#F56646"
-                        minW={["320px", "300px", null]}
+                      <Button
+                        variant="plainOrange"
                         onClick={() => {
                           buttonReport("Features", "features", "landing");
+                          router.push("/features");
                         }}
-                        href={"/features"}
                       >
                         Learn more about our features
-                      </RouteButton>
+                      </Button>
                     </Center>
                     <Center>
-                      <RouteButton
-                        variant="orangeAndBlue"
-                        bg="transparent"
-                        borderWidth="2px"
-                        borderColor="white"
-                        textColor="white"
-                        minW={["320px", "300px", null]}
+                      <Button
+                        variant="whiteOutline"
                         onClick={() => {
                           buttonReport("Use Cases", "features", "landing");
+                          router.push(
+                            "https://docs.google.com/document/d/1mjfF8SgRrAZvtCVVxB2qNSUcbbmrH6dTEYSMfHKdEgc/view"
+                          );
                         }}
-                        href={
-                          "https://docs.google.com/document/d/1mjfF8SgRrAZvtCVVxB2qNSUcbbmrH6dTEYSMfHKdEgc/view"
-                        }
-                        isExternal
                       >
                         Explore the use cases
-                      </RouteButton>
+                      </Button>
                     </Center>
                   </Stack>
                 </Center>
@@ -914,7 +911,7 @@ const Homepage = () => {
                 </Accordion>
               </GridItem>
               <GridItem
-                px={["5%", null, "12%", "15%"]}
+                px="7%"
                 py={10}
                 colSpan="12"
                 bgColor={BACKGROUND_COLOR}
@@ -985,7 +982,7 @@ const Homepage = () => {
                 </Center>
               </GridItem>
               <GridItem
-                px={["5%", null, "12%", "15%"]}
+                px="7%"
                 pt={10}
                 pb={20}
                 colSpan="12"
@@ -1024,18 +1021,15 @@ const Homepage = () => {
                     </Text>
                   </Box>
                   <Spacer />
-                  <RouteButton
-                    variant="orangeAndBlue"
-                    bg="white"
-                    minW={["250px", "250px", null]}
-                    textColor={BACKGROUND_COLOR}
+                  <Button
+                    variant="solidWhite"
                     onClick={() => {
                       buttonReport("Boost", "page-bottom", "landing");
+                      router.push("/contact");
                     }}
-                    href={"/contact"}
                   >
                     Boost my game economy
-                  </RouteButton>
+                  </Button>
                 </Stack>
                 <Flex
                   w="100%"
@@ -1061,20 +1055,17 @@ const Homepage = () => {
                     {`Learn more about crypto, NFT and DAOs, find links to educational resources, discuss gaming projects, and laugh at memes.`}
                   </Text>
 
-                  <RouteButton
-                    variant="orangeAndBlue"
-                    bg="white"
-                    borderColor={lightOrangeColor}
-                    textColor={lightOrangeColor}
-                    minW={["200px", "250px", "250px", "250px", null]}
+                  <Button
+                    variant="whiteOutline"
+                    color="orange.1000"
+                    borderColor="orange.1000"
                     onClick={() => {
                       buttonReport("Discord", "page-bottom", "landing");
+                      router.push("/discordleed");
                     }}
-                    href={"/discordleed"}
-                    isExternal
                   >
                     Join our Discord
-                  </RouteButton>
+                  </Button>
                 </Flex>
               </GridItem>
             </Grid>
