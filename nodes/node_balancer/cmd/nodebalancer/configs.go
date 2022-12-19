@@ -18,7 +18,6 @@ var (
 	nodeConfigs []NodeConfig
 
 	// Bugout and application configuration
-	BUGOUT_AUTH_URL          = os.Getenv("BUGOUT_AUTH_URL")
 	BUGOUT_AUTH_CALL_TIMEOUT = time.Second * 5
 	NB_APPLICATION_ID        = os.Getenv("NB_APPLICATION_ID")
 	NB_CONTROLLER_TOKEN      = os.Getenv("NB_CONTROLLER_TOKEN")
@@ -60,8 +59,9 @@ func CheckEnvVarSet() {
 
 // Nodes configuration
 type NodeConfig struct {
-	Blockchain string `json:"blockchain"`
-	Endpoint   string `json:"endpoint"`
+	Blockchain string   `json:"blockchain"`
+	Endpoint   string   `json:"endpoint"`
+	Tags       []string `json:"tags"`
 }
 
 func LoadConfig(configPath string) error {
@@ -108,7 +108,7 @@ func GetConfigPath(providedPath string) (*ConfigPlacement, error) {
 			return nil, fmt.Errorf("Unable to find user home directory, %v", err)
 		}
 		configDirPath = fmt.Sprintf("%s/.nodebalancer", homeDir)
-		configPath = fmt.Sprintf("%s/config.txt", configDirPath)
+		configPath = fmt.Sprintf("%s/config.json", configDirPath)
 	} else {
 		configPath = strings.TrimSuffix(providedPath, "/")
 		configDirPath = filepath.Dir(configPath)
@@ -144,7 +144,7 @@ func GenerateDefaultConfig(config *ConfigPlacement) error {
 
 	if !config.ConfigExists {
 		tempConfig := []NodeConfig{
-			{Blockchain: "ethereum", Endpoint: "http://127.0.0.1:8545"},
+			{Blockchain: "ethereum", Endpoint: "http://127.0.0.1:8545", Tags: []string{"local"}},
 		}
 		tempConfigJson, err := json.Marshal(tempConfig)
 		if err != nil {

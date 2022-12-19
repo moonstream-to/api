@@ -5,7 +5,7 @@ package main
 
 import (
 	"context"
-	"encoding/json"
+	// "encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -130,32 +130,23 @@ func Server() {
 		os.Exit(1)
 	}
 	if len(resources.Resources) != 1 {
-		fmt.Printf("User with provided access identifier has wrong number of resources, err: %v\n", err)
-		os.Exit(1)
+		log.Println("There are no access IDs for users in resources")
+	} else {
+		log.Println("Found user access IDs in resources")
 	}
-	resource_data, err := json.Marshal(resources.Resources[0].ResourceData)
-	if err != nil {
-		fmt.Printf("Unable to encode resource data interface to json, err: %v\n", err)
-		os.Exit(1)
-	}
-	var clientAccess ClientResourceData
-	err = json.Unmarshal(resource_data, &clientAccess)
-	if err != nil {
-		fmt.Printf("Unable to decode resource data json to structure, err: %v\n", err)
-		os.Exit(1)
-	}
+
+	// Set internal crawlers access to bypass requests from internal services
+	// without fetching data from authn Brood server
+	internalCrawlersUserID := uuid.New().String()
 	internalCrawlersAccess = ClientResourceData{
-		UserID:           clientAccess.UserID,
-		AccessID:         clientAccess.AccessID,
-		Name:             clientAccess.Name,
-		Description:      clientAccess.Description,
-		BlockchainAccess: clientAccess.BlockchainAccess,
-		ExtendedMethods:  clientAccess.ExtendedMethods,
+		UserID:           internalCrawlersUserID,
+		AccessID:         NB_CONTROLLER_ACCESS_ID,
+		Name:             "InternalCrawlersAccess",
+		Description:      "Access for internal crawlers.",
+		BlockchainAccess: true,
+		ExtendedMethods:  true,
 	}
-	log.Printf(
-		"Internal crawlers access set, resource id: %s, blockchain access: %t, extended methods: %t",
-		resources.Resources[0].Id, clientAccess.BlockchainAccess, clientAccess.ExtendedMethods,
-	)
+	log.Printf("Internal crawlers access set with user ID: %s", internalCrawlersUserID)
 
 	err = InitDatabaseClient()
 	if err != nil {
