@@ -1,15 +1,16 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
   Text,
   Link,
   Box,
   Container,
-  SimpleGrid,
   Stack,
   Image as ChakraImage,
   useColorModeValue,
   VisuallyHidden,
   chakra,
+  Flex,
+  Spacer,
 } from "@chakra-ui/react";
 import RouterLink from "next/link";
 import {
@@ -17,8 +18,9 @@ import {
   SITEMAP,
   BACKGROUND_COLOR,
 } from "../core/constants";
-import { FaGithub, FaTwitter, FaDiscord, FaLinkedin } from "react-icons/fa";
 import moment from "moment";
+import { AWS_ASSETS_PATH } from "../core/constants";
+import UIContext from "../core/providers/UIProvider/context";
 
 const LINKS_SIZES = {
   fontWeight: "300",
@@ -38,8 +40,6 @@ const SocialButton = ({ children, label, href }) => {
     <chakra.button
       bg={useColorModeValue("blackAlpha.100", "whiteAlpha.100")}
       rounded={"full"}
-      w={8}
-      h={8}
       cursor={"pointer"}
       as={"a"}
       href={href}
@@ -57,82 +57,123 @@ const SocialButton = ({ children, label, href }) => {
   );
 };
 
-const Footer = () => (
-  <Box
-    bg={BACKGROUND_COLOR}
-    textColor="white"
-    borderTop="1px"
-    borderColor="white"
-  >
-    <Container as={Stack} maxW={"8xl"} py={10}>
-      <SimpleGrid
-        templateColumns={{ sm: "1fr 1fr", md: "2fr 1fr 1fr 1fr 1fr 1fr" }}
-        spacing={8}
-      >
-        <Stack spacing={6}>
-          <Box>
-            <Link href="/" alignSelf="center">
-              <ChakraImage
-                alignSelf="center"
-                w="160px"
-                src={PRIMARY_MOON_LOGO_URL}
-                alt="Go to app root"
-              />
-            </Link>
-          </Box>
-          <Text fontSize={"sm"}>
-            © {moment().year()} Moonstream.to All rights reserved
-          </Text>
-        </Stack>
-        <Stack>
-          <Text fontWeight="semibold">Follow Us</Text>
-          <Stack direction={"row"} spacing={6}>
-            <SocialButton label={"Discord"} href={"/discordleed"}>
-              <FaDiscord />
-            </SocialButton>
-            <SocialButton
-              label={"Twitter"}
-              href={"https://twitter.com/moonstreamto"}
-            >
-              <FaTwitter />
-            </SocialButton>
-            <SocialButton
-              label={"Github"}
-              href={"https://github.com/bugout-dev/moonstream"}
-            >
-              <FaGithub />
-            </SocialButton>
-            <SocialButton
-              label={"LinkedIn"}
-              href={"https://www.linkedin.com/company/moonstream/"}
-            >
-              <FaLinkedin />
-            </SocialButton>
-          </Stack>
-        </Stack>
-        {Object.values(SITEMAP).map((category, colIndex) => {
-          return (
-            <Stack align={"flex-start"} key={`footer-list-column-${colIndex}`}>
+const Footer = () => {
+  const ui = useContext(UIContext);
+  return (
+    <Box
+      bg={BACKGROUND_COLOR}
+      textColor="white"
+      borderTop="1px"
+      borderColor="white"
+      px="7%"
+    >
+      <Container as={Stack} maxW={"8xl"} py={10}>
+        <Flex direction={["column", "column", "row"]}>
+          <Stack spacing={6}>
+            <Box pb={ui.isMobileView ? "40px" : "0px"}>
+              <Link href="/" alignSelf="center">
+                <ChakraImage
+                  alignSelf="center"
+                  w="160px"
+                  src={PRIMARY_MOON_LOGO_URL}
+                  alt="Go to app root"
+                />
+              </Link>
+            </Box>
+            {!ui.isMobileView && (
               <>
-                <ListHeader>{category.title}</ListHeader>
-                {category.children.map((linkItem, linkItemIndex) => {
-                  return (
-                    <RouterLink
-                      passHref
-                      href={linkItem.path}
-                      key={`footer-list-link-item-${linkItemIndex}-col-${colIndex}`}
-                    >
-                      <Link {...LINKS_SIZES}>{linkItem.title}</Link>
-                    </RouterLink>
-                  );
-                })}
+                <Flex justifyContent="start">
+                  <Link href="//privacy-policy">Privacy policy</Link>
+                  <Link href="//tos" ml="20px">
+                    Terms of Service
+                  </Link>
+                </Flex>
+                <Text fontSize={"sm"}>
+                  © {moment().year()} Moonstream.to All rights reserved
+                </Text>
               </>
-            </Stack>
-          );
-        })}
-      </SimpleGrid>
-    </Container>
-  </Box>
-);
+            )}
+          </Stack>
+          <Spacer />
+          <Flex direction="column" pb={ui.isMobileView ? "40px" : "0px"}>
+            <Text fontWeight="semibold" mb="20px">
+              Follow Us
+            </Text>
+            <Flex width="158px" justifyContent="space-between">
+              <SocialButton label={"Discord"} href={"/discordleed"}>
+                <ChakraImage
+                  w="26px"
+                  src={`${AWS_ASSETS_PATH}/icons/discord-logo.png`}
+                />
+              </SocialButton>
+              <SocialButton
+                label={"Twitter"}
+                href={"https://twitter.com/moonstreamto"}
+              >
+                <ChakraImage
+                  w="24px"
+                  size={1}
+                  src={`${AWS_ASSETS_PATH}/icons/twitter-logo.png`}
+                />
+              </SocialButton>
+              <SocialButton
+                label={"Github"}
+                href={"https://github.com/bugout-dev/moonstream"}
+              >
+                <ChakraImage
+                  w="24px"
+                  src={`${AWS_ASSETS_PATH}/icons/github-logo.png`}
+                />
+              </SocialButton>
+              <SocialButton
+                label={"LinkedIn"}
+                href={"https://www.linkedin.com/company/moonstream/"}
+              >
+                <ChakraImage
+                  w="24px"
+                  src={`${AWS_ASSETS_PATH}/icons/linkedin-logo.png`}
+                />
+              </SocialButton>
+            </Flex>
+          </Flex>
+          <Flex
+            justifyContent="space-between"
+            pb={ui.isMobileView ? "40px" : "0px"}
+          >
+            {Object.values(SITEMAP).map((category, colIndex) => {
+              return (
+                <Stack
+                  ml={["0px", "0px", "100px"]}
+                  align={"flex-start"}
+                  key={`footer-list-column-${colIndex}`}
+                >
+                  <>
+                    <ListHeader>{category.title}</ListHeader>
+                    {category.children.map((linkItem, linkItemIndex) => {
+                      return (
+                        <RouterLink
+                          passHref
+                          href={linkItem.path}
+                          key={`footer-list-link-item-${linkItemIndex}-col-${colIndex}`}
+                        >
+                          <Link {...LINKS_SIZES}>{linkItem.title}</Link>
+                        </RouterLink>
+                      );
+                    })}
+                  </>
+                </Stack>
+              );
+            })}
+          </Flex>
+          {ui.isMobileView && (
+            <Text fontSize={"sm"}>
+              © {moment().year()} Moonstream.to All rights reserved
+            </Text>
+          )}
+        </Flex>
+      </Container>
+    </Box>
+  );
+};
 
 export default Footer;
