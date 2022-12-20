@@ -138,13 +138,15 @@ const Homepage = () => {
           id="page:landing"
           bgColor={BACKGROUND_COLOR}
           textColor="white"
+          px="7%"
         >
           <Flex
             direction="column"
             h="auto"
             position="relative"
-            w="100%"
+            maxW="1238px"
             overflow="initial"
+            mx="auto"
             pt={0}
           >
             <Suspense fallback={""}></Suspense>
@@ -166,17 +168,12 @@ const Homepage = () => {
                       align="center"
                       justify="center"
                       boxSize="full"
-                      pt={["90px", "142px"]}
+                      pt={["130px", "152px"]}
                       pb={10}
                       px="5%"
                       flexDir="column"
                     >
-                      <Stack
-                        textAlign="center"
-                        alignItems="center"
-                        maxW={["1620px", null, null, null, "1620px", "2222px"]}
-                        w="100%"
-                      >
+                      <Stack textAlign="center" alignItems="center" w="100%">
                         <Link
                           mb="60px"
                           isExternal
@@ -222,6 +219,7 @@ const Homepage = () => {
                             "row",
                           ]}
                           pb={10}
+                          fontSize={["16px", "16px", "20px"]}
                         >
                           <Center>
                             <Button
@@ -336,12 +334,7 @@ const Homepage = () => {
                 </chakra.header>
               </GridItem>
 
-              <GridItem
-                px={["5%", null, "12%", "15%"]}
-                py={(4, 8)}
-                colSpan="12"
-                bgColor={BACKGROUND_COLOR}
-              >
+              <GridItem py={(4, 8)} colSpan="12" bgColor={BACKGROUND_COLOR}>
                 <VStack
                   bgColor="white"
                   rounded="3xl"
@@ -478,7 +471,6 @@ const Homepage = () => {
                 </VStack>
               </GridItem>
               <GridItem
-                px={["5%", null, "12%", "15%"]}
                 colSpan="12"
                 pt={12}
                 bgColor={BACKGROUND_COLOR}
@@ -581,12 +573,7 @@ const Homepage = () => {
                   </Stack>
                 </Center>
               </GridItem>
-              <GridItem
-                px={["7%", null, "12%", "15%"]}
-                py={[4, 10]}
-                colSpan="12"
-                bgColor={BACKGROUND_COLOR}
-              >
+              <GridItem py={[4, 10]} colSpan="12" bgColor={BACKGROUND_COLOR}>
                 <Heading
                   {...HEADING_PROPS}
                   textAlign="center"
@@ -599,7 +586,7 @@ const Homepage = () => {
                   textAlign="center"
                   direction={["column", "column", "row"]}
                 >
-                  <VStack alignItems="center" px={4} py={4}>
+                  <VStack alignItems="center" pr={4} py={4}>
                     <Flex mb={5}>
                       <Heading
                         as="h3"
@@ -664,7 +651,7 @@ const Homepage = () => {
                       </chakra.span>
                     </Flex>
                   </VStack>
-                  <VStack alignItems="center" px={4} py={4}>
+                  <VStack alignItems="center" pl={4} py={4}>
                     <Center
                       mb={5}
                       w="100%"
@@ -709,12 +696,7 @@ const Homepage = () => {
                   </Text>
                 </Center>
               </GridItem>
-              <GridItem
-                px={["5%", null, "12%", "15%"]}
-                py={[4, 10]}
-                colSpan="12"
-                bgColor={BACKGROUND_COLOR}
-              >
+              <GridItem py={[4, 10]} colSpan="12" bgColor={BACKGROUND_COLOR}>
                 <Heading {...HEADING_PROPS} textAlign="center" as="h2" pb={10}>
                   FAQ
                 </Heading>
@@ -911,7 +893,6 @@ const Homepage = () => {
                 </Accordion>
               </GridItem>
               <GridItem
-                px="7%"
                 py={10}
                 colSpan="12"
                 bgColor={BACKGROUND_COLOR}
@@ -981,13 +962,7 @@ const Homepage = () => {
                   </Flex>
                 </Center>
               </GridItem>
-              <GridItem
-                px="7%"
-                pt={10}
-                pb={20}
-                colSpan="12"
-                bgColor={BACKGROUND_COLOR}
-              >
+              <GridItem pt={10} pb={20} colSpan="12" bgColor={BACKGROUND_COLOR}>
                 <Stack
                   direction={["column", "column", "row"]}
                   alignItems="center"

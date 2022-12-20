@@ -66,8 +66,10 @@ const Footer = () => {
       borderTop="1px"
       borderColor="white"
       px="7%"
+      // maxW="1238px"
+      mx="auto"
     >
-      <Container as={Stack} maxW={"8xl"} py={10}>
+      <Container as={Stack} py={10} px="0px" maxW="1238px">
         <Flex direction={["column", "column", "row"]}>
           <Stack spacing={6}>
             <Box pb={ui.isMobileView ? "40px" : "0px"}>
@@ -95,7 +97,11 @@ const Footer = () => {
             )}
           </Stack>
           <Spacer />
-          <Flex direction="column" pb={ui.isMobileView ? "40px" : "0px"}>
+          <Flex
+            direction="column"
+            pb={ui.isMobileView ? "40px" : "0px"}
+            ml={["0px", "0px", "5vw", "100px"]}
+          >
             <Text fontWeight="semibold" mb="20px">
               Follow Us
             </Text>
@@ -143,7 +149,7 @@ const Footer = () => {
             {Object.values(SITEMAP).map((category, colIndex) => {
               return (
                 <Stack
-                  ml={["0px", "0px", "100px"]}
+                  ml={["0px", "0px", "5vw", "100px"]}
                   align={"flex-start"}
                   key={`footer-list-column-${colIndex}`}
                 >
