@@ -32,13 +32,12 @@ const LandingBarMobile = () => {
       direction="column"
       width={"100%"}
       justifyContent={ui.isLoggedIn ? "center" : "space-between"}
+      p="12px 7% 10px 7%"
     >
       <Flex
         width={"100%"}
         alignItems="center"
         flex="flex: 0 0 100%"
-        pl="10px"
-        pr="27px"
         mt={ui.isLoggedIn ? "0px" : "12px"}
       >
         <RouterLink href="/" passHref>
@@ -107,15 +106,15 @@ const LandingBarMobile = () => {
         justifyContent="center"
         w="100%"
         variant="link"
-        spacing={4}
-        flexGrow={0.5}
+        // spacing={4}
+        // flexGrow={0.5}
       >
         {SITEMAP.map((item, idx) => {
           return (
             <React.Fragment key={`Fragment-${idx}`}>
               {item.type !== PAGETYPE.FOOTER_CATEGORY && item.children && (
                 <Menu>
-                  <MenuButton variant="mobile" mb="0px" p="0px" as={Button}>
+                  <MenuButton variant="mobile" m="0px" p="0px" as={Button}>
                     {item.title}
                   </MenuButton>
                   <Portal>

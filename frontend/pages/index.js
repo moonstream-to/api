@@ -13,7 +13,6 @@ import {
   GridItem,
   Image as ChakraImage,
   VStack,
-  HStack,
   Accordion,
   Icon,
   Spacer,
@@ -170,11 +169,17 @@ const Homepage = () => {
                       boxSize="full"
                       pt={["130px", "152px"]}
                       pb={10}
-                      px="5%"
                       flexDir="column"
                     >
                       <Stack textAlign="center" alignItems="center" w="100%">
                         <Link
+                          onClick={() => {
+                            buttonReport(
+                              "tech-crunch",
+                              "front-and-center",
+                              "landing"
+                            );
+                          }}
                           mb="60px"
                           isExternal
                           href="https://www.crypto-reporter.com/press-releases/moonstream-to-wins-techcrunch-pitch-off-earning-a-spot-at-disrupt-2023-39287/
@@ -224,6 +229,7 @@ const Homepage = () => {
                           <Center>
                             <Button
                               variant="orangeGradient"
+                              px={["20px", "20px", "30px"]}
                               onClick={() => {
                                 buttonReport(
                                   "Boost",
@@ -239,6 +245,7 @@ const Homepage = () => {
                           <Center>
                             <Button
                               variant="whiteOutline"
+                              px={["20px", "20px", "30px"]}
                               onClick={() => {
                                 buttonReport(
                                   "Discord",
@@ -253,82 +260,58 @@ const Homepage = () => {
                           </Center>
                         </Stack>
                       </Stack>
-                      <Box w={["100%", "70%", "60%"]}>
-                        <HStack h="100%" alignItems="flex-start">
-                          <Flex w={["50%", "43%"]} h={["auto", "100%"]}>
-                            <Flex w="100%">
-                              <Stack
-                                direction={["column", "column", "row"]}
-                                textAlign={["center", "center", "left"]}
-                              >
-                                <Text
-                                  fontSize={[
-                                    "xl",
-                                    "xl",
-                                    "2xl",
-                                    "5xl",
-                                    "5xl",
-                                    "5xl",
-                                  ]}
-                                  fontWeight="medium"
-                                  pr={4}
-                                >
-                                  &gt;$4b
-                                </Text>
-                                <Text
-                                  w="100%"
-                                  alignSelf={[
-                                    "flex-start",
-                                    "flex-start",
-                                    "center",
-                                  ]}
-                                  fontSize={["sm", "md"]}
-                                >
-                                  transaction volume
-                                  <br />
-                                  and growing
-                                </Text>
-                              </Stack>
-                            </Flex>
-                          </Flex>
-                          <Center w={["50%", "57%"]} h="100%">
-                            <Flex w="100%" justifyContent="right">
-                              <Stack
-                                direction={["column", "column", "row"]}
-                                textAlign={["center", "center", "left"]}
-                              >
-                                <Text
-                                  fontSize={[
-                                    "xl",
-                                    "xl",
-                                    "2xl",
-                                    "5xl",
-                                    "5xl",
-                                    "5xl",
-                                  ]}
-                                  fontWeight="medium"
-                                  pr={4}
-                                >
-                                  &gt;44k
-                                </Text>
-                                <Text
-                                  w="100%"
-                                  alignSelf={[
-                                    "flex-start",
-                                    "flex-start",
-                                    "center",
-                                  ]}
-                                  fontSize={["sm", "md"]}
-                                >
-                                  active users in game economies
-                                  <br />
-                                  built with our engine
-                                </Text>
-                              </Stack>
-                            </Flex>
+                      <Grid
+                        maxW="737px"
+                        textAlign={["center", "center", "left"]}
+                        gridTemplateColumns={[
+                          "1fr 1fr",
+                          "1fr 1fr",
+                          "auto auto",
+                        ]}
+                        gridGap={["20px", "20px", "40px"]}
+                      >
+                        <Flex
+                          direction={["column", "column", "row"]}
+                          minW={["50%", "50%", "0px"]}
+                        >
+                          <Text
+                            fontSize={["24", "24", "40"]}
+                            fontWeight="500"
+                            pr={["0px", "0px", "20px"]}
+                          >
+                            &gt;$4b
+                          </Text>
+                          <Center>
+                            <Text
+                              fontSize={["14px", "14px", "18px"]}
+                              lineHeight={["18px", "18px", "23px"]}
+                            >
+                              transaction volume
+                              <br />
+                              and growing
+                            </Text>
                           </Center>
-                        </HStack>
-                      </Box>
+                        </Flex>
+                        <Flex direction={["column", "column", "row"]}>
+                          <Text
+                            fontSize={["24", "24", "40"]}
+                            fontWeight="500"
+                            pr={["0px", "0px", "20px"]}
+                          >
+                            &gt;44k
+                          </Text>
+                          <Center>
+                            <Text
+                              fontSize={["14px", "14px", "18px"]}
+                              lineHeight={["18px", "18px", "23px"]}
+                            >
+                              active users in game economies
+                              <br />
+                              built with our engine
+                            </Text>
+                          </Center>
+                        </Flex>
+                      </Grid>
                     </Flex>
                   </Box>
                 </chakra.header>
