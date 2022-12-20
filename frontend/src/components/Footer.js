@@ -21,6 +21,7 @@ import {
 import moment from "moment";
 import { AWS_ASSETS_PATH } from "../core/constants";
 import UIContext from "../core/providers/UIProvider/context";
+import AnalyticsContext from "../core/providers/AnalyticsProvider/context";
 
 const LINKS_SIZES = {
   fontWeight: "300",
@@ -36,13 +37,16 @@ const ListHeader = ({ children }) => {
 };
 
 const SocialButton = ({ children, label, href }) => {
+  const { buttonReport } = useContext(AnalyticsContext);
   return (
     <chakra.button
       bg={useColorModeValue("blackAlpha.100", "whiteAlpha.100")}
       rounded={"full"}
       cursor={"pointer"}
-      as={"a"}
-      href={href}
+      onClick={() => {
+        buttonReport(label, "footer", "landing");
+        window.open(href);
+      }}
       display={"inline-flex"}
       alignItems={"center"}
       justifyContent={"center"}
@@ -66,7 +70,6 @@ const Footer = () => {
       borderTop="1px"
       borderColor="white"
       px="7%"
-      // maxW="1238px"
       mx="auto"
     >
       <Container as={Stack} py={10} px="0px" maxW="1238px">
@@ -91,7 +94,8 @@ const Footer = () => {
                   </Link>
                 </Flex>
                 <Text fontSize={"sm"}>
-                  © {moment().year()} Moonstream.to All rights reserved
+                  © {moment().year()} Moonstream.to
+                  All&nbsp;rights&nbsp;reserved
                 </Text>
               </>
             )}
@@ -173,7 +177,7 @@ const Footer = () => {
           </Flex>
           {ui.isMobileView && (
             <Text fontSize={"sm"}>
-              © {moment().year()} Moonstream.to All rights reserved
+              © {moment().year()} Moonstream.to All&nbsp;rights&nbsp;reserved
             </Text>
           )}
         </Flex>
