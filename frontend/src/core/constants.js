@@ -31,7 +31,6 @@ export const SITEMAP_CATEGORIES = {
   DEVELOPERS: "Developers",
   RESOURCES: "Resources",
   ABOUT: "About",
-  LEGAL: "Legal",
 };
 
 export const PAGETYPE = {
@@ -96,23 +95,6 @@ export const SITEMAP = [
       {
         title: "Team",
         path: "/team",
-        type: PAGETYPE.CONTENT,
-      },
-    ],
-  },
-  {
-    title: "Legal",
-    path: "/legal",
-    type: PAGETYPE.FOOTER_CATEGORY,
-    children: [
-      {
-        title: "Privacy Policy",
-        path: "/privacy-policy",
-        type: PAGETYPE.CONTENT,
-      },
-      {
-        title: "Terms of Service",
-        path: "/tos",
         type: PAGETYPE.CONTENT,
       },
     ],

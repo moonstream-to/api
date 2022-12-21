@@ -31,14 +31,10 @@ const LandingNavbar = () => {
     <>
       {ui.isMobileView && <LandingBarMobile />}
       {!ui.isMobileView && (
-        <>
+        <Flex px="7%" w="100%" justifyContent="space-between">
           <Flex
-            pl={ui.isMobileView ? 2 : "60px"}
             justifySelf="flex-start"
-            h={ui.isMobileView && !ui.isAppView ? "89px" : "72px"}
             py={1}
-            flexBasis="200px"
-            flexGrow={0.6}
             id="Logo Container"
             alignItems="center"
           >
@@ -52,7 +48,7 @@ const LandingNavbar = () => {
               />
             </RouterLink>
           </Flex>
-          <ButtonGroup variant="link" spacing={4} pr={16} flexGrow={0.5}>
+          <ButtonGroup variant="link" spacing={4}>
             {SITEMAP.map((item, idx) => {
               return (
                 <React.Fragment key={`Fragment-${idx}`}>
@@ -128,7 +124,7 @@ const LandingNavbar = () => {
               );
             })}
           </ButtonGroup>
-          <ButtonGroup variant="link" spacing={4} pr={16}>
+          <ButtonGroup variant="link" spacing={4} minW="160px">
             {ui.isLoggedIn && (
               <RouterLink href="/welcome" passHref>
                 <Box
@@ -180,7 +176,7 @@ const LandingNavbar = () => {
               <ChakraAccountIconButton variant="link" colorScheme="orange" />
             )}
           </ButtonGroup>
-        </>
+        </Flex>
       )}
     </>
   );

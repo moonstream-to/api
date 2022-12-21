@@ -144,13 +144,42 @@ const variantWhiteOnOrange = () => {
   };
 };
 
+const variantOrangeGradient = () => {
+  return {
+    border: "none",
+    borderRadius: "30px",
+    fontSize: ["md", "md", "lg", "lg", "xl", "xl"],
+    textColor: "white",
+    bg: "linear-gradient(92.26deg, #F56646 8.41%, #FFFFFF 255.37%)",
+    fontWeight: "700",
+    padding: "10px 30px",
+    _hover: {
+      bg: "linear-gradient(264.06deg, #F56646 -6.89%, #FFFFFF 335.28%)",
+    },
+  };
+};
+
+const variantSolidWhite = () => {
+  return {
+    bg: "white",
+    textColor: "black",
+    border: "none",
+    borderRadius: "30px",
+    p: "10px 30px",
+    fontSize: ["md", "md", "lg", "lg", "xl", "xl"],
+    _hover: {
+      bg: "#E6E6E6",
+    },
+  };
+};
+
 const variantPlainOrange = () => {
   return {
     alignItems: "center",
     justifyContent: "center",
     border: "solid transparent",
     borderRadius: "30px",
-    variant: "solid",
+    // variant: "solid",
     fontSize: ["md", "md", "lg", "lg", "xl", "xl"],
     textColor: "white",
     bg: "#F56646",
@@ -164,6 +193,29 @@ const variantPlainOrange = () => {
     },
     _active: {
       backgroundColor: "#F4532F",
+    },
+  };
+};
+
+const variantWhiteOutline = () => {
+  return {
+    color: "white",
+    border: "2px solid white",
+    borderRadius: "30px",
+    bg: "transparent",
+    p: "10px 30px",
+    fontSize: "20px",
+    textDecoration: "none",
+    _hover: {
+      backgroundColor: "transparent",
+      borderWidth: "3px",
+      p: "9px 29px",
+    },
+    _focus: {
+      backgroundColor: "transparent",
+    },
+    _active: {
+      backgroundColor: "transparent",
     },
   };
 };
@@ -208,6 +260,9 @@ const Button = {
     orangeAndBlue: variantOrangeAndBlue,
     whiteOnOrange: variantWhiteOnOrange,
     plainOrange: variantPlainOrange,
+    whiteOutline: variantWhiteOutline,
+    orangeGradient: variantOrangeGradient,
+    solidWhite: variantSolidWhite,
   },
 };
 export default Button;
