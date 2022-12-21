@@ -6,8 +6,8 @@ import { AWS_ASSETS_PATH } from "../src/core/constants";
 
 const Papers = () => {
   return (
-    <Flex direction="column" px="7%" width="100%" alignItems="center">
-      <Heading pb="60px" pt="142px">
+    <Flex direction="column" px="7%" width="100%" alignItems="center" pb="40px">
+      <Heading pb={["40px", "40px", "60px"]} pt={["122px", "122px", "142px"]}>
         Whitepapers
       </Heading>
       <WhitepaperCard
