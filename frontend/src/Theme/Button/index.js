@@ -187,6 +187,7 @@ const variantPlainOrange = () => {
     padding: "10px 30px",
     _hover: {
       backgroundColor: "#F4532F",
+      textDecoration: "none",
     },
     _focus: {
       backgroundColor: "#F4532F",
