@@ -9,51 +9,52 @@ const WhitepaperCard = ({ img, title, date = "", text, href, ...props }) => {
       p="20px"
       bg="#353535"
       borderRadius="20px"
+      gap="20px"
       {...props}
     >
       <Image
         src={img}
-        w={["150px", "150px", "200px"]}
-        h={["150px", "150px", "200px"]}
+        w={["290px", "290px", "200px"]}
+        h={["290px", "290px", "200px"]}
         borderRadius={["10px", "10px", "20px"]}
         cursor="pointer"
-        pb={["10px", "10px", "0px"]}
         onClick={() => {
           window.open(href);
         }}
       />
-      <Flex direction="column" ml="20px">
+      <Flex direction="column" gap="20px">
         <Text
-          fontSize={["18px", "18px", "24px"]}
+          fontSize={["24px", "24px", "24px"]}
           fontWeight="700"
           maxW="500px"
           lineHeight="120%"
-          mb="10px"
         >
           {title}
         </Text>
-        {date && (
-          <Text fontSize={["12px", "12px", "16px"]} lineHeight="20px">
-            {date}
+        <Flex direction="column" gap={["5px", "5px", "10px"]}>
+          {date && (
+            <Text fontSize={["14px", "14px", "16px"]} lineHeight="20px">
+              {date}
+            </Text>
+          )}
+          <Text fontSize={["16px", "16px", "18px"]} lineHeight="23px">
+            {text}
           </Text>
-        )}
-        <Text fontSize={["14px", "14px", "18px"]} my="5px" lineHeight="23px">
-          {text}
-        </Text>
-        <Text
-          href={href}
-          maxW="fit-content"
-          color="orange.1000"
-          cursor="pointer"
-          fontSize={["14px", "14px", "18px"]}
-          fontWeight="700"
-          _hover={{ color: "#F4532F" }}
-          onClick={() => {
-            window.open(href);
-          }}
-        >
-          Read more
-        </Text>
+          <Text
+            href={href}
+            maxW="fit-content"
+            color="orange.1000"
+            cursor="pointer"
+            fontSize={["16px", "16px", "18px"]}
+            fontWeight="700"
+            _hover={{ color: "#F4532F" }}
+            onClick={() => {
+              window.open(href);
+            }}
+          >
+            Read more
+          </Text>
+        </Flex>
       </Flex>
     </Flex>
   );
