@@ -29,7 +29,7 @@ var (
 )
 
 // initHealthCheck runs a routine for check status of the nodes every 5 seconds
-func initHealthCheck(debug bool) {
+func initHealthCheck() {
 	t := time.NewTicker(NB_HEALTH_CHECK_INTERVAL)
 	for {
 		select {
@@ -42,7 +42,7 @@ func initHealthCheck(debug bool) {
 				logStr += fmt.Sprintf(" Active %s clients: %d.", b, clients)
 			}
 			log.Println(logStr)
-			if debug {
+			if stateCLI.enableDebugFlag {
 				blockchainPool.StatusLog()
 			}
 		}
@@ -163,6 +163,8 @@ func Server() {
 	}
 	configBlockchains = make(map[string]bool)
 
+	pools = make(map[string]map[string]*NodePool)
+
 	// Parse nodes and set list of proxies
 	for i, nodeConfig := range nodeConfigs {
 		endpoint, err := url.Parse(nodeConfig.Endpoint)
@@ -189,15 +191,26 @@ func Server() {
 		}
 		proxyErrorHandler(proxyToEndpoint, endpoint)
 
-		blockchainPool.AddNode(&Node{
-			Endpoint:         endpoint,
-			Alive:            true,
-			GethReverseProxy: proxyToEndpoint,
-		}, nodeConfig.Blockchain)
+		combinations := Combinations(nodeConfig.Tags, 0)
+		combinations = append(combinations, []string{""})
+		
+		for _, combination := range combinations {
+			identifier := GenerateIdentifier(combination)
+			AddNode(nodeConfig.Blockchain, identifier, &Node{
+				Endpoint:         endpoint,
+				Alive:            true,
+				GethReverseProxy: proxyToEndpoint,
+			})
+		}
+
 		log.Printf(
 			"Added new %s proxy blockchain under index %d from config file with geth url: %s://%s",
 			nodeConfig.Blockchain, i, endpoint.Scheme, endpoint.Host)
 	}
+
+	fmt.Println("")
+	fmt.Println(pools)
+	fmt.Println("")
 
 	// Generate map of clients
 	CreateClientPools()
@@ -219,13 +232,13 @@ func Server() {
 	}
 
 	// Start node health checking and current block fetching
-	blockchainPool.HealthCheck()
+	HealthCheck()
 	if stateCLI.enableHealthCheckFlag {
-		go initHealthCheck(stateCLI.enableDebugFlag)
+		go initHealthCheck()
 	}
 
 	// Start access id cache cleaning
-	go initCacheCleaning(stateCLI.enableDebugFlag)
+	go initCacheCleaning()
 
 	log.Printf("Starting node load balancer HTTP server at %s:%s", stateCLI.listeningAddrFlag, stateCLI.listeningPortFlag)
 	err = server.ListenAndServe()

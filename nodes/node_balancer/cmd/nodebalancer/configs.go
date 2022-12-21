@@ -34,7 +34,8 @@ var (
 	NB_MAX_COUNTER_NUMBER = uint64(10000000)
 
 	// Client configuration
-	NB_CLIENT_NODE_KEEP_ALIVE = int64(5) // How long to store node in hot list for client in seconds
+	NB_CLIENT_NODE_KEEP_ALIVE = int64(1) // How long to store node in hot list for client in seconds
+	NB_HIGHEST_BLOCK_SHIFT = uint64(10)	// Allowed shift to prefer node with most highest block
 
 	NB_ACCESS_ID_HEADER   = os.Getenv("NB_ACCESS_ID_HEADER")
 	NB_DATA_SOURCE_HEADER = os.Getenv("NB_DATA_SOURCE_HEADER")
