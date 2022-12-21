@@ -22,7 +22,7 @@ export default function SocialProfileSimple({
 }) {
   const badgeBg = useColorModeValue("gray.50", "gray.800");
   return (
-    <Center py={6} ml={2}>
+    <Center py={6}>
       <Box
         maxW={"320px"}
         h="420px"
