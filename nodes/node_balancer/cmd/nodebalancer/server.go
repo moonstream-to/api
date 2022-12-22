@@ -128,10 +128,11 @@ func Server() {
 		fmt.Printf("Unable to get user with provided access identifier, err: %v\n", err)
 		os.Exit(1)
 	}
+	resourcesLog := "Access with resources established."
 	if len(resources.Resources) != 1 {
-		log.Println("There are no access IDs for users in resources")
+		log.Printf("%s There are no access IDs for users in resources", resourcesLog)
 	} else {
-		log.Println("Found user access IDs in resources")
+		log.Printf("%s Found user access IDs in resources", resourcesLog)
 	}
 
 	// Set internal crawlers access to bypass requests from internal services
@@ -145,7 +146,6 @@ func Server() {
 		BlockchainAccess: true,
 		ExtendedMethods:  true,
 	}
-	log.Printf("Internal crawlers access set with user ID: %s", internalCrawlersUserID)
 
 	err = InitDatabaseClient()
 	if err != nil {
@@ -185,6 +185,8 @@ func Server() {
 			r.Header.Del(strings.Title(NB_DATA_SOURCE_HEADER))
 			// Change r.Host from nodebalancer's to end host so TLS check will be passed
 			r.Host = r.URL.Host
+			// Explicit set of r.URL requires, because by default it adds trailing slash and brake some urls
+			r.URL = endpoint
 		}
 		proxyErrorHandler(proxyToEndpoint, endpoint)
 
