@@ -88,8 +88,8 @@ const Footer = () => {
             {!ui.isMobileView && (
               <>
                 <Flex justifyContent="start">
-                  <Link href="//privacy-policy">Privacy policy</Link>
-                  <Link href="//tos" ml="20px">
+                  <Link href="/privacy-policy">Privacy policy</Link>
+                  <Link href="/tos" ml="20px">
                     Terms of Service
                   </Link>
                 </Flex>

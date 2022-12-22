@@ -48,7 +48,12 @@ const LandingNavbar = () => {
               />
             </RouterLink>
           </Flex>
-          <ButtonGroup variant="link" spacing={4}>
+          <ButtonGroup
+            variant="link"
+            spacing={4}
+            width="100%"
+            justifyContent="center"
+          >
             {SITEMAP.map((item, idx) => {
               return (
                 <React.Fragment key={`Fragment-${idx}`}>
@@ -124,8 +129,8 @@ const LandingNavbar = () => {
               );
             })}
           </ButtonGroup>
-          <ButtonGroup variant="link" spacing={4} minW="160px">
-            {ui.isLoggedIn && (
+          {ui.isLoggedIn && (
+            <Flex gap="20px">
               <RouterLink href="/welcome" passHref>
                 <Box
                   bg="orange.1000"
@@ -146,15 +151,34 @@ const LandingNavbar = () => {
                   </Text>
                 </Box>
               </RouterLink>
-            )}
-            {!ui.isLoggedIn && (
+              <ChakraAccountIconButton
+                variant="link"
+                colorScheme="orange"
+                h="32px"
+              />
+            </Flex>
+          )}
+
+          {!ui.isLoggedIn && (
+            <Flex gap="20px" alignItems="center">
+              <Text
+                color="white"
+                cursor="pointer"
+                onClick={() => toggleModal({ type: MODAL_TYPES.LOGIN })}
+                fontWeight="400"
+                _hover={{ textDecoration: "underline" }}
+              >
+                Log in
+              </Text>
               <Button
-                bg="orange.1000"
-                variant="solid"
+                variant="plainOrange"
+                borderRadius="15px"
+                p="5px 10px"
+                fontSize="16px"
+                m="0px"
+                h="32px"
                 onClick={() => toggleModal({ type: MODAL_TYPES.SIGNUP })}
-                size="sm"
                 fontWeight="700"
-                borderRadius="2xl"
                 textColor="white"
                 _hover={{
                   backgroundColor: "#F4532F",
@@ -162,20 +186,8 @@ const LandingNavbar = () => {
               >
                 Sign up
               </Button>
-            )}
-            {!ui.isLoggedIn && (
-              <Button
-                color="white"
-                onClick={() => toggleModal({ type: MODAL_TYPES.LOGIN })}
-                fontWeight="400"
-              >
-                Log in
-              </Button>
-            )}
-            {ui.isLoggedIn && (
-              <ChakraAccountIconButton variant="link" colorScheme="orange" />
-            )}
-          </ButtonGroup>
+            </Flex>
+          )}
         </Flex>
       )}
     </>
