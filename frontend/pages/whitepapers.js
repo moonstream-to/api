@@ -11,7 +11,7 @@ const Papers = () => {
         Whitepapers
       </Heading>
       <WhitepaperCard
-        maxW="890px"
+        maxW={["340px", "340px", "890px"]}
         href="https://github.com/bugout-dev/moonstream/blob/main/datasets/nfts/papers/ethereum-nfts.pdf"
         img={`${AWS_ASSETS_PATH}/nft_market_analysis_i.png`}
         title="An analysis of 7,020,950 NFT transactions on the Ethereum blockchain"

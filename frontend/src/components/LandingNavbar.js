@@ -168,7 +168,7 @@ const LandingNavbar = () => {
                 fontWeight="400"
                 _hover={{ textDecoration: "underline" }}
               >
-                Log in
+                Log&nbsp;in
               </Text>
               <Button
                 variant="plainOrange"
@@ -184,7 +184,7 @@ const LandingNavbar = () => {
                   backgroundColor: "#F4532F",
                 }}
               >
-                Sign up
+                Sign&nbsp;up
               </Button>
             </Flex>
           )}
