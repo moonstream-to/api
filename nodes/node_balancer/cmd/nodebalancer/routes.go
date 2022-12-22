@@ -53,25 +53,12 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Chose one node
-	var node *Node
-	cpool := GetClientPool(blockchain)
-	node = cpool.GetClientNode(currentClientAccess.AccessID)
-	if node == nil {
-		node = blockchainPool.GetNextNode(blockchain)
-		if node == nil {
-			http.Error(w, "There are no nodes available", http.StatusServiceUnavailable)
-			return
-		}
-		cpool.AddClientNode(currentClientAccess.AccessID, node)
-	}
-
 	// Save origin path, to use in proxyErrorHandler if node will not response
 	r.Header.Add("X-Origin-Path", r.URL.Path)
 
 	switch {
 	case strings.HasPrefix(r.URL.Path, fmt.Sprintf("/nb/%s/jsonrpc", blockchain)):
-		lbJSONRPCHandler(w, r, blockchain, node, currentClientAccess)
+		lbJSONRPCHandler(w, r, blockchain, currentClientAccess)
 		return
 	default:
 		http.Error(w, fmt.Sprintf("Unacceptable path for %s blockchain %s", blockchain, r.URL.Path), http.StatusBadRequest)
@@ -79,7 +66,7 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string, node *Node, currentClientAccess ClientResourceData) {
+func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string, currentClientAccess ClientResourceData) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Unable to read body", http.StatusBadRequest)
@@ -92,6 +79,39 @@ func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string,
 		log.Println(err)
 		http.Error(w, "Unable to parse JSON RPC request", http.StatusBadRequest)
 		return
+	}
+
+	// Get tags from request params, sort and generate from it identifier
+	var tags []string
+	queries := r.URL.Query()
+	for k, v := range queries {
+		if k == "tag" {
+			for _, tag := range v {
+				tags = append(tags, tag)
+			}
+		}
+	}
+
+	// Chose one node
+	var node *Node
+	cpool := GetClientPool(blockchain)
+	node = cpool.GetClientNode(currentClientAccess.AccessID)
+	if node == nil {
+		npool := blockchainPools[blockchain]
+		var nodes []*Node
+		var topNode TopNodeBlock
+		if len(tags) != 0 {
+			nodes, topNode = npool.FilterTagsNodes(tags)
+		} else {
+			topNode = npool.TopNode
+			nodes = npool.NodesSet
+		}
+		node = GetNextNode(nodes, topNode)
+		if node == nil {
+			http.Error(w, "There are no nodes available", http.StatusServiceUnavailable)
+			return
+		}
+		cpool.AddClientNode(currentClientAccess.AccessID, node)
 	}
 
 	switch {

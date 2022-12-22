@@ -98,13 +98,13 @@ func (ac *AccessCache) Cleanup() (int64, int64) {
 	return removedAccessIds, totalAccessIds
 }
 
-func initCacheCleaning(debug bool) {
+func initCacheCleaning() {
 	t := time.NewTicker(NB_CACHE_CLEANING_INTERVAL)
 	for {
 		select {
 		case <-t.C:
 			removedAccessIds, totalAccessIds := accessIdCache.Cleanup()
-			if debug {
+			if stateCLI.enableDebugFlag {
 				log.Printf("Removed %d elements from access id cache", removedAccessIds)
 			}
 			log.Printf("Elements in access id cache: %d", totalAccessIds)

@@ -1,5 +1,5 @@
 /*
-Load balancer, based on https://github.com/kasvith/simplelb/
+Load balancer logic.
 */
 package main
 
@@ -19,10 +19,9 @@ import (
 
 // Main variable of pool of blockchains which contains pool of nodes
 // for each blockchain we work during session.
-var blockchainPool BlockchainPool
+var blockchainPools map[string]*NodePool
 
 // Node structure with
-// StatusURL for status server at node endpoint
 // Endpoint for geth/bor/etc node http.server endpoint
 type Node struct {
 	Endpoint *url.URL
@@ -36,16 +35,16 @@ type Node struct {
 	GethReverseProxy *httputil.ReverseProxy
 }
 
-type NodePool struct {
-	Blockchain string
-	Nodes      []*Node
-
-	// Counter to observe all nodes
-	Current uint64
+type TopNodeBlock struct {
+	Block uint64
+	Node  *Node
 }
 
-type BlockchainPool struct {
-	Blockchains []*NodePool
+type NodePool struct {
+	NodesMap map[string][]*Node
+	NodesSet []*Node
+
+	TopNode TopNodeBlock
 }
 
 // Node status response struct for HealthCheck
@@ -58,24 +57,25 @@ type NodeStatusResponse struct {
 }
 
 // AddNode to the nodes pool
-func (bpool *BlockchainPool) AddNode(node *Node, blockchain string) {
-	var nodePool *NodePool
-	for _, b := range bpool.Blockchains {
-		if b.Blockchain == blockchain {
-			nodePool = b
-		}
+func AddNode(blockchain string, tags []string, node *Node) {
+	if blockchainPools == nil {
+		blockchainPools = make(map[string]*NodePool)
+	}
+	if blockchainPools[blockchain] == nil {
+		blockchainPools[blockchain] = &NodePool{}
+	}
+	if blockchainPools[blockchain].NodesMap == nil {
+		blockchainPools[blockchain].NodesMap = make(map[string][]*Node)
+	}
+	blockchainPools[blockchain].NodesSet = append(blockchainPools[blockchain].NodesSet, node)
+
+	for _, tag := range tags {
+		blockchainPools[blockchain].NodesMap[tag] = append(
+			blockchainPools[blockchain].NodesMap[tag],
+			node,
+		)
 	}
 
-	// Check if blockchain not yet in pool
-	if nodePool == nil {
-		nodePool = &NodePool{
-			Blockchain: blockchain,
-		}
-		nodePool.Nodes = append(nodePool.Nodes, node)
-		bpool.Blockchains = append(bpool.Blockchains, nodePool)
-	} else {
-		nodePool.Nodes = append(nodePool.Nodes, node)
-	}
 }
 
 // SetAlive with mutex for exact node
@@ -117,59 +117,86 @@ func (node *Node) IncreaseCallCounter() {
 	node.mux.Unlock()
 }
 
-// GetNextNode returns next active peer to take a connection
-// Loop through entire nodes to find out an alive one
-func (bpool *BlockchainPool) GetNextNode(blockchain string) *Node {
-	highestBlock := uint64(0)
+func containsGeneric[T comparable](b []T, e T) bool {
+	for _, v := range b {
+		if v == e {
+			return true
+		}
+	}
+	return false
+}
 
-	// Get NodePool with correct blockchain
-	var np *NodePool
-	for _, b := range bpool.Blockchains {
-		if b.Blockchain == blockchain {
-			np = b
-			for _, n := range b.Nodes {
-				if n.CurrentBlock > highestBlock {
-					highestBlock = n.CurrentBlock
-				}
+func (npool *NodePool) FilterTagsNodes(tags []string) ([]*Node, TopNodeBlock) {
+	nodesMap := npool.NodesMap
+	nodesSet := npool.NodesSet
+
+	tagSet := make(map[string]map[*Node]bool)
+
+	for tag, nodes := range nodesMap {
+		if tagSet[tag] == nil {
+			tagSet[tag] = make(map[*Node]bool)
+		}
+		for _, node := range nodes {
+			tagSet[tag][node] = true
+		}
+	}
+
+	topNode := TopNodeBlock{}
+
+	var filteredNodes []*Node
+	for _, node := range nodesSet {
+		accept := true
+		for _, tag := range tags {
+			if tagSet[tag][node] != true {
+				accept = false
+				break
+			}
+		}
+		if accept {
+			filteredNodes = append(filteredNodes, node)
+			currentBlock := node.CurrentBlock
+			if currentBlock >= npool.TopNode.Block {
+				topNode.Block = currentBlock
+				topNode.Node = node
 			}
 		}
 	}
 
-	// Increase Current value with 1
-	currentInc := atomic.AddUint64(&np.Current, uint64(1))
+	return filteredNodes, topNode
+}
 
-	// next is an Atomic incrementer, value always in range from 0 to slice length,
-	// it returns an index of slice
-	next := int(currentInc % uint64(len(np.Nodes)))
+// GetNextNode returns next active peer to take a connection
+// Loop through entire nodes to find out an alive one and chose one with small CallCounter
+func GetNextNode(nodes []*Node, topNode TopNodeBlock) *Node {
+	nextNode := topNode.Node
 
-	// Start from next one and move full cycle
-	l := len(np.Nodes) + next
-
-	for i := next; i < l; i++ {
-		// Take an index by modding with length
-		idx := i % len(np.Nodes)
-		// If we have an alive one, use it and store if its not the original one
-		if np.Nodes[idx].IsAlive() {
-			if i != next {
-				// Mark the current one
-				atomic.StoreUint64(&np.Current, uint64(idx))
-			}
-			// Pass nodes with low blocks
-			// TODO(kompotkot): Re-write to not rotate through not highest blocks
-			if np.Nodes[idx].CurrentBlock < highestBlock {
+	for _, node := range nodes {
+		if node.IsAlive() {
+			currentBlock := node.CurrentBlock
+			if currentBlock < topNode.Block-NB_HIGHEST_BLOCK_SHIFT {
+				// Bypass outdated nodes
 				continue
 			}
-
-			return np.Nodes[idx]
+			if node.CallCounter < nextNode.CallCounter {
+				nextNode = node
+			}
 		}
 	}
-	return nil
+
+	if nextNode == nil {
+		return nil
+	}
+
+	// Increase CallCounter value with 1
+	atomic.AddUint64(&nextNode.CallCounter, uint64(1))
+
+	return nextNode
 }
 
 // SetNodeStatus modify status of the node
-func (bpool *BlockchainPool) SetNodeStatus(url *url.URL, alive bool) {
-	for _, b := range bpool.Blockchains {
-		for _, n := range b.Nodes {
+func SetNodeStatus(url *url.URL, alive bool) {
+	for _, nodes := range blockchainPools {
+		for _, n := range nodes.NodesSet {
 			if n.Endpoint.String() == url.String() {
 				n.SetAlive(alive)
 				break
@@ -180,21 +207,21 @@ func (bpool *BlockchainPool) SetNodeStatus(url *url.URL, alive bool) {
 
 // StatusLog logs node status
 // TODO(kompotkot): Print list of alive and dead nodes
-func (bpool *BlockchainPool) StatusLog() {
-	for _, b := range bpool.Blockchains {
-		for _, n := range b.Nodes {
+func StatusLog() {
+	for blockchain, nodes := range blockchainPools {
+		for _, n := range nodes.NodesSet {
 			log.Printf(
-				"Blockchain %s node %s is alive %t. Blockchain called %d times",
-				b.Blockchain, n.Endpoint.Host, n.Alive, b.Current,
+				"Blockchain %s node %s is alive %t",
+				blockchain, n.Endpoint.Host, n.Alive,
 			)
 		}
 	}
 }
 
 // HealthCheck fetch the node latest block
-func (bpool *BlockchainPool) HealthCheck() {
-	for _, b := range bpool.Blockchains {
-		for _, n := range b.Nodes {
+func HealthCheck() {
+	for blockchain, nodes := range blockchainPools {
+		for _, n := range nodes.NodesSet {
 			alive := false
 
 			httpClient := http.Client{Timeout: NB_HEALTH_CHECK_CALL_TIMEOUT}
@@ -239,8 +266,13 @@ func (bpool *BlockchainPool) HealthCheck() {
 			}
 			callCounter := n.UpdateNodeState(blockNumber, alive)
 
+			if blockNumber > nodes.TopNode.Block {
+				nodes.TopNode.Block = blockNumber
+				nodes.TopNode.Node = n
+			}
+
 			log.Printf(
-				"Node %s is alive: %t with current block: %d called: %d times", n.Endpoint.Host, alive, blockNumber, callCounter,
+				"In blockchain %s node %s is alive: %t with current block: %d called: %d times", blockchain, n.Endpoint.Host, alive, blockNumber, callCounter,
 			)
 		}
 	}

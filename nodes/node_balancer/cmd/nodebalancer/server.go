@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	// "encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -29,12 +28,12 @@ var (
 )
 
 // initHealthCheck runs a routine for check status of the nodes every 5 seconds
-func initHealthCheck(debug bool) {
+func initHealthCheck() {
 	t := time.NewTicker(NB_HEALTH_CHECK_INTERVAL)
 	for {
 		select {
 		case <-t.C:
-			blockchainPool.HealthCheck()
+			HealthCheck()
 			logStr := "Client pool healthcheck."
 			for b := range configBlockchains {
 				cp := clientPool[b]
@@ -42,8 +41,8 @@ func initHealthCheck(debug bool) {
 				logStr += fmt.Sprintf(" Active %s clients: %d.", b, clients)
 			}
 			log.Println(logStr)
-			if debug {
-				blockchainPool.StatusLog()
+			if stateCLI.enableDebugFlag {
+				StatusLog()
 			}
 		}
 	}
@@ -89,7 +88,7 @@ func proxyErrorHandler(proxy *httputil.ReverseProxy, url *url.URL) {
 		}
 
 		// After 3 retries, mark this backend as down
-		blockchainPool.SetNodeStatus(url, false)
+		SetNodeStatus(url, false)
 
 		// Set modified path back
 		// TODO(kompotkot): Try r.RequestURI instead of header
@@ -189,11 +188,13 @@ func Server() {
 		}
 		proxyErrorHandler(proxyToEndpoint, endpoint)
 
-		blockchainPool.AddNode(&Node{
+		newNode := &Node{
 			Endpoint:         endpoint,
 			Alive:            true,
 			GethReverseProxy: proxyToEndpoint,
-		}, nodeConfig.Blockchain)
+		}
+		AddNode(nodeConfig.Blockchain, nodeConfig.Tags, newNode)
+
 		log.Printf(
 			"Added new %s proxy blockchain under index %d from config file with geth url: %s://%s",
 			nodeConfig.Blockchain, i, endpoint.Scheme, endpoint.Host)
@@ -201,6 +202,12 @@ func Server() {
 
 	// Generate map of clients
 	CreateClientPools()
+
+	// Start node health checking and current block fetching
+	HealthCheck()
+	if stateCLI.enableHealthCheckFlag {
+		go initHealthCheck()
+	}
 
 	serveMux := http.NewServeMux()
 	serveMux.Handle("/nb/", accessMiddleware(http.HandlerFunc(lbHandler)))
@@ -218,14 +225,8 @@ func Server() {
 		WriteTimeout: 40 * time.Second,
 	}
 
-	// Start node health checking and current block fetching
-	blockchainPool.HealthCheck()
-	if stateCLI.enableHealthCheckFlag {
-		go initHealthCheck(stateCLI.enableDebugFlag)
-	}
-
 	// Start access id cache cleaning
-	go initCacheCleaning(stateCLI.enableDebugFlag)
+	go initCacheCleaning()
 
 	log.Printf("Starting node load balancer HTTP server at %s:%s", stateCLI.listeningAddrFlag, stateCLI.listeningPortFlag)
 	err = server.ListenAndServe()
