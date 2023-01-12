@@ -56,8 +56,6 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 	// Save origin path, to use in proxyErrorHandler if node will not response
 	r.Header.Add("X-Origin-Path", r.URL.Path)
 
-	w.Header().Add("X-Node-URL", node.Endpoint.String())
-
 	switch {
 	case strings.HasPrefix(r.URL.Path, fmt.Sprintf("/nb/%s/jsonrpc", blockchain)):
 		lbJSONRPCHandler(w, r, blockchain, currentClientAccess)
@@ -134,6 +132,7 @@ func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string,
 
 		// Overwrite Path so response will be returned to correct place
 		r.URL.Path = "/"
+		w.Header().Add("X-Node-URL", node.Endpoint.String())
 		node.GethReverseProxy.ServeHTTP(w, r)
 		return
 	case currentClientAccess.dataSource == "database":
