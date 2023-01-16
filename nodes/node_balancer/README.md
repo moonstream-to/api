@@ -41,6 +41,8 @@ So if with request will be specified tag `local` will be returned node with corr
 
 ## Work with nodebalancer
 
+**IMPORTANT** Do not use flag `-debug` in production.
+
 ### add-access
 
 Add new access for user:
@@ -126,4 +128,17 @@ For Web3 providers `access_id` and `data_source` could be specified in headers
 ```bash
 --header 'x-node-balancer-data-source: <blockchain/database>'
 --header 'x-node-balancer-access-id: <access_id>'
+```
+
+Same request to fetch specific nodes using tags
+
+```bash
+curl --request POST 'http://127.0.0.1:8544/nb/ethereum/jsonrpc?access_id=<access_id>&data_source=<blockchain/database>&tag=<specific_tag_1>&tag=<specific_tag_2>' \
+    --header 'Content-Type: application/json' \
+    --data-raw '{
+        "jsonrpc":"2.0",
+        "method":"eth_getBlockByNumber",
+        "params":["latest", false],
+        "id":1
+    }'
 ```

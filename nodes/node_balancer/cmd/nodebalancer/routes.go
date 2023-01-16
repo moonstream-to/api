@@ -114,6 +114,10 @@ func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string,
 		cpool.AddClientNode(currentClientAccess.AccessID, node)
 	}
 
+	if stateCLI.enableDebugFlag {
+		log.Printf("[DEBUG] Used node with endpoint: %s, call counter equals: %d", node.Endpoint, node.CallCounter)
+	}
+
 	switch {
 	case currentClientAccess.dataSource == "blockchain":
 		if currentClientAccess.BlockchainAccess == false {

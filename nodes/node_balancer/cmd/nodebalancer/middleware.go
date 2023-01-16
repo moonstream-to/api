@@ -105,7 +105,7 @@ func initCacheCleaning() {
 		case <-t.C:
 			removedAccessIds, totalAccessIds := accessIdCache.Cleanup()
 			if stateCLI.enableDebugFlag {
-				log.Printf("Removed %d elements from access id cache", removedAccessIds)
+				log.Printf("[DEBUG] Removed %d elements from access id cache", removedAccessIds)
 			}
 			log.Printf("Elements in access id cache: %d", totalAccessIds)
 		}
@@ -241,7 +241,7 @@ func logMiddleware(next http.Handler) http.Handler {
 
 		if stateCLI.enableDebugFlag {
 			if r.URL.RawQuery != "" {
-				logStr += fmt.Sprintf(" %s", r.URL.RawQuery)
+				logStr += fmt.Sprintf(" [DEBUG] %s", r.URL.RawQuery)
 			}
 			accessID := extractAccessID(r)
 			if accessID != "" {
@@ -269,20 +269,20 @@ func accessMiddleware(next http.Handler) http.Handler {
 		// If access id does not belong to internal crawlers, then check cache or find it in Bugout resources
 		if accessID == NB_CONTROLLER_ACCESS_ID {
 			if stateCLI.enableDebugFlag {
-				log.Printf("Access id belongs to internal crawlers")
+				log.Printf("[DEBUG] Access id belongs to internal crawlers")
 			}
 			currentClientAccess = internalCrawlersAccess
 			currentClientAccess.dataSource = dataSource
 		} else if accessIdCache.FindAccessIdInCache(accessID) != "" {
 			if stateCLI.enableDebugFlag {
-				log.Printf("Access id found in cache")
+				log.Printf("[DEBUG] Access id found in cache")
 			}
 			currentClientAccess = accessIdCache.accessIds[accessID]
 			currentClientAccess.dataSource = dataSource
 			accessIdCache.UpdateAccessIdAtCache(accessID, dataSource)
 		} else {
 			if stateCLI.enableDebugFlag {
-				log.Printf("New access id, looking at Brood resources")
+				log.Printf("[DEBUG] New access id, looking at Brood resources")
 			}
 			resources, err := bugoutClient.Brood.GetResources(
 				NB_CONTROLLER_TOKEN,
