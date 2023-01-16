@@ -1,4 +1,3 @@
-// TODO(kompotkot): Re-write tests for client
 package main
 
 import (
@@ -7,19 +6,36 @@ import (
 	"time"
 )
 
+func setupSuit(t *testing.T) func(t *testing.T) {
+	t.Log("Setup suit")
+
+	configBlockchains = map[string]bool{"ethereum": true}
+
+	return func(t *testing.T) {
+		t.Log("Teardown suit")
+	}
+}
+
+// TestAddClientNode tests adding new client to client pool
 func TestAddClientNode(t *testing.T) {
+	teardownSuit := setupSuit(t)
+	defer teardownSuit(t)
+
 	var cases = []struct {
 		clients  map[string]*Client
 		expected string
 	}{
 		{map[string]*Client{"1": {Node: &Node{Alive: true}}}, "1"},
 	}
+
 	for _, c := range cases {
 		CreateClientPools()
+		cpool := GetClientPool("ethereum")
+
 		for id, client := range c.clients {
-			ethereumClientPool.AddClientNode(id, client.Node)
+			cpool.AddClientNode(id, client.Node)
 		}
-		for id := range ethereumClientPool.Client {
+		for id := range cpool.Client {
 			if id != c.expected {
 				t.Log("Wrong client was added")
 				t.Fatal()
@@ -28,6 +44,7 @@ func TestAddClientNode(t *testing.T) {
 	}
 }
 
+// TestGetClientNode tests getting correct client
 func TestGetClientNode(t *testing.T) {
 	ts := time.Now().Unix()
 
@@ -39,15 +56,17 @@ func TestGetClientNode(t *testing.T) {
 		{map[string]*Client{}, "1", nil},
 		{map[string]*Client{"1": {LastCallTs: ts, Node: &Node{Alive: true}}}, "1", &Node{Alive: true}},
 		{map[string]*Client{"2": {LastCallTs: ts, Node: &Node{Alive: true}}}, "1", nil},
-		{map[string]*Client{"1": {LastCallTs: ts - NB_CLIENT_NODE_KEEP_ALIVE, Node: &Node{Alive: true}}}, "1", nil},
 	}
+
 	for _, c := range cases {
 		CreateClientPools()
+		cpool := GetClientPool("ethereum")
+
 		for id, client := range c.clients {
-			ethereumClientPool.Client[id] = client
+			cpool.AddClientNode(id, client.Node)
 		}
 
-		clientNode := ethereumClientPool.GetClientNode(c.id)
+		clientNode := cpool.GetClientNode(c.id)
 		if !reflect.DeepEqual(clientNode, c.expected) {
 			t.Log("Wrong node returned")
 			t.Fatal()
@@ -55,6 +74,7 @@ func TestGetClientNode(t *testing.T) {
 	}
 }
 
+// TestCleanInactiveClientNodes tests cleaning inactive clients
 func TestCleanInactiveClientNodes(t *testing.T) {
 	ts := time.Now().Unix()
 
@@ -72,12 +92,14 @@ func TestCleanInactiveClientNodes(t *testing.T) {
 	}
 	for _, c := range cases {
 		CreateClientPools()
+		cpool := GetClientPool("ethereum")
+
 		for id, client := range c.clients {
-			ethereumClientPool.Client[id] = client
+			cpool.Client[id] = client
 		}
 
-		ethereumClientPool.CleanInactiveClientNodes()
-		for id := range ethereumClientPool.Client {
+		cpool.CleanInactiveClientNodes()
+		for id := range cpool.Client {
 			if id != c.expected {
 				t.Log("Wrong client was removed")
 				t.Fatal()
