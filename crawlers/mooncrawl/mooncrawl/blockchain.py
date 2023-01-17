@@ -123,8 +123,6 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
     )
     if blockchain_type == AvailableBlockchainType.XDAI:
         block_obj.author = block.author
-        block_obj.signature = block.signature
-        block_obj.step = block.step
 
     db_session.add(block_obj)
 

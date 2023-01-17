@@ -1,3 +1,3 @@
 package main
 
-var NB_VERSION = "0.2.1"
+var NB_VERSION = "0.2.2"

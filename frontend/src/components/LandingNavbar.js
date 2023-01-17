@@ -31,14 +31,10 @@ const LandingNavbar = () => {
     <>
       {ui.isMobileView && <LandingBarMobile />}
       {!ui.isMobileView && (
-        <>
+        <Flex px="7%" w="100%" justifyContent="space-between">
           <Flex
-            pl={ui.isMobileView ? 2 : "60px"}
             justifySelf="flex-start"
-            h={ui.isMobileView && !ui.isAppView ? "89px" : "72px"}
             py={1}
-            flexBasis="200px"
-            flexGrow={0.6}
             id="Logo Container"
             alignItems="center"
           >
@@ -52,7 +48,12 @@ const LandingNavbar = () => {
               />
             </RouterLink>
           </Flex>
-          <ButtonGroup variant="link" spacing={4} pr={16} flexGrow={0.5}>
+          <ButtonGroup
+            variant="link"
+            spacing={4}
+            width="100%"
+            justifyContent="center"
+          >
             {SITEMAP.map((item, idx) => {
               return (
                 <React.Fragment key={`Fragment-${idx}`}>
@@ -128,8 +129,8 @@ const LandingNavbar = () => {
               );
             })}
           </ButtonGroup>
-          <ButtonGroup variant="link" spacing={4} pr={16}>
-            {ui.isLoggedIn && (
+          {ui.isLoggedIn && (
+            <Flex gap="20px">
               <RouterLink href="/welcome" passHref>
                 <Box
                   bg="orange.1000"
@@ -150,37 +151,44 @@ const LandingNavbar = () => {
                   </Text>
                 </Box>
               </RouterLink>
-            )}
-            {!ui.isLoggedIn && (
+              <ChakraAccountIconButton
+                variant="link"
+                colorScheme="orange"
+                h="32px"
+              />
+            </Flex>
+          )}
+
+          {!ui.isLoggedIn && (
+            <Flex gap="20px" alignItems="center">
+              <Text
+                color="white"
+                cursor="pointer"
+                onClick={() => toggleModal({ type: MODAL_TYPES.LOGIN })}
+                fontWeight="400"
+                _hover={{ textDecoration: "underline" }}
+              >
+                Log&nbsp;in
+              </Text>
               <Button
-                bg="orange.1000"
-                variant="solid"
+                variant="plainOrange"
+                borderRadius="15px"
+                p="5px 10px"
+                fontSize="16px"
+                m="0px"
+                h="32px"
                 onClick={() => toggleModal({ type: MODAL_TYPES.SIGNUP })}
-                size="sm"
                 fontWeight="700"
-                borderRadius="2xl"
                 textColor="white"
                 _hover={{
                   backgroundColor: "#F4532F",
                 }}
               >
-                Sign up
+                Sign&nbsp;up
               </Button>
-            )}
-            {!ui.isLoggedIn && (
-              <Button
-                color="white"
-                onClick={() => toggleModal({ type: MODAL_TYPES.LOGIN })}
-                fontWeight="400"
-              >
-                Log in
-              </Button>
-            )}
-            {ui.isLoggedIn && (
-              <ChakraAccountIconButton variant="link" colorScheme="orange" />
-            )}
-          </ButtonGroup>
-        </>
+            </Flex>
+          )}
+        </Flex>
       )}
     </>
   );
