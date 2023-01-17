@@ -9,11 +9,17 @@ import boto3  # type: ignore
 from bugout.data import BugoutResources, BugoutJournalEntryContent, BugoutJournalEntry
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Body, Request
-import requests
+import requests  # type: ignore
 
 
 from .. import data
-from ..actions import get_query_by_name, name_normalization, NameNormalizationException
+from ..actions import (
+    get_query_by_name,
+    name_normalization,
+    NameNormalizationException,
+    query_parameter_hash,
+    generate_s3_access_links,
+)
 from ..middleware import MoonstreamHTTPException
 from ..settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -321,8 +327,6 @@ async def get_access_link_handler(
     except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
-    s3 = boto3.client("s3")
-
     try:
         entries = bc.search(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -336,6 +340,8 @@ async def get_access_link_handler(
 
         if entries.results and entries.results[0].content:
 
+            passed_params = dict(request.query_params)
+
             tags = entries.results[0].tags
 
             file_type = "json"
@@ -343,14 +349,17 @@ async def get_access_link_handler(
             if "ext:csv" in tags:
                 file_type = "csv"
 
-            stats_presigned_url = s3.generate_presigned_url(
-                "get_object",
-                Params={
-                    "Bucket": MOONSTREAM_S3_QUERIES_BUCKET,
-                    "Key": f"{MOONSTREAM_S3_QUERIES_BUCKET_PREFIX}/queries/{query_id}/data.{file_type}",
-                },
-                ExpiresIn=300000,
-                HttpMethod="GET",
+            params_hash = query_parameter_hash(passed_params)
+
+            bucket = MOONSTREAM_S3_QUERIES_BUCKET
+            key = f"{MOONSTREAM_S3_QUERIES_BUCKET_PREFIX}/queries/{query_id}/{params_hash}/data.{file_type}"
+
+            stats_presigned_url = generate_s3_access_links(
+                method_name="get_object",
+                bucket=bucket,
+                key=key,
+                expiration=300000,
+                http_method="GET",
             )
             s3_response = data.QueryPresignUrl(url=stats_presigned_url)
     except BugoutResponseException as e:
