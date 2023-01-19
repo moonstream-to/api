@@ -3,7 +3,8 @@ import json
 from urllib.error import HTTPError
 import urllib.request
 import logging
-from typing import Dict, Any
+import random
+from typing import Dict, Any, List, Optional
 
 from moonstreamdb.blockchain import AvailableBlockchainType
 from moonstreamdb.db import (
@@ -27,6 +28,14 @@ logger = logging.getLogger(__name__)
 
 
 batch_size = 50
+
+
+def leak_of_crawled_uri(
+    uris: List[Optional[str]],
+    leak_rate: float,
+) -> List[Dict[str, Any]]:
+    assert 0 <= leak_rate <= 1, "Leak rate must be between 0 and 1"
+    return [uri for uri in uris if random.random() > leak_rate]
 
 
 def crawl_uri(metadata_uri: str) -> Any:
@@ -58,7 +67,9 @@ def crawl_uri(metadata_uri: str) -> Any:
     return result
 
 
-def parse_metadata(blockchain_type: AvailableBlockchainType, batch_size: int):
+def parse_metadata(
+    blockchain_type: AvailableBlockchainType, batch_size: int, leak_rate: float
+):
 
     """
     Parse all metadata of tokens.
@@ -94,6 +105,8 @@ def parse_metadata(blockchain_type: AvailableBlockchainType, batch_size: int):
                 db_session=db_session, blockchain_type=blockchain_type, address=address
             )
 
+            parsed_with_leak = leak_of_crawled_uri(already_parsed, leak_rate)
+
             for requests_chunk in [
                 tokens_uri_by_address[address][i : i + batch_size]
                 for i in range(0, len(tokens_uri_by_address[address]), batch_size)
@@ -101,7 +114,7 @@ def parse_metadata(blockchain_type: AvailableBlockchainType, batch_size: int):
                 writed_labels = 0
                 for token_uri_data in requests_chunk:
 
-                    if token_uri_data.token_id not in already_parsed:
+                    if token_uri_data.token_id not in parsed_with_leak:
                         metadata = crawl_uri(token_uri_data.token_uri)
 
                         db_session.add(
@@ -127,7 +140,7 @@ def handle_crawl(args: argparse.Namespace) -> None:
 
     blockchain_type = AvailableBlockchainType(args.blockchain)
 
-    parse_metadata(blockchain_type, args.commit_batch_size)
+    parse_metadata(blockchain_type, args.commit_batch_size, args.leak_rate)
 
 
 def main() -> None:
@@ -153,6 +166,13 @@ def main() -> None:
         type=int,
         default=50,
         help="Amount of requests before commiting to database",
+    )
+    metadata_crawler_parser.add_argument(
+        "--leak-rate",
+        "-l",
+        type=float,
+        default=0.01,
+        help="Leak rate of already crawled tokens",
     )
     metadata_crawler_parser.set_defaults(func=handle_crawl)
 
