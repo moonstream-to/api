@@ -6,21 +6,8 @@ import (
 	"time"
 )
 
-func setupSuit(t *testing.T) func(t *testing.T) {
-	t.Log("Setup suit")
-
-	configBlockchains = map[string]bool{"ethereum": true}
-
-	return func(t *testing.T) {
-		t.Log("Teardown suit")
-	}
-}
-
 // TestAddClientNode tests adding new client to client pool
 func TestAddClientNode(t *testing.T) {
-	teardownSuit := setupSuit(t)
-	defer teardownSuit(t)
-
 	var cases = []struct {
 		clients  map[string]*Client
 		expected string

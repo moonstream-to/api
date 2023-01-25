@@ -211,16 +211,18 @@ func HealthCheck() {
 			if err != nil {
 				node.UpdateNodeState(0, alive)
 				log.Printf("Unable to reach node: %s", node.Endpoint.Host)
+				resp.Body.Close()
 				continue
 			}
-			defer resp.Body.Close()
 
 			body, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
 				node.UpdateNodeState(0, alive)
 				log.Printf("Unable to parse response from %s node, err %v", node.Endpoint.Host, err)
+				resp.Body.Close()
 				continue
 			}
+			resp.Body.Close()
 
 			var statusResponse NodeStatusResponse
 			err = json.Unmarshal(body, &statusResponse)

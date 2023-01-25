@@ -142,3 +142,16 @@ curl --request POST 'http://127.0.0.1:8544/nb/ethereum/jsonrpc?access_id=<access
         "id":1
     }'
 ```
+
+# Tests
+
+## Running tests with fake node
+
+```bash
+go build -o fakenode tests/fake_node/main.go
+./fakenode
+```
+
+```bash
+TEST_API_URL="http://127.0.0.1:8545/nb/test/jsonrpc" /usr/local/go/bin/go test -run ^TestHealthCheck$ github.com/bugout-dev/moonstream/nodes/node_balancer/cmd/nodebalancer -v -count=1
+```

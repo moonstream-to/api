@@ -17,6 +17,8 @@ import (
 var (
 	nodeConfigs []NodeConfig
 
+	supportedBlockchains map[string]bool
+
 	// Bugout and application configuration
 	BUGOUT_AUTH_CALL_TIMEOUT = time.Second * 5
 	NB_APPLICATION_ID        = os.Getenv("NB_APPLICATION_ID")
@@ -25,7 +27,7 @@ var (
 
 	NB_CONNECTION_RETRIES          = 2
 	NB_CONNECTION_RETRIES_INTERVAL = time.Millisecond * 10
-	NB_HEALTH_CHECK_INTERVAL       = time.Second * 5
+	NB_HEALTH_CHECK_INTERVAL       = time.Millisecond * 5000
 	NB_HEALTH_CHECK_CALL_TIMEOUT   = time.Second * 2
 
 	NB_CACHE_CLEANING_INTERVAL  = time.Second * 10
