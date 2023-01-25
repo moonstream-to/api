@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -28,12 +29,12 @@ var (
 )
 
 // initHealthCheck runs a routine for check status of the nodes every 5 seconds
-func initHealthCheck() {
+func initHealthCheck(debug bool) {
 	t := time.NewTicker(NB_HEALTH_CHECK_INTERVAL)
 	for {
 		select {
 		case <-t.C:
-			HealthCheck()
+			blockchainPool.HealthCheck()
 			logStr := "Client pool healthcheck."
 			for b := range configBlockchains {
 				cp := clientPool[b]
@@ -41,8 +42,8 @@ func initHealthCheck() {
 				logStr += fmt.Sprintf(" Active %s clients: %d.", b, clients)
 			}
 			log.Println(logStr)
-			if stateCLI.enableDebugFlag {
-				StatusLog()
+			if debug {
+				blockchainPool.StatusLog()
 			}
 		}
 	}
@@ -88,7 +89,7 @@ func proxyErrorHandler(proxy *httputil.ReverseProxy, url *url.URL) {
 		}
 
 		// After 3 retries, mark this backend as down
-		SetNodeStatus(url, false)
+		blockchainPool.SetNodeStatus(url, false)
 
 		// Set modified path back
 		// TODO(kompotkot): Try r.RequestURI instead of header
@@ -128,24 +129,33 @@ func Server() {
 		fmt.Printf("Unable to get user with provided access identifier, err: %v\n", err)
 		os.Exit(1)
 	}
-	resourcesLog := "Access with resources established."
 	if len(resources.Resources) != 1 {
-		log.Printf("%s There are no access IDs for users in resources", resourcesLog)
-	} else {
-		log.Printf("%s Found user access IDs in resources", resourcesLog)
+		fmt.Printf("User with provided access identifier has wrong number of resources, err: %v\n", err)
+		os.Exit(1)
 	}
-
-	// Set internal crawlers access to bypass requests from internal services
-	// without fetching data from authn Brood server
-	internalCrawlersUserID := uuid.New().String()
+	resource_data, err := json.Marshal(resources.Resources[0].ResourceData)
+	if err != nil {
+		fmt.Printf("Unable to encode resource data interface to json, err: %v\n", err)
+		os.Exit(1)
+	}
+	var clientAccess ClientResourceData
+	err = json.Unmarshal(resource_data, &clientAccess)
+	if err != nil {
+		fmt.Printf("Unable to decode resource data json to structure, err: %v\n", err)
+		os.Exit(1)
+	}
 	internalCrawlersAccess = ClientResourceData{
-		UserID:           internalCrawlersUserID,
-		AccessID:         NB_CONTROLLER_ACCESS_ID,
-		Name:             "InternalCrawlersAccess",
-		Description:      "Access for internal crawlers.",
-		BlockchainAccess: true,
-		ExtendedMethods:  true,
+		UserID:           clientAccess.UserID,
+		AccessID:         clientAccess.AccessID,
+		Name:             clientAccess.Name,
+		Description:      clientAccess.Description,
+		BlockchainAccess: clientAccess.BlockchainAccess,
+		ExtendedMethods:  clientAccess.ExtendedMethods,
 	}
+	log.Printf(
+		"Internal crawlers access set, resource id: %s, blockchain access: %t, extended methods: %t",
+		resources.Resources[0].Id, clientAccess.BlockchainAccess, clientAccess.ExtendedMethods,
+	)
 
 	err = InitDatabaseClient()
 	if err != nil {
@@ -185,18 +195,14 @@ func Server() {
 			r.Header.Del(strings.Title(NB_DATA_SOURCE_HEADER))
 			// Change r.Host from nodebalancer's to end host so TLS check will be passed
 			r.Host = r.URL.Host
-			// Explicit set of r.URL requires, because by default it adds trailing slash and brake some urls
-			r.URL = endpoint
 		}
 		proxyErrorHandler(proxyToEndpoint, endpoint)
 
-		newNode := &Node{
+		blockchainPool.AddNode(&Node{
 			Endpoint:         endpoint,
 			Alive:            true,
 			GethReverseProxy: proxyToEndpoint,
-		}
-		AddNode(nodeConfig.Blockchain, nodeConfig.Tags, newNode)
-
+		}, nodeConfig.Blockchain)
 		log.Printf(
 			"Added new %s proxy blockchain under index %d from config file with geth url: %s://%s",
 			nodeConfig.Blockchain, i, endpoint.Scheme, endpoint.Host)
@@ -204,12 +210,6 @@ func Server() {
 
 	// Generate map of clients
 	CreateClientPools()
-
-	// Start node health checking and current block fetching
-	HealthCheck()
-	if stateCLI.enableHealthCheckFlag {
-		go initHealthCheck()
-	}
 
 	serveMux := http.NewServeMux()
 	serveMux.Handle("/nb/", accessMiddleware(http.HandlerFunc(lbHandler)))
@@ -227,8 +227,14 @@ func Server() {
 		WriteTimeout: 40 * time.Second,
 	}
 
+	// Start node health checking and current block fetching
+	blockchainPool.HealthCheck()
+	if stateCLI.enableHealthCheckFlag {
+		go initHealthCheck(stateCLI.enableDebugFlag)
+	}
+
 	// Start access id cache cleaning
-	go initCacheCleaning()
+	go initCacheCleaning(stateCLI.enableDebugFlag)
 
 	log.Printf("Starting node load balancer HTTP server at %s:%s", stateCLI.listeningAddrFlag, stateCLI.listeningPortFlag)
 	err = server.ListenAndServe()
