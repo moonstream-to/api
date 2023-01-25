@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"net/url"
 	"os"
@@ -14,13 +15,20 @@ var testApiUrl = os.Getenv("TEST_API_URL")
 func setupBalancerSuit(t *testing.T) func(t *testing.T) {
 	t.Log("Setup Balancer suit")
 
-	testEndpoint, err := url.Parse(testApiUrl)
+	testEndpoint1, err := url.Parse(fmt.Sprintf("%s/test1/jsonrpc", testApiUrl))
+	if err != nil {
+		t.Error(err)
+	}
+	testEndpoint2, err := url.Parse(fmt.Sprintf("%s/test2/jsonrpc", testApiUrl))
 	if err != nil {
 		t.Error(err)
 	}
 
-	testNode := &Node{
-		Endpoint: testEndpoint,
+	testNode1 := &Node{
+		Endpoint: testEndpoint1,
+	}
+	testNode2 := &Node{
+		Endpoint: testEndpoint2,
 	}
 
 	testBlockchainPools := make(map[string]*NodePool)
@@ -28,13 +36,13 @@ func setupBalancerSuit(t *testing.T) func(t *testing.T) {
 		NodesMap: make(map[string][]*Node),
 	}
 	testBlockchainPools["test"].NodesMap["tag_1"] = append(
-		testBlockchainPools["test"].NodesMap["tag_1"], testNode,
+		testBlockchainPools["test"].NodesMap["tag_1"], testNode1,
 	)
 	testBlockchainPools["test"].NodesMap["tag_2"] = append(
-		testBlockchainPools["test"].NodesMap["tag_2"], testNode,
+		testBlockchainPools["test"].NodesMap["tag_2"], testNode2,
 	)
 	testBlockchainPools["test"].NodesSet = append(
-		testBlockchainPools["test"].NodesSet, testNode,
+		testBlockchainPools["test"].NodesSet, testNode1, testNode2,
 	)
 
 	blockchainPools = make(map[string]*NodePool)

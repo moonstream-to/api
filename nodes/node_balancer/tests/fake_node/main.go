@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"math/rand"
 	"time"
+	"strconv"
 )
 
 type PingResponse struct {
@@ -30,7 +32,7 @@ func pingRoute(w http.ResponseWriter, r *http.Request) {
 
 func lbRoute(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	res := NodeStatusResponse{NodeStatusResultResponse{Number: "11"}}
+	res := NodeStatusResponse{NodeStatusResultResponse{Number: strconv.Itoa(rand.Intn(100))}}
 	json.NewEncoder(w).Encode(res)
 }
 
@@ -64,7 +66,8 @@ func main() {
 
 	commonMux := http.NewServeMux()
 	commonMux.HandleFunc("/ping", pingRoute)
-	commonMux.HandleFunc("/nb/test/jsonrpc", lbRoute)
+	commonMux.HandleFunc("/nb/test1/jsonrpc", lbRoute)
+	commonMux.HandleFunc("/nb/test2/jsonrpc", lbRoute)
 
 	commonHandler := logMiddleware(commonMux)
 	commonHandler = panicMiddleware(commonHandler)

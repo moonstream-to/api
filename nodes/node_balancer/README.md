@@ -153,5 +153,5 @@ go build -o fakenode tests/fake_node/main.go
 ```
 
 ```bash
-TEST_API_URL="http://127.0.0.1:8545/nb/test/jsonrpc" /usr/local/go/bin/go test -run ^TestHealthCheck$ github.com/bugout-dev/moonstream/nodes/node_balancer/cmd/nodebalancer -v -count=1
+TEST_API_URL="http://127.0.0.1:8545/nb" /usr/local/go/bin/go test -run ^TestHealthCheck$ github.com/bugout-dev/moonstream/nodes/node_balancer/cmd/nodebalancer -v -count=1
 ```
