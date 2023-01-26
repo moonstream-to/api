@@ -5,8 +5,6 @@ StartLimitIntervalSec=300
 StartLimitBurst=3
 
 [Service]
-User=ubuntu
-Group=www-data
 WorkingDirectory=/home/ubuntu/moonstream/crawlers/mooncrawl
 EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
 Restart=on-failure
