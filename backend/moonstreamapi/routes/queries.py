@@ -9,7 +9,7 @@ import boto3  # type: ignore
 from bugout.data import BugoutResources, BugoutJournalEntryContent, BugoutJournalEntry
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Body, Request
-import requests
+import requests  # type: ignore
 
 
 from .. import data

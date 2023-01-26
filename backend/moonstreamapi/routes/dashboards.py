@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 import boto3  # type: ignore
-import requests
+import requests  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Body, Path, Query, Request

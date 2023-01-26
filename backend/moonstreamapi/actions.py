@@ -16,6 +16,8 @@ from bugout.data import (
 )
 from bugout.journal import SearchOrder
 from bugout.exceptions import BugoutResponseException
+from entity.data import EntityCollectionsResponse, EntityCollectionResponse
+from entity.exceptions import EntityUnexpectedResponse
 from ens.utils import is_valid_ens_name  # type: ignore
 from eth_utils.address import is_address  # type: ignore
 from moonstreamdb.models import EthereumLabel
@@ -37,8 +39,9 @@ from .settings import (
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
     MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+    MOONSTREAM_ADMIN_ACCESS_TOKEN,
 )
-from .settings import bugout_client as bc
+from .settings import bugout_client as bc, entity_client as ec
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +73,12 @@ class NameNormalizationException(Exception):
 class ResourceQueryFetchException(Exception):
     """
     Exception in queries API
+    """
+
+
+class EntityCollectionNotFoundException(Exception):
+    """
+    Raised when entity collection is not found
     """
 
 
@@ -604,3 +613,103 @@ def get_query_by_name(query_name: str, token: uuid.UUID) -> str:
     query_id = available_queries[query_name]
 
     return query_id
+
+
+def get_entity_subscription_collection_id(
+    resource_type: str,
+    token: uuid.UUID,
+    user_id: uuid.UUID,
+    create_if_not_exist: bool = False,
+) -> Optional[str]:
+    """
+    Get collection_id from brood resources.
+    """
+
+    # try:
+    #     collections: EntityCollectionsResponse = ec.list_collections(token=token)
+    # except EntityUnexpectedResponse as e:
+    #     logger.error(f"Error get collection, error: {str(e)}")
+    #     raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    # except Exception as e:
+    #     logger.error(f"Error get collection, error: {str(e)}")
+    #     raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    # # list resources
+
+    # available_collections: Dict[str, str] = {
+    #     collection.name: collection.collection_id
+    #     for collection in collections.collections
+    # }
+
+    # if collection_name not in available_collections:
+
+    #     if create_if_not_exist:
+    #         try:
+
+    #             collection: EntityCollectionResponse = ec.add_collection(
+    #                 token=token, name=collection_name
+    #             )
+    #             collection_id = collection.collection_id
+    #         except EntityUnexpectedResponse as e:
+    #             logger.error(f"Error get collection, error: {str(e)}")
+    #             raise MoonstreamHTTPException(
+    #                 status_code=e.status_code, detail=e.detail
+    #             )
+    #     else:
+    #         raise EntityCollectionNotFoundException("Collection not found.")
+    # else:
+    #     collection_id = available_collections[collection_name]
+
+    params = {
+        "type": resource_type,
+        "user_id": str(user_id),
+    }
+    try:
+        resources: BugoutResources = bc.list_resources(token=token, params=params)
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        logger.error(
+            f"Error listing subscriptions for user ({user_id}) with token ({token}), error: {str(e)}"
+        )
+        reporter.error_report(e)
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    if len(resources.resources) == 0:
+
+        if not create_if_not_exist:
+            raise EntityCollectionNotFoundException(
+                "Subscription collection not found."
+            )
+        try:
+            collection: EntityCollectionResponse = ec.add_collection(
+                token=token, name=f"subscriptions_{user_id}"
+            )
+            collection_id = collection.collection_id
+        except EntityUnexpectedResponse as e:
+            logger.error(f"Error create collection, error: {str(e)}")
+            raise MoonstreamHTTPException(
+                status_code=500, detail="Can't create collection for subscriptions"
+            )
+
+        resource_data = {
+            "type": resource_type,
+            "user_id": str(user_id),
+            "subscription_collection": collection_id,
+        }
+
+        try:
+            resource: BugoutResource = bc.create_resource(
+                token=token,
+                application_id=MOONSTREAM_APPLICATION_ID,
+                resource_data=resource_data,
+            )
+        except BugoutResponseException as e:
+            raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+        except Exception as e:
+            logger.error(f"Error creating subscription resource: {str(e)}")
+            raise MoonstreamHTTPException(status_code=500, internal_error=e)
+    else:
+        resource = resources.resources[0]
+
+    return resource.resource_data["subscription_collection"]

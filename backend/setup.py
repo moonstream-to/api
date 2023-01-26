@@ -14,7 +14,7 @@ setup(
         "appdirs",
         "boto3",
         "bugout>=0.1.19",
-        "fastapi",
+        "moonstream-entity>=0.0.3" "fastapi",
         "moonstreamdb>=0.3.1",
         "humbug",
         "pydantic",

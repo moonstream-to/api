@@ -31,6 +31,7 @@ class SubscriptionTypeResourceData(BaseModel):
     description: str
     choices: List[str] = Field(default_factory=list)
     icon_url: str
+    blockchain: Optional[str] = None
     stripe_product_id: Optional[str] = None
     stripe_price_id: Optional[str] = None
     active: bool = False
@@ -239,7 +240,7 @@ class OnboardingState(BaseModel):
 
 
 class SubdcriptionsAbiResponse(BaseModel):
-    url: str
+    abi: str
 
 
 class DashboardMeta(BaseModel):

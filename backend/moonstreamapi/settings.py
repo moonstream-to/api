@@ -1,13 +1,18 @@
 import os
 
 from bugout.app import Bugout
+from entity.client import Entity
 
 # Bugout
 BUGOUT_BROOD_URL = os.environ.get("BUGOUT_BROOD_URL", "https://auth.bugout.dev")
 BUGOUT_SPIRE_URL = os.environ.get("BUGOUT_SPIRE_URL", "https://spire.bugout.dev")
 
 
+# Entity
+ENTITY_URL = os.environ.get("ENTITY_URL", "https://api.moonstream.to")
+
 bugout_client = Bugout(brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIRE_URL)
+entity_client = Entity(ENTITY_URL)
 
 BUGOUT_REQUEST_TIMEOUT_SECONDS = 5
 
@@ -110,4 +115,16 @@ MOONSTREAM_S3_QUERIES_BUCKET_PREFIX = os.environ.get(
 if MOONSTREAM_S3_QUERIES_BUCKET_PREFIX == "":
     raise ValueError(
         "MOONSTREAM_S3_QUERIES_BUCKET_PREFIX environment variable must be set"
+    )
+
+
+# Entity
+
+MOONSTREAM_SUBSCRIPTIONS_COLLECTION = os.environ.get(
+    "MOONSTREAM_SUBSCRIPTIONS_COLLECTION", ""
+)
+
+if MOONSTREAM_SUBSCRIPTIONS_COLLECTION == "":
+    raise ValueError(
+        "MOONSTREAM_SUBSCRIPTIONS_COLLECTION environment variable must be set"
     )
