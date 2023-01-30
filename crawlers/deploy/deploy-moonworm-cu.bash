@@ -34,7 +34,7 @@ echo -e "${PREFIX_INFO} Upgrading Python pip and setuptools"
 echo
 echo
 echo -e "${PREFIX_INFO} Installing Python dependencies"
-"${PIP}" install moonworm
+"${PIP}" install moonworm==0.2.4
 
 echo
 echo
