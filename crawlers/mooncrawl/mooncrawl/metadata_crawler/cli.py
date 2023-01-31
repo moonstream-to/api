@@ -92,6 +92,8 @@ def parse_metadata(
     # run crawling of levels
     try:
 
+        # get all tokens with uri
+        logger.info("Requesting all tokens with uri from database")
         uris_of_tokens = get_uris_of_tokens(db_session, blockchain_type)
 
         tokens_uri_by_address: Dict[str, Any] = {}
@@ -102,6 +104,8 @@ def parse_metadata(
             tokens_uri_by_address[token_uri_data.address].append(token_uri_data)
 
         for address in tokens_uri_by_address:
+
+            logger.info(f"Starting to crawl metadata for address: {address}")
 
             already_parsed = get_current_metadata_for_address(
                 db_session=db_session, blockchain_type=blockchain_type, address=address
@@ -122,6 +126,16 @@ def parse_metadata(
                 already_parsed, leak_rate, maybe_updated
             )
 
+            logger.info(
+                f"Leak rate: {leak_rate} for {address} with maybe updated {len(maybe_updated)}"
+            )
+
+            logger.info(f"Already parsed: {len(already_parsed)} for {address}")
+
+            logger.info(
+                f"Amount of tokens for crawl: {len(tokens_uri_by_address[address])- len(parsed_with_leak)} for {address}"
+            )
+
             for requests_chunk in [
                 tokens_uri_by_address[address][i : i + batch_size]
                 for i in range(0, len(tokens_uri_by_address[address]), batch_size)
@@ -140,8 +154,10 @@ def parse_metadata(
                             )
                         )
                         writed_labels += 1
-                commit_session(db_session)
-                logger.info(f"Write {writed_labels} labels for {address}")
+
+                if writed_labels > 0:
+                    commit_session(db_session)
+                    logger.info(f"Write {writed_labels} labels for {address}")
 
     finally:
         db_session.close()

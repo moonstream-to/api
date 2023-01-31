@@ -201,10 +201,9 @@ def get_tokens_wich_maybe_updated(
             table, table
         ),
         {
-            "table": table,
+            "address": address,
             "metadata_label": METADATA_CRAWLER_LABEL,
             "moonworm_label": CRAWLER_LABEL,
-            "name": "tokenURI",
         },
     )
 
