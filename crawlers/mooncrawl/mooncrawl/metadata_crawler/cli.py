@@ -17,6 +17,7 @@ from .db import (
     commit_session,
     get_uris_of_tokens,
     get_current_metadata_for_address,
+    get_tokens_wich_maybe_updated,
     metadata_to_label,
 )
 from ..settings import (
@@ -31,11 +32,12 @@ batch_size = 50
 
 
 def leak_of_crawled_uri(
-    uris: List[Optional[str]],
+    ids: List[Optional[str]],
     leak_rate: float,
-) -> List[Dict[str, Any]]:
+    maybe_updated: List[Optional[str]],
+) -> List[Optional[str]]:
     assert 0 <= leak_rate <= 1, "Leak rate must be between 0 and 1"
-    return [uri for uri in uris if random.random() > leak_rate]
+    return [id for id in ids if id not in maybe_updated or random.random() > leak_rate]
 
 
 def crawl_uri(metadata_uri: str) -> Any:
@@ -68,7 +70,7 @@ def crawl_uri(metadata_uri: str) -> Any:
 
 
 def parse_metadata(
-    blockchain_type: AvailableBlockchainType, batch_size: int, leak_rate: float
+    blockchain_type: AvailableBlockchainType, batch_size: int, max_recrawl: int
 ):
 
     """
@@ -105,7 +107,20 @@ def parse_metadata(
                 db_session=db_session, blockchain_type=blockchain_type, address=address
             )
 
-            parsed_with_leak = leak_of_crawled_uri(already_parsed, leak_rate)
+            maybe_updated = get_tokens_wich_maybe_updated(
+                db_session=db_session, blockchain_type=blockchain_type, address=address
+            )
+            leak_rate = 0.0
+
+            if len(maybe_updated) > 0:
+                leak_rate = max_recrawl / len(maybe_updated)
+
+                if leak_rate > 1:
+                    leak_rate = 1
+
+            parsed_with_leak = leak_of_crawled_uri(
+                already_parsed, leak_rate, maybe_updated
+            )
 
             for requests_chunk in [
                 tokens_uri_by_address[address][i : i + batch_size]
@@ -140,7 +155,7 @@ def handle_crawl(args: argparse.Namespace) -> None:
 
     blockchain_type = AvailableBlockchainType(args.blockchain)
 
-    parse_metadata(blockchain_type, args.commit_batch_size, args.leak_rate)
+    parse_metadata(blockchain_type, args.commit_batch_size, args.max_recrawl)
 
 
 def main() -> None:
@@ -168,11 +183,11 @@ def main() -> None:
         help="Amount of requests before commiting to database",
     )
     metadata_crawler_parser.add_argument(
-        "--leak-rate",
-        "-l",
-        type=float,
-        default=0.01,
-        help="Leak rate of already crawled tokens",
+        "--max-recrawl",
+        "-m",
+        type=int,
+        default=200,
+        help="Maximum amount of recrawling of already crawled tokens",
     )
     metadata_crawler_parser.set_defaults(func=handle_crawl)
 
