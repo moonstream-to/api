@@ -139,3 +139,31 @@ def get_current_metadata_for_address(
     result = [data[0] for data in current_metadata]
 
     return result
+
+
+def clean_labels(
+    db_session: Session, blockchain_type: AvailableBlockchainType, address: str
+):
+    """
+    Remove existing labels.
+    """
+
+    label_model = get_label_model(blockchain_type)
+
+    table = label_model.__tablename__
+
+    db_session.execute(
+        """ DELETE FROM
+            {}
+        WHERE
+            address = :address
+            AND label = :label;
+    """.format(
+            table
+        ),
+        {"address": address, "label": METADATA_CRAWLER_LABEL},
+    )
+
+    commit_session(db_session)
+
+    return True
