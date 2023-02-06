@@ -1,11 +1,14 @@
 import logging
 import json
+import time
 from typing import Dict, List, Optional
 
 from moonstreamdb.blockchain import AvailableBlockchainType, get_label_model
 from moonstreamdb.models import Base
 from moonworm.crawler.function_call_crawler import ContractFunctionCall  # type: ignore
 from sqlalchemy.orm import Session
+from sqlalchemy.dialects.postgresql import insert
+
 
 from ..settings import CRAWLER_LABEL
 from .event_crawler import Event
@@ -154,37 +157,62 @@ def add_events_to_session(
 ) -> None:
     label_model = get_label_model(blockchain_type)
 
-    events_hashes_to_save = [event.transaction_hash for event in events]
+    # events_hashes_to_save = [event.transaction_hash for event in events]
 
-    existing_labels = (
-        db_session.query(label_model.transaction_hash, label_model.log_index)
-        .filter(
-            label_model.label == label_name,
-            label_model.log_index != None,
-            label_model.transaction_hash.in_(events_hashes_to_save),
-        )
-        .all()
+    # existing_labels = (
+    #     db_session.query(label_model.transaction_hash, label_model.log_index)
+    #     .filter(
+    #         label_model.label == label_name,
+    #         label_model.log_index != None,
+    #         label_model.transaction_hash.in_(events_hashes_to_save),
+    #     )
+    #     .all()
+    # )
+
+    # existing_labels_transactions = []
+    # existing_log_index_by_tx_hash: Dict[str, List[int]] = {}
+    # for label in existing_labels:
+    #     if label[0] not in existing_labels_transactions:
+    #         existing_labels_transactions.append(label[0])
+    #         existing_log_index_by_tx_hash[label[0]] = []
+    #     existing_log_index_by_tx_hash[label[0]].append(label[1])
+
+    # labels_to_save = []
+    # for event in events:
+    #     if event.transaction_hash not in existing_labels_transactions:
+    #         labels_to_save.append(_event_to_label(blockchain_type, event, label_name))
+    #     elif (
+    #         event.log_index not in existing_log_index_by_tx_hash[event.transaction_hash]
+    #     ):
+    #         labels_to_save.append(_event_to_label(blockchain_type, event, label_name))
+
+    logger.info(f"Saving {len(events)} event labels to session")
+    logger.info(f"Test")
+    # db_session.add_all(labels_to_save)
+
+    insert_statement = insert(label_model).values(events)
+
+    result_stmt = insert_statement.on_conflict_do_update(
+        index_elements=[
+            label_model.address,
+            label_model.transaction_hash,
+            label_model.log_index,
+        ],
+        set_=dict(
+            label=insert_statement.excluded.label,
+            label_data=insert_statement.excluded.label_data,
+            block_number=insert_statement.excluded.block_number,
+        ),
     )
-
-    existing_labels_transactions = []
-    existing_log_index_by_tx_hash: Dict[str, List[int]] = {}
-    for label in existing_labels:
-        if label[0] not in existing_labels_transactions:
-            existing_labels_transactions.append(label[0])
-            existing_log_index_by_tx_hash[label[0]] = []
-        existing_log_index_by_tx_hash[label[0]].append(label[1])
-
-    labels_to_save = []
-    for event in events:
-        if event.transaction_hash not in existing_labels_transactions:
-            labels_to_save.append(_event_to_label(blockchain_type, event, label_name))
-        elif (
-            event.log_index not in existing_log_index_by_tx_hash[event.transaction_hash]
-        ):
-            labels_to_save.append(_event_to_label(blockchain_type, event, label_name))
-
-    logger.info(f"Saving {len(labels_to_save)} event labels to session")
-    db_session.add_all(labels_to_save)
+    try:
+        start = time.time()
+        logger.info("Adding events to session")
+        db_session.execute(result_stmt)
+        db_session.commit()
+        logger.info(f"Adding events to session took {time.time() - start} seconds")
+        time.sleep(0.1)
+    except:
+        db_session.rollback()
 
 
 def add_function_calls_to_session(

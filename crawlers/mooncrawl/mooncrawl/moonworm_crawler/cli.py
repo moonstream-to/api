@@ -4,7 +4,7 @@ from typing import Optional
 from uuid import UUID
 
 from moonstreamdb.blockchain import AvailableBlockchainType
-from moonstreamdb.db import yield_db_session_ctx
+from moonstreamdb.db import yield_db_session_ctx, yield_db_read_only_session_ctx
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
@@ -169,7 +169,7 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
     )
 
     logger.info(f"Blockchain type: {blockchain_type.value}")
-    with yield_db_session_ctx() as db_session:
+    with yield_db_session_ctx() as db_session, yield_db_read_only_session_ctx() as db_read_only_session:
         web3: Optional[Web3] = None
         if args.web3 is None:
             logger.info(
@@ -225,8 +225,14 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
                 f"Start block {start_block} is less than end block {args.end}. This crawler crawls in the reverse direction."
             )
 
+        list_of_addresses = []
+
+        for address in args.addresses_filter:
+            list_of_addresses.append(Web3.toChecksumAddress(address))
+
         historical_crawler(
             db_session,
+            db_read_only_session,
             blockchain_type,
             web3,
             filtered_event_jobs,
@@ -236,6 +242,7 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
             args.max_blocks_batch,
             args.min_sleep_time,
             access_id=args.access_id,
+            list_of_addresses=list_of_addresses,
         )
 
 
@@ -406,6 +413,13 @@ def main() -> None:
         action="store_true",
         default=False,
         help="Only crawl events",
+    )
+    historical_crawl_parser.add_argument(
+        "--project-addresses",
+        nargs="*",
+        type=str,
+        default=None,
+        help="Comma separated list of project addresses",
     )
     historical_crawl_parser.set_defaults(func=handle_historical_crawl)
 

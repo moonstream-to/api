@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any
 from uuid import UUID
 
 from moonstreamdb.blockchain import AvailableBlockchainType
@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 def historical_crawler(
     db_session: Session,
+    db_read_only_session: Session,
     blockchain_type: AvailableBlockchainType,
     web3: Optional[Web3],
     event_crawl_jobs: List[EventCrawlJob],
@@ -31,6 +32,7 @@ def historical_crawler(
     max_blocks_batch: int = 100,
     min_sleep_time: float = 0.1,
     access_id: Optional[UUID] = None,
+    list_of_addresses: Optional[Any] = None,
 ):
     assert max_blocks_batch > 0, "max_blocks_batch must be greater than 0"
     assert min_sleep_time > 0, "min_sleep_time must be greater than 0"
@@ -60,6 +62,9 @@ def historical_crawler(
     blocks_cache: Dict[int, int] = {}
     failed_count = 0
 
+    if list_of_addresses is not None:
+        project_addresses_holders = [""]
+
     while start_block >= end_block:
         try:
 
@@ -75,6 +80,7 @@ def historical_crawler(
             if function_call_crawl_jobs:
                 all_events = _crawl_events(
                     db_session=db_session,
+                    db_read_only_session=db_read_only_session,
                     blockchain_type=blockchain_type,
                     web3=web3,
                     jobs=event_crawl_jobs,
@@ -82,12 +88,14 @@ def historical_crawler(
                     to_block=start_block,
                     blocks_cache=blocks_cache,
                     db_block_query_batch=max_blocks_batch,
+                    list_of_addresses=project_addresses_holders,
                 )
 
             else:
 
                 all_events, max_blocks_batch = _autoscale_crawl_events(
                     db_session=db_session,
+                    db_read_only_session=db_read_only_session,
                     blockchain_type=blockchain_type,
                     web3=web3,
                     jobs=event_crawl_jobs,
@@ -95,12 +103,19 @@ def historical_crawler(
                     to_block=start_block,
                     blocks_cache=blocks_cache,
                     db_block_query_batch=max_blocks_batch,
+                    list_of_addresses=project_addresses_holders,
                 )
             logger.info(
                 f"Crawled {len(all_events)} events from {start_block} to {batch_end_block}."
             )
 
+            # Adding events to db
+            start_time = time.time()
+
+            logger.info(f"Adding events to db.")
             add_events_to_session(db_session, all_events, blockchain_type)
+
+            logger.info(f"Added events to db in {time.time() - start_time} seconds.")
 
             if function_call_crawl_jobs:
                 logger.info(

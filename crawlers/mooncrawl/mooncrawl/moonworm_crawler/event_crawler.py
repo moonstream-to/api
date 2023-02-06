@@ -1,5 +1,6 @@
 import logging
 from dataclasses import dataclass
+import time
 from typing import Any, Dict, List, Optional, Tuple
 
 from moonstreamdb.blockchain import AvailableBlockchainType, get_block_model
@@ -98,6 +99,7 @@ def get_block_timestamp(
 
 def _crawl_events(
     db_session: Session,
+    db_read_only_session: Session,
     blockchain_type: AvailableBlockchainType,
     web3: Web3,
     jobs: List[EventCrawlJob],
@@ -105,6 +107,7 @@ def _crawl_events(
     to_block: int,
     blocks_cache: Dict[int, int] = {},
     db_block_query_batch=10,
+    list_of_addresses: List[str] = [],
 ) -> List[Event]:
     all_events = []
     for job in jobs:
@@ -117,10 +120,11 @@ def _crawl_events(
             on_decode_error=lambda e: print(
                 f"Error decoding event: {e}"
             ),  # TODO report via humbug
+            list_of_addresses=list_of_addresses,
         )
         for raw_event in raw_events:
             raw_event["blockTimestamp"] = get_block_timestamp(
-                db_session,
+                db_read_only_session,
                 web3,
                 blockchain_type,
                 raw_event["blockNumber"],
@@ -143,6 +147,7 @@ def _crawl_events(
 
 def _autoscale_crawl_events(
     db_session: Session,
+    db_read_only_session: Session,
     blockchain_type: AvailableBlockchainType,
     web3: Web3,
     jobs: List[EventCrawlJob],
@@ -151,6 +156,7 @@ def _autoscale_crawl_events(
     blocks_cache: Dict[int, int] = {},
     batch_size: int = 1000,
     db_block_query_batch=10,
+    list_of_addresses: List[Any] = [],
 ) -> Tuple[List[Event], int]:
 
     """
@@ -159,6 +165,11 @@ def _autoscale_crawl_events(
     all_events = []
     for job in jobs:
 
+        start_time = time.time()
+
+        logger.info(
+            f"Start crawling events for {job.event_abi['name']} from {from_block} to {to_block} with batch_size {batch_size}"
+        )
         raw_events, batch_size = moonworm_autoscale_crawl_events(
             web3,
             job.event_abi,
@@ -167,9 +178,12 @@ def _autoscale_crawl_events(
             batch_size,
             job.contracts[0],
         )
+        logger.info(
+            f"Finished crawling events for {job.event_abi['name']} from {from_block} to {to_block} with batch_size {batch_size} in {time.time() - start_time} seconds"
+        )
         for raw_event in raw_events:
             raw_event["blockTimestamp"] = get_block_timestamp(
-                db_session,
+                db_read_only_session,
                 web3,
                 blockchain_type,
                 raw_event["blockNumber"],
@@ -186,5 +200,8 @@ def _autoscale_crawl_events(
                 log_index=raw_event["logIndex"],
             )
             all_events.append(event)
+        logger.info(
+            f"Finished processing events for {job.event_abi['name']} from {from_block} to {to_block} with batch_size {batch_size} in {time.time() - start_time} seconds"
+        )
 
     return all_events, batch_size
