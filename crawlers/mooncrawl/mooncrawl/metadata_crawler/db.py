@@ -153,13 +153,29 @@ def clean_labels(
     table = label_model.__tablename__
 
     db_session.execute(
-        """ DELETE FROM
-            {}
+        """ 
+        WITH lates_token_metadata AS (
+            SELECT
+                DISTINCT ON (label_data->>'token_id') label_data->>'token_id' AS token_id,
+                id as id,
+                block_number as block_number
+            FROM
+                {}
+            WHERE
+                label=:label
+                AND address=:address
+            ORDER BY
+                label_data->>'token_id' ASC,
+                block_number DESC
+        )
+        DELETE FROM
+            {} USING lates_token_metadata
         WHERE
-            address = :address
-            AND label = :label;
+            label=:label
+            AND address=:address
+            AND polygon_labels.id  not in (select id from lates_token_metadata) RETURNING polygon_labels.block_number;
     """.format(
-            table
+            table, table
         ),
         {"address": address, "label": METADATA_CRAWLER_LABEL},
     )
