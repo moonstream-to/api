@@ -141,7 +141,7 @@ def get_current_metadata_for_address(
     return result
 
 
-def clean_labels(
+def clean_labels_from_db(
     db_session: Session, blockchain_type: AvailableBlockchainType, address: str
 ):
     """

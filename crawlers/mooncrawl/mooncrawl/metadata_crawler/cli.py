@@ -19,6 +19,7 @@ from .db import (
     get_current_metadata_for_address,
     get_tokens_wich_maybe_updated,
     metadata_to_label,
+    clean_labels_from_db,
 )
 from ..settings import (
     MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS,
@@ -159,6 +160,8 @@ def parse_metadata(
                     commit_session(db_session)
                     logger.info(f"Write {writed_labels} labels for {address}")
 
+            clean_labels_from_db(db_session, blockchain_type, address)
+
     finally:
         db_session.close()
 
@@ -172,29 +175,6 @@ def handle_crawl(args: argparse.Namespace) -> None:
     blockchain_type = AvailableBlockchainType(args.blockchain)
 
     parse_metadata(blockchain_type, args.commit_batch_size, args.max_recrawl)
-
-
-def clean_labels_handler(args: argparse.Namespace) -> None:
-
-    """
-    Clean all labels of tokens.
-    """
-
-    logger.info("Starting clean labels crawler")
-
-    engine = create_moonstream_engine(
-        MOONSTREAM_DB_URI,
-        pool_pre_ping=True,
-        pool_size=MOONSTREAM_POOL_SIZE,
-        statement_timeout=MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS,
-    )
-    process_session = sessionmaker(bind=engine)
-    db_session = process_session()
-
-    try:
-        clean_labels(db_session)
-    finally:
-        db_session.close()
 
 
 def main() -> None:
@@ -228,25 +208,6 @@ def main() -> None:
         default=200,
         help="Maximum amount of recrawling of already crawled tokens",
     )
-    metadata_cleaner = subparsers.add_parser(
-        "clean-state-labels",
-        help="Clean labels from database",
-    )
-    metadata_cleaner.add_argument(
-        "--blockchain",
-        "-b",
-        type=str,
-        help="Type of blovkchain wich writng in database",
-        required=True,
-    )
-    metadata_cleaner.add_argument(
-        "--blocks-cutoff",
-        "-N",
-        required=True,
-        type=int,
-        help="Amount blocks back, after wich data will be remove.",
-    )
-    metadata_cleaner.set_defaults(func=clean_labels_handler)
 
     metadata_crawler_parser.set_defaults(func=handle_crawl)
 
