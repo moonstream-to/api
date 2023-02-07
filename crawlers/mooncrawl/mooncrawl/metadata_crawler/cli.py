@@ -19,6 +19,7 @@ from .db import (
     get_current_metadata_for_address,
     get_tokens_wich_maybe_updated,
     metadata_to_label,
+    clean_labels_from_db,
 )
 from ..settings import (
     MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS,
@@ -141,23 +142,32 @@ def parse_metadata(
                 for i in range(0, len(tokens_uri_by_address[address]), batch_size)
             ]:
                 writed_labels = 0
-                for token_uri_data in requests_chunk:
+                db_session.commit()
 
-                    if token_uri_data.token_id not in parsed_with_leak:
-                        metadata = crawl_uri(token_uri_data.token_uri)
+                with db_session.begin():
+                    for token_uri_data in requests_chunk:
 
-                        db_session.add(
-                            metadata_to_label(
-                                blockchain_type=blockchain_type,
-                                metadata=metadata,
-                                token_uri_data=token_uri_data,
+                        if token_uri_data.token_id not in parsed_with_leak:
+                            metadata = crawl_uri(token_uri_data.token_uri)
+
+                            db_session.add(
+                                metadata_to_label(
+                                    blockchain_type=blockchain_type,
+                                    metadata=metadata,
+                                    token_uri_data=token_uri_data,
+                                )
                             )
-                        )
-                        writed_labels += 1
+                            writed_labels += 1
 
-                if writed_labels > 0:
-                    commit_session(db_session)
-                    logger.info(f"Write {writed_labels} labels for {address}")
+                    if writed_labels > 0:
+                        clean_labels_from_db(
+                            db_session=db_session,
+                            blockchain_type=blockchain_type,
+                            address=address,
+                        )
+                        logger.info(f"Write {writed_labels} labels for {address}")
+
+                # trasaction is commited here
 
     finally:
         db_session.close()
