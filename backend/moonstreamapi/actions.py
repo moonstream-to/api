@@ -682,10 +682,23 @@ def get_entity_subscription_collection_id(
                 "Subscription collection not found."
             )
         try:
-            collection: EntityCollectionResponse = ec.add_collection(
-                token=token, name=f"subscriptions_{user_id}"
-            )
-            collection_id = collection.collection_id
+            # try get collection
+
+            collections: EntityCollectionsResponse = ec.list_collections(token=token)
+
+            available_collections: Dict[str, str] = {
+                collection.name: collection.collection_id
+                for collection in collections.collections
+            }
+
+            if f"subscriptions_{user_id}" not in available_collections:
+
+                collection: EntityCollectionResponse = ec.add_collection(
+                    token=token, name=f"subscriptions_{user_id}"
+                )
+                collection_id = collection.collection_id
+            else:
+                collection_id = available_collections[f"subscriptions_{user_id}"]
         except EntityUnexpectedResponse as e:
             logger.error(f"Error create collection, error: {str(e)}")
             raise MoonstreamHTTPException(
@@ -695,7 +708,7 @@ def get_entity_subscription_collection_id(
         resource_data = {
             "type": resource_type,
             "user_id": str(user_id),
-            "subscription_collection": collection_id,
+            "subscription_collection": str(collection_id),
         }
 
         try:
@@ -711,5 +724,5 @@ def get_entity_subscription_collection_id(
             raise MoonstreamHTTPException(status_code=500, internal_error=e)
     else:
         resource = resources.resources[0]
-
+    print(resource.resource_data)
     return resource.resource_data["subscription_collection"]

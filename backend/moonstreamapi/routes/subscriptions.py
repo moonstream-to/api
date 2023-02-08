@@ -5,6 +5,7 @@ import hashlib
 import json
 import logging
 from typing import Any, Dict, List, Optional
+import traceback
 
 import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
@@ -35,6 +36,7 @@ router = APIRouter(
 )
 
 BUGOUT_RESOURCE_TYPE_SUBSCRIPTION = "subscription"
+BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION = "entity_subscription"
 
 
 @router.post("/", tags=["subscriptions"], response_model=data.SubscriptionResourceData)
@@ -92,7 +94,7 @@ async def add_subscription_handler(
 
     user = request.state.user
 
-    content = {}
+    content = {"test": "test"}
 
     if abi:
 
@@ -120,7 +122,7 @@ async def add_subscription_handler(
     try:
 
         collection_id = get_entity_subscription_collection_id(
-            resource_type=BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
+            resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
             token=token,
             user_id=user.id,
             create_if_not_exist=True,
@@ -135,14 +137,13 @@ async def add_subscription_handler(
             ].blockchain,
             name=label,
             required_fields=[
-                f"type:subscription",
-                f"subscription_type_id:{subscription_type_id}",
-                f"address:{address}",
-                f"color:{color}",
-                f"label:{label}",
-                f"user_id:{user.id}",
+                {"type": "subscription"},
+                {"subscription_type_id": f"{subscription_type_id}"},
+                {"color": f"{color}"},
+                {"label": f"{label}"},
+                {"user_id": f"{user.id}"},
             ],
-            secondary_fields={**content},
+            secondary_fields=content,
         )
     except EntityCollectionNotFoundException as e:
         raise MoonstreamHTTPException(
@@ -151,6 +152,7 @@ async def add_subscription_handler(
             internal_error=e,
         )
     except Exception as e:
+        traceback.print_exc()
         logger.error(f"Failed to get collection id")
         raise MoonstreamHTTPException(
             status_code=500,
@@ -158,7 +160,17 @@ async def add_subscription_handler(
             detail="Currently unable to get collection id",
         )
 
-    return entity
+    return data.SubscriptionResourceData(
+        id=str(entity.entity_id),
+        user_id=str(user.id),
+        address=address,
+        color=color,
+        label=label,
+        abi=entity.secondary_fields.get("abi"),
+        subscription_type_id=subscription_type_id,
+        updated_at=entity.updated_at,
+        created_at=entity.created_at,
+    )
 
 
 @router.delete(
@@ -476,6 +488,7 @@ async def list_subscription_types() -> data.SubscriptionTypesListResponse:
     """
     Get availables subscription types.
     """
+    print("list_subscription_types")
     results: List[data.SubscriptionTypeResourceData] = []
     try:
         response = subscription_types.list_subscription_types()
