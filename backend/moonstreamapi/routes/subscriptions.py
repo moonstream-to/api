@@ -92,8 +92,6 @@ async def add_subscription_handler(
 
     user = request.state.user
 
-    content = {"test": "test"}
-
     if abi:
 
         try:
