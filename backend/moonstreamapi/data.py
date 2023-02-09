@@ -43,14 +43,14 @@ class SubscriptionTypesListResponse(BaseModel):
 
 class SubscriptionResourceData(BaseModel):
     id: str
-    address: str
+    address: Optional[str]
     abi: Optional[str]
     color: Optional[str]
     label: Optional[str]
     user_id: str
-    subscription_type_id: str
-    created_at: datetime
-    updated_at: datetime
+    subscription_type_id: Optional[str]
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
 
 
 class CreateSubscriptionRequest(BaseModel):

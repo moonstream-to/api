@@ -5,9 +5,7 @@ import hashlib
 import json
 import logging
 from typing import Any, Dict, List, Optional
-import traceback
 
-import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
 from entity.exceptions import EntityUnexpectedResponse
@@ -152,7 +150,6 @@ async def add_subscription_handler(
             internal_error=e,
         )
     except Exception as e:
-        traceback.print_exc()
         logger.error(f"Failed to get collection id")
         raise MoonstreamHTTPException(
             status_code=500,
@@ -187,7 +184,7 @@ async def delete_subscription_handler(request: Request, subscription_id: str):
     try:
 
         collection_id = get_entity_subscription_collection_id(
-            resource_type=BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
+            resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
             token=token,
             user_id=user.id,
         )
@@ -212,24 +209,33 @@ async def delete_subscription_handler(request: Request, subscription_id: str):
 
     tags = deleted_entity.required_fields
 
-    for tag in tags:
+    subscription_type_id = None
+    color = None
+    label = None
+    abi = None
 
-        if "subscription_type_id" in tag:
-            subscription_type_id = tag.split(":")[1]
+    if tags is not None:
+        for tag in tags:
 
-        if "color" in tag:
-            color = tag.split(":")[1]
+            if "subscription_type_id" in tag:
+                subscription_type_id = tag["subscription_type_id"]
 
-        if "label" in tag:
-            label = tag.split(":")[1]
+            if "color" in tag:
+                color = tag["color"]
+
+            if "label" in tag:
+                label = tag["label"]
+
+    if deleted_entity.secondary_fields is not None:
+        abi = deleted_entity.secondary_fields.get("abi")
 
     return data.SubscriptionResourceData(
         id=str(deleted_entity.entity_id),
-        user_id=user.id,
+        user_id=str(user.id),
         address=deleted_entity.address,
         color=color,
         label=label,
-        abi=deleted_entity.secondary_fields.get("abi"),
+        abi=abi,
         subscription_type_id=subscription_type_id,
         updated_at=deleted_entity.updated_at,
         created_at=deleted_entity.created_at,
@@ -245,7 +251,7 @@ async def get_subscriptions_handler(request: Request) -> data.SubscriptionsListR
     user = request.state.user
     try:
         collection_id = get_entity_subscription_collection_id(
-            resource_type=BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
+            resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
             token=token,
             user_id=user.id,
         )
@@ -253,7 +259,7 @@ async def get_subscriptions_handler(request: Request) -> data.SubscriptionsListR
         subscriprions_list = ec.search_entities(
             token=token,
             collection_id=collection_id,
-            required_fields=[f"type:subscription"],
+            required_field=[f"type:subscription"],
             limit=1000,
         )
 
@@ -266,7 +272,7 @@ async def get_subscriptions_handler(request: Request) -> data.SubscriptionsListR
         )
     except Exception as e:
         logger.error(
-            f"Error listing subscriptions for user ({request.user.id}) with token ({request.state.token}), error: {str(e)}"
+            f"Error listing subscriptions for user ({user.id}) with token ({token}), error: {str(e)}"
         )
         reporter.error_report(e)
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
@@ -282,18 +288,18 @@ async def get_subscriptions_handler(request: Request) -> data.SubscriptionsListR
         for tag in tags:
 
             if "subscription_type_id" in tag:
-                subscription_type_id = tag.split(":")[1]
+                subscription_type_id = tag["subscription_type_id"]
 
             if "color" in tag:
-                color = tag.split(":")[1]
+                color = tag["color"]
 
             if "label" in tag:
-                label = tag.split(":")[1]
+                label = tag["label"]
 
         subscriptions.append(
             data.SubscriptionResourceData(
                 id=str(subscription.entity_id),
-                user_id=user.id,
+                user_id=str(user.id),
                 address=subscription.address,
                 color=color,
                 label=label,
@@ -327,10 +333,14 @@ async def update_subscriptions_handler(
 
     user = request.state.user
 
+    update_required_fields = []
+
+    update_secondary_fields = {}
+
     try:
 
         collection_id = get_entity_subscription_collection_id(
-            resource_type=BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
+            resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
             token=token,
             user_id=user.id,
         )
@@ -344,9 +354,13 @@ async def update_subscriptions_handler(
 
         subscription_type_id = None
 
-        for field in subscription_entity.required_fields:
+        update_required_fields = subscription_entity.required_fields
+
+        print(update_required_fields)
+
+        for field in update_required_fields:
             if "subscription_type_id" in field:
-                subscription_type_id = field.split(":")[1]
+                subscription_type_id = field["subscription_type_id"]
 
         if not subscription_type_id:
             logger.error(
@@ -365,19 +379,16 @@ async def update_subscriptions_handler(
         )
     except Exception as e:
         logger.error(
-            f"Error get subscriptions for user ({request.user.id}) with token ({request.state.token}), error: {str(e)}"
+            f"Error get subscriptions for user ({user.id}) with token ({token}), error: {str(e)}"
         )
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
-    update_required_fields: List[Dict[str, Any]] = []
+    for field in update_required_fields:
+        if "color" in field and color is not None:
+            field["color"] = color
 
-    if color:
-        update_required_fields.append({"color": color})
-
-    if label:
-        update_required_fields.append({"label": label})
-
-    update_secondary_fields: Dict[str, Any] = {}
+        if "label" in field and label is not None:
+            field["label"] = label
 
     if abi:
 
@@ -391,21 +402,23 @@ async def update_subscriptions_handler(
         abi_string = json.dumps(json_abi, sort_keys=True, indent=2)
 
         update_secondary_fields["abi"] = abi_string
-
         hash = hashlib.md5(abi_string.encode("utf-8")).hexdigest()
 
         update_secondary_fields["abi_hash"] = hash
+    else:
+        update_secondary_fields = subscription_entity.secondary_fields
 
     try:
 
         subscription = ec.update_entity(
             token=token,
             collection_id=collection_id,
+            entity_id=subscription_id,
             address=subscription_entity.address,
             blockchain=subscription_entity.blockchain,
             name=subscription_entity.name,
             required_fields=update_required_fields,
-            secondary_fields={**update_secondary_fields},
+            secondary_fields=update_secondary_fields,
         )
 
     except Exception as e:
@@ -422,14 +435,14 @@ async def update_subscriptions_handler(
 
     return data.SubscriptionResourceData(
         id=str(subscription.entity_id),
-        user_id=user.id,
+        user_id=str(user.id),
         address=subscription.address,
         color=color,
         label=label,
         abi=subscription.secondary_fields.get("abi"),
         subscription_type_id=subscription_type_id,
-        updated_at=subscription.updated_at,
-        created_at=subscription.created_at,
+        updated_at=subscription_entity.updated_at,
+        created_at=subscription_entity.created_at,
     )
 
 
