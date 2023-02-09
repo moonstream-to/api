@@ -622,43 +622,8 @@ def get_entity_subscription_collection_id(
     create_if_not_exist: bool = False,
 ) -> Optional[str]:
     """
-    Get collection_id from brood resources.
+    Get collection_id from brood resources. If collection not exist and create_if_not_exist is True
     """
-
-    # try:
-    #     collections: EntityCollectionsResponse = ec.list_collections(token=token)
-    # except EntityUnexpectedResponse as e:
-    #     logger.error(f"Error get collection, error: {str(e)}")
-    #     raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
-    # except Exception as e:
-    #     logger.error(f"Error get collection, error: {str(e)}")
-    #     raise MoonstreamHTTPException(status_code=500, internal_error=e)
-
-    # # list resources
-
-    # available_collections: Dict[str, str] = {
-    #     collection.name: collection.collection_id
-    #     for collection in collections.collections
-    # }
-
-    # if collection_name not in available_collections:
-
-    #     if create_if_not_exist:
-    #         try:
-
-    #             collection: EntityCollectionResponse = ec.add_collection(
-    #                 token=token, name=collection_name
-    #             )
-    #             collection_id = collection.collection_id
-    #         except EntityUnexpectedResponse as e:
-    #             logger.error(f"Error get collection, error: {str(e)}")
-    #             raise MoonstreamHTTPException(
-    #                 status_code=e.status_code, detail=e.detail
-    #             )
-    #     else:
-    #         raise EntityCollectionNotFoundException("Collection not found.")
-    # else:
-    #     collection_id = available_collections[collection_name]
 
     params = {
         "type": resource_type,
