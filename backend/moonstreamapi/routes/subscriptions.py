@@ -92,6 +92,8 @@ async def add_subscription_handler(
 
     user = request.state.user
 
+    content: Dict[str, Any] = {}
+
     if abi:
 
         try:
