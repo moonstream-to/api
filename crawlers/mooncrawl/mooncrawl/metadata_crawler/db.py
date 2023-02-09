@@ -244,9 +244,9 @@ def clean_labels_from_db(
         WHERE
             label=:label
             AND address=:address
-            AND polygon_labels.id  not in (select id from lates_token_metadata) RETURNING polygon_labels.block_number;
+            AND {}.id  not in (select id from lates_token_metadata) RETURNING {}.block_number;
     """.format(
-            table, table
+            table, table, table, table
         ),
         {"address": address, "label": METADATA_CRAWLER_LABEL},
     )
