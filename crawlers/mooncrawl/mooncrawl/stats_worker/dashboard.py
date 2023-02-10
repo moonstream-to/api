@@ -96,7 +96,6 @@ def push_statistics(
     bucket: str,
     dashboard_id: Union[UUID, str],
 ) -> None:
-
     result_bytes = json.dumps(statistics_data).encode("utf-8")
     result_key = f'{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/{blockchain_by_subscription_id[subscription.resource_data["subscription_type_id"]]}/contracts_data/{subscription.resource_data["address"]}/{dashboard_id}/v1/{timescale}.json'
 
@@ -122,7 +121,6 @@ def generate_data(
     metric_type: str,
     crawler_label: str,
 ):
-
     label_model = get_label_model(blockchain_type)
 
     # create empty time series
@@ -223,7 +221,6 @@ def generate_data(
     response_labels: Dict[Any, Any] = {}
 
     for created_date, label, count in labels_time_series:
-
         if not response_labels.get(label):
             response_labels[label] = []
 
@@ -269,7 +266,6 @@ def get_unique_address(
 def get_blocks_state(
     db_session: Session, blockchain_type: AvailableBlockchainType
 ) -> Dict[str, int]:
-
     """
     Generate meta information about
     """
@@ -325,7 +321,6 @@ def get_blocks_state(
 def generate_list_of_names(
     type: str, subscription_filters: Dict[str, Any], read_abi: bool, abi_json: Any
 ):
-
     """
     Generate list of names for select from database by name field
     """
@@ -333,7 +328,6 @@ def generate_list_of_names(
     if read_abi:
         names = [item["name"] for item in abi_json if item["type"] == type]
     else:
-
         names = [
             item["name"]
             for item in subscription_filters[abi_type_to_dashboards_type[type]]
@@ -356,7 +350,6 @@ def process_external_merged(
     result: Dict[str, Any] = {}
 
     for external_call_hash, external_call in external_calls.items():
-
         try:
             func_input_abi = []
             input_args = []
@@ -540,7 +533,6 @@ def generate_web3_metrics(
     # TODO: Remove it if ABI already have correct web3_call signature.
 
     if "HatchStartedEvent" in events:
-
         extention_data.append(
             {
                 "display_name": "Number of hatches started.",
@@ -557,7 +549,6 @@ def generate_web3_metrics(
         )
 
     if "HatchFinishedEvent" in events:
-
         extention_data.append(
             {
                 "display_name": "Number of hatches finished.",
@@ -584,7 +575,6 @@ def stats_generate_handler(args: argparse.Namespace):
     blockchain_type = AvailableBlockchainType(args.blockchain)
 
     with yield_db_read_only_session_ctx() as db_session:
-
         start_time = time.time()
 
         dashboard_resources: BugoutResources = bc.list_resources(
@@ -599,7 +589,6 @@ def stats_generate_handler(args: argparse.Namespace):
         available_subscriptions: List[BugoutResource] = []
 
         for subscription_type in subscription_ids_by_blockchain[args.blockchain]:
-
             # Create subscriptions dict for get subscriptions by id.
             blockchain_subscriptions: BugoutResources = bc.list_resources(
                 token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -646,7 +635,6 @@ def stats_generate_handler(args: argparse.Namespace):
         address_dashboard_id_subscription_id_tree: Dict[str, Any] = {}
 
         for dashboard in dashboard_resources.resources:
-
             for dashboard_subscription_filters in dashboard.resource_data[
                 "subscription_settings"
             ]:
@@ -750,7 +738,6 @@ def stats_generate_handler(args: argparse.Namespace):
                     ]
                     if len(external_calls) > 0:
                         for external_call in external_calls:
-
                             # create external_call selectors.
                             # display_name not included in hash
                             external_call_without_display_name = {
@@ -816,7 +803,6 @@ def stats_generate_handler(args: argparse.Namespace):
         )
 
         for address in address_dashboard_id_subscription_id_tree.keys():
-
             current_blocks_state = get_blocks_state(
                 db_session=db_session, blockchain_type=blockchain_type
             )
@@ -868,15 +854,12 @@ def stats_generate_handler(args: argparse.Namespace):
                     for dashboard_id in address_dashboard_id_subscription_id_tree[
                         address
                     ]:  # Dashboards loop for address
-
                         for (
                             subscription_id
                         ) in address_dashboard_id_subscription_id_tree[address][
                             dashboard_id
                         ]:
-
                             try:
-
                                 extention_data = []
 
                                 s3_subscription_data_object: Dict[str, Any] = {}
@@ -892,9 +875,7 @@ def stats_generate_handler(args: argparse.Namespace):
                                     ) in merged_external_calls[dashboard_id][
                                         subscription_id
                                     ].items():
-
                                         if external_call_hash in external_calls_results:
-
                                             extention_data.append(
                                                 {
                                                     "display_name": display_name,
@@ -995,7 +976,6 @@ def stats_generate_api_task(
     """
 
     with yield_db_read_only_session_ctx() as db_session:
-
         logger.info(f"Amount of blockchain subscriptions: {len(subscription_by_id)}")
 
         s3_client = boto3.client("s3")
@@ -1003,9 +983,7 @@ def stats_generate_api_task(
         for dashboard_subscription_filters in dashboard.resource_data[
             "subscription_settings"
         ]:
-
             try:
-
                 subscription_id = dashboard_subscription_filters["subscription_id"]
 
                 blockchain_type = AvailableBlockchainType(
@@ -1029,13 +1007,11 @@ def stats_generate_api_task(
 
                 # Read required events, functions and web3_call form ABI
                 if not subscription_by_id[subscription_id].resource_data["abi"]:
-
                     methods = []
                     events = []
                     abi_json = {}
 
                 else:
-
                     bucket = subscription_by_id[subscription_id].resource_data["bucket"]
                     key = subscription_by_id[subscription_id].resource_data["s3_path"]
                     abi = s3_client.get_object(
@@ -1075,7 +1051,6 @@ def stats_generate_api_task(
                 )
 
                 for timescale in timescales:
-
                     start_date = (
                         datetime.utcnow() - timescales_delta[timescale]["timedelta"]
                     )

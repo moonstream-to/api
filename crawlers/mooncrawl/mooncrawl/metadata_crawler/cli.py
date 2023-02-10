@@ -43,7 +43,6 @@ def leak_of_crawled_uri(
 
 
 def crawl_uri(metadata_uri: str) -> Any:
-
     """
     Get metadata from URI
     """
@@ -51,7 +50,6 @@ def crawl_uri(metadata_uri: str) -> Any:
     result = None
     while retry < 3:
         try:
-
             response = urllib.request.urlopen(metadata_uri, timeout=10)
 
             if response.status == 200:
@@ -74,7 +72,6 @@ def crawl_uri(metadata_uri: str) -> Any:
 def parse_metadata(
     blockchain_type: AvailableBlockchainType, batch_size: int, max_recrawl: int
 ):
-
     """
     Parse all metadata of tokens.
     """
@@ -95,7 +92,6 @@ def parse_metadata(
 
     with yield_db_read_only_session_ctx() as db_session_read_only:
         try:
-
             # get all tokens with uri
             logger.info("Requesting all tokens with uri from database")
             uris_of_tokens = get_uris_of_tokens(db_session_read_only, blockchain_type)
@@ -108,7 +104,6 @@ def parse_metadata(
                 tokens_uri_by_address[token_uri_data.address].append(token_uri_data)
 
             for address in tokens_uri_by_address:
-
                 logger.info(f"Starting to crawl metadata for address: {address}")
 
                 already_parsed = get_current_metadata_for_address(
@@ -153,7 +148,6 @@ def parse_metadata(
 
                     with db_session.begin():
                         for token_uri_data in requests_chunk:
-
                             if token_uri_data.token_id not in parsed_with_leak:
                                 metadata = crawl_uri(token_uri_data.token_uri)
 
@@ -181,7 +175,6 @@ def parse_metadata(
 
 
 def handle_crawl(args: argparse.Namespace) -> None:
-
     """
     Parse all metadata of tokens.
     """

@@ -27,7 +27,6 @@ def _crawl_functions(
     from_block: int,
     to_block: int,
 ) -> List[ContractFunctionCall]:
-
     shared_state = MockState()
 
     crawled_functions = []

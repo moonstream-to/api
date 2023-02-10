@@ -18,7 +18,6 @@ def metadata_to_label(
     token_uri_data: TokenURIs,
     label_name=METADATA_CRAWLER_LABEL,
 ):
-
     """
     Creates a label model.
     """
@@ -62,7 +61,6 @@ def commit_session(db_session: Session) -> None:
 def get_uris_of_tokens(
     db_session: Session, blockchain_type: AvailableBlockchainType
 ) -> List[TokenURIs]:
-
     """
     Get meatadata URIs.
     """
@@ -144,7 +142,6 @@ def get_current_metadata_for_address(
 def get_tokens_wich_maybe_updated(
     db_session: Session, blockchain_type: AvailableBlockchainType, address: str
 ):
-
     label_model = get_label_model(blockchain_type)
 
     table = label_model.__tablename__
