@@ -33,10 +33,7 @@ batch_size = 50
 
 
 def leak_of_crawled_uri(
-    ids: List[Optional[str]],
-    leak_rate: float,
-    maybe_updated: List[Optional[str]],
-    max_recrawl: int,
+    ids: List[Optional[str]], leak_rate: float, maybe_updated: List[Optional[str]]
 ) -> List[Optional[str]]:
     """
     Leak only uri which may be updated.
@@ -45,15 +42,14 @@ def leak_of_crawled_uri(
     assert 0 <= leak_rate <= 1, "Leak rate must be between 0 and 1"
 
     result = []
-    recrawl = []
 
     for id in ids:
         if id not in maybe_updated:
             result.append(id)
         elif random.random() < leak_rate:
-            recrawl.append(id)
+            result.append(id)
 
-    return result + recrawl[:max_recrawl]
+    return result
 
 
 def crawl_uri(metadata_uri: str) -> Any:
