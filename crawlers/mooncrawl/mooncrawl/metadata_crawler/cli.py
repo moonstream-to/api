@@ -136,7 +136,7 @@ def parse_metadata(
                         leak_rate = 1
 
                 parsed_with_leak = leak_of_crawled_uri(
-                    already_parsed, leak_rate, maybe_updated, max_recrawl
+                    already_parsed, leak_rate, maybe_updated
                 )
 
                 logger.info(
