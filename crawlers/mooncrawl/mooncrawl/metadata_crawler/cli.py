@@ -45,7 +45,7 @@ def leak_of_crawled_uri(
     for id in ids:
         if id not in maybe_updated:
             result.append(id)
-        elif random.random() < leak_rate:
+        elif random.random() > leak_rate:
             result.append(id)
 
     return result
