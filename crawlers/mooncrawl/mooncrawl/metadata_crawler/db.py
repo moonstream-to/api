@@ -139,9 +139,21 @@ def get_current_metadata_for_address(
     return result
 
 
-def get_tokens_wich_maybe_updated(
+def get_tokens_id_wich_may_updated(
     db_session: Session, blockchain_type: AvailableBlockchainType, address: str
 ):
+    """
+    Returns a list of tokens which may have updated information.
+
+    This function queries the database and returns all tokens that have had a transaction executed
+    on them after the latest update of their metadata, excluding transactions with names 'safeTransferFrom',
+    'approve' and 'transferFrom'.
+
+    TODO(Andrey): This function is not perfect, it may return tokens that have not been updated.
+    One way for improvements it's get opcodes for all transactions and check if they update metadata storage.
+    Required integration with entity API and opcodes crawler.
+    """
+
     label_model = get_label_model(blockchain_type)
 
     table = label_model.__tablename__
@@ -214,6 +226,7 @@ def clean_labels_from_db(
 ):
     """
     Remove existing labels.
+    But keep the latest one for each token.
     """
 
     label_model = get_label_model(blockchain_type)

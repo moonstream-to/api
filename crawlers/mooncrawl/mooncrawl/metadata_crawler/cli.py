@@ -15,10 +15,9 @@ from moonstreamdb.db import (
 )
 from sqlalchemy.orm import sessionmaker
 from .db import (
-    commit_session,
     get_uris_of_tokens,
     get_current_metadata_for_address,
-    get_tokens_wich_maybe_updated,
+    get_tokens_id_wich_may_updated,
     metadata_to_label,
     clean_labels_from_db,
 )
@@ -37,9 +36,24 @@ def leak_of_crawled_uri(
     ids: List[Optional[str]],
     leak_rate: float,
     maybe_updated: List[Optional[str]],
+    max_recrawl: int,
 ) -> List[Optional[str]]:
+    """
+    Leak only uri which may be updated.
+    Up to max_recrawl.
+    """
     assert 0 <= leak_rate <= 1, "Leak rate must be between 0 and 1"
-    return [id for id in ids if id not in maybe_updated or random.random() > leak_rate]
+
+    result = []
+    recrawl = []
+
+    for id in ids:
+        if id not in maybe_updated:
+            result.append(id)
+        elif random.random() < leak_rate:
+            recrawl.append(id)
+
+    return result + recrawl[:max_recrawl]
 
 
 def crawl_uri(metadata_uri: str) -> Any:
@@ -112,7 +126,7 @@ def parse_metadata(
                     address=address,
                 )
 
-                maybe_updated = get_tokens_wich_maybe_updated(
+                maybe_updated = get_tokens_id_wich_may_updated(
                     db_session=db_session_read_only,
                     blockchain_type=blockchain_type,
                     address=address,
@@ -126,7 +140,7 @@ def parse_metadata(
                         leak_rate = 1
 
                 parsed_with_leak = leak_of_crawled_uri(
-                    already_parsed, leak_rate, maybe_updated
+                    already_parsed, leak_rate, maybe_updated, max_recrawl
                 )
 
                 logger.info(
