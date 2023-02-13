@@ -37,7 +37,6 @@ def leak_of_crawled_uri(
 ) -> List[Optional[str]]:
     """
     Leak only uri which may be updated.
-    Up to max_recrawl.
     """
     assert 0 <= leak_rate <= 1, "Leak rate must be between 0 and 1"
 
