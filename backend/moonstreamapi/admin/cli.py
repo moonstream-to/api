@@ -70,7 +70,12 @@ def migrations_run(args: argparse.Namespace) -> None:
     web3_session = yield_web3_provider()
     db_session = SessionLocal()
     try:
-        if args.id == 20211101:
+        if args.id == 20230213:
+            logger.info("Starting update of subscriptions in Brood resource...")
+            checksum_address.checksum_all_subscription_addresses(web3_session)
+            logger.info("Starting update of ethereum_labels in database...")
+            checksum_address.checksum_all_labels_addresses(db_session, web3_session)
+        elif args.id == 20211101:
             logger.info("Starting update of subscriptions in Brood resource...")
             checksum_address.checksum_all_subscription_addresses(web3_session)
             logger.info("Starting update of ethereum_labels in database...")

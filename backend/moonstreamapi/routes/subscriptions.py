@@ -4,6 +4,7 @@ The Moonstream subscriptions HTTP API
 import hashlib
 import json
 import logging
+from pprint import pprint
 from typing import Any, Dict, List, Optional
 
 from bugout.data import BugoutResource, BugoutResources

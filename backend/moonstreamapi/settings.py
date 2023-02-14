@@ -118,13 +118,6 @@ if MOONSTREAM_S3_QUERIES_BUCKET_PREFIX == "":
     )
 
 
-# Entity
+## Moonstream resources types
 
-MOONSTREAM_SUBSCRIPTIONS_COLLECTION = os.environ.get(
-    "MOONSTREAM_SUBSCRIPTIONS_COLLECTION", ""
-)
-
-if MOONSTREAM_SUBSCRIPTIONS_COLLECTION == "":
-    raise ValueError(
-        "MOONSTREAM_SUBSCRIPTIONS_COLLECTION environment variable must be set"
-    )
+BUGOUT_RESOURCE_TYPE_SUBSCRIPTION = "subscription"
