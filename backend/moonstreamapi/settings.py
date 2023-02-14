@@ -2,10 +2,7 @@ import os
 
 from bugout.app import Bugout
 from entity.client import Entity
-<<<<<<< Updated upstream
-=======
 
->>>>>>> Stashed changes
 
 # Bugout
 BUGOUT_BROOD_URL = os.environ.get("BUGOUT_BROOD_URL", "https://auth.bugout.dev")

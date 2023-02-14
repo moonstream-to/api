@@ -279,6 +279,7 @@ async def get_subscriptions_handler(request: Request) -> data.SubscriptionsListR
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     subscriptions = []
 
     for subscription in subscriprions_list.entities:
@@ -300,6 +301,8 @@ async def get_subscriptions_handler(request: Request) -> data.SubscriptionsListR
 
         subscriptions.append(
 =======
+=======
+>>>>>>> Stashed changes
     pprint(resources.resources)
 
     return data.SubscriptionsListResponse(
