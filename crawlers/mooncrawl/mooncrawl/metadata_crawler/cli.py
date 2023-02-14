@@ -23,9 +23,7 @@ from .db import (
     metadata_to_label,
     clean_labels_from_db,
 )
-from ..settings import (
-    MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS,
-)
+from ..settings import MOONSTREAM_CRAWLERS_DB_STATEMENT_TIMEOUT_MILLIS
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -104,7 +102,7 @@ def parse_metadata(
         MOONSTREAM_DB_URI,
         pool_pre_ping=True,
         pool_size=MOONSTREAM_POOL_SIZE,
-        statement_timeout=MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS,
+        statement_timeout=MOONSTREAM_CRAWLERS_DB_STATEMENT_TIMEOUT_MILLIS,
     )
     process_session = sessionmaker(bind=engine)
     db_session = process_session()
@@ -117,7 +115,7 @@ def parse_metadata(
     read_only_engine = create_moonstream_engine(
         url=MOONSTREAM_DB_URI_READ_ONLY,
         pool_size=MOONSTREAM_POOL_SIZE,
-        statement_timeout=MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS,
+        statement_timeout=MOONSTREAM_CRAWLERS_DB_STATEMENT_TIMEOUT_MILLIS,
         pool_pre_ping=True,
     )
 
