@@ -44,7 +44,6 @@ def make_multicall(
     block_timestamp: int,
     block_number: str = "latest",
 ) -> Any:
-
     multicall_calls = []
 
     for call in calls:
@@ -140,11 +139,9 @@ def crawl_calls_level(
     max_batch_size=5000,
     min_batch_size=4,
 ):
-
     calls_of_level = []
 
     for call in calls:
-
         if call["generated_hash"] in responces:
             continue
         parameters = []
@@ -152,7 +149,6 @@ def crawl_calls_level(
         logger.info(f"Call: {json.dumps(call, indent=4)}")
 
         for input in call["inputs"]:
-
             if type(input["value"]) in (str, int):
                 if input["value"] not in responces:
                     parameters.append([input["value"]])
@@ -173,7 +169,6 @@ def crawl_calls_level(
                 raise
 
         for call_parameters in itertools.product(*parameters):
-
             # hack for tuples product
             if len(call_parameters) == 1 and type(call_parameters[0]) == tuple:
                 call_parameters = call_parameters[0]
@@ -191,10 +186,8 @@ def crawl_calls_level(
     retry = 0
 
     while len(calls_of_level) > 0:
-
         make_multicall_result = []
         try:
-
             call_chunk = calls_of_level[:batch_size]
 
             logger.info(
@@ -240,7 +233,6 @@ def crawl_calls_level(
         # results parsing and writing to database
         add_to_session_count = 0
         for result in make_multicall_result:
-
             db_view = view_call_to_label(blockchain_type, result)
             db_session.add(db_view)
             add_to_session_count += 1
@@ -322,7 +314,6 @@ def parse_jobs(
 
         for input in method_abi["inputs"]:
             if type(input["value"]) in (str, int, list):
-
                 abi["inputs"].append(input)
 
             elif type(input["value"]) == dict:
@@ -346,7 +337,6 @@ def parse_jobs(
                 calls[level] = []
             calls[level].append(abi)
         else:
-
             level = 0
 
             if not calls.get(level):
@@ -374,7 +364,6 @@ def parse_jobs(
     interfaces = {}
 
     for contract_address in contracts_ABIs:
-
         # collect abis for each contract
         abis = []
 
@@ -422,7 +411,6 @@ def parse_jobs(
         )
 
         for level in call_tree_levels:
-
             logger.info(f"Crawl level: {level}")
             logger.info(f"Jobs amount: {len(calls[level])}")
 
@@ -445,7 +433,6 @@ def parse_jobs(
 
 
 def handle_crawl(args: argparse.Namespace) -> None:
-
     """
     Ability to track states of the contracts.
 
@@ -497,7 +484,6 @@ def parse_abi(args: argparse.Namespace) -> None:
 
 
 def clean_labels_handler(args: argparse.Namespace) -> None:
-
     blockchain_type = AvailableBlockchainType(args.blockchain)
 
     web3_client = _retry_connect_web3(
