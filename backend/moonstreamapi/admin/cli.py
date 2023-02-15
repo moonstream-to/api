@@ -16,13 +16,17 @@ from ..settings import BUGOUT_BROOD_URL, BUGOUT_SPIRE_URL, MOONSTREAM_APPLICATIO
 from ..web3_provider import yield_web3_provider
 
 from . import subscription_types, subscriptions, moonworm_tasks
-from .migrations import checksum_address, update_dashboard_subscription_key
+from .migrations import (
+    checksum_address,
+    update_dashboard_subscription_key,
+    generate_entity_subscriptions,
+)
 
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-MIGRATIONS_FOLDER = "./moonstream/admin/migrations"
+MIGRATIONS_FOLDER = "./moonstreamapi/admin/migrations"
 
 
 def parse_boolean_arg(raw_arg: Optional[str]) -> Optional[bool]:
@@ -43,6 +47,14 @@ name: {checksum_address.__name__}
 description: {checksum_address.__doc__}
     """
     logger.info(migrations_overview)
+
+    entity_migration_overview = f"""
+- id: 20230213
+name: {generate_entity_subscriptions.__name__}
+description: {generate_entity_subscriptions.__doc__}
+    """
+    logger.info(entity_migration_overview)
+
     json_migrations_oreview = "Available migrations files."
     for file in os.listdir(MIGRATIONS_FOLDER):
         if file.endswith(".json"):
@@ -71,10 +83,8 @@ def migrations_run(args: argparse.Namespace) -> None:
     db_session = SessionLocal()
     try:
         if args.id == 20230213:
-            logger.info("Starting update of subscriptions in Brood resource...")
-            checksum_address.checksum_all_subscription_addresses(web3_session)
-            logger.info("Starting update of ethereum_labels in database...")
-            checksum_address.checksum_all_labels_addresses(db_session, web3_session)
+            logger.info("Starting migrate subscriptions from resources to entity...")
+            generate_entity_subscriptions.Generate_entity_subscriptions_from_brood_resources()
         elif args.id == 20211101:
             logger.info("Starting update of subscriptions in Brood resource...")
             checksum_address.checksum_all_subscription_addresses(web3_session)
@@ -82,7 +92,7 @@ def migrations_run(args: argparse.Namespace) -> None:
             checksum_address.checksum_all_labels_addresses(db_session, web3_session)
         elif args.id == 20211202:
             update_dashboard_subscription_key.update_dashboard_resources_key()
-        else:
+        elif args.id == 20211108:
             drop_keys = []
 
             if args.file is not None:

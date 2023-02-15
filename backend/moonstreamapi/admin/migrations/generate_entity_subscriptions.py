@@ -1,10 +1,10 @@
 """
-Convert all addresses in user subscriptions 
-and ethereum_labels column to checksum address.
+Generate entity subscriptions from existing brood resources subscriptions
 """
 import hashlib
 import logging
 import json
+from pprint import pprint
 from typing import List, Optional, Dict, Any, Union
 import uuid
 
@@ -157,6 +157,10 @@ def Generate_entity_subscriptions_from_brood_resources() -> None:
 
     for resource in resources.resources:
 
+        pprint(resource)
+
+        raise Exception("Stop")
+
         resource_data = resource.resource_data
 
         resource_data["subscription_id"] = resource.id
@@ -175,6 +179,9 @@ def Generate_entity_subscriptions_from_brood_resources() -> None:
 
         users_subscriptions[user_id].append(resource_data)
 
+    print(f"parsed subscriptions: {len(users_subscriptions)}")
+
+    raise Exception("Stop")
     # Start proccessing users subscriptions
 
     try:
@@ -234,7 +241,7 @@ def Generate_entity_subscriptions_from_brood_resources() -> None:
                 label = subscription["label"]
 
                 # try to get abi from S3
-
+                abi = None
                 if resource_data["bucket"] and resource_data["s3_path"]:
                     try:
                         abi = get_abi_from_s3(
@@ -254,34 +261,37 @@ def Generate_entity_subscriptions_from_brood_resources() -> None:
                     address=address,
                     color=color,
                     label=label,
-                    content=abi if abi else {},
+                    content={"abi": abi, "abi_hash": abi_hash} if abi else {},
                 )
 
                 stages[user_id]["proccessed_subscriptions"].append(subscription["id"])
 
             # Add permissions to user
 
-            try:
+            if "permissions_granted" not in stages[user_id]:
+                try:
 
-                add_collection_permissions_to_user(
-                    user_id=user_id,
-                    collection_id=collection_id,
-                    permissions=["read", "update"],
-                )
-                stages[user_id]["permissions_granted"] = True
-            except Exception as e:
-                logger.error(f"Failed to add permissions to user: {str(e)}")
+                    add_collection_permissions_to_user(
+                        user_id=user_id,
+                        collection_id=collection_id,
+                        permissions=["read", "update"],
+                    )
+                    stages[user_id]["permissions_granted"] = True
+                except Exception as e:
+                    logger.error(f"Failed to add permissions to user: {str(e)}")
+                    continue
 
             # Remove permissions from user
-            try:
-                revoke_collection_permissions_from_user(
-                    user_id=admin_user_id,
-                    collection_id=collection_id,
-                    permissions=["read", "update"],
-                )
-                stages[user_id]["permissions_revoked"] = True
-            except Exception as e:
-                logger.error(f"Failed to revoke permissions from user: {str(e)}")
+            if "permissions_revoked" not in stages[user_id]:
+                try:
+                    revoke_collection_permissions_from_user(
+                        user_id=admin_user_id,
+                        collection_id=collection_id,
+                        permissions=["read", "update"],
+                    )
+                    stages[user_id]["permissions_revoked"] = True
+                except Exception as e:
+                    logger.error(f"Failed to revoke permissions from user: {str(e)}")
     except Exception as e:
         logger.error(f"Failed to proccess user subscriptions: {str(e)}")
     finally:
