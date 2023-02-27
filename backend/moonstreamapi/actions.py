@@ -324,7 +324,6 @@ def json_type(evm_type: str) -> type:
 def dashboards_abi_validation(
     dashboard_subscription: data.DashboardMeta,
     abi: Any,
-    s3_path: str,
 ):
 
     """
@@ -347,7 +346,7 @@ def dashboards_abi_validation(
                 logger.error(
                     f"Error on dashboard resource validation method:{method['name']}"
                     f" of subscription: {dashboard_subscription.subscription_id}"
-                    f"does not exists in Abi {s3_path}"
+                    f"does not exists in Abi "
                 )
                 raise MoonstreamHTTPException(status_code=400)
             if method.get("filters") and isinstance(method["filters"], dict):
@@ -359,7 +358,7 @@ def dashboards_abi_validation(
                         logger.error(
                             f"Error on dashboard resource validation type argument: {input_argument_name} of method:{method['name']} "
                             f" of subscription: {dashboard_subscription.subscription_id} has incorrect"
-                            f"does not exists in Abi {s3_path}"
+                            f"does not exists in Abi"
                         )
                         raise MoonstreamHTTPException(status_code=400)
 
@@ -387,7 +386,7 @@ def dashboards_abi_validation(
                 logger.error(
                     f"Error on dashboard resource validation event:{event['name']}"
                     f" of subscription: {dashboard_subscription.subscription_id}"
-                    f"does not exists in Abi {s3_path}"
+                    f"does not exists in Abi"
                 )
                 raise MoonstreamHTTPException(status_code=400)
 
@@ -400,7 +399,7 @@ def dashboards_abi_validation(
                         logger.error(
                             f"Error on dashboard resource validation type argument: {input_argument_name} of method:{event['name']} "
                             f" of subscription: {dashboard_subscription.subscription_id} has incorrect"
-                            f"does not exists in Abi {s3_path}"
+                            f"does not exists in Abi"
                         )
                         raise MoonstreamHTTPException(status_code=400)
 

@@ -1,13 +1,14 @@
 import json
 import logging
 from os import read
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 import boto3  # type: ignore
 import requests  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
+from entity.data import EntitiesResponse
 from fastapi import APIRouter, Body, Path, Query, Request
 
 from .. import actions, data
@@ -20,8 +21,9 @@ from ..settings import (
     MOONSTREAM_CRAWLERS_SERVER_PORT,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
+    BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
 )
-from ..settings import bugout_client as bc
+from ..settings import bugout_client as bc, entity_client as ec
 
 logger = logging.getLogger(__name__)
 
@@ -49,43 +51,37 @@ async def add_dashboard_handler(
 
     subscription_settings = dashboard.subscription_settings
 
-    # Get all user subscriptions
-    params = {
-        "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
-        "user_id": str(user.id),
-    }
-    try:
-        resources: BugoutResources = bc.list_resources(token=token, params=params)
-    except BugoutResponseException as e:
-        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
-    except Exception as e:
-        logger.error(
-            f"Error listing subscriptions for user ({request.user.id}) with token ({request.state.token}), error: {str(e)}"
-        )
-        reporter.error_report(e)
-        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+    # Get user collection id
+
+    collection_id = actions.get_entity_subscription_collection_id(
+        resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
+        user_id=user.id,
+        token=token,
+    )
+
+    subscriprions_list = ec.search_entities(
+        token=token,
+        collection_id=collection_id,
+        required_field=[f"type:subscription"],
+        limit=1000,
+    )
 
     # process existing subscriptions with supplied ids
 
-    s3_client = boto3.client("s3")
-
-    available_subscriptions: Dict[UUID, Dict[str, Any]] = {
-        resource.id: resource.resource_data for resource in resources.resources
+    available_subscriptions_ids: Dict[Union[UUID, str], Dict[str, Any]] = {
+        subscription.entity_id: subscription
+        for subscription in subscriprions_list.entities
     }
 
     for dashboard_subscription in subscription_settings:
-        if dashboard_subscription.subscription_id in available_subscriptions.keys():
+        if dashboard_subscription.subscription_id in available_subscriptions_ids.keys():
 
-            # TODO(Andrey): Add some dedublication for get object from s3 for repeated subscription_id
-
-            bucket = available_subscriptions[dashboard_subscription.subscription_id][
-                "bucket"
-            ]
-            key = available_subscriptions[dashboard_subscription.subscription_id][
-                "s3_path"
-            ]
-
-            if bucket is None or key is None:
+            if (
+                available_subscriptions_ids[dashboard_subscription.subscription_id][
+                    "secondary_fields"
+                ].get("abi")
+                is None
+            ):
                 logger.error(
                     f"Error on dashboard resource {dashboard_subscription.subscription_id} does not have an abi"
                 )
@@ -93,29 +89,16 @@ async def add_dashboard_handler(
                     status_code=404,
                     detail=f"Error on dashboard resource {dashboard_subscription.subscription_id} does not have an abi",
                 )
-            s3_path = f"s3://{bucket}/{key}"
 
-            try:
-
-                response = s3_client.get_object(
-                    Bucket=bucket,
-                    Key=key,
-                )
-
-            except s3_client.exceptions.NoSuchKey as e:
-                logger.error(
-                    f"Error getting Abi for subscription {str(dashboard_subscription.subscription_id)} S3 {s3_path} does not exist : {str(e)}"
-                )
-                raise MoonstreamHTTPException(
-                    status_code=500,
-                    internal_error=e,
-                    detail=f"We can't access the abi for subscription with id:{str(dashboard_subscription.subscription_id)}.",
-                )
-
-            abi = json.loads(response["Body"].read())
+            abi = json.loads(
+                available_subscriptions_ids[dashboard_subscription.subscription_id][
+                    "secondary_fields"
+                ]["abi"]
+            )
 
             actions.dashboards_abi_validation(
-                dashboard_subscription, abi, s3_path=s3_path
+                dashboard_subscription,
+                abi,
             )
 
         else:
@@ -241,41 +224,36 @@ async def update_dashboard_handler(
 
     subscription_settings = dashboard.subscription_settings
 
-    params = {
-        "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
-        "user_id": str(user.id),
-    }
-    try:
-        resources: BugoutResources = bc.list_resources(token=token, params=params)
-    except BugoutResponseException as e:
-        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
-    except Exception as e:
-        logger.error(
-            f"Error listing subscriptions for user ({request.user.id}) with token ({request.state.token}), error: {str(e)}"
-        )
-        reporter.error_report(e)
-        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+    # Get user collection id
 
-    s3_client = boto3.client("s3")
+    collection_id = actions.get_entity_subscription_collection_id(
+        resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
+        user_id=user.id,
+        token=token,
+    )
 
-    available_subscriptions = {
-        resource.id: resource.resource_data for resource in resources.resources
+    subscriprions_list = ec.search_entities(
+        token=token,
+        collection_id=collection_id,
+        required_field=[f"type:subscription"],
+        limit=1000,
+    )
+
+    available_subscriptions_ids: Dict[Union[UUID, str], Dict[str, Any]] = {
+        subscription.entity_id: subscription
+        for subscription in subscriprions_list.entities
     }
 
     for dashboard_subscription in subscription_settings:
 
-        if dashboard_subscription.subscription_id in available_subscriptions:
+        if dashboard_subscription.subscription_id in available_subscriptions_ids:
 
-            # TODO(Andrey): Add some dedublication for get object from s3 for repeated subscription_id
-
-            bucket = available_subscriptions[dashboard_subscription.subscription_id][
-                "bucket"
-            ]
-            abi_path = available_subscriptions[dashboard_subscription.subscription_id][
-                "s3_path"
-            ]
-
-            if bucket is None or abi_path is None:
+            if (
+                available_subscriptions_ids[dashboard_subscription.subscription_id][
+                    "secondary_fields"
+                ].get("abi")
+                is None
+            ):
                 logger.error(
                     f"Error on dashboard resource {dashboard_subscription.subscription_id} does not have an abi"
                 )
@@ -283,29 +261,14 @@ async def update_dashboard_handler(
                     status_code=404,
                     detail=f"Error on dashboard resource {dashboard_subscription.subscription_id} does not have an abi",
                 )
-            s3_path = f"s3://{bucket}/{abi_path}"
 
-            try:
-
-                response = s3_client.get_object(
-                    Bucket=bucket,
-                    Key=abi_path,
-                )
-
-            except s3_client.exceptions.NoSuchKey as e:
-                logger.error(
-                    f"Error getting Abi for subscription {dashboard_subscription.subscription_id} S3 {s3_path} does not exist : {str(e)}"
-                )
-                raise MoonstreamHTTPException(
-                    status_code=500,
-                    internal_error=e,
-                    detail=f"We can't access the abi for subscription with id:{dashboard_subscription.subscription_id}.",
-                )
-            abi = json.loads(response["Body"].read())
-
-            actions.dashboards_abi_validation(
-                dashboard_subscription, abi, s3_path=s3_path
+            abi = json.loads(
+                available_subscriptions_ids[dashboard_subscription.subscription_id][
+                    "secondary_fields"
+                ].get("abi")
             )
+
+            actions.dashboards_abi_validation(dashboard_subscription, abi)
 
         else:
             logger.error(
@@ -342,9 +305,9 @@ async def update_dashboard_handler(
 @router.get("/{dashboard_id}/stats", tags=["dashboards"])
 async def get_dashboard_data_links_handler(
     request: Request, dashboard_id: str
-) -> Dict[UUID, Any]:
+) -> Dict[Union[UUID, str], Any]:
     """
-    Get s3 presign urls for dshaboard grafics
+    Get s3 presign urls for dashboard grafics
     """
 
     token = request.state.token
@@ -368,50 +331,57 @@ async def get_dashboard_data_links_handler(
 
     # get subscriptions
 
-    params = {
-        "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
-        "user_id": str(user.id),
-    }
-    try:
-        subscription_resources: BugoutResources = bc.list_resources(
-            token=token, params=params
-        )
-    except BugoutResponseException as e:
-        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
-    except Exception as e:
-        logger.error(
-            f"Error listing subscriptions for user ({request.user.id}) with token ({request.state.token}), error: {str(e)}"
-        )
-        reporter.error_report(e)
-        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+    collection_id = actions.get_entity_subscription_collection_id(
+        resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
+        user_id=user.id,
+        token=token,
+    )
+
+    subscriprions_list = ec.search_entities(
+        token=token,
+        collection_id=collection_id,
+        required_field=[f"type:subscription"],
+        limit=1000,
+    )
+
     # filter out dasboards
 
     subscriptions_ids = [
-        UUID(subscription_meta["subscription_id"])
+        subscription_meta["subscription_id"]
         for subscription_meta in dashboard_resource.resource_data[
             "subscription_settings"
         ]
     ]
 
-    dashboard_subscriptions = [
-        subscription
-        for subscription in subscription_resources.resources
-        if subscription.id in subscriptions_ids
-    ]
+    dashboard_subscriptions: Dict[Union[UUID, str], EntitiesResponse] = {
+        subscription.entity_id: subscription
+        for subscription in subscriprions_list.entities
+        if str(subscription.entity_id) in subscriptions_ids
+    }
+
+    print(subscriptions_ids)
+
+    for subscription in subscriprions_list.entities:
+        print(subscription.entity_id)
 
     # generate s3 links
 
     s3_client = boto3.client("s3")
 
-    stats: Dict[UUID, Any] = {}
+    stats: Dict[Union[str, UUID], Dict[str, Any]] = {}
 
-    for subscription in dashboard_subscriptions:
+    for id, subscription in dashboard_subscriptions.items():
 
         available_timescales = [timescale.value for timescale in data.TimeScale]
-        stats[subscription.id] = {}
+        stats[id] = {}
+
+        for fields in subscription["secondary_fields"]:
+            if "subscription_type_id" in fields:
+                subscription_type_id = fields["subscription_type_id"]
+
         for timescale in available_timescales:
             try:
-                result_key = f'{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/{actions.blockchain_by_subscription_id[subscription.resource_data["subscription_type_id"]]}/contracts_data/{subscription.resource_data["address"]}/{dashboard_id}/v1/{timescale}.json'
+                result_key = f"{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/{actions.blockchain_by_subscription_id[subscription_type_id]}/contracts_data/{subscription.address}/{dashboard_id}/v1/{timescale}.json"
                 stats_presigned_url = s3_client.generate_presigned_url(
                     "get_object",
                     Params={
@@ -421,7 +391,7 @@ async def get_dashboard_data_links_handler(
                     ExpiresIn=300,
                     HttpMethod="GET",
                 )
-                stats[subscription.id][timescale] = {"url": stats_presigned_url}
+                stats[id][timescale] = {"url": stats_presigned_url}
             except Exception as err:
                 logger.warning(
                     f"Can't generate S3 presigned url in stats endpoint for Bucket:{MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET}, Key:{result_key} get error:{err}"
