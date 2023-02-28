@@ -1,5 +1,5 @@
 [Unit]
-Description=Runs custom crawler for CU tokenonomics
+Description=Generate data for nft dashboard for cu community
 
 [Timer]
 OnBootSec=60s
