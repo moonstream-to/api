@@ -1,9 +1,11 @@
 import argparse
+import csv
 import datetime
 import logging
+from io import StringIO
 from moonstream.client import Moonstream  # type: ignore
 import time
-import requests
+import requests  # type: ignore
 import json
 
 from typing import Any, Dict, Union
@@ -40,7 +42,6 @@ def recive_S3_data_from_query(
     time_await: int = 2,
     max_retries: int = 30,
 ) -> Any:
-
     """
     Await the query to be update data on S3 with if_modified_since and return new the data.
     """
@@ -97,7 +98,6 @@ def generate_report(
     """
 
     try:
-
         json_data = recive_S3_data_from_query(
             client=client,
             token=token,
@@ -149,7 +149,6 @@ def delete_user_query(client: Moonstream, token: str, query_name: str):
 
 
 def init_game_bank_queries_handler(args: argparse.Namespace):
-
     """
     Create the game bank queries.
     """
@@ -157,7 +156,6 @@ def init_game_bank_queries_handler(args: argparse.Namespace):
     client = Moonstream()
 
     for query in cu_bank_queries:
-
         try:
             if args.overwrite:
                 try:
@@ -184,7 +182,6 @@ def init_game_bank_queries_handler(args: argparse.Namespace):
 
 
 def init_tokenomics_queries_handler(args: argparse.Namespace):
-
     """
     Create the tokenomics queries.
     """
@@ -192,7 +189,6 @@ def init_tokenomics_queries_handler(args: argparse.Namespace):
     client = Moonstream()
 
     for query in tokenomics_queries:
-
         try:
             if args.overwrite:
                 try:
@@ -219,7 +215,6 @@ def init_tokenomics_queries_handler(args: argparse.Namespace):
 
 
 def run_tokenomics_queries_handler(args: argparse.Namespace):
-
     client = Moonstream()
 
     query_name = "erc20_721_volume"
@@ -236,7 +231,6 @@ def run_tokenomics_queries_handler(args: argparse.Namespace):
 
     for address, type in addresess_erc20_721.items():
         for range in ranges:
-
             params: Dict[str, Any] = {
                 "address": address,
                 "type": type,
@@ -260,7 +254,6 @@ def run_tokenomics_queries_handler(args: argparse.Namespace):
 
     for address, type in addresess_erc20_721.items():
         for range in ranges:
-
             params = {
                 "address": address,
                 "type": type,
@@ -285,7 +278,6 @@ def run_tokenomics_queries_handler(args: argparse.Namespace):
 
     for address in addresess_erc1155:
         for range in ranges:
-
             params = {
                 "address": address,
                 "time_format": range["time_format"],
@@ -329,11 +321,8 @@ def run_tokenomics_queries_handler(args: argparse.Namespace):
     query_name = "most_active_buyers"
 
     for address, type in addresess_erc20_721.items():
-
         if type == "NFT":
-
             for range in ranges:
-
                 params = {
                     "address": address,
                     "time_range": range["time_range"],
@@ -354,11 +343,8 @@ def run_tokenomics_queries_handler(args: argparse.Namespace):
     query_name = "most_active_sellers"
 
     for address, type in addresess_erc20_721.items():
-
         if type == "NFT":
-
             for range in ranges:
-
                 params = {
                     "address": address,
                     "time_range": range["time_range"],
@@ -378,9 +364,7 @@ def run_tokenomics_queries_handler(args: argparse.Namespace):
 
     query_name = "lagerst_owners"
     for address, type in addresess_erc20_721.items():
-
         if type == "NFT":
-
             params = {
                 "address": address,
             }
@@ -400,9 +384,7 @@ def run_tokenomics_queries_handler(args: argparse.Namespace):
     query_name = "total_supply_erc721"
 
     for address, type in addresess_erc20_721.items():
-
         if type == "NFT":
-
             params = {
                 "address": address,
             }
@@ -422,7 +404,6 @@ def run_tokenomics_queries_handler(args: argparse.Namespace):
     query_name = "total_supply_terminus"
 
     for address in addresess_erc1155:
-
         params = {
             "address": address,
         }
@@ -471,9 +452,7 @@ def create_user_query_handler(args: argparse.Namespace):
     client = Moonstream()
 
     for query in tokenomics_queries:
-
         if query["name"] == args.name:
-
             create_user_query(
                 client=client,
                 token=args.moonstream_token,
@@ -493,7 +472,6 @@ def generate_game_bank_report(args: argparse.Namespace):
     for query in client.list_queries(
         token=args.moonstream_token,
     ).queries:
-
         params = {}
 
         if (
@@ -533,8 +511,46 @@ def generate_game_bank_report(args: argparse.Namespace):
     pass
 
 
-def main():
+def generate_report_nft_dashboard_handler(args: argparse.Namespace):
+    """
+    Generate report from metadata crawler and push to s3
+    use query API
+    """
 
+    client = Moonstream()
+
+    for query in client.list_queries(
+        token=args.moonstream_token,
+    ).queries:
+        params = {}  # type: ignore
+
+        if query.name != "cu_nft_dashboard_data":
+            continue
+        data = recive_S3_data_from_query(
+            client=client,
+            token=args.moonstream_token,
+            query_name=query.name,
+            params=params,
+        )
+
+        csv_buffer = StringIO()
+
+        dict_csv_writer = csv.DictWriter(
+            csv_buffer, fieldnames=data["data"][0].keys(), delimiter=","
+        )
+
+        # upload to s3 bucket as csv
+        dict_csv_writer.writeheader()
+        dict_csv_writer.writerows(data["data"])
+
+        client.upload_query_results(
+            data=csv_buffer.getvalue().encode("utf-8"),
+            key=f"queries/{query.name}/data.csv",
+            bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
+        )
+
+
+def main():
     parser = argparse.ArgumentParser()
 
     parser.set_defaults(func=lambda _: parser.print_help())
@@ -627,6 +643,13 @@ def main():
     )
 
     cu_bank_parser.set_defaults(func=generate_game_bank_report)
+
+    cu_nft_dashboard_parser = cu_reports_subparsers.add_parser(
+        "generate-nft-dashboard",
+        help="Generate cu-nft-dashboard",
+    )
+    cu_nft_dashboard_parser.set_defaults(func=generate_report_nft_dashboard_handler)
+
     args = parser.parse_args()
     args.func(args)
 
