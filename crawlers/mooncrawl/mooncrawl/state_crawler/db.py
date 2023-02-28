@@ -16,7 +16,6 @@ def view_call_to_label(
     call: Dict[str, Any],
     label_name=VIEW_STATE_CRAWLER_LABEL,
 ):
-
     """
     Creates a label model.
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { Flex, Stack } from "@chakra-ui/react";
+import { Flex } from "@chakra-ui/react";
 import { DEFAULT_METATAGS, BACKGROUND_COLOR } from "../core/constants";
 import { getLayout as getSiteLayout } from "./index";
 
@@ -14,16 +14,9 @@ const InfoPageLayout = ({ children }) => {
       direction="column"
       alignItems="center"
       w="100%"
+      px="7%"
     >
-      <Stack
-        mx={margin}
-        my={[4, 6, 12]}
-        maxW="1700px"
-        textAlign="justify"
-        minH={"100vh"}
-      >
-        {children}
-      </Stack>
+      {children}
     </Flex>
   );
 };

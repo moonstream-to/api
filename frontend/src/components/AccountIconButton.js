@@ -27,8 +27,11 @@ const AccountIconButton = (props) => {
         colorScheme="inherit"
         as={IconButton}
         aria-label="Account menu"
-        icon={<RiAccountCircleLine m={0} size="26px" />}
+        icon={<RiAccountCircleLine size="26px" />}
         color="gray.100"
+        h="26px"
+        minW="26px"
+        m="0px"
       />
       <Portal>
         <MenuList

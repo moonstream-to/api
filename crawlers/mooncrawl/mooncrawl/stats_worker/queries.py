@@ -32,7 +32,6 @@ class QueryNotValid(Exception):
 
 
 def push_statistics(s3: Any, data: Any, key: str, bucket: str) -> None:
-
     s3.put_object(
         Body=data,
         Bucket=bucket,
@@ -55,7 +54,6 @@ def query_validation(query: str) -> str:
 
 
 def to_json_types(value):
-
     if isinstance(value, (str, int, tuple, list, dict)):
         return value
     elif isinstance(value, set):
@@ -65,7 +63,6 @@ def to_json_types(value):
 
 
 def from_json_types(value):
-
     if isinstance(value, (str, int, tuple, dict)):
         return value
     elif isinstance(value, list):  # psycopg2 issue with list support

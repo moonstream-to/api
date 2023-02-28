@@ -25,7 +25,6 @@ logger = logging.getLogger(__name__)
 
 
 def handle_crawl(args: argparse.Namespace) -> None:
-
     blockchain_type = AvailableBlockchainType(args.blockchain_type)
     subscription_type = blockchain_type_to_subscription_type(blockchain_type)
 

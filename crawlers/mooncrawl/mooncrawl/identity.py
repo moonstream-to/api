@@ -58,7 +58,6 @@ def identities_cmc_add_handler(args: argparse.Namespace) -> None:
             break
 
         with yield_db_session_ctx() as db_session:
-
             for coin in response["data"]:
                 if coin["platform"] is not None:
                     if (

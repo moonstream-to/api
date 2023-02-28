@@ -35,6 +35,7 @@ from ..moonworm_crawler.event_crawler import Event, get_block_timestamp
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 # TODO: ADD VALUE!!!
 @dataclass
 class ExtededFunctionCall(ContractFunctionCall):
@@ -82,7 +83,6 @@ def add_function_calls_with_gas_price_to_session(
     blockchain_type: AvailableBlockchainType,
     label_name: str,
 ) -> None:
-
     label_model = get_label_model(blockchain_type)
     transactions_hashes_to_save = [
         function_call.transaction_hash for function_call in function_calls
@@ -152,7 +152,6 @@ def process_transaction(
     transaction: Dict[str, Any],
     blocks_cache: Dict[int, int],
 ):
-
     try:
         raw_function_call = contract.decode_function_input(transaction["input"])
         function_name = raw_function_call[0].fn_name
@@ -270,7 +269,6 @@ def populate_with_events(
     to_block: int,
     batch_size: int = 100,
 ):
-
     current_block = from_block
 
     events_abi = [event for event in abi if event["type"] == "event"]

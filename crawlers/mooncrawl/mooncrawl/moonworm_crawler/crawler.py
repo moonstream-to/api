@@ -258,7 +258,6 @@ def make_function_call_crawl_jobs(
             method_signature_by_address[contract_address] = [method_signature]
 
         else:
-
             if method_signature not in method_signature_by_address[contract_address]:
                 crawl_job_by_address[contract_address].contract_abi.append(abi)
                 method_signature_by_address[contract_address].append(method_signature)

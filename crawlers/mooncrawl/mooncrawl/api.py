@@ -113,7 +113,6 @@ async def status_handler(
     s3_client = boto3.client("s3")
 
     try:
-
         background_tasks.add_task(
             dashboard.stats_generate_api_task,
             timescales=stats_update.timescales,
@@ -133,13 +132,11 @@ async def status_handler(
     for dashboard_subscription_filters in dashboard_resource.resource_data[
         "subscription_settings"
     ]:
-
         subscription = subscription_by_id[
             dashboard_subscription_filters["subscription_id"]
         ]
 
         for timescale in stats_update.timescales:
-
             presigned_urls_response[subscription.id] = {}
 
             try:
@@ -181,7 +178,6 @@ async def queries_data_update_handler(
     request_data: data.QueryDataUpdate,
     background_tasks: BackgroundTasks,
 ) -> Dict[str, Any]:
-
     s3_client = boto3.client("s3")
 
     expected_query_parameters = text(request_data.query)._bindparams.keys()
@@ -213,7 +209,6 @@ async def queries_data_update_handler(
         raise MoonstreamHTTPException(status_code=500)
 
     try:
-
         background_tasks.add_task(
             queries.data_generate,
             bucket=MOONSTREAM_S3_QUERIES_BUCKET,
