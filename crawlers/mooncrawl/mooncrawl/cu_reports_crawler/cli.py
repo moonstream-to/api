@@ -1,9 +1,11 @@
 import argparse
+import csv
 import datetime
 import logging
+from io import StringIO
 from moonstream.client import Moonstream  # type: ignore
 import time
-import requests
+import requests  # type: ignore
 import json
 
 from typing import Any, Dict, Union
@@ -509,6 +511,45 @@ def generate_game_bank_report(args: argparse.Namespace):
     pass
 
 
+def generate_report_nft_dashboard_handler(args: argparse.Namespace):
+    """
+    Generate report from metadata crawler and push to s3
+    use query API
+    """
+
+    client = Moonstream()
+
+    for query in client.list_queries(
+        token=args.moonstream_token,
+    ).queries:
+        params = {}  # type: ignore
+
+        if query.name != "cu_nft_dashboard_data":
+            continue
+        data = recive_S3_data_from_query(
+            client=client,
+            token=args.moonstream_token,
+            query_name=query.name,
+            params=params,
+        )
+
+        csv_buffer = StringIO()
+
+        dict_csv_writer = csv.DictWriter(
+            csv_buffer, fieldnames=data["data"][0].keys(), delimiter=","
+        )
+
+        # upload to s3 bucket as csv
+        dict_csv_writer.writeheader()
+        dict_csv_writer.writerows(data["data"])
+
+        client.upload_query_results(
+            data=csv_buffer.getvalue().encode("utf-8"),
+            key=f"queries/{query.name}/data.csv",
+            bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
+        )
+
+
 def main():
     parser = argparse.ArgumentParser()
 
@@ -602,6 +643,13 @@ def main():
     )
 
     cu_bank_parser.set_defaults(func=generate_game_bank_report)
+
+    cu_nft_dashboard_parser = cu_reports_subparsers.add_parser(
+        "generate-nft-dashboard",
+        help="Generate cu-nft-dashboard",
+    )
+    cu_nft_dashboard_parser.set_defaults(func=generate_report_nft_dashboard_handler)
+
     args = parser.parse_args()
     args.func(args)
 
