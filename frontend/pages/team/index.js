@@ -148,15 +148,6 @@ const Team = () => {
             the guitar in between data witchcraft.`}
           />
           <TeamCard
-            avatarURL={assets["centipede"]}
-            name={"Yhtyyar Sahatov"}
-            atName={"@Yhtiyar"}
-            content={`Wunderkind. Interested in Math, NLP. Loves
-            programming language parsing and Algorithms & Data structures.
-            Implementing his own dialect of LISP programming language for
-            scientific calculations.`}
-          />
-          <TeamCard
             avatarURL={assets["scarab"]}
             name={"Kellan Wampler"}
             atName={"@wampleek"}
