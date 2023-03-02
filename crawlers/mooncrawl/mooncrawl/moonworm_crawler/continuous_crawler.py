@@ -124,6 +124,8 @@ def continuous_crawler(
         network = Network.mumbai
     elif blockchain_type == AvailableBlockchainType.XDAI:
         network = Network.xdai
+    elif blockchain_type == AvailableBlockchainType.CALDERA:
+        network = Network.caldera
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 

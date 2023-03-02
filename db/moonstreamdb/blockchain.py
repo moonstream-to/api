@@ -12,6 +12,9 @@ from .models import (
     XDaiBlock,
     XDaiLabel,
     XDaiTransaction,
+    CalderaBlock,
+    CalderaLabel,
+    CalderaTransaction
 )
 
 from enum import Enum
@@ -24,6 +27,7 @@ class AvailableBlockchainType(Enum):
     POLYGON = "polygon"
     MUMBAI = "mumbai"
     XDAI = "xdai"
+    CALDERA = "caldera"
 
 
 def get_block_model(
@@ -42,6 +46,8 @@ def get_block_model(
         block_model = MumbaiBlock
     elif blockchain_type == AvailableBlockchainType.XDAI:
         block_model = XDaiBlock
+    elif blockchain_type == AvailableBlockchainType.CALDERA:
+        block_model = CalderaBlock
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -64,6 +70,8 @@ def get_label_model(
         label_model = MumbaiLabel
     elif blockchain_type == AvailableBlockchainType.XDAI:
         label_model = XDaiLabel
+    elif blockchain_type == AvailableBlockchainType.CALDERA:
+        label_model = CalderaLabel
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -92,6 +100,8 @@ def get_transaction_model(
         transaction_model = MumbaiTransaction
     elif blockchain_type == AvailableBlockchainType.XDAI:
         transaction_model = XDaiTransaction
+    elif blockchain_type == AvailableBlockchainType.CALDERA:
+        transaction_model = CalderaTransaction
     else:
         raise Exception("Unsupported blockchain type provided")
 
