@@ -493,6 +493,7 @@ def generate_game_bank_report(args: argparse.Namespace):
             query_name=query.name,
             params=params,
         )  # S3 presign_url
+
         while keep_going:
             data_response = requests.get(
                 data_url,
@@ -526,6 +527,8 @@ def generate_report_nft_dashboard_handler(args: argparse.Namespace):
 
         if query.name != "cu_nft_dashboard_data":
             continue
+
+        logger.info(f"Generating report for {query.name}")
         data = recive_S3_data_from_query(
             client=client,
             token=args.moonstream_token,
@@ -533,6 +536,22 @@ def generate_report_nft_dashboard_handler(args: argparse.Namespace):
             params=params,
         )
 
+        logger.info(f"Data recived. Uploading report for {query.name} as json")
+
+        # send as json
+        ext = "json"
+
+        url = client.upload_query_results(
+            json.dumps(data),
+            key=f"queries/{query.name}/data.{ext}",
+            bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
+        )
+
+        logger.info(f"Report uploaded to {url}")
+
+        logger.info(f"Data recived. Uploading report for {query.name} as csv")
+
+        ext = "csv"
         csv_buffer = StringIO()
 
         dict_csv_writer = csv.DictWriter(
@@ -543,11 +562,13 @@ def generate_report_nft_dashboard_handler(args: argparse.Namespace):
         dict_csv_writer.writeheader()
         dict_csv_writer.writerows(data["data"])
 
-        client.upload_query_results(
+        url = client.upload_query_results(
             data=csv_buffer.getvalue().encode("utf-8"),
-            key=f"queries/{query.name}/data.csv",
+            key=f"queries/{query.name}/data.{ext}",
             bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
         )
+
+        logger.info(f"Report uploaded to {url}")
 
 
 def main():
