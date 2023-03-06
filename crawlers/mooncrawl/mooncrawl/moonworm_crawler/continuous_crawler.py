@@ -103,7 +103,6 @@ def continuous_crawler(
     ), "min_blocks_batch must be less than max_blocks_batch"
     assert min_blocks_batch > 0, "min_blocks_batch must be greater than 0"
     assert max_blocks_batch > 0, "max_blocks_batch must be greater than 0"
-    assert confirmations > 0, "confirmations must be greater than 0"
     assert min_sleep_time > 0, "min_sleep_time must be greater than 0"
     assert heartbeat_interval > 0, "heartbeat_interval must be greater than 0"
     assert (
@@ -124,8 +123,8 @@ def continuous_crawler(
         network = Network.mumbai
     elif blockchain_type == AvailableBlockchainType.XDAI:
         network = Network.xdai
-    elif blockchain_type == AvailableBlockchainType.CALDERA:
-        network = Network.caldera
+    elif blockchain_type == AvailableBlockchainType.WYRM:
+        network = Network.wyrm
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 
@@ -166,6 +165,11 @@ def continuous_crawler(
                     web3.eth.blockNumber - confirmations,
                     start_block + max_blocks_batch,
                 )
+
+                print(f"start_block: {start_block}, end_block: {end_block}")
+                print(f"web3.eth.blockNumber: {web3.eth.blockNumber}")
+                print(f"confirmations: {confirmations}")
+                print(f"max_blocks_batch: {max_blocks_batch}")
 
                 if start_block + min_blocks_batch > end_block:
                     current_sleep_time += 0.1
