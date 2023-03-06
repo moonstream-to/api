@@ -103,6 +103,11 @@ const LandingNavbar = () => {
                               <MenuItem
                                 key={`menu-${idx}`}
                                 as={"a"}
+                                target={
+                                  child.type === PAGETYPE.EXTERNAL
+                                    ? "_blank"
+                                    : "_self"
+                                }
                                 m={0}
                                 color="white"
                                 fontWeight="400"
