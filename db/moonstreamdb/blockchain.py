@@ -12,9 +12,9 @@ from .models import (
     XDaiBlock,
     XDaiLabel,
     XDaiTransaction,
-    CalderaBlock,
-    CalderaLabel,
-    CalderaTransaction
+    WyrmBlock,
+    WyrmLabel,
+    WyrmTransaction
 )
 
 from enum import Enum
@@ -27,17 +27,17 @@ class AvailableBlockchainType(Enum):
     POLYGON = "polygon"
     MUMBAI = "mumbai"
     XDAI = "xdai"
-    CALDERA = "caldera"
+    WYRM = "wyrm"
 
 
 def get_block_model(
     blockchain_type: AvailableBlockchainType,
-) -> Type[Union[EthereumBlock, PolygonBlock, MumbaiBlock, XDaiBlock]]:
+) -> Type[Union[EthereumBlock, PolygonBlock, MumbaiBlock, XDaiBlock, WyrmBlock]]:
     """
-    Depends on provided blockchain type: Ethereum, Polygon, Mumbai or XDai,
+    Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm
     set proper blocks model.
     """
-    block_model: Type[Union[EthereumBlock, PolygonBlock, MumbaiBlock, XDaiBlock]]
+    block_model: Type[Union[EthereumBlock, PolygonBlock, MumbaiBlock, XDaiBlock,WyrmBlock]]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
         block_model = EthereumBlock
     elif blockchain_type == AvailableBlockchainType.POLYGON:
@@ -46,8 +46,8 @@ def get_block_model(
         block_model = MumbaiBlock
     elif blockchain_type == AvailableBlockchainType.XDAI:
         block_model = XDaiBlock
-    elif blockchain_type == AvailableBlockchainType.CALDERA:
-        block_model = CalderaBlock
+    elif blockchain_type == AvailableBlockchainType.WYRM:
+        block_model = WyrmBlock
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -56,12 +56,12 @@ def get_block_model(
 
 def get_label_model(
     blockchain_type: AvailableBlockchainType,
-) -> Type[Union[EthereumLabel, PolygonLabel, MumbaiLabel, XDaiLabel]]:
+) -> Type[Union[EthereumLabel, PolygonLabel, MumbaiLabel, XDaiLabel, WyrmLabel]]:
     """
-    Depends on provided blockchain type: Ethereum, Polygon, Mumbai or XDai,
+    Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm
     set proper block label model.
     """
-    label_model: Type[Union[EthereumLabel, PolygonLabel, MumbaiLabel, XDaiLabel]]
+    label_model: Type[Union[EthereumLabel, PolygonLabel, MumbaiLabel, XDaiLabel, WyrmLabel]]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
         label_model = EthereumLabel
     elif blockchain_type == AvailableBlockchainType.POLYGON:
@@ -70,8 +70,8 @@ def get_label_model(
         label_model = MumbaiLabel
     elif blockchain_type == AvailableBlockchainType.XDAI:
         label_model = XDaiLabel
-    elif blockchain_type == AvailableBlockchainType.CALDERA:
-        label_model = CalderaLabel
+    elif blockchain_type == AvailableBlockchainType.WYRM:
+        label_model = WyrmLabel
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -81,15 +81,15 @@ def get_label_model(
 def get_transaction_model(
     blockchain_type: AvailableBlockchainType,
 ) -> Type[
-    Union[EthereumTransaction, PolygonTransaction, MumbaiTransaction, XDaiTransaction]
+    Union[EthereumTransaction, PolygonTransaction, MumbaiTransaction, XDaiTransaction, WyrmTransaction]
 ]:
     """
-    Depends on provided blockchain type: Ethereum, Polygon, Mumbai or XDai,
+    Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm
     set proper block transactions model.
     """
     transaction_model: Type[
         Union[
-            EthereumTransaction, PolygonTransaction, MumbaiTransaction, XDaiTransaction
+            EthereumTransaction, PolygonTransaction, MumbaiTransaction, XDaiTransaction, WyrmTransaction
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -100,8 +100,8 @@ def get_transaction_model(
         transaction_model = MumbaiTransaction
     elif blockchain_type == AvailableBlockchainType.XDAI:
         transaction_model = XDaiTransaction
-    elif blockchain_type == AvailableBlockchainType.CALDERA:
-        transaction_model = CalderaTransaction
+    elif blockchain_type == AvailableBlockchainType.WYRM:
+        transaction_model = WyrmTransaction
     else:
         raise Exception("Unsupported blockchain type provided")
 

@@ -57,11 +57,11 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         stripe_price_id=None,
         active=True,
     ),
-    "caldera_smartcontract": SubscriptionTypeResourceData(
-        id="caldera_smartcontract",
-        name="Caldera smartcontract",
+    "wyrm_smartcontract": SubscriptionTypeResourceData(
+        id="wyrm_smartcontract",
+        name="Wyrm smartcontract",
         choices=["input:address", "tag:erc721"],
-        description="Contracts events and tx_calls of contract of Caldera blockchain.",
+        description="Contracts events and tx_calls of contract of Wyrm blockchain.",
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/xdai-token-logo.png",
         stripe_product_id=None,
         stripe_price_id=None,
@@ -107,11 +107,11 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         stripe_price_id=None,
         active=True,
     ),
-    "caldera_blockchain": SubscriptionTypeResourceData(
-        id="caldera_blockchain",
-        name="Caldera transactions",
+    "wyrm_blockchain": SubscriptionTypeResourceData(
+        id="wyrm_blockchain",
+        name="Wyrm transactions",
         choices=["input:address", "tag:erc721"],
-        description="Caldera chain transactions subscription.",
+        description="Wyrm chain transactions subscription.",
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/xdai-token-logo.png",
         stripe_product_id=None,
         stripe_price_id=None,

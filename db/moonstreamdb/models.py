@@ -493,8 +493,8 @@ class XDaiLabel(Base):  # type: ignore
     )
 
 
-class CalderaBlock(Base):  # type: ignore
-    __tablename__ = "caldera_blocks"
+class WyrmBlock(Base):  # type: ignore
+    __tablename__ = "wyrm_blocks"
 
     block_number = Column(
         BigInteger, primary_key=True, unique=True, nullable=False, index=True
@@ -521,15 +521,15 @@ class CalderaBlock(Base):  # type: ignore
     )
 
 
-class CalderaTransaction(Base):  # type: ignore
-    __tablename__ = "caldera_transactions"
+class WyrmTransaction(Base):  # type: ignore
+    __tablename__ = "wyrm_transactions"
 
     hash = Column(
         VARCHAR(256), primary_key=True, unique=True, nullable=False, index=True
     )
     block_number = Column(
         BigInteger,
-        ForeignKey("caldera_blocks.block_number", ondelete="CASCADE"),
+        ForeignKey("wyrm_blocks.block_number", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -550,7 +550,7 @@ class CalderaTransaction(Base):  # type: ignore
     )
 
 
-class CalderaLabel(Base):  # type: ignore
+class WyrmLabel(Base):  # type: ignore
     """
     Example of label_data:
         {
@@ -566,17 +566,17 @@ class CalderaLabel(Base):  # type: ignore
         }
     """
 
-    __tablename__ = "caldera_labels"
+    __tablename__ = "wyrm_labels"
 
     __table_args__ = (
         Index(
-            "ix_caldera_labels_address_block_number",
+            "ix_wyrm_labels_address_block_number",
             "address",
             "block_number",
             unique=False,
         ),
         Index(
-            "ix_caldera_labels_address_block_timestamp",
+            "ix_wyrm_labels_address_block_timestamp",
             "address",
             "block_timestamp",
             unique=False,

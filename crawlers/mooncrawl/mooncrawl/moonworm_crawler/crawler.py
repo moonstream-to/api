@@ -31,7 +31,7 @@ class SubscriptionTypes(Enum):
     ETHEREUM_BLOCKCHAIN = "ethereum_smartcontract"
     MUMBAI_BLOCKCHAIN = "mumbai_smartcontract"
     XDAI_BLOCKCHAIN = "xdai_smartcontract"
-    CALDERA_BLOCKCHAIN = "caldera_smartcontract"
+    WYRM_BLOCKCHAIN = "wyrm_smartcontract"
 
 
 def abi_input_signature(input_abi: Dict[str, Any]) -> str:
@@ -134,8 +134,8 @@ def blockchain_type_to_subscription_type(
         return SubscriptionTypes.MUMBAI_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.XDAI:
         return SubscriptionTypes.XDAI_BLOCKCHAIN
-    elif blockchain_type == AvailableBlockchainType.CALDERA:
-        return SubscriptionTypes.CALDERA_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.WYRM:
+        return SubscriptionTypes.WYRM_BLOCKCHAIN
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 
