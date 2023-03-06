@@ -81,7 +81,6 @@ def migrations_run(args: argparse.Namespace) -> None:
             drop_keys = []
 
             if args.file is not None:
-
                 with open(args.file) as migration_json_file:
                     migration_json = json.load(migration_json_file)
 
@@ -119,12 +118,10 @@ def migrations_run(args: argparse.Namespace) -> None:
 
 
 def moonworm_tasks_list_handler(args: argparse.Namespace) -> None:
-
     moonworm_tasks.get_list_of_addresses()
 
 
 def moonworm_tasks_add_subscription_handler(args: argparse.Namespace) -> None:
-
     moonworm_tasks.add_subscription(args.id)
 
 

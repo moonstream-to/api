@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/txinfo")
 
+
 # TODO(zomglings): Factor out the enrichment logic into a separate action, because it may be useful
 # independently from serving API calls (e.g. data processing).
 # TODO(kompotkot): Re-organize function to be able handle each steps with exceptions.

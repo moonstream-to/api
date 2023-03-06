@@ -288,7 +288,6 @@ class EthereumTXPoolProvider(BugoutEventProvider):
         batch_size: int = 100,
         timeout: float = 30.0,
     ):
-
         super().__init__(
             event_type=event_type,
             description=description,
@@ -302,7 +301,6 @@ class EthereumTXPoolProvider(BugoutEventProvider):
     def parse_filters(
         self, query: StreamQuery, user_subscriptions: Dict[str, List[BugoutResource]]
     ) -> Optional[List[str]]:
-
         is_query_constrained = query.subscription_types or query.subscriptions
         relevant_subscriptions = user_subscriptions.get(self.event_type)
 
