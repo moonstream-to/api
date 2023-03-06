@@ -48,12 +48,12 @@ blockchain_by_subscription_id = {
     "polygon_blockchain": "polygon",
     "mumbai_blockchain": "mumbai",
     "xdai_blockchain": "xdai",
-    "wyrm_blockchain": "caldera",
+    "wyrm_blockchain": "wyrm",
     "ethereum_smartcontract": "ethereum",
     "polygon_smartcontract": "polygon",
     "mumbai_smartcontract": "mumbai",
     "xdai_smartcontract": "xdai",
-    "wyrm_smartcontract": "caldera",
+    "wyrm_smartcontract": "wyrm",
 }
 
 
