@@ -42,7 +42,7 @@ Following:
 
 
 class utcnow(expression.FunctionElement):
-    type = DateTime
+    type = DateTime  # type: ignore
 
 
 @compiles(utcnow, "postgresql")
