@@ -166,11 +166,6 @@ def continuous_crawler(
                     start_block + max_blocks_batch,
                 )
 
-                print(f"start_block: {start_block}, end_block: {end_block}")
-                print(f"web3.eth.blockNumber: {web3.eth.blockNumber}")
-                print(f"confirmations: {confirmations}")
-                print(f"max_blocks_batch: {max_blocks_batch}")
-
                 if start_block + min_blocks_batch > end_block:
                     current_sleep_time += 0.1
                     logger.info(
