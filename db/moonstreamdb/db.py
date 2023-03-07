@@ -3,9 +3,10 @@ Moonstream database connection.
 """
 from contextlib import contextmanager
 import os
+from typing import Generator
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session, Generator
+from sqlalchemy.orm import sessionmaker, Session
 
 MOONSTREAM_DB_URI = os.environ.get("MOONSTREAM_DB_URI")
 if MOONSTREAM_DB_URI is None:
