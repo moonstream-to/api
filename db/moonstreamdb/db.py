@@ -5,7 +5,7 @@ from contextlib import contextmanager
 import os
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import sessionmaker, Session, Generator
 
 MOONSTREAM_DB_URI = os.environ.get("MOONSTREAM_DB_URI")
 if MOONSTREAM_DB_URI is None:
@@ -60,7 +60,7 @@ engine = create_moonstream_engine(
 SessionLocal = sessionmaker(bind=engine)
 
 
-def yield_db_session() -> Session:
+def yield_db_session() -> Generator[Session]:
     """
     Yields a database connection (created using environment variables).
     As per FastAPI docs:
