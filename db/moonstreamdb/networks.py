@@ -1,5 +1,3 @@
-
-
 from enum import Enum
 from typing import Dict, Union
 
@@ -30,13 +28,14 @@ class Network(Enum):
     xdai = "xdai"
     wyrm = "wyrm"
 
+
 tx_raw_types = Union[
     EthereumTransaction,
     MumbaiTransaction,
     PolygonTransaction,
     WyrmTransaction,
-    XDaiTransaction
-]    
+    XDaiTransaction,
+]
 
 MODELS: Dict[Network, Dict[str, Base]] = {
     Network.ethereum: {

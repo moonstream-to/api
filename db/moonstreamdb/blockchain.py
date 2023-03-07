@@ -14,7 +14,7 @@ from .models import (
     XDaiTransaction,
     WyrmBlock,
     WyrmLabel,
-    WyrmTransaction
+    WyrmTransaction,
 )
 
 from enum import Enum
@@ -37,7 +37,9 @@ def get_block_model(
     Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm
     set proper blocks model.
     """
-    block_model: Type[Union[EthereumBlock, PolygonBlock, MumbaiBlock, XDaiBlock,WyrmBlock]]
+    block_model: Type[
+        Union[EthereumBlock, PolygonBlock, MumbaiBlock, XDaiBlock, WyrmBlock]
+    ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
         block_model = EthereumBlock
     elif blockchain_type == AvailableBlockchainType.POLYGON:
@@ -61,7 +63,9 @@ def get_label_model(
     Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm
     set proper block label model.
     """
-    label_model: Type[Union[EthereumLabel, PolygonLabel, MumbaiLabel, XDaiLabel, WyrmLabel]]
+    label_model: Type[
+        Union[EthereumLabel, PolygonLabel, MumbaiLabel, XDaiLabel, WyrmLabel]
+    ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
         label_model = EthereumLabel
     elif blockchain_type == AvailableBlockchainType.POLYGON:
@@ -81,7 +85,13 @@ def get_label_model(
 def get_transaction_model(
     blockchain_type: AvailableBlockchainType,
 ) -> Type[
-    Union[EthereumTransaction, PolygonTransaction, MumbaiTransaction, XDaiTransaction, WyrmTransaction]
+    Union[
+        EthereumTransaction,
+        PolygonTransaction,
+        MumbaiTransaction,
+        XDaiTransaction,
+        WyrmTransaction,
+    ]
 ]:
     """
     Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm
@@ -89,7 +99,11 @@ def get_transaction_model(
     """
     transaction_model: Type[
         Union[
-            EthereumTransaction, PolygonTransaction, MumbaiTransaction, XDaiTransaction, WyrmTransaction
+            EthereumTransaction,
+            PolygonTransaction,
+            MumbaiTransaction,
+            XDaiTransaction,
+            WyrmTransaction,
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
