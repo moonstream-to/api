@@ -46,7 +46,7 @@ setup(
         "requests",
         "tqdm",
         "uvicorn",
-        "web3[tester]",
+        "web3",
     ],
     extras_require={
         "dev": ["black", "isort", "mypy", "types-requests", "types-python-dateutil"],
