@@ -61,7 +61,7 @@ engine = create_moonstream_engine(
 SessionLocal = sessionmaker(bind=engine)
 
 
-def yield_db_session() -> Generator[Session]:
+def yield_db_session() -> Generator[Session, None, None]:
     """
     Yields a database connection (created using environment variables).
     As per FastAPI docs:
@@ -85,7 +85,7 @@ RO_engine = create_moonstream_engine(
 RO_SessionLocal = sessionmaker(bind=RO_engine)
 
 
-def yield_db_read_only_session() -> Session:
+def yield_db_read_only_session() -> Generator[Session, None, None]:
     """
     Yields a database connection (created using environment variables).
     As per FastAPI docs:
