@@ -75,7 +75,6 @@ async def add_dashboard_handler(
 
     for dashboard_subscription in subscription_settings:
         if dashboard_subscription.subscription_id in available_subscriptions.keys():
-
             # TODO(Andrey): Add some dedublication for get object from s3 for repeated subscription_id
 
             bucket = available_subscriptions[dashboard_subscription.subscription_id][
@@ -96,7 +95,6 @@ async def add_dashboard_handler(
             s3_path = f"s3://{bucket}/{key}"
 
             try:
-
                 response = s3_client.get_object(
                     Bucket=bucket,
                     Key=key,
@@ -263,9 +261,7 @@ async def update_dashboard_handler(
     }
 
     for dashboard_subscription in subscription_settings:
-
         if dashboard_subscription.subscription_id in available_subscriptions:
-
             # TODO(Andrey): Add some dedublication for get object from s3 for repeated subscription_id
 
             bucket = available_subscriptions[dashboard_subscription.subscription_id][
@@ -286,7 +282,6 @@ async def update_dashboard_handler(
             s3_path = f"s3://{bucket}/{abi_path}"
 
             try:
-
                 response = s3_client.get_object(
                     Bucket=bucket,
                     Key=abi_path,
@@ -316,7 +311,6 @@ async def update_dashboard_handler(
     dashboard_resource: Dict[str, Any] = {}
 
     if subscription_settings:
-
         dashboard_resource["subscription_settings"] = json.loads(dashboard.json())[
             "subscription_settings"
         ]
@@ -406,7 +400,6 @@ async def get_dashboard_data_links_handler(
     stats: Dict[UUID, Any] = {}
 
     for subscription in dashboard_subscriptions:
-
         available_timescales = [timescale.value for timescale in data.TimeScale]
         stats[subscription.id] = {}
         for timescale in available_timescales:

@@ -78,8 +78,14 @@ def decode_abi(source: str, session: Optional[Session] = None) -> ContractABI:
             session.close()
 
     abi = ContractABI(
-        functions=cast(EVMFunctionSignature, function_signatures),
-        events=cast(EVMEventSignature, event_signatures),
+        functions=[
+            cast(EVMFunctionSignature, function_signature)
+            for function_signature in function_signatures
+        ],
+        events=[
+            cast(EVMEventSignature, event_signature)
+            for event_signature in event_signatures
+        ],
     )
     return abi
 

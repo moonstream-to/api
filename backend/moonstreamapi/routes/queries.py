@@ -36,7 +36,6 @@ router = APIRouter(
 
 @router.get("/list", tags=["queries"])
 async def get_list_of_queries_handler(request: Request) -> List[Dict[str, Any]]:
-
     token = request.state.token
 
     # Check already existed queries
@@ -93,7 +92,6 @@ async def create_query_handler(
         )
 
     if query_name in used_queries:
-
         raise MoonstreamHTTPException(
             status_code=404,
             detail=f"Provided query name already use. Please remove it or use PUT /{query_name} for update query",
@@ -133,7 +131,6 @@ async def create_query_handler(
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     try:
-
         bc.update_tags(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
@@ -152,7 +149,6 @@ async def create_query_handler(
 
 @router.get("/{query_name}/query", tags=["queries"])
 async def get_query_handler(request: Request, query_name: str) -> BugoutJournalEntry:
-
     token = request.state.token
 
     try:
@@ -166,7 +162,6 @@ async def get_query_handler(request: Request, query_name: str) -> BugoutJournalE
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     try:
-
         entry = bc.get_entry(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
@@ -188,7 +183,6 @@ async def update_query_handler(
     query_name: str,
     request_update: data.UpdateQueryRequest = Body(...),
 ) -> BugoutJournalEntryContent:
-
     token = request.state.token
 
     try:
@@ -202,7 +196,6 @@ async def update_query_handler(
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     try:
-
         entry = bc.update_entry_content(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
@@ -335,7 +328,6 @@ async def get_access_link_handler(
         s3_response = None
 
         if entries.results and entries.results[0].content:
-
             tags = entries.results[0].tags
 
             file_type = "json"

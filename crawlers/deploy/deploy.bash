@@ -75,6 +75,9 @@ XDAI_STATISTICS_SERVICE_FILE="xdai-statistics.service"
 XDAI_STATISTICS_TIMER_FILE="xdai-statistics.timer"
 XDAI_MOONWORM_CRAWLER_SERVICE_FILE="xdai-moonworm-crawler.service"
 
+# Wyrm service files
+WYRM_MOONWORM_CRAWLER_SERVICE_FILE="wyrm-moonworm-crawler.service"
+
 set -eu
 
 echo
@@ -334,3 +337,11 @@ chmod 644 "${SCRIPT_DIR}/${XDAI_MOONWORM_CRAWLER_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${XDAI_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${XDAI_MOONWORM_CRAWLER_SERVICE_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${XDAI_MOONWORM_CRAWLER_SERVICE_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Wyrm moonworm crawler service definition with ${WYRM_MOONWORM_CRAWLER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${WYR_MOONWORM_CRAWLER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${WYRM_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${WYRM_MOONWORM_CRAWLER_SERVICE_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${WYRM_MOONWORM_CRAWLER_SERVICE_FILE}"

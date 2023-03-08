@@ -343,7 +343,6 @@ subscription = {
 
 class TestValidateStreamBoundary(unittest.TestCase):
     def test_valid_functions_and_event_subscription(self):
-
         subscription = DashboardMeta(
             **{
                 "subscription_id": "0869942d-3cd2-4ea5-9424-d0f3e1653173",
@@ -394,7 +393,6 @@ class TestValidateStreamBoundary(unittest.TestCase):
         )
 
         with self.assertRaises(MoonstreamHTTPException):
-
             dashboards_abi_validation(subscription, abi_example, s3_path="")
 
     def test_invalid_function_arg_name_subscription(self):
@@ -421,7 +419,6 @@ class TestValidateStreamBoundary(unittest.TestCase):
         )
 
         with self.assertRaises(MoonstreamHTTPException):
-
             dashboards_abi_validation(subscription, abi_example, s3_path="")
 
     def test_invalid_function_arg_type_subscription(self):
@@ -448,7 +445,6 @@ class TestValidateStreamBoundary(unittest.TestCase):
         )
 
         with self.assertRaises(MoonstreamHTTPException):
-
             dashboards_abi_validation(subscription, abi_example, s3_path="")
 
     def test_invalid_event_name_subscription(self):
@@ -471,7 +467,6 @@ class TestValidateStreamBoundary(unittest.TestCase):
             }
         )
         with self.assertRaises(MoonstreamHTTPException):
-
             dashboards_abi_validation(subscription, abi_example, s3_path="")
 
     def test_invalid_event_arg_name_subscription(self):
@@ -498,7 +493,6 @@ class TestValidateStreamBoundary(unittest.TestCase):
         )
 
         with self.assertRaises(MoonstreamHTTPException):
-
             dashboards_abi_validation(subscription, abi_example, s3_path="")
 
     def test_invalid_event_arg_type_subscription(self):
@@ -522,7 +516,6 @@ class TestValidateStreamBoundary(unittest.TestCase):
         )
 
         with self.assertRaises(MoonstreamHTTPException):
-
             dashboards_abi_validation(subscription, abi_example, s3_path="")
 
 

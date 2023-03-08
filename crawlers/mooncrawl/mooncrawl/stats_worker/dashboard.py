@@ -45,6 +45,7 @@ subscription_ids_by_blockchain = {
     "polygon": ["polygon_blockchain", "polygon_smartcontract"],
     "mumbai": ["mumbai_blockchain", "mumbai_smartcontract"],
     "xdai": ["xdai_blockchain", "xdai_smartcontract"],
+    "wyrm": ["wyrm_blockchain", "wyrm_smartcontract"],
 }
 
 blockchain_by_subscription_id = {
@@ -52,10 +53,12 @@ blockchain_by_subscription_id = {
     "polygon_blockchain": "polygon",
     "mumbai_blockchain": "mumbai",
     "xdai_blockchain": "xdai",
+    "wyrm_blockchain": "wyrm",
     "ethereum_smartcontract": "ethereum",
     "polygon_smartcontract": "polygon",
     "mumbai_smartcontract": "mumbai",
     "xdai_smartcontract": "xdai",
+    "wyrm_smartcontract": "wyrm",
 }
 
 
