@@ -12,6 +12,7 @@ from moonstreamdb.db import (
     MOONSTREAM_POOL_SIZE,
 )
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.sql import text
 from ..reporter import reporter
 
 from ..settings import (
@@ -112,7 +113,9 @@ def data_generate(
             )
         else:
             block_number, block_timestamp = db_session.execute(
-                "SELECT block_number, block_timestamp FROM polygon_labels WHERE block_number=(SELECT max(block_number) FROM polygon_labels where label='moonworm-alpha') limit 1;",
+                text(
+                    "SELECT block_number, block_timestamp FROM polygon_labels WHERE block_number=(SELECT max(block_number) FROM polygon_labels where label='moonworm-alpha') limit 1;"
+                ),
             ).one()
 
             data = json.dumps(
@@ -120,8 +123,11 @@ def data_generate(
                     "block_number": block_number,
                     "block_timestamp": block_timestamp,
                     "data": [
-                        {key: to_json_types(value) for key, value in dict(row).items()}
-                        for row in db_session.execute(query, params)
+                        {
+                            key: to_json_types(value)
+                            for key, value in row._asdict().items()
+                        }
+                        for row in db_session.execute(text(query), params).all()
                     ],
                 }
             ).encode("utf-8")
