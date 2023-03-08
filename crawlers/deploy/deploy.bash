@@ -341,7 +341,7 @@ XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${XDAI_MOO
 echo
 echo
 echo -e "${PREFIX_INFO} Replacing existing Wyrm moonworm crawler service definition with ${WYRM_MOONWORM_CRAWLER_SERVICE_FILE}"
-chmod 644 "${SCRIPT_DIR}/${WYR_MOONWORM_CRAWLER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${WYRM_MOONWORM_CRAWLER_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${WYRM_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${WYRM_MOONWORM_CRAWLER_SERVICE_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${WYRM_MOONWORM_CRAWLER_SERVICE_FILE}"
