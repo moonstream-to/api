@@ -4,6 +4,7 @@ from typing import Dict, Any, Optional, List
 
 from moonstreamdb.blockchain import AvailableBlockchainType, get_label_model
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import text
 
 from ..data import TokenURIs
 from ..settings import VIEW_STATE_CRAWLER_LABEL, METADATA_CRAWLER_LABEL, CRAWLER_LABEL
@@ -70,7 +71,8 @@ def get_uris_of_tokens(
     table = label_model.__tablename__
 
     metadata_for_parsing = db_session.execute(
-        """ SELECT
+        text(
+            """ SELECT
             DISTINCT ON(label_data -> 'inputs'-> 0 ) label_data -> 'inputs'-> 0 as token_id,
             label_data -> 'result' as token_uri,
             block_number as block_number,
@@ -86,7 +88,8 @@ def get_uris_of_tokens(
             label_data -> 'inputs'-> 0 ASC,
             block_number :: INT DESC;
     """.format(
-            table
+                table
+            )
         ),
         {"table": table, "label": VIEW_STATE_CRAWLER_LABEL, "name": "tokenURI"},
     )
@@ -118,7 +121,8 @@ def get_current_metadata_for_address(
     table = label_model.__tablename__
 
     current_metadata = db_session.execute(
-        """ SELECT
+        text(
+            """ SELECT
             DISTINCT ON(label_data ->> 'token_id') label_data ->> 'token_id' as token_id
         FROM
             {}
@@ -129,7 +133,8 @@ def get_current_metadata_for_address(
             label_data ->> 'token_id' ASC,
             block_number :: INT DESC;
     """.format(
-            table
+                table
+            )
         ),
         {"address": address, "label": METADATA_CRAWLER_LABEL},
     )
@@ -159,7 +164,8 @@ def get_tokens_id_wich_may_updated(
     table = label_model.__tablename__
 
     tokens = db_session.execute(
-        """
+        text(
+            """
         with token_id_latest_events as (
             SELECT
                 DISTINCT ON (
@@ -207,7 +213,8 @@ def get_tokens_id_wich_may_updated(
         WHERE
             token_id_latest_events.block_timestamp > metadata_state.block_timestamp 
         """.format(
-            table, table
+                table, table
+            )
         ),
         {
             "address": address,
@@ -234,7 +241,8 @@ def clean_labels_from_db(
     table = label_model.__tablename__
 
     db_session.execute(
-        """ 
+        text(
+            """ 
         WITH lates_token_metadata AS (
             SELECT
                 DISTINCT ON (label_data->>'token_id') label_data->>'token_id' AS token_id,
@@ -256,7 +264,8 @@ def clean_labels_from_db(
             AND address=:address
             AND {}.id  not in (select id from lates_token_metadata) RETURNING {}.block_number;
     """.format(
-            table, table, table, table
+                table, table, table, table
+            )
         ),
         {"address": address, "label": METADATA_CRAWLER_LABEL},
     )
