@@ -624,6 +624,8 @@ def query_parameter_hash(params: Dict[str, Any]) -> str:
     Generate a hash of the query parameters
     """
 
-    hash = hashlib.md5(json.dumps(OrderedDict(params), sort_keys=True).encode("utf-8")).hexdigest()
+    hash = hashlib.md5(
+        json.dumps(OrderedDict(params), sort_keys=True).encode("utf-8")
+    ).hexdigest()
 
     return hash
