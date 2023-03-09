@@ -49,10 +49,12 @@ blockchain_by_subscription_id = {
     "polygon_blockchain": "polygon",
     "mumbai_blockchain": "mumbai",
     "xdai_blockchain": "xdai",
+    "wyrm_blockchain": "wyrm",
     "ethereum_smartcontract": "ethereum",
     "polygon_smartcontract": "polygon",
     "mumbai_smartcontract": "mumbai",
     "xdai_smartcontract": "xdai",
+    "wyrm_smartcontract": "wyrm",
 }
 
 
@@ -130,7 +132,6 @@ def get_ens_name(web3: Web3, address: str) -> Optional[str]:
 
 
 def get_ens_address(web3: Web3, name: str) -> Optional[str]:
-
     if not is_valid_ens_name(name):
         raise ValueError(f"{name} is not valid ens name")
 
@@ -149,7 +150,6 @@ def get_ens_address(web3: Web3, name: str) -> Optional[str]:
 def get_ethereum_address_info(
     db_session: Session, web3: Web3, address: str
 ) -> Optional[data.EthereumAddressInfo]:
-
     if not is_address(address):
         raise ValueError(f"Invalid ethereum address : {address}")
 
@@ -266,7 +266,6 @@ def create_onboarding_resource(
         "is_complete": False,
     },
 ) -> BugoutResource:
-
     resource = bc.create_resource(
         token=token,
         application_id=MOONSTREAM_APPLICATION_ID,
@@ -318,7 +317,6 @@ def dashboards_abi_validation(
     abi: Any,
     s3_path: str,
 ):
-
     """
     Validate current dashboard subscription : https://github.com/bugout-dev/moonstream/issues/345#issuecomment-953052444
     with contract abi on S3
@@ -333,7 +331,6 @@ def dashboards_abi_validation(
     }
     if not dashboard_subscription.all_methods:
         for method in dashboard_subscription.methods:
-
             if method["name"] not in abi_functions:
                 # Method not exists
                 logger.error(
@@ -343,9 +340,7 @@ def dashboards_abi_validation(
                 )
                 raise MoonstreamHTTPException(status_code=400)
             if method.get("filters") and isinstance(method["filters"], dict):
-
                 for input_argument_name, value in method["filters"].items():
-
                     if input_argument_name not in abi_functions[method["name"]]:
                         # Argument not exists
                         logger.error(
@@ -374,7 +369,6 @@ def dashboards_abi_validation(
 
     if not dashboard_subscription.all_events:
         for event in dashboard_subscription.events:
-
             if event["name"] not in abi_events:
                 logger.error(
                     f"Error on dashboard resource validation event:{event['name']}"
@@ -384,9 +378,7 @@ def dashboards_abi_validation(
                 raise MoonstreamHTTPException(status_code=400)
 
             if event.get("filters") and isinstance(event["filters"], dict):
-
                 for input_argument_name, value in event["filters"].items():
-
                     if input_argument_name not in abi_events[event["name"]]:
                         # Argument not exists
                         logger.error(
@@ -483,7 +475,6 @@ def get_all_entries_from_search(
         reporter.error_report(e)
 
     if len(results) != existing_metods.total_results:
-
         for offset in range(limit, existing_metods.total_results, limit):
             existing_metods = bc.search(
                 token=token,

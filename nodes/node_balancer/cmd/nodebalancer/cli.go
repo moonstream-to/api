@@ -167,7 +167,7 @@ func (s *StateCLI) populateCLI() {
 	// Common flag pointers
 	for _, fs := range []*flag.FlagSet{s.addAccessCmd, s.generateConfigCmd, s.deleteAccessCmd, s.serverCmd, s.usersCmd, s.versionCmd} {
 		fs.BoolVar(&s.helpFlag, "help", false, "Show help message")
-		fs.StringVar(&s.configPathFlag, "config", "", "Path to configuration file (default: ~/.nodebalancer/config.json)")
+		fs.StringVar(&s.configPathFlag, "config", "", "Path to configuration file (default: ~/.nodebalancer/config.txt)")
 	}
 
 	// Add, delete and list user access subcommand flag pointers

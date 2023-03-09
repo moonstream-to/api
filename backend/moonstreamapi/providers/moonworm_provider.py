@@ -42,7 +42,6 @@ class ArgsFilters:
 
 @dataclass
 class LabelsFilters:
-
     name: str
     type: str
     args: List[ArgsFilters] = field(default_factory=list)
@@ -50,14 +49,12 @@ class LabelsFilters:
 
 @dataclass
 class AddressFilters:
-
     address: str
     label_filters: List[LabelsFilters] = field(default_factory=list)
 
 
 @dataclass
 class Filters:
-
     addresses: List[AddressFilters] = field(default_factory=list)
 
 
@@ -84,7 +81,6 @@ class MoonwormProvider:
                 Optional[str], subscription.resource_data.get("address")
             )
             if subscription_address is not None:
-
                 # How apply labels?
                 filters.addresses.append(
                     AddressFilters(address=subscription_address, label_filters=[])
@@ -213,7 +209,6 @@ class MoonwormProvider:
         for address_filter in parsed_filters.addresses:
             labels_filters = []
             for label_filter in address_filter.label_filters:
-
                 labels_filters.append(
                     and_(
                         *(

@@ -16,7 +16,6 @@ def labels_add_handler(args: argparse.Namespace) -> None:
         raise ValueError("Unable to parse data as dictionary")
 
     with yield_db_session_ctx() as db_session:
-
         label = EthereumLabel(
             label=args.label, address=str(args.address), label_data=label_data
         )

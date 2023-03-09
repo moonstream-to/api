@@ -5,9 +5,10 @@ import time
 from typing import Any
 
 import requests
-from moonstreamdb.db import yield_db_session_ctx
 from moonstreamdb.models import EthereumLabel
 from sqlalchemy import text
+
+from .db import yield_db_session_ctx
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -58,7 +59,6 @@ def identities_cmc_add_handler(args: argparse.Namespace) -> None:
             break
 
         with yield_db_session_ctx() as db_session:
-
             for coin in response["data"]:
                 if coin["platform"] is not None:
                     if (

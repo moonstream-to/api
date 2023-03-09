@@ -7,20 +7,18 @@ import re
 from io import StringIO
 from typing import Any, Dict
 
-from moonstreamdb.db import (
-    create_moonstream_engine,
-    MOONSTREAM_DB_URI_READ_ONLY,
-    MOONSTREAM_POOL_SIZE,
-)
+
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.sql import text
+from sqlalchemy.sql.expression import TextClause
 
 from ..actions import push_data_to_bucket
 from ..reporter import reporter
 
-from ..settings import (
-    MOONSTREAM_S3_QUERIES_BUCKET_PREFIX,
-    MOONSTREAM_QUERY_API_DB_STATEMENT_TIMEOUT_MILLIS,
-)
+
+from ..db import RO_pre_ping_query_engine
+from ..reporter import reporter
+from ..settings import MOONSTREAM_S3_QUERIES_BUCKET_PREFIX
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -45,17 +43,15 @@ def query_validation(query: str) -> str:
 
 
 def to_json_types(value):
-
     if isinstance(value, (str, int, tuple, dict, list)):
         return value
     elif isinstance(value, set):
-        return tuple(value)
+        return list(value)
     else:
         return str(value)
 
 
 def from_json_types(value):
-
     if isinstance(value, (str, int, tuple, dict)):
         return value
     elif isinstance(value, list):  # psycopg2 issue with list support
@@ -69,7 +65,7 @@ def data_generate(
     file_type: str,
     bucket: str,
     key: str,
-    query: str,
+    query: TextClause,
     params: Dict[str, Any],
     params_hash: str,
 ):
@@ -77,14 +73,7 @@ def data_generate(
     Generate query and push it to S3
     """
 
-    # Create session
-    engine = create_moonstream_engine(
-        MOONSTREAM_DB_URI_READ_ONLY,
-        pool_pre_ping=True,
-        pool_size=MOONSTREAM_POOL_SIZE,
-        statement_timeout=MOONSTREAM_QUERY_API_DB_STATEMENT_TIMEOUT_MILLIS,
-    )
-    process_session = sessionmaker(bind=engine)
+    process_session = sessionmaker(bind=RO_pre_ping_query_engine)
     db_session = process_session()
 
     metadata = {
@@ -96,20 +85,22 @@ def data_generate(
     }
 
     try:
-
         # TODO:(Andrey) Need optimization that information is usefull but incomplete
         block_number, block_timestamp = db_session.execute(
-            "SELECT block_number, block_timestamp FROM polygon_labels WHERE block_number=(SELECT max(block_number) FROM polygon_labels where label='moonworm-alpha') limit 1;",
+            text(
+                "SELECT block_number, block_timestamp FROM polygon_labels WHERE block_number=(SELECT max(block_number) FROM polygon_labels where label='moonworm-alpha') limit 1;"
+            ),
         ).one()
 
         if file_type == "csv":
             csv_buffer = StringIO()
             csv_writer = csv.writer(csv_buffer, delimiter=";")
 
-            result = db_session.execute(query, params).keys()
+            # engine.execution_options(stream_results=True)
+            query_instance = db_session.execute(query, params)  # type: ignore
 
-            csv_writer.writerow(result.keys())
-            csv_writer.writerows(result.fetchAll())
+            csv_writer.writerow(query_instance.keys())
+            csv_writer.writerows(query_instance.fetchall())
 
             metadata["block_number"] = block_number
             metadata["block_timestamp"] = block_timestamp
@@ -117,14 +108,22 @@ def data_generate(
             data = csv_buffer.getvalue().encode("utf-8")
 
         else:
+            block_number, block_timestamp = db_session.execute(
+                text(
+                    "SELECT block_number, block_timestamp FROM polygon_labels WHERE block_number=(SELECT max(block_number) FROM polygon_labels where label='moonworm-alpha') limit 1;"
+                ),
+            ).one()
 
             data = json.dumps(
                 {
                     "block_number": block_number,
                     "block_timestamp": block_timestamp,
                     "data": [
-                        {key: to_json_types(value) for key, value in dict(row).items()}
-                        for row in db_session.execute(query, params)
+                        {
+                            key: to_json_types(value)
+                            for key, value in row._asdict().items()
+                        }
+                        for row in db_session.execute(query, params).all()
                     ],
                 }
             ).encode("utf-8")

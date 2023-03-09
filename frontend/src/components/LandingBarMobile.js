@@ -125,6 +125,11 @@ const LandingBarMobile = () => {
                             color="white"
                             key={`menu-${idx}`}
                             as={"a"}
+                            target={
+                              child.type === PAGETYPE.EXTERNAL
+                                ? "_blank"
+                                : "_self"
+                            }
                             m={0}
                             fontSize="sm"
                             _focus={{ backgroundColor: "black.300" }}

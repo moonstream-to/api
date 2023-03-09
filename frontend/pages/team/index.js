@@ -148,21 +148,21 @@ const Team = () => {
             the guitar in between data witchcraft.`}
           />
           <TeamCard
-            avatarURL={assets["centipede"]}
-            name={"Yhtyyar Sahatov"}
-            atName={"@Yhtiyar"}
-            content={`Wunderkind. Interested in Math, NLP. Loves
-            programming language parsing and Algorithms & Data structures.
-            Implementing his own dialect of LISP programming language for
-            scientific calculations.`}
-          />
-          <TeamCard
             avatarURL={assets["scarab"]}
             name={"Kellan Wampler"}
             atName={"@wampleek"}
             content={`News junkie. Reformed mathematician. Fantasy Football enthusiast.
             Enjoys soduku and its variants. Follows artificial intelligence scene for 
             Chess and Go. Experiments with grilling recipes.`}
+          />
+          <TeamCard
+            avatarURL={assets["firefly"]}
+            name={"Ishkhan Balgudanian"}
+            atName={"@ishihssihshihishsi"}
+            content={`Lighter. Designer to the bone. Constantly
+            working on self-development. Sometimes plays guitar
+            and ukulele. Loves meat, went from well done to blue
+            rare in a few months.`}
           />
         </Flex>
       </Stack>
@@ -200,15 +200,6 @@ const Team = () => {
             content={`Born explorer. Always in search of something
             new to master. Enjoys being close to the sea. Loves yoga, 
             dogs and dancing. Can walk 30km when under stress.`}
-          />
-          <TeamCard
-            avatarURL={assets["firefly"]}
-            name={"Ishkhan Balgudanian"}
-            atName={"@ishihssihshihishsi"}
-            content={`Lighter. Designer to the bone. Constantly
-            working on self-development. Sometimes plays guitar
-            and ukulele. Loves meat, went from well done to blue
-            rare in a few months.`}
           />
         </Flex>
       </Stack>

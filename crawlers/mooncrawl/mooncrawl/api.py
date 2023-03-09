@@ -13,7 +13,6 @@ from bugout.data import BugoutResource, BugoutResources
 from fastapi import BackgroundTasks, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
-from sqlalchemy.sql.elements import TextClause
 
 from .actions import generate_s3_access_links, query_parameter_hash
 from . import data
@@ -115,7 +114,6 @@ async def status_handler(
     s3_client = boto3.client("s3")
 
     try:
-
         background_tasks.add_task(
             dashboard.stats_generate_api_task,
             timescales=stats_update.timescales,
@@ -135,13 +133,11 @@ async def status_handler(
     for dashboard_subscription_filters in dashboard_resource.resource_data[
         "subscription_settings"
     ]:
-
         subscription = subscription_by_id[
             dashboard_subscription_filters["subscription_id"]
         ]
 
         for timescale in stats_update.timescales:
-
             presigned_urls_response[subscription.id] = {}
 
             try:
@@ -183,7 +179,6 @@ async def queries_data_update_handler(
     request_data: data.QueryDataUpdate,
     background_tasks: BackgroundTasks,
 ) -> Dict[str, Any]:
-
     # Check if query is valid
     try:
         queries.query_validation(request_data.query)
@@ -230,7 +225,6 @@ async def queries_data_update_handler(
     key = f"{MOONSTREAM_S3_QUERIES_BUCKET_PREFIX}/queries/{query_id}/{params_hash}/data.{request_data.file_type}"
 
     try:
-
         background_tasks.add_task(
             queries.data_generate,
             query_id=f"{query_id}",
