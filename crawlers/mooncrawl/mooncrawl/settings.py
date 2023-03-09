@@ -1,10 +1,9 @@
 import os
-from typing import Optional, Dict
+from typing import Dict, Optional
 from uuid import UUID
 
 from bugout.app import Bugout
 from moonstreamdb.blockchain import AvailableBlockchainType
-
 
 BUGOUT_RESOURCE_TYPE_SUBSCRIPTION = "subscription"
 BUGOUT_RESOURCE_TYPE_DASHBOARD = "dashboards"
@@ -60,7 +59,7 @@ except:
     )
 
 
-MOONSTREAM_CRAWLERS_DB_STATEMENT_TIMEOUT_MILLIS = 60000
+MOONSTREAM_CRAWLERS_DB_STATEMENT_TIMEOUT_MILLIS = 100000
 MOONSTREAM_CRAWLERS_DB_STATEMENT_TIMEOUT_MILLIS_RAW = os.environ.get(
     "MOONSTREAM_CRAWLERS_DB_STATEMENT_TIMEOUT_MILLIS"
 )

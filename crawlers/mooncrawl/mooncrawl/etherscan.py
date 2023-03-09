@@ -12,10 +12,10 @@ from typing import Any, Dict, List, Optional
 
 import boto3  # type: ignore
 import requests
-from moonstreamdb.db import yield_db_session_ctx
 from moonstreamdb.models import EthereumLabel
 from sqlalchemy.orm import Session
 
+from .db import yield_db_session_ctx
 from .settings import MOONSTREAM_ETHERSCAN_TOKEN
 from .version import MOONCRAWL_VERSION
 

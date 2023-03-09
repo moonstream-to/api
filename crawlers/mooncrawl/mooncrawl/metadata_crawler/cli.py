@@ -1,29 +1,24 @@
 import argparse
-from contextlib import contextmanager
 import json
-from urllib.error import HTTPError
-import urllib.request
 import logging
 import random
-from typing import Dict, Any, List, Optional
+import urllib.request
+from contextlib import contextmanager
+from typing import Any, Dict, List, Optional
+from urllib.error import HTTPError
 
 from moonstreamdb.blockchain import AvailableBlockchainType
-from moonstreamdb.db import (
-    MOONSTREAM_DB_URI,
-    MOONSTREAM_POOL_SIZE,
-    create_moonstream_engine,
-    MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS,
-    MOONSTREAM_DB_URI_READ_ONLY,
-)
 from sqlalchemy.orm import sessionmaker
+
+from ..db import PrePing_SessionLocal, RO_pre_ping_engine
+from ..settings import MOONSTREAM_CRAWLERS_DB_STATEMENT_TIMEOUT_MILLIS
 from .db import (
-    get_uris_of_tokens,
+    clean_labels_from_db,
     get_current_metadata_for_address,
     get_tokens_id_wich_may_updated,
+    get_uris_of_tokens,
     metadata_to_label,
-    clean_labels_from_db,
 )
-from ..settings import MOONSTREAM_CRAWLERS_DB_STATEMENT_TIMEOUT_MILLIS
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -98,28 +93,10 @@ def parse_metadata(
     logger.info("Starting metadata crawler")
     logger.info(f"Connecting to blockchain {blockchain_type.value}")
 
-    engine = create_moonstream_engine(
-        MOONSTREAM_DB_URI,
-        pool_pre_ping=True,
-        pool_size=MOONSTREAM_POOL_SIZE,
-        statement_timeout=MOONSTREAM_CRAWLERS_DB_STATEMENT_TIMEOUT_MILLIS,
-    )
-    process_session = sessionmaker(bind=engine)
-    db_session = process_session()
+    db_session = PrePing_SessionLocal()
 
     # run crawling of levels
-
-    # create read only engine
-
-    # Read only
-    read_only_engine = create_moonstream_engine(
-        url=MOONSTREAM_DB_URI_READ_ONLY,
-        pool_size=MOONSTREAM_POOL_SIZE,
-        statement_timeout=MOONSTREAM_CRAWLERS_DB_STATEMENT_TIMEOUT_MILLIS,
-        pool_pre_ping=True,
-    )
-
-    with yield_session_maker(engine=read_only_engine) as db_session_read_only:
+    with yield_session_maker(engine=RO_pre_ping_engine) as db_session_read_only:
         try:
             # get all tokens with uri
             logger.info("Requesting all tokens with uri from database")

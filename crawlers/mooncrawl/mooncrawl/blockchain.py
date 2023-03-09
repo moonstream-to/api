@@ -8,11 +8,7 @@ from moonstreamdb.blockchain import (
     get_block_model,
     get_transaction_model,
 )
-from moonstreamdb.db import yield_db_session, yield_db_session_ctx
-from moonstreamdb.models import (
-    EthereumBlock,
-    EthereumTransaction,
-)
+from moonstreamdb.models import EthereumBlock, EthereumTransaction
 from psycopg2.errors import UniqueViolation  # type: ignore
 from sqlalchemy import Column, desc, func
 from sqlalchemy.exc import IntegrityError
@@ -23,13 +19,14 @@ from web3.middleware import geth_poa_middleware
 from web3.types import BlockData
 
 from .data import DateRange
+from .db import yield_db_session, yield_db_session_ctx
 from .settings import (
     MOONSTREAM_CRAWL_WORKERS,
     MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI,
-    MOONSTREAM_POLYGON_WEB3_PROVIDER_URI,
     MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI,
-    MOONSTREAM_XDAI_WEB3_PROVIDER_URI,
+    MOONSTREAM_POLYGON_WEB3_PROVIDER_URI,
     MOONSTREAM_WYRM_WEB3_PROVIDER_URI,
+    MOONSTREAM_XDAI_WEB3_PROVIDER_URI,
     NB_ACCESS_ID_HEADER,
     NB_DATA_SOURCE_HEADER,
     WEB3_CLIENT_REQUEST_TIMEOUT_SECONDS,

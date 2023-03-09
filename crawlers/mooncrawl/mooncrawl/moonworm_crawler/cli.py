@@ -4,10 +4,10 @@ from typing import Optional
 from uuid import UUID
 
 from moonstreamdb.blockchain import AvailableBlockchainType
-from moonstreamdb.db import yield_db_session_ctx
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
+from ..db import yield_db_session_ctx
 from ..settings import MOONSTREAM_MOONWORM_TASKS_JOURNAL, NB_CONTROLLER_ACCESS_ID
 from .continuous_crawler import _retry_connect_web3, continuous_crawler
 from .crawler import (
