@@ -5,7 +5,7 @@ import logging
 from typing import Any, Dict, List, Optional, Tuple, Union
 from uuid import UUID
 
-import boto3  # type: ignore
+
 from bugout.data import BugoutResources, BugoutJournalEntryContent, BugoutJournalEntry
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Body, Request
@@ -297,10 +297,11 @@ async def update_query_data_handler(
     return s3_response
 
 
-@router.get("/{query_name}", tags=["queries"])
+@router.post("/{query_name}", tags=["queries"])
 async def get_access_link_handler(
     request: Request,
     query_name: str,
+    request_update: data.UpdateDataRequest = Body(...),
 ) -> Optional[data.QueryPresignUrl]:
     """
     Request S3 presign url
@@ -318,6 +319,7 @@ async def get_access_link_handler(
             detail=f"Provided query name can't be normalize please select different.",
         )
     except Exception as e:
+        logger.error(f"Error in get query: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     try:
@@ -332,7 +334,7 @@ async def get_access_link_handler(
         s3_response = None
 
         if entries.results and entries.results[0].content:
-            passed_params = dict(request.query_params)
+            passed_params = dict(request_update.params)
 
             tags = entries.results[0].tags
 
@@ -358,6 +360,7 @@ async def get_access_link_handler(
         logger.error(f"Error in get access link: {str(e)}")
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
+        logger.error(f"Error in get access link: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     return s3_response
