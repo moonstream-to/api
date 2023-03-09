@@ -152,7 +152,7 @@ def add_block_transactions(
             input=tx.input,
             nonce=tx.nonce,
             transaction_index=tx.transactionIndex,
-            transaction_type=int(tx["type"], 0) if tx["type"] is not None else None,
+            transaction_type=int(tx["type"], 0) if tx.get("type") is not None else None,
             value=tx.value,
         )
 
