@@ -5,9 +5,10 @@ import time
 from typing import Any
 
 import requests
-from moonstreamdb.db import yield_db_session_ctx
 from moonstreamdb.models import EthereumLabel
 from sqlalchemy import text
+
+from .db import yield_db_session_ctx
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

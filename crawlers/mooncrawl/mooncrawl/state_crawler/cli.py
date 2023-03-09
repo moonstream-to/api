@@ -1,37 +1,30 @@
 import argparse
-from concurrent.futures import ThreadPoolExecutor
-from concurrent.futures._base import TimeoutError
-import json
 import hashlib
 import itertools
+import json
 import logging
-from typing import Dict, List, Any, Optional
-from uuid import UUID
 import time
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures._base import TimeoutError
 from pprint import pprint
+from typing import Any, Dict, List, Optional
+from uuid import UUID
 
 from moonstreamdb.blockchain import AvailableBlockchainType
-from mooncrawl.moonworm_crawler.crawler import _retry_connect_web3
-from moonstreamdb.db import (
-    MOONSTREAM_DB_URI,
-    MOONSTREAM_POOL_SIZE,
-    create_moonstream_engine,
-)
-import requests
-from sqlalchemy.orm import sessionmaker
 from web3._utils.request import cache_session
-from web3 import Web3, HTTPProvider
 from web3.middleware import geth_poa_middleware
 
-from .db import view_call_to_label, commit_session, clean_labels
-from .Multicall2_interface import Contract as Multicall2
+from mooncrawl.moonworm_crawler.crawler import _retry_connect_web3
+
+from ..db import PrePing_SessionLocal
 from ..settings import (
-    NB_CONTROLLER_ACCESS_ID,
-    MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS,
     INFURA_PROJECT_ID,
-    multicall_contracts,
+    NB_CONTROLLER_ACCESS_ID,
     infura_networks,
+    multicall_contracts,
 )
+from .db import clean_labels, commit_session, view_call_to_label
+from .Multicall2_interface import Contract as Multicall2
 from .web3_util import FunctionSignature, connect
 
 logging.basicConfig(level=logging.INFO)
@@ -380,14 +373,7 @@ def parse_jobs(
     # reverse call_tree
     call_tree_levels = sorted(calls.keys(), reverse=True)[:-1]
 
-    engine = create_moonstream_engine(
-        MOONSTREAM_DB_URI,
-        pool_pre_ping=True,
-        pool_size=MOONSTREAM_POOL_SIZE,
-        statement_timeout=MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS,
-    )
-    process_session = sessionmaker(bind=engine)
-    db_session = process_session()
+    db_session = PrePing_SessionLocal()
 
     # run crawling of levels
     try:
@@ -494,14 +480,7 @@ def clean_labels_handler(args: argparse.Namespace) -> None:
 
     block_number = web3_client.eth.get_block("latest").number  # type: ignore
 
-    engine = create_moonstream_engine(
-        MOONSTREAM_DB_URI,
-        pool_pre_ping=True,
-        pool_size=MOONSTREAM_POOL_SIZE,
-        statement_timeout=MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS,
-    )
-    process_session = sessionmaker(bind=engine)
-    db_session = process_session()
+    db_session = PrePing_SessionLocal()
 
     try:
         clean_labels(db_session, blockchain_type, args.blocks_cutoff, block_number)

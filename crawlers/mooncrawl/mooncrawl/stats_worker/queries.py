@@ -6,19 +6,12 @@ from io import StringIO
 from typing import Any, Dict, Optional
 
 import boto3  # type: ignore
-from moonstreamdb.db import (
-    create_moonstream_engine,
-    MOONSTREAM_DB_URI_READ_ONLY,
-    MOONSTREAM_POOL_SIZE,
-)
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
-from ..reporter import reporter
 
-from ..settings import (
-    MOONSTREAM_S3_QUERIES_BUCKET_PREFIX,
-    MOONSTREAM_QUERY_API_DB_STATEMENT_TIMEOUT_MILLIS,
-)
+from ..db import RO_pre_ping_query_engine
+from ..reporter import reporter
+from ..settings import MOONSTREAM_S3_QUERIES_BUCKET_PREFIX
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -84,14 +77,7 @@ def data_generate(
     """
     s3 = boto3.client("s3")
 
-    # Create session
-    engine = create_moonstream_engine(
-        MOONSTREAM_DB_URI_READ_ONLY,
-        pool_pre_ping=True,
-        pool_size=MOONSTREAM_POOL_SIZE,
-        statement_timeout=MOONSTREAM_QUERY_API_DB_STATEMENT_TIMEOUT_MILLIS,
-    )
-    process_session = sessionmaker(bind=engine)
+    process_session = sessionmaker(bind=RO_pre_ping_query_engine)
     db_session = process_session()
 
     try:
@@ -100,7 +86,7 @@ def data_generate(
             csv_writer = csv.writer(csv_buffer, delimiter=";")
 
             # engine.execution_options(stream_results=True)
-            result = db_session.execute(query, params).keys()
+            result = db_session.execute(query, params).keys()  # type: ignore
 
             csv_writer.writerow(result.keys())
             csv_writer.writerows(result.fetchAll())

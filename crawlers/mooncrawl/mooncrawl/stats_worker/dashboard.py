@@ -6,12 +6,11 @@ import hashlib
 import json
 import logging
 import time
+import traceback
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Union, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 from uuid import UUID
-
-import traceback
 
 import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
@@ -20,13 +19,13 @@ from moonstreamdb.blockchain import (
     get_label_model,
     get_transaction_model,
 )
-from moonstreamdb.db import yield_db_read_only_session_ctx
-from sqlalchemy import and_, distinct, func, text, extract, cast
+from sqlalchemy import and_, cast, distinct, extract, func, text
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.operators import in_op
 from web3 import Web3
 
 from ..blockchain import connect
+from ..db import yield_db_read_only_session_ctx
 from ..reporter import reporter
 from ..settings import (
     CRAWLER_LABEL,
