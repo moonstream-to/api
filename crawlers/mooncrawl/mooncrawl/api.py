@@ -4,8 +4,7 @@ The Mooncrawl HTTP API
 import logging
 import time
 from cgi import test
-from datetime import datetime, timedelta
-from os import times
+from datetime import timedelta
 from typing import Any, Dict, List
 from uuid import UUID
 
@@ -15,6 +14,7 @@ from fastapi import BackgroundTasks, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
+from .actions import generate_s3_access_links, query_parameter_hash
 from . import data
 from .middleware import MoonstreamHTTPException
 from .settings import (
@@ -25,6 +25,7 @@ from .settings import (
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
     NB_CONTROLLER_ACCESS_ID,
     ORIGINS,
+    LINKS_EXPIRATION_TIME,
 )
 from .settings import bugout_client as bc
 from .stats_worker import dashboard, queries
@@ -178,9 +179,30 @@ async def queries_data_update_handler(
     request_data: data.QueryDataUpdate,
     background_tasks: BackgroundTasks,
 ) -> Dict[str, Any]:
-    s3_client = boto3.client("s3")
+    # Check if query is valid
+    try:
+        queries.query_validation(request_data.query)
+    except queries.QueryNotValid:
+        logger.error(f"Query not pass validation check query id: {query_id}")
+        raise MoonstreamHTTPException(
+            status_code=401,
+            detail="Incorrect query is not valid with current restrictions",
+        )
+    except Exception as e:
+        logger.error(f"Unhandled query execute exception, error: {e}")
+        raise MoonstreamHTTPException(status_code=500)
 
-    expected_query_parameters = text(request_data.query)._bindparams.keys()
+    # Check if it can transform to TextClause
+    try:
+        query = text(request_data.query)
+    except Exception as e:
+        logger.error(
+            f"Can't parse query {query_id} to TextClause in drones /query_update endpoint, error: {e}"
+        )
+        raise MoonstreamHTTPException(status_code=500, detail="Can't parse query")
+
+    # Get requried keys for query
+    expected_query_parameters = query._bindparams.keys()
 
     # request.params validations
     passed_params = {
@@ -197,39 +219,33 @@ async def queries_data_update_handler(
             status_code=500, detail="Unmatched amount of applying query parameters"
         )
 
-    try:
-        valid_query = queries.query_validation(request_data.query)
-    except queries.QueryNotValid:
-        logger.error(f"Incorrect query provided with id: {query_id}")
-        raise MoonstreamHTTPException(
-            status_code=401, detail="Incorrect query provided"
-        )
-    except Exception as e:
-        logger.error(f"Unhandled query execute exception, error: {e}")
-        raise MoonstreamHTTPException(status_code=500)
+    params_hash = query_parameter_hash(passed_params)
+
+    bucket = MOONSTREAM_S3_QUERIES_BUCKET
+    key = f"{MOONSTREAM_S3_QUERIES_BUCKET_PREFIX}/queries/{query_id}/{params_hash}/data.{request_data.file_type}"
 
     try:
         background_tasks.add_task(
             queries.data_generate,
-            bucket=MOONSTREAM_S3_QUERIES_BUCKET,
             query_id=f"{query_id}",
             file_type=request_data.file_type,
-            query=valid_query,
+            bucket=bucket,
+            key=key,
+            query=query,
             params=passed_params,
+            params_hash=params_hash,
         )
 
     except Exception as e:
         logger.error(f"Unhandled query execute exception, error: {e}")
         raise MoonstreamHTTPException(status_code=500)
 
-    stats_presigned_url = s3_client.generate_presigned_url(
-        "get_object",
-        Params={
-            "Bucket": MOONSTREAM_S3_QUERIES_BUCKET,
-            "Key": f"{MOONSTREAM_S3_QUERIES_BUCKET_PREFIX}/queries/{query_id}/data.{request_data.file_type}",
-        },
-        ExpiresIn=43200,  # 12 hours
-        HttpMethod="GET",
+    stats_presigned_url = generate_s3_access_links(
+        method_name="get_object",
+        bucket=bucket,
+        key=key,
+        expiration=LINKS_EXPIRATION_TIME,
+        http_method="GET",
     )
 
     return {"url": stats_presigned_url}

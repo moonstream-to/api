@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import hashlib
 import json
 from itertools import chain
@@ -425,14 +426,14 @@ def upload_abi_to_s3(
 
     """
 
-    s3_client = boto3.client("s3")
+    s3 = boto3.client("s3")
 
     bucket = MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET
 
     result_bytes = abi.encode("utf-8")
     result_key = f"{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/{blockchain_by_subscription_id[resource.resource_data['subscription_type_id']]}/abi/{resource.resource_data['address']}/{resource.id}/abi.json"
 
-    s3_client.put_object(
+    s3.put_object(
         Body=result_bytes,
         Bucket=bucket,
         Key=result_key,
@@ -595,3 +596,36 @@ def get_query_by_name(query_name: str, token: uuid.UUID) -> str:
     query_id = available_queries[query_name]
 
     return query_id
+
+
+def generate_s3_access_links(
+    method_name: str,
+    bucket: str,
+    key: str,
+    http_method: str,
+    expiration: int = 300,
+) -> str:
+    s3 = boto3.client("s3")
+    stats_presigned_url = s3.generate_presigned_url(
+        method_name,
+        Params={
+            "Bucket": bucket,
+            "Key": key,
+        },
+        ExpiresIn=expiration,
+        HttpMethod=http_method,
+    )
+
+    return stats_presigned_url
+
+
+def query_parameter_hash(params: Dict[str, Any]) -> str:
+    """
+    Generate a hash of the query parameters
+    """
+
+    hash = hashlib.md5(
+        json.dumps(OrderedDict(params), sort_keys=True).encode("utf-8")
+    ).hexdigest()
+
+    return hash
