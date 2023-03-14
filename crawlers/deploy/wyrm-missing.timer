@@ -1,5 +1,5 @@
 [Unit]
-Description=Fill missing blocks at Polygon database
+Description=Fill missing blocks at Wyrm database
 
 [Timer]
 OnBootSec=120s

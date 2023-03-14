@@ -1,5 +1,5 @@
 [Unit]
-Description=Update XDai statistics dashboards each 6 hours
+Description=Update Wyrm statistics dashboards each 6 hours
 
 [Timer]
 OnBootSec=25s
