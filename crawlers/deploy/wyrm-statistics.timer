@@ -1,0 +1,9 @@
+[Unit]
+Description=Update XDai statistics dashboards each 6 hours
+
+[Timer]
+OnBootSec=25s
+OnUnitActiveSec=6h
+
+[Install]
+WantedBy=timers.target

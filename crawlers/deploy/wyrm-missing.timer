@@ -1,0 +1,9 @@
+[Unit]
+Description=Fill missing blocks at Polygon database
+
+[Timer]
+OnBootSec=120s
+OnUnitActiveSec=15m
+
+[Install]
+WantedBy=timers.target

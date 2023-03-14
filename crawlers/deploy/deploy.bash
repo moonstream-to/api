@@ -76,6 +76,11 @@ XDAI_STATISTICS_TIMER_FILE="xdai-statistics.timer"
 XDAI_MOONWORM_CRAWLER_SERVICE_FILE="xdai-moonworm-crawler.service"
 
 # Wyrm service files
+WYRM_SYNCHRONIZE_SERVICE="wyrm-synchronize.service"
+WYRM_MISSING_SERVICE_FILE="wyrm-missing.service"
+WYRM_MISSING_TIMER_FILE="wyrm-missing.timer"
+WYRM_STATISTICS_SERVICE_FILE="wyrm-statistics.service"
+WYRM_STATISTICS_TIMER_FILE="wyrm-statistics.timer"
 WYRM_MOONWORM_CRAWLER_SERVICE_FILE="wyrm-moonworm-crawler.service"
 
 set -eu
@@ -337,6 +342,32 @@ chmod 644 "${SCRIPT_DIR}/${XDAI_MOONWORM_CRAWLER_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${XDAI_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${XDAI_MOONWORM_CRAWLER_SERVICE_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${XDAI_MOONWORM_CRAWLER_SERVICE_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Wyrm block with transactions syncronizer service definition with ${WYRM_SYNCHRONIZE_SERVICE}"
+chmod 644 "${SCRIPT_DIR}/${WYRM_SYNCHRONIZE_SERVICE}"
+cp "${SCRIPT_DIR}/${WYRM_SYNCHRONIZE_SERVICE}" "/home/ubuntu/.config/systemd/user/${WYRM_SYNCHRONIZE_SERVICE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${WYRM_SYNCHRONIZE_SERVICE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Wyrn missing service and timer with: ${WYRM_MISSING_SERVICE_FILE}, ${WYRM_MISSING_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${WYRM_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${WYRM_MISSING_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${WYRM_MISSING_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${WYRM_MISSING_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${WYRM_MISSING_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${WYRM_MISSING_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${WYRM_MISSING_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Wyrm statistics dashbord service and timer with: ${WYRM_STATISTICS_SERVICE_FILE}, ${WYRM_STATISTICS_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${WYRM_STATISTICS_SERVICE_FILE}" "${SCRIPT_DIR}/${WYRM_STATISTICS_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${WYRM_STATISTICS_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${WYRM_STATISTICS_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${WYRM_STATISTICS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${WYRM_STATISTICS_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${WYRM_STATISTICS_TIMER_FILE}"
 
 echo
 echo
