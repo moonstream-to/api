@@ -125,6 +125,16 @@ def moonworm_tasks_add_subscription_handler(args: argparse.Namespace) -> None:
     moonworm_tasks.add_subscription(args.id)
 
 
+def subscriptions_usage_report_handler(args: argparse.Namespace) -> None:
+    subscriptions.subscription_report(args.output_file, args.user_ids)
+
+
+def subscriptions_all_usage_report_handler(
+    args: argparse.Namespace,
+) -> None:
+    subscriptions.all_subscription_report(args.output_file)
+
+
 def main() -> None:
     cli_description = f"""Moonstream Admin CLI
 
@@ -371,6 +381,50 @@ This CLI is configured to work with the following API URLs:
     )
 
     parser_moonworm_tasks_add.set_defaults(func=moonworm_tasks_add_subscription_handler)
+
+    parser_subscriptions_stats = subcommands.add_parser(
+        "subscriptions", description="Subscriptions reports."
+    )
+
+    parser_subscriptions_stats.set_defaults(
+        func=lambda _: parser_subscriptions_stats.print_help()
+    )
+
+    subcommands_subscriptions_stats = parser_subscriptions_stats.add_subparsers(
+        description="Subscriptions reports commands"
+    )
+
+    parser_subscriptions_stats_list = subcommands_subscriptions_stats.add_parser(
+        "usage-report", description="Subscriptions usage report."
+    )
+
+    parser_subscriptions_stats_list.add_argument(
+        "--output_file",
+        type=str,
+        help="Path to output file.",
+    )
+
+    parser_subscriptions_stats_list.add_argument(
+        "--user-ids", nargs="*", help="User ids for report."
+    )
+
+    parser_subscriptions_stats_list.set_defaults(
+        func=subscriptions_usage_report_handler
+    )
+
+    parser_subscriptions_stats_all = subcommands_subscriptions_stats.add_parser(
+        "all-usage-report", description="Subscriptions usage report."
+    )
+
+    parser_subscriptions_stats_all.add_argument(
+        "--output_file",
+        type=str,
+        help="Path to output file.",
+    )
+
+    parser_subscriptions_stats_all.set_defaults(
+        func=subscriptions_all_usage_report_handler
+    )
 
     args = parser.parse_args()
     args.func(args)

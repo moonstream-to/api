@@ -111,3 +111,6 @@ if MOONSTREAM_S3_QUERIES_BUCKET_PREFIX == "":
     raise ValueError(
         "MOONSTREAM_S3_QUERIES_BUCKET_PREFIX environment variable must be set"
     )
+
+
+BUGOUT_RESOURCE_TYPE_SUBSCRIPTION = "subscription"
