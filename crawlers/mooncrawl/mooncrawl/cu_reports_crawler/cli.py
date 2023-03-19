@@ -12,6 +12,7 @@ from typing import Any, Dict, Union
 
 from uuid import UUID
 
+import boto3
 from .queries import tokenomics_queries, cu_bank_queries
 
 from ..settings import (
@@ -571,6 +572,85 @@ def generate_report_nft_dashboard_handler(args: argparse.Namespace):
         logger.info(f"Report uploaded to {url}")
 
 
+def generate_ens_domains_cache_handler(args: argparse.Namespace):
+    client = Moonstream()
+
+    for query in client.list_queries(
+        token=args.moonstream_token,
+    ).queries:
+        params = {}  # type: ignore
+
+        if query.name != "ens_cache":
+            continue
+
+        logger.info(f"Generating report for {query.name}")
+        data = recive_S3_data_from_query(
+            client=client,
+            token=args.moonstream_token,
+            query_name=query.name,
+            params=params,
+        )
+
+        logger.info(f"Data recived. Uploading report for {query.name} as json")
+
+        # send as json
+        ext = "json"
+
+        url = client.upload_query_results(
+            json.dumps(data),
+            key=f"queries/{query.name}/data.{ext}",
+            bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
+        )
+
+        ext = "csv"
+        csv_buffer = StringIO()
+
+        dict_csv_writer = csv.DictWriter(
+            csv_buffer, fieldnames=data["data"][0].keys(), delimiter=","
+        )
+
+        # upload to s3 bucket as csv
+        dict_csv_writer.writeheader()
+        dict_csv_writer.writerows(data["data"])
+
+        url = client.upload_query_results(
+            data=csv_buffer.getvalue().encode("utf-8"),
+            key=f"queries/{query.name}/data.{ext}",
+            bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
+        )
+
+        logger.info(f"Report uploaded to {url}")
+
+
+def get_select_ens_handler(args: argparse.Namespace):
+    """
+    Get ens domains from s3 via S3 select
+    """
+
+    s3 = boto3.client("s3")
+
+    response = s3.select_object_content(
+        Bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
+        Key="queries/ens_cache/data.csv",
+        ExpressionType="SQL",
+        Expression=f"select * from s3object s where s.node='{args.node}'",  # type: ignore
+        InputSerialization={"CSV": {"FileHeaderInfo": "Use"}},
+        OutputSerialization={"CSV": {}},
+    )
+
+    #  upack query response
+    records = []
+    for event in response["Payload"]:
+        if "Records" in event:
+            records.append(event["Records"]["Payload"])
+
+    print(records)
+    #  store unpacked data as a CSV format
+    file_str = "".join(req.decode("utf-8") for req in records)
+
+    print(file_str)
+
+
 def main():
     parser = argparse.ArgumentParser()
 
@@ -670,6 +750,31 @@ def main():
         help="Generate cu-nft-dashboard",
     )
     cu_nft_dashboard_parser.set_defaults(func=generate_report_nft_dashboard_handler)
+
+    ens_parser = cu_reports_subparsers.add_parser("ens", help="ENS commands")
+
+    ens_parser.set_defaults(func=lambda _: ens_parser.print_help())
+
+    ens_subparsers = ens_parser.add_subparsers()
+
+    ens_subparsers.add_parser(
+        "generate",
+        help="Generate ENS domains",
+        description="Generate ENS domains",
+    ).set_defaults(func=generate_ens_domains_cache_handler)
+
+    get_select_ens_parser = ens_subparsers.add_parser(
+        "get-select",
+        help="Get select",
+        description="Get select",
+    )
+
+    get_select_ens_parser.add_argument(
+        "--node",
+        type=str,
+    )
+
+    get_select_ens_parser.set_defaults(func=get_select_ens_handler)
 
     args = parser.parse_args()
     args.func(args)
