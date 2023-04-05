@@ -35,6 +35,8 @@ ETHEREUM_TXPOOL_SERVICE_FILE="ethereum-txpool.service"
 ETHEREUM_MISSING_SERVICE_FILE="ethereum-missing.service"
 ETHEREUM_MISSING_TIMER_FILE="ethereum-missing.timer"
 ETHEREUM_MOONWORM_CRAWLER_SERVICE_FILE="ethereum-moonworm-crawler.service"
+ETHEREUM_ORANGE_DAO_REPORTS_TOKENONOMICS_SERVICE_FILE="ethereum-orange-dao-reports-tokenonomics.service"
+ETHEREUM_ORANGE_DAO_TOKENONOMICS_TIMER_FILE="ethereum-orange-dao-reports-tokenonomics.timer"
 
 # Polygon service files
 POLYGON_SYNCHRONIZE_SERVICE="polygon-synchronize.service"
@@ -169,6 +171,16 @@ chmod 644 "${SCRIPT_DIR}/${ETHEREUM_MOONWORM_CRAWLER_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${ETHEREUM_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ETHEREUM_MOONWORM_CRAWLER_SERVICE_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ETHEREUM_MOONWORM_CRAWLER_SERVICE_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Ethereum Orange DAO reports tokenonomics service and timer with: ${ETHEREUM_ORANGE_DAO_REPORTS_TOKENONOMICS_SERVICE_FILE}, ${ETHEREUM_ORANGE_DAO_TOKENONOMICS_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ETHEREUM_ORANGE_DAO_REPORTS_TOKENONOMICS_SERVICE_FILE}" "${SCRIPT_DIR}/${ETHEREUM_ORANGE_DAO_TOKENONOMICS_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_ORANGE_DAO_REPORTS_TOKENONOMICS_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ETHEREUM_ORANGE_DAO_REPORTS_TOKENONOMICS_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_ORANGE_DAO_TOKENONOMICS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ETHEREUM_ORANGE_DAO_TOKENONOMICS_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ETHEREUM_ORANGE_DAO_TOKENONOMICS_TIMER_FILE}"
+
 
 echo
 echo

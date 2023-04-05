@@ -6,6 +6,6 @@ After=network.target
 Type=oneshot
 WorkingDirectory=/home/ubuntu/moonstream/crawlers/mooncrawl
 EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
-ExecStart=/home/ubuntu/moonstream-env/bin/python -m mooncrawl.cu_reports_crawler.cli cu-reports --moonstream-token "${MOONSTREAM_PUBLIC_QUERIES_DATA_ACCESS_TOKEN}" queries run-tokenonomics
+ExecStart=/home/ubuntu/moonstream-env/bin/python -m mooncrawl.reports_crawler.cli cu-reports --moonstream-token "${MOONSTREAM_PUBLIC_QUERIES_DATA_ACCESS_TOKEN}" queries run-tokenonomics
 CPUWeight=60
 SyslogIdentifier=polygon-cu-reports-tokenonomics
