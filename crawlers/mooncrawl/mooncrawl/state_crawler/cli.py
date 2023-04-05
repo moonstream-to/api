@@ -11,7 +11,6 @@ from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from moonstreamdb.blockchain import AvailableBlockchainType
-from web3._utils.request import cache_session
 from web3.middleware import geth_poa_middleware
 
 from mooncrawl.moonworm_crawler.crawler import _retry_connect_web3
@@ -286,7 +285,8 @@ def parse_jobs(
     block_timestamp = web3_client.eth.get_block(block_number).timestamp  # type: ignore
 
     multicaller = Multicall2(
-        web3_client, web3_client.toChecksumAddress(multicall_contracts[blockchain_type])
+        web3_client,
+        web3_client.to_checksum_address(multicall_contracts[blockchain_type]),
     )
 
     multicall_method = multicaller.tryAggregate
@@ -365,7 +365,7 @@ def parse_jobs(
 
         # generate interface
         interfaces[contract_address] = web3_client.eth.contract(
-            address=web3_client.toChecksumAddress(contract_address), abi=abis
+            address=web3_client.to_checksum_address(contract_address), abi=abis
         )
 
     responces: Dict[str, Any] = {}

@@ -162,7 +162,7 @@ def process_transaction(
         function_name = selector
         function_args = "unknown"
 
-    transaction_reciept = web3.eth.getTransactionReceipt(transaction["hash"])
+    transaction_reciept = web3.eth.get_transaction_receipt(transaction["hash"])
     block_timestamp = get_block_timestamp(
         db_session,
         web3,
@@ -197,7 +197,9 @@ def process_transaction(
                 raw_event = get_event_data(web3.codec, abi, log)
                 event = {
                     "event": raw_event["event"],
-                    "args": json.loads(Web3.toJSON(utfy_dict(dict(raw_event["args"])))),
+                    "args": json.loads(
+                        Web3.to_json(utfy_dict(dict(raw_event["args"])))
+                    ),
                     "address": raw_event["address"],
                     "blockNumber": raw_event["blockNumber"],
                     "transactionHash": raw_event["transactionHash"].hex(),
@@ -238,9 +240,9 @@ def _get_transactions(
     ]
 
     for nf_transaction in not_found_transaction_hashes:
-        tx = web3.eth.getTransaction(nf_transaction)
+        tx = web3.eth.get_transaction(nf_transaction)  # type: ignore
 
-        web3_transactions.append(tx)
+        web3_transactions.append(dict(tx))
 
     return web3_transactions
 

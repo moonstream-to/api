@@ -3,21 +3,16 @@ import os
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from eth_account.account import Account  # type: ignore
-from eth_abi import encode_single, decode_single
+from eth_abi import encode, decode
 from eth_typing.evm import ChecksumAddress
 from eth_utils import function_signature_to_4byte_selector
 from hexbytes.main import HexBytes
 from web3 import Web3
-from web3.contract import ContractFunction
+from web3.contract.contract import ContractFunction
 from web3.providers.ipc import IPCProvider
 from web3.providers.rpc import HTTPProvider
 from web3.types import ABI, Nonce, TxParams, TxReceipt, Wei
 from web3._utils.abi import normalize_event_input_types
-
-
-class ContractConstructor:
-    def __init__(self, *args: Any):
-        self.args = args
 
 
 def build_transaction(
@@ -29,13 +24,13 @@ def build_transaction(
     Builds transaction json with the given arguments. It is not submitting transaction
     Arguments:
     - web3: Web3 client
-    - builder: ContractFunction or other class that has method buildTransaction(TxParams)
+    - builder: ContractConstructor or other class that has method buildTransaction(TxParams)
     - sender: `from` value of transaction, address which is sending this transaction
     - maxFeePerGas: Optional, max priority fee for dynamic fee transactions in Wei
     - maxPriorityFeePerGas: Optional the part of the fee that goes to the miner
     """
 
-    transaction = builder.buildTransaction(
+    transaction = builder.build_transaction(
         {
             "from": sender,
             "nonce": get_nonce(web3, sender),
@@ -107,7 +102,7 @@ def deploy_contract(
     transaction_hash = submit_transaction(web3, transaction, deployer_private_key)
     transaction_receipt = wait_for_transaction_receipt(web3, transaction_hash)
     contract_address = transaction_receipt.contractAddress
-    return transaction_hash, web3.toChecksumAddress(contract_address)
+    return transaction_hash, web3.to_checksum_address(contract_address)
 
 
 def deploy_contract_from_constructor_function(
@@ -136,7 +131,7 @@ def deploy_contract_from_constructor_function(
     transaction_hash = submit_transaction(web3, transaction, deployer_private_key)
     transaction_receipt = wait_for_transaction_receipt(web3, transaction_hash)
     contract_address = transaction_receipt.contractAddress
-    return transaction_hash, web3.toChecksumAddress(contract_address)
+    return transaction_hash, web3.to_checksum_address(contract_address)
 
 
 def decode_transaction_input(web3: Web3, transaction_input: str, abi: Dict[str, Any]):
@@ -147,7 +142,7 @@ def decode_transaction_input(web3: Web3, transaction_input: str, abi: Dict[str, 
 def read_keys_from_cli() -> Tuple[ChecksumAddress, str]:
     private_key = getpass.getpass(prompt="Enter private key of your address:")
     account = Account.from_key(private_key)
-    return (Web3.toChecksumAddress(account.address), private_key)
+    return (Web3.to_checksum_address(account.address), private_key)
 
 
 def read_keys_from_env() -> Tuple[ChecksumAddress, str]:
@@ -158,7 +153,7 @@ def read_keys_from_env() -> Tuple[ChecksumAddress, str]:
         )
     try:
         account = Account.from_key(private_key)
-        return (Web3.toChecksumAddress(account.address), private_key)
+        return (Web3.to_checksum_address(account.address), private_key)
     except:
         raise ValueError(
             "Failed to initiate account from MOONWORM_ETHEREUM_ADDRESS_PRIVATE_KEY"
@@ -195,7 +190,7 @@ def cast_to_python_type(evm_type: str) -> Callable:
     elif evm_type == "string":
         return str
     elif evm_type == "address":
-        return Web3.toChecksumAddress
+        return Web3.to_checksum_address
     elif evm_type == "bool":
         return bool
     else:
@@ -236,10 +231,10 @@ class FunctionSignature:
 
     def encode_data(self, args=None) -> bytes:
         return (
-            self.fourbyte + encode_single(self.input_types_signature, args)
+            self.fourbyte + encode(self.input_types_signature, args)
             if args
             else self.fourbyte
         )
 
     def decode_data(self, output):
-        return decode_single(self.output_types_signature, output)
+        return decode(self.output_types_signature, output)

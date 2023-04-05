@@ -217,7 +217,7 @@ def make_event_crawl_jobs(entries: List[BugoutSearchResult]) -> List[EventCrawlJ
 
     for entry in entries:
         abi_hash = _get_tag(entry, "abi_method_hash")
-        contract_address = Web3().toChecksumAddress(_get_tag(entry, "address"))
+        contract_address = Web3().to_checksum_address(_get_tag(entry, "address"))
 
         existing_crawl_job = crawl_job_by_hash.get(abi_hash)
         if existing_crawl_job is not None:
@@ -247,7 +247,7 @@ def make_function_call_crawl_jobs(
     method_signature_by_address: Dict[str, List[str]] = {}
 
     for entry in entries:
-        contract_address = Web3().toChecksumAddress(_get_tag(entry, "address"))
+        contract_address = Web3().to_checksum_address(_get_tag(entry, "address"))
         abi = json.loads(cast(str, entry.content))
         method_signature = encode_function_signature(abi)
         if method_signature is None:

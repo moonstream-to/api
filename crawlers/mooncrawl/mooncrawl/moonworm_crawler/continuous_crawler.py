@@ -162,7 +162,7 @@ def continuous_crawler(
                 time.sleep(current_sleep_time)
 
                 end_block = min(
-                    web3.eth.blockNumber - confirmations,
+                    web3.eth.block_number - confirmations,
                     start_block + max_blocks_batch,
                 )
 

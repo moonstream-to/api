@@ -6,7 +6,7 @@ from typing import Any, Dict, Union
 
 from eth_typing.evm import Address, ChecksumAddress
 from web3 import Web3
-from web3.contract import ContractFunction
+from web3.contract.contract import ContractFunction
 
 from .web3_util import *
 
@@ -22,8 +22,8 @@ class Contract:
         self.contract = web3.eth.contract(address=self.address, abi=CONTRACT_ABI)
 
     @staticmethod
-    def constructor() -> ContractConstructor:
-        return ContractConstructor()
+    def constructor() -> ContractConstructor:  # type: ignore
+        return ContractConstructor()  # type: ignore
 
     def aggregate(self, calls: List) -> ContractFunction:
         return self.contract.functions.aggregate(calls)

@@ -239,7 +239,7 @@ def cast_to_python_type(evm_type: str) -> Callable:
     elif evm_type == "string":
         return str
     elif evm_type == "address":
-        return Web3.toChecksumAddress
+        return Web3.to_checksum_address
     elif evm_type == "bool":
         return bool
     else:
@@ -376,7 +376,7 @@ def process_external_merged(
             external_calls_normalized.append(
                 {
                     "external_call_hash": external_call_hash,
-                    "address": Web3.toChecksumAddress(external_call["address"]),
+                    "address": Web3.to_checksum_address(external_call["address"]),
                     "name": external_call["name"],
                     "abi": func_abi,
                     "input_args": input_args,
@@ -443,7 +443,7 @@ def process_external(
             external_calls.append(
                 {
                     "display_name": external_call["display_name"],
-                    "address": Web3.toChecksumAddress(external_call["address"]),
+                    "address": Web3.to_checksum_address(external_call["address"]),
                     "name": external_call["name"],
                     "abi": func_abi,
                     "input_args": input_args,

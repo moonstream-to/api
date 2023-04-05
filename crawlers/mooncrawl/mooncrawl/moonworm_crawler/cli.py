@@ -80,7 +80,7 @@ def handle_crawl(args: argparse.Namespace) -> None:
                 logger.info(
                     "No last labeled block found, using  start block (web3.eth.blockNumber - 300)"
                 )
-                start_block = web3.eth.blockNumber - 10000
+                start_block = web3.eth.block_number - 10000
                 logger.info(f"Starting from block: {start_block}")
         elif last_labeled_block is not None:
             if start_block < last_labeled_block and not args.force:
@@ -127,7 +127,7 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
 
     addresses_filter = []
     if args.address is not None:
-        addresses_filter = [Web3.toChecksumAddress(args.address)]
+        addresses_filter = [Web3.to_checksum_address(args.address)]
 
     all_event_jobs = make_event_crawl_jobs(
         get_crawl_job_entries(
