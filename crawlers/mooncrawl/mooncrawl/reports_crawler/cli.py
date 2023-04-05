@@ -61,8 +61,6 @@ def recive_S3_data_from_query(
         params=params,
     )  # S3 presign_url
 
-    print(data_url.url)
-
     while keep_going:
         time.sleep(time_await)
         try:

@@ -756,7 +756,7 @@ tokenomics_orange_dao_queries = [
         "query": """
         select
             address,
-            transfers_out as transfers_out,
+            transfers_out as transfers_out
             from (
                 SELECT transfer_in_out_erc20.address as address,
                     sum(transfer_in_out_erc20.transfer_out) as transfers_out,
@@ -789,7 +789,7 @@ tokenomics_orange_dao_queries = [
         "query": """
         select
             address,
-            transfers_in as transfers_in,
+            transfers_in as transfers_in
             from (
                 SELECT transfer_in_out_erc20.address as address,
                     sum(transfer_in_out_erc20.transfer_out) as transfers_out,
