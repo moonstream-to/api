@@ -738,7 +738,7 @@ tokenomics_orange_dao_queries = [
         "query": """
             select
                 transaction_hash,
-                label_data -> 'args' ->> 'value',
+                label_data -> 'args' ->> 'value' as value,
                 label_data -> 'args' ->> 'from' as from_address,
                 label_data -> 'args' ->> 'to' as to_address,
                 block_timestamp as block_timestamp
