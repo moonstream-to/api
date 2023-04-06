@@ -699,3 +699,122 @@ tokenomics_queries = [
         """,
     },
 ]
+
+
+tokenomics_orange_dao_queries = [
+    {
+        "name": "balances_by_address",
+        "query": """
+        select
+            address,
+            transfers_in - transfers_out as balance
+            from (
+                SELECT transfer_in_out_erc20.address as address,
+                    sum(transfer_in_out_erc20.transfer_out) as transfers_out,
+                    sum(transfer_in_out_erc20.transfer_in) as transfers_in
+                from (
+                        SELECT label_data->'args'->>'from' as address,
+                            (label_data->'args'->>'value')::decimal as transfer_out,
+                            0 as transfer_in
+                        from ethereum_labels
+                        where label_data->>'name' = 'Transfer'
+                            and label = 'moonworm-alpha'
+                            and address =  '0x1bBD79f1Ecb3f2cCC586A5E3A26eE1d1D2E1991f'
+                        UNION ALL
+                        select label_data->'args'->>'to' as address,
+                            0 as transfer_out,
+                            (label_data->'args'->>'value')::decimal as transfer_in
+                        from ethereum_labels
+                        where label_data->>'name' = 'Transfer'
+                            and label = 'moonworm-alpha'
+                            and address = '0x1bBD79f1Ecb3f2cCC586A5E3A26eE1d1D2E1991f'
+                    ) as transfer_in_out_erc20
+                group by address
+            ) as full_erc20
+        """,
+    },
+    {
+        "name": "transfers_feed",
+        "query": """
+            select
+                transaction_hash,
+                label_data -> 'args' ->> 'value' as value,
+                label_data -> 'args' ->> 'from' as from_address,
+                label_data -> 'args' ->> 'to' as to_address,
+                block_timestamp as block_timestamp
+            from
+                ethereum_labels
+            where
+                label = 'moonworm-alpha'
+                and address = '0x1bBD79f1Ecb3f2cCC586A5E3A26eE1d1D2E1991f'
+                and label_data ->> 'name' = 'Transfer'
+                and block_timestamp >= extract(epoch from now() - interval :time_range)::int;
+        """,
+    },
+    {
+        "name": "largest_distributors",
+        "query": """
+        select
+            address,
+            transfers_out as transfers_out
+            from (
+                SELECT transfer_in_out_erc20.address as address,
+                    sum(transfer_in_out_erc20.transfer_out) as transfers_out,
+                    sum(transfer_in_out_erc20.transfer_in) as transfers_in
+                from (
+                        SELECT label_data->'args'->>'from' as address,
+                            (label_data->'args'->>'value')::decimal as transfer_out,
+                            0 as transfer_in
+                        from ethereum_labels
+                        where label_data->>'name' = 'Transfer'
+                            and label = 'moonworm-alpha'
+                            and address =  '0x1bBD79f1Ecb3f2cCC586A5E3A26eE1d1D2E1991f'
+                        UNION ALL
+                        select label_data->'args'->>'to' as address,
+                            0 as transfer_out,
+                            (label_data->'args'->>'value')::decimal as transfer_in
+                        from ethereum_labels
+                        where label_data->>'name' = 'Transfer'
+                            and label = 'moonworm-alpha'
+                            and address = '0x1bBD79f1Ecb3f2cCC586A5E3A26eE1d1D2E1991f'
+                    ) as transfer_in_out_erc20
+                group by address
+            ) as full_erc20
+        order by transfers_out desc
+        limit :limit;
+        """,
+    },
+    {
+        "name": "largest_recipients",
+        "query": """
+        select
+            address,
+            transfers_in as transfers_in
+            from (
+                SELECT transfer_in_out_erc20.address as address,
+                    sum(transfer_in_out_erc20.transfer_out) as transfers_out,
+                    sum(transfer_in_out_erc20.transfer_in) as transfers_in
+                from (
+                        SELECT label_data->'args'->>'from' as address,
+                            (label_data->'args'->>'value')::decimal as transfer_out,
+                            0 as transfer_in
+                        from ethereum_labels
+                        where label_data->>'name' = 'Transfer'
+                            and label = 'moonworm-alpha'
+                            and address =  '0x1bBD79f1Ecb3f2cCC586A5E3A26eE1d1D2E1991f'
+                        UNION ALL
+                        select label_data->'args'->>'to' as address,
+                            0 as transfer_out,
+                            (label_data->'args'->>'value')::decimal as transfer_in
+                        from ethereum_labels
+                        where label_data->>'name' = 'Transfer'
+                            and label = 'moonworm-alpha'
+                            and address = '0x1bBD79f1Ecb3f2cCC586A5E3A26eE1d1D2E1991f'
+                    ) as transfer_in_out_erc20
+                group by address
+            ) as full_erc20
+        order by transfers_in desc
+        limit :limit;
+        """,
+    },
+]

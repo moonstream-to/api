@@ -12,7 +12,7 @@ from typing import Any, Dict, Union
 
 from uuid import UUID
 
-from .queries import tokenomics_queries, cu_bank_queries
+from .queries import tokenomics_queries, cu_bank_queries, tokenomics_orange_dao_queries
 
 from ..settings import (
     MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
@@ -188,7 +188,15 @@ def init_tokenomics_queries_handler(args: argparse.Namespace):
 
     client = Moonstream()
 
-    for query in tokenomics_queries:
+    if args.project == "cu":
+        queries = tokenomics_queries
+    elif args.project == "orangedao":
+        queries = tokenomics_orange_dao_queries
+    else:
+        logger.error("Project not found")
+        raise Exception("Project not found")
+
+    for query in queries:
         try:
             if args.overwrite:
                 try:
@@ -571,12 +579,142 @@ def generate_report_nft_dashboard_handler(args: argparse.Namespace):
         logger.info(f"Report uploaded to {url}")
 
 
+def run_tokenomics_orange_dao_handler(args: argparse.Namespace):
+    client = Moonstream()
+
+    params: Dict[str, Any] = {}
+
+    ranges = [
+        {"time_format": "YYYY-MM-DD HH24", "time_range": "24 hours"},
+        {"time_format": "YYYY-MM-DD HH24", "time_range": "7 days"},
+        {"time_format": "YYYY-MM-DD", "time_range": "30 days"},
+    ]
+
+    # volume of erc20 and erc721
+
+    query_name = "balances_by_address"
+
+    generate_report(
+        client=client,
+        token=args.moonstream_token,
+        query_name=query_name,
+        params=params,
+        bucket_prefix=MOONSTREAM_S3_PUBLIC_DATA_BUCKET_PREFIX,
+        bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
+        key=f"orangedao/{query_name}/data.json",
+    )
+
+    query_name = "transfers_feed"
+
+    for range in ranges:
+        params = {
+            "time_range": range["time_range"],
+        }
+
+        generate_report(
+            client=client,
+            token=args.moonstream_token,
+            query_name=query_name,
+            params=params,
+            bucket_prefix=MOONSTREAM_S3_PUBLIC_DATA_BUCKET_PREFIX,
+            bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
+            key=f"orangedao/{query_name}/{range['time_range'].replace(' ','_')}_data.json",
+        )
+
+    # all time feed
+
+    params = {
+        "time_range": f"{int(time.time())} seconds",
+    }
+
+    generate_report(
+        client=client,
+        token=args.moonstream_token,
+        query_name=query_name,
+        params=params,
+        bucket_prefix=MOONSTREAM_S3_PUBLIC_DATA_BUCKET_PREFIX,
+        bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
+        key=f"orangedao/{query_name}/all_time_data.json",
+    )
+
+    limits = [10, 100]
+
+    query_name = "largest_distributors"
+
+    for limit in limits:
+        params = {
+            "limit": limit,
+        }
+
+        generate_report(
+            client=client,
+            token=args.moonstream_token,
+            query_name=query_name,
+            params=params,
+            bucket_prefix=MOONSTREAM_S3_PUBLIC_DATA_BUCKET_PREFIX,
+            bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
+            key=f"orangedao/{query_name}/{limit}_data.json",
+        )
+
+    query_name = "largest_recipients"
+
+    for limit in limits:
+        params = {
+            "limit": limit,
+        }
+
+        generate_report(
+            client=client,
+            token=args.moonstream_token,
+            query_name=query_name,
+            params=params,
+            bucket_prefix=MOONSTREAM_S3_PUBLIC_DATA_BUCKET_PREFIX,
+            bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
+            key=f"orangedao/{query_name}/{limit}_data.json",
+        )
+
+    logger.info("Done")
+
+
 def main():
     parser = argparse.ArgumentParser()
 
     parser.set_defaults(func=lambda _: parser.print_help())
 
     subparsers = parser.add_subparsers()
+
+    general_queries_parser = subparsers.add_parser("queries", help="Queries commands")
+
+    general_queries_subparsers = general_queries_parser.add_subparsers()
+
+    general_queries_parser.add_argument(
+        "--moonstream-token",
+        required=True,
+        type=str,
+    )
+
+    general_queries_subparsers.add_parser(
+        "list",
+        help="List all queries",
+        description="List all queries",
+    ).set_defaults(func=list_user_queries_handler)
+
+    init_tokenonomics_parser = general_queries_subparsers.add_parser(
+        "init-tokenonomics",
+        help="Create all predifind query",
+        description="Create all predifind query",
+    )
+
+    init_tokenonomics_parser.add_argument(
+        "--project",
+        choices=["cu", "orangedao"],
+        required=True,
+        type=str,
+    )
+
+    init_tokenonomics_parser.add_argument("--overwrite", type=bool, default=False)
+
+    init_tokenonomics_parser.set_defaults(func=init_tokenomics_queries_handler)
 
     cu_reports_parser = subparsers.add_parser("cu-reports", help="CU Reports")
 
@@ -611,16 +749,6 @@ def main():
     init_game_bank_parser.add_argument("--overwrite", type=bool, default=False)
 
     init_game_bank_parser.set_defaults(func=init_game_bank_queries_handler)
-
-    init_tokenonomics_parser = queries_subparsers.add_parser(
-        "init-tokenonomics",
-        help="Create all predifind query",
-        description="Create all predifind query",
-    )
-
-    init_tokenonomics_parser.add_argument("--overwrite", type=bool, default=False)
-
-    init_tokenonomics_parser.set_defaults(func=init_tokenomics_queries_handler)
 
     generate_report = queries_subparsers.add_parser(
         "run-tokenonomics",
@@ -670,6 +798,26 @@ def main():
         help="Generate cu-nft-dashboard",
     )
     cu_nft_dashboard_parser.set_defaults(func=generate_report_nft_dashboard_handler)
+
+    orangedao_parser = subparsers.add_parser(
+        "orangedao",
+        help="Orange DAO commands",
+    )
+
+    orangedao_parser.add_argument(
+        "--moonstream-token",
+        required=True,
+        type=str,
+    )
+
+    orangedao_parser.set_defaults(func=lambda _: orangedao_parser.print_help())
+
+    orangedao_subparsers = orangedao_parser.add_subparsers()
+
+    orangedao_subparsers.add_parser(
+        "run_tokenomics_orange_dao",
+        help="Generate Orange DAO reports",
+    ).set_defaults(func=run_tokenomics_orange_dao_handler)
 
     args = parser.parse_args()
     args.func(args)
