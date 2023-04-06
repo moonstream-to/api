@@ -114,8 +114,6 @@ def data_generate(
                 ),
             ).one()
 
-            print(f"query: {query}")
-
             data = json.dumps(
                 {
                     "block_number": block_number,
