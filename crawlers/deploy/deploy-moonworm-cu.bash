@@ -23,7 +23,7 @@ set -eu
 
 if [ ! -d "$PYTHON_ENV_DIR" ]; then
   echo -e "${PREFIX_WARN} Dierectory with Python environment doesn't exist, generating..."
-  sudo -u ubuntu python3.8 -m venv "${PYTHON_ENV_DIR}"
+  python3.9 -m venv "${PYTHON_ENV_DIR}"
 fi
 
 echo
@@ -34,12 +34,12 @@ echo -e "${PREFIX_INFO} Upgrading Python pip and setuptools"
 echo
 echo
 echo -e "${PREFIX_INFO} Installing Python dependencies"
-"${PIP}" install moonworm
+"${PIP}" install moonworm==0.2.4
 
 echo
 echo
 echo -e "${PREFIX_INFO} Replacing existing Moonworm watch Unicorns service definition with ${MOONWORM_WATCH_UNICORNS_MAINNET_SERVICE_FILE}"
 chmod 644 "${SCRIPT_DIR}/${MOONWORM_WATCH_UNICORNS_MAINNET_SERVICE_FILE}"
-cp "${SCRIPT_DIR}/${MOONWORM_WATCH_UNICORNS_MAINNET_SERVICE_FILE}" "/etc/systemd/system/${MOONWORM_WATCH_UNICORNS_MAINNET_SERVICE_FILE}"
-systemctl daemon-reload
-systemctl restart "${MOONWORM_WATCH_UNICORNS_MAINNET_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${MOONWORM_WATCH_UNICORNS_MAINNET_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${MOONWORM_WATCH_UNICORNS_MAINNET_SERVICE_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MOONWORM_WATCH_UNICORNS_MAINNET_SERVICE_FILE}"

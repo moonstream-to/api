@@ -167,7 +167,7 @@ const Homepage = () => {
                       align="center"
                       justify="center"
                       boxSize="full"
-                      pt={["130px", "152px"]}
+                      pt={["129px", "129px", "152px"]}
                       pb={10}
                       flexDir="column"
                     >
@@ -180,15 +180,15 @@ const Homepage = () => {
                               "landing"
                             );
                           }}
-                          mb="60px"
+                          mb={["40px", "40px", "60px"]}
                           isExternal
                           href="https://www.crypto-reporter.com/press-releases/moonstream-to-wins-techcrunch-pitch-off-earning-a-spot-at-disrupt-2023-39287/
                       "
                         >
                           <ChakraImage
                             src={assets.tech_crunch_winner}
-                            w="272px"
-                            h="59px"
+                            w={["213px", "213px", "272px"]}
+                            h={["49px", "49px", "59px"]}
                             cursor="pointer"
                             bg="#46C370"
                             borderRadius="10px"

@@ -31,6 +31,7 @@ class SubscriptionTypes(Enum):
     ETHEREUM_BLOCKCHAIN = "ethereum_smartcontract"
     MUMBAI_BLOCKCHAIN = "mumbai_smartcontract"
     XDAI_BLOCKCHAIN = "xdai_smartcontract"
+    WYRM_BLOCKCHAIN = "wyrm_smartcontract"
 
 
 def abi_input_signature(input_abi: Dict[str, Any]) -> str:
@@ -133,6 +134,8 @@ def blockchain_type_to_subscription_type(
         return SubscriptionTypes.MUMBAI_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.XDAI:
         return SubscriptionTypes.XDAI_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.WYRM:
+        return SubscriptionTypes.WYRM_BLOCKCHAIN
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 
@@ -258,7 +261,6 @@ def make_function_call_crawl_jobs(
             method_signature_by_address[contract_address] = [method_signature]
 
         else:
-
             if method_signature not in method_signature_by_address[contract_address]:
                 crawl_job_by_address[contract_address].contract_abi.append(abi)
                 method_signature_by_address[contract_address].append(method_signature)

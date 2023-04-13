@@ -75,7 +75,6 @@ async def add_dashboard_handler(
 
     for dashboard_subscription in subscription_settings:
         if dashboard_subscription.subscription_id in available_subscriptions_ids.keys():
-
             if (
                 available_subscriptions_ids[dashboard_subscription.subscription_id][
                     "secondary_fields"
@@ -245,9 +244,7 @@ async def update_dashboard_handler(
     }
 
     for dashboard_subscription in subscription_settings:
-
         if dashboard_subscription.subscription_id in available_subscriptions_ids:
-
             if (
                 available_subscriptions_ids[dashboard_subscription.subscription_id][
                     "secondary_fields"
@@ -279,7 +276,6 @@ async def update_dashboard_handler(
     dashboard_resource: Dict[str, Any] = {}
 
     if subscription_settings:
-
         dashboard_resource["subscription_settings"] = json.loads(dashboard.json())[
             "subscription_settings"
         ]
@@ -371,7 +367,6 @@ async def get_dashboard_data_links_handler(
     stats: Dict[Union[str, UUID], Dict[str, Any]] = {}
 
     for id, subscription in dashboard_subscriptions.items():
-
         available_timescales = [timescale.value for timescale in data.TimeScale]
         stats[id] = {}
 

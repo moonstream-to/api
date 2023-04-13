@@ -152,13 +152,11 @@ def _autoscale_crawl_events(
     batch_size: int = 1000,
     db_block_query_batch=10,
 ) -> Tuple[List[Event], int]:
-
     """
     Crawl events with auto regulated batch_size.
     """
     all_events = []
     for job in jobs:
-
         raw_events, batch_size = moonworm_autoscale_crawl_events(
             web3,
             job.event_abi,

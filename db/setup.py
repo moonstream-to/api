@@ -32,7 +32,7 @@ setup(
     packages=find_packages(),
     package_data={"moonstreamdb": ["py.typed"]},
     zip_safe=False,
-    install_requires=["alembic", "psycopg2-binary", "sqlalchemy"],
+    install_requires=["alembic", "psycopg2-binary", "sqlalchemy>=2.0.4"],
     extras_require={
         "dev": ["black", "isort", "mypy"],
         "distribute": ["setuptools", "twine", "wheel"],

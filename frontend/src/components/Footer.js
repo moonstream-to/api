@@ -17,6 +17,7 @@ import {
   PRIMARY_MOON_LOGO_URL,
   SITEMAP,
   BACKGROUND_COLOR,
+  PAGETYPE,
 } from "../core/constants";
 import moment from "moment";
 import { AWS_ASSETS_PATH } from "../core/constants";
@@ -88,8 +89,8 @@ const Footer = () => {
             {!ui.isMobileView && (
               <>
                 <Flex justifyContent="start">
-                  <Link href="//privacy-policy">Privacy policy</Link>
-                  <Link href="//tos" ml="20px">
+                  <Link href="/privacy-policy">Privacy policy</Link>
+                  <Link href="/tos" ml="20px">
                     Terms of Service
                   </Link>
                 </Flex>
@@ -166,7 +167,16 @@ const Footer = () => {
                           href={linkItem.path}
                           key={`footer-list-link-item-${linkItemIndex}-col-${colIndex}`}
                         >
-                          <Link {...LINKS_SIZES}>{linkItem.title}</Link>
+                          <Link
+                            {...LINKS_SIZES}
+                            target={
+                              linkItem.type === PAGETYPE.EXTERNAL
+                                ? "_blank"
+                                : "_self"
+                            }
+                          >
+                            {linkItem.title}
+                          </Link>
                         </RouterLink>
                       );
                     })}

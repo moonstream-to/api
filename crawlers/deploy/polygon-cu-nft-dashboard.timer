@@ -1,0 +1,9 @@
+[Unit]
+Description=Generate data for nft dashboard for cu community
+
+[Timer]
+OnBootSec=60s
+OnUnitActiveSec=10m
+
+[Install]
+WantedBy=timers.target

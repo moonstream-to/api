@@ -96,7 +96,6 @@ async def add_subscription_handler(
     content: Dict[str, Any] = {}
 
     if abi:
-
         try:
             json_abi = json.loads(abi)
         except json.JSONDecodeError:
@@ -391,7 +390,6 @@ async def update_subscriptions_handler(
             field["label"] = label
 
     if abi:
-
         try:
             json_abi = json.loads(abi)
         except json.JSONDecodeError:
@@ -455,7 +453,6 @@ async def get_subscription_abi_handler(
     request: Request,
     subscription_id: str,
 ) -> data.SubdcriptionsAbiResponse:
-
     token = request.state.token
     user = request.state.user
 

@@ -1,37 +1,30 @@
 import argparse
-from concurrent.futures import ThreadPoolExecutor
-from concurrent.futures._base import TimeoutError
-import json
 import hashlib
 import itertools
+import json
 import logging
-from typing import Dict, List, Any, Optional
-from uuid import UUID
 import time
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures._base import TimeoutError
 from pprint import pprint
+from typing import Any, Dict, List, Optional
+from uuid import UUID
 
 from moonstreamdb.blockchain import AvailableBlockchainType
-from mooncrawl.moonworm_crawler.crawler import _retry_connect_web3
-from moonstreamdb.db import (
-    MOONSTREAM_DB_URI,
-    MOONSTREAM_POOL_SIZE,
-    create_moonstream_engine,
-)
-import requests
-from sqlalchemy.orm import sessionmaker
 from web3._utils.request import cache_session
-from web3 import Web3, HTTPProvider
 from web3.middleware import geth_poa_middleware
 
-from .db import view_call_to_label, commit_session, clean_labels
-from .Multicall2_interface import Contract as Multicall2
+from mooncrawl.moonworm_crawler.crawler import _retry_connect_web3
+
+from ..db import PrePing_SessionLocal
 from ..settings import (
-    NB_CONTROLLER_ACCESS_ID,
-    MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS,
     INFURA_PROJECT_ID,
-    multicall_contracts,
+    NB_CONTROLLER_ACCESS_ID,
     infura_networks,
+    multicall_contracts,
 )
+from .db import clean_labels, commit_session, view_call_to_label
+from .Multicall2_interface import Contract as Multicall2
 from .web3_util import FunctionSignature, connect
 
 logging.basicConfig(level=logging.INFO)
@@ -44,7 +37,6 @@ def make_multicall(
     block_timestamp: int,
     block_number: str = "latest",
 ) -> Any:
-
     multicall_calls = []
 
     for call in calls:
@@ -140,11 +132,9 @@ def crawl_calls_level(
     max_batch_size=5000,
     min_batch_size=4,
 ):
-
     calls_of_level = []
 
     for call in calls:
-
         if call["generated_hash"] in responces:
             continue
         parameters = []
@@ -152,7 +142,6 @@ def crawl_calls_level(
         logger.info(f"Call: {json.dumps(call, indent=4)}")
 
         for input in call["inputs"]:
-
             if type(input["value"]) in (str, int):
                 if input["value"] not in responces:
                     parameters.append([input["value"]])
@@ -173,7 +162,6 @@ def crawl_calls_level(
                 raise
 
         for call_parameters in itertools.product(*parameters):
-
             # hack for tuples product
             if len(call_parameters) == 1 and type(call_parameters[0]) == tuple:
                 call_parameters = call_parameters[0]
@@ -191,10 +179,8 @@ def crawl_calls_level(
     retry = 0
 
     while len(calls_of_level) > 0:
-
         make_multicall_result = []
         try:
-
             call_chunk = calls_of_level[:batch_size]
 
             logger.info(
@@ -240,7 +226,6 @@ def crawl_calls_level(
         # results parsing and writing to database
         add_to_session_count = 0
         for result in make_multicall_result:
-
             db_view = view_call_to_label(blockchain_type, result)
             db_session.add(db_view)
             add_to_session_count += 1
@@ -322,7 +307,6 @@ def parse_jobs(
 
         for input in method_abi["inputs"]:
             if type(input["value"]) in (str, int, list):
-
                 abi["inputs"].append(input)
 
             elif type(input["value"]) == dict:
@@ -346,7 +330,6 @@ def parse_jobs(
                 calls[level] = []
             calls[level].append(abi)
         else:
-
             level = 0
 
             if not calls.get(level):
@@ -374,7 +357,6 @@ def parse_jobs(
     interfaces = {}
 
     for contract_address in contracts_ABIs:
-
         # collect abis for each contract
         abis = []
 
@@ -391,14 +373,7 @@ def parse_jobs(
     # reverse call_tree
     call_tree_levels = sorted(calls.keys(), reverse=True)[:-1]
 
-    engine = create_moonstream_engine(
-        MOONSTREAM_DB_URI,
-        pool_pre_ping=True,
-        pool_size=MOONSTREAM_POOL_SIZE,
-        statement_timeout=MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS,
-    )
-    process_session = sessionmaker(bind=engine)
-    db_session = process_session()
+    db_session = PrePing_SessionLocal()
 
     # run crawling of levels
     try:
@@ -422,7 +397,6 @@ def parse_jobs(
         )
 
         for level in call_tree_levels:
-
             logger.info(f"Crawl level: {level}")
             logger.info(f"Jobs amount: {len(calls[level])}")
 
@@ -445,7 +419,6 @@ def parse_jobs(
 
 
 def handle_crawl(args: argparse.Namespace) -> None:
-
     """
     Ability to track states of the contracts.
 
@@ -497,7 +470,6 @@ def parse_abi(args: argparse.Namespace) -> None:
 
 
 def clean_labels_handler(args: argparse.Namespace) -> None:
-
     blockchain_type = AvailableBlockchainType(args.blockchain)
 
     web3_client = _retry_connect_web3(
@@ -508,14 +480,7 @@ def clean_labels_handler(args: argparse.Namespace) -> None:
 
     block_number = web3_client.eth.get_block("latest").number  # type: ignore
 
-    engine = create_moonstream_engine(
-        MOONSTREAM_DB_URI,
-        pool_pre_ping=True,
-        pool_size=MOONSTREAM_POOL_SIZE,
-        statement_timeout=MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS,
-    )
-    process_session = sessionmaker(bind=engine)
-    db_session = process_session()
+    db_session = PrePing_SessionLocal()
 
     try:
         clean_labels(db_session, blockchain_type, args.blocks_cutoff, block_number)

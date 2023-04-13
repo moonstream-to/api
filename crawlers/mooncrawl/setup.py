@@ -37,16 +37,16 @@ setup(
         "bugout>=0.1.19",
         "chardet",
         "fastapi",
-        "moonstreamdb>=0.3.2",
+        "moonstreamdb>=0.3.3",
         "moonstream>=0.1.1",
-        "moonworm[moonstream]>=0.5.2",
+        "moonworm[moonstream]>=0.6.2",
         "humbug",
         "pydantic==1.9.2",
         "python-dateutil",
         "requests",
         "tqdm",
         "uvicorn",
-        "web3[tester]",
+        "web3==5.27.0",
     ],
     extras_require={
         "dev": ["black", "isort", "mypy", "types-requests", "types-python-dateutil"],
@@ -65,7 +65,7 @@ setup(
             "statistics=mooncrawl.stats_worker.dashboard:main",
             "state-crawler=mooncrawl.state_crawler.cli:main",
             "metadata-crawler=mooncrawl.metadata_crawler.cli:main",
-            "custom-crawler=mooncrawl.cu_reports_crawler.cli:main",
+            "custom-crawler=mooncrawl.reports_crawler.cli:main",
         ]
     },
 )

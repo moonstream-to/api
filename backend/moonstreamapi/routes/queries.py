@@ -5,7 +5,7 @@ import logging
 from typing import Any, Dict, List, Optional, Tuple, Union
 from uuid import UUID
 
-import boto3  # type: ignore
+
 from bugout.data import BugoutResources, BugoutJournalEntryContent, BugoutJournalEntry
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Body, Request
@@ -13,7 +13,13 @@ import requests  # type: ignore
 
 
 from .. import data
-from ..actions import get_query_by_name, name_normalization, NameNormalizationException
+from ..actions import (
+    get_query_by_name,
+    name_normalization,
+    NameNormalizationException,
+    query_parameter_hash,
+    generate_s3_access_links,
+)
 from ..middleware import MoonstreamHTTPException
 from ..settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -36,7 +42,6 @@ router = APIRouter(
 
 @router.get("/list", tags=["queries"])
 async def get_list_of_queries_handler(request: Request) -> List[Dict[str, Any]]:
-
     token = request.state.token
 
     # Check already existed queries
@@ -93,7 +98,6 @@ async def create_query_handler(
         )
 
     if query_name in used_queries:
-
         raise MoonstreamHTTPException(
             status_code=404,
             detail=f"Provided query name already use. Please remove it or use PUT /{query_name} for update query",
@@ -133,7 +137,6 @@ async def create_query_handler(
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     try:
-
         bc.update_tags(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
@@ -152,7 +155,6 @@ async def create_query_handler(
 
 @router.get("/{query_name}/query", tags=["queries"])
 async def get_query_handler(request: Request, query_name: str) -> BugoutJournalEntry:
-
     token = request.state.token
 
     try:
@@ -166,7 +168,6 @@ async def get_query_handler(request: Request, query_name: str) -> BugoutJournalE
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     try:
-
         entry = bc.get_entry(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
@@ -188,7 +189,6 @@ async def update_query_handler(
     query_name: str,
     request_update: data.UpdateQueryRequest = Body(...),
 ) -> BugoutJournalEntryContent:
-
     token = request.state.token
 
     try:
@@ -202,7 +202,6 @@ async def update_query_handler(
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     try:
-
         entry = bc.update_entry_content(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
@@ -298,10 +297,11 @@ async def update_query_data_handler(
     return s3_response
 
 
-@router.get("/{query_name}", tags=["queries"])
+@router.post("/{query_name}", tags=["queries"])
 async def get_access_link_handler(
     request: Request,
     query_name: str,
+    request_update: data.UpdateDataRequest = Body(...),
 ) -> Optional[data.QueryPresignUrl]:
     """
     Request S3 presign url
@@ -319,9 +319,8 @@ async def get_access_link_handler(
             detail=f"Provided query name can't be normalize please select different.",
         )
     except Exception as e:
+        logger.error(f"Error in get query: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
-
-    s3 = boto3.client("s3")
 
     try:
         entries = bc.search(
@@ -335,6 +334,7 @@ async def get_access_link_handler(
         s3_response = None
 
         if entries.results and entries.results[0].content:
+            passed_params = dict(request_update.params)
 
             tags = entries.results[0].tags
 
@@ -343,20 +343,24 @@ async def get_access_link_handler(
             if "ext:csv" in tags:
                 file_type = "csv"
 
-            stats_presigned_url = s3.generate_presigned_url(
-                "get_object",
-                Params={
-                    "Bucket": MOONSTREAM_S3_QUERIES_BUCKET,
-                    "Key": f"{MOONSTREAM_S3_QUERIES_BUCKET_PREFIX}/queries/{query_id}/data.{file_type}",
-                },
-                ExpiresIn=300000,
-                HttpMethod="GET",
+            params_hash = query_parameter_hash(passed_params)
+
+            bucket = MOONSTREAM_S3_QUERIES_BUCKET
+            key = f"{MOONSTREAM_S3_QUERIES_BUCKET_PREFIX}/queries/{query_id}/{params_hash}/data.{file_type}"
+
+            stats_presigned_url = generate_s3_access_links(
+                method_name="get_object",
+                bucket=bucket,
+                key=key,
+                expiration=300000,
+                http_method="GET",
             )
             s3_response = data.QueryPresignUrl(url=stats_presigned_url)
     except BugoutResponseException as e:
         logger.error(f"Error in get access link: {str(e)}")
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
+        logger.error(f"Error in get access link: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     return s3_response

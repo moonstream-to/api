@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import hashlib
 import json
 from itertools import chain
@@ -51,10 +52,12 @@ blockchain_by_subscription_id = {
     "polygon_blockchain": "polygon",
     "mumbai_blockchain": "mumbai",
     "xdai_blockchain": "xdai",
+    "wyrm_blockchain": "wyrm",
     "ethereum_smartcontract": "ethereum",
     "polygon_smartcontract": "polygon",
     "mumbai_smartcontract": "mumbai",
     "xdai_smartcontract": "xdai",
+    "wyrm_smartcontract": "wyrm",
 }
 
 
@@ -138,7 +141,6 @@ def get_ens_name(web3: Web3, address: str) -> Optional[str]:
 
 
 def get_ens_address(web3: Web3, name: str) -> Optional[str]:
-
     if not is_valid_ens_name(name):
         raise ValueError(f"{name} is not valid ens name")
 
@@ -157,7 +159,6 @@ def get_ens_address(web3: Web3, name: str) -> Optional[str]:
 def get_ethereum_address_info(
     db_session: Session, web3: Web3, address: str
 ) -> Optional[data.EthereumAddressInfo]:
-
     if not is_address(address):
         raise ValueError(f"Invalid ethereum address : {address}")
 
@@ -274,7 +275,6 @@ def create_onboarding_resource(
         "is_complete": False,
     },
 ) -> BugoutResource:
-
     resource = bc.create_resource(
         token=token,
         application_id=MOONSTREAM_APPLICATION_ID,
@@ -325,7 +325,6 @@ def dashboards_abi_validation(
     dashboard_subscription: data.DashboardMeta,
     abi: Any,
 ):
-
     """
     Validate current dashboard subscription : https://github.com/bugout-dev/moonstream/issues/345#issuecomment-953052444
     with contract abi on S3
@@ -340,7 +339,6 @@ def dashboards_abi_validation(
     }
     if not dashboard_subscription.all_methods:
         for method in dashboard_subscription.methods:
-
             if method["name"] not in abi_functions:
                 # Method not exists
                 logger.error(
@@ -350,9 +348,7 @@ def dashboards_abi_validation(
                 )
                 raise MoonstreamHTTPException(status_code=400)
             if method.get("filters") and isinstance(method["filters"], dict):
-
                 for input_argument_name, value in method["filters"].items():
-
                     if input_argument_name not in abi_functions[method["name"]]:
                         # Argument not exists
                         logger.error(
@@ -381,7 +377,6 @@ def dashboards_abi_validation(
 
     if not dashboard_subscription.all_events:
         for event in dashboard_subscription.events:
-
             if event["name"] not in abi_events:
                 logger.error(
                     f"Error on dashboard resource validation event:{event['name']}"
@@ -391,9 +386,7 @@ def dashboards_abi_validation(
                 raise MoonstreamHTTPException(status_code=400)
 
             if event.get("filters") and isinstance(event["filters"], dict):
-
                 for input_argument_name, value in event["filters"].items():
-
                     if input_argument_name not in abi_events[event["name"]]:
                         # Argument not exists
                         logger.error(
@@ -441,14 +434,14 @@ def upload_abi_to_s3(
 
     """
 
-    s3_client = boto3.client("s3")
+    s3 = boto3.client("s3")
 
     bucket = MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET
 
     result_bytes = abi.encode("utf-8")
     result_key = f"{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/{blockchain_by_subscription_id[resource.resource_data['subscription_type_id']]}/abi/{resource.resource_data['address']}/{resource.id}/abi.json"
 
-    s3_client.put_object(
+    s3.put_object(
         Body=result_bytes,
         Bucket=bucket,
         Key=result_key,
@@ -490,7 +483,6 @@ def get_all_entries_from_search(
         reporter.error_report(e)
 
     if len(results) != existing_metods.total_results:
-
         for offset in range(limit, existing_metods.total_results, limit):
             existing_metods = bc.search(
                 token=token,
@@ -640,7 +632,6 @@ def get_entity_subscription_collection_id(
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     if len(resources.resources) == 0:
-
         if not create_if_not_exist:
             raise EntityCollectionNotFoundException(
                 "Subscription collection not found."
@@ -656,7 +647,6 @@ def get_entity_subscription_collection_id(
             }
 
             if f"subscriptions_{user_id}" not in available_collections:
-
                 collection: EntityCollectionResponse = ec.add_collection(
                     token=token, name=f"subscriptions_{user_id}"
                 )
@@ -690,3 +680,36 @@ def get_entity_subscription_collection_id(
         resource = resources.resources[0]
     print(resource.resource_data)
     return resource.resource_data["subscription_collection"]
+
+
+def generate_s3_access_links(
+    method_name: str,
+    bucket: str,
+    key: str,
+    http_method: str,
+    expiration: int = 300,
+) -> str:
+    s3 = boto3.client("s3")
+    stats_presigned_url = s3.generate_presigned_url(
+        method_name,
+        Params={
+            "Bucket": bucket,
+            "Key": key,
+        },
+        ExpiresIn=expiration,
+        HttpMethod=http_method,
+    )
+
+    return stats_presigned_url
+
+
+def query_parameter_hash(params: Dict[str, Any]) -> str:
+    """
+    Generate a hash of the query parameters
+    """
+
+    hash = hashlib.md5(
+        json.dumps(OrderedDict(params), sort_keys=True).encode("utf-8")
+    ).hexdigest()
+
+    return hash

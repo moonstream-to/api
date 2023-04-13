@@ -182,7 +182,6 @@ async def set_onboarding_state(
     request: Request,
     onboarding_data: data.OnboardingState = Body(...),
 ) -> data.OnboardingState:
-
     token = request.state.token
     try:
         response = bc.list_resources(
@@ -240,7 +239,6 @@ async def get_onboarding_state(request: Request) -> data.OnboardingState:
     except BugoutResponseException as e:
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
-
         raise MoonstreamHTTPException(status_code=500)
 
     if (
