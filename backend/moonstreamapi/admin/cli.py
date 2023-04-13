@@ -83,8 +83,19 @@ def migrations_run(args: argparse.Namespace) -> None:
     db_session = SessionLocal()
     try:
         if args.id == 20230213:
-            logger.info("Starting migrate subscriptions from resources to entity...")
-            generate_entity_subscriptions.Generate_entity_subscriptions_from_brood_resources()
+            if args.command == "upgrade":
+                logger.info(
+                    "Starting migrate subscriptions from resources to entity..."
+                )
+                generate_entity_subscriptions.Generate_entity_subscriptions_from_brood_resources()
+            elif args.command == "downgrade":
+                logger.info(
+                    "Starting migrate subscriptions from entity to resources..."
+                )
+
+            else:
+                logger.info("Wrong command. Please use upgrade or downgrade")
+
         elif args.id == 20211101:
             logger.info("Starting update of subscriptions in Brood resource...")
             checksum_address.checksum_all_subscription_addresses(web3_session)
@@ -96,7 +107,6 @@ def migrations_run(args: argparse.Namespace) -> None:
             drop_keys = []
 
             if args.file is not None:
-
                 with open(args.file) as migration_json_file:
                     migration_json = json.load(migration_json_file)
 
@@ -134,12 +144,10 @@ def migrations_run(args: argparse.Namespace) -> None:
 
 
 def moonworm_tasks_list_handler(args: argparse.Namespace) -> None:
-
     moonworm_tasks.get_list_of_addresses()
 
 
 def moonworm_tasks_add_subscription_handler(args: argparse.Namespace) -> None:
-
     moonworm_tasks.add_subscription(args.id)
 
 

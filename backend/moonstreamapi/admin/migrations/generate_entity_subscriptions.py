@@ -117,7 +117,6 @@ def add_collection_permissions_to_user(
 def revoke_collection_permissions_from_user(
     user_id: uuid.UUID, collection_id: str, permissions: List[str]
 ):
-
     """
     Remove all permissions from user
     """
@@ -212,7 +211,6 @@ def Generate_entity_subscriptions_from_brood_resources() -> None:
     ### Subscriptions parsing and save to users_subscriptions
 
     for resource in resources.resources:
-
         resource_data = resource.resource_data
 
         resource_data["subscription_id"] = resource.id
@@ -242,7 +240,6 @@ def Generate_entity_subscriptions_from_brood_resources() -> None:
     )
 
     for dashboard in dashboards.resources:
-
         if "user_id" not in dashboard.resource_data:
             continue
 
@@ -259,7 +256,6 @@ def Generate_entity_subscriptions_from_brood_resources() -> None:
 
     try:
         for user_id, subscriptions in users_subscriptions.items():
-
             user_id = str(user_id)
 
             collection_id = None
@@ -283,13 +279,11 @@ def Generate_entity_subscriptions_from_brood_resources() -> None:
             # Create user subscription collection resource
 
             if "subscription_resource_id" not in stages[user_id]:
-
                 if resource_id_of_user_collection is not None:
                     stages[user_id]["subscription_resource_id"] = str(
                         resource_id_of_user_collection
                     )
                 else:
-
                     resource_data = {
                         "type": BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
                         "user_id": str(user_id),
@@ -317,7 +311,6 @@ def Generate_entity_subscriptions_from_brood_resources() -> None:
             ### Add subscriptions to collection
 
             for subscription in subscriptions:
-
                 if (
                     str(subscription["subscription_id"])
                     in stages[user_id]["proccessed_subscriptions"]
@@ -359,11 +352,9 @@ def Generate_entity_subscriptions_from_brood_resources() -> None:
             print(f"users:{len(dashboards_by_user)}")
 
             for user in dashboards_by_user:
-
                 print(f"dashboards: {len(dashboards_by_user[user])}")
 
                 for dashboard in dashboards_by_user[user]:
-
                     dashboard_data = dashboard.resource_data
 
                     dashboard_subscription_settings = dashboard_data.get(
@@ -380,7 +371,6 @@ def Generate_entity_subscriptions_from_brood_resources() -> None:
                     for setting_index, subscription_setting in enumerate(
                         dashboard_subscription_settings
                     ):
-
                         print(
                             f"Find subscripton: {subscription_setting['subscription_id']}"
                         )
@@ -389,7 +379,6 @@ def Generate_entity_subscriptions_from_brood_resources() -> None:
                             str(subscription_setting["subscription_id"])
                             in stages[user]["proccessed_subscriptions"]
                         ):
-
                             print(
                                 f"subscription found: {subscription_setting['subscription_id']}"
                             )
@@ -517,7 +506,6 @@ def Generate_entity_subscriptions_from_brood_resources() -> None:
 
                 if "permissions_granted" not in stages[user_id]:
                     try:
-
                         add_collection_permissions_to_user(
                             user_id=user_id,
                             collection_id=collection_id,
@@ -572,3 +560,196 @@ def revoke_admin_permissions_from_collections(
             continue
 
     logger.info("Admin permissions revoked from collections")
+
+
+def delete_generated_entity_subscriptions_from_brood_resources():
+    """
+    Delete all generated entity subscriptions previously created by the script
+    Also delete all generated entity subscriptions from the brood resources
+    """
+
+    ### stages file example
+
+    """
+    {
+        "ceee268d-4b5c-4a12-bfde-72b28c846edc": {
+            "collection_id": "97836ddf-106b-4e36-9245-db00e266a5f3",
+            "subscription_resource_id": "1513b0ca-785c-45c6-a455-7547760996de",
+            "proccessed_subscriptions": {
+                "67da9403-1f7d-4bab-af88-eff118e8404f": {
+                    "entity_id": "e6beacd0-abe5-4685-9811-e68dcee4e22f",
+                    "dashboard_ids": []
+                },
+                "5c5824ff-fe3a-4364-82fe-9d6e03073342": {
+                    "entity_id": "9f1eeb75-1e59-4cc8-b9d5-68db7493621c",
+                    "dashboard_ids": []
+                },
+                "c9f902bc-79c7-4a55-984b-4e09bdbdb741": {
+                    "entity_id": "6fdbccae-71b4-41fd-950a-73eff107a302",
+                    "dashboard_ids": []
+                },
+                "aeb8b994-44bb-4f8a-a153-d110f8640637": {
+                    "entity_id": "674db271-ca7e-4c57-80c6-7a87c445e474",
+                    "dashboard_ids": []
+                },
+                "20c414ad-67a1-4a76-9b8a-2c193c86bf08": {
+                    "entity_id": "c4b06118-6c47-4fe1-82ea-72b4b4fcc317",
+                    "dashboard_ids": []
+                }
+            }
+        },
+        "60cea3d1-c71e-4fb5-8613-807edfc6aa4e": {
+            "collection_id": "f05d6444-c5d6-4714-af43-8f9733866f59",
+            "subscription_resource_id": "f1ddf5bf-5684-458e-acc1-38a227270992",
+            "proccessed_subscriptions": {
+                "8b9df829-f0a7-4c17-b02a-da788df301ea": {
+                    "entity_id": "e4cd9ba3-e732-4f6c-9e84-2efa9501f5ae",
+                    "dashboard_ids": []
+                },
+                "61e832d9-e70b-492d-8989-4a35ec9431d3": {
+                    "entity_id": "2c321527-5d9c-4b62-ad61-84bee132eb2a",
+                    "dashboard_ids": []
+                },
+                "f94c18b4-8b4e-49c5-84e1-c44f786f1987": {
+                    "entity_id": "ed80686c-7393-4830-82cb-2f742f5ab2a3",
+                    "dashboard_ids": []
+                },
+                "bc40b651-8554-4f7d-8d07-1ceaafee1c11": {
+                    "entity_id": "4c5d60d1-c507-449c-8e9a-372355276c9f",
+                    "dashboard_ids": []
+                }
+            }
+        }
+    }
+    """
+
+    admin_user = bc.get_user(token=MOONSTREAM_ADMIN_ACCESS_TOKEN)
+
+    admin_user_id = admin_user.id
+
+    print(f"admin user :{admin_user.username}")
+
+    # Get all subscriptions
+
+    ### Get all subscription resources type = "subscription"
+
+    resources: BugoutResources = bc.list_resources(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        params={"type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION},
+        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+    )
+
+    print(f"Admin own {len(resources.resources)} subscriptions")
+
+    ### initial users_subscriptions, dashboards_by_user, stages is empty
+
+    users_subscriptions: Dict[Union[str, uuid.UUID], Any] = {}
+
+    dashboards_by_user: Dict[Union[str, uuid.UUID], Any] = {}
+
+    stages: Dict[Union[str, uuid.UUID], Any] = {}
+
+    ### Restore previous stages if exists stages.json
+
+    if os.path.exists("stages.json"):
+        with open("stages.json", "r") as f:
+            stages = json.load(f)
+
+    ### Subscriptions parsing and save to users_subscriptions
+
+    for resource in resources.resources:
+        resource_data = resource.resource_data
+
+        resource_data["subscription_id"] = resource.id
+
+        if "user_id" not in resource_data:
+            continue
+
+        user_id = resource_data["user_id"]
+
+        if user_id not in users_subscriptions:
+            users_subscriptions[user_id] = []
+
+            # Stages object
+        if user_id not in stages:
+            stages[user_id] = {}
+
+        users_subscriptions[user_id].append(resource_data)
+
+    print(f"parsed users: {len(users_subscriptions)}")
+
+    ### Dashboards parsing and save to dashboards_by_user
+
+    dashboards: BugoutResources = bc.list_resources(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        params={"type": BUGOUT_RESOURCE_TYPE_DASHBOARD},
+        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+    )
+
+    for dashboard in dashboards.resources:
+        if "user_id" not in dashboard.resource_data:
+            continue
+
+        user_id = dashboard.resource_data["user_id"]
+
+        print(f"dashboard name:{dashboard.resource_data['name']}")
+
+        if user_id not in dashboards_by_user:
+            dashboards_by_user[user_id] = []
+
+        dashboards_by_user[user_id].append(dashboard)
+
+    ### Create collections and add subscriptions
+
+    try:
+        for user_id, subscriptions in users_subscriptions.items():
+            user_id = str(user_id)
+
+            collection_id = None
+            resource_id_of_user_collection = None
+
+            ### Collection can already exist in stages.json
+            if "collection_id" in stages[user_id]:
+                collection_id = stages[user_id]["collection_id"]
+            else:
+                ### look for collection in brood resources
+                collection_id, resource_id_of_user_collection = find_user_collection(
+                    user_id, create_if_not_exists=True
+                )
+
+            if collection_id is None:
+                print(f"Collection not found or create for user {user_id}")
+                continue
+
+            ### Delete collection
+
+            try:
+                ec.delete_collection(
+                    token=MOONSTREAM_ADMIN_ACCESS_TOKEN, collection_id=collection_id
+                )
+                print(f"Collection deleted {collection_id}")
+
+            except Exception as e:
+                print(f"Failed to delete collection: {str(e)}")
+                continue
+
+            ### Delete collection resource
+
+            try:
+                bc.delete_resource(
+                    token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                    resource_id=resource_id_of_user_collection,
+                )
+                print(f"Collection resource deleted {resource_id_of_user_collection}")
+
+                # clear stages
+
+                stages[user_id] = {}
+
+            except Exception as e:
+                print(f"Failed to delete collection resource: {str(e)}")
+                continue
+
+    except Exception as e:
+        traceback.print_exc()
+        print(f"Failed to proccess user subscriptions: {str(e)}")
