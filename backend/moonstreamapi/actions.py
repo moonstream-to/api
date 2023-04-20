@@ -3,7 +3,7 @@ import hashlib
 import json
 from itertools import chain
 import logging
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from enum import Enum
 import uuid
 
@@ -608,7 +608,7 @@ def get_query_by_name(query_name: str, token: uuid.UUID) -> str:
 
 def get_entity_subscription_collection_id(
     resource_type: str,
-    token: uuid.UUID,
+    token: Union[uuid.UUID, str],
     user_id: uuid.UUID,
     create_if_not_exist: bool = False,
 ) -> Optional[str]:

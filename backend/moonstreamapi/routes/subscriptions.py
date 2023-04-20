@@ -25,8 +25,10 @@ from ..admin import subscription_types
 from ..middleware import MoonstreamHTTPException
 from ..reporter import reporter
 from ..settings import bugout_client as bc, entity_client as ec
+from ..settings import MOONSTREAM_ADMIN_ACCESS_TOKEN
 from ..web3_provider import yield_web3_provider
 
+import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -118,10 +120,9 @@ async def add_subscription_handler(
         )
 
     try:
-
         collection_id = get_entity_subscription_collection_id(
             resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
-            token=token,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             user_id=user.id,
             create_if_not_exist=True,
         )
@@ -182,10 +183,9 @@ async def delete_subscription_handler(request: Request, subscription_id: str):
     token = request.state.token
     user = request.state.user
     try:
-
         collection_id = get_entity_subscription_collection_id(
             resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
-            token=token,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             user_id=user.id,
         )
 
@@ -216,7 +216,6 @@ async def delete_subscription_handler(request: Request, subscription_id: str):
 
     if tags is not None:
         for tag in tags:
-
             if "subscription_type_id" in tag:
                 subscription_type_id = tag["subscription_type_id"]
 
@@ -252,9 +251,11 @@ async def get_subscriptions_handler(request: Request) -> data.SubscriptionsListR
     try:
         collection_id = get_entity_subscription_collection_id(
             resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
-            token=token,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             user_id=user.id,
         )
+
+        print("collection_id", collection_id)
 
         subscriprions_list = ec.search_entities(
             token=token,
@@ -280,13 +281,11 @@ async def get_subscriptions_handler(request: Request) -> data.SubscriptionsListR
     subscriptions = []
 
     for subscription in subscriprions_list.entities:
-
         tags = subscription.required_fields
 
         label, color, subscription_type_id = None, None, None
 
         for tag in tags:
-
             if "subscription_type_id" in tag:
                 subscription_type_id = tag["subscription_type_id"]
 
@@ -303,7 +302,7 @@ async def get_subscriptions_handler(request: Request) -> data.SubscriptionsListR
                 address=subscription.address,
                 color=color,
                 label=label,
-                abi=subscription.secondary_fields.get("abi"),
+                abi="True" if subscription.secondary_fields.get("abi") else None,
                 subscription_type_id=subscription_type_id,
                 updated_at=subscription.updated_at,
                 created_at=subscription.created_at,
@@ -337,10 +336,9 @@ async def update_subscriptions_handler(
     update_secondary_fields = {}
 
     try:
-
         collection_id = get_entity_subscription_collection_id(
             resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
-            token=token,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             user_id=user.id,
         )
 
@@ -407,7 +405,6 @@ async def update_subscriptions_handler(
         update_secondary_fields = subscription_entity.secondary_fields
 
     try:
-
         subscription = ec.update_entity(
             token=token,
             collection_id=collection_id,
@@ -457,10 +454,9 @@ async def get_subscription_abi_handler(
     user = request.state.user
 
     try:
-
         collection_id = get_entity_subscription_collection_id(
-            resource_type=BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
-            token=token,
+            resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             user_id=user.id,
         )
 
@@ -479,8 +475,9 @@ async def get_subscription_abi_handler(
         )
     except Exception as e:
         logger.error(
-            f"Error get subscriptions for user ({request.user.id}) with token ({request.state.token}), error: {str(e)}"
+            f"Error get subscriptions for user ({user}) with token ({token}), error: {str(e)}"
         )
+        traceback.print_exc()
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     if "abi" not in subscription_resource.secondary_fields.keys():

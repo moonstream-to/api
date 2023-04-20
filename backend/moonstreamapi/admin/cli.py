@@ -20,6 +20,7 @@ from .migrations import (
     checksum_address,
     update_dashboard_subscription_key,
     generate_entity_subscriptions,
+    update_dashboards_connection,
 )
 
 
@@ -88,10 +89,13 @@ def migrations_run(args: argparse.Namespace) -> None:
                     "Starting migrate subscriptions from resources to entity..."
                 )
                 generate_entity_subscriptions.Generate_entity_subscriptions_from_brood_resources()
+                print("Starting update of dashboards...")
+                update_dashboards_connection()
             elif args.command == "downgrade":
                 logger.info(
                     "Starting migrate subscriptions from entity to resources..."
                 )
+                generate_entity_subscriptions.delete_generated_entity_subscriptions_from_brood_resources()
 
             else:
                 logger.info("Wrong command. Please use upgrade or downgrade")

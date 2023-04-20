@@ -16,6 +16,7 @@ from ..middleware import MoonstreamHTTPException
 from ..reporter import reporter
 from ..settings import (
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
+    MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_APPLICATION_ID,
     MOONSTREAM_CRAWLERS_SERVER_URL,
     MOONSTREAM_CRAWLERS_SERVER_PORT,
@@ -56,7 +57,7 @@ async def add_dashboard_handler(
     collection_id = actions.get_entity_subscription_collection_id(
         resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
         user_id=user.id,
-        token=token,
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
     )
 
     subscriprions_list = ec.search_entities(
@@ -228,7 +229,7 @@ async def update_dashboard_handler(
     collection_id = actions.get_entity_subscription_collection_id(
         resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
         user_id=user.id,
-        token=token,
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
     )
 
     subscriprions_list = ec.search_entities(
@@ -330,8 +331,10 @@ async def get_dashboard_data_links_handler(
     collection_id = actions.get_entity_subscription_collection_id(
         resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
         user_id=user.id,
-        token=token,
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
     )
+
+    print(f"collection_id: {collection_id}")
 
     subscriprions_list = ec.search_entities(
         token=token,
@@ -339,6 +342,8 @@ async def get_dashboard_data_links_handler(
         required_field=[f"type:subscription"],
         limit=1000,
     )
+
+    print(f"subscriprions_list: {subscriprions_list}")
 
     # filter out dasboards
 
@@ -355,7 +360,9 @@ async def get_dashboard_data_links_handler(
         if str(subscription.entity_id) in subscriptions_ids
     }
 
-    print(subscriptions_ids)
+    print(f"subscriptions_ids: {subscriptions_ids}")
+    print(f"dashboard_subscriptions: {dashboard_subscriptions}")
+    print(f"dashboard_subscriptions: {dashboard_resource}")
 
     for subscription in subscriprions_list.entities:
         print(subscription.entity_id)

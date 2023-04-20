@@ -64,6 +64,7 @@ CANONICAL_SUBSCRIPTION_TYPES = {
     "wyrm_smartcontract": SubscriptionTypeResourceData(
         id="wyrm_smartcontract",
         name="Wyrm smartcontract",
+        blockchain="wyrm",
         choices=["input:address", "tag:erc721"],
         description="Contracts events and tx_calls of contract of Wyrm blockchain.",
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/great-wyrm-network-logo.png",
@@ -118,6 +119,7 @@ CANONICAL_SUBSCRIPTION_TYPES = {
     "wyrm_blockchain": SubscriptionTypeResourceData(
         id="wyrm_blockchain",
         name="Wyrm transactions",
+        blockchain="wyrm",
         choices=["input:address", "tag:erc721"],
         description="Wyrm chain transactions subscription.",
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/great-wyrm-network-logo.png",
