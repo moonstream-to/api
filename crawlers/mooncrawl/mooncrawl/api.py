@@ -34,6 +34,7 @@ from .settings import (
     NB_CONTROLLER_ACCESS_ID,
     ORIGINS,
     LINKS_EXPIRATION_TIME,
+    MOONSTREAM_S3_DASHBOARDS_DATA_BUCKET,
 )
 from .settings import bugout_client as bc, entity_client as ec
 from .stats_worker import dashboard, queries
@@ -110,7 +111,7 @@ async def status_handler(
         collection_id = get_entity_subscription_collection_id(
             resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-            user_id=stats_update.user_id,
+            user_id=UUID(stats_update.user_id),
         )
 
     except EntityCollectionNotFoundException as e:
@@ -127,6 +128,21 @@ async def status_handler(
     # get subscription entities
 
     s3_client = boto3.client("s3")
+
+    subscription_by_id: Dict[str, EntityResponse] = {}
+
+    for dashboard_subscription_filters in dashboard_resource.resource_data[
+        "subscription_settings"
+    ]:
+        # get subscription by id
+
+        subscription: EntityResponse = ec.get_entity(
+            token=stats_update.token,
+            collection_id=collection_id,
+            entity_id=dashboard_subscription_filters["subscription_id"],
+        )
+
+        subscription_by_id[str(subscription.entity_id)] = subscription
 
     try:
         background_tasks.add_task(
@@ -150,11 +166,9 @@ async def status_handler(
     ]:
         # get subscription by id
 
-        subscription: EntityResponse = ec.get_entity(
-            token=stats_update.token,
-            collection_id=collection_id,
-            entity_id=dashboard_subscription_filters["subscription_id"],
-        )
+        subscription_entity = subscription_by_id[
+            dashboard_subscription_filters["subscription_id"]
+        ]
 
         for reqired_field in subscription.required_fields:
             if "subscription_type_id" in reqired_field:
@@ -164,7 +178,7 @@ async def status_handler(
             presigned_urls_response[subscription.id] = {}
 
             try:
-                result_key = f"{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/{dashboard.blockchain_by_subscription_id[subscriprions_type]}/contracts_data/{subscription.address}/{stats_update.dashboard_id}/v1/{timescale}.json"
+                result_key = f"{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/{dashboard.blockchain_by_subscription_id[subscriprions_type]}/contracts_data/{subscription_entity.address}/{stats_update.dashboard_id}/v1/{timescale}.json"
 
                 object = s3_client.head_object(
                     Bucket=subscription.resource_data["bucket"], Key=result_key
@@ -173,7 +187,7 @@ async def status_handler(
                 stats_presigned_url = s3_client.generate_presigned_url(
                     "get_object",
                     Params={
-                        "Bucket": subscription.resource_data["bucket"],
+                        "Bucket": MOONSTREAM_S3_DASHBOARDS_DATA_BUCKET,
                         "Key": result_key,
                     },
                     ExpiresIn=300,

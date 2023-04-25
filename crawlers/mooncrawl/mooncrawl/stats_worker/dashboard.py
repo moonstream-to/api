@@ -34,6 +34,7 @@ from ..settings import (
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
     NB_CONTROLLER_ACCESS_ID,
     MOONSTREAM_S3_DASHBOARDS_DATA_BUCKET,
+    BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
 )
 from ..settings import bugout_client as bc, entity_client as ec
 
@@ -619,7 +620,7 @@ def stats_generate_handler(args: argparse.Namespace):
         user_entity_collections: BugoutResources = bc.list_resources(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             params={
-                "type": BUGOUT_RESOURCE_TYPE_ENTITY_COLLECTION,
+                "type": BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
             },
         )
 
@@ -629,8 +630,6 @@ def stats_generate_handler(args: argparse.Namespace):
             ]
             for collection in user_entity_collections.resources
         }
-
-        logger.info(f"Amount of blockchain subscriptions: {len(subscription_by_id)}")
 
         s3_client = boto3.client("s3")
 
@@ -682,165 +681,170 @@ def stats_generate_handler(args: argparse.Namespace):
                 if subscription_id not in dashboards_by_subscription:
                     continue
 
-                dashboard = dashboards_by_subscription[subscription_id]
+                dashboards = dashboards_by_subscription[subscription_id]
 
-                for dashboard_subscription_filters in dashboard.resource_data[
-                    "subscription_settings"
-                ]:
-                    try:
-                        subscription_id = dashboard_subscription_filters[
-                            "subscription_id"
-                        ]
-
+                for dashboard in dashboards:
+                    for dashboard_subscription_filters in dashboard.resource_data[
+                        "subscription_settings"
+                    ]:
                         try:
-                            UUID(subscription_id)
-                        except Exception as err:
-                            logger.error(
-                                f"Subscription id {subscription_id} is not valid UUID: {err}"
-                            )
-                            continue
-
-                        address = subscription.address
-
-                        if address not in address_dashboard_id_subscription_id_tree:
-                            address_dashboard_id_subscription_id_tree[address] = {}
-
-                        if (
-                            str(dashboard.id)
-                            not in address_dashboard_id_subscription_id_tree
-                        ):
-                            address_dashboard_id_subscription_id_tree[address][
-                                str(dashboard.id)
-                            ] = []
-
-                        if (
-                            subscription_id
-                            not in address_dashboard_id_subscription_id_tree[address][
-                                str(dashboard.id)
+                            subscription_id = dashboard_subscription_filters[
+                                "subscription_id"
                             ]
-                        ):
-                            address_dashboard_id_subscription_id_tree[address][
+
+                            try:
+                                UUID(subscription_id)
+                            except Exception as err:
+                                logger.error(
+                                    f"Subscription id {subscription_id} is not valid UUID: {err}"
+                                )
+                                continue
+
+                            address = subscription.address
+
+                            if address not in address_dashboard_id_subscription_id_tree:
+                                address_dashboard_id_subscription_id_tree[address] = {}
+
+                            if (
                                 str(dashboard.id)
-                            ].append(subscription_id)
+                                not in address_dashboard_id_subscription_id_tree
+                            ):
+                                address_dashboard_id_subscription_id_tree[address][
+                                    str(dashboard.id)
+                                ] = []
 
-                        abi = None
-                        if "abi" in subscription.secondary_fields:
-                            abi = subscription.secondary_fields["abi"]
+                            if (
+                                subscription_id
+                                not in address_dashboard_id_subscription_id_tree[
+                                    address
+                                ][str(dashboard.id)]
+                            ):
+                                address_dashboard_id_subscription_id_tree[address][
+                                    str(dashboard.id)
+                                ].append(subscription_id)
 
-                        # Read required events, functions and web3_call form ABI
-                        if abi is None:
-                            methods = []
-                            events = []
-                            abi_json = {}
+                            abi = None
+                            if "abi" in subscription.secondary_fields:
+                                abi = subscription.secondary_fields["abi"]
 
-                        else:
-                            abi_json = abi
+                            # Read required events, functions and web3_call form ABI
+                            if abi is None:
+                                methods = []
+                                events = []
+                                abi_json = {}
 
-                            methods = generate_list_of_names(
-                                type="function",
-                                subscription_filters=dashboard_subscription_filters,
-                                read_abi=dashboard_subscription_filters["all_methods"],
-                                abi_json=abi_json,
-                            )
+                            else:
+                                abi_json = abi
 
-                            events = generate_list_of_names(
-                                type="event",
-                                subscription_filters=dashboard_subscription_filters,
-                                read_abi=dashboard_subscription_filters["all_events"],
-                                abi_json=abi_json,
-                            )
+                                methods = generate_list_of_names(
+                                    type="function",
+                                    subscription_filters=dashboard_subscription_filters,
+                                    read_abi=dashboard_subscription_filters[
+                                        "all_methods"
+                                    ],
+                                    abi_json=abi_json,
+                                )
 
-                        if address not in merged_events:
-                            merged_events[address] = {}
-                            merged_events[address]["merged"] = set()
+                                events = generate_list_of_names(
+                                    type="event",
+                                    subscription_filters=dashboard_subscription_filters,
+                                    read_abi=dashboard_subscription_filters[
+                                        "all_events"
+                                    ],
+                                    abi_json=abi_json,
+                                )
 
-                        if address not in merged_functions:
-                            merged_functions[address] = {}
-                            merged_functions[address]["merged"] = set()
+                            if address not in merged_events:
+                                merged_events[address] = {}
+                                merged_events[address]["merged"] = set()
 
-                        if str(dashboard.id) not in merged_events[address]:
-                            merged_events[address][str(dashboard.id)] = {}
+                            if address not in merged_functions:
+                                merged_functions[address] = {}
+                                merged_functions[address]["merged"] = set()
 
-                        if str(dashboard.id) not in merged_functions[address]:
-                            merged_functions[address][str(dashboard.id)] = {}
+                            if str(dashboard.id) not in merged_events[address]:
+                                merged_events[address][str(dashboard.id)] = {}
 
-                        merged_events[address][str(dashboard.id)][
-                            subscription_id
-                        ] = events
-                        merged_functions[address][str(dashboard.id)][
-                            subscription_id
-                        ] = methods
+                            if str(dashboard.id) not in merged_functions[address]:
+                                merged_functions[address][str(dashboard.id)] = {}
 
-                        # Get external calls from ABI.
-                        # external_calls merging required direct hash of external_call object.
-                        # or if more correct hash of address and function call signature.
-                        # create external_call selectors.
+                            merged_events[address][str(dashboard.id)][
+                                subscription_id
+                            ] = events
+                            merged_functions[address][str(dashboard.id)][
+                                subscription_id
+                            ] = methods
 
-                        external_calls = [
-                            external_call
-                            for external_call in abi_json
-                            if external_call["type"] == "external_call"
-                        ]
-                        if len(external_calls) > 0:
-                            for external_call in external_calls:
-                                # create external_call selectors.
-                                # display_name not included in hash
-                                external_call_without_display_name = {
-                                    "type": "external_call",
-                                    "address": external_call["address"],
-                                    "name": external_call["name"],
-                                    "inputs": external_call["inputs"],
-                                    "outputs": external_call["outputs"],
-                                }
+                            # Get external calls from ABI.
+                            # external_calls merging required direct hash of external_call object.
+                            # or if more correct hash of address and function call signature.
+                            # create external_call selectors.
 
-                                external_call_hash = hashlib.md5(
-                                    json.dumps(
-                                        external_call_without_display_name
-                                    ).encode("utf-8")
-                                ).hexdigest()
-
-                                if str(dashboard.id) not in merged_external_calls:
-                                    merged_external_calls[str(dashboard.id)] = {}
-
-                                if (
-                                    subscription_id
-                                    not in merged_external_calls[str(dashboard.id)]
-                                ):
-                                    merged_external_calls[str(dashboard.id)][
-                                        subscription_id
-                                    ] = {}
-
-                                if (
-                                    external_call_hash
-                                    not in merged_external_calls[str(dashboard.id)][
-                                        subscription_id
-                                    ]
-                                ):
-                                    merged_external_calls[str(dashboard.id)][
-                                        subscription_id
-                                    ] = {
-                                        external_call_hash: external_call[
-                                            "display_name"
-                                        ]
+                            external_calls = [
+                                external_call
+                                for external_call in abi_json
+                                if external_call["type"] == "external_call"
+                            ]
+                            if len(external_calls) > 0:
+                                for external_call in external_calls:
+                                    # create external_call selectors.
+                                    # display_name not included in hash
+                                    external_call_without_display_name = {
+                                        "type": "external_call",
+                                        "address": external_call["address"],
+                                        "name": external_call["name"],
+                                        "inputs": external_call["inputs"],
+                                        "outputs": external_call["outputs"],
                                     }
-                                if (
-                                    external_call_hash
-                                    not in merged_external_calls["merged"]
-                                ):
-                                    merged_external_calls["merged"][
+
+                                    external_call_hash = hashlib.md5(
+                                        json.dumps(
+                                            external_call_without_display_name
+                                        ).encode("utf-8")
+                                    ).hexdigest()
+
+                                    if str(dashboard.id) not in merged_external_calls:
+                                        merged_external_calls[str(dashboard.id)] = {}
+
+                                    if (
+                                        subscription_id
+                                        not in merged_external_calls[str(dashboard.id)]
+                                    ):
+                                        merged_external_calls[str(dashboard.id)][
+                                            subscription_id
+                                        ] = {}
+
+                                    if (
                                         external_call_hash
-                                    ] = external_call_without_display_name
+                                        not in merged_external_calls[str(dashboard.id)][
+                                            subscription_id
+                                        ]
+                                    ):
+                                        merged_external_calls[str(dashboard.id)][
+                                            subscription_id
+                                        ] = {
+                                            external_call_hash: external_call[
+                                                "display_name"
+                                            ]
+                                        }
+                                    if (
+                                        external_call_hash
+                                        not in merged_external_calls["merged"]
+                                    ):
+                                        merged_external_calls["merged"][
+                                            external_call_hash
+                                        ] = external_call_without_display_name
 
-                        # Fill merged events and functions calls for all subscriptions
+                            # Fill merged events and functions calls for all subscriptions
 
-                        for event in events:
-                            merged_events[address]["merged"].add(event)
+                            for event in events:
+                                merged_events[address]["merged"].add(event)
 
-                        for method in methods:
-                            merged_functions[address]["merged"].add(method)
+                            for method in methods:
+                                merged_functions[address]["merged"].add(method)
 
-                    except Exception as e:
-                        logger.error(f"Error while merging subscriptions: {e}")
+                        except Exception as e:
+                            logger.error(f"Error while merging subscriptions: {e}")
 
             # Request contracts for external calls.
             # result is a {call_hash: value} dictionary.
@@ -979,7 +983,7 @@ def stats_generate_handler(args: argparse.Namespace):
                                         ],
                                         address=address,
                                         timescale=timescale,
-                                        bucket=MOONSTREAM_S3_DASHBOARDS_DATA_BUCKET,
+                                        bucket=MOONSTREAM_S3_DASHBOARDS_DATA_BUCKET,  # type: ignore
                                         dashboard_id=dashboard_id,
                                     )
                                 except Exception as err:
@@ -1152,7 +1156,7 @@ def stats_generate_api_task(
                         subscription_type_id=subscription_type_id,
                         address=address,
                         timescale=timescale,
-                        bucket=MOONSTREAM_S3_DASHBOARDS_DATA_BUCKET,
+                        bucket=MOONSTREAM_S3_DASHBOARDS_DATA_BUCKET,  # type: ignore
                         dashboard_id=dashboard.id,
                     )
             except Exception as err:
