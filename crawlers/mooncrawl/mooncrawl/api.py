@@ -175,13 +175,13 @@ async def status_handler(
                 subscriprions_type = reqired_field["subscription_type_id"]
 
         for timescale in stats_update.timescales:
-            presigned_urls_response[subscription.id] = {}
+            presigned_urls_response[subscription_entity.entity_id] = {}
 
             try:
                 result_key = f"{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/{dashboard.blockchain_by_subscription_id[subscriprions_type]}/contracts_data/{subscription_entity.address}/{stats_update.dashboard_id}/v1/{timescale}.json"
 
                 object = s3_client.head_object(
-                    Bucket=subscription.resource_data["bucket"], Key=result_key
+                    Bucket=MOONSTREAM_S3_DASHBOARDS_DATA_BUCKET, Key=result_key
                 )
 
                 stats_presigned_url = s3_client.generate_presigned_url(
@@ -194,7 +194,7 @@ async def status_handler(
                     HttpMethod="GET",
                 )
 
-                presigned_urls_response[subscription.id][timescale] = {
+                presigned_urls_response[subscription_entity.entity_id][timescale] = {
                     "url": stats_presigned_url,
                     "headers": {
                         "If-Modified-Since": (
@@ -204,7 +204,7 @@ async def status_handler(
                 }
             except Exception as err:
                 logger.warning(
-                    f"Can't generate S3 presigned url in stats endpoint for Bucket:{subscription.resource_data['bucket']}, Key:{result_key} get error:{err}"
+                    f"Can't generate S3 presigned url in stats endpoint for Bucket:{MOONSTREAM_S3_DASHBOARDS_DATA_BUCKET}, Key:{result_key} get error:{err}"
                 )
 
     return presigned_urls_response

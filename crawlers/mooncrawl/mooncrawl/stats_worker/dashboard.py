@@ -226,6 +226,8 @@ def generate_data(
 
     response_labels: Dict[Any, Any] = {}
 
+    print(labels_time_series)
+
     for created_date, label, count in labels_time_series:
         if not response_labels.get(label):
             response_labels[label] = []
@@ -1056,8 +1058,6 @@ def stats_generate_api_task(
 
                 crawler_label = CRAWLER_LABEL
 
-                if address in ("0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",):
-                    crawler_label = "moonworm"
                 abi = None
                 if "abi" in subscription_by_id[subscription_id].secondary_fields:
                     abi = subscription_by_id[subscription_id].secondary_fields["abi"]
@@ -1069,7 +1069,7 @@ def stats_generate_api_task(
                     abi_json = {}
 
                 else:
-                    abi_json = abi
+                    abi_json = json.loads(abi)
 
                     methods = generate_list_of_names(
                         type="function",
@@ -1078,6 +1078,8 @@ def stats_generate_api_task(
                         abi_json=abi_json,
                     )
 
+                    print(methods)
+
                     events = generate_list_of_names(
                         type="event",
                         subscription_filters=dashboard_subscription_filters,
@@ -1085,7 +1087,14 @@ def stats_generate_api_task(
                         abi_json=abi_json,
                     )
 
+                    print(events)
+
                 # Data for cards components
+
+                print(blockchain_type)
+                print(address)
+                print(crawler_label)
+
                 extention_data = generate_web3_metrics(
                     db_session=db_session,
                     events=events,
@@ -1129,6 +1138,12 @@ def stats_generate_api_task(
                     )
                     s3_data_object["methods"] = functions_calls_data
 
+                    print(blockchain_type)
+                    print(address)
+                    print(crawler_label)
+                    print(timescale)
+                    print(start_date)
+
                     # Generate events timeseries
                     events_data = generate_data(
                         db_session=db_session,
@@ -1140,6 +1155,9 @@ def stats_generate_api_task(
                         metric_type="event",
                         crawler_label=crawler_label,
                     )
+
+                    print(events_data)
+
                     s3_data_object["events"] = events_data
 
                     # push data to S3 bucket
