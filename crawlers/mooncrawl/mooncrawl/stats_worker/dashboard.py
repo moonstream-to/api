@@ -592,28 +592,23 @@ def stats_generate_handler(args: argparse.Namespace):
         dashboards_by_subscription: Dict[str, List[BugoutResource]] = {}
 
         for dashboard in dashboard_resources.resources:
-            subscription_id = dashboard.resource_data.get("subscription_id")
-            if subscription_id:
-                if subscription_id not in dashboards_by_subscription:
-                    dashboards_by_subscription[subscription_id] = []
-                dashboards_by_subscription[subscription_id].append(dashboard)
+            print(dashboard.resource_data)
+            dashboard_subscription_settings = dashboard.resource_data.get(
+                "subscription_settings"
+            )
+
+            if dashboard_subscription_settings:
+                for dashboard_setting in dashboard_subscription_settings:
+                    subscription_id = dashboard_setting.get("subscription_id")
+
+                    if subscription_id:
+                        if subscription_id not in dashboards_by_subscription:
+                            dashboards_by_subscription[subscription_id] = []
+                        dashboards_by_subscription[subscription_id].append(dashboard)
 
         logger.info(f"Amount of dashboards: {len(dashboard_resources.resources)}")
 
-        # get all subscriptions
-        available_subscriptions: List[BugoutResource] = []
-
-        # for subscription_type in subscription_ids_by_blockchain[args.blockchain]:
-        #     # Create subscriptions dict for get subscriptions by id.
-        #     blockchain_subscriptions: BugoutResources = bc.list_resources(
-        #         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-        #         params={
-        #             "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
-        #             "subscription_type_id": subscription_type,
-        #         },
-        #         timeout=10,
-        #     )
-        #     available_subscriptions.extend(blockchain_subscriptions.resources)
+        print(dashboards_by_subscription)
 
         # Get all users entity collections
 
@@ -629,9 +624,8 @@ def stats_generate_handler(args: argparse.Namespace):
                 "collection_id"
             ]
             for collection in user_entity_collections.resources
+            if collection.resource_data.get("collection_id")
         }
-
-        s3_client = boto3.client("s3")
 
         subscriptions_count = 0
 
@@ -666,7 +660,7 @@ def stats_generate_handler(args: argparse.Namespace):
                 collection_id=collection_id,
                 required_field=[
                     "subscription_type_id:{}".format(
-                        subscription_id_by_blockchain[blockchain_type]
+                        subscription_id_by_blockchain[args.blockchain]
                     )
                 ],
             )
@@ -679,6 +673,9 @@ def stats_generate_handler(args: argparse.Namespace):
                 subscription_id = str(subscription.entity_id)
 
                 if subscription_id not in dashboards_by_subscription:
+                    logger.info(
+                        f"Subscription {subscription_id} has no dashboard. Skipping."
+                    )
                     continue
 
                 dashboards = dashboards_by_subscription[subscription_id]
@@ -979,7 +976,7 @@ def stats_generate_handler(args: argparse.Namespace):
                                     push_statistics(
                                         statistics_data=s3_subscription_data_object,
                                         subscription_type_id=subscription_id_by_blockchain[
-                                            blockchain_type
+                                            args.blockchain
                                         ],
                                         address=address,
                                         timescale=timescale,
