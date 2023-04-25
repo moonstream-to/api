@@ -6,7 +6,7 @@ import json
 import logging
 import os
 from posix import listdir
-from typing import Optional
+from typing import Optional, List, Dict, Any, Union, Callable
 
 from sqlalchemy.orm import with_expression
 
@@ -20,7 +20,6 @@ from .migrations import (
     checksum_address,
     update_dashboard_subscription_key,
     generate_entity_subscriptions,
-    update_dashboards_connection,
 )
 
 
@@ -53,6 +52,9 @@ description: {checksum_address.__doc__}
 - id: 20230213
 name: {generate_entity_subscriptions.__name__}
 description: {generate_entity_subscriptions.__doc__}
+steps:
+    - step 1: generate_entity_subscriptions_from_brood_resources - Generate entity subscriptions from brood resources
+    - step 2: update_dashboards_connection - Update dashboards connection
     """
     logger.info(entity_migration_overview)
 
@@ -84,13 +86,40 @@ def migrations_run(args: argparse.Namespace) -> None:
     db_session = SessionLocal()
     try:
         if args.id == 20230213:
+            step_map: Dict[str, Dict[str, Union[str, Callable]]] = {
+                "generate_entity_subscriptions_from_brood_resources": {
+                    "action": generate_entity_subscriptions.generate_entity_subscriptions_from_brood_resources,
+                    "description": "Generate entity subscriptions from brood resources",
+                },
+                "update_dashboards_connection": {
+                    "action": generate_entity_subscriptions.update_dashboards_connection,
+                    "description": "Update dashboards connection",
+                },
+            }
             if args.command == "upgrade":
-                logger.info(
-                    "Starting migrate subscriptions from resources to entity..."
-                )
-                generate_entity_subscriptions.Generate_entity_subscriptions_from_brood_resources()
-                print("Starting update of dashboards...")
-                update_dashboards_connection()
+                step = args.step
+
+                if step is None:
+                    # run all steps
+
+                    for step in step_map:
+                        logger.info(
+                            f"Starting step {step}: {step_map[step]['description']}"
+                        )
+                        migration_function = step_map[step]["action"]
+                        if callable(migration_function):
+                            migration_function()
+                elif step in step_map:
+                    logger.info(
+                        f"Starting step {step}: {step_map[step]['description']}"
+                    )
+                    migration_function = step_map[step]["action"]
+                    if callable(migration_function):
+                        migration_function()
+                else:
+                    logger.info(f"Step {step} does not exist")
+                    logger.info(f"Available steps: {step_map.keys()}")
+
             elif args.command == "downgrade":
                 logger.info(
                     "Starting migrate subscriptions from entity to resources..."
@@ -372,6 +401,13 @@ This CLI is configured to work with the following API URLs:
         choices=["upgrade", "downgrade"],
         type=str,
         help="Command for migration",
+    )
+    parser_migrations_run.add_argument(
+        "-s",
+        "--step",
+        required=False,
+        type=str,
+        help="How many steps to run",
     )
     parser_migrations_run.set_defaults(func=migrations_run)
 

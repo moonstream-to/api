@@ -8,7 +8,7 @@ import boto3  # type: ignore
 import requests  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
-from entity.data import EntitiesResponse
+from entity.data import EntitiesResponse, EntityResponse
 from fastapi import APIRouter, Body, Path, Query, Request
 
 from .. import actions, data
@@ -69,7 +69,7 @@ async def add_dashboard_handler(
 
     # process existing subscriptions with supplied ids
 
-    available_subscriptions_ids: Dict[Union[UUID, str], Dict[str, Any]] = {
+    available_subscriptions_ids: Dict[Union[UUID, str], EntityResponse] = {
         subscription.entity_id: subscription
         for subscription in subscriprions_list.entities
     }
@@ -77,9 +77,9 @@ async def add_dashboard_handler(
     for dashboard_subscription in subscription_settings:
         if dashboard_subscription.subscription_id in available_subscriptions_ids.keys():
             if (
-                available_subscriptions_ids[dashboard_subscription.subscription_id][
-                    "secondary_fields"
-                ].get("abi")
+                available_subscriptions_ids[
+                    dashboard_subscription.subscription_id
+                ].secondary_fields.get("abi")
                 is None
             ):
                 logger.error(
@@ -91,9 +91,9 @@ async def add_dashboard_handler(
                 )
 
             abi = json.loads(
-                available_subscriptions_ids[dashboard_subscription.subscription_id][
-                    "secondary_fields"
-                ]["abi"]
+                available_subscriptions_ids[
+                    dashboard_subscription.subscription_id
+                ].secondary_fields["abi"]
             )
 
             actions.dashboards_abi_validation(
@@ -239,7 +239,7 @@ async def update_dashboard_handler(
         limit=1000,
     )
 
-    available_subscriptions_ids: Dict[Union[UUID, str], Dict[str, Any]] = {
+    available_subscriptions_ids: Dict[Union[UUID, str], EntityResponse] = {
         subscription.entity_id: subscription
         for subscription in subscriprions_list.entities
     }
@@ -247,9 +247,9 @@ async def update_dashboard_handler(
     for dashboard_subscription in subscription_settings:
         if dashboard_subscription.subscription_id in available_subscriptions_ids:
             if (
-                available_subscriptions_ids[dashboard_subscription.subscription_id][
-                    "secondary_fields"
-                ].get("abi")
+                available_subscriptions_ids[
+                    dashboard_subscription.subscription_id
+                ].secondary_fields.get("abi")
                 is None
             ):
                 logger.error(
@@ -261,9 +261,9 @@ async def update_dashboard_handler(
                 )
 
             abi = json.loads(
-                available_subscriptions_ids[dashboard_subscription.subscription_id][
-                    "secondary_fields"
-                ].get("abi")
+                available_subscriptions_ids[
+                    dashboard_subscription.subscription_id
+                ].secondary_fields.get("abi")
             )
 
             actions.dashboards_abi_validation(dashboard_subscription, abi)
@@ -377,7 +377,8 @@ async def get_dashboard_data_links_handler(
         available_timescales = [timescale.value for timescale in data.TimeScale]
         stats[id] = {}
 
-        for fields in subscription["secondary_fields"]:
+        for fields in subscription.required_fields:
+            print(fields)
             if "subscription_type_id" in fields:
                 subscription_type_id = fields["subscription_type_id"]
 
@@ -396,7 +397,7 @@ async def get_dashboard_data_links_handler(
                 stats[id][timescale] = {"url": stats_presigned_url}
             except Exception as err:
                 logger.warning(
-                    f"Can't generate S3 presigned url in stats endpoint for Bucket:{MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET}, Key:{result_key} get error:{err}"
+                    f"Can't generate S3 presigned url in stats endpoint for Bucket:{MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET},  get error:{err}"
                 )
 
     return stats
@@ -414,6 +415,7 @@ async def update_dashbord_data_handler(
     """
 
     token = request.state.token
+    user = request.state.user
 
     responce = requests.post(
         f"{MOONSTREAM_CRAWLERS_SERVER_URL}:{MOONSTREAM_CRAWLERS_SERVER_PORT}/jobs/stats_update",
@@ -421,6 +423,7 @@ async def update_dashbord_data_handler(
             "dashboard_id": dashboard_id,
             "timescales": updatestats.timescales,
             "token": token,
+            "user_id": str(user.id),
         },
     )
     if responce.status_code != 200:

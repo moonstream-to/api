@@ -662,7 +662,7 @@ def get_entity_subscription_collection_id(
         resource_data = {
             "type": resource_type,
             "user_id": str(user_id),
-            "subscription_collection": str(collection_id),
+            "collection_id": str(collection_id),
         }
 
         try:
@@ -678,8 +678,7 @@ def get_entity_subscription_collection_id(
             raise MoonstreamHTTPException(status_code=500, internal_error=e)
     else:
         resource = resources.resources[0]
-    print(resource.resource_data)
-    return resource.resource_data["subscription_collection"]
+    return resource.resource_data["collection_id"]
 
 
 def generate_s3_access_links(

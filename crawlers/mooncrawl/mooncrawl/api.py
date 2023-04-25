@@ -10,15 +10,23 @@ from uuid import UUID
 
 import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
+from entity.data import EntityResponse
 from fastapi import BackgroundTasks, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
-from .actions import generate_s3_access_links, query_parameter_hash
+from .actions import (
+    generate_s3_access_links,
+    query_parameter_hash,
+    get_entity_subscription_collection_id,
+    EntityCollectionNotFoundException,
+)
 from . import data
 from .middleware import MoonstreamHTTPException
 from .settings import (
     BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
+    BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
+    MOONSTREAM_ADMIN_ACCESS_TOKEN,
     DOCS_TARGET_PATH,
     MOONSTREAM_S3_QUERIES_BUCKET,
     MOONSTREAM_S3_QUERIES_BUCKET_PREFIX,
@@ -27,7 +35,7 @@ from .settings import (
     ORIGINS,
     LINKS_EXPIRATION_TIME,
 )
-from .settings import bugout_client as bc
+from .settings import bugout_client as bc, entity_client as ec
 from .stats_worker import dashboard, queries
 from .version import MOONCRAWL_VERSION
 
@@ -98,18 +106,25 @@ async def status_handler(
         timeout=10,
     )
 
-    # get all user subscriptions
+    try:
+        collection_id = get_entity_subscription_collection_id(
+            resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            user_id=stats_update.user_id,
+        )
 
-    blockchain_subscriptions: BugoutResources = bc.list_resources(
-        token=stats_update.token,
-        params={"type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION},
-        timeout=10,
-    )
+    except EntityCollectionNotFoundException as e:
+        raise MoonstreamHTTPException(
+            status_code=404,
+            detail="User subscriptions collection not found",
+            internal_error=e,
+        )
+    except Exception as e:
+        logger.error(
+            f"Error listing subscriptions for user ({stats_update.user_id}) with token: {stats_update.token}, error: {str(e)}"
+        )
 
-    subscription_by_id = {
-        str(blockchain_subscription.id): blockchain_subscription
-        for blockchain_subscription in blockchain_subscriptions.resources
-    }
+    # get subscription entities
 
     s3_client = boto3.client("s3")
 
@@ -133,15 +148,23 @@ async def status_handler(
     for dashboard_subscription_filters in dashboard_resource.resource_data[
         "subscription_settings"
     ]:
-        subscription = subscription_by_id[
-            dashboard_subscription_filters["subscription_id"]
-        ]
+        # get subscription by id
+
+        subscription: EntityResponse = ec.get_entity(
+            token=stats_update.token,
+            collection_id=collection_id,
+            entity_id=dashboard_subscription_filters["subscription_id"],
+        )
+
+        for reqired_field in subscription.required_fields:
+            if "subscription_type_id" in reqired_field:
+                subscriprions_type = reqired_field["subscription_type_id"]
 
         for timescale in stats_update.timescales:
             presigned_urls_response[subscription.id] = {}
 
             try:
-                result_key = f'{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/{dashboard.blockchain_by_subscription_id[subscription.resource_data["subscription_type_id"]]}/contracts_data/{subscription.resource_data["address"]}/{stats_update.dashboard_id}/v1/{timescale}.json'
+                result_key = f"{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/{dashboard.blockchain_by_subscription_id[subscriprions_type]}/contracts_data/{subscription.address}/{stats_update.dashboard_id}/v1/{timescale}.json"
 
                 object = s3_client.head_object(
                     Bucket=subscription.resource_data["bucket"], Key=result_key
