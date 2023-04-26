@@ -6,16 +6,9 @@ from typing import Any, Dict, Optional, Union
 import uuid
 
 from bugout.data import (
-    BugoutSearchResults,
-    BugoutSearchResult,
-    BugoutResource,
     BugoutResources,
 )
-from bugout.journal import SearchOrder
 from bugout.exceptions import BugoutResponseException
-from entity.data import EntityCollectionsResponse, EntityCollectionResponse
-from entity.exceptions import EntityUnexpectedResponse
-
 from .middleware import MoonstreamHTTPException
 from .settings import bugout_client as bc
 

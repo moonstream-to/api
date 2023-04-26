@@ -3,7 +3,7 @@ from typing import Dict, Optional
 from uuid import UUID
 
 from bugout.app import Bugout
-from entity.client import Entity
+from entity.client import Entity  # type: ignore
 from moonstreamdb.blockchain import AvailableBlockchainType
 
 

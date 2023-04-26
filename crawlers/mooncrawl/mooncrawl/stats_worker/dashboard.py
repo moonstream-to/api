@@ -14,7 +14,7 @@ from uuid import UUID
 
 import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
-from entity.data import EntityResponse, EntityCollectionResponse
+from entity.data import EntityResponse, EntityCollectionResponse  # type: ignore
 from moonstreamdb.blockchain import (
     AvailableBlockchainType,
     get_label_model,

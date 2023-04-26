@@ -9,8 +9,8 @@ from typing import Any, Dict, List
 from uuid import UUID
 
 import boto3  # type: ignore
-from bugout.data import BugoutResource, BugoutResources
-from entity.data import EntityResponse
+from bugout.data import BugoutResource
+from entity.data import EntityResponse  # type: ignore
 from fastapi import BackgroundTasks, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
