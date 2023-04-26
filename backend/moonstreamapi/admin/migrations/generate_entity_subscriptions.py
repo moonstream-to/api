@@ -30,10 +30,6 @@ from ..subscription_types import CANONICAL_SUBSCRIPTION_TYPES
 logger = logging.getLogger(__name__)
 
 
-# Dashboard resource type
-BUGOUT_RESOURCE_TYPE_DASHBOARD = "dashboards"
-
-
 ### create collection for user
 
 
@@ -107,21 +103,6 @@ def get_abi_from_s3(s3_path: str, bucket: str):
         return abi
     except Exception as e:
         logger.error(f"Error get ABI from S3: {str(e)}")
-
-
-def add_collection_permissions_to_user(
-    user_id: uuid.UUID, collection_id: str, permissions: List[str]
-) -> None:
-    """
-    Add permissions to user
-    """
-    bc.update_journal_scopes(
-        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-        journal_id=collection_id,
-        holder_type="user",
-        holder_id=user_id,
-        permission_list=permissions,
-    )
 
 
 def revoke_collection_permissions_from_user(
@@ -298,15 +279,15 @@ def generate_entity_subscriptions_from_brood_resources() -> None:
                             f"Failed to create subscription brood resource: {str(e)}"
                         )
 
-            if "proccessed_subscriptions" not in stages[user_id]:
-                stages[user_id]["proccessed_subscriptions"] = {}
+            if "processed_subscriptions" not in stages[user_id]:
+                stages[user_id]["processed_subscriptions"] = {}
 
             ### Add subscriptions to collection
 
             for subscription in subscriptions:
                 if (
                     str(subscription["subscription_id"])
-                    in stages[user_id]["proccessed_subscriptions"]
+                    in stages[user_id]["processed_subscriptions"]
                 ):
                     continue
 
@@ -342,7 +323,7 @@ def generate_entity_subscriptions_from_brood_resources() -> None:
                     label=label,
                     content={"abi": abi_body, "abi_hash": abi_hash} if abi else {},
                 )
-                stages[user_id]["proccessed_subscriptions"][
+                stages[user_id]["processed_subscriptions"][
                     str(subscription["subscription_id"])
                 ] = {"entity_id": str(entity.entity_id), "dashboard_ids": []}
 
@@ -353,10 +334,12 @@ def generate_entity_subscriptions_from_brood_resources() -> None:
 
                 if "permissions_granted" not in stages[user_id]:
                     try:
-                        add_collection_permissions_to_user(
-                            user_id=user_id,
-                            collection_id=collection_id,
-                            permissions=[
+                        bc.update_journal_scopes(
+                            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                            journal_id=collection_id,
+                            holder_type="user",
+                            holder_id=user_id,
+                            permission_list=[
                                 "journals.read",
                                 "journals.update",
                                 "journals.entries.read",
@@ -365,6 +348,7 @@ def generate_entity_subscriptions_from_brood_resources() -> None:
                                 "journals.entries.delete",
                             ],
                         )
+
                         stages[user_id]["permissions_granted"] = True
                     except Exception as e:
                         logger.error(f"Failed to add permissions to user: {str(e)}")
@@ -454,7 +438,7 @@ def update_dashboards_connection():
 
                     if (
                         str(subscription_setting["subscription_id"])
-                        in stages[user]["proccessed_subscriptions"]
+                        in stages[user]["processed_subscriptions"]
                     ):
                         print(
                             f"subscription found: {subscription_setting['subscription_id']}"
@@ -463,7 +447,7 @@ def update_dashboards_connection():
                         breakpoint()
 
                         subscription_stages_metadata = stages[user][
-                            "proccessed_subscriptions"
+                            "processed_subscriptions"
                         ][subscription_setting["subscription_id"]]
 
                         if (
@@ -494,7 +478,7 @@ def update_dashboards_connection():
                                     }
                                 },
                             )
-                            stages[user]["proccessed_subscriptions"][
+                            stages[user]["processed_subscriptions"][
                                 str(subscription_setting["subscription_id"])
                             ]["dashboard_ids"].append(str(dashboard.id))
                         except Exception as e:
@@ -515,31 +499,6 @@ def update_dashboards_connection():
             # write as text
             with open("stages-json-failed.txt", "w") as f:
                 f.write(str(stages))
-
-
-def revoke_admin_permissions_from_collections(
-    admin_user_id: uuid.UUID, collections: List[str]
-):
-    for collection in collections:
-        try:
-            revoke_collection_permissions_from_user(
-                user_id=admin_user_id,
-                collection_id=collection,
-                permissions=[
-                    "journals.read",
-                    "journals.update",
-                    "journals.delete",
-                    "journals.entries.read",
-                    "journals.entries.create",
-                    "journals.entries.update",
-                    "journals.entries.delete",
-                ],
-            )
-        except Exception as e:
-            logger.error(f"Failed to revoke permissions: {str(e)}")
-            continue
-
-    logger.info("Admin permissions revoked from collections")
 
 
 def delete_generated_entity_subscriptions_from_brood_resources():
@@ -699,15 +658,13 @@ def delete_generated_entity_subscriptions_from_brood_resources():
 
                         if (
                             subscription_id
-                            not in stages[user_id]["proccessed_subscriptions"]
+                            not in stages[user_id]["processed_subscriptions"]
                         ):
                             continue
 
                         dashboard_data["subscription_settings"][
                             "subscription_id"
-                        ] = stages[user_id]["proccessed_subscriptions"][
-                            subscription_id
-                        ][
+                        ] = stages[user_id]["processed_subscriptions"][subscription_id][
                             "old_subscription_id"
                         ]
 
