@@ -1,7 +1,7 @@
 import os
 
 from bugout.app import Bugout
-from entity.client import Entity
+from entity.client import Entity  # type: ignore
 
 
 # Bugout

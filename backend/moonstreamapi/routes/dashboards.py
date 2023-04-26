@@ -8,7 +8,7 @@ import boto3  # type: ignore
 import requests  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
-from entity.data import EntitiesResponse, EntityResponse
+from entity.data import EntitiesResponse, EntityResponse  # type: ignore
 from fastapi import APIRouter, Body, Path, Query, Request
 
 from .. import actions, data

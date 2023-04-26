@@ -17,8 +17,8 @@ from bugout.data import (
 )
 from bugout.journal import SearchOrder
 from bugout.exceptions import BugoutResponseException
-from entity.data import EntityCollectionsResponse, EntityCollectionResponse
-from entity.exceptions import EntityUnexpectedResponse
+from entity.data import EntityCollectionsResponse, EntityCollectionResponse  # type: ignore
+from entity.exceptions import EntityUnexpectedResponse  # type: ignore
 from ens.utils import is_valid_ens_name  # type: ignore
 from eth_utils.address import is_address  # type: ignore
 from moonstreamdb.models import EthereumLabel

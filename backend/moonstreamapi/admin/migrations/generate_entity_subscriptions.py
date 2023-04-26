@@ -5,16 +5,15 @@ import hashlib
 import logging
 import json
 import os
-from pprint import pprint
 import traceback
 from typing import List, Optional, Dict, Any, Union, Tuple
 import uuid
 
-import boto3
+import boto3  # type: ignore
 from bugout.data import BugoutResources, BugoutResource
 from bugout.exceptions import BugoutResponseException
-from entity.exceptions import EntityUnexpectedResponse
-from entity.data import EntityCollectionResponse, EntityResponse
+from entity.exceptions import EntityUnexpectedResponse  # type: ignore
+from entity.data import EntityCollectionResponse, EntityResponse  # type: ignore
 
 from ...settings import (
     BUGOUT_REQUEST_TIMEOUT_SECONDS,

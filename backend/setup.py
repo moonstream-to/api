@@ -24,7 +24,7 @@ setup(
         "python-multipart",
         "python-slugify",
         "uvicorn",
-        "web3",
+        "web3>=5.30.0, <6",
     ],
     extras_require={
         "dev": ["black", "isort", "mypy", "types-requests", "types-python-dateutil"],
