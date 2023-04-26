@@ -6,9 +6,7 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
-from bugout.data import BugoutResource, BugoutResources
-from bugout.exceptions import BugoutResponseException  # type: ignore
-from entity.exceptions import EntityUnexpectedResponse
+from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Depends, Request, Form, BackgroundTasks
 from web3 import Web3
 
