@@ -1,38 +1,59 @@
-import React, { useContext, useMemo } from "react";
+import React, { useContext, useMemo, useState, useEffect } from "react";
+import { useQuery } from "react-query";
 import { chakra, Stack, Spinner } from "@chakra-ui/react";
-import { useSubscription, usePresignedURL } from "../core/hooks";
+import { queryCacheProps } from "../core/hooks/hookCommon";
+import { SubscriptionsService } from "../core/services";
 import CheckboxGrouped from "./CheckboxGrouped";
 import UIContext from "../core/providers/UIProvider/context";
+import UserContext from "../core/providers/UserProvider/context";
 import {
   DASHBOARD_CONFIGURE_SETTING_SCOPES,
   DASHBOARD_UPDATE_ACTIONS,
 } from "../core/constants";
 
 const SuggestABI = ({ subscriptionId, state }) => {
-  const { subscriptionLinksCache } = useSubscription({
-    id: subscriptionId,
-  });
+
+  const user = useContext(UserContext);
+
+
+  const subscriptionLinksCache = useQuery(
+    ["dashboardLinks", subscriptionId],
+    SubscriptionsService.getSubscriptionABI(subscriptionId),
+    {
+      ...queryCacheProps,
+      onError: (error) => {
+        toast(error, "error");
+      },
+      enabled: !!user && !!subscriptionId,
+    }
+  );
+
 
   const { dispatchDashboardUpdate } = useContext(UIContext);
 
-  const { data, isLoading } = usePresignedURL({
-    url: subscriptionLinksCache?.data?.data?.url,
-    isEnabled: true,
-    id: subscriptionId,
-    cacheType: "abi",
-    requestNewURLCallback: subscriptionLinksCache.refetch,
-  });
+  const [abi, setAbi] = useState(null);
+
+  useEffect(() => {
+    if (subscriptionLinksCache?.data?.data?.abi) {
+      setAbi(JSON.parse(subscriptionLinksCache?.data?.data?.abi));
+    }
+  }, [subscriptionLinksCache.data]);
+
+
+
 
   const abiEvents = useMemo(
-    () => data && data.filter((abiItem) => abiItem.type === "event"),
-    [data]
+    () => abi && abi.filter((abiItem) => abiItem.type === "event"),
+    [abi]
   );
   const abiMethods = useMemo(
-    () => data && data.filter((abiItem) => abiItem.type === "function"),
-    [data]
+    () => abi && abi.filter((abiItem) => abiItem.type === "function"),
+    [abi]
   );
-  if (isLoading) return <Spinner />;
-  if (!data) return "";
+
+
+  // Waiting for abi to be available
+  if (!abi) return <Spinner />;
 
   return (
     <>
