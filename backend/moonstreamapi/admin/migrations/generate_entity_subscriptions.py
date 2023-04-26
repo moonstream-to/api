@@ -131,7 +131,7 @@ def find_user_collection(
         "type": BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
         "user_id": str(user_id),
     }
-    print(f"Looking for collection for user {user_id}")
+    logger.info(f"Looking for collection for user {user_id}")
     try:
         user_entity_resources: BugoutResources = bc.list_resources(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN, params=params
@@ -149,11 +149,13 @@ def find_user_collection(
         collection_id = user_entity_resources.resources[0].resource_data[
             "collection_id"
         ]
-        print(f"Collection found for user {user_id}. collection_id: {collection_id}")
+        logger.info(
+            f"Collection found for user {user_id}. collection_id: {collection_id}"
+        )
         return collection_id, str(user_entity_resources.resources[0].id)
     elif create_if_not_exists:
         # Create collection new collection for user
-        print(f"Creating new collection")
+        logger.info(f"Creating new collection")
         collection = create_collection_for_user(user_id)
         return collection, None
 
@@ -173,7 +175,7 @@ def generate_entity_subscriptions_from_brood_resources() -> None:
 
     admin_user_id = admin_user.id
 
-    print(f"admin user :{admin_user.username}")
+    logger.info(f"admin user :{admin_user.username}")
 
     ### Get all subscription resources type = "subscription"
 
@@ -183,7 +185,7 @@ def generate_entity_subscriptions_from_brood_resources() -> None:
         timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
     )
 
-    print(f"Admin own {len(resources.resources)} subscriptions")
+    logger.info(f"Admin own {len(resources.resources)} subscriptions")
 
     ### initial users_subscriptions, dashboards_by_user, stages is empty
 
@@ -218,7 +220,7 @@ def generate_entity_subscriptions_from_brood_resources() -> None:
 
         users_subscriptions[user_id].append(resource_data)
 
-    print(f"parsed users: {len(users_subscriptions)}")
+    logger.info(f"parsed users: {len(users_subscriptions)}")
 
     ### Create collections and add subscriptions
 
@@ -243,7 +245,7 @@ def generate_entity_subscriptions_from_brood_resources() -> None:
                 )
 
             if collection_id is None:
-                print(f"Collection not found or create for user {user_id}")
+                logger.info(f"Collection not found or create for user {user_id}")
                 continue
 
             stages[user_id]["collection_id"] = collection_id
@@ -400,8 +402,6 @@ def update_dashboards_connection():
 
         user_id = dashboard.resource_data["user_id"]
 
-        print(f"dashboard name:{dashboard.resource_data['name']}")
-
         if user_id not in dashboards_by_user:
             dashboards_by_user[user_id] = []
 
@@ -409,7 +409,7 @@ def update_dashboards_connection():
 
     try:
         for user in dashboards_by_user:
-            print(f"dashboards: {len(dashboards_by_user[user])}")
+            logger.info(f"dashboards: {len(dashboards_by_user[user])}")
 
             if user not in stages:
                 continue
@@ -424,14 +424,12 @@ def update_dashboards_connection():
                 if dashboard_subscription_settings is None:
                     continue
 
-                print(f"dashboard {dashboard.id}")
-
-                print(f"dashboard name:{dashboard_data['name']}")
+                logger.info(f"dashboard {dashboard.id}")
 
                 for setting_index, subscription_setting in enumerate(
                     dashboard_subscription_settings
                 ):
-                    print(
+                    logger.info(
                         f"Find subscripton: {subscription_setting['subscription_id']}"
                     )
 
@@ -439,7 +437,7 @@ def update_dashboards_connection():
                         str(subscription_setting["subscription_id"])
                         in stages[user]["processed_subscriptions"]
                     ):
-                        print(
+                        logger.info(
                             f"subscription found: {subscription_setting['subscription_id']}"
                         )
 
@@ -464,7 +462,9 @@ def update_dashboards_connection():
 
                             # Update brood resource in bugout client
 
-                            print("RECOVERY DASHBOARD")
+                            logger.info(
+                                f"Update dashboard: {dashboard.id} for user {user}"
+                            )
 
                             bc.update_resource(
                                 token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -481,7 +481,7 @@ def update_dashboards_connection():
                                 str(subscription_setting["subscription_id"])
                             ]["dashboard_ids"].append(str(dashboard.id))
                         except Exception as e:
-                            print(
+                            logger.error(
                                 f"****Failed to update dashboard: {str(e)} for user {user}****"
                             )
                             continue
@@ -510,7 +510,7 @@ def delete_generated_entity_subscriptions_from_brood_resources():
 
     admin_user = bc.get_user(token=MOONSTREAM_ADMIN_ACCESS_TOKEN)
 
-    print(f"admin user :{admin_user.username}")
+    logger.info(f"admin user :{admin_user.username}")
 
     # Get all subscriptions
 
@@ -522,7 +522,7 @@ def delete_generated_entity_subscriptions_from_brood_resources():
         timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
     )
 
-    print(f"Admin own {len(resources.resources)} subscriptions")
+    logger.info(f"Admin own {len(resources.resources)} subscriptions")
 
     ### initial users_subscriptions, dashboards_by_user, stages is empty
 
@@ -555,7 +555,7 @@ def delete_generated_entity_subscriptions_from_brood_resources():
 
         users_subscriptions[user_id].append(resource_data)
 
-    print(f"parsed users: {len(users_subscriptions)}")
+    logger.info(f"parsed users: {len(users_subscriptions)}")
 
     ### Dashboards parsing and save to dashboards_by_user
 
@@ -570,8 +570,6 @@ def delete_generated_entity_subscriptions_from_brood_resources():
             continue
 
         user_id = dashboard.resource_data["user_id"]
-
-        print(f"dashboard name:{dashboard.resource_data['name']}")
 
         if user_id not in dashboards_by_user:
             dashboards_by_user[user_id] = []
@@ -603,7 +601,7 @@ def delete_generated_entity_subscriptions_from_brood_resources():
                 )
 
             if collection_id is None:
-                print(f"Collection not found or create for user {user_id}")
+                logger.info(f"Collection not found or create for user {user_id}")
                 continue
 
             ### Delete collection
@@ -612,27 +610,29 @@ def delete_generated_entity_subscriptions_from_brood_resources():
                 ec.delete_collection(
                     token=MOONSTREAM_ADMIN_ACCESS_TOKEN, collection_id=collection_id
                 )
-                print(f"Collection deleted {collection_id}")
+                logger.info(f"Collection deleted {collection_id}")
 
             except Exception as e:
-                print(f"Failed to delete collection: {str(e)}")
+                logger.error(f"Failed to delete collection: {str(e)}")
 
             ### Delete collection resource
 
             try:
-                print(f"Collection resource id {resource_id_of_user_collection}")
+                logger.info(f"Collection resource id {resource_id_of_user_collection}")
                 bc.delete_resource(
                     token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
                     resource_id=resource_id_of_user_collection,
                 )
-                print(f"Collection resource deleted {resource_id_of_user_collection}")
+                logger.info(
+                    f"Collection resource deleted {resource_id_of_user_collection}"
+                )
 
                 # clear stages
 
                 stages[user_id] = {}
 
             except Exception as e:
-                print(f"Failed to delete collection resource: {str(e)}")
+                logger.error(f"Failed to delete collection resource: {str(e)}")
                 continue
 
             ### Retunr all dashboards to old state
@@ -686,7 +686,7 @@ def delete_generated_entity_subscriptions_from_brood_resources():
 
     except Exception as e:
         traceback.print_exc()
-        print(f"Failed to proccess user subscriptions: {str(e)}")
+        logger.error(f"Failed to proccess user subscriptions: {str(e)}")
 
     ### clear stages
     with open("stages.json", "w") as f:
