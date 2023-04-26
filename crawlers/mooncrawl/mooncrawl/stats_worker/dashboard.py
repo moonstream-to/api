@@ -226,8 +226,6 @@ def generate_data(
 
     response_labels: Dict[Any, Any] = {}
 
-    print(labels_time_series)
-
     for created_date, label, count in labels_time_series:
         if not response_labels.get(label):
             response_labels[label] = []
@@ -594,7 +592,6 @@ def stats_generate_handler(args: argparse.Namespace):
         dashboards_by_subscription: Dict[str, List[BugoutResource]] = {}
 
         for dashboard in dashboard_resources.resources:
-            print(dashboard.resource_data)
             dashboard_subscription_settings = dashboard.resource_data.get(
                 "subscription_settings"
             )
@@ -609,8 +606,6 @@ def stats_generate_handler(args: argparse.Namespace):
                         dashboards_by_subscription[subscription_id].append(dashboard)
 
         logger.info(f"Amount of dashboards: {len(dashboard_resources.resources)}")
-
-        print(dashboards_by_subscription)
 
         # Get all users entity collections
 
@@ -843,7 +838,6 @@ def stats_generate_handler(args: argparse.Namespace):
                                 merged_functions[address]["merged"].add(method)
 
                         except Exception as e:
-                            traceback.print_exc()
                             logger.error(f"Error while merging subscriptions: {e}")
 
         # Request contracts for external calls.
@@ -1078,8 +1072,6 @@ def stats_generate_api_task(
                         abi_json=abi_json,
                     )
 
-                    print(methods)
-
                     events = generate_list_of_names(
                         type="event",
                         subscription_filters=dashboard_subscription_filters,
@@ -1087,13 +1079,7 @@ def stats_generate_api_task(
                         abi_json=abi_json,
                     )
 
-                    print(events)
-
                 # Data for cards components
-
-                print(blockchain_type)
-                print(address)
-                print(crawler_label)
 
                 extention_data = generate_web3_metrics(
                     db_session=db_session,
@@ -1138,12 +1124,6 @@ def stats_generate_api_task(
                     )
                     s3_data_object["methods"] = functions_calls_data
 
-                    print(blockchain_type)
-                    print(address)
-                    print(crawler_label)
-                    print(timescale)
-                    print(start_date)
-
                     # Generate events timeseries
                     events_data = generate_data(
                         db_session=db_session,
@@ -1155,8 +1135,6 @@ def stats_generate_api_task(
                         metric_type="event",
                         crawler_label=crawler_label,
                     )
-
-                    print(events_data)
 
                     s3_data_object["events"] = events_data
 
@@ -1170,7 +1148,6 @@ def stats_generate_api_task(
                         dashboard_id=dashboard.id,
                     )
             except Exception as err:
-                traceback.print_exc()
                 reporter.error_report(
                     err,
                     [
