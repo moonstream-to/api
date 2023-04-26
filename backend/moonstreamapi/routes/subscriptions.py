@@ -4,7 +4,6 @@ The Moonstream subscriptions HTTP API
 import hashlib
 import json
 import logging
-from pprint import pprint
 from typing import Any, Dict, List, Optional
 
 from bugout.data import BugoutResource, BugoutResources
@@ -255,8 +254,6 @@ async def get_subscriptions_handler(request: Request) -> data.SubscriptionsListR
             user_id=user.id,
         )
 
-        print("collection_id", collection_id)
-
         subscriprions_list = ec.search_entities(
             token=token,
             collection_id=collection_id,
@@ -353,8 +350,6 @@ async def update_subscriptions_handler(
 
         update_required_fields = subscription_entity.required_fields
 
-        print(update_required_fields)
-
         for field in update_required_fields:
             if "subscription_type_id" in field:
                 subscription_type_id = field["subscription_type_id"]
@@ -417,7 +412,7 @@ async def update_subscriptions_handler(
         )
 
     except Exception as e:
-        logger.error(f"Error getting user subscriptions: {str(e)}")
+        logger.error(f"Error update user subscriptions: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     if abi:
@@ -477,7 +472,6 @@ async def get_subscription_abi_handler(
         logger.error(
             f"Error get subscriptions for user ({user}) with token ({token}), error: {str(e)}"
         )
-        traceback.print_exc()
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     if "abi" not in subscription_resource.secondary_fields.keys():
@@ -495,7 +489,6 @@ async def list_subscription_types() -> data.SubscriptionTypesListResponse:
     """
     Get availables subscription types.
     """
-    print("list_subscription_types")
     results: List[data.SubscriptionTypeResourceData] = []
     try:
         response = subscription_types.list_subscription_types()
