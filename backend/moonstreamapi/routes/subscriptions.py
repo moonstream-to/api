@@ -25,7 +25,6 @@ from ..settings import bugout_client as bc, entity_client as ec
 from ..settings import MOONSTREAM_ADMIN_ACCESS_TOKEN
 from ..web3_provider import yield_web3_provider
 
-import traceback
 
 logger = logging.getLogger(__name__)
 
