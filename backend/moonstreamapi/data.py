@@ -284,3 +284,14 @@ class PreapprovedQuery(BaseModel):
 
 class QueryPresignUrl(BaseModel):
     url: str
+
+
+class QueryInfoResponse(BaseModel):
+    query: str
+    query_id: str
+    public: bool = False
+    preapproved: bool = False
+    approved: bool = False
+    parameters: List[str] = Field(default_factory=list)
+    created_at: datetime
+    updated_at: datetime

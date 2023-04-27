@@ -10,6 +10,7 @@ from bugout.data import BugoutResources, BugoutJournalEntryContent, BugoutJourna
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Body, Request
 import requests  # type: ignore
+from sqlalchemy import text
 
 
 from .. import data
@@ -154,7 +155,9 @@ async def create_query_handler(
 
 
 @router.get("/{query_name}/query", tags=["queries"])
-async def get_query_handler(request: Request, query_name: str) -> BugoutJournalEntry:
+async def get_query_handler(
+    request: Request, query_name: str
+) -> data.QueryInfoResponse:
     token = request.state.token
 
     try:
@@ -180,7 +183,32 @@ async def get_query_handler(request: Request, query_name: str) -> BugoutJournalE
     except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
-    return entry
+    try:
+        query = text(entry.content)
+    except Exception as e:
+        raise MoonstreamHTTPException(
+            status_code=500, internal_error=e, detail="Error in query parsing"
+        )
+
+    query_parameters = query._bindparams.keys()
+
+    preaprove = False
+    if "preapprove" in entry.tags:
+        preaprove = True
+
+    approved = False
+    if "approved" in entry.tags:
+        approved = True
+
+    return data.QueryInfoResponse(
+        query=query,
+        query_id=entry.id,
+        preapprove=preaprove,
+        approved=approved,
+        parameters=query_parameters,
+        created_at=entry.created_at,
+        updated_at=entry.updated_at,
+    )
 
 
 @router.put("/{query_name}", tags=["queries"])
