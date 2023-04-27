@@ -316,6 +316,10 @@ def generate_entity_subscriptions_from_brood_resources() -> None:
                         logger.error(f"Failed to get abi from S3: {str(e)}")
                         abi = None
 
+                # Add subscription to collection
+
+                logger.info(f"Add subscription to collection: {collection_id}")
+
                 entity = add_entity_subscription(
                     user_id=user_id,
                     collection_id=collection_id,
