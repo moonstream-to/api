@@ -1,6 +1,8 @@
 import os
 
 from bugout.app import Bugout
+from entity.client import Entity  # type: ignore
+
 
 # Bugout
 BUGOUT_BROOD_URL = os.environ.get("BUGOUT_BROOD_URL", "https://auth.bugout.dev")
@@ -8,6 +10,15 @@ BUGOUT_SPIRE_URL = os.environ.get("BUGOUT_SPIRE_URL", "https://spire.bugout.dev"
 
 
 bugout_client = Bugout(brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIRE_URL)
+
+# Entity
+
+MOONSTREAM_ENTITY_URL = os.environ.get("MOONSTREAM_ENTITY_URL", "")
+if MOONSTREAM_ENTITY_URL == "":
+    raise ValueError("MOONSTREAM_ENTITY_URL environment variable must be set")
+
+entity_client = Entity(MOONSTREAM_ENTITY_URL)
+
 
 BUGOUT_REQUEST_TIMEOUT_SECONDS = 5
 
@@ -111,3 +122,10 @@ if MOONSTREAM_S3_QUERIES_BUCKET_PREFIX == "":
     raise ValueError(
         "MOONSTREAM_S3_QUERIES_BUCKET_PREFIX environment variable must be set"
     )
+
+
+## Moonstream resources types
+
+BUGOUT_RESOURCE_TYPE_SUBSCRIPTION = "subscription"
+BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION = "entity_subscription"
+BUGOUT_RESOURCE_TYPE_DASHBOARD = "dashboards"

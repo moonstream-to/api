@@ -14,6 +14,7 @@ setup(
         "appdirs",
         "boto3",
         "bugout>=0.1.19",
+        "moonstream-entity>=0.0.3",
         "fastapi",
         "moonstreamdb>=0.3.3",
         "humbug",
@@ -23,7 +24,7 @@ setup(
         "python-multipart",
         "python-slugify",
         "uvicorn",
-        "web3",
+        "web3>=5.30.0, <6",
     ],
     extras_require={
         "dev": ["black", "isort", "mypy", "types-requests", "types-python-dateutil"],

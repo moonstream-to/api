@@ -10,6 +10,7 @@ class StatsUpdateRequest(BaseModel):
     dashboard_id: str
     timescales: List[str]
     token: str
+    user_id: str
 
 
 @dataclass

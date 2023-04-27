@@ -9,7 +9,7 @@ const useSubscription = ({ id }) => {
   const toast = useToast();
   const user = useContext(UserContext);
 
-  const subscriptionLinksCache = useQuery(
+  const { subscriptionLinksCache } = useQuery(
     ["dashboardLinks", id],
     SubscriptionsService.getSubscriptionABI(id),
     {

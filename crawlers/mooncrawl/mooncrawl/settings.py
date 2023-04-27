@@ -3,16 +3,26 @@ from typing import Dict, Optional
 from uuid import UUID
 
 from bugout.app import Bugout
+from entity.client import Entity  # type: ignore
 from moonstreamdb.blockchain import AvailableBlockchainType
-
-BUGOUT_RESOURCE_TYPE_SUBSCRIPTION = "subscription"
-BUGOUT_RESOURCE_TYPE_DASHBOARD = "dashboards"
 
 
 # Bugout
 BUGOUT_BROOD_URL = os.environ.get("BUGOUT_BROOD_URL", "https://auth.bugout.dev")
 BUGOUT_SPIRE_URL = os.environ.get("BUGOUT_SPIRE_URL", "https://spire.bugout.dev")
+
 bugout_client = Bugout(brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIRE_URL)
+
+
+# Entity
+
+
+MOONSTREAM_ENTITY_URL = os.environ.get("MOONSTREAM_ENTITY_URL", "")
+if MOONSTREAM_ENTITY_URL == "":
+    raise ValueError("MOONSTREAM_ENTITY_URL environment variable must be set")
+
+entity_client = Entity(MOONSTREAM_ENTITY_URL)
+
 
 BUGOUT_REQUEST_TIMEOUT_SECONDS_RAW = os.environ.get(
     "MOONSTREAM_BUGOUT_TIMEOUT_SECONDS", 30
@@ -139,6 +149,14 @@ if MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX is None:
         "MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX environment variable must be set"
     )
 
+MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET = os.environ.get(
+    "MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET"
+)
+if MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET is None:
+    raise ValueError(
+        "MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET environment variable must be set"
+    )
+
 MOONSTREAM_MOONWORM_TASKS_JOURNAL = os.environ.get(
     "MOONSTREAM_MOONWORM_TASKS_JOURNAL", ""
 )
@@ -254,3 +272,10 @@ infura_networks = {
         "url": f"https://polygon-mumbai.infura.io/v3/{INFURA_PROJECT_ID}",
     },
 }
+
+
+## Moonstream resources types
+
+BUGOUT_RESOURCE_TYPE_SUBSCRIPTION = "subscription"
+BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION = "entity_subscription"
+BUGOUT_RESOURCE_TYPE_DASHBOARD = "dashboards"
