@@ -86,48 +86,52 @@ def migrations_run(args: argparse.Namespace) -> None:
     db_session = SessionLocal()
     try:
         if args.id == 20230213:
-            step_map: Dict[str, Dict[str, Union[str, Callable]]] = {
-                "generate_entity_subscriptions_from_brood_resources": {
-                    "action": generate_entity_subscriptions.generate_entity_subscriptions_from_brood_resources,
-                    "description": "Generate entity subscriptions from brood resources",
+            step_map: Dict[str, Dict[str, Any]] = {
+                "upgrade": {
+                    "generate_entity_subscriptions_from_brood_resources": {
+                        "action": generate_entity_subscriptions.generate_entity_subscriptions_from_brood_resources,
+                        "description": "Generate entity subscriptions from brood resources",
+                    },
+                    "update_dashboards_connection": {
+                        "action": generate_entity_subscriptions.update_dashboards_connection,
+                        "description": "Update dashboards connection",
+                    },
                 },
-                "update_dashboards_connection": {
-                    "action": generate_entity_subscriptions.update_dashboards_connection,
-                    "description": "Update dashboards connection",
+                "downgrade": {
+                    "generate_entity_subscriptions_from_brood_resources": {
+                        "action": generate_entity_subscriptions.delete_generated_entity_subscriptions_from_brood_resources,
+                        "description": "Delete generated entity subscriptions from brood resources",
+                    },
+                    "update_dashboards_connection": {
+                        "action": generate_entity_subscriptions.restore_dashboard_state,
+                        "description": "Restore dashboard state",
+                    },
                 },
             }
-            if args.command == "upgrade":
-                step = args.step
+            if args.command not in ["upgrade", "downgrade"]:
+                logger.info("Wrong command. Please use upgrade or downgrade")
+            step = args.step
 
-                if step is None:
-                    # run all steps
+            if step is None:
+                # run all steps
 
-                    for step in step_map:
-                        logger.info(
-                            f"Starting step {step}: {step_map[step]['description']}"
-                        )
-                        migration_function = step_map[step]["action"]
-                        if callable(migration_function):
-                            migration_function()
-                elif step in step_map:
+                for step in step_map[args.command]:
                     logger.info(
-                        f"Starting step {step}: {step_map[step]['description']}"
+                        f"Starting step {step}: {step_map[args.command][step]['description']}"
                     )
-                    migration_function = step_map[step]["action"]
+                    migration_function = step_map[args.command][step]["action"]
                     if callable(migration_function):
                         migration_function()
-                else:
-                    logger.info(f"Step {step} does not exist")
-                    logger.info(f"Available steps: {step_map.keys()}")
-
-            elif args.command == "downgrade":
+            elif step in step_map[args.command]:
                 logger.info(
-                    "Starting migrate subscriptions from entity to resources..."
+                    f"Starting step {step}: {step_map[args.command][step]['description']}"
                 )
-                generate_entity_subscriptions.delete_generated_entity_subscriptions_from_brood_resources()
-
+                migration_function = step_map[args.command][step]["action"]
+                if callable(migration_function):
+                    migration_function()
             else:
-                logger.info("Wrong command. Please use upgrade or downgrade")
+                logger.info(f"Step {step} does not exist")
+                logger.info(f"Available steps: {step_map[args.command].keys()}")
 
         elif args.id == 20211101:
             logger.info("Starting update of subscriptions in Brood resource...")

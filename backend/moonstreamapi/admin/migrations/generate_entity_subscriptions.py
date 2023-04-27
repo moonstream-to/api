@@ -8,6 +8,7 @@ import os
 import traceback
 from typing import List, Optional, Dict, Any, Union, Tuple
 import uuid
+import time
 
 import boto3  # type: ignore
 from bugout.data import BugoutResources, BugoutResource
@@ -441,8 +442,6 @@ def update_dashboards_connection():
                             f"subscription found: {subscription_setting['subscription_id']}"
                         )
 
-                        breakpoint()
-
                         subscription_stages_metadata = stages[user][
                             "processed_subscriptions"
                         ][subscription_setting["subscription_id"]]
@@ -477,12 +476,14 @@ def update_dashboards_connection():
                                     }
                                 },
                             )
+
                             stages[user]["processed_subscriptions"][
                                 str(subscription_setting["subscription_id"])
                             ]["dashboard_ids"].append(str(dashboard.id))
                         except Exception as e:
+                            traceback.print_exc()
                             logger.error(
-                                f"****Failed to update dashboard: {str(e)} for user {user}****"
+                                f"**Failed to update dashboard: {str(e)} for user {user}**"
                             )
                             continue
     except Exception as e:
@@ -528,8 +529,6 @@ def delete_generated_entity_subscriptions_from_brood_resources():
 
     users_subscriptions: Dict[Union[str, uuid.UUID], Any] = {}
 
-    dashboards_by_user: Dict[Union[str, uuid.UUID], Any] = {}
-
     stages: Dict[Union[str, uuid.UUID], Any] = {}
 
     ### Restore previous stages if exists stages.json
@@ -556,25 +555,6 @@ def delete_generated_entity_subscriptions_from_brood_resources():
         users_subscriptions[user_id].append(resource_data)
 
     logger.info(f"parsed users: {len(users_subscriptions)}")
-
-    ### Dashboards parsing and save to dashboards_by_user
-
-    dashboards: BugoutResources = bc.list_resources(
-        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-        params={"type": BUGOUT_RESOURCE_TYPE_DASHBOARD},
-        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
-    )
-
-    for dashboard in dashboards.resources:
-        if "user_id" not in dashboard.resource_data:
-            continue
-
-        user_id = dashboard.resource_data["user_id"]
-
-        if user_id not in dashboards_by_user:
-            dashboards_by_user[user_id] = []
-
-        dashboards_by_user[user_id].append(dashboard)
 
     ### Create collections and add subscriptions
 
@@ -635,59 +615,100 @@ def delete_generated_entity_subscriptions_from_brood_resources():
                 logger.error(f"Failed to delete collection resource: {str(e)}")
                 continue
 
-            ### Retunr all dashboards to old state
-
-            if user_id in dashboards_by_user:
-                for dashboard in dashboards_by_user[user_id]:
-                    try:
-                        dashboard_data = dashboard.resource_data
-
-                        if "subscription_settings" not in dashboard_data:
-                            continue
-
-                        if (
-                            "subscription_id"
-                            not in dashboard_data["subscription_settings"]
-                        ):
-                            continue
-
-                        subscription_id = dashboard_data["subscription_settings"][
-                            "subscription_id"
-                        ]
-
-                        if (
-                            subscription_id
-                            not in stages[user_id]["processed_subscriptions"]
-                        ):
-                            continue
-
-                        dashboard_data["subscription_settings"][
-                            "subscription_id"
-                        ] = stages[user_id]["processed_subscriptions"][subscription_id][
-                            "old_subscription_id"
-                        ]
-
-                        bc.update_resource(
-                            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-                            resource_id=dashboard.id,
-                            resource_data={
-                                "update": {
-                                    "subscription_settings": dashboard_data[
-                                        "subscription_settings"
-                                    ]
-                                }
-                            },
-                        )
-                    except Exception as e:
-                        traceback.print_exc()
-                        logger.error(f"Failed to update dashboard: {str(e)}")
-                        breakpoint()
-                        continue
-
     except Exception as e:
         traceback.print_exc()
         logger.error(f"Failed to proccess user subscriptions: {str(e)}")
 
-    ### clear stages
-    with open("stages.json", "w") as f:
-        json.dump({}, f)
+
+def restore_dashboard_state():
+    ### initial users_subscriptions, dashboards_by_user, stages is empty
+
+    dashboards_by_user: Dict[Union[str, uuid.UUID], Any] = {}
+
+    stages: Dict[Union[str, uuid.UUID], Any] = {}
+
+    ### Restore previous stages if exists stages.json
+
+    if os.path.exists("stages.json"):
+        with open("stages.json", "r") as f:
+            stages = json.load(f)
+
+    ### Subscriptions parsing and save to users_subscriptions
+
+    ### Dashboards parsing and save to dashboards_by_user
+
+    dashboards: BugoutResources = bc.list_resources(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        params={"type": BUGOUT_RESOURCE_TYPE_DASHBOARD},
+        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+    )
+
+    for dashboard in dashboards.resources:
+        if "user_id" not in dashboard.resource_data:
+            continue
+
+        user_id = dashboard.resource_data["user_id"]
+
+        if user_id not in dashboards_by_user:
+            dashboards_by_user[user_id] = []
+
+        dashboards_by_user[user_id].append(dashboard)
+
+    user_entity_subscriptions = {
+        subscription["entity_id"]: key
+        for key, subscription in stages[user_id]["processed_subscriptions"].items()
+    }
+
+    ### Retunr all dashboards to old state
+
+    logger.info(f"Amount of users: {len(dashboards_by_user)}")
+
+    # print(dashboards_by_user)
+
+    for user_id in dashboards_by_user:
+        logger.info(
+            f"Amount of dashboards: {len(dashboards_by_user[user_id])} of user {user_id}"
+        )
+        for dashboard in dashboards_by_user[user_id]:
+            try:
+                dashboard_data = dashboard.resource_data
+
+                if "subscription_settings" not in dashboard_data:
+                    print("no subscription_settings")
+                    continue
+
+                if len(dashboard_data["subscription_settings"]) == 0:
+                    print("subscription_settings is empty")
+                    continue
+
+                dashboard_metadata = dashboard_data["subscription_settings"]
+
+                for index, settings in enumerate(dashboard_metadata):
+                    if "subscription_id" not in settings:
+                        print("no subscription_id")
+                        continue
+
+                    subscription_id = settings["subscription_id"]
+
+                    if subscription_id not in user_entity_subscriptions:
+                        continue
+
+                    logger.info(
+                        f"Update dashboard {dashboard.id} with subscription {subscription_id} to old state"
+                    )
+
+                    dashboard_metadata[index][
+                        "subscription_id"
+                    ] = user_entity_subscriptions[subscription_id]
+
+                bc.update_resource(
+                    token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                    resource_id=dashboard.id,
+                    resource_data={
+                        "update": {"subscription_settings": dashboard_metadata}
+                    },
+                )
+            except Exception as e:
+                traceback.print_exc()
+                logger.error(f"Failed to update dashboard: {str(e)}")
+                continue

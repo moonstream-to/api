@@ -334,16 +334,12 @@ async def get_dashboard_data_links_handler(
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
     )
 
-    print(f"collection_id: {collection_id}")
-
     subscriprions_list = ec.search_entities(
         token=token,
         collection_id=collection_id,
         required_field=[f"type:subscription"],
         limit=1000,
     )
-
-    print(f"subscriprions_list: {subscriprions_list}")
 
     # filter out dasboards
 
@@ -360,13 +356,6 @@ async def get_dashboard_data_links_handler(
         if str(subscription.entity_id) in subscriptions_ids
     }
 
-    print(f"subscriptions_ids: {subscriptions_ids}")
-    print(f"dashboard_subscriptions: {dashboard_subscriptions}")
-    print(f"dashboard_subscriptions: {dashboard_resource}")
-
-    for subscription in subscriprions_list.entities:
-        print(subscription.entity_id)
-
     # generate s3 links
 
     s3_client = boto3.client("s3")
@@ -378,7 +367,6 @@ async def get_dashboard_data_links_handler(
         stats[id] = {}
 
         for fields in subscription.required_fields:
-            print(fields)
             if "subscription_type_id" in fields:
                 subscription_type_id = fields["subscription_type_id"]
 
