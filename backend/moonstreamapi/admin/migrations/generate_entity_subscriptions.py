@@ -663,8 +663,6 @@ def restore_dashboard_state():
 
     logger.info(f"Amount of users: {len(dashboards_by_user)}")
 
-    # print(dashboards_by_user)
-
     for user_id in dashboards_by_user:
         logger.info(
             f"Amount of dashboards: {len(dashboards_by_user[user_id])} of user {user_id}"
@@ -680,18 +678,18 @@ def restore_dashboard_state():
                 dashboard_data = dashboard.resource_data
 
                 if "subscription_settings" not in dashboard_data:
-                    print("no subscription_settings")
+                    logger.info("no subscription_settings")
                     continue
 
                 if len(dashboard_data["subscription_settings"]) == 0:
-                    print("no subscription_settings")
+                    logger.info("no subscription_settings")
                     continue
 
                 dashboard_metadata = dashboard_data["subscription_settings"]
 
                 for index, settings in enumerate(dashboard_metadata):
                     if "subscription_id" not in settings:
-                        print("no subscription_id")
+                        logger.info("no subscription_id")
                         continue
 
                     subscription_id = settings["subscription_id"]
