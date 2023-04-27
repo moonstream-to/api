@@ -425,6 +425,9 @@ def update_dashboards_connection():
                 if dashboard_subscription_settings is None:
                     continue
 
+                if len(dashboard_subscription_settings) == 0:
+                    continue
+
                 logger.info(f"dashboard {dashboard.id}")
 
                 for setting_index, subscription_setting in enumerate(
@@ -434,10 +437,9 @@ def update_dashboards_connection():
                         f"Find subscripton: {subscription_setting['subscription_id']}"
                     )
 
-                    if (
-                        str(subscription_setting["subscription_id"])
-                        in stages[user]["processed_subscriptions"]
-                    ):
+                    old_subscription_id = str(subscription_setting["subscription_id"])
+
+                    if old_subscription_id in stages[user]["processed_subscriptions"]:
                         logger.info(
                             f"subscription found: {subscription_setting['subscription_id']}"
                         )
@@ -452,40 +454,39 @@ def update_dashboards_connection():
                         ):
                             continue
 
-                        try:
-                            # change original dashboard subscription settings
+                        # change original dashboard subscription settings
 
-                            dashboard_data["subscription_settings"][setting_index][
-                                "subscription_id"
-                            ] = subscription_stages_metadata["entity_id"]
+                        dashboard_data["subscription_settings"][setting_index][
+                            "subscription_id"
+                        ] = subscription_stages_metadata["entity_id"]
 
-                            # Update brood resource in bugout client
+                        # Update brood resource in bugout client
 
-                            logger.info(
-                                f"Update dashboard: {dashboard.id} for user {user}"
-                            )
+                        stages[user]["processed_subscriptions"][old_subscription_id][
+                            "dashboard_ids"
+                        ].append(str(dashboard.id))
 
-                            bc.update_resource(
-                                token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-                                resource_id=dashboard.id,
-                                resource_data={
-                                    "update": {
-                                        "subscription_settings": dashboard_data[
-                                            "subscription_settings"
-                                        ]
-                                    }
-                                },
-                            )
+                try:
+                    logger.info(f"Update dashboard: {dashboard.id} for user {user}")
 
-                            stages[user]["processed_subscriptions"][
-                                str(subscription_setting["subscription_id"])
-                            ]["dashboard_ids"].append(str(dashboard.id))
-                        except Exception as e:
-                            traceback.print_exc()
-                            logger.error(
-                                f"**Failed to update dashboard: {str(e)} for user {user}**"
-                            )
-                            continue
+                    bc.update_resource(
+                        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                        resource_id=dashboard.id,
+                        resource_data={
+                            "update": {
+                                "subscription_settings": dashboard_data[
+                                    "subscription_settings"
+                                ]
+                            }
+                        },
+                    )
+
+                except Exception as e:
+                    traceback.print_exc()
+                    logger.error(
+                        f"**Failed to update dashboard: {str(e)} for user {user}**"
+                    )
+                    continue
     except Exception as e:
         traceback.print_exc()
         logger.error(f"Failed to proccess dashboards: {str(e)}")
@@ -654,11 +655,6 @@ def restore_dashboard_state():
 
         dashboards_by_user[user_id].append(dashboard)
 
-    user_entity_subscriptions = {
-        subscription["entity_id"]: key
-        for key, subscription in stages[user_id]["processed_subscriptions"].items()
-    }
-
     ### Retunr all dashboards to old state
 
     logger.info(f"Amount of users: {len(dashboards_by_user)}")
@@ -669,6 +665,12 @@ def restore_dashboard_state():
         logger.info(
             f"Amount of dashboards: {len(dashboards_by_user[user_id])} of user {user_id}"
         )
+
+        user_entity_subscriptions = {
+            subscription["entity_id"]: key
+            for key, subscription in stages[user_id]["processed_subscriptions"].items()
+        }
+
         for dashboard in dashboards_by_user[user_id]:
             try:
                 dashboard_data = dashboard.resource_data
@@ -678,7 +680,7 @@ def restore_dashboard_state():
                     continue
 
                 if len(dashboard_data["subscription_settings"]) == 0:
-                    print("subscription_settings is empty")
+                    print("no subscription_settings")
                     continue
 
                 dashboard_metadata = dashboard_data["subscription_settings"]
