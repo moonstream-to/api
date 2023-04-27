@@ -33,7 +33,7 @@ from ..settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
     NB_CONTROLLER_ACCESS_ID,
-    MOONSTREAM_S3_DASHBOARDS_DATA_BUCKET,
+    MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
     BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
 )
 from ..settings import bugout_client as bc, entity_client as ec
@@ -972,7 +972,7 @@ def stats_generate_handler(args: argparse.Namespace):
                                     ],
                                     address=address,
                                     timescale=timescale,
-                                    bucket=MOONSTREAM_S3_DASHBOARDS_DATA_BUCKET,  # type: ignore
+                                    bucket=MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,  # type: ignore
                                     dashboard_id=dashboard_id,
                                 )
                             except Exception as err:
@@ -1144,7 +1144,7 @@ def stats_generate_api_task(
                         subscription_type_id=subscription_type_id,
                         address=address,
                         timescale=timescale,
-                        bucket=MOONSTREAM_S3_DASHBOARDS_DATA_BUCKET,  # type: ignore
+                        bucket=MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,  # type: ignore
                         dashboard_id=dashboard.id,
                     )
             except Exception as err:

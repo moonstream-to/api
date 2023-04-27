@@ -16,13 +16,12 @@ bugout_client = Bugout(brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIR
 
 # Entity
 
+
 MOONSTREAM_ENTITY_URL = os.environ.get("MOONSTREAM_ENTITY_URL", "")
 if MOONSTREAM_ENTITY_URL == "":
     raise ValueError("MOONSTREAM_ENTITY_URL environment variable must be set")
 
-ENTITY_URL = os.environ.get(MOONSTREAM_ENTITY_URL, "https://api.moonstream.to/entity")
-
-entity_client = Entity(ENTITY_URL)
+entity_client = Entity(MOONSTREAM_ENTITY_URL)
 
 
 BUGOUT_REQUEST_TIMEOUT_SECONDS_RAW = os.environ.get(
@@ -150,12 +149,12 @@ if MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX is None:
         "MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX environment variable must be set"
     )
 
-MOONSTREAM_S3_DASHBOARDS_DATA_BUCKET = os.environ.get(
-    "MOONSTREAM_S3_DASHBOARDS_DATA_BUCKET"
+MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET = os.environ.get(
+    "MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET"
 )
-if MOONSTREAM_S3_DASHBOARDS_DATA_BUCKET is None:
+if MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET is None:
     raise ValueError(
-        "MOONSTREAM_S3_DASHBOARDS_DATA_BUCKET environment variable must be set"
+        "MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET environment variable must be set"
     )
 
 MOONSTREAM_MOONWORM_TASKS_JOURNAL = os.environ.get(

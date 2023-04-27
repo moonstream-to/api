@@ -13,7 +13,15 @@ BUGOUT_SPIRE_URL = os.environ.get("BUGOUT_SPIRE_URL", "https://spire.bugout.dev"
 ENTITY_URL = os.environ.get("ENTITY_URL", "https://api.moonstream.to")
 
 bugout_client = Bugout(brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIRE_URL)
-entity_client = Entity(ENTITY_URL)
+
+# Entity
+
+MOONSTREAM_ENTITY_URL = os.environ.get("MOONSTREAM_ENTITY_URL", "")
+if MOONSTREAM_ENTITY_URL == "":
+    raise ValueError("MOONSTREAM_ENTITY_URL environment variable must be set")
+
+entity_client = Entity(MOONSTREAM_ENTITY_URL)
+
 
 BUGOUT_REQUEST_TIMEOUT_SECONDS = 5
 
