@@ -768,10 +768,14 @@ def fix_duplicates_keys_in_entity_subscription():
             limit=1000,
         )
 
+        logger.info(
+            f"Amount of entities in user: {user_id} collection {collection_id}: {len(collection_entities.entities)}"
+        )
+
         for entity in collection_entities.entities:
             # get entity data
 
-            if "secondary_fields" not in entity.entity_data:
+            if entity.secondary_fields is None:
                 continue
 
             secondary_fields = entity.secondary_fields
@@ -788,18 +792,11 @@ def fix_duplicates_keys_in_entity_subscription():
             # get entity type
 
             entity_type = None
-            entity_blockchain = None
-            entity_address = None
 
             # extract required fields
             for entity_required_field in entity.required_fields:
                 if "type" in entity_required_field:
                     entity_type = entity_required_field["type"]
-                if "blockchain" in entity_required_field:
-                    entity_blockchain = entity_required_field["blockchain"]
-                if "address" in entity_required_field:
-                    entity_address = entity_required_field["address"]
-
             if entity_type != "subscription":
                 continue
 
@@ -814,18 +811,19 @@ def fix_duplicates_keys_in_entity_subscription():
                 new_required_fields.append(
                     {"type": "copy_of_malformed_entity_20230213"}
                 )
-                new_required_fields.append({"entity_id": entity_id})
-                ec.add_entity(
+                new_required_fields.append({"entity_id": str(entity_id)})
+
+                new_entity = ec.add_entity(
                     token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
                     collection_id=collection_id,
-                    blockchain=entity_blockchain,
-                    address=entity_address,
+                    blockchain=entity.blockchain,
+                    address=entity.address,
                     name=entity.name,
-                    entity_required_fields=new_required_fields,
-                    entity_secondary_fields=secondary_fields,
+                    required_fields=new_required_fields,
+                    secondary_fields=entity.secondary_fields,
                 )
                 logger.info(
-                    f"Entity {entity_id} created successfully for collection {collection_id}"
+                    f"Entity {new_entity.entity_id} created successfully for collection {collection_id}"
                 )
 
             except Exception as e:
@@ -839,9 +837,10 @@ def fix_duplicates_keys_in_entity_subscription():
             try:
                 ec.update_entity(
                     token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                    collection_id=collection_id,
                     entity_id=entity_id,
-                    blockchain=entity_blockchain,
-                    address=entity_address,
+                    blockchain=entity.blockchain,
+                    address=entity.address,
                     name=entity.name,
                     required_fields=entity.required_fields,
                     secondary_fields=secondary_fields,
