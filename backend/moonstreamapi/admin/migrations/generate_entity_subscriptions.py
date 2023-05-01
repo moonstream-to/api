@@ -783,7 +783,7 @@ def fix_duplicates_keys_in_entity_subscription():
 
             # get entity id
 
-            entity_id = entity.entity_data["entity_id"]
+            entity_id = entity.entity_id
 
             # get entity type
 
@@ -814,6 +814,7 @@ def fix_duplicates_keys_in_entity_subscription():
                 new_required_fields.append(
                     {"type": "copy_of_malformed_entity_20230213"}
                 )
+                new_required_fields.append({"entity_id": entity_id})
                 ec.add_entity(
                     token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
                     collection_id=collection_id,
