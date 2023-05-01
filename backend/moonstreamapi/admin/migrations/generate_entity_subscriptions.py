@@ -716,3 +716,140 @@ def restore_dashboard_state():
                 traceback.print_exc()
                 logger.error(f"Failed to update dashboard: {str(e)}")
                 continue
+
+
+def fix_duplicates_keys_in_entity_subscription():
+    """
+    Migration generate_entity_subscriptions_from_brood_resources
+    create duplicates keys "secondary_fields" subscriptions secondary_fields
+    "secondary_fields": {
+                "secondary_fields": {
+        ...
+        }
+    }
+    That function will remove internal secondary_fields and flat all keys to one level upper
+    """
+
+    # get all entities from subscriptions
+
+    subscriptions: BugoutResources = bc.list_resources(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        params={"type": BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION},
+        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+    )
+
+    # get collection ids from that resources
+
+    collection_id_user_id_mappig = {}
+
+    for subscription in subscriptions.resources:
+        if "collection_id" in subscription.resource_data:
+            if (
+                subscription.resource_data["collection_id"]
+                not in collection_id_user_id_mappig
+            ):
+                collection_id_user_id_mappig[
+                    subscription.resource_data["collection_id"]
+                ] = subscription.resource_data["user_id"]
+            else:
+                raise Exception(
+                    f"Duplicate collection_id {subscription.resource_data['collection_id']} in subscriptions"
+                )
+    # go through all collections and fix entities.
+    # Will creating one new entity with same data but without "type:subscription" in required_fields
+
+    for collection_id, user_id in collection_id_user_id_mappig.items():
+        # get collection entities
+
+        collection_entities = ec.search_entities(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            collection_id=collection_id,
+            required_field=[f"type:subscription"],
+            limit=1000,
+        )
+
+        for entity in collection_entities.entities:
+            # get entity data
+
+            if "secondary_fields" not in entity.entity_data:
+                continue
+
+            secondary_fields = entity.secondary_fields
+
+            if "secondary_fields" not in secondary_fields:
+                continue
+
+            secondary_fields = secondary_fields["secondary_fields"]
+
+            # get entity id
+
+            entity_id = entity.entity_data["entity_id"]
+
+            # get entity type
+
+            entity_type = None
+            entity_blockchain = None
+            entity_address = None
+
+            # extract required fields
+            for entity_required_field in entity.required_fields:
+                if "type" in entity_required_field:
+                    entity_type = entity_required_field["type"]
+                if "blockchain" in entity_required_field:
+                    entity_blockchain = entity_required_field["blockchain"]
+                if "address" in entity_required_field:
+                    entity_address = entity_required_field["address"]
+
+            if entity_type != "subscription":
+                continue
+
+            # Create new entity with same data but without "type:subscription" in required_fields
+
+            try:
+                new_required_fields = [
+                    entity_field
+                    for entity_field in entity.required_fields
+                    if "type" not in entity_field
+                ]
+                new_required_fields.append(
+                    {"type": "copy_of_malformed_entity_20230213"}
+                )
+                ec.add_entity(
+                    token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                    collection_id=collection_id,
+                    blockchain=entity_blockchain,
+                    address=entity_address,
+                    name=entity.name,
+                    entity_required_fields=new_required_fields,
+                    entity_secondary_fields=secondary_fields,
+                )
+                logger.info(
+                    f"Entity {entity_id} created successfully for collection {collection_id}"
+                )
+
+            except Exception as e:
+                logger.error(
+                    f"Failed to create entity {entity_id} for collection {collection_id}: {str(e)}, user_id: {user_id}"
+                )
+                continue
+
+            # Update old entity without secondary_fields duplicate
+
+            try:
+                ec.update_entity(
+                    token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                    entity_id=entity_id,
+                    blockchain=entity_blockchain,
+                    address=entity_address,
+                    name=entity.name,
+                    required_fields=entity.required_fields,
+                    secondary_fields=secondary_fields,
+                )
+                logger.info(
+                    f"Entity {entity_id} updated successfully for collection {collection_id}"
+                )
+
+            except Exception as e:
+                logger.error(
+                    f"Failed to update entity {entity_id} for collection {collection_id}: {str(e)}, user_id: {user_id}"
+                )

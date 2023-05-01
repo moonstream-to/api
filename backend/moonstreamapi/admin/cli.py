@@ -55,6 +55,9 @@ description: {generate_entity_subscriptions.__doc__}
 steps:
     - step 1: generate_entity_subscriptions_from_brood_resources - Generate entity subscriptions from brood resources
     - step 2: update_dashboards_connection - Update dashboards connection
+- id: 20230501
+name: fix_duplicates_keys_in_entity_subscription
+description: Fix entity duplicates keys for all subscriptions introduced in 20230213
     """
     logger.info(entity_migration_overview)
 
@@ -85,8 +88,23 @@ def migrations_run(args: argparse.Namespace) -> None:
     web3_session = yield_web3_provider()
     db_session = SessionLocal()
     try:
-        if args.id == 20230213:
+        if args.id == 20230501:
+            # fix entity duplicates keys for all subscriptions introduced in 20230213
+
             step_map: Dict[str, Dict[str, Any]] = {
+                "upgrade": {
+                    "fix_duplicates_keys_in_entity_subscription": {
+                        "action": generate_entity_subscriptions.fix_duplicates_keys_in_entity_subscription,
+                        "description": "Fix entity duplicates keys for all subscriptions introduced in 20230213",
+                    },
+                },
+                "downgrade": {},
+            }
+            if args.command not in ["upgrade", "downgrade"]:
+                logger.info("Wrong command. Please use upgrade or downgrade")
+
+        if args.id == 20230213:
+            step_map = {
                 "upgrade": {
                     "generate_entity_subscriptions_from_brood_resources": {
                         "action": generate_entity_subscriptions.generate_entity_subscriptions_from_brood_resources,
