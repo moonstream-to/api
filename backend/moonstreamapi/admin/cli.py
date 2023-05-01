@@ -39,6 +39,35 @@ def parse_boolean_arg(raw_arg: Optional[str]) -> Optional[bool]:
     return False
 
 
+def migration_run(step_map, command, step, step_order):
+    if step is None:
+        # run all steps
+
+        if step_order is None:
+            raise ValueError(
+                f"step_order is required when running all steps for {command}"
+            )
+
+        if command == "downgrade":
+            step_order = reversed(step_order)
+
+        for step in step_order:
+            logger.info(
+                f"Starting step {step}: {step_map[command][step]['description']}"
+            )
+            migration_function = step_map[command][step]["action"]
+            if callable(migration_function):
+                migration_function()
+    elif step in step_map[command]:
+        logger.info(f"Starting step {step}: {step_map[command][step]['description']}")
+        migration_function = step_map[command][step]["action"]
+        if callable(migration_function):
+            migration_function()
+    else:
+        logger.error(f"Step {step} not found in {command}")
+        logger.info(f"Available steps: {step_map[command].keys()}")
+
+
 def migrations_list(args: argparse.Namespace) -> None:
     migrations_overview = f"""
 
@@ -91,6 +120,7 @@ def migrations_run(args: argparse.Namespace) -> None:
         if args.id == 20230501:
             # fix entity duplicates keys for all subscriptions introduced in 20230213
 
+            step_order = ["fix_duplicates_keys_in_entity_subscription"]
             step_map: Dict[str, Dict[str, Any]] = {
                 "upgrade": {
                     "fix_duplicates_keys_in_entity_subscription": {
@@ -102,8 +132,15 @@ def migrations_run(args: argparse.Namespace) -> None:
             }
             if args.command not in ["upgrade", "downgrade"]:
                 logger.info("Wrong command. Please use upgrade or downgrade")
+            step = args.step
+
+            migration_run(step_map, args.command, step, step_order)
 
         if args.id == 20230213:
+            step_order = [
+                "generate_entity_subscriptions_from_brood_resources",
+                "update_dashboards_connection",
+            ]
             step_map = {
                 "upgrade": {
                     "generate_entity_subscriptions_from_brood_resources": {
@@ -130,26 +167,7 @@ def migrations_run(args: argparse.Namespace) -> None:
                 logger.info("Wrong command. Please use upgrade or downgrade")
             step = args.step
 
-            if step is None:
-                # run all steps
-
-                for step in step_map[args.command]:
-                    logger.info(
-                        f"Starting step {step}: {step_map[args.command][step]['description']}"
-                    )
-                    migration_function = step_map[args.command][step]["action"]
-                    if callable(migration_function):
-                        migration_function()
-            elif step in step_map[args.command]:
-                logger.info(
-                    f"Starting step {step}: {step_map[args.command][step]['description']}"
-                )
-                migration_function = step_map[args.command][step]["action"]
-                if callable(migration_function):
-                    migration_function()
-            else:
-                logger.info(f"Step {step} does not exist")
-                logger.info(f"Available steps: {step_map[args.command].keys()}")
+            migration_run(step_map, args.command, step, step_order)
 
         elif args.id == 20211101:
             logger.info("Starting update of subscriptions in Brood resource...")
