@@ -3,7 +3,7 @@ import hashlib
 import json
 from itertools import chain
 import logging
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from enum import Enum
 import uuid
 
@@ -17,6 +17,8 @@ from bugout.data import (
 )
 from bugout.journal import SearchOrder
 from bugout.exceptions import BugoutResponseException
+from entity.data import EntityCollectionsResponse, EntityCollectionResponse  # type: ignore
+from entity.exceptions import EntityUnexpectedResponse  # type: ignore
 from ens.utils import is_valid_ens_name  # type: ignore
 from eth_utils.address import is_address  # type: ignore
 from moonstreamdb.models import EthereumLabel
@@ -38,8 +40,9 @@ from .settings import (
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
     MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+    MOONSTREAM_ADMIN_ACCESS_TOKEN,
 )
-from .settings import bugout_client as bc
+from .settings import bugout_client as bc, entity_client as ec
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +76,12 @@ class NameNormalizationException(Exception):
 class ResourceQueryFetchException(Exception):
     """
     Exception in queries API
+    """
+
+
+class EntityCollectionNotFoundException(Exception):
+    """
+    Raised when entity collection is not found
     """
 
 
@@ -315,7 +324,6 @@ def json_type(evm_type: str) -> type:
 def dashboards_abi_validation(
     dashboard_subscription: data.DashboardMeta,
     abi: Any,
-    s3_path: str,
 ):
     """
     Validate current dashboard subscription : https://github.com/bugout-dev/moonstream/issues/345#issuecomment-953052444
@@ -336,7 +344,7 @@ def dashboards_abi_validation(
                 logger.error(
                     f"Error on dashboard resource validation method:{method['name']}"
                     f" of subscription: {dashboard_subscription.subscription_id}"
-                    f"does not exists in Abi {s3_path}"
+                    f"does not exists in Abi "
                 )
                 raise MoonstreamHTTPException(status_code=400)
             if method.get("filters") and isinstance(method["filters"], dict):
@@ -346,7 +354,7 @@ def dashboards_abi_validation(
                         logger.error(
                             f"Error on dashboard resource validation type argument: {input_argument_name} of method:{method['name']} "
                             f" of subscription: {dashboard_subscription.subscription_id} has incorrect"
-                            f"does not exists in Abi {s3_path}"
+                            f"does not exists in Abi"
                         )
                         raise MoonstreamHTTPException(status_code=400)
 
@@ -373,7 +381,7 @@ def dashboards_abi_validation(
                 logger.error(
                     f"Error on dashboard resource validation event:{event['name']}"
                     f" of subscription: {dashboard_subscription.subscription_id}"
-                    f"does not exists in Abi {s3_path}"
+                    f"does not exists in Abi"
                 )
                 raise MoonstreamHTTPException(status_code=400)
 
@@ -384,7 +392,7 @@ def dashboards_abi_validation(
                         logger.error(
                             f"Error on dashboard resource validation type argument: {input_argument_name} of method:{event['name']} "
                             f" of subscription: {dashboard_subscription.subscription_id} has incorrect"
-                            f"does not exists in Abi {s3_path}"
+                            f"does not exists in Abi"
                         )
                         raise MoonstreamHTTPException(status_code=400)
 
@@ -596,6 +604,81 @@ def get_query_by_name(query_name: str, token: uuid.UUID) -> str:
     query_id = available_queries[query_name]
 
     return query_id
+
+
+def get_entity_subscription_collection_id(
+    resource_type: str,
+    token: Union[uuid.UUID, str],
+    user_id: uuid.UUID,
+    create_if_not_exist: bool = False,
+) -> Optional[str]:
+    """
+    Get collection_id from brood resources. If collection not exist and create_if_not_exist is True
+    """
+
+    params = {
+        "type": resource_type,
+        "user_id": str(user_id),
+    }
+    try:
+        resources: BugoutResources = bc.list_resources(token=token, params=params)
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        logger.error(
+            f"Error listing subscriptions for user ({user_id}) with token ({token}), error: {str(e)}"
+        )
+        reporter.error_report(e)
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    if len(resources.resources) == 0:
+        if not create_if_not_exist:
+            raise EntityCollectionNotFoundException(
+                "Subscription collection not found."
+            )
+        try:
+            # try get collection
+
+            collections: EntityCollectionsResponse = ec.list_collections(token=token)
+
+            available_collections: Dict[str, str] = {
+                collection.name: collection.collection_id
+                for collection in collections.collections
+            }
+
+            if f"subscriptions_{user_id}" not in available_collections:
+                collection: EntityCollectionResponse = ec.add_collection(
+                    token=token, name=f"subscriptions_{user_id}"
+                )
+                collection_id = collection.collection_id
+            else:
+                collection_id = available_collections[f"subscriptions_{user_id}"]
+        except EntityUnexpectedResponse as e:
+            logger.error(f"Error create collection, error: {str(e)}")
+            raise MoonstreamHTTPException(
+                status_code=500, detail="Can't create collection for subscriptions"
+            )
+
+        resource_data = {
+            "type": resource_type,
+            "user_id": str(user_id),
+            "collection_id": str(collection_id),
+        }
+
+        try:
+            resource: BugoutResource = bc.create_resource(
+                token=token,
+                application_id=MOONSTREAM_APPLICATION_ID,
+                resource_data=resource_data,
+            )
+        except BugoutResponseException as e:
+            raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+        except Exception as e:
+            logger.error(f"Error creating subscription resource: {str(e)}")
+            raise MoonstreamHTTPException(status_code=500, internal_error=e)
+    else:
+        resource = resources.resources[0]
+    return resource.resource_data["collection_id"]
 
 
 def generate_s3_access_links(

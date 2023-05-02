@@ -39,6 +39,7 @@ setup(
         "fastapi",
         "moonstreamdb>=0.3.3",
         "moonstream>=0.1.1",
+        "moonstream-entity>=0.0.4",
         "moonworm[moonstream]>=0.6.2",
         "humbug",
         "pydantic==1.9.2",
