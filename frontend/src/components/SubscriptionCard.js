@@ -308,21 +308,20 @@ const SubscriptionCard = ({ subscription, isDesktopView, iconLink }) => {
             {subscription.abi ? (
               <CheckIcon />
             ) : (
-              <></>
-              // <Button
-              //   colorScheme="orange"
-              //   size="xs"
-              //   py={2}
-              //   disabled={!subscription.address}
-              //   onClick={() =>
-              //     overlay.toggleModal({
-              //       type: MODAL_TYPES.UPLOAD_ABI,
-              //       props: { id: subscription.id },
-              //     })
-              //   }
-              // >
-              //   Upload
-              // </Button>
+              <Button
+                colorScheme="orange"
+                size="xs"
+                py={2}
+                disabled={!subscription.address}
+                onClick={() =>
+                  overlay.toggleModal({
+                    type: MODAL_TYPES.UPLOAD_ABI,
+                    props: { id: subscription.id },
+                  })
+                }
+              >
+                Upload
+              </Button>
             )}
           </Td>
           <Td {...cellProps}>
