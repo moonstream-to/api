@@ -184,6 +184,10 @@ async def get_query_handler(
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     try:
+        if entry.content is None:
+            raise MoonstreamHTTPException(
+                status_code=403, detail=f"Query is empty. Please update it."
+            )
         query = text(entry.content)
     except Exception as e:
         raise MoonstreamHTTPException(

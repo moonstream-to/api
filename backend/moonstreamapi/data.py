@@ -291,7 +291,7 @@ class QueryInfoResponse(BaseModel):
     query: str
     query_id: str
     public: bool = False
-    preapproved: bool = False
+    preapprove: bool = False
     approved: bool = False
     parameters: List[str] = Field(default_factory=list)
     created_at: datetime
