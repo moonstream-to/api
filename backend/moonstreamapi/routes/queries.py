@@ -190,7 +190,7 @@ async def get_query_handler(
             status_code=500, internal_error=e, detail="Error in query parsing"
         )
 
-    query_parameters = query._bindparams.keys()
+    query_parameters = list(query._bindparams.keys())
 
     preaprove = False
     if "preapprove" in entry.tags:
@@ -201,8 +201,8 @@ async def get_query_handler(
         approved = True
 
     return data.QueryInfoResponse(
-        query=query,
-        query_id=entry.id,
+        query=entry.content,
+        query_id=str(entry.id),
         preapprove=preaprove,
         approved=approved,
         parameters=query_parameters,

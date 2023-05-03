@@ -263,7 +263,6 @@ async def get_subscriptions_handler(
             offset=offset,
         )
 
-        # resources: BugoutResources = bc.list_resources(token=token, params=params)
     except EntityCollectionNotFoundException as e:
         raise MoonstreamHTTPException(
             status_code=404,
