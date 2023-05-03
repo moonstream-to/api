@@ -294,5 +294,5 @@ class QueryInfoResponse(BaseModel):
     preapprove: bool = False
     approved: bool = False
     parameters: List[str] = Field(default_factory=list)
-    created_at: datetime
-    updated_at: datetime
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
