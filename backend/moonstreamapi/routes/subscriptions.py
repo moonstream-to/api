@@ -253,6 +253,7 @@ async def get_subscriptions_handler(
             resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             user_id=user.id,
+            create_if_not_exist=True,
         )
 
         subscriprions_list = ec.search_entities(
