@@ -293,6 +293,6 @@ class QueryInfoResponse(BaseModel):
     public: bool = False
     preapprove: bool = False
     approved: bool = False
-    parameters: List[str] = Field(default_factory=list)
+    parameters: Dict[str, Any] = Field(default_factory=dict)
     created_at: Optional[datetime]
     updated_at: Optional[datetime]

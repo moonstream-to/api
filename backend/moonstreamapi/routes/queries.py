@@ -194,21 +194,26 @@ async def get_query_handler(
             status_code=500, internal_error=e, detail="Error in query parsing"
         )
 
-    query_parameters = list(query._bindparams.keys())
+    query_parameters_names = list(query._bindparams.keys())
 
-    preaprove = False
-    if "preapprove" in entry.tags:
-        preaprove = True
+    tags_dict = {
+        tag.split(":")[0]: (tag.split(":")[1] if ":" in tag else True)
+        for tag in entry.tags
+    }
 
-    approved = False
-    if "approved" in entry.tags:
-        approved = True
+    query_parameters: Dict[str, Any] = {}
+
+    for param in query_parameters_names:
+        if param in tags_dict:
+            query_parameters[param] = tags_dict[param]
+        else:
+            query_parameters[param] = None
 
     return data.QueryInfoResponse(
         query=entry.content,
         query_id=str(entry.id),
-        preapprove=preaprove,
-        approved=approved,
+        preapprove="preapprove" in tags_dict,
+        approved="approved" in tags_dict,
         parameters=query_parameters,
         created_at=entry.created_at,
         updated_at=entry.updated_at,
