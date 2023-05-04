@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Container, Heading } from "@chakra-ui/react";
+import { Container } from "@chakra-ui/react";
 import RouteButton from "../../src/components/RouteButton";
 import { getLayout, getLayoutProps } from "../../src/layouts/WideInfoPage";
 import { AWS_ASSETS_PATH } from "../../src/core/constants";
@@ -8,10 +8,10 @@ import UIContext from "../../src/core/providers/UIProvider/context";
 import AnalyticsContext from "../../src/core/providers/AnalyticsProvider/context";
 
 const assets = {
-  cryptoTraders: `${AWS_ASSETS_PATH}/crypto+traders.png`,
-  lender: `${AWS_ASSETS_PATH}/lender.png`,
-  DAO: `${AWS_ASSETS_PATH}/DAO .png`,
-  NFT: `${AWS_ASSETS_PATH}/NFT.png`,
+  airdrop: `${AWS_ASSETS_PATH}/airdrop.png`,
+  openLootbox: `${AWS_ASSETS_PATH}/open-lootbox.png`,
+  craftingRecipe: `${AWS_ASSETS_PATH}/crafting-recipe.png`,
+  minigame: `${AWS_ASSETS_PATH}/minigame.png`,
 };
 
 const Features = () => {
@@ -19,18 +19,10 @@ const Features = () => {
   const { buttonReport } = useContext(AnalyticsContext);
 
   return (
-    <Container
-      id="container"
-      maxW="container.xl"
-      px={["10%", "10%", "7%", "0"]}
-      mt="72px"
-    >
-      <Heading as="h1" hidden>
-        Moonstream feautes
-      </Heading>
+    <Container id="container" maxW="1238" mt="142px" p="0px">
       {!ui.isMobileView && (
         <RouteButton
-          variant="orangeAndBlue"
+          variant="plainOrange"
           onClick={() => buttonReport("Learn More", "main")}
           href={"/discordleed"}
           isExternal
@@ -38,15 +30,16 @@ const Features = () => {
           fontSize={["md", "lg", "xl", "2xl", "3xl", "3xl"]}
           position="absolute"
           bottom="10px"
-          right="5px"
+          right="10px"
         >
           Learn More
         </RouteButton>
       )}
       <FeatureCard
+        pt="0px"
         id="airdrops"
         headingText="Airdrops"
-        image={assets["lender"]}
+        image={assets["airdrop"]}
         cardOrder={1}
         isMobile={ui.isMobileView}
         onClick={() => buttonReport("Learn More", "airdrops")}
@@ -71,7 +64,7 @@ const Features = () => {
       <FeatureCard
         id="minigames"
         headingText="Minigames"
-        image={assets["DAO"]}
+        image={assets["minigame"]}
         cardOrder={-1}
         isMobile={ui.isMobileView}
         onClick={() => buttonReport("Learn More", "minigames")}
@@ -90,7 +83,7 @@ const Features = () => {
       <FeatureCard
         id="lootboxes"
         headingText="Lootboxes"
-        image={assets["cryptoTraders"]}
+        image={assets["openLootbox"]}
         cardOrder={1}
         isMobile={ui.isMobileView}
         onClick={() => buttonReport("Learn More", "lootboxes")}
@@ -109,9 +102,10 @@ const Features = () => {
       <FeatureCard
         id="crafting"
         headingText="Crafting"
-        image={assets["NFT"]}
+        image={assets["craftingRecipe"]}
         cardOrder={-1}
         isMobile={ui.isMobileView}
+        pb="40px"
         onClick={() => buttonReport("Learn More", "crafting")}
       >
         <>

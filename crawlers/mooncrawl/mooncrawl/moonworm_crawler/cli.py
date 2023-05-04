@@ -4,10 +4,10 @@ from typing import Optional
 from uuid import UUID
 
 from moonstreamdb.blockchain import AvailableBlockchainType
-from moonstreamdb.db import yield_db_session_ctx
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
+from ..db import yield_db_session_ctx
 from ..settings import MOONSTREAM_MOONWORM_TASKS_JOURNAL, NB_CONTROLLER_ACCESS_ID
 from .continuous_crawler import _retry_connect_web3, continuous_crawler
 from .crawler import (
@@ -25,7 +25,6 @@ logger = logging.getLogger(__name__)
 
 
 def handle_crawl(args: argparse.Namespace) -> None:
-
     blockchain_type = AvailableBlockchainType(args.blockchain_type)
     subscription_type = blockchain_type_to_subscription_type(blockchain_type)
 
@@ -98,6 +97,13 @@ def handle_crawl(args: argparse.Namespace) -> None:
         else:
             logger.info(f"Using start block: {start_block}")
 
+        confirmations = args.confirmations
+
+        if not args.no_confirmations:
+            assert confirmations > 0, "confirmations must be greater than 0"
+        else:
+            confirmations = 0
+
         continuous_crawler(
             db_session,
             blockchain_type,
@@ -107,7 +113,7 @@ def handle_crawl(args: argparse.Namespace) -> None:
             start_block,
             args.max_blocks_batch,
             args.min_blocks_batch,
-            args.confirmations,
+            confirmations,
             args.min_sleep_time,
             args.heartbeat_interval,
             args.new_jobs_refetch_interval,
@@ -304,6 +310,13 @@ def main() -> None:
         type=int,
         default=175,
         help="Number of confirmations to wait for",
+    )
+
+    crawl_parser.add_argument(
+        "--no-confirmations",
+        action="store_true",
+        default=False,
+        help="Do not wait for confirmations explicitly set confirmations to 0",
     )
 
     crawl_parser.add_argument(

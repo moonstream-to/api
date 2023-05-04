@@ -28,7 +28,6 @@ def get_list_of_addresses():
     addresses = set()
 
     for entry in entries:
-
         addresses.add(entry.title)
 
     print(addresses)
@@ -53,7 +52,6 @@ def add_subscription(id: str):
     s3_client = boto3.client("s3")
 
     if subscription_resource.resource_data["abi"] is not None:
-
         bucket = subscription_resource.resource_data["bucket"]
         key = subscription_resource.resource_data["s3_path"]
 
@@ -63,7 +61,6 @@ def add_subscription(id: str):
         s3_path = f"s3://{bucket}/{key}"
 
         try:
-
             response = s3_client.get_object(
                 Bucket=bucket,
                 Key=key,

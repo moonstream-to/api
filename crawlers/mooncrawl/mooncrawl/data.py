@@ -10,6 +10,7 @@ class StatsUpdateRequest(BaseModel):
     dashboard_id: str
     timescales: List[str]
     token: str
+    user_id: str
 
 
 @dataclass
@@ -45,7 +46,6 @@ class NowResponse(BaseModel):
 
 
 class QueryDataUpdate(BaseModel):
-
     file_type: str
     query: str
     params: Dict[str, Any] = Field(default_factory=dict)

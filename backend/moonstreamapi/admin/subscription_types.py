@@ -20,6 +20,7 @@ CANONICAL_SUBSCRIPTION_TYPES = {
     "ethereum_smartcontract": SubscriptionTypeResourceData(
         id="ethereum_smartcontract",
         name="Ethereum smartcontracts",
+        blockchain="ethereum",
         choices=["input:address", "tag:erc721"],
         description="Contracts events and tx_calls of contract of Ethereum blockchain",
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/ethereum/eth-diamond-purple.png",
@@ -30,6 +31,7 @@ CANONICAL_SUBSCRIPTION_TYPES = {
     "polygon_smartcontract": SubscriptionTypeResourceData(
         id="polygon_smartcontract",
         name="Polygon smartcontracts",
+        blockchain="polygon",
         choices=["input:address", "tag:erc721"],
         description="Contracts events and tx_calls of contract of Polygon blockchain",
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/matic-token-inverted-icon.png",
@@ -40,6 +42,7 @@ CANONICAL_SUBSCRIPTION_TYPES = {
     "mumbai_smartcontract": SubscriptionTypeResourceData(
         id="mumbai_smartcontract",
         name="Mumbai smartcontracts",
+        blockchain="mumbai",
         choices=["input:address", "tag:erc721"],
         description="Contracts events and tx_calls of contract of Mumbai blockchain",
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/matic-token-inverted-icon.png",
@@ -50,6 +53,7 @@ CANONICAL_SUBSCRIPTION_TYPES = {
     "xdai_smartcontract": SubscriptionTypeResourceData(
         id="xdai_smartcontract",
         name="XDai smartcontract",
+        blockchain="xdai",
         choices=["input:address", "tag:erc721"],
         description="Contracts events and tx_calls of contract of XDai blockchain.",
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/xdai-token-logo.png",
@@ -57,9 +61,21 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         stripe_price_id=None,
         active=True,
     ),
+    "wyrm_smartcontract": SubscriptionTypeResourceData(
+        id="wyrm_smartcontract",
+        name="Wyrm smartcontract",
+        blockchain="wyrm",
+        choices=["input:address", "tag:erc721"],
+        description="Contracts events and tx_calls of contract of Wyrm blockchain.",
+        icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/great-wyrm-network-logo.png",
+        stripe_product_id=None,
+        stripe_price_id=None,
+        active=True,
+    ),
     "ethereum_blockchain": SubscriptionTypeResourceData(
         id="ethereum_blockchain",
         name="Ethereum transactions",
+        blockchain="ethereum",
         choices=["input:address", "tag:erc721"],
         description="Transactions that have been mined into the Ethereum blockchain",
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/ethereum/eth-diamond-purple.png",
@@ -70,6 +86,7 @@ CANONICAL_SUBSCRIPTION_TYPES = {
     "polygon_blockchain": SubscriptionTypeResourceData(
         id="polygon_blockchain",
         name="Polygon transactions",
+        blockchain="polygon",
         choices=["input:address", "tag:erc721"],
         description="Transactions that have been mined into the Polygon blockchain",
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/matic-token-inverted-icon.png",
@@ -80,6 +97,7 @@ CANONICAL_SUBSCRIPTION_TYPES = {
     "mumbai_blockchain": SubscriptionTypeResourceData(
         id="mumbai_blockchain",
         name="Mumbai transactions",
+        blockchain="mumbai",
         choices=["input:address", "tag:erc721"],
         description="Transactions that have been mined into the Mumbai blockchain",
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/matic-token-inverted-icon.png",
@@ -90,6 +108,7 @@ CANONICAL_SUBSCRIPTION_TYPES = {
     "xdai_blockchain": SubscriptionTypeResourceData(
         id="xdai_blockchain",
         name="XDai transactions",
+        blockchain="xdai",
         choices=["input:address", "tag:erc721"],
         description="Gnosis chain transactions subscription.",
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/xdai-token-logo.png",
@@ -97,9 +116,21 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         stripe_price_id=None,
         active=True,
     ),
+    "wyrm_blockchain": SubscriptionTypeResourceData(
+        id="wyrm_blockchain",
+        name="Wyrm transactions",
+        blockchain="wyrm",
+        choices=["input:address", "tag:erc721"],
+        description="Wyrm chain transactions subscription.",
+        icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/great-wyrm-network-logo.png",
+        stripe_product_id=None,
+        stripe_price_id=None,
+        active=True,
+    ),
     "ethereum_whalewatch": SubscriptionTypeResourceData(
         id="ethereum_whalewatch",
         name="Ethereum whale watch",
+        blockchain="ethereum",
         description="Ethereum accounts that have experienced a lot of recent activity",
         choices=[],
         # Icon taken from: https://www.maxpixel.net/Whale-Cetacean-Wildlife-Symbol-Ocean-Sea-Black-99310
@@ -111,6 +142,7 @@ CANONICAL_SUBSCRIPTION_TYPES = {
     "ethereum_txpool": SubscriptionTypeResourceData(
         id="ethereum_txpool",
         name="Ethereum transaction pool",
+        blockchain="ethereum",
         description="Transactions that have been submitted into the Ethereum transaction pool but not necessarily mined yet",
         choices=["input:address", "tag:erc721"],
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/ethereum/eth-diamond-rainbow.png",

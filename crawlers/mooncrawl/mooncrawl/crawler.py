@@ -179,14 +179,17 @@ def crawler_blocks_missing_handler(args: argparse.Namespace) -> None:
 
     block_range = args.blocks
     if block_range is None:
-        confirmations = 150
-        shift = 2000
+        confirmations = args.confirmations
+        shift = args.shift
         _, latest_block_number = get_latest_blocks(
             AvailableBlockchainType(args.blockchain),
             confirmations,
             access_id=args.access_id,
         )
-        block_range = f"{latest_block_number-shift}-{latest_block_number}"
+        start_block_number = (
+            latest_block_number - shift if latest_block_number - shift >= 1 else 1
+        )
+        block_range = f"{start_block_number}-{latest_block_number}"
 
     for blocks_numbers_list in yield_blocks_numbers_lists(block_range):
         logger.info(
@@ -365,6 +368,18 @@ def main() -> None:
         "--blockchain",
         required=True,
         help=f"Available blockchain types: {[member.value for member in AvailableBlockchainType]}",
+    )
+    parser_crawler_blocks_missing.add_argument(
+        "--confirmations",
+        type=int,
+        default=150,
+        help="How nuch behind the latest block to start crawling",
+    )
+    parser_crawler_blocks_missing.add_argument(
+        "--shift",
+        type=int,
+        default=2000,
+        help="How many blocks to shift from the latest block",
     )
     parser_crawler_blocks_missing.set_defaults(func=crawler_blocks_missing_handler)
 

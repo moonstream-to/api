@@ -1,8 +1,9 @@
+from collections import OrderedDict
 import hashlib
 import json
 from itertools import chain
 import logging
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from enum import Enum
 import uuid
 
@@ -16,6 +17,8 @@ from bugout.data import (
 )
 from bugout.journal import SearchOrder
 from bugout.exceptions import BugoutResponseException
+from entity.data import EntityCollectionsResponse, EntityCollectionResponse  # type: ignore
+from entity.exceptions import EntityUnexpectedResponse  # type: ignore
 from ens.utils import is_valid_ens_name  # type: ignore
 from eth_utils.address import is_address  # type: ignore
 from moonstreamdb.models import EthereumLabel
@@ -37,8 +40,9 @@ from .settings import (
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
     MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+    MOONSTREAM_ADMIN_ACCESS_TOKEN,
 )
-from .settings import bugout_client as bc
+from .settings import bugout_client as bc, entity_client as ec
 
 logger = logging.getLogger(__name__)
 
@@ -48,10 +52,12 @@ blockchain_by_subscription_id = {
     "polygon_blockchain": "polygon",
     "mumbai_blockchain": "mumbai",
     "xdai_blockchain": "xdai",
+    "wyrm_blockchain": "wyrm",
     "ethereum_smartcontract": "ethereum",
     "polygon_smartcontract": "polygon",
     "mumbai_smartcontract": "mumbai",
     "xdai_smartcontract": "xdai",
+    "wyrm_smartcontract": "wyrm",
 }
 
 
@@ -70,6 +76,12 @@ class NameNormalizationException(Exception):
 class ResourceQueryFetchException(Exception):
     """
     Exception in queries API
+    """
+
+
+class EntityCollectionNotFoundException(Exception):
+    """
+    Raised when entity collection is not found
     """
 
 
@@ -129,7 +141,6 @@ def get_ens_name(web3: Web3, address: str) -> Optional[str]:
 
 
 def get_ens_address(web3: Web3, name: str) -> Optional[str]:
-
     if not is_valid_ens_name(name):
         raise ValueError(f"{name} is not valid ens name")
 
@@ -148,7 +159,6 @@ def get_ens_address(web3: Web3, name: str) -> Optional[str]:
 def get_ethereum_address_info(
     db_session: Session, web3: Web3, address: str
 ) -> Optional[data.EthereumAddressInfo]:
-
     if not is_address(address):
         raise ValueError(f"Invalid ethereum address : {address}")
 
@@ -265,7 +275,6 @@ def create_onboarding_resource(
         "is_complete": False,
     },
 ) -> BugoutResource:
-
     resource = bc.create_resource(
         token=token,
         application_id=MOONSTREAM_APPLICATION_ID,
@@ -315,9 +324,7 @@ def json_type(evm_type: str) -> type:
 def dashboards_abi_validation(
     dashboard_subscription: data.DashboardMeta,
     abi: Any,
-    s3_path: str,
 ):
-
     """
     Validate current dashboard subscription : https://github.com/bugout-dev/moonstream/issues/345#issuecomment-953052444
     with contract abi on S3
@@ -332,25 +339,22 @@ def dashboards_abi_validation(
     }
     if not dashboard_subscription.all_methods:
         for method in dashboard_subscription.methods:
-
             if method["name"] not in abi_functions:
                 # Method not exists
                 logger.error(
                     f"Error on dashboard resource validation method:{method['name']}"
                     f" of subscription: {dashboard_subscription.subscription_id}"
-                    f"does not exists in Abi {s3_path}"
+                    f"does not exists in Abi "
                 )
                 raise MoonstreamHTTPException(status_code=400)
             if method.get("filters") and isinstance(method["filters"], dict):
-
                 for input_argument_name, value in method["filters"].items():
-
                     if input_argument_name not in abi_functions[method["name"]]:
                         # Argument not exists
                         logger.error(
                             f"Error on dashboard resource validation type argument: {input_argument_name} of method:{method['name']} "
                             f" of subscription: {dashboard_subscription.subscription_id} has incorrect"
-                            f"does not exists in Abi {s3_path}"
+                            f"does not exists in Abi"
                         )
                         raise MoonstreamHTTPException(status_code=400)
 
@@ -373,25 +377,22 @@ def dashboards_abi_validation(
 
     if not dashboard_subscription.all_events:
         for event in dashboard_subscription.events:
-
             if event["name"] not in abi_events:
                 logger.error(
                     f"Error on dashboard resource validation event:{event['name']}"
                     f" of subscription: {dashboard_subscription.subscription_id}"
-                    f"does not exists in Abi {s3_path}"
+                    f"does not exists in Abi"
                 )
                 raise MoonstreamHTTPException(status_code=400)
 
             if event.get("filters") and isinstance(event["filters"], dict):
-
                 for input_argument_name, value in event["filters"].items():
-
                     if input_argument_name not in abi_events[event["name"]]:
                         # Argument not exists
                         logger.error(
                             f"Error on dashboard resource validation type argument: {input_argument_name} of method:{event['name']} "
                             f" of subscription: {dashboard_subscription.subscription_id} has incorrect"
-                            f"does not exists in Abi {s3_path}"
+                            f"does not exists in Abi"
                         )
                         raise MoonstreamHTTPException(status_code=400)
 
@@ -433,14 +434,14 @@ def upload_abi_to_s3(
 
     """
 
-    s3_client = boto3.client("s3")
+    s3 = boto3.client("s3")
 
     bucket = MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET
 
     result_bytes = abi.encode("utf-8")
     result_key = f"{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/{blockchain_by_subscription_id[resource.resource_data['subscription_type_id']]}/abi/{resource.resource_data['address']}/{resource.id}/abi.json"
 
-    s3_client.put_object(
+    s3.put_object(
         Body=result_bytes,
         Bucket=bucket,
         Key=result_key,
@@ -482,7 +483,6 @@ def get_all_entries_from_search(
         reporter.error_report(e)
 
     if len(results) != existing_metods.total_results:
-
         for offset in range(limit, existing_metods.total_results, limit):
             existing_metods = bc.search(
                 token=token,
@@ -604,3 +604,111 @@ def get_query_by_name(query_name: str, token: uuid.UUID) -> str:
     query_id = available_queries[query_name]
 
     return query_id
+
+
+def get_entity_subscription_collection_id(
+    resource_type: str,
+    token: Union[uuid.UUID, str],
+    user_id: uuid.UUID,
+    create_if_not_exist: bool = False,
+) -> Optional[str]:
+    """
+    Get collection_id from brood resources. If collection not exist and create_if_not_exist is True
+    """
+
+    params = {
+        "type": resource_type,
+        "user_id": str(user_id),
+    }
+    try:
+        resources: BugoutResources = bc.list_resources(token=token, params=params)
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        logger.error(
+            f"Error listing subscriptions for user ({user_id}) with token ({token}), error: {str(e)}"
+        )
+        reporter.error_report(e)
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    if len(resources.resources) == 0:
+        if not create_if_not_exist:
+            raise EntityCollectionNotFoundException(
+                "Subscription collection not found."
+            )
+        try:
+            # try get collection
+
+            collections: EntityCollectionsResponse = ec.list_collections(token=token)
+
+            available_collections: Dict[str, str] = {
+                collection.name: collection.collection_id
+                for collection in collections.collections
+            }
+
+            if f"subscriptions_{user_id}" not in available_collections:
+                collection: EntityCollectionResponse = ec.add_collection(
+                    token=token, name=f"subscriptions_{user_id}"
+                )
+                collection_id = collection.collection_id
+            else:
+                collection_id = available_collections[f"subscriptions_{user_id}"]
+        except EntityUnexpectedResponse as e:
+            logger.error(f"Error create collection, error: {str(e)}")
+            raise MoonstreamHTTPException(
+                status_code=500, detail="Can't create collection for subscriptions"
+            )
+
+        resource_data = {
+            "type": resource_type,
+            "user_id": str(user_id),
+            "collection_id": str(collection_id),
+        }
+
+        try:
+            resource: BugoutResource = bc.create_resource(
+                token=token,
+                application_id=MOONSTREAM_APPLICATION_ID,
+                resource_data=resource_data,
+            )
+        except BugoutResponseException as e:
+            raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+        except Exception as e:
+            logger.error(f"Error creating subscription resource: {str(e)}")
+            raise MoonstreamHTTPException(status_code=500, internal_error=e)
+    else:
+        resource = resources.resources[0]
+    return resource.resource_data["collection_id"]
+
+
+def generate_s3_access_links(
+    method_name: str,
+    bucket: str,
+    key: str,
+    http_method: str,
+    expiration: int = 300,
+) -> str:
+    s3 = boto3.client("s3")
+    stats_presigned_url = s3.generate_presigned_url(
+        method_name,
+        Params={
+            "Bucket": bucket,
+            "Key": key,
+        },
+        ExpiresIn=expiration,
+        HttpMethod=http_method,
+    )
+
+    return stats_presigned_url
+
+
+def query_parameter_hash(params: Dict[str, Any]) -> str:
+    """
+    Generate a hash of the query parameters
+    """
+
+    hash = hashlib.md5(
+        json.dumps(OrderedDict(params), sort_keys=True).encode("utf-8")
+    ).hexdigest()
+
+    return hash

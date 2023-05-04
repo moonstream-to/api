@@ -27,7 +27,6 @@ def _crawl_functions(
     from_block: int,
     to_block: int,
 ) -> List[ContractFunctionCall]:
-
     shared_state = MockState()
 
     crawled_functions = []
@@ -67,6 +66,8 @@ def function_call_crawler(
         network = Network.mumbai
     elif blockchain_type == AvailableBlockchainType.XDAI:
         network = Network.xdai
+    elif blockchain_type == AvailableBlockchainType.WYRM:
+        network = Network.wyrm
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 

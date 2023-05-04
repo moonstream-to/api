@@ -6,7 +6,7 @@ import json
 import logging
 import os
 from posix import listdir
-from typing import Optional
+from typing import Optional, List, Dict, Any, Union, Callable
 
 from sqlalchemy.orm import with_expression
 
@@ -16,13 +16,17 @@ from ..settings import BUGOUT_BROOD_URL, BUGOUT_SPIRE_URL, MOONSTREAM_APPLICATIO
 from ..web3_provider import yield_web3_provider
 
 from . import subscription_types, subscriptions, moonworm_tasks, queries
-from .migrations import checksum_address, update_dashboard_subscription_key
+from .migrations import (
+    checksum_address,
+    update_dashboard_subscription_key,
+    generate_entity_subscriptions,
+)
 
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-MIGRATIONS_FOLDER = "./moonstream/admin/migrations"
+MIGRATIONS_FOLDER = "./moonstreamapi/admin/migrations"
 
 
 def parse_boolean_arg(raw_arg: Optional[str]) -> Optional[bool]:
@@ -35,6 +39,35 @@ def parse_boolean_arg(raw_arg: Optional[str]) -> Optional[bool]:
     return False
 
 
+def migration_run(step_map, command, step, step_order):
+    if step is None:
+        # run all steps
+
+        if step_order is None:
+            raise ValueError(
+                f"step_order is required when running all steps for {command}"
+            )
+
+        if command == "downgrade":
+            step_order = reversed(step_order)
+
+        for step in step_order:
+            logger.info(
+                f"Starting step {step}: {step_map[command][step]['description']}"
+            )
+            migration_function = step_map[command][step]["action"]
+            if callable(migration_function):
+                migration_function()
+    elif step in step_map[command]:
+        logger.info(f"Starting step {step}: {step_map[command][step]['description']}")
+        migration_function = step_map[command][step]["action"]
+        if callable(migration_function):
+            migration_function()
+    else:
+        logger.error(f"Step {step} not found in {command}")
+        logger.info(f"Available steps: {step_map[command].keys()}")
+
+
 def migrations_list(args: argparse.Namespace) -> None:
     migrations_overview = f"""
 
@@ -43,6 +76,20 @@ name: {checksum_address.__name__}
 description: {checksum_address.__doc__}
     """
     logger.info(migrations_overview)
+
+    entity_migration_overview = f"""
+- id: 20230213
+name: {generate_entity_subscriptions.__name__}
+description: {generate_entity_subscriptions.__doc__}
+steps:
+    - step 1: generate_entity_subscriptions_from_brood_resources - Generate entity subscriptions from brood resources
+    - step 2: update_dashboards_connection - Update dashboards connection
+- id: 20230501
+name: fix_duplicates_keys_in_entity_subscription
+description: Fix entity duplicates keys for all subscriptions introduced in 20230213
+    """
+    logger.info(entity_migration_overview)
+
     json_migrations_oreview = "Available migrations files."
     for file in os.listdir(MIGRATIONS_FOLDER):
         if file.endswith(".json"):
@@ -70,18 +117,69 @@ def migrations_run(args: argparse.Namespace) -> None:
     web3_session = yield_web3_provider()
     db_session = SessionLocal()
     try:
-        if args.id == 20211101:
+        if args.id == 20230501:
+            # fix entity duplicates keys for all subscriptions introduced in 20230213
+
+            step_order = ["fix_duplicates_keys_in_entity_subscription"]
+            step_map: Dict[str, Dict[str, Any]] = {
+                "upgrade": {
+                    "fix_duplicates_keys_in_entity_subscription": {
+                        "action": generate_entity_subscriptions.fix_duplicates_keys_in_entity_subscription,
+                        "description": "Fix entity duplicates keys for all subscriptions introduced in 20230213",
+                    },
+                },
+                "downgrade": {},
+            }
+            if args.command not in ["upgrade", "downgrade"]:
+                logger.info("Wrong command. Please use upgrade or downgrade")
+            step = args.step
+
+            migration_run(step_map, args.command, step, step_order)
+
+        if args.id == 20230213:
+            step_order = [
+                "generate_entity_subscriptions_from_brood_resources",
+                "update_dashboards_connection",
+            ]
+            step_map = {
+                "upgrade": {
+                    "generate_entity_subscriptions_from_brood_resources": {
+                        "action": generate_entity_subscriptions.generate_entity_subscriptions_from_brood_resources,
+                        "description": "Generate entity subscriptions from brood resources",
+                    },
+                    "update_dashboards_connection": {
+                        "action": generate_entity_subscriptions.update_dashboards_connection,
+                        "description": "Update dashboards connection",
+                    },
+                },
+                "downgrade": {
+                    "generate_entity_subscriptions_from_brood_resources": {
+                        "action": generate_entity_subscriptions.delete_generated_entity_subscriptions_from_brood_resources,
+                        "description": "Delete generated entity subscriptions from brood resources",
+                    },
+                    "update_dashboards_connection": {
+                        "action": generate_entity_subscriptions.restore_dashboard_state,
+                        "description": "Restore dashboard state",
+                    },
+                },
+            }
+            if args.command not in ["upgrade", "downgrade"]:
+                logger.info("Wrong command. Please use upgrade or downgrade")
+            step = args.step
+
+            migration_run(step_map, args.command, step, step_order)
+
+        elif args.id == 20211101:
             logger.info("Starting update of subscriptions in Brood resource...")
             checksum_address.checksum_all_subscription_addresses(web3_session)
             logger.info("Starting update of ethereum_labels in database...")
             checksum_address.checksum_all_labels_addresses(db_session, web3_session)
         elif args.id == 20211202:
             update_dashboard_subscription_key.update_dashboard_resources_key()
-        else:
+        elif args.id == 20211108:
             drop_keys = []
 
             if args.file is not None:
-
                 with open(args.file) as migration_json_file:
                     migration_json = json.load(migration_json_file)
 
@@ -119,12 +217,10 @@ def migrations_run(args: argparse.Namespace) -> None:
 
 
 def moonworm_tasks_list_handler(args: argparse.Namespace) -> None:
-
     moonworm_tasks.get_list_of_addresses()
 
 
 def moonworm_tasks_add_subscription_handler(args: argparse.Namespace) -> None:
-
     moonworm_tasks.add_subscription(args.id)
 
 
@@ -345,6 +441,13 @@ This CLI is configured to work with the following API URLs:
         choices=["upgrade", "downgrade"],
         type=str,
         help="Command for migration",
+    )
+    parser_migrations_run.add_argument(
+        "-s",
+        "--step",
+        required=False,
+        type=str,
+        help="How many steps to run",
     )
     parser_migrations_run.set_defaults(func=migrations_run)
 

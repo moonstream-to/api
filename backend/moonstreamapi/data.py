@@ -31,6 +31,7 @@ class SubscriptionTypeResourceData(BaseModel):
     description: str
     choices: List[str] = Field(default_factory=list)
     icon_url: str
+    blockchain: Optional[str] = None
     stripe_product_id: Optional[str] = None
     stripe_price_id: Optional[str] = None
     active: bool = False
@@ -42,14 +43,14 @@ class SubscriptionTypesListResponse(BaseModel):
 
 class SubscriptionResourceData(BaseModel):
     id: str
-    address: str
+    address: Optional[str]
     abi: Optional[str]
     color: Optional[str]
     label: Optional[str]
     user_id: str
-    subscription_type_id: str
-    created_at: datetime
-    updated_at: datetime
+    subscription_type_id: Optional[str]
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
 
 
 class CreateSubscriptionRequest(BaseModel):
@@ -239,7 +240,7 @@ class OnboardingState(BaseModel):
 
 
 class SubdcriptionsAbiResponse(BaseModel):
-    url: str
+    abi: str
 
 
 class DashboardMeta(BaseModel):

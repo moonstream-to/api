@@ -48,10 +48,10 @@ const Team = () => {
       direction="column"
       alignItems="center"
       w="100%"
+      maxW="1238"
     >
-      <Stack mt="72px" mx={margin} maxW="1700px" w="100%">
+      <Stack mt="142px" w="100%">
         <SimpleGrid
-          px={12}
           alignItems="start"
           columns={{ base: 1, md: 2 }}
           mb={24}
@@ -85,19 +85,11 @@ const Team = () => {
           </Center>
         </SimpleGrid>
       </Stack>
-      <Stack mx={margin} mb={6} mt={0} maxW="1700px" w="100%">
-        <Heading
-          as="h2"
-          size="md"
-          w="100%"
-          px={12}
-          pb={2}
-          pt={0}
-          borderTopRadius="xl"
-        >
+      <Stack mb={6} mt={0} w="100%">
+        <Heading as="h2" size="md" w="100%" pb={2} pt={0} borderTopRadius="xl">
           Values that we share within our team:
         </Heading>
-        <chakra.span pl={2} px={12} py={2}>
+        <chakra.span pl={2} py={2}>
           <UnorderedList w="75%" pl={4}>
             <ListItem>
               <b>Be bold</b>
@@ -122,16 +114,15 @@ const Team = () => {
           </Text>
         </chakra.span>
       </Stack>
-      <Stack mx={margin} mb={12} maxW="1700px" w="100%">
-        <Heading as="h2" size="md" w="100%" px={12} py={2} borderTopRadius="xl">
+      <Stack mb={12} w="100%">
+        <Heading as="h2" size="md" w="100%" py={2} borderTopRadius="xl">
           Our engineering team
         </Heading>
-        <Stack
+        <Flex
           w="100%"
           direction={"row"}
           flexWrap="wrap"
           justifyContent="space-between"
-          px={[3, 6, 12]}
           alignContent="left"
         >
           <TeamCard
@@ -157,15 +148,6 @@ const Team = () => {
             the guitar in between data witchcraft.`}
           />
           <TeamCard
-            avatarURL={assets["centipede"]}
-            name={"Yhtyyar Sahatov"}
-            atName={"@Yhtiyar"}
-            content={`Wunderkind. Interested in Math, NLP. Loves
-            programming language parsing and Algorithms & Data structures.
-            Implementing his own dialect of LISP programming language for
-            scientific calculations.`}
-          />
-          <TeamCard
             avatarURL={assets["scarab"]}
             name={"Kellan Wampler"}
             atName={"@wampleek"}
@@ -173,18 +155,26 @@ const Team = () => {
             Enjoys soduku and its variants. Follows artificial intelligence scene for 
             Chess and Go. Experiments with grilling recipes.`}
           />
-        </Stack>
+          <TeamCard
+            avatarURL={assets["firefly"]}
+            name={"Ishkhan Balgudanian"}
+            atName={"@ishihssihshihishsi"}
+            content={`Lighter. Designer to the bone. Constantly
+            working on self-development. Sometimes plays guitar
+            and ukulele. Loves meat, went from well done to blue
+            rare in a few months.`}
+          />
+        </Flex>
       </Stack>
-      <Stack mx={margin} mb={12} maxW="1700px" w="100%">
-        <Heading as="h2" size="md" w="100%" px={12} py={2} borderTopRadius="xl">
+      <Stack mb={12} w="100%">
+        <Heading as="h2" size="md" w="100%" py={2} borderTopRadius="xl">
           Our marketing and growth team
         </Heading>
-        <Stack
+        <Flex
           w="100%"
           direction={"row"}
           flexWrap="wrap"
           justifyContent="space-between"
-          px={[3, 6, 12]}
           alignContent="left"
         >
           <TeamCard
@@ -211,16 +201,7 @@ const Team = () => {
             new to master. Enjoys being close to the sea. Loves yoga, 
             dogs and dancing. Can walk 30km when under stress.`}
           />
-          <TeamCard
-            avatarURL={assets["firefly"]}
-            name={"Ishkhan Balgudanian"}
-            atName={"@ishihssihshihishsi"}
-            content={`Lighter. Designer to the bone. Constantly
-            working on self-development. Sometimes plays guitar
-            and ukulele. Loves meat, went from well done to blue
-            rare in a few months.`}
-          />
-        </Stack>
+        </Flex>
       </Stack>
     </Flex>
   );

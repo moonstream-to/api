@@ -62,7 +62,6 @@ def historical_crawler(
 
     while start_block >= end_block:
         try:
-
             time.sleep(min_sleep_time)
 
             batch_end_block = max(
@@ -85,7 +84,6 @@ def historical_crawler(
                 )
 
             else:
-
                 all_events, max_blocks_batch = _autoscale_crawl_events(
                     db_session=db_session,
                     blockchain_type=blockchain_type,

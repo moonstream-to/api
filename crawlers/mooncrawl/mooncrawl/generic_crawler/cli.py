@@ -5,11 +5,11 @@ from typing import Optional
 from uuid import UUID
 
 from moonstreamdb.blockchain import AvailableBlockchainType
-from moonstreamdb.db import yield_db_session_ctx
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
 from ..blockchain import connect
+from ..db import yield_db_session_ctx
 from ..settings import NB_CONTROLLER_ACCESS_ID
 from .base import crawl, get_checkpoint, populate_with_events
 

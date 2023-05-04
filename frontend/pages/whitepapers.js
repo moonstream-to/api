@@ -1,23 +1,24 @@
 import React from "react";
-import { VStack, Link, Heading, Icon } from "@chakra-ui/react";
+import { Flex, Heading } from "@chakra-ui/react";
 import { getLayout, getLayoutProps } from "../src/layouts/InfoPageLayout";
-import { MdPictureAsPdf } from "react-icons/md";
+import WhitepaperCard from "../src/components/molecules/WhitepaperCard";
+import { AWS_ASSETS_PATH } from "../src/core/constants";
 
 const Papers = () => {
   return (
-    <VStack>
-      <Heading pb={12} pt="72px">
+    <Flex direction="column" px="7%" width="100%" alignItems="center" pb="40px">
+      <Heading pb={["40px", "40px", "60px"]} pt={["122px", "122px", "142px"]}>
         Whitepapers
       </Heading>
-      <Link
-        color="orange.900"
+      <WhitepaperCard
+        maxW={["340px", "340px", "890px"]}
         href="https://github.com/bugout-dev/moonstream/blob/main/datasets/nfts/papers/ethereum-nfts.pdf"
-      >
-        An analysis of 7,020,950 NFT transactions on the Ethereum blockchain -
-        October 22, 2021
-        <Icon as={MdPictureAsPdf} color="red" display="inline-block" />
-      </Link>
-    </VStack>
+        img={`${AWS_ASSETS_PATH}/nft_market_analysis_i.png`}
+        title="An analysis of 7,020,950 NFT transactions on the Ethereum blockchain"
+        date="October 22, 2021"
+        text="We present the Ethereum NFTs dataset, a representation of the activity on the Ethereum non-fungible token (NFT) market between April 1, 2021 and September 25, 2021, constructed purely from on-chain data. This dataset consists of all 7 020 950 token mints and transfers across 727 102 accounts between block 12 150 245 and block 13 296 011."
+      />
+    </Flex>
   );
 };
 

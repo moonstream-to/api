@@ -1,34 +1,34 @@
 import argparse
-import json
 import hashlib
 import itertools
+import json
 import logging
-from typing import Dict, List, Any, Optional
+import time
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures._base import TimeoutError
+from pprint import pprint
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from moonstreamdb.blockchain import AvailableBlockchainType
-from mooncrawl.moonworm_crawler.crawler import _retry_connect_web3
-from moonstreamdb.db import (
-    MOONSTREAM_DB_URI,
-    MOONSTREAM_POOL_SIZE,
-    create_moonstream_engine,
-)
-from sqlalchemy.orm import sessionmaker
+from web3._utils.request import cache_session
+from web3.middleware import geth_poa_middleware
 
-from .db import view_call_to_label, commit_session, clean_labels
-from .Multicall2_interface import Contract as Multicall2
+from mooncrawl.moonworm_crawler.crawler import _retry_connect_web3
+
+from ..db import PrePing_SessionLocal
 from ..settings import (
+    INFURA_PROJECT_ID,
     NB_CONTROLLER_ACCESS_ID,
-    MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS,
+    infura_networks,
     multicall_contracts,
 )
-from .web3_util import FunctionSignature
+from .db import clean_labels, commit_session, view_call_to_label
+from .Multicall2_interface import Contract as Multicall2
+from .web3_util import FunctionSignature, connect
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-Multicall2_address = "0xc8E51042792d7405184DfCa245F2d27B94D013b6"
 
 
 def make_multicall(
@@ -37,14 +37,20 @@ def make_multicall(
     block_timestamp: int,
     block_number: str = "latest",
 ) -> Any:
+    multicall_calls = []
 
-    multicall_calls = [
-        (
-            call["address"],
-            call["method"].encode_data(call["inputs"]).hex(),
-        )
-        for call in calls
-    ]
+    for call in calls:
+        try:
+            multicall_calls.append(
+                (
+                    call["address"],
+                    call["method"].encode_data(call["inputs"]).hex(),
+                )
+            )
+        except Exception as e:
+            logger.error(
+                f'Error encoding data for method {call["method"].name} call: {call}'
+            )
 
     multicall_result = multicall_method(False, calls=multicall_calls).call(
         block_identifier=block_number
@@ -54,10 +60,41 @@ def make_multicall(
 
     # Handle the case with not successful calls
     for index, encoded_data in enumerate(multicall_result):
-        if encoded_data[0]:
+        try:
+            if encoded_data[0]:
+                results.append(
+                    {
+                        "result": calls[index]["method"].decode_data(encoded_data[1]),
+                        "hash": calls[index]["hash"],
+                        "method": calls[index]["method"],
+                        "address": calls[index]["address"],
+                        "name": calls[index]["method"].name,
+                        "inputs": calls[index]["inputs"],
+                        "call_data": multicall_calls[index][1],
+                        "block_number": block_number,
+                        "block_timestamp": block_timestamp,
+                        "status": encoded_data[0],
+                    }
+                )
+            else:
+                results.append(
+                    {
+                        "result": calls[index]["method"].decode_data(encoded_data[1]),
+                        "hash": calls[index]["hash"],
+                        "method": calls[index]["method"],
+                        "address": calls[index]["address"],
+                        "name": calls[index]["method"].name,
+                        "inputs": calls[index]["inputs"],
+                        "call_data": multicall_calls[index][1],
+                        "block_number": block_number,
+                        "block_timestamp": block_timestamp,
+                        "status": encoded_data[0],
+                    }
+                )
+        except Exception as e:
             results.append(
                 {
-                    "result": calls[index]["method"].decode_data(encoded_data[1])[0],
+                    "result": str(encoded_data[1]),
                     "hash": calls[index]["hash"],
                     "method": calls[index]["method"],
                     "address": calls[index]["address"],
@@ -67,27 +104,21 @@ def make_multicall(
                     "block_number": block_number,
                     "block_timestamp": block_timestamp,
                     "status": encoded_data[0],
+                    "error": str(e),
                 }
             )
-        else:
-            results.append(
-                {
-                    "result": calls[index]["method"].decode_data(encoded_data[1]),
-                    "hash": calls[index]["hash"],
-                    "method": calls[index]["method"],
-                    "address": calls[index]["address"],
-                    "name": calls[index]["method"].name,
-                    "inputs": calls[index]["inputs"],
-                    "call_data": multicall_calls[index][1],
-                    "block_number": block_number,
-                    "block_timestamp": block_timestamp,
-                    "status": encoded_data[0],
-                }
+
+            logger.error(
+                f"Error decoding data for for method {call['method'].name} call {calls[index]}: {e}."
             )
+            # data is not decoded, return the encoded data
+            logger.error(f"Encoded data: {encoded_data}")
+
     return results
 
 
 def crawl_calls_level(
+    web3_client,
     db_session,
     calls,
     responces,
@@ -98,15 +129,19 @@ def crawl_calls_level(
     block_number,
     blockchain_type,
     block_timestamp,
+    max_batch_size=5000,
+    min_batch_size=4,
 ):
-
     calls_of_level = []
 
     for call in calls:
+        if call["generated_hash"] in responces:
+            continue
         parameters = []
 
-        for input in call["inputs"]:
+        logger.info(f"Call: {json.dumps(call, indent=4)}")
 
+        for input in call["inputs"]:
             if type(input["value"]) in (str, int):
                 if input["value"] not in responces:
                     parameters.append([input["value"]])
@@ -114,9 +149,10 @@ def crawl_calls_level(
                     if (
                         contracts_ABIs[call["address"]][input["value"]]["name"]
                         == "totalSupply"
-                    ):
+                    ):  # hack for totalSupply TODO(Andrey): need add propper support for response parsing
+                        print(responces[input["value"]][0])
                         parameters.append(
-                            list(range(1, responces[input["value"]][0] + 1))
+                            list(range(1, responces[input["value"]][0][0] + 1))
                         )
                     else:
                         parameters.append(responces[input["value"]])
@@ -126,6 +162,9 @@ def crawl_calls_level(
                 raise
 
         for call_parameters in itertools.product(*parameters):
+            # hack for tuples product
+            if len(call_parameters) == 1 and type(call_parameters[0]) == tuple:
+                call_parameters = call_parameters[0]
             calls_of_level.append(
                 {
                     "address": call["address"],
@@ -137,26 +176,56 @@ def crawl_calls_level(
                 }
             )
 
-    for call_chunk in [
-        calls_of_level[i : i + batch_size]
-        for i in range(0, len(calls_of_level), batch_size)
-    ]:
+    retry = 0
 
-        while True:
-            try:
-                make_multicall_result = make_multicall(
-                    multicall_method=multicall_method,
-                    calls=call_chunk,
-                    block_number=block_number,
-                    block_timestamp=block_timestamp,
+    while len(calls_of_level) > 0:
+        make_multicall_result = []
+        try:
+            call_chunk = calls_of_level[:batch_size]
+
+            logger.info(
+                f"Calling multicall2 with {len(call_chunk)} calls at block {block_number}"
+            )
+
+            # 1 thead with timeout for hung multicall calls
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(
+                    make_multicall,
+                    multicall_method,
+                    call_chunk,
+                    block_timestamp,
+                    block_number,
                 )
-                break
-            except ValueError:
-                continue
+                make_multicall_result = future.result(timeout=20)
+            logger.info(
+                f"Multicall2 returned {len(make_multicall_result)} results at block {block_number}"
+            )
+            retry = 0
+            calls_of_level = calls_of_level[batch_size:]
+            logger.info(f"lenght of task left {len(calls_of_level)}.")
+            batch_size = min(batch_size * 2, max_batch_size)
+        except ValueError as e:  # missing trie node
+            logger.error(f"ValueError: {e}, retrying")
+            retry += 1
+            if "missing trie node" in str(e):
+                time.sleep(4)
+            if retry > 5:
+                raise (e)
+            batch_size = max(batch_size // 3, min_batch_size)
+        except TimeoutError as e:  # timeout
+            logger.error(f"TimeoutError: {e}, retrying")
+            retry += 1
+            if retry > 5:
+                raise (e)
+            batch_size = max(batch_size // 3, min_batch_size)
+        except Exception as e:
+            logger.error(f"Exception: {e}")
+            raise (e)
+        time.sleep(2)
+        print(f"retry: {retry}")
         # results parsing and writing to database
         add_to_session_count = 0
         for result in make_multicall_result:
-
             db_view = view_call_to_label(blockchain_type, result)
             db_session.add(db_view)
             add_to_session_count += 1
@@ -167,10 +236,13 @@ def crawl_calls_level(
         commit_session(db_session)
         logger.info(f"{add_to_session_count} labels commit to database.")
 
+    return batch_size
+
 
 def parse_jobs(
     jobs: List[Any],
     blockchain_type: AvailableBlockchainType,
+    web3_provider_uri: Optional[str],
     block_number: Optional[int],
     batch_size: int,
     access_id: UUID,
@@ -183,9 +255,26 @@ def parse_jobs(
     contracts_methods: Dict[str, Any] = {}
     calls: Dict[int, Any] = {0: []}
 
-    web3_client = _retry_connect_web3(
-        blockchain_type=blockchain_type, access_id=access_id
-    )
+    if web3_provider_uri is not None:
+        try:
+            logger.info(
+                f"Connecting to blockchain: {blockchain_type} with custom provider!"
+            )
+
+            web3_client = connect(web3_provider_uri)
+
+            if blockchain_type != AvailableBlockchainType.ETHEREUM:
+                web3_client.middleware_onion.inject(geth_poa_middleware, layer=0)
+        except Exception as e:
+            logger.error(
+                f"Web3 connection to custom provider {web3_provider_uri} failed error: {e}"
+            )
+            raise (e)
+    else:
+        logger.info(f"Connecting to blockchain: {blockchain_type} with Node balancer.")
+        web3_client = _retry_connect_web3(
+            blockchain_type=blockchain_type, access_id=access_id
+        )
 
     logger.info(f"Crawler started connected to blockchain: {blockchain_type}")
 
@@ -218,7 +307,6 @@ def parse_jobs(
 
         for input in method_abi["inputs"]:
             if type(input["value"]) in (str, int, list):
-
                 abi["inputs"].append(input)
 
             elif type(input["value"]) == dict:
@@ -229,7 +317,11 @@ def parse_jobs(
                     have_subcalls = True
                 abi["inputs"].append(input)
         abi["address"] = method_abi["address"]
-        generated_hash = hashlib.md5(json.dumps(abi).encode("utf-8")).hexdigest()
+        generated_hash = hashlib.md5(
+            json.dumps(abi, sort_keys=True, indent=4, separators=(",", ": ")).encode(
+                "utf-8"
+            )
+        ).hexdigest()
 
         abi["generated_hash"] = generated_hash
         if have_subcalls:
@@ -238,7 +330,6 @@ def parse_jobs(
                 calls[level] = []
             calls[level].append(abi)
         else:
-
             level = 0
 
             if not calls.get(level):
@@ -266,7 +357,6 @@ def parse_jobs(
     interfaces = {}
 
     for contract_address in contracts_ABIs:
-
         # collect abis for each contract
         abis = []
 
@@ -283,22 +373,17 @@ def parse_jobs(
     # reverse call_tree
     call_tree_levels = sorted(calls.keys(), reverse=True)[:-1]
 
-    engine = create_moonstream_engine(
-        MOONSTREAM_DB_URI,
-        pool_pre_ping=True,
-        pool_size=MOONSTREAM_POOL_SIZE,
-        statement_timeout=MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS,
-    )
-    process_session = sessionmaker(bind=engine)
-    db_session = process_session()
+    db_session = PrePing_SessionLocal()
 
     # run crawling of levels
     try:
         # initial call of level 0 all call without subcalls directly moved there
         logger.info("Crawl level: 0")
         logger.info(f"Jobs amount: {len(calls[0])}")
+        logger.info(f"call_tree_levels: {call_tree_levels}")
 
-        crawl_calls_level(
+        batch_size = crawl_calls_level(
+            web3_client,
             db_session,
             calls[0],
             responces,
@@ -312,11 +397,11 @@ def parse_jobs(
         )
 
         for level in call_tree_levels:
-
             logger.info(f"Crawl level: {level}")
             logger.info(f"Jobs amount: {len(calls[level])}")
 
-            crawl_calls_level(
+            batch_size = crawl_calls_level(
+                web3_client,
                 db_session,
                 calls[level],
                 responces,
@@ -334,45 +419,34 @@ def parse_jobs(
 
 
 def handle_crawl(args: argparse.Namespace) -> None:
-
     """
     Ability to track states of the contracts.
 
     Read all view methods of the contracts and crawl
     """
 
-    my_job = {
-        "type": "function",
-        "stateMutability": "view",
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "tokenId",
-                "type": "uint256",
-                "value": {
-                    "type": "function",
-                    "name": "totalSupply",
-                    "outputs": [
-                        {
-                            "internalType": "uint256",
-                            "name": "",
-                            "type": "uint256",
-                        }
-                    ],
-                    "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
-                    "inputs": [],
-                },
-            }
-        ],
-        "name": "tokenURI",
-        "outputs": [{"internalType": "string", "name": "", "type": "string"}],
-        "address": "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f",
-    }
+    with open(args.jobs_file, "r") as f:
+        jobs = json.load(f)
 
     blockchain_type = AvailableBlockchainType(args.blockchain)
 
+    custom_web3_provider = args.custom_web3_provider
+
+    if args.infura and INFURA_PROJECT_ID is not None:
+        if blockchain_type not in infura_networks:
+            raise ValueError(
+                f"Infura is not supported for {blockchain_type} blockchain type"
+            )
+        logger.info(f"Using Infura!")
+        custom_web3_provider = infura_networks[blockchain_type]["url"]
+
     parse_jobs(
-        [my_job], blockchain_type, args.block_number, args.batch_size, args.access_id
+        jobs,
+        blockchain_type,
+        custom_web3_provider,
+        args.block_number,
+        args.batch_size,
+        args.access_id,
     )
 
 
@@ -382,12 +456,12 @@ def parse_abi(args: argparse.Namespace) -> None:
     """
 
     with open(args.abi_file, "r") as f:
-        # read json and parse only stateMutability equal to view
         abi = json.load(f)
 
     output_json = []
 
     for method in abi:
+        # read json and parse only stateMutability equal to view
         if method.get("stateMutability") and method["stateMutability"] == "view":
             output_json.append(method)
 
@@ -396,7 +470,6 @@ def parse_abi(args: argparse.Namespace) -> None:
 
 
 def clean_labels_handler(args: argparse.Namespace) -> None:
-
     blockchain_type = AvailableBlockchainType(args.blockchain)
 
     web3_client = _retry_connect_web3(
@@ -407,14 +480,7 @@ def clean_labels_handler(args: argparse.Namespace) -> None:
 
     block_number = web3_client.eth.get_block("latest").number  # type: ignore
 
-    engine = create_moonstream_engine(
-        MOONSTREAM_DB_URI,
-        pool_pre_ping=True,
-        pool_size=MOONSTREAM_POOL_SIZE,
-        statement_timeout=MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS,
-    )
-    process_session = sessionmaker(bind=engine)
-    db_session = process_session()
+    db_session = PrePing_SessionLocal()
 
     try:
         clean_labels(db_session, blockchain_type, args.blocks_cutoff, block_number)
@@ -447,7 +513,25 @@ def main() -> None:
         required=True,
     )
     view_state_crawler_parser.add_argument(
+        "--infura",
+        action="store_true",
+        help="Use infura as web3 provider",
+    )
+    view_state_crawler_parser.add_argument(
+        "--custom-web3-provider",
+        "-w3",
+        type=str,
+        help="Type of blovkchain wich writng in database",
+    )
+    view_state_crawler_parser.add_argument(
         "--block-number", "-N", type=str, help="Block number."
+    )
+    view_state_crawler_parser.add_argument(
+        "--jobs-file",
+        "-j",
+        type=str,
+        help="Path to json file with jobs",
+        required=True,
     )
     view_state_crawler_parser.add_argument(
         "--batch-size",

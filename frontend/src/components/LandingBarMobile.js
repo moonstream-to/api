@@ -13,7 +13,6 @@ import {
   MenuItem,
   Portal,
   Text,
-  Box,
 } from "@chakra-ui/react";
 
 import { PAGETYPE, SITEMAP, PRIMARY_MOON_LOGO_URL } from "../core/constants";
@@ -22,6 +21,7 @@ import useModals from "../core/hooks/useModals";
 import UIContext from "../core/providers/UIProvider/context";
 import PlainButton from "./atoms/PlainButton";
 import ChakraAccountIconButton from "./AccountIconButton";
+import router from "next/router";
 
 const LandingBarMobile = () => {
   const ui = useContext(UIContext);
@@ -32,15 +32,9 @@ const LandingBarMobile = () => {
       direction="column"
       width={"100%"}
       justifyContent={ui.isLoggedIn ? "center" : "space-between"}
+      p="12px 7% 0px 7%"
     >
-      <Flex
-        width={"100%"}
-        alignItems="center"
-        flex="flex: 0 0 100%"
-        pl="10px"
-        pr="27px"
-        mt={ui.isLoggedIn ? "0px" : "12px"}
-      >
+      <Flex width={"100%"} alignItems="center" flex="flex: 0 0 100%" mb="12px">
         <RouterLink href="/" passHref>
           <Link
             as={Image}
@@ -52,70 +46,62 @@ const LandingBarMobile = () => {
           />
         </RouterLink>
         <Spacer />
+
         {!ui.isLoggedIn && (
-          <PlainButton
-            style={{
-              marginRight: "12px",
-              fontSize: "14px",
-              padding: "2px 10px",
-            }}
-            onClick={() => toggleModal({ type: MODAL_TYPES.SIGNUP })}
-          >
-            Sign up
-          </PlainButton>
-        )}
-        {!ui.isLoggedIn && (
-          <Text
-            color="white"
-            bg="transparent"
-            onClick={() => toggleModal({ type: MODAL_TYPES.LOGIN })}
-            fontWeight="400"
-            p="0px"
-            m="0px"
-            _focus={{ backgroundColor: "transparent" }}
-            _hover={{ backgroundColor: "transparent" }}
-          >
-            Log in
-          </Text>
-        )}
-        {ui.isLoggedIn && (
-          <RouterLink href="/welcome" passHref>
-            <Box
-              bg="orange.1000"
-              alignSelf={"center"}
-              as={Link}
+          <Flex gap="12px" h="26px">
+            <Text
               color="white"
-              size="sm"
-              fontWeight="700"
-              borderRadius="15px"
-              w="47px"
-              h="25px"
-              textAlign="center"
-              fontSize="14px"
+              bg="transparent"
+              onClick={() => toggleModal({ type: MODAL_TYPES.LOGIN })}
+              fontWeight="400"
+              p="0px"
+              m="0px"
+              _focus={{ backgroundColor: "transparent" }}
+              _hover={{ backgroundColor: "transparent" }}
             >
-              <Text lineHeight="25px">App</Text>
-            </Box>
-          </RouterLink>
+              Log in
+            </Text>
+            <PlainButton
+              style={{
+                fontSize: "14px",
+                padding: "2px 10px",
+              }}
+              onClick={() => toggleModal({ type: MODAL_TYPES.SIGNUP })}
+            >
+              Sign up
+            </PlainButton>
+          </Flex>
         )}
-        {ui.isLoggedIn && ui.isMobileView && (
-          <>
+
+        {ui.isLoggedIn && (
+          <Flex gap="12px">
+            <PlainButton
+              style={{
+                fontSize: "14px",
+                padding: "2px 10px",
+              }}
+              onClick={() => router.push("/welcome")}
+            >
+              App
+            </PlainButton>
+
             <ChakraAccountIconButton variant="link" colorScheme="orange" />
-          </>
+          </Flex>
         )}
       </Flex>
       <ButtonGroup
         justifyContent="center"
         w="100%"
         variant="link"
-        spacing={4}
-        flexGrow={0.5}
+        gap="20px"
+        py="10px"
       >
         {SITEMAP.map((item, idx) => {
           return (
             <React.Fragment key={`Fragment-${idx}`}>
               {item.type !== PAGETYPE.FOOTER_CATEGORY && item.children && (
                 <Menu>
-                  <MenuButton variant="mobile" mb="0px" p="0px" as={Button}>
+                  <MenuButton color="white" m="0px" p="0px" as={Button}>
                     {item.title}
                   </MenuButton>
                   <Portal>
@@ -139,6 +125,11 @@ const LandingBarMobile = () => {
                             color="white"
                             key={`menu-${idx}`}
                             as={"a"}
+                            target={
+                              child.type === PAGETYPE.EXTERNAL
+                                ? "_blank"
+                                : "_self"
+                            }
                             m={0}
                             fontSize="sm"
                             _focus={{ backgroundColor: "black.300" }}

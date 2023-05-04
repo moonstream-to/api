@@ -4,9 +4,10 @@ import time
 from typing import Optional, Union
 
 import requests
-from moonstreamdb.db import yield_db_session_ctx
 from moonstreamdb.models import ESDEventSignature, ESDFunctionSignature
 from sqlalchemy.orm import Session
+
+from .db import yield_db_session_ctx
 
 CRAWL_URLS = {
     "functions": "https://www.4byte.directory/api/v1/signatures/",

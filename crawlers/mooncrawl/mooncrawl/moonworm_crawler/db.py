@@ -193,7 +193,6 @@ def add_function_calls_to_session(
     blockchain_type: AvailableBlockchainType,
     label_name=CRAWLER_LABEL,
 ) -> None:
-
     label_model = get_label_model(blockchain_type)
     transactions_hashes_to_save = [
         function_call.transaction_hash for function_call in function_calls

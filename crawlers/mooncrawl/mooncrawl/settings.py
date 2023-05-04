@@ -1,19 +1,28 @@
 import os
-from typing import Optional, Dict
+from typing import Dict, Optional
 from uuid import UUID
 
 from bugout.app import Bugout
+from entity.client import Entity  # type: ignore
 from moonstreamdb.blockchain import AvailableBlockchainType
-
-
-BUGOUT_RESOURCE_TYPE_SUBSCRIPTION = "subscription"
-BUGOUT_RESOURCE_TYPE_DASHBOARD = "dashboards"
 
 
 # Bugout
 BUGOUT_BROOD_URL = os.environ.get("BUGOUT_BROOD_URL", "https://auth.bugout.dev")
 BUGOUT_SPIRE_URL = os.environ.get("BUGOUT_SPIRE_URL", "https://spire.bugout.dev")
+
 bugout_client = Bugout(brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIRE_URL)
+
+
+# Entity
+
+
+MOONSTREAM_ENTITY_URL = os.environ.get("MOONSTREAM_ENTITY_URL", "")
+if MOONSTREAM_ENTITY_URL == "":
+    raise ValueError("MOONSTREAM_ENTITY_URL environment variable must be set")
+
+entity_client = Entity(MOONSTREAM_ENTITY_URL)
+
 
 BUGOUT_REQUEST_TIMEOUT_SECONDS_RAW = os.environ.get(
     "MOONSTREAM_BUGOUT_TIMEOUT_SECONDS", 30
@@ -59,6 +68,21 @@ except:
         f"Could not parse MOONSTREAM_QUERY_API_DB_STATEMENT_TIMEOUT_MILLIS as int: {MOONSTREAM_STATE_CRAWLER_DB_STATEMENT_TIMEOUT_MILLIS_RAW}"
     )
 
+
+MOONSTREAM_CRAWLERS_DB_STATEMENT_TIMEOUT_MILLIS = 100000
+MOONSTREAM_CRAWLERS_DB_STATEMENT_TIMEOUT_MILLIS_RAW = os.environ.get(
+    "MOONSTREAM_CRAWLERS_DB_STATEMENT_TIMEOUT_MILLIS"
+)
+try:
+    if MOONSTREAM_CRAWLERS_DB_STATEMENT_TIMEOUT_MILLIS_RAW is not None:
+        MOONSTREAM_CRAWLERS_DB_STATEMENT_TIMEOUT_MILLIS = int(
+            MOONSTREAM_CRAWLERS_DB_STATEMENT_TIMEOUT_MILLIS_RAW
+        )
+except:
+    raise Exception(
+        f"Could not parse MOONSTREAM_CRAWLERS_DB_STATEMENT_TIMEOUT_MILLIS as int: {MOONSTREAM_CRAWLERS_DB_STATEMENT_TIMEOUT_MILLIS_RAW}"
+    )
+
 # Geth connection address
 MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI = os.environ.get(
     "MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI", ""
@@ -83,6 +107,12 @@ MOONSTREAM_XDAI_WEB3_PROVIDER_URI = os.environ.get(
 )
 if MOONSTREAM_XDAI_WEB3_PROVIDER_URI == "":
     raise Exception("MOONSTREAM_XDAI_WEB3_PROVIDER_URI env variable is not set")
+
+MOONSTREAM_WYRM_WEB3_PROVIDER_URI = os.environ.get(
+    "MOONSTREAM_WYRM_WEB3_PROVIDER_URI", ""
+)
+if MOONSTREAM_WYRM_WEB3_PROVIDER_URI == "":
+    raise Exception("MOONSTREAM_WYRM_WEB3_PROVIDER_URI env variable is not set")
 
 MOONSTREAM_CRAWL_WORKERS = 4
 MOONSTREAM_CRAWL_WORKERS_RAW = os.environ.get("MOONSTREAM_CRAWL_WORKERS")
@@ -119,6 +149,14 @@ if MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX is None:
         "MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX environment variable must be set"
     )
 
+MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET = os.environ.get(
+    "MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET"
+)
+if MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET is None:
+    raise ValueError(
+        "MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET environment variable must be set"
+    )
+
 MOONSTREAM_MOONWORM_TASKS_JOURNAL = os.environ.get(
     "MOONSTREAM_MOONWORM_TASKS_JOURNAL", ""
 )
@@ -128,6 +166,9 @@ if MOONSTREAM_MOONWORM_TASKS_JOURNAL == "":
     )
 
 # queries
+
+
+LINKS_EXPIRATION_TIME = 60 * 60 * 12  # 12 hours
 
 MOONSTREAM_QUERY_API_DB_STATEMENT_TIMEOUT_MILLIS = 30000
 MOONSTREAM_QUERY_API_DB_STATEMENT_TIMEOUT_MILLIS_RAW = os.environ.get(
@@ -210,3 +251,31 @@ if MOONSTREAM_S3_PUBLIC_DATA_BUCKET == "":
 MOONSTREAM_S3_PUBLIC_DATA_BUCKET_PREFIX = os.environ.get(
     "MOONSTREAM_S3_PUBLIC_DATA_BUCKET_PREFIX", "dev"
 )
+
+
+# infura config
+
+
+INFURA_PROJECT_ID = os.environ.get("INFURA_PROJECT_ID")
+
+infura_networks = {
+    AvailableBlockchainType.ETHEREUM: {
+        "name": "mainnet",
+        "url": f"https://mainnet.infura.io/v3/{INFURA_PROJECT_ID}",
+    },
+    AvailableBlockchainType.POLYGON: {
+        "name": "polygon",
+        "url": f"https://polygon-mainnet.infura.io/v3/{INFURA_PROJECT_ID}",
+    },
+    AvailableBlockchainType.MUMBAI: {
+        "name": "mumbai",
+        "url": f"https://polygon-mumbai.infura.io/v3/{INFURA_PROJECT_ID}",
+    },
+}
+
+
+## Moonstream resources types
+
+BUGOUT_RESOURCE_TYPE_SUBSCRIPTION = "subscription"
+BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION = "entity_subscription"
+BUGOUT_RESOURCE_TYPE_DASHBOARD = "dashboards"

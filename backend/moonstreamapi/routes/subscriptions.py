@@ -6,26 +6,25 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
-import boto3  # type: ignore
-from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Depends, Request, Form, BackgroundTasks
 from web3 import Web3
 
-from ..actions import validate_abi_json, upload_abi_to_s3, apply_moonworm_tasks
+from ..actions import (
+    validate_abi_json,
+    apply_moonworm_tasks,
+    get_entity_subscription_collection_id,
+    EntityCollectionNotFoundException,
+)
 from ..admin import subscription_types
 from .. import data
-from ..actions import upload_abi_to_s3, validate_abi_json
 from ..admin import subscription_types
 from ..middleware import MoonstreamHTTPException
 from ..reporter import reporter
-from ..settings import (
-    MOONSTREAM_APPLICATION_ID,
-    MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
-    MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
-)
-from ..settings import bugout_client as bc
+from ..settings import bugout_client as bc, entity_client as ec
+from ..settings import MOONSTREAM_ADMIN_ACCESS_TOKEN
 from ..web3_provider import yield_web3_provider
+
 
 logger = logging.getLogger(__name__)
 
@@ -34,11 +33,12 @@ router = APIRouter(
 )
 
 BUGOUT_RESOURCE_TYPE_SUBSCRIPTION = "subscription"
+BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION = "entity_subscription"
 
 
 @router.post("/", tags=["subscriptions"], response_model=data.SubscriptionResourceData)
 async def add_subscription_handler(
-    request: Request,  # subscription_data: data.CreateSubscriptionRequest = Body(...)
+    request: Request,
     background_tasks: BackgroundTasks,
     address: str = Form(...),
     color: str = Form(...),
@@ -68,6 +68,11 @@ async def add_subscription_handler(
                 internal_error=e,
                 detail="Currently unable to convert address to checksum address",
             )
+    else:
+        raise MoonstreamHTTPException(
+            status_code=400,
+            detail="Currently ethereum_whalewatch not supported",
+        )
 
     active_subscription_types_response = subscription_types.list_subscription_types(
         active_only=True
@@ -86,32 +91,9 @@ async def add_subscription_handler(
 
     user = request.state.user
 
-    resource_data = {
-        "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
-        "user_id": str(user.id),
-        "subscription_type_id": subscription_type_id,
-        "address": address,
-        "color": color,
-        "label": label,
-        "abi": None,
-        "bucket": None,
-        "s3_path": None,
-    }
-
-    try:
-        resource: BugoutResource = bc.create_resource(
-            token=token,
-            application_id=MOONSTREAM_APPLICATION_ID,
-            resource_data=resource_data,
-        )
-    except BugoutResponseException as e:
-        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
-    except Exception as e:
-        logger.error(f"Error creating subscription resource: {str(e)}")
-        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+    content: Dict[str, Any] = {}
 
     if abi:
-
         try:
             json_abi = json.loads(abi)
         except json.JSONDecodeError:
@@ -119,28 +101,12 @@ async def add_subscription_handler(
 
         validate_abi_json(json_abi)
 
-        update_resource = upload_abi_to_s3(resource=resource, abi=abi, update={})
-
         abi_string = json.dumps(json_abi, sort_keys=True, indent=2)
 
         hash = hashlib.md5(abi_string.encode("utf-8")).hexdigest()
 
-        update_resource["abi_hash"] = hash
-
-        try:
-            updated_resource: BugoutResource = bc.update_resource(
-                token=token,
-                resource_id=resource.id,
-                resource_data=data.SubscriptionUpdate(
-                    update=update_resource,
-                ).dict(),
-            )
-            resource = updated_resource
-        except BugoutResponseException as e:
-            raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
-        except Exception as e:
-            logger.error(f"Error getting user subscriptions: {str(e)}")
-            raise MoonstreamHTTPException(status_code=500, internal_error=e)
+        content["abi"] = abi
+        content["abi_hash"] = hash
 
         background_tasks.add_task(
             apply_moonworm_tasks,
@@ -149,16 +115,55 @@ async def add_subscription_handler(
             address,
         )
 
+    try:
+        collection_id = get_entity_subscription_collection_id(
+            resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            user_id=user.id,
+            create_if_not_exist=True,
+        )
+
+        entity = ec.add_entity(
+            token=token,
+            collection_id=collection_id,
+            address=address,
+            blockchain=subscription_types.CANONICAL_SUBSCRIPTION_TYPES[
+                subscription_type_id
+            ].blockchain,
+            name=label,
+            required_fields=[
+                {"type": "subscription"},
+                {"subscription_type_id": f"{subscription_type_id}"},
+                {"color": f"{color}"},
+                {"label": f"{label}"},
+                {"user_id": f"{user.id}"},
+            ],
+            secondary_fields=content,
+        )
+    except EntityCollectionNotFoundException as e:
+        raise MoonstreamHTTPException(
+            status_code=404,
+            detail="User subscriptions collection not found",
+            internal_error=e,
+        )
+    except Exception as e:
+        logger.error(f"Failed to get collection id")
+        raise MoonstreamHTTPException(
+            status_code=500,
+            internal_error=e,
+            detail="Currently unable to get collection id",
+        )
+
     return data.SubscriptionResourceData(
-        id=str(resource.id),
-        user_id=resource.resource_data["user_id"],
-        address=resource.resource_data["address"],
-        color=resource.resource_data["color"],
-        label=resource.resource_data["label"],
-        abi=resource.resource_data.get("abi"),
-        subscription_type_id=resource.resource_data["subscription_type_id"],
-        updated_at=resource.updated_at,
-        created_at=resource.created_at,
+        id=str(entity.entity_id),
+        user_id=str(user.id),
+        address=address,
+        color=color,
+        label=label,
+        abi=entity.secondary_fields.get("abi"),
+        subscription_type_id=subscription_type_id,
+        updated_at=entity.updated_at,
+        created_at=entity.created_at,
     )
 
 
@@ -172,24 +177,63 @@ async def delete_subscription_handler(request: Request, subscription_id: str):
     Delete subscriptions.
     """
     token = request.state.token
+    user = request.state.user
     try:
-        deleted_resource = bc.delete_resource(token=token, resource_id=subscription_id)
-    except BugoutResponseException as e:
-        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+        collection_id = get_entity_subscription_collection_id(
+            resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            user_id=user.id,
+        )
+
+        deleted_entity = ec.delete_entity(
+            token=token,
+            collection_id=collection_id,
+            entity_id=subscription_id,
+        )
+    except EntityCollectionNotFoundException as e:
+        raise MoonstreamHTTPException(
+            status_code=404,
+            detail="User subscriptions collection not found",
+            internal_error=e,
+        )
     except Exception as e:
-        logger.error(f"Error deleting subscription: {str(e)}")
-        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+        logger.error(f"Failed to delete subscription")
+        raise MoonstreamHTTPException(
+            status_code=500,
+            detail="Internal error",
+        )
+
+    tags = deleted_entity.required_fields
+
+    subscription_type_id = None
+    color = None
+    label = None
+    abi = None
+
+    if tags is not None:
+        for tag in tags:
+            if "subscription_type_id" in tag:
+                subscription_type_id = tag["subscription_type_id"]
+
+            if "color" in tag:
+                color = tag["color"]
+
+            if "label" in tag:
+                label = tag["label"]
+
+    if deleted_entity.secondary_fields is not None:
+        abi = deleted_entity.secondary_fields.get("abi")
 
     return data.SubscriptionResourceData(
-        id=str(deleted_resource.id),
-        user_id=deleted_resource.resource_data["user_id"],
-        address=deleted_resource.resource_data["address"],
-        color=deleted_resource.resource_data["color"],
-        label=deleted_resource.resource_data["label"],
-        abi=deleted_resource.resource_data.get("abi"),
-        subscription_type_id=deleted_resource.resource_data["subscription_type_id"],
-        updated_at=deleted_resource.updated_at,
-        created_at=deleted_resource.created_at,
+        id=str(deleted_entity.entity_id),
+        user_id=str(user.id),
+        address=deleted_entity.address,
+        color=color,
+        label=label,
+        abi=abi,
+        subscription_type_id=subscription_type_id,
+        updated_at=deleted_entity.updated_at,
+        created_at=deleted_entity.created_at,
     )
 
 
@@ -199,37 +243,66 @@ async def get_subscriptions_handler(request: Request) -> data.SubscriptionsListR
     Get user's subscriptions.
     """
     token = request.state.token
-    params = {
-        "type": BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
-        "user_id": str(request.state.user.id),
-    }
+    user = request.state.user
     try:
-        resources: BugoutResources = bc.list_resources(token=token, params=params)
-    except BugoutResponseException as e:
-        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+        collection_id = get_entity_subscription_collection_id(
+            resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            user_id=user.id,
+        )
+
+        subscriprions_list = ec.search_entities(
+            token=token,
+            collection_id=collection_id,
+            required_field=[f"type:subscription"],
+            limit=1000,
+        )
+
+        # resources: BugoutResources = bc.list_resources(token=token, params=params)
+    except EntityCollectionNotFoundException as e:
+        raise MoonstreamHTTPException(
+            status_code=404,
+            detail="User subscriptions collection not found",
+            internal_error=e,
+        )
     except Exception as e:
         logger.error(
-            f"Error listing subscriptions for user ({request.user.id}) with token ({request.state.token}), error: {str(e)}"
+            f"Error listing subscriptions for user ({user.id}) with token ({token}), error: {str(e)}"
         )
         reporter.error_report(e)
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
-    return data.SubscriptionsListResponse(
-        subscriptions=[
+    subscriptions = []
+
+    for subscription in subscriprions_list.entities:
+        tags = subscription.required_fields
+
+        label, color, subscription_type_id = None, None, None
+
+        for tag in tags:
+            if "subscription_type_id" in tag:
+                subscription_type_id = tag["subscription_type_id"]
+
+            if "color" in tag:
+                color = tag["color"]
+
+            if "label" in tag:
+                label = tag["label"]
+
+        subscriptions.append(
             data.SubscriptionResourceData(
-                id=str(resource.id),
-                user_id=resource.resource_data["user_id"],
-                address=resource.resource_data["address"],
-                color=resource.resource_data["color"],
-                label=resource.resource_data["label"],
-                abi=resource.resource_data.get("abi"),
-                subscription_type_id=resource.resource_data["subscription_type_id"],
-                updated_at=resource.updated_at,
-                created_at=resource.created_at,
+                id=str(subscription.entity_id),
+                user_id=str(user.id),
+                address=subscription.address,
+                color=color,
+                label=label,
+                abi="True" if subscription.secondary_fields.get("abi") else None,
+                subscription_type_id=subscription_type_id,
+                updated_at=subscription.updated_at,
+                created_at=subscription.created_at,
             )
-            for resource in resources.resources
-        ]
-    )
+        )
+    return data.SubscriptionsListResponse(subscriptions=subscriptions)
 
 
 @router.put(
@@ -250,16 +323,63 @@ async def update_subscriptions_handler(
     """
     token = request.state.token
 
-    update: Dict[str, Any] = {}
+    user = request.state.user
 
-    if color:
-        update["color"] = color
+    update_required_fields = []
 
-    if label:
-        update["label"] = label
+    update_secondary_fields = {}
+
+    try:
+        collection_id = get_entity_subscription_collection_id(
+            resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            user_id=user.id,
+        )
+
+        # get subscription entity
+        subscription_entity = ec.get_entity(
+            token=token,
+            collection_id=collection_id,
+            entity_id=subscription_id,
+        )
+
+        subscription_type_id = None
+
+        update_required_fields = subscription_entity.required_fields
+
+        for field in update_required_fields:
+            if "subscription_type_id" in field:
+                subscription_type_id = field["subscription_type_id"]
+
+        if not subscription_type_id:
+            logger.error(
+                f"Subscription entity {subscription_id} in collection {collection_id} has no subscription_type_id malformed subscription entity"
+            )
+            raise MoonstreamHTTPException(
+                status_code=404,
+                detail="Not valid subscription entity",
+            )
+
+    except EntityCollectionNotFoundException as e:
+        raise MoonstreamHTTPException(
+            status_code=404,
+            detail="User subscriptions collection not found",
+            internal_error=e,
+        )
+    except Exception as e:
+        logger.error(
+            f"Error get subscriptions for user ({user.id}) with token ({token}), error: {str(e)}"
+        )
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    for field in update_required_fields:
+        if "color" in field and color is not None:
+            field["color"] = color
+
+        if "label" in field and label is not None:
+            field["label"] = label
 
     if abi:
-
         try:
             json_abi = json.loads(abi)
         except json.JSONDecodeError:
@@ -269,63 +389,47 @@ async def update_subscriptions_handler(
 
         abi_string = json.dumps(json_abi, sort_keys=True, indent=2)
 
+        update_secondary_fields["abi"] = abi_string
         hash = hashlib.md5(abi_string.encode("utf-8")).hexdigest()
 
-        try:
-            subscription_resource: BugoutResource = bc.get_resource(
-                token=token,
-                resource_id=subscription_id,
-            )
-        except BugoutResponseException as e:
-            raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
-        except Exception as e:
-            logger.error(f"Error creating subscription resource: {str(e)}")
-            raise MoonstreamHTTPException(status_code=500, internal_error=e)
-
-        if subscription_resource.resource_data["abi"] is not None:
-            raise MoonstreamHTTPException(
-                status_code=400,
-                detail="Subscription already have ABI. For add a new ABI create new subscription.",
-            )
-
-        update = upload_abi_to_s3(
-            resource=subscription_resource, abi=abi, update=update
-        )
-
-        update["abi_hash"] = hash
+        update_secondary_fields["abi_hash"] = hash
+    else:
+        update_secondary_fields = subscription_entity.secondary_fields
 
     try:
-        resource: BugoutResource = bc.update_resource(
+        subscription = ec.update_entity(
             token=token,
-            resource_id=subscription_id,
-            resource_data=data.SubscriptionUpdate(
-                update=update,
-            ).dict(),
+            collection_id=collection_id,
+            entity_id=subscription_id,
+            address=subscription_entity.address,
+            blockchain=subscription_entity.blockchain,
+            name=subscription_entity.name,
+            required_fields=update_required_fields,
+            secondary_fields=update_secondary_fields,
         )
-    except BugoutResponseException as e:
-        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+
     except Exception as e:
-        logger.error(f"Error getting user subscriptions: {str(e)}")
+        logger.error(f"Error update user subscriptions: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     if abi:
         background_tasks.add_task(
             apply_moonworm_tasks,
-            subscription_resource.resource_data["subscription_type_id"],
+            subscription_type_id,
             json_abi,
-            subscription_resource.resource_data["address"],
+            subscription.address,
         )
 
     return data.SubscriptionResourceData(
-        id=str(resource.id),
-        user_id=resource.resource_data["user_id"],
-        address=resource.resource_data["address"],
-        color=resource.resource_data["color"],
-        label=resource.resource_data["label"],
-        abi=resource.resource_data.get("abi"),
-        subscription_type_id=resource.resource_data["subscription_type_id"],
-        updated_at=resource.updated_at,
-        created_at=resource.created_at,
+        id=str(subscription.entity_id),
+        user_id=str(user.id),
+        address=subscription.address,
+        color=color,
+        label=label,
+        abi=subscription.secondary_fields.get("abi"),
+        subscription_type_id=subscription_type_id,
+        updated_at=subscription_entity.updated_at,
+        created_at=subscription_entity.created_at,
     )
 
 
@@ -338,40 +442,41 @@ async def get_subscription_abi_handler(
     request: Request,
     subscription_id: str,
 ) -> data.SubdcriptionsAbiResponse:
-
     token = request.state.token
+    user = request.state.user
 
     try:
-        subscription_resource: BugoutResource = bc.get_resource(
-            token=token,
-            resource_id=subscription_id,
+        collection_id = get_entity_subscription_collection_id(
+            resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            user_id=user.id,
         )
-    except BugoutResponseException as e:
-        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
-    except Exception as e:
-        logger.error(f"Error creating subscription resource: {str(e)}")
-        raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
-    if subscription_resource.resource_data["abi"] is None:
+        # get subscription entity
+        subscription_resource = ec.get_entity(
+            token=token,
+            collection_id=collection_id,
+            entity_id=subscription_id,
+        )
+
+    except EntityCollectionNotFoundException as e:
         raise MoonstreamHTTPException(
             status_code=404,
-            detail="Subscription abi not exists.",
+            detail="User subscriptions collection not found",
+            internal_error=e,
         )
+    except Exception as e:
+        logger.error(
+            f"Error get subscriptions for user ({user}) with token ({token}), error: {str(e)}"
+        )
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
-    s3_client = boto3.client("s3")
+    if "abi" not in subscription_resource.secondary_fields.keys():
+        raise MoonstreamHTTPException(status_code=404, detail="Abi not found")
 
-    result_key = f"{subscription_resource.resource_data['s3_path']}"
-    presigned_url = s3_client.generate_presigned_url(
-        "get_object",
-        Params={
-            "Bucket": subscription_resource.resource_data["bucket"],
-            "Key": result_key,
-        },
-        ExpiresIn=300,
-        HttpMethod="GET",
+    return data.SubdcriptionsAbiResponse(
+        abi=subscription_resource.secondary_fields["abi"]
     )
-
-    return data.SubdcriptionsAbiResponse(url=presigned_url)
 
 
 @router.get(
