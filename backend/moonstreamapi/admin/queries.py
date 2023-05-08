@@ -23,7 +23,6 @@ logger = logging.getLogger(__name__)
 
 
 def ensure_queries_tags(args: argparse.Namespace) -> None:
-
     """
     Check all queries resources and check if they entry have all required tags.
     """
@@ -33,7 +32,6 @@ def ensure_queries_tags(args: argparse.Namespace) -> None:
     )
 
     for resource in resources.resources:
-
         if "entry_id" not in resource.resource_data:
             print(f"Missing entry_id for {resource.id}")
             continue
@@ -68,7 +66,6 @@ def ensure_queries_tags(args: argparse.Namespace) -> None:
         )
         required_tags = ["user_name", "query_name", "user_id", "query_id"]
         for tag in entry.tags:
-
             tag_prefix = tag.split(":")[0]
 
             print(tag_prefix)
@@ -79,7 +76,6 @@ def ensure_queries_tags(args: argparse.Namespace) -> None:
 
         tags_for_update = []
         if len(required_tags) > 0:
-
             for required_tag in required_tags:
                 if required_tag == "user_name":
                     tag_value = resource.resource_data["user"]
@@ -211,6 +207,21 @@ def copy_queries(args: argparse.Namespace) -> None:
     client = Moonstream()
 
     for query_id, query in queries.items():
+        datatype_tags = [
+            tag
+            for tag in query["entry"].tags
+            if not any(
+                tag.startswith(x)
+                for x in [
+                    "user_name",
+                    "query_name",
+                    "user_id",
+                    "query_id",
+                    "preapprove",
+                    "approved",
+                ]
+            )
+        ]
 
         # create query via bugout client
         try:
@@ -256,7 +267,7 @@ def copy_queries(args: argparse.Namespace) -> None:
                     token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
                     entry_id=created_query.id,
                     journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
-                    tags=["approved"],
+                    tags=["approved"] + datatype_tags,
                     timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
                 )
             except BugoutResponseException as e:
