@@ -636,49 +636,84 @@ def get_entity_subscription_collection_id(
             raise EntityCollectionNotFoundException(
                 "Subscription collection not found."
             )
-        try:
-            # try get collection
+        generate_collection_for_user(resource_type, token, user_id)
 
-            collections: EntityCollectionsResponse = ec.list_collections(token=token)
-
-            available_collections: Dict[str, str] = {
-                collection.name: collection.collection_id
-                for collection in collections.collections
-            }
-
-            if f"subscriptions_{user_id}" not in available_collections:
-                collection: EntityCollectionResponse = ec.add_collection(
-                    token=token, name=f"subscriptions_{user_id}"
-                )
-                collection_id = collection.collection_id
-            else:
-                collection_id = available_collections[f"subscriptions_{user_id}"]
-        except EntityUnexpectedResponse as e:
-            logger.error(f"Error create collection, error: {str(e)}")
-            raise MoonstreamHTTPException(
-                status_code=500, detail="Can't create collection for subscriptions"
-            )
-
-        resource_data = {
-            "type": resource_type,
-            "user_id": str(user_id),
-            "collection_id": str(collection_id),
-        }
-
-        try:
-            resource: BugoutResource = bc.create_resource(
-                token=token,
-                application_id=MOONSTREAM_APPLICATION_ID,
-                resource_data=resource_data,
-            )
-        except BugoutResponseException as e:
-            raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
-        except Exception as e:
-            logger.error(f"Error creating subscription resource: {str(e)}")
-            raise MoonstreamHTTPException(status_code=500, internal_error=e)
     else:
         resource = resources.resources[0]
     return resource.resource_data["collection_id"]
+
+
+def generate_collection_for_user(
+    resource_type: str,
+    token: Union[uuid.UUID, str],
+    user_id: uuid.UUID,
+) -> str:
+    try:
+        # try get collection
+
+        collections: EntityCollectionsResponse = ec.list_collections(token=token)
+
+        available_collections: Dict[str, str] = {
+            collection.name: collection.collection_id
+            for collection in collections.collections
+        }
+
+        if f"subscriptions_{user_id}" not in available_collections:
+            collection: EntityCollectionResponse = ec.add_collection(
+                token=token, name=f"subscriptions_{user_id}"
+            )
+            collection_id = collection.collection_id
+        else:
+            collection_id = available_collections[f"subscriptions_{user_id}"]
+    except EntityUnexpectedResponse as e:
+        logger.error(f"Error create collection, error: {str(e)}")
+        raise MoonstreamHTTPException(
+            status_code=500, detail="Can't create collection for subscriptions"
+        )
+
+    resource_data = {
+        "type": resource_type,
+        "user_id": str(user_id),
+        "collection_id": str(collection_id),
+    }
+
+    try:
+        bc.create_resource(
+            token=token,
+            application_id=MOONSTREAM_APPLICATION_ID,
+            resource_data=resource_data,
+        )
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        logger.error(f"Error creating subscription resource: {str(e)}")
+        logger.error(
+            f"Required create resource data: {resource_data}, and grand access to journal: {collection_id}, for user: {user_id}"
+        )
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    try:
+        bc.update_journal_scopes(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            journal_id=collection_id,
+            holder_type="user",
+            holder_id=user_id,
+            permission_list=[
+                "journals.read",
+                "journals.entries.read",
+                "journals.entries.create",
+                "journals.entries.update",
+                "journals.entries.delete",
+            ],
+        )
+    except Exception as e:
+        logger.error(f"Error updating journal scopes: {str(e)}")
+        logger.error(
+            f"Required grand access to journal: {collection_id}, for user: {user_id}"
+        )
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    return collection_id
 
 
 def generate_s3_access_links(

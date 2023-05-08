@@ -10,7 +10,7 @@ from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Body, Form, Request
 
 from .. import data
-from ..actions import create_onboarding_resource
+from ..actions import create_onboarding_resource, generate_collection_for_user
 from ..middleware import MoonstreamHTTPException
 from ..settings import BUGOUT_REQUEST_TIMEOUT_SECONDS, MOONSTREAM_APPLICATION_ID
 from ..settings import bugout_client as bc
@@ -35,6 +35,7 @@ async def create_user_handler(
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
     return user
 
 
