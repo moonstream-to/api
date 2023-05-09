@@ -636,7 +636,9 @@ def get_entity_subscription_collection_id(
             raise EntityCollectionNotFoundException(
                 "Subscription collection not found."
             )
-        generate_collection_for_user(resource_type, token, user_id)
+        collection_id = generate_collection_for_user(resource_type, token, user_id)
+
+        return collection_id
 
     else:
         resource = resources.resources[0]
@@ -658,13 +660,15 @@ def generate_collection_for_user(
             for collection in collections.collections
         }
 
-        if f"subscriptions_{user_id}" not in available_collections:
+        subscription_collection_name = f"subscriptions_{user_id}"
+
+        if subscription_collection_name not in available_collections:
             collection: EntityCollectionResponse = ec.add_collection(
-                token=token, name=f"subscriptions_{user_id}"
+                token=token, name=subscription_collection_name
             )
             collection_id = collection.collection_id
         else:
-            collection_id = available_collections[f"subscriptions_{user_id}"]
+            collection_id = available_collections[subscription_collection_name]
     except EntityUnexpectedResponse as e:
         logger.error(f"Error create collection, error: {str(e)}")
         raise MoonstreamHTTPException(
@@ -705,6 +709,9 @@ def generate_collection_for_user(
                 "journals.entries.update",
                 "journals.entries.delete",
             ],
+        )
+        logger.info(
+            f"Grand access to journal: {collection_id}, for user: {user_id} successfully"
         )
     except Exception as e:
         logger.error(f"Error updating journal scopes: {str(e)}")
