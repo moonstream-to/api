@@ -238,7 +238,11 @@ async def delete_subscription_handler(request: Request, subscription_id: str):
 
 
 @router.get("/", tags=["subscriptions"], response_model=data.SubscriptionsListResponse)
-async def get_subscriptions_handler(request: Request) -> data.SubscriptionsListResponse:
+async def get_subscriptions_handler(
+    request: Request,
+    limit: Optional[int] = 10,
+    offset: Optional[int] = 0,
+) -> data.SubscriptionsListResponse:
     """
     Get user's subscriptions.
     """
@@ -249,16 +253,17 @@ async def get_subscriptions_handler(request: Request) -> data.SubscriptionsListR
             resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             user_id=user.id,
+            create_if_not_exist=True,
         )
 
         subscriprions_list = ec.search_entities(
             token=token,
             collection_id=collection_id,
             required_field=[f"type:subscription"],
-            limit=1000,
+            limit=limit,
+            offset=offset,
         )
 
-        # resources: BugoutResources = bc.list_resources(token=token, params=params)
     except EntityCollectionNotFoundException as e:
         raise MoonstreamHTTPException(
             status_code=404,

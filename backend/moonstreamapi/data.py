@@ -285,3 +285,14 @@ class PreapprovedQuery(BaseModel):
 
 class QueryPresignUrl(BaseModel):
     url: str
+
+
+class QueryInfoResponse(BaseModel):
+    query: str
+    query_id: str
+    public: bool = False
+    preapprove: bool = False
+    approved: bool = False
+    parameters: Dict[str, Any] = Field(default_factory=dict)
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]

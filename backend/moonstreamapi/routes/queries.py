@@ -10,6 +10,7 @@ from bugout.data import BugoutResources, BugoutJournalEntryContent, BugoutJourna
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Body, Request
 import requests  # type: ignore
+from sqlalchemy import text
 
 
 from .. import data
@@ -154,7 +155,9 @@ async def create_query_handler(
 
 
 @router.get("/{query_name}/query", tags=["queries"])
-async def get_query_handler(request: Request, query_name: str) -> BugoutJournalEntry:
+async def get_query_handler(
+    request: Request, query_name: str
+) -> data.QueryInfoResponse:
     token = request.state.token
 
     try:
@@ -180,7 +183,41 @@ async def get_query_handler(request: Request, query_name: str) -> BugoutJournalE
     except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
-    return entry
+    try:
+        if entry.content is None:
+            raise MoonstreamHTTPException(
+                status_code=403, detail=f"Query is empty. Please update it."
+            )
+        query = text(entry.content)
+    except Exception as e:
+        raise MoonstreamHTTPException(
+            status_code=500, internal_error=e, detail="Error in query parsing"
+        )
+
+    query_parameters_names = list(query._bindparams.keys())
+
+    tags_dict = {
+        tag.split(":")[0]: (tag.split(":")[1] if ":" in tag else True)
+        for tag in entry.tags
+    }
+
+    query_parameters: Dict[str, Any] = {}
+
+    for param in query_parameters_names:
+        if param in tags_dict:
+            query_parameters[param] = tags_dict[param]
+        else:
+            query_parameters[param] = None
+
+    return data.QueryInfoResponse(
+        query=entry.content,
+        query_id=str(entry.id),
+        preapprove="preapprove" in tags_dict,
+        approved="approved" in tags_dict,
+        parameters=query_parameters,
+        created_at=entry.created_at,
+        updated_at=entry.updated_at,
+    )
 
 
 @router.put("/{query_name}", tags=["queries"])
