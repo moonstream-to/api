@@ -41,6 +41,7 @@ from .settings import (
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
     MOONSTREAM_MOONWORM_TASKS_JOURNAL,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
+    MOONSTREAM_HISTORICAL_CRAWL_JOURNAL,
 )
 from .settings import bugout_client as bc, entity_client as ec
 
@@ -515,6 +516,27 @@ def apply_moonworm_tasks(
             search_query=f"tag:address:{address} tag:subscription_type:{subscription_type}",
             limit=100,
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        )
+
+        # create historical crawl task in journal
+
+        bc.create_entry(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            journal_id=MOONSTREAM_HISTORICAL_CRAWL_JOURNAL,
+            title=address,
+            content=json.dumps(
+                {
+                    "address": address,
+                    "subscription_type": subscription_type,
+                    "abi": abi,
+                }
+            ),
+            tags=[
+                f"address:{address}",
+                f"subscription_type:{subscription_type}",
+                f"status:active",
+                f"task_type:historical_crawl",
+            ],
         )
 
         existing_tags = [entry.tags for entry in entries]

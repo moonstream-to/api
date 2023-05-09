@@ -102,6 +102,16 @@ if MOONSTREAM_MOONWORM_TASKS_JOURNAL == "":
         "MOONSTREAM_MOONWORM_TASKS_JOURNAL environment variable must be set"
     )
 
+# Historical crawl journal
+MOONSTREAM_HISTORICAL_CRAWL_JOURNAL = os.environ.get(
+    "MOONSTREAM_HISTORICAL_CRAWL_JOURNAL", ""
+)
+if MOONSTREAM_HISTORICAL_CRAWL_JOURNAL == "":
+    raise ValueError(
+        "MOONSTREAM_HISTORICAL_CRAWL_JOURNAL environment variable must be set"
+    )
+
+
 # Web3
 MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI = os.environ.get(
     "MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI", ""
