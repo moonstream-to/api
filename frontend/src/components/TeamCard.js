@@ -38,6 +38,7 @@ export default function SocialProfileSimple({
           alt={avatarAlt}
           mb={4}
           pos={"relative"}
+          bg="white"
           _after={
             isOnline && {
               content: '""',
