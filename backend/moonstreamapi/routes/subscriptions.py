@@ -7,6 +7,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from bugout.exceptions import BugoutResponseException
+from entity.data import EntitySearchResponse
 from fastapi import APIRouter, Depends, Request, Form, BackgroundTasks
 from web3 import Web3
 
@@ -303,6 +304,55 @@ async def get_subscriptions_handler(request: Request) -> data.SubscriptionsListR
             )
         )
     return data.SubscriptionsListResponse(subscriptions=subscriptions)
+
+
+@router.get("/search", tags=["subscriptions"], response_model=EntitySearchResponse)
+async def search_subscriptions_handler(
+    request: Request,
+    required_field: Optional[List[str]] = None,
+    secondary_field: Optional[List[str]] = None,
+    limit: Optional[int] = None,
+    offset: Optional[int] = None,
+    filter: Optional[List[str]] = None,
+    content: bool = True,
+) -> EntitySearchResponse:
+    """
+    Search user's subscriptions.
+    """
+    token = request.state.token
+    user = request.state.user
+    try:
+        collection_id = get_entity_subscription_collection_id(
+            resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            user_id=user.id,
+        )
+
+        subscriprions_list = ec.search_entities(
+            token=token,
+            collection_id=collection_id,
+            required_field=required_field,
+            secondary_field=secondary_field,
+            limit=limit,
+            offset=offset,
+            filter=filter,
+            content=content,
+        )
+
+    except EntityCollectionNotFoundException as e:
+        raise MoonstreamHTTPException(
+            status_code=404,
+            detail="User subscriptions collection not found",
+            internal_error=e,
+        )
+    except Exception as e:
+        logger.error(
+            f"Error listing subscriptions for user ({user.id}) with token ({token}), error: {str(e)}"
+        )
+        reporter.error_report(e)
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    return subscriprions_list
 
 
 @router.put(
