@@ -14,7 +14,7 @@ from uuid import UUID
 
 import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
-from entity.data import EntityResponse, EntityCollectionResponse  # type: ignore
+from entity.data import EntityResponse, EntitySearchResponse  # type: ignore
 from moonstreamdb.blockchain import (
     AvailableBlockchainType,
     get_label_model,
@@ -652,7 +652,7 @@ def stats_generate_handler(args: argparse.Namespace):
         for user_id, collection_id in user_collection_by_id.items():
             # request all subscriptions for user
 
-            user_subscriptions: EntityCollectionResponse = ec.search_entities(
+            user_subscriptions: EntitySearchResponse = ec.search_entities(
                 token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
                 collection_id=collection_id,
                 required_field=[
@@ -660,6 +660,7 @@ def stats_generate_handler(args: argparse.Namespace):
                         subscription_id_by_blockchain[args.blockchain]
                     )
                 ],
+                limit=1000,
             )
 
             logger.info(
