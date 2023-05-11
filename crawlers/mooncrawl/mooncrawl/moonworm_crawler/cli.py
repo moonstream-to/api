@@ -8,7 +8,10 @@ from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
 from ..db import yield_db_session_ctx
-from ..settings import MOONSTREAM_MOONWORM_TASKS_JOURNAL, NB_CONTROLLER_ACCESS_ID
+from ..settings import (
+    MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+    NB_CONTROLLER_ACCESS_ID,
+)
 from .continuous_crawler import _retry_connect_web3, continuous_crawler
 from .crawler import (
     SubscriptionTypes,
@@ -16,6 +19,7 @@ from .crawler import (
     get_crawl_job_entries,
     make_event_crawl_jobs,
     make_function_call_crawl_jobs,
+    find_all_deployed_blocks,
 )
 from .db import get_first_labeled_block_number, get_last_labeled_block_number
 from .historical_crawler import historical_crawler
@@ -33,7 +37,8 @@ def handle_crawl(args: argparse.Namespace) -> None:
             subscription_type,
             "event",
             MOONSTREAM_MOONWORM_TASKS_JOURNAL,
-        )
+        ),
+        moonworm=True,
     )
     logger.info(f"Initial event crawl jobs count: {len(initial_event_jobs)}")
 
@@ -42,7 +47,8 @@ def handle_crawl(args: argparse.Namespace) -> None:
             subscription_type,
             "function",
             MOONSTREAM_MOONWORM_TASKS_JOURNAL,
-        )
+        ),
+        moonworm=True,
     )
     logger.info(
         f"Initial function call crawl jobs count: {len(initial_function_call_jobs)}"
@@ -125,20 +131,34 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
     blockchain_type = AvailableBlockchainType(args.blockchain_type)
     subscription_type = blockchain_type_to_subscription_type(blockchain_type)
 
+    extend_tags = []
+
     addresses_filter = []
     if args.address is not None:
         addresses_filter = [Web3.toChecksumAddress(args.address)]
+
+    if args.tasks_journal:
+        addresses_filter = []
+        extend_tags.extend(
+            [
+                "moonworm_task_pikedup:True",
+                "historical_crawl_status:pending",
+                "progress:0",
+            ]
+        )
 
     all_event_jobs = make_event_crawl_jobs(
         get_crawl_job_entries(
             subscription_type,
             "event",
             MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+            extend_tags=extend_tags,
         )
     )
+
     filtered_event_jobs = []
     for job in all_event_jobs:
-        if addresses_filter:
+        if addresses_filter and not args.tasks_journal:
             intersection = [
                 address for address in job.contracts if address in addresses_filter
             ]
@@ -155,16 +175,16 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
             subscription_type,
             "function",
             MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+            extend_tags=extend_tags,
         )
     )
+
     if addresses_filter:
-        filtered_function_call_jobs = [
-            job
-            for job in all_function_call_jobs
-            if job.contract_address in addresses_filter
-        ]
+        filtered_function_call_jobs = [job for job in all_function_call_jobs]
     else:
         filtered_function_call_jobs = all_function_call_jobs
+
+    # get set of addresses from event jobs and function call jobs
 
     if args.only_events:
         filtered_function_call_jobs = []
@@ -173,6 +193,12 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
     logger.info(
         f"Initial function call crawl jobs count: {len(filtered_function_call_jobs)}"
     )
+
+    addresses_set = set()
+    for job in filtered_event_jobs:
+        addresses_set.update(job.contracts)
+    for function_job in filtered_function_call_jobs:
+        addresses_set.add(function_job.contract_address)
 
     logger.info(f"Blockchain type: {blockchain_type.value}")
     with yield_db_session_ctx() as db_session:
@@ -198,7 +224,15 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
         )
         logger.info(f"Last labeled block: {last_labeled_block}")
 
-        start_block = args.start
+        if args.tasks_journal:
+            start_block = int(web3.eth.blockNumber) - 1
+            end_block = min(
+                find_all_deployed_blocks(blockchain_type, list(addresses_set))
+            )
+        else:
+            start_block = args.start
+            end_block = args.end
+
         if start_block is None:
             logger.info("No start block provided")
             if last_labeled_block is not None:
@@ -226,9 +260,9 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
         else:
             logger.info(f"Using start block: {start_block}")
 
-        if start_block < args.end:
+        if start_block < end_block:
             raise ValueError(
-                f"Start block {start_block} is less than end block {args.end}. This crawler crawls in the reverse direction."
+                f"Start block {start_block} is less than end block {end_block}. This crawler crawls in the reverse direction."
             )
 
         historical_crawler(
@@ -238,7 +272,7 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
             filtered_event_jobs,
             filtered_function_call_jobs,
             start_block,
-            args.end,
+            end_block,
             args.max_blocks_batch,
             args.min_sleep_time,
             access_id=args.access_id,
@@ -419,6 +453,12 @@ def main() -> None:
         action="store_true",
         default=False,
         help="Only crawl events",
+    )
+    historical_crawl_parser.add_argument(
+        "--tasks-journal",
+        action="store_true",
+        default=False,
+        help="Use tasks journal wich will fill all required fields for historical crawl",
     )
     historical_crawl_parser.set_defaults(func=handle_historical_crawl)
 

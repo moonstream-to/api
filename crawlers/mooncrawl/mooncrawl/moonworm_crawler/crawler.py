@@ -12,6 +12,7 @@ from bugout.data import BugoutSearchResult
 from eth_typing.evm import ChecksumAddress
 from moonstreamdb.blockchain import AvailableBlockchainType
 from web3.main import Web3
+from moonworm.deployment import find_deployment_block
 
 from ..blockchain import connect
 from ..reporter import reporter
@@ -161,6 +162,7 @@ def get_crawl_job_entries(
     journal_id: str = MOONSTREAM_MOONWORM_TASKS_JOURNAL,
     created_at_filter: Optional[int] = None,
     limit: int = 200,
+    extend_tags: Optional[List[str]] = None,
 ) -> List[BugoutSearchResult]:
     """
     Get all event ABIs from bugout journal
@@ -171,6 +173,10 @@ def get_crawl_job_entries(
 
     """
     query = f"#status:active #type:{crawler_type} #subscription_type:{subscription_type.value}"
+
+    if extend_tags is not None:
+        for tag in extend_tags:
+            query += f" #{tag}"
 
     if created_at_filter is not None:
         # Filtering by created_at
@@ -201,6 +207,32 @@ def get_crawl_job_entries(
     return entries
 
 
+def find_all_deployed_blocks(
+    blockchain_type: AvailableBlockchainType, addresses_set: List[ChecksumAddress]
+):
+    """
+    find all deployed blocks for given addresses
+    """
+
+    web3 = _retry_connect_web3(blockchain_type)
+    all_deployed_blocks = []
+    for address in addresses_set:
+        try:
+            code = web3.eth.getCode(address)
+            if code != "0x":
+                block = find_deployment_block(
+                    web3_client=web3,
+                    contract_address=address,
+                    web3_interval=0.5,
+                )
+                if block is not None:
+                    all_deployed_blocks.append(address)
+
+        except Exception as e:
+            logger.error(f"Failed to get code for {address}: {e}")
+    return all_deployed_blocks
+
+
 def _get_tag(entry: BugoutSearchResult, tag: str) -> str:
     for entry_tag in entry.tags:
         if entry_tag.startswith(tag):
@@ -208,7 +240,9 @@ def _get_tag(entry: BugoutSearchResult, tag: str) -> str:
     raise ValueError(f"Tag {tag} not found in {entry}")
 
 
-def make_event_crawl_jobs(entries: List[BugoutSearchResult]) -> List[EventCrawlJob]:
+def make_event_crawl_jobs(
+    entries: List[BugoutSearchResult], moonworm: bool = False
+) -> List[EventCrawlJob]:
     """
     Create EventCrawlJob objects from bugout entries.
     """
@@ -218,6 +252,17 @@ def make_event_crawl_jobs(entries: List[BugoutSearchResult]) -> List[EventCrawlJ
     for entry in entries:
         abi_hash = _get_tag(entry, "abi_method_hash")
         contract_address = Web3().toChecksumAddress(_get_tag(entry, "address"))
+
+        # if entry.tags  not contain moonworm_task_pikedup:True
+        if "moonworm_task_pikedup:True" not in entry.tags and moonworm:
+            # Update the tag to pickedup
+            bugout_client.update_tags(
+                token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+                entry_id=entry.entry_url.split("/")[-1],
+                tags=["moonworm_task_pikedup:True"],
+                timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+            )
 
         existing_crawl_job = crawl_job_by_hash.get(abi_hash)
         if existing_crawl_job is not None:
@@ -238,6 +283,7 @@ def make_event_crawl_jobs(entries: List[BugoutSearchResult]) -> List[EventCrawlJ
 
 def make_function_call_crawl_jobs(
     entries: List[BugoutSearchResult],
+    moonworm: bool = False,
 ) -> List[FunctionCallCrawlJob]:
     """
     Create FunctionCallCrawlJob objects from bugout entries.
@@ -252,6 +298,17 @@ def make_function_call_crawl_jobs(
         method_signature = encode_function_signature(abi)
         if method_signature is None:
             raise ValueError(f"{abi} is not a function ABI")
+
+        if "moonworm_task_pikedup:True" not in entry.tags and moonworm:
+            # Update the tag to pickedup
+            bugout_client.update_tags(
+                token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+                entry_id=entry.entry_url.split("/")[-1],
+                tags=["moonworm_task_pikedup:True"],
+                timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+            )
+
         if contract_address not in crawl_job_by_address:
             crawl_job_by_address[contract_address] = FunctionCallCrawlJob(
                 contract_abi=[abi],
