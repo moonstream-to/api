@@ -11,6 +11,8 @@ go build -o nodebalancer .
 
 ## Work with nodebalancer
 
+**IMPORTANT** Do not use flag `-debug` in production.
+
 ### add-access
 
 Add new access for user:
@@ -96,4 +98,18 @@ For Web3 providers `access_id` and `data_source` could be specified in headers
 ```bash
 --header 'x-node-balancer-data-source: <blockchain/database>'
 --header 'x-node-balancer-access-id: <access_id>'
+```
+
+## Tests
+
+### Running all tests
+
+```bash
+/usr/local/go/bin/go test -run ^*$ github.com/bugout-dev/moonstream/nodes/node_balancer/cmd/nodebalancer -v -count=1
+```
+
+### Running specified test
+
+```bash
+/usr/local/go/bin/go test -run ^TestCleanInactiveClientNodes$ github.com/bugout-dev/moonstream/nodes/node_balancer/cmd/nodebalancer -v -count=1
 ```

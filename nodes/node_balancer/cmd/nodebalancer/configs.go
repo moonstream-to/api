@@ -20,7 +20,6 @@ var (
 	supportedBlockchains map[string]bool
 
 	// Bugout and application configuration
-	BUGOUT_AUTH_URL          = os.Getenv("BUGOUT_AUTH_URL")
 	BUGOUT_AUTH_CALL_TIMEOUT = time.Second * 5
 	NB_APPLICATION_ID        = os.Getenv("NB_APPLICATION_ID")
 	NB_CONTROLLER_TOKEN      = os.Getenv("NB_CONTROLLER_TOKEN")
