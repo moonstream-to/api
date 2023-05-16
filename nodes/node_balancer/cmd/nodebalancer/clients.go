@@ -42,7 +42,7 @@ type ClientPool struct {
 func CreateClientPools() {
 	clientPool = make(map[string]ClientPool)
 
-	for b := range configBlockchains {
+	for b := range supportedBlockchains {
 		clientPool[b] = ClientPool{}
 		if cp, ok := clientPool[b]; ok {
 			cp.Client = make(map[string]*Client)
@@ -54,7 +54,7 @@ func CreateClientPools() {
 // Return client pool corresponding to provided blockchain
 func GetClientPool(blockchain string) *ClientPool {
 	var cpool *ClientPool
-	for b := range configBlockchains {
+	for b := range supportedBlockchains {
 		if b == blockchain {
 			c := clientPool[blockchain]
 			cpool = &c

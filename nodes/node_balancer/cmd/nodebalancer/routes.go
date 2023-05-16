@@ -42,7 +42,7 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var blockchain string
-	for b := range configBlockchains {
+	for b := range supportedBlockchains {
 		if strings.HasPrefix(r.URL.Path, fmt.Sprintf("/nb/%s/", b)) {
 			blockchain = b
 			break

@@ -22,8 +22,6 @@ import (
 var (
 	internalCrawlersAccess ClientResourceData
 
-	configBlockchains map[string]bool
-
 	// Crash reporter
 	reporter *humbug.HumbugReporter
 )
@@ -36,7 +34,7 @@ func initHealthCheck(debug bool) {
 		case <-t.C:
 			blockchainPool.HealthCheck()
 			logStr := "Client pool healthcheck."
-			for b := range configBlockchains {
+			for b := range supportedBlockchains {
 				cp := clientPool[b]
 				clients := cp.CleanInactiveClientNodes()
 				logStr += fmt.Sprintf(" Active %s clients: %d.", b, clients)
@@ -170,7 +168,7 @@ func Server() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	configBlockchains = make(map[string]bool)
+	supportedBlockchains = make(map[string]bool)
 
 	// Parse nodes and set list of proxies
 	for i, nodeConfig := range nodeConfigs {
@@ -181,7 +179,7 @@ func Server() {
 		}
 
 		// Append to supported blockchain set
-		configBlockchains[nodeConfig.Blockchain] = true
+		supportedBlockchains[nodeConfig.Blockchain] = true
 
 		proxyToEndpoint := httputil.NewSingleHostReverseProxy(endpoint)
 		// If required detailed timeout configuration, define node.GethReverseProxy.Transport = &http.Transport{}
