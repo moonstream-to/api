@@ -155,13 +155,6 @@ func Server() {
 		resources.Resources[0].Id, clientAccess.BlockchainAccess, clientAccess.ExtendedMethods,
 	)
 
-	err = InitDatabaseClient()
-	if err != nil {
-		log.Printf("Unable to initialize database connection, err: %v", err)
-	} else {
-		log.Printf("Connection with database established")
-	}
-
 	// Fill NodeConfigList with initial nodes from environment variables
 	err = LoadConfig(stateCLI.configPathFlag)
 	if err != nil {

@@ -176,17 +176,17 @@ func jsonrpcRequestParser(body []byte) ([]JSONRPCRequest, error) {
 	case len(firstByte) > 0 && firstByte[0] == '[':
 		err := json.Unmarshal(body, &jsonrpcRequest)
 		if err != nil {
-			return nil, fmt.Errorf("Unable to parse body, err: %v", err)
+			return nil, fmt.Errorf("unable to parse body, err: %v", err)
 		}
 	case len(firstByte) > 0 && firstByte[0] == '{':
 		var singleJsonrpcRequest JSONRPCRequest
 		err := json.Unmarshal(body, &singleJsonrpcRequest)
 		if err != nil {
-			return nil, fmt.Errorf("Unable to parse body, err: %v", err)
+			return nil, fmt.Errorf("unable to parse body, err: %v", err)
 		}
 		jsonrpcRequest = []JSONRPCRequest{singleJsonrpcRequest}
 	default:
-		return nil, fmt.Errorf("Incorrect first byte in JSON RPC request")
+		return nil, fmt.Errorf("incorrect first byte in JSON RPC request")
 	}
 
 	return jsonrpcRequest, nil
@@ -234,7 +234,7 @@ func logMiddleware(next http.Handler) http.Handler {
 					logStr += fmt.Sprintf(" %s", jsonrpcRequest.Method)
 				}
 				if i == len(jsonrpcRequests)-1 {
-					logStr += fmt.Sprint("]")
+					logStr += "]"
 				}
 			}
 		}

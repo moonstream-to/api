@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 )
 
@@ -96,11 +95,11 @@ func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string,
 
 	switch {
 	case currentClientAccess.dataSource == "blockchain":
-		if currentClientAccess.BlockchainAccess == false {
+		if !currentClientAccess.BlockchainAccess {
 			http.Error(w, "Access to blockchain node not allowed with provided access id", http.StatusForbidden)
 			return
 		}
-		if currentClientAccess.ExtendedMethods == false {
+		if !currentClientAccess.ExtendedMethods {
 			for _, jsonrpcRequest := range jsonrpcRequests {
 				_, exists := ALLOWED_METHODS[jsonrpcRequest.Method]
 				if !exists {
@@ -117,30 +116,10 @@ func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string,
 		node.GethReverseProxy.ServeHTTP(w, r)
 		return
 	case currentClientAccess.dataSource == "database":
-		// lbDatabaseHandler(w, r, blockchain, jsonrpcRequest)
 		http.Error(w, "Database access under development", http.StatusInternalServerError)
 		return
 	default:
 		http.Error(w, fmt.Sprintf("Unacceptable data source %s", currentClientAccess.dataSource), http.StatusBadRequest)
-		return
-	}
-}
-
-func lbDatabaseHandler(w http.ResponseWriter, r *http.Request, blockchain string, jsonrpcRequest JSONRPCRequest) {
-	switch {
-	case jsonrpcRequest.Method == "eth_getBlockByNumber":
-		var blockNumber uint64
-		blockNumber, _ = strconv.ParseUint(jsonrpcRequest.Params[0].(string), 10, 32)
-
-		block, err := databaseClient.GetBlock(blockchain, blockNumber)
-		if err != nil {
-			log.Printf("Unable to get block from database, err: %v", err)
-			http.Error(w, fmt.Sprintf("no such block %v", blockNumber), http.StatusBadRequest)
-			return
-		}
-		fmt.Println(block)
-	default:
-		http.Error(w, fmt.Sprintf("Unsupported method %s by database, please use blockchain as data source", jsonrpcRequest.Method), http.StatusBadRequest)
 		return
 	}
 }

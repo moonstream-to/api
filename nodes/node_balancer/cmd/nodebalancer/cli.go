@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 
 	bugout "github.com/bugout-dev/bugout-go/pkg"
 	"github.com/google/uuid"
@@ -18,17 +17,6 @@ var (
 
 	bugoutClient bugout.BugoutClient
 )
-
-type flagSlice []string
-
-func (i *flagSlice) String() string {
-	return strings.Join(*i, ", ")
-}
-
-func (i *flagSlice) Set(value string) error {
-	*i = append(*i, value)
-	return nil
-}
 
 // Command Line Interface state
 type StateCLI struct {
@@ -310,7 +298,7 @@ func cli() {
 		stateCLI.usersCmd.Parse(os.Args[2:])
 		stateCLI.checkRequirements()
 
-		var queryParameters map[string]string
+		queryParameters := make(map[string]string)
 		if stateCLI.userIDFlag != "" {
 			queryParameters["user_id"] = stateCLI.userIDFlag
 		}

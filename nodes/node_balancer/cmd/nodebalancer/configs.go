@@ -43,12 +43,9 @@ var (
 
 	// Humbug configuration
 	HUMBUG_REPORTER_NB_TOKEN = os.Getenv("HUMBUG_REPORTER_NB_TOKEN")
-
-	// Database configuration
-	MOONSTREAM_DB_URI_READ_ONLY         = os.Getenv("MOONSTREAM_DB_URI_READ_ONLY")
-	MOONSTREAM_DB_MAX_IDLE_CONNS    int = 30
-	MOONSTREAM_DB_CONN_MAX_LIFETIME     = 30 * time.Minute
 )
+
+var ()
 
 func CheckEnvVarSet() {
 	if NB_ACCESS_ID_HEADER == "" {
@@ -94,7 +91,7 @@ func CheckPathExists(path string) (bool, error) {
 		if os.IsNotExist(err) {
 			exists = false
 		} else {
-			return exists, fmt.Errorf("Error due checking file path exists, err: %v", err)
+			return exists, fmt.Errorf("error due checking file path exists, err: %v", err)
 		}
 	}
 
@@ -106,7 +103,7 @@ func GetConfigPath(providedPath string) (*ConfigPlacement, error) {
 	if providedPath == "" {
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
-			return nil, fmt.Errorf("Unable to find user home directory, %v", err)
+			return nil, fmt.Errorf("unable to find user home directory, %v", err)
 		}
 		configDirPath = fmt.Sprintf("%s/.nodebalancer", homeDir)
 		configPath = fmt.Sprintf("%s/config.json", configDirPath)
@@ -138,7 +135,7 @@ func GetConfigPath(providedPath string) (*ConfigPlacement, error) {
 func GenerateDefaultConfig(config *ConfigPlacement) error {
 	if !config.ConfigDirExists {
 		if err := os.MkdirAll(config.ConfigDirPath, os.ModePerm); err != nil {
-			return fmt.Errorf("Unable to create directory, %v", err)
+			return fmt.Errorf("unable to create directory, %v", err)
 		}
 		log.Printf("Config directory created at: %s", config.ConfigDirPath)
 	}
@@ -149,11 +146,11 @@ func GenerateDefaultConfig(config *ConfigPlacement) error {
 		}
 		tempConfigJson, err := json.Marshal(tempConfig)
 		if err != nil {
-			return fmt.Errorf("Unable to marshal configuration data, err: %v", err)
+			return fmt.Errorf("unable to marshal configuration data, err: %v", err)
 		}
 		err = ioutil.WriteFile(config.ConfigPath, tempConfigJson, os.ModePerm)
 		if err != nil {
-			return fmt.Errorf("Unable to write default config to file %s, err: %v", config.ConfigPath, err)
+			return fmt.Errorf("unable to write default config to file %s, err: %v", config.ConfigPath, err)
 		}
 		log.Printf("Created default configuration at %s", config.ConfigPath)
 	}
