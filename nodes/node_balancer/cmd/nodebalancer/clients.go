@@ -12,6 +12,8 @@ var (
 
 // Structure to define user access according with Brood resources
 type ClientResourceData struct {
+	ResourceID string `json:"resource_id"`
+	
 	UserID           string `json:"user_id"`
 	AccessID         string `json:"access_id"`
 	Name             string `json:"name"`
@@ -19,7 +21,14 @@ type ClientResourceData struct {
 	BlockchainAccess bool   `json:"blockchain_access"`
 	ExtendedMethods  bool   `json:"extended_methods"`
 
-	LastAccessTs int64 `json:"last_access_ts"`
+	PeriodDuration    int64 `json:"period_duration"`
+	PeriodStartTs     int64 `json:"period_start_ts"`
+	MaxCallsPerPeriod int64 `json:"max_calls_per_period"`
+	CallsPerPeriod    int64 `json:"calls_per_period"`
+
+	LastAccessTs            int64 `json:"last_access_ts"`
+	LastSessionAccessTs     int64 `json:"last_session_access_ts"` // When last session with nodebalancer where started
+	LastSessionCallsCounter int64 `json:"last_session_calls_counter"`
 
 	dataSource string
 }

@@ -29,6 +29,7 @@ type AccessCache struct {
 	mux sync.RWMutex
 }
 
+// CreateAccessCache generates empty cache of client access
 func CreateAccessCache() {
 	accessIdCache = AccessCache{
 		accessIds: make(map[string]ClientResourceData),
@@ -65,6 +66,8 @@ func (ac *AccessCache) UpdateAccessIdAtCache(accessId, dataSource string) {
 
 // Add new access id with data to cache
 func (ac *AccessCache) AddAccessIdToCache(clientResourceData ClientResourceData, dataSource string) {
+	tsNow := time.Now().Unix()
+
 	ac.mux.Lock()
 	ac.accessIds[clientResourceData.AccessID] = ClientResourceData{
 		UserID:           clientResourceData.UserID,
@@ -74,7 +77,8 @@ func (ac *AccessCache) AddAccessIdToCache(clientResourceData ClientResourceData,
 		BlockchainAccess: clientResourceData.BlockchainAccess,
 		ExtendedMethods:  clientResourceData.ExtendedMethods,
 
-		LastAccessTs: time.Now().Unix(),
+		LastAccessTs: tsNow,
+		LastSessionAccessTs: tsNow,
 
 		dataSource: dataSource,
 	}
@@ -88,6 +92,9 @@ func (ac *AccessCache) Cleanup() (int64, int64) {
 	ac.mux.Lock()
 	for aId, aData := range ac.accessIds {
 		if tsNow-aData.LastAccessTs > NB_CACHE_ACCESS_ID_LIFETIME {
+			delete(ac.accessIds, aId)
+			removedAccessIds++
+		} else if tsNow-aData.LastSessionAccessTs > NB_CACHE_ACCESS_ID_SESSION_LIFETIME {
 			delete(ac.accessIds, aId)
 			removedAccessIds++
 		} else {

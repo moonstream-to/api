@@ -118,6 +118,7 @@ func Server() {
 	// Record system information
 	reporter.Publish(humbug.SystemReport())
 
+	// Fetch access id for internal usage (crawlers, infrastructure, etc)
 	resources, err := bugoutClient.Brood.GetResources(
 		NB_CONTROLLER_TOKEN,
 		NB_APPLICATION_ID,
