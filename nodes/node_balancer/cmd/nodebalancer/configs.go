@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 var (
@@ -46,14 +48,17 @@ var (
 	HUMBUG_REPORTER_NB_TOKEN = os.Getenv("HUMBUG_REPORTER_NB_TOKEN")
 )
 
-var ()
-
 func CheckEnvVarSet() {
 	if NB_ACCESS_ID_HEADER == "" {
 		NB_ACCESS_ID_HEADER = "x-node-balancer-access-id"
 	}
 	if NB_DATA_SOURCE_HEADER == "" {
 		NB_DATA_SOURCE_HEADER = "x-node-balancer-data-source"
+	}
+	_, err := uuid.Parse(NB_CONTROLLER_ACCESS_ID)
+	if err != nil {
+		NB_CONTROLLER_ACCESS_ID = uuid.New().String()
+		log.Printf("Access ID for internal usage in NB_CONTROLLER_ACCESS_ID environment variable is not valid uuid, generated random one: %v", NB_CONTROLLER_ACCESS_ID)
 	}
 }
 

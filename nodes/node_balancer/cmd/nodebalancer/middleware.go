@@ -298,10 +298,11 @@ func accessMiddleware(next http.Handler) http.Handler {
 
 		// If access id does not belong to internal crawlers, then check cache or find it in Bugout resources
 		if accessID == NB_CONTROLLER_ACCESS_ID {
-			currentClientAccess = internalCrawlersAccess
+			currentClientAccess = internalUsageAccess
 			if stateCLI.enableDebugFlag {
 				log.Printf("Access ID belongs to internal usage for user with ID %s", currentClientAccess.ClientResourceData.UserID)
 			}
+			currentClientAccess.LastAccessTs = tsNow
 			currentClientAccess.requestedDataSource = requestedDataSource
 		} else if accessIdCache.FindAccessIdInCache(accessID) != "" {
 			currentClientAccess = accessIdCache.accessIds[accessID]
