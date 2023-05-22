@@ -24,7 +24,7 @@ var (
 )
 
 type AccessCache struct {
-	accessIds map[string]ClientResourceData
+	accessIds map[string]ClientAccess
 
 	mux sync.RWMutex
 }
@@ -32,7 +32,7 @@ type AccessCache struct {
 // CreateAccessCache generates empty cache of client access
 func CreateAccessCache() {
 	accessIdCache = AccessCache{
-		accessIds: make(map[string]ClientResourceData),
+		accessIds: make(map[string]ClientAccess),
 	}
 }
 
@@ -53,34 +53,43 @@ func (ac *AccessCache) FindAccessIdInCache(accessId string) string {
 }
 
 // Update last call access timestamp and datasource for access id
-func (ac *AccessCache) UpdateAccessIdAtCache(accessId, dataSource string) {
+func (ac *AccessCache) UpdateAccessIdAtCache(accessId, requestedDataSource string, tsNow int64) {
 	ac.mux.Lock()
 	if accessData, ok := ac.accessIds[accessId]; ok {
-		accessData.LastAccessTs = time.Now().Unix()
-		accessData.dataSource = dataSource
+		accessData.LastAccessTs = tsNow
+		accessData.requestedDataSource = requestedDataSource
+		accessData.LastSessionCallsCounter++
 
 		ac.accessIds[accessId] = accessData
 	}
 	ac.mux.Unlock()
 }
 
-// Add new access id with data to cache
-func (ac *AccessCache) AddAccessIdToCache(clientResourceData ClientResourceData, dataSource string) {
-	tsNow := time.Now().Unix()
-
+// Add new access ID with data to cache
+func (ac *AccessCache) AddAccessIdToCache(clientAccess ClientAccess, tsNow int64) {
 	ac.mux.Lock()
-	ac.accessIds[clientResourceData.AccessID] = ClientResourceData{
-		UserID:           clientResourceData.UserID,
-		AccessID:         clientResourceData.AccessID,
-		Name:             clientResourceData.Name,
-		Description:      clientResourceData.Description,
-		BlockchainAccess: clientResourceData.BlockchainAccess,
-		ExtendedMethods:  clientResourceData.ExtendedMethods,
+	ac.accessIds[clientAccess.ClientResourceData.AccessID] = ClientAccess{
+		ResourceID: clientAccess.ResourceID,
 
-		LastAccessTs: tsNow,
-		LastSessionAccessTs: tsNow,
+		ClientResourceData: ClientResourceData{
+			UserID:           clientAccess.ClientResourceData.UserID,
+			AccessID:         clientAccess.ClientResourceData.AccessID,
+			Name:             clientAccess.ClientResourceData.Name,
+			Description:      clientAccess.ClientResourceData.Description,
+			BlockchainAccess: clientAccess.ClientResourceData.BlockchainAccess,
+			ExtendedMethods:  clientAccess.ClientResourceData.ExtendedMethods,
 
-		dataSource: dataSource,
+			PeriodDuration:    clientAccess.ClientResourceData.PeriodDuration,
+			PeriodStartTs:     clientAccess.ClientResourceData.PeriodStartTs,
+			MaxCallsPerPeriod: clientAccess.ClientResourceData.MaxCallsPerPeriod,
+			CallsPerPeriod:    clientAccess.ClientResourceData.CallsPerPeriod,
+		},
+
+		LastAccessTs:            tsNow,
+		LastSessionAccessTs:     tsNow,
+		LastSessionCallsCounter: 1,
+
+		requestedDataSource: clientAccess.requestedDataSource,
 	}
 	ac.mux.Unlock()
 }
@@ -89,19 +98,31 @@ func (ac *AccessCache) AddAccessIdToCache(clientResourceData ClientResourceData,
 func (ac *AccessCache) Cleanup() (int64, int64) {
 	var removedAccessIds, totalAccessIds int64
 	tsNow := time.Now().Unix()
+
 	ac.mux.Lock()
-	for aId, aData := range ac.accessIds {
-		if tsNow-aData.LastAccessTs > NB_CACHE_ACCESS_ID_LIFETIME {
+	for aId, clientAccess := range ac.accessIds {
+		if tsNow-clientAccess.LastAccessTs > NB_CACHE_ACCESS_ID_LIFETIME {
+			// Remove clients who is not active for NB_CACHE_ACCESS_ID_LIFETIME lifetime period
 			delete(ac.accessIds, aId)
 			removedAccessIds++
-		} else if tsNow-aData.LastSessionAccessTs > NB_CACHE_ACCESS_ID_SESSION_LIFETIME {
+			err := clientAccess.UpdateClientResourceCallCounter(tsNow)
+			if err != nil {
+				log.Printf("Unable to update Brood resource, err: %v\n", err)
+			}
+		} else if tsNow-clientAccess.LastSessionAccessTs > NB_CACHE_ACCESS_ID_SESSION_LIFETIME {
+			// Remove clients with too long sessions, greater then NB_CACHE_ACCESS_ID_SESSION_LIFETIME
 			delete(ac.accessIds, aId)
 			removedAccessIds++
+			err := clientAccess.UpdateClientResourceCallCounter(tsNow)
+			if err != nil {
+				log.Printf("Unable to update Brood resource, err: %v\n", err)
+			}
 		} else {
 			totalAccessIds++
 		}
 	}
 	ac.mux.Unlock()
+
 	return removedAccessIds, totalAccessIds
 }
 
@@ -112,9 +133,9 @@ func initCacheCleaning(debug bool) {
 		case <-t.C:
 			removedAccessIds, totalAccessIds := accessIdCache.Cleanup()
 			if debug {
-				log.Printf("Removed %d elements from access id cache", removedAccessIds)
+				log.Printf("Removed %d clients from access cache", removedAccessIds)
 			}
-			log.Printf("Elements in access id cache: %d", totalAccessIds)
+			log.Printf("Clients in access cache: %d", totalAccessIds)
 		}
 	}
 }
@@ -139,22 +160,22 @@ func extractAccessID(r *http.Request) string {
 }
 
 // Extract data_source from header and query. Query takes precedence over header.
-func extractDataSource(r *http.Request) string {
-	dataSource := "database"
+func extractRequestedDataSource(r *http.Request) string {
+	requestedDataSource := "database"
 
-	dataSources := r.Header[strings.Title(NB_DATA_SOURCE_HEADER)]
-	for _, h := range dataSources {
-		dataSource = h
+	requestedDataSources := r.Header[strings.Title(NB_DATA_SOURCE_HEADER)]
+	for _, h := range requestedDataSources {
+		requestedDataSource = h
 	}
 
 	queries := r.URL.Query()
 	for k, v := range queries {
 		if k == "data_source" {
-			dataSource = v[0]
+			requestedDataSource = v[0]
 		}
 	}
 
-	return dataSource
+	return requestedDataSource
 }
 
 // Handle panic errors to prevent server shutdown
@@ -252,7 +273,7 @@ func logMiddleware(next http.Handler) http.Handler {
 			}
 			accessID := extractAccessID(r)
 			if accessID != "" {
-				dataSource := extractDataSource(r)
+				dataSource := extractRequestedDataSource(r)
 				logStr += fmt.Sprintf(" %s %s", dataSource, accessID)
 			}
 		}
@@ -263,30 +284,38 @@ func logMiddleware(next http.Handler) http.Handler {
 // Check access id was provided correctly and save user access configuration to request context
 func accessMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var currentClientAccess ClientResourceData
+		var currentClientAccess ClientAccess
 
 		accessID := extractAccessID(r)
-		dataSource := extractDataSource(r)
+		requestedDataSource := extractRequestedDataSource(r)
 
 		if accessID == "" {
 			http.Error(w, "No access id passed with request", http.StatusForbidden)
 			return
 		}
 
+		tsNow := time.Now().Unix()
+
 		// If access id does not belong to internal crawlers, then check cache or find it in Bugout resources
 		if accessID == NB_CONTROLLER_ACCESS_ID {
-			if stateCLI.enableDebugFlag {
-				log.Printf("Access id belongs to internal crawlers")
-			}
 			currentClientAccess = internalCrawlersAccess
-			currentClientAccess.dataSource = dataSource
-		} else if accessIdCache.FindAccessIdInCache(accessID) != "" {
 			if stateCLI.enableDebugFlag {
-				log.Printf("Access id found in cache")
+				log.Printf("Access ID belongs to internal usage for user with ID %s", currentClientAccess.ClientResourceData.UserID)
 			}
+			currentClientAccess.requestedDataSource = requestedDataSource
+		} else if accessIdCache.FindAccessIdInCache(accessID) != "" {
 			currentClientAccess = accessIdCache.accessIds[accessID]
-			currentClientAccess.dataSource = dataSource
-			accessIdCache.UpdateAccessIdAtCache(accessID, dataSource)
+			if stateCLI.enableDebugFlag {
+				log.Printf("Access ID found in cache for user with ID %s", currentClientAccess.ClientResourceData.UserID)
+			}
+			// Check if limit of calls not exceeded
+			isClientAllowedToGetAccess := currentClientAccess.CheckClientCallPeriodLimits(tsNow)
+			if !isClientAllowedToGetAccess {
+				http.Error(w, "User exceeded limit of calls per period", http.StatusForbidden)
+				return
+			}
+			currentClientAccess.requestedDataSource = requestedDataSource
+			accessIdCache.UpdateAccessIdAtCache(accessID, requestedDataSource, tsNow)
 		} else {
 			if stateCLI.enableDebugFlag {
 				log.Printf("New access id, looking at Brood resources")
@@ -300,33 +329,35 @@ func accessMiddleware(next http.Handler) http.Handler {
 				http.Error(w, "Unable to get user with provided access identifier", http.StatusForbidden)
 				return
 			}
-			if len(resources.Resources) == 0 {
+			resourcesLen := len(resources.Resources)
+			if resourcesLen == 0 {
 				http.Error(w, "User with provided access identifier not found", http.StatusForbidden)
 				return
 			}
-			resource_data, err := json.Marshal(resources.Resources[0].ResourceData)
+			if resourcesLen > 1 {
+				http.Error(w, "User with provided access identifier has several access IDs", http.StatusInternalServerError)
+				return
+			}
+			resourceData, err := json.Marshal(resources.Resources[0].ResourceData)
 			if err != nil {
 				http.Error(w, "Unable to encode resource data interface to json", http.StatusInternalServerError)
 				return
 			}
-			var clientResourceData ClientResourceData
-			err = json.Unmarshal(resource_data, &clientResourceData)
+			currentClientAccess.ResourceID = resources.Resources[0].Id
+			currentClientAccess.requestedDataSource = requestedDataSource
+			err = json.Unmarshal(resourceData, &currentClientAccess.ClientResourceData)
 			if err != nil {
 				http.Error(w, "Unable to decode resource data json to structure", http.StatusInternalServerError)
 				return
 			}
-			currentClientAccess = ClientResourceData{
-				UserID:           clientResourceData.UserID,
-				AccessID:         clientResourceData.AccessID,
-				Name:             clientResourceData.Name,
-				Description:      clientResourceData.Description,
-				BlockchainAccess: clientResourceData.BlockchainAccess,
-				ExtendedMethods:  clientResourceData.ExtendedMethods,
 
-				dataSource: dataSource,
+			// Check if limit of calls not exceeded
+			isClientAllowedToGetAccess := currentClientAccess.CheckClientCallPeriodLimits(tsNow)
+			if !isClientAllowedToGetAccess {
+				http.Error(w, "User exceeded limit of calls per period", http.StatusForbidden)
+				return
 			}
-
-			accessIdCache.AddAccessIdToCache(clientResourceData, dataSource)
+			accessIdCache.AddAccessIdToCache(currentClientAccess, tsNow)
 		}
 
 		ctxUser := context.WithValue(r.Context(), "currentClientAccess", currentClientAccess)

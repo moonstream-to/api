@@ -30,9 +30,9 @@ var (
 	NB_HEALTH_CHECK_INTERVAL       = time.Millisecond * 5000
 	NB_HEALTH_CHECK_CALL_TIMEOUT   = time.Second * 2
 
-	NB_CACHE_CLEANING_INTERVAL  = time.Second * 10
-	NB_CACHE_ACCESS_ID_LIFETIME = int64(120)
-	NB_CACHE_ACCESS_ID_SESSION_LIFETIME = int64(600)
+	NB_CACHE_CLEANING_INTERVAL          = time.Second * 10
+	NB_CACHE_ACCESS_ID_LIFETIME         = int64(120) // TODO(kompotkot): Set to 2 mins
+	NB_CACHE_ACCESS_ID_SESSION_LIFETIME = int64(600) // TODO(kompotkot): Set to 10 mins
 
 	NB_MAX_COUNTER_NUMBER = uint64(10000000)
 

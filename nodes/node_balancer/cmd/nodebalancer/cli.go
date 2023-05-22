@@ -241,7 +241,7 @@ func cli() {
 		stateCLI.addAccessCmd.Parse(os.Args[2:])
 		stateCLI.checkRequirements()
 
-		proposedUserAccess := ClientResourceData{
+		proposedClientResourceData := ClientResourceData{
 			UserID:           stateCLI.userIDFlag,
 			AccessID:         stateCLI.accessIDFlag,
 			Name:             stateCLI.accessNameFlag,
@@ -257,7 +257,7 @@ func cli() {
 		_, err := bugoutClient.Brood.FindUser(
 			NB_CONTROLLER_TOKEN,
 			map[string]string{
-				"user_id":        proposedUserAccess.UserID,
+				"user_id":        proposedClientResourceData.UserID,
 				"application_id": NB_APPLICATION_ID,
 			},
 		)
@@ -265,7 +265,7 @@ func cli() {
 			fmt.Printf("User does not exists, err: %v\n", err)
 			os.Exit(1)
 		}
-		resource, err := bugoutClient.Brood.CreateResource(NB_CONTROLLER_TOKEN, NB_APPLICATION_ID, proposedUserAccess)
+		resource, err := bugoutClient.Brood.CreateResource(NB_CONTROLLER_TOKEN, NB_APPLICATION_ID, proposedClientResourceData)
 		if err != nil {
 			fmt.Printf("Unable to create user access, err: %v\n", err)
 			os.Exit(1)
@@ -275,7 +275,7 @@ func cli() {
 			fmt.Printf("Unable to encode resource %s data interface to json, err: %v\n", resource.Id, err)
 			os.Exit(1)
 		}
-		var newUserAccess ClientResourceData
+		var newUserAccess ClientAccess
 		err = json.Unmarshal(resourceData, &newUserAccess)
 		if err != nil {
 			fmt.Printf("Unable to decode resource %s data json to structure, err: %v\n", resource.Id, err)
@@ -321,44 +321,45 @@ func cli() {
 		}
 
 		resource := resources.Resources[0]
-		resource_data, err := json.Marshal(resource.ResourceData)
+		resourceData, err := json.Marshal(resource.ResourceData)
 		if err != nil {
 			fmt.Printf("Unable to encode resource %s data interface to json, err: %v\n", resource.Id, err)
 			os.Exit(1)
 		}
-		var currentUserAccess ClientResourceData
-		err = json.Unmarshal(resource_data, &currentUserAccess)
+
+		var currentClientAccess ClientAccess
+		currentClientAccess.ResourceID = resource.Id
+		err = json.Unmarshal(resourceData, &currentClientAccess.ClientResourceData)
 		if err != nil {
 			fmt.Printf("Unable to decode resource %s data json to structure, err: %v\n", resource.Id, err)
 			os.Exit(1)
 		}
-		currentUserAccess.ResourceID = resource.Id
 
 		// TODO(kompotkot): Since we are using bool flags I moved with ugly solution.
 		// Let's find better one when have free time or will re-write flag Set.
 		update := make(map[string]interface{})
-		if stateCLI.accessNameFlag != currentUserAccess.Name && stateCLI.accessNameFlag != DEFAULT_ACCESS_NAME {
+		if stateCLI.accessNameFlag != currentClientAccess.ClientResourceData.Name && stateCLI.accessNameFlag != DEFAULT_ACCESS_NAME {
 			update["name"] = stateCLI.accessNameFlag
 		}
-		if stateCLI.accessDescriptionFlag != currentUserAccess.Description && stateCLI.accessDescriptionFlag != DEFAULT_ACCESS_DESCRIPTION {
+		if stateCLI.accessDescriptionFlag != currentClientAccess.ClientResourceData.Description && stateCLI.accessDescriptionFlag != DEFAULT_ACCESS_DESCRIPTION {
 			update["description"] = stateCLI.accessDescriptionFlag
 		}
-		if stateCLI.blockchainAccessFlag != currentUserAccess.BlockchainAccess && stateCLI.blockchainAccessFlag != DEFAULT_BLOCKCHAIN_ACCESS {
+		if stateCLI.blockchainAccessFlag != currentClientAccess.ClientResourceData.BlockchainAccess && stateCLI.blockchainAccessFlag != DEFAULT_BLOCKCHAIN_ACCESS {
 			update["blockchain_access"] = stateCLI.blockchainAccessFlag
 		}
-		if stateCLI.extendedMethodsFlag != currentUserAccess.ExtendedMethods && stateCLI.extendedMethodsFlag != DEFAULT_EXTENDED_METHODS {
+		if stateCLI.extendedMethodsFlag != currentClientAccess.ClientResourceData.ExtendedMethods && stateCLI.extendedMethodsFlag != DEFAULT_EXTENDED_METHODS {
 			update["extended_methods"] = stateCLI.extendedMethodsFlag
 		}
-		if stateCLI.PeriodDurationFlag != currentUserAccess.PeriodDuration && stateCLI.PeriodDurationFlag != DEFAULT_PERIOD_DURATION {
+		if stateCLI.PeriodDurationFlag != currentClientAccess.ClientResourceData.PeriodDuration && stateCLI.PeriodDurationFlag != DEFAULT_PERIOD_DURATION {
 			update["period_duration"] = stateCLI.PeriodDurationFlag
 		}
-		if stateCLI.MaxCallsPerPeriodFlag != currentUserAccess.MaxCallsPerPeriod && stateCLI.MaxCallsPerPeriodFlag != DEFAULT_MAX_CALLS_PER_PERIOD {
+		if stateCLI.MaxCallsPerPeriodFlag != currentClientAccess.ClientResourceData.MaxCallsPerPeriod && stateCLI.MaxCallsPerPeriodFlag != DEFAULT_MAX_CALLS_PER_PERIOD {
 			update["max_calls_per_period"] = stateCLI.MaxCallsPerPeriodFlag
 		}
-		if stateCLI.PeriodStartTsFlag != currentUserAccess.PeriodStartTs && stateCLI.PeriodStartTsFlag != 0 {
+		if stateCLI.PeriodStartTsFlag != currentClientAccess.ClientResourceData.PeriodStartTs && stateCLI.PeriodStartTsFlag != 0 {
 			update["period_start_ts"] = stateCLI.PeriodStartTsFlag
 		}
-		if stateCLI.CallsPerPeriodFlag != currentUserAccess.CallsPerPeriod && stateCLI.CallsPerPeriodFlag != 0 {
+		if stateCLI.CallsPerPeriodFlag != currentClientAccess.ClientResourceData.CallsPerPeriod && stateCLI.CallsPerPeriodFlag != 0 {
 			update["calls_per_period"] = stateCLI.CallsPerPeriodFlag
 		}
 
@@ -372,13 +373,13 @@ func cli() {
 			fmt.Printf("Unable to update Bugout resource, err: %v\n", err)
 			os.Exit(1)
 		}
-		
+
 		updatedResourceData, err := json.Marshal(updatedResource.ResourceData)
 		if err != nil {
 			fmt.Printf("Unable to encode resource %s data interface to json, err: %v\n", resource.Id, err)
 			os.Exit(1)
 		}
-		var updatedUserAccess ClientResourceData
+		var updatedUserAccess ClientAccess
 		err = json.Unmarshal(updatedResourceData, &updatedUserAccess)
 		if err != nil {
 			fmt.Printf("Unable to decode resource %s data json to structure, err: %v\n", resource.Id, err)
@@ -413,7 +414,7 @@ func cli() {
 			os.Exit(1)
 		}
 
-		var userAccesses []ClientResourceData
+		var userAccesses []ClientAccess
 		for _, resource := range resources.Resources {
 			deletedResource, err := bugoutClient.Brood.DeleteResource(NB_CONTROLLER_TOKEN, resource.Id)
 			if err != nil {
@@ -425,7 +426,7 @@ func cli() {
 				fmt.Printf("Unable to encode resource %s data interface to json, err: %v\n", resource.Id, err)
 				continue
 			}
-			var deletedUserAccess ClientResourceData
+			var deletedUserAccess ClientAccess
 			err = json.Unmarshal(deletedResourceData, &deletedUserAccess)
 			if err != nil {
 				fmt.Printf("Unable to decode resource %s data json to structure, err: %v\n", resource.Id, err)
@@ -471,7 +472,7 @@ func cli() {
 			os.Exit(1)
 		}
 
-		var userAccesses []ClientResourceData
+		var clientAccesses []ClientAccess
 
 		offset := stateCLI.offsetFlag
 		if stateCLI.offsetFlag > len(resources.Resources) {
@@ -483,20 +484,21 @@ func cli() {
 		}
 
 		for _, resource := range resources.Resources[offset:limit] {
-			resource_data, err := json.Marshal(resource.ResourceData)
+			resourceData, err := json.Marshal(resource.ResourceData)
 			if err != nil {
 				fmt.Printf("Unable to encode resource %s data interface to json, err: %v\n", resource.Id, err)
 				continue
 			}
-			var userAccess ClientResourceData
-			err = json.Unmarshal(resource_data, &userAccess)
+			var clientAccess ClientAccess
+			clientAccess.ResourceID = resource.Id
+			err = json.Unmarshal(resourceData, &clientAccess.ClientResourceData)
 			if err != nil {
 				fmt.Printf("Unable to decode resource %s data json to structure, err: %v\n", resource.Id, err)
 				continue
 			}
-			userAccesses = append(userAccesses, userAccess)
+			clientAccesses = append(clientAccesses, clientAccess)
 		}
-		userAccessesJson, err := json.Marshal(userAccesses)
+		userAccessesJson, err := json.Marshal(clientAccesses)
 		if err != nil {
 			fmt.Printf("Unable to marshal user accesses struct, err: %v\n", err)
 			os.Exit(1)

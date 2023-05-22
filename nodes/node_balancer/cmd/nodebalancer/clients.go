@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"reflect"
 	"sync"
 	"time"
@@ -11,9 +12,19 @@ var (
 )
 
 // Structure to define user access according with Brood resources
+type ClientAccess struct {
+	ResourceID string
+
+	ClientResourceData ClientResourceData
+
+	LastAccessTs            int64
+	LastSessionAccessTs     int64 // When last session with nodebalancer where started
+	LastSessionCallsCounter int64
+
+	requestedDataSource string
+}
+
 type ClientResourceData struct {
-	ResourceID string `json:"resource_id"`
-	
 	UserID           string `json:"user_id"`
 	AccessID         string `json:"access_id"`
 	Name             string `json:"name"`
@@ -25,12 +36,50 @@ type ClientResourceData struct {
 	PeriodStartTs     int64 `json:"period_start_ts"`
 	MaxCallsPerPeriod int64 `json:"max_calls_per_period"`
 	CallsPerPeriod    int64 `json:"calls_per_period"`
+}
 
-	LastAccessTs            int64 `json:"last_access_ts"`
-	LastSessionAccessTs     int64 `json:"last_session_access_ts"` // When last session with nodebalancer where started
-	LastSessionCallsCounter int64 `json:"last_session_calls_counter"`
+// CheckClientCallPeriodLimits returns true if limit of call requests per period is exceeded
+// If client passed this check, we will add this client to cache and let him operates until cache will be
+// cleaned with go-routine and resource will be updated
+func (ca *ClientAccess) CheckClientCallPeriodLimits(tsNow int64) bool {
+	isClientAllowedToGetAccess := false
+	if tsNow-ca.ClientResourceData.PeriodStartTs < ca.ClientResourceData.PeriodDuration {
+		// Client operates in period
+		if ca.ClientResourceData.CallsPerPeriod < ca.ClientResourceData.MaxCallsPerPeriod {
+			// Client's limit of calls not reached
+			isClientAllowedToGetAccess = true
+		}
+	} else {
+		// Client period should be refreshed
+		if stateCLI.enableDebugFlag {
+			log.Printf("Refresh client's period_start_ts with time.now() and reset calls_per_period")
+		}
+		ca.ClientResourceData.CallsPerPeriod = 0
+		ca.ClientResourceData.PeriodStartTs = tsNow
+		isClientAllowedToGetAccess = true
+	}
+	return isClientAllowedToGetAccess
+}
 
-	dataSource string
+// UpdateClientResourceCallCounter updates Brood resource where increase calls counter to node
+// with current number of calls during last session.
+func (ca *ClientAccess) UpdateClientResourceCallCounter(tsNow int64) error {
+	update := make(map[string]interface{})
+	update["period_start_ts"] = ca.ClientResourceData.PeriodStartTs
+	update["calls_per_period"] = ca.ClientResourceData.CallsPerPeriod + ca.LastSessionCallsCounter
+
+	updatedResource, err := bugoutClient.Brood.UpdateResource(
+		NB_CONTROLLER_TOKEN,
+		ca.ResourceID,
+		update,
+		[]string{},
+	)
+	if err != nil {
+		return err
+	}
+	log.Printf("Resource %s updated\n", updatedResource.Id)
+
+	return nil
 }
 
 // Node - which one node client worked with

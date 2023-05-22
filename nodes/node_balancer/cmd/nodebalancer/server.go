@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	internalCrawlersAccess ClientResourceData
+	internalCrawlersAccess ClientAccess
 
 	// Crash reporter
 	reporter *humbug.HumbugReporter
@@ -137,23 +137,25 @@ func Server() {
 		fmt.Printf("Unable to encode resource data interface to json, err: %v\n", err)
 		os.Exit(1)
 	}
-	var clientAccess ClientResourceData
-	err = json.Unmarshal(resource_data, &clientAccess)
+	var clientResourceData ClientResourceData
+	err = json.Unmarshal(resource_data, &clientResourceData)
 	if err != nil {
 		fmt.Printf("Unable to decode resource data json to structure, err: %v\n", err)
 		os.Exit(1)
 	}
-	internalCrawlersAccess = ClientResourceData{
-		UserID:           clientAccess.UserID,
-		AccessID:         clientAccess.AccessID,
-		Name:             clientAccess.Name,
-		Description:      clientAccess.Description,
-		BlockchainAccess: clientAccess.BlockchainAccess,
-		ExtendedMethods:  clientAccess.ExtendedMethods,
+	internalCrawlersAccess = ClientAccess{
+		ClientResourceData: ClientResourceData{
+			UserID:           clientResourceData.UserID,
+			AccessID:         clientResourceData.AccessID,
+			Name:             clientResourceData.Name,
+			Description:      clientResourceData.Description,
+			BlockchainAccess: clientResourceData.BlockchainAccess,
+			ExtendedMethods:  clientResourceData.ExtendedMethods,
+		},
 	}
 	log.Printf(
 		"Internal crawlers access set, resource id: %s, blockchain access: %t, extended methods: %t",
-		resources.Resources[0].Id, clientAccess.BlockchainAccess, clientAccess.ExtendedMethods,
+		resources.Resources[0].Id, clientResourceData.BlockchainAccess, clientResourceData.ExtendedMethods,
 	)
 
 	// Fill NodeConfigList with initial nodes from environment variables

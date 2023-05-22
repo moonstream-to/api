@@ -27,7 +27,7 @@ func pingRoute(w http.ResponseWriter, r *http.Request) {
 // lbHandler load balances the incoming requests to nodes
 func lbHandler(w http.ResponseWriter, r *http.Request) {
 	currentClientAccessRaw := r.Context().Value("currentClientAccess")
-	currentClientAccess, ok := currentClientAccessRaw.(ClientResourceData)
+	currentClientAccess, ok := currentClientAccessRaw.(ClientAccess)
 	if !ok {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
@@ -55,14 +55,14 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 	// Chose one node
 	var node *Node
 	cpool := GetClientPool(blockchain)
-	node = cpool.GetClientNode(currentClientAccess.AccessID)
+	node = cpool.GetClientNode(currentClientAccess.ClientResourceData.AccessID)
 	if node == nil {
 		node = blockchainPool.GetNextNode(blockchain)
 		if node == nil {
 			http.Error(w, "There are no nodes available", http.StatusServiceUnavailable)
 			return
 		}
-		cpool.AddClientNode(currentClientAccess.AccessID, node)
+		cpool.AddClientNode(currentClientAccess.ClientResourceData.AccessID, node)
 	}
 
 	// Save origin path, to use in proxyErrorHandler if node will not response
@@ -78,7 +78,7 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string, node *Node, currentClientAccess ClientResourceData) {
+func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string, node *Node, currentClientAccess ClientAccess) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Unable to read body", http.StatusBadRequest)
@@ -94,12 +94,12 @@ func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string,
 	}
 
 	switch {
-	case currentClientAccess.dataSource == "blockchain":
-		if !currentClientAccess.BlockchainAccess {
+	case currentClientAccess.requestedDataSource == "blockchain":
+		if !currentClientAccess.ClientResourceData.BlockchainAccess {
 			http.Error(w, "Access to blockchain node not allowed with provided access id", http.StatusForbidden)
 			return
 		}
-		if !currentClientAccess.ExtendedMethods {
+		if !currentClientAccess.ClientResourceData.ExtendedMethods {
 			for _, jsonrpcRequest := range jsonrpcRequests {
 				_, exists := ALLOWED_METHODS[jsonrpcRequest.Method]
 				if !exists {
@@ -115,11 +115,11 @@ func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string,
 		r.URL.Path = "/"
 		node.GethReverseProxy.ServeHTTP(w, r)
 		return
-	case currentClientAccess.dataSource == "database":
+	case currentClientAccess.requestedDataSource == "database":
 		http.Error(w, "Database access under development", http.StatusInternalServerError)
 		return
 	default:
-		http.Error(w, fmt.Sprintf("Unacceptable data source %s", currentClientAccess.dataSource), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Unacceptable data source %s", currentClientAccess.requestedDataSource), http.StatusBadRequest)
 		return
 	}
 }
