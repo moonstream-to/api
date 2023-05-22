@@ -45,7 +45,7 @@ func (ca *ClientAccess) CheckClientCallPeriodLimits(tsNow int64) bool {
 	isClientAllowedToGetAccess := false
 	if tsNow-ca.ClientResourceData.PeriodStartTs < ca.ClientResourceData.PeriodDuration {
 		// Client operates in period
-		if ca.ClientResourceData.CallsPerPeriod < ca.ClientResourceData.MaxCallsPerPeriod {
+		if ca.ClientResourceData.CallsPerPeriod+ca.LastSessionCallsCounter < ca.ClientResourceData.MaxCallsPerPeriod {
 			// Client's limit of calls not reached
 			isClientAllowedToGetAccess = true
 		}
