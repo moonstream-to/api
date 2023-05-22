@@ -61,4 +61,5 @@ go.work
 dev.env
 prod.env
 test.env
+.venv
 
