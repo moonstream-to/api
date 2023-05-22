@@ -161,7 +161,7 @@ func extractAccessID(r *http.Request) string {
 
 // Extract data_source from header and query. Query takes precedence over header.
 func extractRequestedDataSource(r *http.Request) string {
-	requestedDataSource := "database"
+	requestedDataSource := "blockchain"
 
 	requestedDataSources := r.Header[strings.Title(NB_DATA_SOURCE_HEADER)]
 	for _, h := range requestedDataSources {
