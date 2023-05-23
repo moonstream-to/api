@@ -1,7 +1,6 @@
 import argparse
 import logging
 import os
-from typing import Any, Dict, List
 
 from bugout.app import Bugout
 
@@ -30,6 +29,7 @@ def migration_20230522(
     for resource in resources.resources:
         resource_data = resource.resource_data
         resource_data["type"] = "nodebalancer-access"
+
         try:
             new_resource = bc.create_resource(
                 token=token_new_owner,
@@ -43,13 +43,34 @@ def migration_20230522(
         except Exception as err:
             logger.error(f"Unable to copy resource with ID {resource.id}, err: {err}")
 
+        user_id = new_resource.resource_data.get("user_id", "")
+
+        try:
+            new_permissions = bc.add_resource_holder_permissions(
+                token=token_new_owner,
+                resource_id=new_resource.id,
+                holder_permissions={
+                    "holder_id": user_id,
+                    "holder_type": "user",
+                    "permissions": ["create", "read", "update", "delete"],
+                },
+            )
+            logger.info(
+                f"Granted permissions for resource with ID {new_permissions.resource_id} to user with ID {user_id}"
+            )
+        except Exception as err:
+            logger.error(
+                f"Unable grant permissions for resource with ID {resource.id} to user with ID {user_id}, err: {err}"
+            )
+
     logger.info(f"Copied {cnt} resources")
 
 
 MIGRATIONS_LIST = {
     "20230522": {
         "description": "Modify existing Brood resources to Moonstream resources structure "
-        "with `type` key equal to `nodebalancer`. And transfer ownership to moonstream admin.",
+        "with `type` key equal to `nodebalancer-access`. And transfer ownership to moonstream admin. "
+        "Then create permissions for user access.",
         "exec_func": migration_20230522,
         "required_args": [
             "token-current-owner",
