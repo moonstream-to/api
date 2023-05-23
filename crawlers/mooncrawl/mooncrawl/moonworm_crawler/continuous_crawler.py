@@ -220,6 +220,30 @@ def continuous_crawler(
                     event_crawl_jobs, function_call_crawl_jobs = _refetch_new_jobs(
                         event_crawl_jobs, function_call_crawl_jobs, blockchain_type
                     )
+                    if len(event_crawl_jobs) > 0:
+                        event_crawl_jobs = update_job_state_with_filters(  # type: ignore
+                            events=event_crawl_jobs,
+                            address_filter=[],
+                            required_tags=[
+                                "historical_crawl_status:pending",
+                                "moonworm_task_pikedup:False",
+                            ],
+                            tags_to_add=["moonworm_task_pikedup:True"],
+                            tags_to_delete=["moonworm_task_pikedup:False"],
+                        )
+
+                    if len(function_call_crawl_jobs) > 0:
+                        function_call_crawl_jobs = update_job_state_with_filters(  # type: ignore
+                            events=function_call_crawl_jobs,
+                            address_filter=[],
+                            required_tags=[
+                                "historical_crawl_status:pending",
+                                "moonworm_task_pikedup:False",
+                            ],
+                            tags_to_add=["moonworm_task_pikedup:True"],
+                            tags_to_delete=["moonworm_task_pikedup:False"],
+                        )
+
                     jobs_refetchet_time = current_time
 
                 if current_time - last_heartbeat_time > timedelta(

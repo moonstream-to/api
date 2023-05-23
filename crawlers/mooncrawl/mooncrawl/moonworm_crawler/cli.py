@@ -20,6 +20,7 @@ from .crawler import (
     make_event_crawl_jobs,
     make_function_call_crawl_jobs,
     find_all_deployed_blocks,
+    update_job_state_with_filters,
 )
 from .db import get_first_labeled_block_number, get_last_labeled_block_number
 from .historical_crawler import historical_crawler
@@ -37,22 +38,44 @@ def handle_crawl(args: argparse.Namespace) -> None:
             subscription_type,
             "event",
             MOONSTREAM_MOONWORM_TASKS_JOURNAL,
-        ),
-        moonworm=True,
+        )
     )
     logger.info(f"Initial event crawl jobs count: {len(initial_event_jobs)}")
+
+    if len(initial_event_jobs) > 0:
+        initial_event_jobs = update_job_state_with_filters(  # type: ignore
+            events=initial_event_jobs,
+            address_filter=[],
+            required_tags=[
+                "historical_crawl_status:pending",
+                "moonworm_task_pikedup:False",
+            ],
+            tags_to_add=["moonworm_task_pikedup:True"],
+            tags_to_delete=["moonworm_task_pikedup:False"],
+        )
 
     initial_function_call_jobs = make_function_call_crawl_jobs(
         get_crawl_job_entries(
             subscription_type,
             "function",
             MOONSTREAM_MOONWORM_TASKS_JOURNAL,
-        ),
-        moonworm=True,
+        )
     )
     logger.info(
         f"Initial function call crawl jobs count: {len(initial_function_call_jobs)}"
     )
+
+    if len(initial_function_call_jobs) > 0:
+        initial_event_jobs = update_job_state_with_filters(  # type: ignore
+            events=initial_event_jobs,
+            address_filter=[],
+            required_tags=[
+                "historical_crawl_status:pending",
+                "moonworm_task_pikedup:False",
+            ],
+            tags_to_add=["moonworm_task_pikedup:True"],
+            tags_to_delete=["moonworm_task_pikedup:False"],
+        )
 
     logger.info(f"Blockchain type: {blockchain_type.value}")
     with yield_db_session_ctx() as db_session:
@@ -143,7 +166,6 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
             [
                 "moonworm_task_pikedup:True",
                 "historical_crawl_status:pending",
-                "progress:0",
             ]
         )
 
@@ -190,15 +212,45 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
         filtered_function_call_jobs = []
         logger.info(f"Removing function call crawl jobs since --only-events is set")
 
+    if args.only_functions:
+        filtered_event_jobs = []
+        logger.info(
+            f"Removing event crawl jobs since --only-functions is set. Function call jobs count: {len(filtered_function_call_jobs)}"
+        )
+
+    if args.only_events and args.only_functions:
+        raise ValueError(
+            "--only-events and --only-functions cannot be set at the same time"
+        )
+
+    if args.tasks_journal:
+        if len(filtered_event_jobs) > 0:
+            filtered_event_jobs = update_job_state_with_filters(  # type: ignore
+                events=filtered_event_jobs,
+                address_filter=[],
+                required_tags=[
+                    "historical_crawl_status:pending",
+                    "moonworm_task_pikedup:True",
+                ],
+                tags_to_add=["historical_crawl_status:in_progress"],
+                tags_to_delete=["historical_crawl_status:pending"],
+            )
+
+        if len(filtered_function_call_jobs) > 0:
+            filtered_function_call_jobs = update_job_state_with_filters(  # type: ignore
+                function_calls=filtered_function_call_jobs,
+                address_filter=[],
+                required_tags=[
+                    "historical_crawl_status:pending",
+                    "moonworm_task_pikedup:True",
+                ],
+                tags_to_add=["historical_crawl_status:in_progress"],
+                tags_to_delete=["historical_crawl_status:pending"],
+            )
+
     logger.info(
         f"Initial function call crawl jobs count: {len(filtered_function_call_jobs)}"
     )
-
-    addresses_set = set()
-    for job in filtered_event_jobs:
-        addresses_set.update(job.contracts)
-    for function_job in filtered_function_call_jobs:
-        addresses_set.add(function_job.contract_address)
 
     logger.info(f"Blockchain type: {blockchain_type.value}")
     with yield_db_session_ctx() as db_session:
@@ -224,14 +276,23 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
         )
         logger.info(f"Last labeled block: {last_labeled_block}")
 
-        if args.tasks_journal:
-            start_block = int(web3.eth.blockNumber) - 1
-            end_block = min(
-                find_all_deployed_blocks(blockchain_type, list(addresses_set))
+        addresses_deployment_blocks = None
+
+        # get set of addresses from event jobs and function call jobs
+        if args.find_deployed_blocks:
+            addresses_set = set()
+            for job in filtered_event_jobs:
+                addresses_set.update(job.contracts)
+            for function_job in filtered_function_call_jobs:
+                addresses_set.add(function_job.contract_address)
+
+            if args.start is None:
+                start_block = web3.eth.blockNumber - 1
+
+            addresses_deployment_blocks = find_all_deployed_blocks(
+                blockchain_type, list(addresses_set)
             )
-        else:
-            start_block = args.start
-            end_block = args.end
+            end_block = min(addresses_deployment_blocks.values())
 
         if start_block is None:
             logger.info("No start block provided")
@@ -276,6 +337,7 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
             args.max_blocks_batch,
             args.min_sleep_time,
             access_id=args.access_id,
+            addresses_deployment_blocks=addresses_deployment_blocks,
         )
 
 
@@ -453,6 +515,18 @@ def main() -> None:
         action="store_true",
         default=False,
         help="Only crawl events",
+    )
+    historical_crawl_parser.add_argument(
+        "--only-functions",
+        action="store_true",
+        default=False,
+        help="Only crawl function calls",
+    )
+    historical_crawl_parser.add_argument(
+        "--find-deployed-blocks",
+        action="store_true",
+        default=False,
+        help="Find all deployed blocks",
     )
     historical_crawl_parser.add_argument(
         "--tasks-journal",
