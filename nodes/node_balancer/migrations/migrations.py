@@ -1,9 +1,6 @@
 import argparse
-import csv
-import json
 import logging
 import os
-import uuid
 from typing import Any, Dict, List
 
 from bugout.app import Bugout
@@ -25,6 +22,9 @@ def migration_20230522(
         raise Exception(err)
 
     logger.info(f"Found {len(resources.resources)} resources")
+
+    while input("Do you want to continue [y/n]? ") != "y":
+        return
 
     cnt = 0
     for resource in resources.resources:
