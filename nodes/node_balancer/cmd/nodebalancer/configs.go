@@ -46,6 +46,9 @@ var (
 
 	// Humbug configuration
 	HUMBUG_REPORTER_NB_TOKEN = os.Getenv("HUMBUG_REPORTER_NB_TOKEN")
+
+	// Moonstream resources types
+	BUGOUT_RESOURCE_TYPE_NODEBALANCER_ACCESS = "nodebalancer-access"
 )
 
 func CheckEnvVarSet() {
