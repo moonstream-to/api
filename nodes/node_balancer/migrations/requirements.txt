@@ -1,5 +1,5 @@
 black==23.3.0
-bugout==0.2.6
+bugout==0.2.7
 certifi==2023.5.7
 charset-normalizer==3.1.0
 click==8.1.3

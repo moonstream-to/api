@@ -52,7 +52,7 @@ def migration_20230522(
                 holder_permissions={
                     "holder_id": user_id,
                     "holder_type": "user",
-                    "permissions": ["create", "read", "update", "delete"],
+                    "permissions": ["read", "update", "delete"],
                 },
             )
             logger.info(
