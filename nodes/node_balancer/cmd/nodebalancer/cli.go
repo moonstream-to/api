@@ -253,6 +253,8 @@ func cli() {
 			PeriodStartTs:     time.Now().Unix(),
 			MaxCallsPerPeriod: stateCLI.MaxCallsPerPeriodFlag,
 			CallsPerPeriod:    0,
+
+			Type: BUGOUT_RESOURCE_TYPE_NODEBALANCER_ACCESS,
 		}
 		_, err := bugoutClient.Brood.FindUser(
 			NB_CONTROLLER_TOKEN,
