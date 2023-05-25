@@ -729,3 +729,18 @@ def query_parameter_hash(params: Dict[str, Any]) -> str:
     ).hexdigest()
 
     return hash
+
+
+def get_moonworm_jobs(
+    address: str,
+    subscription_type_id: str,
+    entries_limit: int = 100,
+):
+    entries = get_all_entries_from_search(
+        journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+        search_query=f"tag:address:{address} tag:subscription_type:{subscription_type_id}",
+        limit=entries_limit,  # load per request
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+    )
+
+    return entries
