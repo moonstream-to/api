@@ -16,7 +16,7 @@ from .crawler import (
     EventCrawlJob,
     FunctionCallCrawlJob,
     _retry_connect_web3,
-    update_entries_status_and_proggress,
+    update_entries_status_and_progress,
 )
 from .db import add_events_to_session, add_function_calls_to_session, commit_session
 from .event_crawler import _crawl_events, _autoscale_crawl_events
@@ -132,21 +132,21 @@ def historical_crawler(
 
             if addresses_deployment_blocks:
                 for address, deployment_block in addresses_deployment_blocks.items():
-                    current_position = end_block
+                    current_position = batch_end_block
 
-                    progess = original_start_block - current_position / (
+                    progess = (original_start_block - current_position) / (
                         original_start_block - deployment_block
                     )
                     progess_map[address] = progess
 
                 if len(function_call_crawl_jobs) > 0:
-                    function_call_crawl_jobs = update_entries_status_and_proggress(  # type: ignore
+                    function_call_crawl_jobs = update_entries_status_and_progress(  # type: ignore
                         events=function_call_crawl_jobs,
                         progess_map=progess_map,
                     )
 
                 if len(event_crawl_jobs) > 0:
-                    event_crawl_jobs = update_entries_status_and_proggress(  # type: ignore
+                    event_crawl_jobs = update_entries_status_and_progress(  # type: ignore
                         events=event_crawl_jobs,
                         progess_map=progess_map,
                     )

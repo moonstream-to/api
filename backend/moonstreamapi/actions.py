@@ -41,7 +41,6 @@ from .settings import (
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
     MOONSTREAM_MOONWORM_TASKS_JOURNAL,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
-    MOONSTREAM_HISTORICAL_CRAWL_JOURNAL,
 )
 from .settings import bugout_client as bc, entity_client as ec
 
@@ -519,6 +518,8 @@ def apply_moonworm_tasks(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
         )
 
+        print(f"Found {len(entries)} tasks for address {address}")
+
         # create historical crawl task in journal
 
         # will use create_entries_pack for creating entries in journal
@@ -548,27 +549,32 @@ def apply_moonworm_tasks(
                             f"address:{address}",
                             f"type:{abi_hashes_dict[hash]['type']}",
                             f"abi_method_hash:{hash}",
-                            f"abi_selector:{Web3.keccak(abi_hashes_dict[hash]['name'] + '(' + ','.join(map(lambda x: x['type'], abi_hashes_dict[hash]['inputs'])) + ')')[:4].hex()}",
+                            f"abi_selector:{Web3.keccak(text=abi_hashes_dict[hash]['name'] + '(' + ','.join(map(lambda x: x['type'], abi_hashes_dict[hash]['inputs'])) + ')')[:4].hex()}",
                             f"subscription_type:{subscription_type}",
                             f"abi_name:{abi_hashes_dict[hash]['name']}",
                             f"status:active",
                             f"task_type:moonworm",
-                            f"moonworm_task_pikedup:False",  # True if task picked up by moonworm-crawler(default each 120 sec)
+                            f"moonworm_task_pickedup:False",  # True if task picked up by moonworm-crawler(default each 120 sec)
                             f"historical_crawl_status:pending",  # pending, in_progress, done
                             f"progress:0",  # 0-100 %
                         ],
                     }
                 )
     except Exception as e:
+        logger.error(f"Error get moonworm tasks: {str(e)}")
         reporter.error_report(e)
 
     if len(moonworm_abi_tasks_entries_pack) > 0:
-        bc.create_entries_pack(
-            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-            journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
-            entries=moonworm_abi_tasks_entries_pack,
-            timeout=25,
-        )
+        try:
+            bc.create_entries_pack(
+                token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+                entries=moonworm_abi_tasks_entries_pack,
+                timeout=25,
+            )
+        except Exception as e:
+            logger.error(f"Error create moonworm tasks: {str(e)}")
+            reporter.error_report(e)
 
 
 def name_normalization(query_name: str) -> str:

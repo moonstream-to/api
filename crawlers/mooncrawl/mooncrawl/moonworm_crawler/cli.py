@@ -21,6 +21,7 @@ from .crawler import (
     make_function_call_crawl_jobs,
     find_all_deployed_blocks,
     update_job_state_with_filters,
+    moonworm_crawler_update_job_as_pickedup,
 )
 from .db import get_first_labeled_block_number, get_last_labeled_block_number
 from .historical_crawler import historical_crawler
@@ -42,18 +43,6 @@ def handle_crawl(args: argparse.Namespace) -> None:
     )
     logger.info(f"Initial event crawl jobs count: {len(initial_event_jobs)}")
 
-    if len(initial_event_jobs) > 0:
-        initial_event_jobs = update_job_state_with_filters(  # type: ignore
-            events=initial_event_jobs,
-            address_filter=[],
-            required_tags=[
-                "historical_crawl_status:pending",
-                "moonworm_task_pikedup:False",
-            ],
-            tags_to_add=["moonworm_task_pikedup:True"],
-            tags_to_delete=["moonworm_task_pikedup:False"],
-        )
-
     initial_function_call_jobs = make_function_call_crawl_jobs(
         get_crawl_job_entries(
             subscription_type,
@@ -65,17 +54,13 @@ def handle_crawl(args: argparse.Namespace) -> None:
         f"Initial function call crawl jobs count: {len(initial_function_call_jobs)}"
     )
 
-    if len(initial_function_call_jobs) > 0:
-        initial_event_jobs = update_job_state_with_filters(  # type: ignore
-            events=initial_event_jobs,
-            address_filter=[],
-            required_tags=[
-                "historical_crawl_status:pending",
-                "moonworm_task_pikedup:False",
-            ],
-            tags_to_add=["moonworm_task_pikedup:True"],
-            tags_to_delete=["moonworm_task_pikedup:False"],
-        )
+    (
+        initial_event_jobs,
+        initial_function_call_jobs,
+    ) = moonworm_crawler_update_job_as_pickedup(
+        event_crawl_jobs=initial_event_jobs,
+        function_call_crawl_jobs=initial_function_call_jobs,
+    )
 
     logger.info(f"Blockchain type: {blockchain_type.value}")
     with yield_db_session_ctx() as db_session:
@@ -164,7 +149,7 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
         addresses_filter = []
         extend_tags.extend(
             [
-                "moonworm_task_pikedup:True",
+                "moonworm_task_pickedup:True",
                 "historical_crawl_status:pending",
             ]
         )
@@ -230,7 +215,7 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
                 address_filter=[],
                 required_tags=[
                     "historical_crawl_status:pending",
-                    "moonworm_task_pikedup:True",
+                    "moonworm_task_pickedup:True",
                 ],
                 tags_to_add=["historical_crawl_status:in_progress"],
                 tags_to_delete=["historical_crawl_status:pending"],
@@ -238,11 +223,11 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
 
         if len(filtered_function_call_jobs) > 0:
             filtered_function_call_jobs = update_job_state_with_filters(  # type: ignore
-                function_calls=filtered_function_call_jobs,
+                events=filtered_function_call_jobs,
                 address_filter=[],
                 required_tags=[
                     "historical_crawl_status:pending",
-                    "moonworm_task_pikedup:True",
+                    "moonworm_task_pickedup:True",
                 ],
                 tags_to_add=["historical_crawl_status:in_progress"],
                 tags_to_delete=["historical_crawl_status:pending"],
@@ -290,7 +275,7 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
                 start_block = web3.eth.blockNumber - 1
 
             addresses_deployment_blocks = find_all_deployed_blocks(
-                blockchain_type, list(addresses_set)
+                web3, list(addresses_set)
             )
             end_block = min(addresses_deployment_blocks.values())
 

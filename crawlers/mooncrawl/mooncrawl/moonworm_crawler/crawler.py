@@ -5,10 +5,10 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, cast, Union
+from typing import Any, Callable, Dict, List, Optional, cast, Union, Tuple
 from uuid import UUID
 
-from bugout.data import BugoutSearchResult
+from bugout.data import BugoutSearchResult, BugoutJournalEntries
 from eth_typing.evm import ChecksumAddress
 from moonstreamdb.blockchain import AvailableBlockchainType
 from web3.main import Web3
@@ -148,7 +148,7 @@ class EventCrawlJob:
     event_abi_hash: str
     event_abi: Dict[str, Any]
     contracts: List[ChecksumAddress]
-    entries_ids: Dict[ChecksumAddress, Dict[UUID, List[str]]]
+    address_entries: Dict[ChecksumAddress, Dict[UUID, List[str]]]
     created_at: int
 
 
@@ -212,13 +212,12 @@ def get_crawl_job_entries(
 
 
 def find_all_deployed_blocks(
-    blockchain_type: AvailableBlockchainType, addresses_set: List[ChecksumAddress]
+    web3: Web3, addresses_set: List[ChecksumAddress]
 ) -> Dict[ChecksumAddress, int]:
     """
     find all deployed blocks for given addresses
     """
 
-    web3 = _retry_connect_web3(blockchain_type)
     all_deployed_blocks = {}
     for address in addresses_set:
         try:
@@ -231,6 +230,10 @@ def find_all_deployed_blocks(
                 )
                 if block is not None:
                     all_deployed_blocks[address] = block
+                if block is None:
+                    logger.warning(
+                        f"Failed to find deployment block for {address}, code: {code}"
+                    )
         except Exception as e:
             logger.error(f"Failed to get code for {address}: {e}")
     return all_deployed_blocks
@@ -260,7 +263,7 @@ def make_event_crawl_jobs(entries: List[BugoutSearchResult]) -> List[EventCrawlJ
         if existing_crawl_job is not None:
             if contract_address not in existing_crawl_job.contracts:
                 existing_crawl_job.contracts.append(contract_address)
-                existing_crawl_job.entries_ids[contract_address] = {
+                existing_crawl_job.address_entries[contract_address] = {
                     entry_id: entry.tags
                 }
 
@@ -270,7 +273,7 @@ def make_event_crawl_jobs(entries: List[BugoutSearchResult]) -> List[EventCrawlJ
                 event_abi_hash=abi_hash,
                 event_abi=json.loads(abi),
                 contracts=[contract_address],
-                entries_ids={contract_address: {entry_id: entry.tags}},
+                address_entries={contract_address: {entry_id: entry.tags}},
                 created_at=int(datetime.fromisoformat(entry.created_at).timestamp()),
             )
             crawl_job_by_hash[abi_hash] = new_crawl_job
@@ -445,38 +448,92 @@ def heartbeat(
 def bugout_state_update(
     entries_tags_add: List[Dict[str, Any]],
     entries_tags_delete: List[Dict[str, Any]],
-) -> Any:
-    if len(entries_tags_add) > 0:
-        new_entreis_state = bugout_client.update_entries_tags(  # type: ignore
-            entries_tags=entries_tags_add,
+) -> BugoutJournalEntries:
+    """
+    Run update of entries tags in bugout
+    First delete tags, then add tags
+    """
+
+    if len(entries_tags_delete) > 0:
+        new_entreis_state = bugout_client.delete_entries_tags(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+            entries_tags=entries_tags_delete,
             timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
         )
 
-    if len(entries_tags_delete) > 0:
-        new_entreis_state = bugout_client.delete_entries_tags(  # type: ignore
-            entries_tags=entries_tags_delete,
+    if len(entries_tags_add) > 0:
+        new_entreis_state = bugout_client.create_entries_tags(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+            entries_tags=entries_tags_add,
             timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
         )
 
     return new_entreis_state
 
 
+def moonworm_crawler_update_job_as_pickedup(
+    event_crawl_jobs: List[EventCrawlJob],
+    function_call_crawl_jobs: List[FunctionCallCrawlJob],
+) -> Tuple[List[EventCrawlJob], List[FunctionCallCrawlJob]]:
+    """
+    Apply jobs of moonworm as taked to process
+    """
+
+    if len(event_crawl_jobs) > 0:
+        event_crawl_jobs = update_job_state_with_filters(  # type: ignore
+            events=event_crawl_jobs,
+            address_filter=[],
+            required_tags=[
+                f"{HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES['historical_crawl_status']}:{HISTORICAL_CRAWLER_STATUSES['pending']}",
+                f"{HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES['moonworm_status']}:False",
+            ],
+            tags_to_add=["moonworm_task_pickedup:True"],
+            tags_to_delete=["moonworm_task_pickedup:False"],
+        )
+
+    if len(function_call_crawl_jobs) > 0:
+        function_call_crawl_jobs = update_job_state_with_filters(  # type: ignore
+            events=function_call_crawl_jobs,
+            address_filter=[],
+            required_tags=[
+                f"{HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES['historical_crawl_status']}:{HISTORICAL_CRAWLER_STATUSES['pending']}",
+                f"{HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES['moonworm_status']}:False",
+            ],
+            tags_to_add=[
+                f"{HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES['moonworm_status']}:True"
+            ],
+            tags_to_delete=[
+                f"{HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES['moonworm_status']}:False"
+            ],
+        )
+
+    return event_crawl_jobs, function_call_crawl_jobs
+
+
 def update_job_tags(
     events: Union[List[EventCrawlJob], List[FunctionCallCrawlJob]],
-    new_entreis_state: Any,
+    new_entreis_state: BugoutJournalEntries,
 ):
-    for entry in new_entreis_state:
-        for event in events:
-            if isinstance(event, EventCrawlJob):
-                for contract_address, entries_ids in event.entries_ids.items():
-                    for entry_id, tags in entries_ids.items():
-                        if entry_id == entry["journal_entry_id"]:
-                            event.entries_ids[contract_address][entry_id] = tags
+    """
+    Update tags of the jobs in job object
+    """
+    entry_tags_by_id = {entry.id: entry.tags for entry in new_entreis_state.entries}
 
-            if isinstance(event, FunctionCallCrawlJob):
-                for entry_id, tags in event.entries_tags.items():
-                    if entry_id == entry["journal_entry_id"]:
-                        event.entries_tags[entry_id] = tags
+    for event in events:
+        if isinstance(event, EventCrawlJob):
+            for contract_address, entries_ids in event.address_entries.items():
+                for entry_id in entries_ids.keys():
+                    if entry_id in entry_tags_by_id:
+                        event.address_entries[contract_address][
+                            entry_id
+                        ] = entry_tags_by_id[entry_id]
+
+        if isinstance(event, FunctionCallCrawlJob):
+            for entry_id in event.entries_tags.keys():
+                if entry_id in entry_tags_by_id:
+                    event.entries_tags[entry_id] = entry_tags_by_id[entry_id]
 
     return events
 
@@ -500,20 +557,16 @@ def update_job_state_with_filters(
         return events
 
     for event in events:
-        # functions
+        # events
         if isinstance(event, EventCrawlJob):
-            for contract_address, entries_ids in event.entries_ids.items():
+            for contract_address, entries_ids in event.address_entries.items():
                 if address_filter and contract_address not in address_filter:
                     continue
                 for entry_id, tags in entries_ids.items():
                     if set(required_tags).issubset(set(tags)):
                         entries_ids_to_update.append(entry_id)
 
-                        event.entries_ids[contract_address][entry_id].extend(
-                            tags_to_add
-                        )
-
-        # events
+        # functions
         if isinstance(event, FunctionCallCrawlJob):
             if address_filter and event.contract_address not in address_filter:
                 continue
@@ -526,11 +579,11 @@ def update_job_state_with_filters(
 
     new_entries_state = bugout_state_update(
         entries_tags_add=[
-            {"journal_entry_id": entry_id, "tags": tags_to_add}
+            {"entry_id": entry_id, "tags": tags_to_add}
             for entry_id in entries_ids_to_update
         ],
         entries_tags_delete=[
-            {"journal_entry_id": entry_id, "tags": tags_to_delete}
+            {"entry_id": entry_id, "tags": tags_to_delete}
             for entry_id in entries_ids_to_update
         ],
     )
@@ -540,12 +593,12 @@ def update_job_state_with_filters(
     return events
 
 
-def update_entries_status_and_proggress(
+def update_entries_status_and_progress(
     events: Union[List[EventCrawlJob], List[FunctionCallCrawlJob]],
     progess_map: Dict[ChecksumAddress, float],
 ) -> Union[List[EventCrawlJob], List[FunctionCallCrawlJob]]:
     """
-    Update entries status and proggress in mooncrawl bugout journal
+    Update entries status and progress in mooncrawl bugout journal
     """
 
     entries_tags_delete = []
@@ -554,11 +607,11 @@ def update_entries_status_and_proggress(
 
     for event in events:
         if isinstance(event, EventCrawlJob):
-            for contract_address, entries_ids in event.entries_ids.items():
-                proggress = int(progess_map.get(contract_address, 0)) * 100
+            for contract_address, entries_ids in event.address_entries.items():
+                progress = round(progess_map.get(contract_address, 0), 4) * 100
 
                 for entry_id, tags in entries_ids.items():
-                    # proggress
+                    # progress
 
                     if (
                         f"{HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES['historical_crawl_status']}:{HISTORICAL_CRAWLER_STATUSES['finished']}"
@@ -568,12 +621,12 @@ def update_entries_status_and_proggress(
 
                     entries_tags_delete.append(
                         {
-                            "journal_entry_id": entry_id,
+                            "entry_id": entry_id,
                             "tags": [
                                 tag
                                 for tag in tags
                                 if tag.startswith(
-                                    f"{HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES['proggress']}"
+                                    f"{HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES['progress_status']}"
                                 )
                             ],
                         }
@@ -581,17 +634,17 @@ def update_entries_status_and_proggress(
 
                     entries_tags_add.append(
                         {
-                            "journal_entry_id": entry_id,
+                            "entry_id": entry_id,
                             "tags": [
-                                f"{HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES['proggress']}:{proggress}"
+                                f"{HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES['progress_status']}:{progress}"
                             ],
                         }
                     )
 
-                    if proggress >= 100:
+                    if progress >= 100:
                         entries_tags_add.append(
                             {
-                                "journal_entry_id": entry_id,
+                                "entry_id": entry_id,
                                 "tags": [
                                     f"{HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES['historical_crawl_status']}:{HISTORICAL_CRAWLER_STATUSES['finished']}"
                                 ],
@@ -599,7 +652,7 @@ def update_entries_status_and_proggress(
                         )
 
         if isinstance(event, FunctionCallCrawlJob):
-            proggress = int(progess_map.get(event.contract_address, 0)) * 100
+            progress = round(progess_map.get(event.contract_address, 0), 4) * 100
 
             for entry_id, tags in event.entries_tags.items():
                 if (
@@ -608,15 +661,15 @@ def update_entries_status_and_proggress(
                 ):
                     continue
 
-                # proggress
+                # progress
                 entries_tags_delete.append(
                     {
-                        "journal_entry_id": entry_id,
+                        "entry_id": entry_id,
                         "tags": [
                             tag
                             for tag in tags
                             if tag.startswith(
-                                f"{HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES['proggress']}"
+                                f"{HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES['progress_status']}"
                             )
                         ],
                     }
@@ -624,17 +677,17 @@ def update_entries_status_and_proggress(
 
                 entries_tags_add.append(
                     {
-                        "journal_entry_id": entry_id,
+                        "entry_id": entry_id,
                         "tags": [
-                            f"{HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES['proggress']}:{proggress}"
+                            f"{HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES['progress_status']}:{progress}"
                         ],
                     }
                 )
 
-                if proggress >= 100:
+                if progress >= 100:
                     entries_tags_add.append(
                         {
-                            "journal_entry_id": entry_id,
+                            "entry_id": entry_id,
                             "tags": [
                                 f"{HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES['historical_crawl_status']}:{HISTORICAL_CRAWLER_STATUSES['finished']}"
                             ],
