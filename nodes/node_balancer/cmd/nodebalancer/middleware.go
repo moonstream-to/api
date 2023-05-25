@@ -103,7 +103,13 @@ func (ac *AccessCache) UpdateAccessAtCache(accessId, authorizationToken, request
 }
 
 // Add new user access identifier with data to cache
-func (ac *AccessCache) AddAccessToCache(clientAccess ClientAccess, tsNow int64) {
+func (ac *AccessCache) AddAccessToCache(clientAccess ClientAccess, tsNow int64) error {
+	_, err := uuid.Parse(clientAccess.ClientResourceData.AccessID)
+	if err != nil {
+		log.Printf("Access ID %s is not valid UUID, err: %v", clientAccess.ClientResourceData.AccessID, err)
+		return fmt.Errorf("access ID is not valid UUID")
+	}
+
 	ac.mux.Lock()
 	access := &ClientAccess{
 		ResourceID:         clientAccess.ResourceID,
@@ -137,6 +143,8 @@ func (ac *AccessCache) AddAccessToCache(clientAccess ClientAccess, tsNow int64) 
 		ac.authorizationTokens[clientAccess.authorizationToken] = access
 	}
 	ac.mux.Unlock()
+
+	return nil
 }
 
 // Check each access id in cache if it exceeds lifetime
@@ -200,10 +208,9 @@ func initCacheCleaning(debug bool) {
 	}
 }
 
-// fetchResources fetch resources with access ID or authorization token and generate new one if there no one
-func fetchResource(accessID, authorizationToken string, tsNow int64) (*brood.Resource, error) {
+// fetchClientAccessFromResources get resources with access ID or authorization token and generate new one if there no one
+func fetchClientAccessFromResources(accessID, authorizationToken string, tsNow int64) (*ClientAccess, error) {
 	var err error
-	var resources brood.Resources
 
 	queryParameters := map[string]string{"type": BUGOUT_RESOURCE_TYPE_NODEBALANCER_ACCESS}
 	if accessID != "" {
@@ -215,6 +222,7 @@ func fetchResource(accessID, authorizationToken string, tsNow int64) (*brood.Res
 		token = authorizationToken
 	}
 
+	var resources brood.Resources
 	resources, err = bugoutClient.Brood.GetResources(
 		token,
 		NB_APPLICATION_ID,
@@ -277,7 +285,20 @@ func fetchResource(accessID, authorizationToken string, tsNow int64) (*brood.Res
 		return nil, fmt.Errorf("there are no provided access identifier")
 	}
 
-	return &resources.Resources[0], nil
+	var clientAccessRaw ClientAccess
+	resourceData, err := json.Marshal(&resources.Resources[0].ResourceData)
+	if err != nil {
+		log.Printf("Unable to parse resource data to access identifier, err: %v", err)
+		return nil, fmt.Errorf("unable to parse resource data to access identifier")
+	}
+	err = json.Unmarshal(resourceData, &clientAccessRaw.ClientResourceData)
+	if err != nil {
+		log.Printf("Unable to decode resource data to access identifier, err: %v", err)
+		return nil, fmt.Errorf("unable to decode resource data to access identifier")
+	}
+	clientAccessRaw.ResourceID = resources.Resources[0].Id
+
+	return &clientAccessRaw, nil
 }
 
 // Extract access_id from header and query. Query takes precedence over header.
@@ -445,12 +466,12 @@ func accessMiddleware(next http.Handler) http.Handler {
 			authorizationToken = authorizationTokenSlice[1]
 		}
 
-		tsNow := time.Now().Unix()
-
 		if accessID == "" && authorizationToken == "" {
 			http.Error(w, "No access ID or authorization header passed with request", http.StatusForbidden)
 			return
 		}
+
+		tsNow := time.Now().Unix()
 
 		// If access id does not belong to internal crawlers, then check cache or find it in Bugout resources
 		if accessID != "" && accessID == NB_CONTROLLER_ACCESS_ID {
@@ -489,21 +510,9 @@ func accessMiddleware(next http.Handler) http.Handler {
 				log.Printf("No access identity found in cache, looking at Brood resources")
 			}
 
-			resource, err := fetchResource(accessID, authorizationToken, tsNow)
+			clientAccessRaw, err := fetchClientAccessFromResources(accessID, authorizationToken, tsNow)
 			if err != nil {
 				http.Error(w, fmt.Sprintf("%v", err), http.StatusForbidden)
-				return
-			}
-
-			var clientAccessRaw ClientAccess
-			resourceData, err := json.Marshal(resource.ResourceData)
-			if err != nil {
-				http.Error(w, "Unable to parse resource data to access identifier", http.StatusInternalServerError)
-				return
-			}
-			err = json.Unmarshal(resourceData, &clientAccessRaw.ClientResourceData)
-			if err != nil {
-				http.Error(w, "Unable to decode resource data to access identifier", http.StatusInternalServerError)
 				return
 			}
 
@@ -512,8 +521,7 @@ func accessMiddleware(next http.Handler) http.Handler {
 				http.Error(w, "User exceeded limit of calls per period", http.StatusForbidden)
 				return
 			}
-			currentClientAccess = ClientAccess(clientAccessRaw)
-			currentClientAccess.ResourceID = resource.Id
+			currentClientAccess = ClientAccess(*clientAccessRaw)
 			currentClientAccess.authorizationToken = authorizationToken
 			currentClientAccess.requestedDataSource = requestedDataSource
 
@@ -525,7 +533,11 @@ func accessMiddleware(next http.Handler) http.Handler {
 				if stateCLI.enableDebugFlag {
 					log.Printf("Adding new access identifier in cache")
 				}
-				accessCache.AddAccessToCache(currentClientAccess, tsNow)
+				err := accessCache.AddAccessToCache(currentClientAccess, tsNow)
+				if err != nil {
+					http.Error(w, "Unable to add access ID to cache", http.StatusForbidden)
+					return
+				}
 			}
 		}
 

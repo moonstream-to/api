@@ -1,4 +1,3 @@
-// TODO(kompotkot): Re-write tests for client
 package main
 
 import (
@@ -7,7 +6,7 @@ import (
 	"time"
 )
 
-func setupSuit(t *testing.T) func(t *testing.T) {
+func clientsSetupSuit(t *testing.T) func(t *testing.T) {
 	t.Log("Setup suit")
 
 	supportedBlockchains = map[string]bool{"ethereum": true}
@@ -18,7 +17,7 @@ func setupSuit(t *testing.T) func(t *testing.T) {
 }
 
 func TestAddClientNode(t *testing.T) {
-	teardownSuit := setupSuit(t)
+	teardownSuit := clientsSetupSuit(t)
 	defer teardownSuit(t)
 
 	var cases = []struct {
@@ -44,7 +43,7 @@ func TestAddClientNode(t *testing.T) {
 }
 
 func TestGetClientNode(t *testing.T) {
-	teardownSuit := setupSuit(t)
+	teardownSuit := clientsSetupSuit(t)
 	defer teardownSuit(t)
 
 	ts := time.Now().Unix()
@@ -75,7 +74,7 @@ func TestGetClientNode(t *testing.T) {
 }
 
 func TestCleanInactiveClientNodes(t *testing.T) {
-	teardownSuit := setupSuit(t)
+	teardownSuit := clientsSetupSuit(t)
 	defer teardownSuit(t)
 
 	ts := time.Now().Unix()
