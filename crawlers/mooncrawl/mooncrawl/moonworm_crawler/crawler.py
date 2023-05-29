@@ -180,7 +180,7 @@ def get_crawl_job_entries(
 
     if extend_tags is not None:
         for tag in extend_tags:
-            query += f" #{tag}"
+            query += f" #{tag.rstrip()}"
 
     if created_at_filter is not None:
         # Filtering by created_at
