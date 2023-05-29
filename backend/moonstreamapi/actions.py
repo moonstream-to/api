@@ -518,8 +518,6 @@ def apply_moonworm_tasks(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
         )
 
-        print(f"Found {len(entries)} tasks for address {address}")
-
         # create historical crawl task in journal
 
         # will use create_entries_pack for creating entries in journal
@@ -541,6 +539,15 @@ def apply_moonworm_tasks(
 
         for hash in abi_hashes_dict:
             if hash not in existing_hashes:
+                abi_selector = Web3.keccak(
+                    text=abi_hashes_dict[hash]["name"]
+                    + "("
+                    + ",".join(
+                        map(lambda x: x["type"], abi_hashes_dict[hash]["inputs"])
+                    )
+                    + ")"
+                )[:4].hex()
+
                 moonworm_abi_tasks_entries_pack.append(
                     {
                         "title": address,
@@ -549,7 +556,7 @@ def apply_moonworm_tasks(
                             f"address:{address}",
                             f"type:{abi_hashes_dict[hash]['type']}",
                             f"abi_method_hash:{hash}",
-                            f"abi_selector:{Web3.keccak(text=abi_hashes_dict[hash]['name'] + '(' + ','.join(map(lambda x: x['type'], abi_hashes_dict[hash]['inputs'])) + ')')[:4].hex()}",
+                            f"abi_selector:{abi_selector}",
                             f"subscription_type:{subscription_type}",
                             f"abi_name:{abi_hashes_dict[hash]['name']}",
                             f"status:active",
