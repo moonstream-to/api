@@ -149,8 +149,8 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
         addresses_filter = []
         extend_tags.extend(
             [
-                "moonworm_task_pickedup:True",
-                "historical_crawl_status:pending",
+                "#moonworm_task_pickedup:True",
+                "!#historical_crawl_status:finsihed",
             ]
         )
 
