@@ -1,0 +1,9 @@
+[Unit]
+Description=Runs transactions historical crawler on xdai
+
+[Timer]
+OnBootSec=60s
+OnUnitActiveSec=10m
+
+[Install]
+WantedBy=timers.target

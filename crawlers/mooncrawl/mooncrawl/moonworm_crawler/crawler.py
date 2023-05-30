@@ -12,7 +12,7 @@ from bugout.data import BugoutSearchResult, BugoutJournalEntries
 from eth_typing.evm import ChecksumAddress
 from moonstreamdb.blockchain import AvailableBlockchainType
 from web3.main import Web3
-from moonworm.deployment import find_deployment_block
+from moonworm.deployment import find_deployment_block  # type: ignore
 
 from ..blockchain import connect
 from ..reporter import reporter
