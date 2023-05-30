@@ -263,6 +263,8 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
 
         addresses_deployment_blocks = None
 
+        end_block = args.end
+
         # get set of addresses from event jobs and function call jobs
         if args.find_deployed_blocks:
             addresses_set = set()
@@ -456,7 +458,7 @@ def main() -> None:
         "--end",
         "-e",
         type=int,
-        required=True,
+        required=False,
     )
     historical_crawl_parser.add_argument(
         "--blockchain-type",
