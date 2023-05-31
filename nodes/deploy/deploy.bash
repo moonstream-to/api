@@ -45,7 +45,7 @@ HOME=/home/ubuntu /usr/local/go/bin/go install github.com/bugout-dev/checkenv@la
 echo
 echo
 echo -e "${PREFIX_INFO} Retrieving addition deployment parameters"
-AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" /home/ubuntu/go/bin/checkenv show aws_ssm+Product:moonstream >> "${PARAMETERS_ENV_PATH}"
+AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" /home/ubuntu/go/bin/checkenv show aws_ssm+nodebalancer:true >> "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
