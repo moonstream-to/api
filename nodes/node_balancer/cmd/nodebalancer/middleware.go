@@ -16,60 +16,104 @@ import (
 	"sync"
 	"time"
 
+	"github.com/bugout-dev/bugout-go/pkg/brood"
 	humbug "github.com/bugout-dev/humbug/go/pkg"
+	"github.com/google/uuid"
 )
 
 var (
-	accessIdCache AccessCache
+	accessCache AccessCache
 )
 
+// AccessCache caches client identification for fast access to nodes
+//
+// If authorization passed with Bearer token, then it triggers to fetch Brood resource with access ID
+// or create new one. After it under key `accessIds` and `authorizationTokens` will be added similar
+// address pointers to one `ClientAccess`.
 type AccessCache struct {
-	accessIds map[string]ClientAccess
+	accessIds           map[string]*ClientAccess
+	authorizationTokens map[string]*ClientAccess
 
 	mux sync.RWMutex
 }
 
 // CreateAccessCache generates empty cache of client access
 func CreateAccessCache() {
-	accessIdCache = AccessCache{
-		accessIds: make(map[string]ClientAccess),
+	accessCache = AccessCache{
+		accessIds:           make(map[string]*ClientAccess),
+		authorizationTokens: make(map[string]*ClientAccess),
 	}
 }
 
-// Get access id from cache if exists
-func (ac *AccessCache) FindAccessIdInCache(accessId string) string {
-	var detectedId string
+// FindAccessIdInCache looking for user access in `accessIds` cache
+func (ac *AccessCache) isAccessIdInCache(accessId string) bool {
+	detected := false
 
 	ac.mux.RLock()
 	for id := range ac.accessIds {
 		if id == accessId {
-			detectedId = id
+			detected = true
 			break
 		}
 	}
 	ac.mux.RUnlock()
 
-	return detectedId
+	return detected
 }
 
-// Update last call access timestamp and datasource for access id
-func (ac *AccessCache) UpdateAccessIdAtCache(accessId, requestedDataSource string, tsNow int64) {
-	ac.mux.Lock()
-	if accessData, ok := ac.accessIds[accessId]; ok {
-		accessData.LastAccessTs = tsNow
-		accessData.requestedDataSource = requestedDataSource
-		accessData.LastSessionCallsCounter++
+// FindAuthorizationTokenInCache looking for user access in `authorizationTokens` cache
+func (ac *AccessCache) isAuthorizationTokenInCache(authorizationToken string) bool {
+	detected := false
 
-		ac.accessIds[accessId] = accessData
+	ac.mux.RLock()
+	for id := range ac.authorizationTokens {
+		if id == authorizationToken {
+			detected = true
+			break
+		}
 	}
+	ac.mux.RUnlock()
+
+	return detected
+}
+
+// Update last call access timestamp and datasource for user access
+func (ac *AccessCache) UpdateAccessAtCache(accessId, authorizationToken, requestedDataSource string, tsNow int64) {
+	ac.mux.Lock()
+	var accessToModify *ClientAccess
+
+	if accessId != "" {
+		if access, ok := ac.accessIds[accessId]; ok {
+			accessToModify = access
+
+		}
+	}
+
+	if authorizationToken != "" {
+		if access, ok := ac.authorizationTokens[authorizationToken]; ok {
+			accessToModify = access
+		}
+	}
+
+	accessToModify.LastAccessTs = tsNow
+	accessToModify.requestedDataSource = requestedDataSource
+	accessToModify.LastSessionCallsCounter++
+
 	ac.mux.Unlock()
 }
 
-// Add new access ID with data to cache
-func (ac *AccessCache) AddAccessIdToCache(clientAccess ClientAccess, tsNow int64) {
+// Add new user access identifier with data to cache
+func (ac *AccessCache) AddAccessToCache(clientAccess ClientAccess, tsNow int64) error {
+	_, err := uuid.Parse(clientAccess.ClientResourceData.AccessID)
+	if err != nil {
+		log.Printf("Access ID %s is not valid UUID, err: %v", clientAccess.ClientResourceData.AccessID, err)
+		return fmt.Errorf("access ID is not valid UUID")
+	}
+
 	ac.mux.Lock()
-	ac.accessIds[clientAccess.ClientResourceData.AccessID] = ClientAccess{
-		ResourceID: clientAccess.ResourceID,
+	access := &ClientAccess{
+		ResourceID:         clientAccess.ResourceID,
+		authorizationToken: clientAccess.authorizationToken,
 
 		ClientResourceData: ClientResourceData{
 			UserID:           clientAccess.ClientResourceData.UserID,
@@ -83,6 +127,8 @@ func (ac *AccessCache) AddAccessIdToCache(clientAccess ClientAccess, tsNow int64
 			PeriodStartTs:     clientAccess.ClientResourceData.PeriodStartTs,
 			MaxCallsPerPeriod: clientAccess.ClientResourceData.MaxCallsPerPeriod,
 			CallsPerPeriod:    clientAccess.ClientResourceData.CallsPerPeriod,
+
+			Type: clientAccess.ClientResourceData.Type,
 		},
 
 		LastAccessTs:            tsNow,
@@ -91,7 +137,14 @@ func (ac *AccessCache) AddAccessIdToCache(clientAccess ClientAccess, tsNow int64
 
 		requestedDataSource: clientAccess.requestedDataSource,
 	}
+
+	ac.accessIds[clientAccess.ClientResourceData.AccessID] = access
+	if clientAccess.authorizationToken != "" {
+		ac.authorizationTokens[clientAccess.authorizationToken] = access
+	}
 	ac.mux.Unlock()
+
+	return nil
 }
 
 // Check each access id in cache if it exceeds lifetime
@@ -100,9 +153,14 @@ func (ac *AccessCache) Cleanup() (int64, int64) {
 	tsNow := time.Now().Unix()
 
 	ac.mux.Lock()
+
 	for aId, clientAccess := range ac.accessIds {
+		totalAccessIds++
+		removedUserId := ""
+
 		if tsNow-clientAccess.LastAccessTs > NB_CACHE_ACCESS_ID_LIFETIME {
 			// Remove clients who is not active for NB_CACHE_ACCESS_ID_LIFETIME lifetime period
+			removedUserId = clientAccess.ClientResourceData.UserID
 			delete(ac.accessIds, aId)
 			removedAccessIds++
 			err := clientAccess.UpdateClientResourceCallCounter(tsNow)
@@ -110,6 +168,7 @@ func (ac *AccessCache) Cleanup() (int64, int64) {
 				log.Printf("Unable to update Brood resource, err: %v\n", err)
 			}
 		} else if tsNow-clientAccess.LastSessionAccessTs > NB_CACHE_ACCESS_ID_SESSION_LIFETIME {
+			removedUserId = clientAccess.ClientResourceData.UserID
 			// Remove clients with too long sessions, greater then NB_CACHE_ACCESS_ID_SESSION_LIFETIME
 			delete(ac.accessIds, aId)
 			removedAccessIds++
@@ -117,11 +176,20 @@ func (ac *AccessCache) Cleanup() (int64, int64) {
 			if err != nil {
 				log.Printf("Unable to update Brood resource, err: %v\n", err)
 			}
-		} else {
-			totalAccessIds++
+		}
+
+		if removedUserId != "" {
+			for aToken, clientAccess := range ac.authorizationTokens {
+				if clientAccess.ClientResourceData.UserID == removedUserId {
+					delete(ac.authorizationTokens, aToken)
+				}
+			}
+			removedUserId = ""
 		}
 	}
 	ac.mux.Unlock()
+
+	totalAccessIds = totalAccessIds - removedAccessIds
 
 	return removedAccessIds, totalAccessIds
 }
@@ -131,13 +199,106 @@ func initCacheCleaning(debug bool) {
 	for {
 		select {
 		case <-t.C:
-			removedAccessIds, totalAccessIds := accessIdCache.Cleanup()
+			removedAccessIds, totalAccessIds := accessCache.Cleanup()
 			if debug {
 				log.Printf("Removed %d clients from access cache", removedAccessIds)
 			}
 			log.Printf("Clients in access cache: %d", totalAccessIds)
 		}
 	}
+}
+
+// fetchClientAccessFromResources get resources with access ID or authorization token and generate new one if there no one
+func fetchClientAccessFromResources(accessID, authorizationToken string, tsNow int64) (*ClientAccess, error) {
+	var err error
+
+	queryParameters := map[string]string{"type": BUGOUT_RESOURCE_TYPE_NODEBALANCER_ACCESS}
+	if accessID != "" {
+		queryParameters["access_id"] = accessID
+	}
+
+	token := NB_CONTROLLER_TOKEN
+	if authorizationToken != "" {
+		token = authorizationToken
+	}
+
+	var resources brood.Resources
+	resources, err = bugoutClient.Brood.GetResources(
+		token,
+		MOONSTREAM_APPLICATION_ID,
+		queryParameters,
+	)
+	if err != nil {
+		log.Printf("Unable to get resources, err: %v", err)
+		return nil, fmt.Errorf("unable to get access identifiers")
+	}
+
+	if len(resources.Resources) == 0 {
+		if authorizationToken != "" {
+			// Generate new autogenerated access resource with default parameters and grant user permissions to work with it
+			user, err := bugoutClient.Brood.GetUser(authorizationToken)
+			if err != nil {
+				log.Printf("Unable to get user, err: %v", err)
+				return nil, fmt.Errorf("unable to find user with provided authorization token")
+			}
+			newResource, err := bugoutClient.Brood.CreateResource(
+				NB_CONTROLLER_TOKEN, MOONSTREAM_APPLICATION_ID, ClientResourceData{
+					UserID:           user.Id,
+					AccessID:         uuid.New().String(),
+					Name:             user.Username,
+					Description:      "Autogenerated access ID",
+					BlockchainAccess: true,
+					ExtendedMethods:  false,
+
+					PeriodDuration:    DEFAULT_AUTOGENERATED_PERIOD_DURATION,
+					PeriodStartTs:     tsNow,
+					MaxCallsPerPeriod: DEFAULT_AUTOGENERATED_MAX_CALLS_PER_PERIOD,
+					CallsPerPeriod:    0,
+
+					Type: BUGOUT_RESOURCE_TYPE_NODEBALANCER_ACCESS,
+				},
+			)
+			if err != nil {
+				log.Printf("Unable to create resource with autogenerated access for user with ID %s, err: %v", user.Id, err)
+				return nil, fmt.Errorf("unable to create resource with autogenerated access for user")
+			}
+
+			resourceHolderPermissions, err := bugoutClient.Brood.AddResourceHolderPermissions(
+				NB_CONTROLLER_TOKEN, newResource.Id, brood.ResourceHolder{
+					Id:          user.Id,
+					HolderType:  "user",
+					Permissions: DEFAULT_AUTOGENERATED_USER_PERMISSIONS,
+				},
+			)
+			if err != nil {
+				log.Printf("Unable to grant permissions to user with ID %s at resource with ID %s, err: %v", newResource.Id, user.Id, err)
+				return nil, fmt.Errorf("unable to create resource with autogenerated access for user")
+			}
+
+			log.Printf("Created new resource with ID %s with autogenerated access for user with ID %s", resourceHolderPermissions.ResourceId, user.Id)
+			resources.Resources = append(resources.Resources, newResource)
+		} else {
+			return nil, fmt.Errorf("there are no provided access identifier")
+		}
+	} else if len(resources.Resources) > 1 {
+		// TODO(kompotkot): Write support of multiple resources, be careful, because NB_CONTROLLER has several resources
+		return nil, fmt.Errorf("there are no provided access identifier")
+	}
+
+	var clientAccessRaw ClientAccess
+	resourceData, err := json.Marshal(&resources.Resources[0].ResourceData)
+	if err != nil {
+		log.Printf("Unable to parse resource data to access identifier, err: %v", err)
+		return nil, fmt.Errorf("unable to parse resource data to access identifier")
+	}
+	err = json.Unmarshal(resourceData, &clientAccessRaw.ClientResourceData)
+	if err != nil {
+		log.Printf("Unable to decode resource data to access identifier, err: %v", err)
+		return nil, fmt.Errorf("unable to decode resource data to access identifier")
+	}
+	clientAccessRaw.ResourceID = resources.Resources[0].Id
+
+	return &clientAccessRaw, nil
 }
 
 // Extract access_id from header and query. Query takes precedence over header.
@@ -289,76 +450,95 @@ func accessMiddleware(next http.Handler) http.Handler {
 		accessID := extractAccessID(r)
 		requestedDataSource := extractRequestedDataSource(r)
 
-		if accessID == "" {
-			http.Error(w, "No access id passed with request", http.StatusForbidden)
+		// Extract Authorization token if Bearer header provided
+		var authorizationTokenRaw string
+		authorizationTokenHeaders := r.Header[strings.Title("authorization")]
+		for _, h := range authorizationTokenHeaders {
+			authorizationTokenRaw = h
+		}
+		var authorizationToken string
+		if authorizationTokenRaw != "" {
+			authorizationTokenSlice := strings.Split(authorizationTokenRaw, " ")
+			if len(authorizationTokenSlice) != 2 || authorizationTokenSlice[0] != "Bearer" || authorizationTokenSlice[1] == "" {
+				http.Error(w, "Wrong authorization token provided", http.StatusForbidden)
+				return
+			}
+			authorizationToken = authorizationTokenSlice[1]
+		}
+
+		if accessID == "" && authorizationToken == "" {
+			http.Error(w, "No access ID or authorization header passed with request", http.StatusForbidden)
 			return
 		}
 
 		tsNow := time.Now().Unix()
 
 		// If access id does not belong to internal crawlers, then check cache or find it in Bugout resources
-		if accessID == NB_CONTROLLER_ACCESS_ID {
-			currentClientAccess = internalUsageAccess
+		if accessID != "" && accessID == NB_CONTROLLER_ACCESS_ID {
 			if stateCLI.enableDebugFlag {
 				log.Printf("Access ID belongs to internal usage for user with ID %s", currentClientAccess.ClientResourceData.UserID)
 			}
+			currentClientAccess = internalUsageAccess
 			currentClientAccess.LastAccessTs = tsNow
 			currentClientAccess.requestedDataSource = requestedDataSource
-		} else if accessIdCache.FindAccessIdInCache(accessID) != "" {
-			currentClientAccess = accessIdCache.accessIds[accessID]
+		} else if accessID != "" && accessCache.isAccessIdInCache(accessID) {
 			if stateCLI.enableDebugFlag {
 				log.Printf("Access ID found in cache for user with ID %s", currentClientAccess.ClientResourceData.UserID)
 			}
-			// Check if limit of calls not exceeded
+			currentClientAccess = *accessCache.accessIds[accessID]
 			isClientAllowedToGetAccess := currentClientAccess.CheckClientCallPeriodLimits(tsNow)
 			if !isClientAllowedToGetAccess {
 				http.Error(w, "User exceeded limit of calls per period", http.StatusForbidden)
 				return
 			}
 			currentClientAccess.requestedDataSource = requestedDataSource
-			accessIdCache.UpdateAccessIdAtCache(accessID, requestedDataSource, tsNow)
+			accessCache.UpdateAccessAtCache(accessID, authorizationToken, requestedDataSource, tsNow)
+		} else if accessID == "" && accessCache.isAuthorizationTokenInCache(authorizationToken) {
+			if stateCLI.enableDebugFlag {
+				log.Printf("Client connected with Authorization token")
+			}
+			currentClientAccess = *accessCache.authorizationTokens[authorizationToken]
+			isClientAllowedToGetAccess := currentClientAccess.CheckClientCallPeriodLimits(tsNow)
+			if !isClientAllowedToGetAccess {
+				http.Error(w, "User exceeded limit of calls per period", http.StatusForbidden)
+				return
+			}
+			currentClientAccess.requestedDataSource = requestedDataSource
+			accessCache.UpdateAccessAtCache(accessID, authorizationToken, requestedDataSource, tsNow)
 		} else {
 			if stateCLI.enableDebugFlag {
-				log.Printf("New access id, looking at Brood resources")
+				log.Printf("No access identity found in cache, looking at Brood resources")
 			}
-			resources, err := bugoutClient.Brood.GetResources(
-				NB_CONTROLLER_TOKEN,
-				NB_APPLICATION_ID,
-				map[string]string{"access_id": accessID},
-			)
+
+			clientAccessRaw, err := fetchClientAccessFromResources(accessID, authorizationToken, tsNow)
 			if err != nil {
-				http.Error(w, "Unable to get user with provided access identifier", http.StatusForbidden)
-				return
-			}
-			resourcesLen := len(resources.Resources)
-			if resourcesLen == 0 {
-				http.Error(w, "User with provided access identifier not found", http.StatusForbidden)
-				return
-			}
-			if resourcesLen > 1 {
-				http.Error(w, "User with provided access identifier has several access IDs", http.StatusInternalServerError)
-				return
-			}
-			resourceData, err := json.Marshal(resources.Resources[0].ResourceData)
-			if err != nil {
-				http.Error(w, "Unable to encode resource data interface to json", http.StatusInternalServerError)
-				return
-			}
-			currentClientAccess.ResourceID = resources.Resources[0].Id
-			currentClientAccess.requestedDataSource = requestedDataSource
-			err = json.Unmarshal(resourceData, &currentClientAccess.ClientResourceData)
-			if err != nil {
-				http.Error(w, "Unable to decode resource data json to structure", http.StatusInternalServerError)
+				http.Error(w, fmt.Sprintf("%v", err), http.StatusForbidden)
 				return
 			}
 
-			// Check if limit of calls not exceeded
-			isClientAllowedToGetAccess := currentClientAccess.CheckClientCallPeriodLimits(tsNow)
+			isClientAllowedToGetAccess := clientAccessRaw.CheckClientCallPeriodLimits(tsNow)
 			if !isClientAllowedToGetAccess {
 				http.Error(w, "User exceeded limit of calls per period", http.StatusForbidden)
 				return
 			}
-			accessIdCache.AddAccessIdToCache(currentClientAccess, tsNow)
+			currentClientAccess = ClientAccess(*clientAccessRaw)
+			currentClientAccess.authorizationToken = authorizationToken
+			currentClientAccess.requestedDataSource = requestedDataSource
+
+			// If client logged in before with access ID and it exists in cache, then re-use it
+			// else create new instances in cache
+			if authorizationToken != "" && accessCache.isAccessIdInCache(currentClientAccess.ClientResourceData.AccessID) {
+				accessCache.authorizationTokens[authorizationToken] = accessCache.accessIds[currentClientAccess.ClientResourceData.AccessID]
+			} else {
+				if stateCLI.enableDebugFlag {
+					log.Printf("Adding new access identifier in cache")
+				}
+				err := accessCache.AddAccessToCache(currentClientAccess, tsNow)
+				if err != nil {
+					http.Error(w, "Unable to add access ID to cache", http.StatusForbidden)
+					return
+				}
+			}
 		}
 
 		ctxUser := context.WithValue(r.Context(), "currentClientAccess", currentClientAccess)

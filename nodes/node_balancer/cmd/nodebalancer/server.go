@@ -121,7 +121,7 @@ func Server() {
 	// Fetch access id for internal usage (crawlers, infrastructure, etc)
 	resources, err := bugoutClient.Brood.GetResources(
 		NB_CONTROLLER_TOKEN,
-		NB_APPLICATION_ID,
+		MOONSTREAM_APPLICATION_ID,
 		map[string]string{"access_id": NB_CONTROLLER_ACCESS_ID},
 	)
 	if err != nil {

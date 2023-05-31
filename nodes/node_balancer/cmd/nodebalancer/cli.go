@@ -253,19 +253,21 @@ func cli() {
 			PeriodStartTs:     time.Now().Unix(),
 			MaxCallsPerPeriod: stateCLI.MaxCallsPerPeriodFlag,
 			CallsPerPeriod:    0,
+
+			Type: BUGOUT_RESOURCE_TYPE_NODEBALANCER_ACCESS,
 		}
 		_, err := bugoutClient.Brood.FindUser(
 			NB_CONTROLLER_TOKEN,
 			map[string]string{
 				"user_id":        proposedClientResourceData.UserID,
-				"application_id": NB_APPLICATION_ID,
+				"application_id": MOONSTREAM_APPLICATION_ID,
 			},
 		)
 		if err != nil {
 			fmt.Printf("User does not exists, err: %v\n", err)
 			os.Exit(1)
 		}
-		resource, err := bugoutClient.Brood.CreateResource(NB_CONTROLLER_TOKEN, NB_APPLICATION_ID, proposedClientResourceData)
+		resource, err := bugoutClient.Brood.CreateResource(NB_CONTROLLER_TOKEN, MOONSTREAM_APPLICATION_ID, proposedClientResourceData)
 		if err != nil {
 			fmt.Printf("Unable to create user access, err: %v\n", err)
 			os.Exit(1)
@@ -302,7 +304,7 @@ func cli() {
 		}
 		resources, err := bugoutClient.Brood.GetResources(
 			NB_CONTROLLER_TOKEN,
-			NB_APPLICATION_ID,
+			MOONSTREAM_APPLICATION_ID,
 			queryParameters,
 		)
 		if err != nil {
@@ -406,7 +408,7 @@ func cli() {
 		}
 		resources, err := bugoutClient.Brood.GetResources(
 			NB_CONTROLLER_TOKEN,
-			NB_APPLICATION_ID,
+			MOONSTREAM_APPLICATION_ID,
 			queryParameters,
 		)
 		if err != nil {
@@ -464,7 +466,7 @@ func cli() {
 		}
 		resources, err := bugoutClient.Brood.GetResources(
 			NB_CONTROLLER_TOKEN,
-			NB_APPLICATION_ID,
+			MOONSTREAM_APPLICATION_ID,
 			queryParameters,
 		)
 		if err != nil {

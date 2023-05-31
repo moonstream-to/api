@@ -23,8 +23,8 @@ github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/bketelsen/crypt v0.0.3-0.20200106085610-5cbc8cc4026c/go.mod h1:MKsuJmJgSg28kpZDP6UIiPt0e0Oz0kqKNGyRaWEPv84=
-github.com/bugout-dev/bugout-go v0.4.1 h1:idZ4k+/skHj217/q8OmHBoYdzwJrqCY5Vd7S8FM6zlo=
-github.com/bugout-dev/bugout-go v0.4.1/go.mod h1:P4+788iHtt/32u2wIaRTaiXTWpvSVBYxZ01qQ8N7eB8=
+github.com/bugout-dev/bugout-go v0.4.2 h1:oADFQzZ4iZeQOz8dDaO/+25eQkrCYG8SqjA8mRSQl7k=
+github.com/bugout-dev/bugout-go v0.4.2/go.mod h1:P4+788iHtt/32u2wIaRTaiXTWpvSVBYxZ01qQ8N7eB8=
 github.com/bugout-dev/humbug/go v0.0.0-20211206230955-57607cd2d205 h1:UQ7XGjvoOVKGRIuTFXgqGtU/UgMOk8+ikpoHWrWefjQ=
 github.com/bugout-dev/humbug/go v0.0.0-20211206230955-57607cd2d205/go.mod h1:U/NXHfc3tzGeQz+xVfpifXdPZi7p6VV8xdP/4ZKeWJU=
 github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghfAqPWnc=

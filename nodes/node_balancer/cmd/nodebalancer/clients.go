@@ -15,6 +15,8 @@ var (
 type ClientAccess struct {
 	ResourceID string
 
+	authorizationToken string
+
 	ClientResourceData ClientResourceData
 
 	LastAccessTs            int64
@@ -36,6 +38,8 @@ type ClientResourceData struct {
 	PeriodStartTs     int64 `json:"period_start_ts"`
 	MaxCallsPerPeriod int64 `json:"max_calls_per_period"`
 	CallsPerPeriod    int64 `json:"calls_per_period"`
+
+	Type string `json:"type"`
 }
 
 // CheckClientCallPeriodLimits returns true if limit of call requests per period is exceeded

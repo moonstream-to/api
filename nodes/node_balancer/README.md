@@ -113,3 +113,14 @@ For Web3 providers `access_id` and `data_source` could be specified in headers
 ```bash
 /usr/local/go/bin/go test -run ^TestCleanInactiveClientNodes$ github.com/bugout-dev/moonstream/nodes/node_balancer/cmd/nodebalancer -v -count=1
 ```
+
+## Migrations
+
+To run migration:
+
+```bash
+python migrations/migrations.py run --key 20230522 \
+    --token-current-owner "$NB_CONTROLLER_TOKEN" \
+    --token-new-owner "$MOONSTREAM_ADMIN_OR_OTHER_CONTROLLER" \
+    --new-application-id "$MOONSTREAM_APPLICATION_ID"
+```
