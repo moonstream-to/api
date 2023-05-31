@@ -24,7 +24,9 @@ var (
 	supportedBlockchains map[string]bool
 
 	// Bugout client
-	BUGOUT_BROOD_URL              = os.Getenv("BUGOUT_BROOD_URL")
+	// TODO(kompotkot): Find out why it cuts out the port
+	BUGOUT_BROOD_URL = "https://auth.bugout.dev"
+	// BUGOUT_BROOD_URL              = os.Getenv("BUGOUT_BROOD_URL")
 	NB_BUGOUT_TIMEOUT_SECONDS_RAW = os.Getenv("NB_BUGOUT_TIMEOUT_SECONDS")
 
 	// Bugout and application configuration
