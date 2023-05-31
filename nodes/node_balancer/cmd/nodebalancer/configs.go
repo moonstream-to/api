@@ -23,7 +23,7 @@ var (
 
 	// Bugout and application configuration
 	BUGOUT_AUTH_CALL_TIMEOUT = time.Second * 5
-	NB_APPLICATION_ID        = os.Getenv("NB_APPLICATION_ID")
+	MOONSTREAM_APPLICATION_ID        = os.Getenv("MOONSTREAM_APPLICATION_ID")
 	NB_CONTROLLER_TOKEN      = os.Getenv("NB_CONTROLLER_TOKEN")
 	NB_CONTROLLER_ACCESS_ID  = os.Getenv("NB_CONTROLLER_ACCESS_ID")
 

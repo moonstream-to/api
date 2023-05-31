@@ -225,7 +225,7 @@ func fetchClientAccessFromResources(accessID, authorizationToken string, tsNow i
 	var resources brood.Resources
 	resources, err = bugoutClient.Brood.GetResources(
 		token,
-		NB_APPLICATION_ID,
+		MOONSTREAM_APPLICATION_ID,
 		queryParameters,
 	)
 	if err != nil {
@@ -242,7 +242,7 @@ func fetchClientAccessFromResources(accessID, authorizationToken string, tsNow i
 				return nil, fmt.Errorf("unable to find user with provided authorization token")
 			}
 			newResource, err := bugoutClient.Brood.CreateResource(
-				NB_CONTROLLER_TOKEN, NB_APPLICATION_ID, ClientResourceData{
+				NB_CONTROLLER_TOKEN, MOONSTREAM_APPLICATION_ID, ClientResourceData{
 					UserID:           user.Id,
 					AccessID:         uuid.New().String(),
 					Name:             user.Username,
