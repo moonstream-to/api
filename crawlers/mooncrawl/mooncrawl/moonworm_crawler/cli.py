@@ -11,6 +11,8 @@ from ..db import yield_db_session_ctx
 from ..settings import (
     MOONSTREAM_MOONWORM_TASKS_JOURNAL,
     NB_CONTROLLER_ACCESS_ID,
+    HISTORICAL_CRAWLER_STATUSES,
+    HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES,
 )
 from .continuous_crawler import _retry_connect_web3, continuous_crawler
 from .crawler import (
@@ -150,7 +152,7 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
         extend_tags.extend(
             [
                 "#moonworm_task_pickedup:True",
-                "!#historical_crawl_status:finsihed",
+                f"!#{HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES['historical_crawl_status']}:{HISTORICAL_CRAWLER_STATUSES['finished']}",
             ]
         )
 
