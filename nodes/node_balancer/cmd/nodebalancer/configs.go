@@ -12,13 +12,16 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 var (
 	nodeConfigs []NodeConfig
 
+	supportedBlockchains map[string]bool
+
 	// Bugout and application configuration
-	BUGOUT_AUTH_URL          = os.Getenv("BUGOUT_AUTH_URL")
 	BUGOUT_AUTH_CALL_TIMEOUT = time.Second * 5
 	NB_APPLICATION_ID        = os.Getenv("NB_APPLICATION_ID")
 	NB_CONTROLLER_TOKEN      = os.Getenv("NB_CONTROLLER_TOKEN")
@@ -26,11 +29,12 @@ var (
 
 	NB_CONNECTION_RETRIES          = 2
 	NB_CONNECTION_RETRIES_INTERVAL = time.Millisecond * 10
-	NB_HEALTH_CHECK_INTERVAL       = time.Second * 5
+	NB_HEALTH_CHECK_INTERVAL       = time.Millisecond * 5000
 	NB_HEALTH_CHECK_CALL_TIMEOUT   = time.Second * 2
 
-	NB_CACHE_CLEANING_INTERVAL  = time.Second * 10
-	NB_CACHE_ACCESS_ID_LIFETIME = int64(120)
+	NB_CACHE_CLEANING_INTERVAL          = time.Second * 10
+	NB_CACHE_ACCESS_ID_LIFETIME         = int64(120) // 2 minutes
+	NB_CACHE_ACCESS_ID_SESSION_LIFETIME = int64(600) // 10 minutes
 
 	NB_MAX_COUNTER_NUMBER = uint64(10000000)
 
@@ -42,11 +46,6 @@ var (
 
 	// Humbug configuration
 	HUMBUG_REPORTER_NB_TOKEN = os.Getenv("HUMBUG_REPORTER_NB_TOKEN")
-
-	// Database configuration
-	MOONSTREAM_DB_URI_READ_ONLY         = os.Getenv("MOONSTREAM_DB_URI_READ_ONLY")
-	MOONSTREAM_DB_MAX_IDLE_CONNS    int = 30
-	MOONSTREAM_DB_CONN_MAX_LIFETIME     = 30 * time.Minute
 )
 
 func CheckEnvVarSet() {
@@ -55,6 +54,11 @@ func CheckEnvVarSet() {
 	}
 	if NB_DATA_SOURCE_HEADER == "" {
 		NB_DATA_SOURCE_HEADER = "x-node-balancer-data-source"
+	}
+	_, err := uuid.Parse(NB_CONTROLLER_ACCESS_ID)
+	if err != nil {
+		NB_CONTROLLER_ACCESS_ID = uuid.New().String()
+		log.Printf("Access ID for internal usage in NB_CONTROLLER_ACCESS_ID environment variable is not valid uuid, generated random one: %v", NB_CONTROLLER_ACCESS_ID)
 	}
 }
 
@@ -93,7 +97,7 @@ func CheckPathExists(path string) (bool, error) {
 		if os.IsNotExist(err) {
 			exists = false
 		} else {
-			return exists, fmt.Errorf("Error due checking file path exists, err: %v", err)
+			return exists, fmt.Errorf("error due checking file path exists, err: %v", err)
 		}
 	}
 
@@ -105,10 +109,10 @@ func GetConfigPath(providedPath string) (*ConfigPlacement, error) {
 	if providedPath == "" {
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
-			return nil, fmt.Errorf("Unable to find user home directory, %v", err)
+			return nil, fmt.Errorf("unable to find user home directory, %v", err)
 		}
 		configDirPath = fmt.Sprintf("%s/.nodebalancer", homeDir)
-		configPath = fmt.Sprintf("%s/config.txt", configDirPath)
+		configPath = fmt.Sprintf("%s/config.json", configDirPath)
 	} else {
 		configPath = strings.TrimSuffix(providedPath, "/")
 		configDirPath = filepath.Dir(configPath)
@@ -137,7 +141,7 @@ func GetConfigPath(providedPath string) (*ConfigPlacement, error) {
 func GenerateDefaultConfig(config *ConfigPlacement) error {
 	if !config.ConfigDirExists {
 		if err := os.MkdirAll(config.ConfigDirPath, os.ModePerm); err != nil {
-			return fmt.Errorf("Unable to create directory, %v", err)
+			return fmt.Errorf("unable to create directory, %v", err)
 		}
 		log.Printf("Config directory created at: %s", config.ConfigDirPath)
 	}
@@ -148,11 +152,11 @@ func GenerateDefaultConfig(config *ConfigPlacement) error {
 		}
 		tempConfigJson, err := json.Marshal(tempConfig)
 		if err != nil {
-			return fmt.Errorf("Unable to marshal configuration data, err: %v", err)
+			return fmt.Errorf("unable to marshal configuration data, err: %v", err)
 		}
 		err = ioutil.WriteFile(config.ConfigPath, tempConfigJson, os.ModePerm)
 		if err != nil {
-			return fmt.Errorf("Unable to write default config to file %s, err: %v", config.ConfigPath, err)
+			return fmt.Errorf("unable to write default config to file %s, err: %v", config.ConfigPath, err)
 		}
 		log.Printf("Created default configuration at %s", config.ConfigPath)
 	}

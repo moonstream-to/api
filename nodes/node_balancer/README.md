@@ -1,17 +1,19 @@
 # Node Balancer application
 
-# Installation
+## Installation
 
--   Prepare environment variables
+-   Prepare environment variables, according with `sample.env`.
 -   Build application
 
 ```bash
 go build -o nodebalancer .
 ```
 
-# Work with nodebalancer
+## Work with nodebalancer
 
-## add-access
+**IMPORTANT** Do not use flag `-debug` in production.
+
+### add-access
 
 Add new access for user:
 
@@ -25,7 +27,7 @@ nodebalancer add-access \
 	--blockchain--access true
 ```
 
-## delete-access
+### delete-access
 
 Delete user access:
 
@@ -37,7 +39,7 @@ nodebalancer delete-access \
 
 If `access-id` not specified, all user accesses will be deleted.
 
-## users
+### users
 
 ```bash
 nodebalancer users | jq .
@@ -67,7 +69,7 @@ This command will return a list of bugout resources of registered users to acces
 
 `extended_methods` - boolean which allow you to call not whitelisted method to blockchain node, by default for new user this is equal to `false`
 
-## server
+### server
 
 ```bash
 nodebalancer server -host 0.0.0.0 -port 8544 -healthcheck
@@ -76,17 +78,17 @@ nodebalancer server -host 0.0.0.0 -port 8544 -healthcheck
 Flag `--healthcheck` will execute background process to ping-pong available nodes to keep their status and current block number.
 Flag `--debug` will extend output of each request to server and healthchecks summary.
 
-# Work with node
+## Work with node
 
 Common request to fetch block number
 
 ```bash
-curl --request GET 'http://127.0.0.1:8544/nb/ethereum/jsonrpc?access_id=<access_id>&data_source=<blockchain/database>' \
+curl --request POST 'http://127.0.0.1:8544/nb/ethereum/jsonrpc?access_id=<access_id>&data_source=<blockchain/database>' \
     --header 'Content-Type: application/json' \
     --data-raw '{
         "jsonrpc":"2.0",
         "method":"eth_getBlockByNumber",
-        "params":["0xb71b64", false],
+        "params":["latest", false],
         "id":1
     }'
 ```
@@ -96,4 +98,18 @@ For Web3 providers `access_id` and `data_source` could be specified in headers
 ```bash
 --header 'x-node-balancer-data-source: <blockchain/database>'
 --header 'x-node-balancer-access-id: <access_id>'
+```
+
+## Tests
+
+### Running all tests
+
+```bash
+/usr/local/go/bin/go test -run ^*$ github.com/bugout-dev/moonstream/nodes/node_balancer/cmd/nodebalancer -v -count=1
+```
+
+### Running specified test
+
+```bash
+/usr/local/go/bin/go test -run ^TestCleanInactiveClientNodes$ github.com/bugout-dev/moonstream/nodes/node_balancer/cmd/nodebalancer -v -count=1
 ```

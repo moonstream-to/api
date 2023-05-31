@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 )
 
@@ -28,7 +27,7 @@ func pingRoute(w http.ResponseWriter, r *http.Request) {
 // lbHandler load balances the incoming requests to nodes
 func lbHandler(w http.ResponseWriter, r *http.Request) {
 	currentClientAccessRaw := r.Context().Value("currentClientAccess")
-	currentClientAccess, ok := currentClientAccessRaw.(ClientResourceData)
+	currentClientAccess, ok := currentClientAccessRaw.(ClientAccess)
 	if !ok {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
@@ -42,7 +41,7 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var blockchain string
-	for b := range configBlockchains {
+	for b := range supportedBlockchains {
 		if strings.HasPrefix(r.URL.Path, fmt.Sprintf("/nb/%s/", b)) {
 			blockchain = b
 			break
@@ -56,14 +55,14 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 	// Chose one node
 	var node *Node
 	cpool := GetClientPool(blockchain)
-	node = cpool.GetClientNode(currentClientAccess.AccessID)
+	node = cpool.GetClientNode(currentClientAccess.ClientResourceData.AccessID)
 	if node == nil {
 		node = blockchainPool.GetNextNode(blockchain)
 		if node == nil {
 			http.Error(w, "There are no nodes available", http.StatusServiceUnavailable)
 			return
 		}
-		cpool.AddClientNode(currentClientAccess.AccessID, node)
+		cpool.AddClientNode(currentClientAccess.ClientResourceData.AccessID, node)
 	}
 
 	// Save origin path, to use in proxyErrorHandler if node will not response
@@ -79,7 +78,7 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string, node *Node, currentClientAccess ClientResourceData) {
+func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string, node *Node, currentClientAccess ClientAccess) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Unable to read body", http.StatusBadRequest)
@@ -95,12 +94,12 @@ func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string,
 	}
 
 	switch {
-	case currentClientAccess.dataSource == "blockchain":
-		if currentClientAccess.BlockchainAccess == false {
+	case currentClientAccess.requestedDataSource == "blockchain":
+		if !currentClientAccess.ClientResourceData.BlockchainAccess {
 			http.Error(w, "Access to blockchain node not allowed with provided access id", http.StatusForbidden)
 			return
 		}
-		if currentClientAccess.ExtendedMethods == false {
+		if !currentClientAccess.ClientResourceData.ExtendedMethods {
 			for _, jsonrpcRequest := range jsonrpcRequests {
 				_, exists := ALLOWED_METHODS[jsonrpcRequest.Method]
 				if !exists {
@@ -116,31 +115,11 @@ func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string,
 		r.URL.Path = "/"
 		node.GethReverseProxy.ServeHTTP(w, r)
 		return
-	case currentClientAccess.dataSource == "database":
-		// lbDatabaseHandler(w, r, blockchain, jsonrpcRequest)
+	case currentClientAccess.requestedDataSource == "database":
 		http.Error(w, "Database access under development", http.StatusInternalServerError)
 		return
 	default:
-		http.Error(w, fmt.Sprintf("Unacceptable data source %s", currentClientAccess.dataSource), http.StatusBadRequest)
-		return
-	}
-}
-
-func lbDatabaseHandler(w http.ResponseWriter, r *http.Request, blockchain string, jsonrpcRequest JSONRPCRequest) {
-	switch {
-	case jsonrpcRequest.Method == "eth_getBlockByNumber":
-		var blockNumber uint64
-		blockNumber, _ = strconv.ParseUint(jsonrpcRequest.Params[0].(string), 10, 32)
-
-		block, err := databaseClient.GetBlock(blockchain, blockNumber)
-		if err != nil {
-			log.Printf("Unable to get block from database, err: %v", err)
-			http.Error(w, fmt.Sprintf("no such block %v", blockNumber), http.StatusBadRequest)
-			return
-		}
-		fmt.Println(block)
-	default:
-		http.Error(w, fmt.Sprintf("Unsupported method %s by database, please use blockchain as data source", jsonrpcRequest.Method), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Unacceptable data source %s", currentClientAccess.requestedDataSource), http.StatusBadRequest)
 		return
 	}
 }

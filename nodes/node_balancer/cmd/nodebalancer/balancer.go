@@ -206,16 +206,22 @@ func (bpool *BlockchainPool) HealthCheck() {
 			if err != nil {
 				n.UpdateNodeState(0, alive)
 				log.Printf("Unable to reach node: %s", n.Endpoint.Host)
+				if resp != nil {
+					resp.Body.Close()
+				}
 				continue
 			}
-			defer resp.Body.Close()
 
 			body, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
 				n.UpdateNodeState(0, alive)
 				log.Printf("Unable to parse response from %s node, err %v", n.Endpoint.Host, err)
+				if resp.Body != nil {
+					resp.Body.Close()
+				}
 				continue
 			}
+			resp.Body.Close()
 
 			var statusResponse NodeStatusResponse
 			err = json.Unmarshal(body, &statusResponse)

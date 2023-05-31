@@ -20,9 +20,7 @@ import (
 )
 
 var (
-	internalCrawlersAccess ClientResourceData
-
-	configBlockchains map[string]bool
+	internalUsageAccess ClientAccess
 
 	// Crash reporter
 	reporter *humbug.HumbugReporter
@@ -36,7 +34,7 @@ func initHealthCheck(debug bool) {
 		case <-t.C:
 			blockchainPool.HealthCheck()
 			logStr := "Client pool healthcheck."
-			for b := range configBlockchains {
+			for b := range supportedBlockchains {
 				cp := clientPool[b]
 				clients := cp.CleanInactiveClientNodes()
 				logStr += fmt.Sprintf(" Active %s clients: %d.", b, clients)
@@ -120,6 +118,7 @@ func Server() {
 	// Record system information
 	reporter.Publish(humbug.SystemReport())
 
+	// Fetch access id for internal usage (crawlers, infrastructure, etc)
 	resources, err := bugoutClient.Brood.GetResources(
 		NB_CONTROLLER_TOKEN,
 		NB_APPLICATION_ID,
@@ -129,39 +128,48 @@ func Server() {
 		fmt.Printf("Unable to get user with provided access identifier, err: %v\n", err)
 		os.Exit(1)
 	}
-	if len(resources.Resources) != 1 {
-		fmt.Printf("User with provided access identifier has wrong number of resources, err: %v\n", err)
-		os.Exit(1)
-	}
-	resource_data, err := json.Marshal(resources.Resources[0].ResourceData)
-	if err != nil {
-		fmt.Printf("Unable to encode resource data interface to json, err: %v\n", err)
-		os.Exit(1)
-	}
-	var clientAccess ClientResourceData
-	err = json.Unmarshal(resource_data, &clientAccess)
-	if err != nil {
-		fmt.Printf("Unable to decode resource data json to structure, err: %v\n", err)
-		os.Exit(1)
-	}
-	internalCrawlersAccess = ClientResourceData{
-		UserID:           clientAccess.UserID,
-		AccessID:         clientAccess.AccessID,
-		Name:             clientAccess.Name,
-		Description:      clientAccess.Description,
-		BlockchainAccess: clientAccess.BlockchainAccess,
-		ExtendedMethods:  clientAccess.ExtendedMethods,
-	}
-	log.Printf(
-		"Internal crawlers access set, resource id: %s, blockchain access: %t, extended methods: %t",
-		resources.Resources[0].Id, clientAccess.BlockchainAccess, clientAccess.ExtendedMethods,
-	)
+	if len(resources.Resources) == 1 {
+		resourceData, err := json.Marshal(resources.Resources[0].ResourceData)
+		if err != nil {
+			fmt.Printf("Unable to encode resource data interface to json, err: %v\n", err)
+			os.Exit(1)
+		}
+		var clientResourceData ClientResourceData
+		err = json.Unmarshal(resourceData, &clientResourceData)
+		if err != nil {
+			fmt.Printf("Unable to decode resource data json to structure, err: %v\n", err)
+			os.Exit(1)
+		}
+		internalUsageAccess = ClientAccess{
+			ClientResourceData: ClientResourceData{
+				UserID:           clientResourceData.UserID,
+				AccessID:         clientResourceData.AccessID,
+				Name:             clientResourceData.Name,
+				Description:      clientResourceData.Description,
+				BlockchainAccess: clientResourceData.BlockchainAccess,
+				ExtendedMethods:  clientResourceData.ExtendedMethods,
+			},
+		}
+		log.Printf(
+			"Internal crawlers access set, resource id: %s, blockchain access: %t, extended methods: %t",
+			resources.Resources[0].Id, clientResourceData.BlockchainAccess, clientResourceData.ExtendedMethods,
+		)
 
-	err = InitDatabaseClient()
-	if err != nil {
-		log.Printf("Unable to initialize database connection, err: %v", err)
+	} else if len(resources.Resources) == 0 {
+		internalUsageAccess = ClientAccess{
+			ClientResourceData: ClientResourceData{
+				UserID:           "rnd-user-id",
+				AccessID:         NB_CONTROLLER_ACCESS_ID,
+				Name:             "rnd-name",
+				Description:      "Randomly generated",
+				BlockchainAccess: true,
+				ExtendedMethods:  true,
+			},
+		}
+		fmt.Printf("There are no provided NB_CONTROLLER_ACCESS_ID records in Brood resources. Using provided with environment variable or randomly generated\n")
 	} else {
-		log.Printf("Connection with database established")
+		fmt.Printf("User with provided access identifier has wrong number of resources: %d\n", len(resources.Resources))
+		os.Exit(1)
 	}
 
 	// Fill NodeConfigList with initial nodes from environment variables
@@ -170,7 +178,7 @@ func Server() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	configBlockchains = make(map[string]bool)
+	supportedBlockchains = make(map[string]bool)
 
 	// Parse nodes and set list of proxies
 	for i, nodeConfig := range nodeConfigs {
@@ -181,7 +189,7 @@ func Server() {
 		}
 
 		// Append to supported blockchain set
-		configBlockchains[nodeConfig.Blockchain] = true
+		supportedBlockchains[nodeConfig.Blockchain] = true
 
 		proxyToEndpoint := httputil.NewSingleHostReverseProxy(endpoint)
 		// If required detailed timeout configuration, define node.GethReverseProxy.Transport = &http.Transport{}
