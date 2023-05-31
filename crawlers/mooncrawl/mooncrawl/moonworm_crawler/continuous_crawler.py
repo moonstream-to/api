@@ -24,10 +24,15 @@ from .crawler import (
     make_function_call_crawl_jobs,
     merge_event_crawl_jobs,
     merge_function_call_crawl_jobs,
+    moonworm_crawler_update_job_as_pickedup,
 )
 from .db import add_events_to_session, add_function_calls_to_session, commit_session
 from .event_crawler import _crawl_events
 from .function_call_crawler import _crawl_functions
+from ..settings import (
+    HISTORICAL_CRAWLER_STATUSES,
+    HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -220,6 +225,15 @@ def continuous_crawler(
                     event_crawl_jobs, function_call_crawl_jobs = _refetch_new_jobs(
                         event_crawl_jobs, function_call_crawl_jobs, blockchain_type
                     )
+
+                    (
+                        event_crawl_jobs,
+                        function_call_crawl_jobs,
+                    ) = moonworm_crawler_update_job_as_pickedup(
+                        event_crawl_jobs=event_crawl_jobs,
+                        function_call_crawl_jobs=function_call_crawl_jobs,
+                    )
+
                     jobs_refetchet_time = current_time
 
                 if current_time - last_heartbeat_time > timedelta(

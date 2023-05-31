@@ -13,7 +13,7 @@ from typing import Iterator, List
 from uuid import UUID
 
 from moonstreamdb.blockchain import AvailableBlockchainType
-import dateutil.parser
+import dateutil.parser  # type: ignore
 
 from .blockchain import (
     DateRange,

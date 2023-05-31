@@ -3,6 +3,7 @@ import time
 from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
+from eth_typing.evm import ChecksumAddress
 from moonstreamdb.blockchain import AvailableBlockchainType
 from moonworm.crawler.moonstream_ethereum_state_provider import (  # type: ignore
     MoonstreamEthereumStateProvider,
@@ -11,7 +12,12 @@ from moonworm.crawler.networks import Network  # type: ignore
 from sqlalchemy.orm.session import Session
 from web3 import Web3
 
-from .crawler import EventCrawlJob, FunctionCallCrawlJob, _retry_connect_web3
+from .crawler import (
+    EventCrawlJob,
+    FunctionCallCrawlJob,
+    _retry_connect_web3,
+    update_entries_status_and_progress,
+)
 from .db import add_events_to_session, add_function_calls_to_session, commit_session
 from .event_crawler import _crawl_events, _autoscale_crawl_events
 from .function_call_crawler import _crawl_functions
@@ -31,6 +37,7 @@ def historical_crawler(
     max_blocks_batch: int = 100,
     min_sleep_time: float = 0.1,
     access_id: Optional[UUID] = None,
+    addresses_deployment_blocks: Optional[Dict[ChecksumAddress, int]] = None,
 ):
     assert max_blocks_batch > 0, "max_blocks_batch must be greater than 0"
     assert min_sleep_time > 0, "min_sleep_time must be greater than 0"
@@ -59,6 +66,10 @@ def historical_crawler(
 
     blocks_cache: Dict[int, int] = {}
     failed_count = 0
+
+    original_start_block = start_block
+
+    progess_map: Dict[ChecksumAddress, float] = {}
 
     while start_block >= end_block:
         try:
@@ -118,6 +129,27 @@ def historical_crawler(
                 add_function_calls_to_session(
                     db_session, all_function_calls, blockchain_type
                 )
+
+            if addresses_deployment_blocks:
+                for address, deployment_block in addresses_deployment_blocks.items():
+                    current_position = batch_end_block
+
+                    progess = (original_start_block - current_position) / (
+                        original_start_block - deployment_block
+                    )
+                    progess_map[address] = progess
+
+                if len(function_call_crawl_jobs) > 0:
+                    function_call_crawl_jobs = update_entries_status_and_progress(  # type: ignore
+                        events=function_call_crawl_jobs,
+                        progess_map=progess_map,
+                    )
+
+                if len(event_crawl_jobs) > 0:
+                    event_crawl_jobs = update_entries_status_and_progress(  # type: ignore
+                        events=event_crawl_jobs,
+                        progess_map=progess_map,
+                    )
 
             # Commiting to db
             commit_session(db_session)

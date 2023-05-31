@@ -502,20 +502,25 @@ def apply_moonworm_tasks(
     subscription_type: str,
     abi: Any,
     address: str,
+    entries_limit: int = 100,
 ) -> None:
     """
     Get list of subscriptions loads abi and apply them as moonworm tasks if it not exist
     """
 
-    entries_pack = []
+    moonworm_abi_tasks_entries_pack = []
 
     try:
         entries = get_all_entries_from_search(
             journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
             search_query=f"tag:address:{address} tag:subscription_type:{subscription_type}",
-            limit=100,
+            limit=entries_limit,  # load per request
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
         )
+
+        # create historical crawl task in journal
+
+        # will use create_entries_pack for creating entries in journal
 
         existing_tags = [entry.tags for entry in entries]
 
@@ -534,7 +539,16 @@ def apply_moonworm_tasks(
 
         for hash in abi_hashes_dict:
             if hash not in existing_hashes:
-                entries_pack.append(
+                abi_selector = Web3.keccak(
+                    text=abi_hashes_dict[hash]["name"]
+                    + "("
+                    + ",".join(
+                        map(lambda x: x["type"], abi_hashes_dict[hash]["inputs"])
+                    )
+                    + ")"
+                )[:4].hex()
+
+                moonworm_abi_tasks_entries_pack.append(
                     {
                         "title": address,
                         "content": json.dumps(abi_hashes_dict[hash], indent=4),
@@ -542,22 +556,32 @@ def apply_moonworm_tasks(
                             f"address:{address}",
                             f"type:{abi_hashes_dict[hash]['type']}",
                             f"abi_method_hash:{hash}",
+                            f"abi_selector:{abi_selector}",
                             f"subscription_type:{subscription_type}",
                             f"abi_name:{abi_hashes_dict[hash]['name']}",
                             f"status:active",
+                            f"task_type:moonworm",
+                            f"moonworm_task_pickedup:False",  # True if task picked up by moonworm-crawler(default each 120 sec)
+                            f"historical_crawl_status:pending",  # pending, in_progress, done
+                            f"progress:0",  # 0-100 %
                         ],
                     }
                 )
     except Exception as e:
+        logger.error(f"Error get moonworm tasks: {str(e)}")
         reporter.error_report(e)
 
-    if len(entries_pack) > 0:
-        bc.create_entries_pack(
-            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-            journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
-            entries=entries_pack,
-            timeout=15,
-        )
+    if len(moonworm_abi_tasks_entries_pack) > 0:
+        try:
+            bc.create_entries_pack(
+                token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+                entries=moonworm_abi_tasks_entries_pack,
+                timeout=25,
+            )
+        except Exception as e:
+            logger.error(f"Error create moonworm tasks: {str(e)}")
+            reporter.error_report(e)
 
 
 def name_normalization(query_name: str) -> str:
@@ -754,3 +778,18 @@ def query_parameter_hash(params: Dict[str, Any]) -> str:
     ).hexdigest()
 
     return hash
+
+
+def get_moonworm_jobs(
+    address: str,
+    subscription_type_id: str,
+    entries_limit: int = 100,
+):
+    entries = get_all_entries_from_search(
+        journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+        search_query=f"tag:address:{address} tag:subscription_type:{subscription_type_id}",
+        limit=entries_limit,  # load per request
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+    )
+
+    return entries
