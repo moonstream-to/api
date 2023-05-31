@@ -282,9 +282,10 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
                 web3, list(addresses_set)
             )
             if len(addresses_deployment_blocks) == 0:
-                raise ValueError(
+                logger.error(
                     "No addresses found in the blockchain. Please check your addresses and try again"
                 )
+                return
             end_block = min(addresses_deployment_blocks.values())
 
         if start_block is None:
