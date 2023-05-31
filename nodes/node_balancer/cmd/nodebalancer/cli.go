@@ -224,9 +224,9 @@ func cli() {
 	}
 
 	// Init bugout client
-	bc, err := bugout.ClientFromEnv()
+	bc, err := CreateBugoutClient()
 	if err != nil {
-		fmt.Printf("Unable to initialize bugout client, err: %v\n", err)
+		log.Printf("An error occurred during Bugout client creation: %v", err)
 		os.Exit(1)
 	}
 	bugoutClient = bc
