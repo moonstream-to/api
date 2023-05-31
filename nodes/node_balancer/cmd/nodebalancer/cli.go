@@ -224,7 +224,11 @@ func cli() {
 	}
 
 	// Init bugout client
-	bc := CreateBugoutClient()
+	bc, err := CreateBugoutClient()
+	if err != nil {
+		log.Printf("An error occurred during Bugout client creation: %v", err)
+		os.Exit(1)
+	}
 	bugoutClient = bc
 
 	// Parse subcommands and appropriate FlagSet
