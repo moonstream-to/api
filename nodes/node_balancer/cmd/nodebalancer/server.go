@@ -225,7 +225,8 @@ func Server() {
 	serveMux.HandleFunc("/ping", pingRoute)
 
 	// Set common middlewares, from bottom to top
-	commonHandler := logMiddleware(serveMux)
+	commonHandler := corsMiddleware(serveMux)
+	commonHandler = logMiddleware(serveMux)
 	commonHandler = panicMiddleware(commonHandler)
 
 	server := http.Server{
