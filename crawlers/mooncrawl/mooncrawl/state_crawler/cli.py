@@ -640,7 +640,7 @@ def main() -> None:
         "--max-batch-size",
         "-m",
         type=int,
-        default=5000,
+        default=4000,
         help="Max size of chunks wich send to Multicall2 contract.",
     )
     view_state_crawler_parser.add_argument(
