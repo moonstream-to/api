@@ -165,10 +165,10 @@ def read_keys_from_env() -> Tuple[ChecksumAddress, str]:
         )
 
 
-def connect(web3_uri: str) -> Web3:
+def connect(web3_uri: str, request_kwargs: Dict[str, Any] = {}) -> Web3:
     web3_provider: Union[IPCProvider, HTTPProvider] = Web3.IPCProvider()
     if web3_uri.startswith("http://") or web3_uri.startswith("https://"):
-        web3_provider = Web3.HTTPProvider(web3_uri)
+        web3_provider = Web3.HTTPProvider(web3_uri, request_kwargs=request_kwargs)
     else:
         web3_provider = Web3.IPCProvider(web3_uri)
     web3_client = Web3(web3_provider)
