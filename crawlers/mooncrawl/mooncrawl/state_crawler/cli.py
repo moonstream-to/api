@@ -84,9 +84,7 @@ def make_multicall(
 
     multicall_contract = Multicall2(
         web3_client,
-        web3_client.toChecksumAddress(
-            multicall_contracts[AvailableBlockchainType.POLYGON]
-        ),
+        web3_client.toChecksumAddress(multicall_contracts[blockchain_type]),
     )
 
     for call in calls:
@@ -294,14 +292,14 @@ def crawl_calls_level(
                 for index, future in enumerate(as_completed(futures)):
                     try:
                         result = future.result(timeout=30)
+                        logger.info(
+                            f"Multicall2 returned {len(result)} results at block {block_number}"
+                        )
+                        make_multicall_result.extend(result)
+
                     except Exception as e:
                         logger.error(f"Exception: {e}")
                         faild_calls.extend(calls_for_workers[index])
-
-                    logger.info(
-                        f"Multicall2 returned {len(result)} results at block {block_number}"
-                    )
-                    make_multicall_result.extend(result)
 
             retry = 0
             calls_of_level = calls_of_level[len(make_multicall_result) :]
