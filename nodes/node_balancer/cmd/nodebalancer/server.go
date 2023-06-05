@@ -226,7 +226,7 @@ func Server() {
 
 	// Set common middlewares, from bottom to top
 	commonHandler := corsMiddleware(serveMux)
-	commonHandler = logMiddleware(serveMux)
+	commonHandler = logMiddleware(commonHandler)
 	commonHandler = panicMiddleware(commonHandler)
 
 	server := http.Server{
