@@ -1,15 +1,15 @@
 [Unit]
-Description=Airdrop Engine robots
+Description=Airdrop robots
 After=network.target
 StartLimitIntervalSec=300
 StartLimitBurst=3
 
 [Service]
-WorkingDirectory=/home/ubuntu/engine/robots
+WorkingDirectory=/home/ubuntu/api/robots
 EnvironmentFile=/home/ubuntu/robots-secrets/app.env
 Restart=on-failure
 RestartSec=15s
-ExecStart=/home/ubuntu/engine/robots/robots airdrop
+ExecStart=/home/ubuntu/api/robots/robots airdrop
 SyslogIdentifier=robots-airdrop
 
 [Install]
