@@ -16,26 +16,14 @@ PREFIX_CRIT="${C_RED}[CRIT]${C_RESET} [$(date +%d-%m\ %T)]"
 # Main
 AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
 APP_DIR="${APP_DIR:-/home/ubuntu/moonstream}"
-APP_NODES_DIR="${APP_DIR}/nodes"
-PYTHON_ENV_DIR="${PYTHON_ENV_DIR:-/home/ubuntu/moonstream-env}"
-PYTHON="${PYTHON_ENV_DIR}/bin/python"
 SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/moonstream-secrets}"
 PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
-AWS_SSM_PARAMETER_PATH="${AWS_SSM_PARAMETER_PATH:-/moonstream/prod}"
 SCRIPT_DIR="$(realpath $(dirname $0))"
-PARAMETERS_SCRIPT="${SCRIPT_DIR}/parameters.py"
-NODE_BALANCER_CONFIG_PATH="${NODE_BALANCER_CONFIG_PATH:-/home/ubuntu/.nodebalancer/config.json}"
 
 # Service file
 NODE_BALANCER_SERVICE_FILE="nodebalancer.service"
 
 set -eu
-
-echo
-echo
-echo -e "${PREFIX_INFO} Retrieving deployment parameters"
-mkdir -p "${SECRETS_DIR}"
-AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" "${PYTHON}" "${PARAMETERS_SCRIPT}" extract -p "${AWS_SSM_PARAMETER_PATH}" -o "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
@@ -56,8 +44,8 @@ echo
 echo
 echo -e "${PREFIX_INFO} Building executable load balancer for nodes script with Go"
 EXEC_DIR=$(pwd)
-cd "${APP_NODES_DIR}/node_balancer"
-HOME=/home/ubuntu /usr/local/go/bin/go build -o "${APP_NODES_DIR}/node_balancer/nodebalancer" "${APP_NODES_DIR}/node_balancer/cmd/nodebalancer/"
+cd "${APP_DIR}/nodebalancer"
+HOME=/home/ubuntu /usr/local/go/bin/go build -o "${APP_DIR}/nodebalancer/nodebalancer" "${APP_DIR}/nodebalancer/cmd/nodebalancer/*.go"
 cd "${EXEC_DIR}"
 
 echo
