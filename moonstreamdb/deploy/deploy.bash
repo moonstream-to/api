@@ -4,7 +4,7 @@
 
 # Main
 APP_DIR="${APP_DIR:-/home/ubuntu/moonstream}"
-APP_DB_SERVER_DIR="${APP_DIR}/db/server"
+APP_DB_SERVER_DIR="${APP_DIR}/moonstreamdb/server"
 SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/moonstream-secrets}"
 SCRIPT_DIR="$(realpath $(dirname $0))"
 SERVICE_FILE="${SCRIPT_DIR}/moonstreamdb.service"
