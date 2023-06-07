@@ -16,11 +16,11 @@ PREFIX_CRIT="${C_RED}[CRIT]${C_RESET} [$(date +%d-%m\ %T)]"
 # Main
 APP_DIR="${APP_DIR:-/home/ubuntu/api/engineapi}"
 AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
-PYTHON_ENV_DIR="${PYTHON_ENV_DIR:-/home/ubuntu/engine-env}"
+PYTHON_ENV_DIR="${PYTHON_ENV_DIR:-/home/ubuntu/engineapi-env}"
 PYTHON="${PYTHON_ENV_DIR}/bin/python"
 PIP="${PYTHON_ENV_DIR}/bin/pip"
 SCRIPT_DIR="$(realpath $(dirname $0))"
-SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/engine-secrets}"
+SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/engineapi-secrets}"
 PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
 
 # API server service file
