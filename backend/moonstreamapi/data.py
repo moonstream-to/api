@@ -296,3 +296,11 @@ class QueryInfoResponse(BaseModel):
     parameters: Dict[str, Any] = Field(default_factory=dict)
     created_at: Optional[datetime]
     updated_at: Optional[datetime]
+
+
+class ContractInfoResponse(BaseModel):
+    contract_info: Dict[str, Any] = Field(default_factory=dict)
+
+
+class ContractInterfacesResponse(BaseModel):
+    interfaces: Dict[str, Any] = Field(default_factory=dict)

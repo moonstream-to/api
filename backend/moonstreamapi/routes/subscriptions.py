@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional
 
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Depends, Request, Form, BackgroundTasks
+from moonstreamdb.blockchain import AvailableBlockchainType
 from web3 import Web3
 
 from ..actions import (
@@ -24,7 +25,12 @@ from ..middleware import MoonstreamHTTPException
 from ..reporter import reporter
 from ..settings import bugout_client as bc, entity_client as ec
 from ..settings import MOONSTREAM_ADMIN_ACCESS_TOKEN, MOONSTREAM_MOONWORM_TASKS_JOURNAL
-from ..web3_provider import yield_web3_provider
+from ..web3_provider import (
+    yield_web3_provider,
+    check_if_smartcontract,
+    connect,
+    get_list_of_support_interfaces,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -559,3 +565,108 @@ async def list_subscription_types() -> data.SubscriptionTypesListResponse:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     return data.SubscriptionTypesListResponse(subscription_types=results)
+
+
+@router.get(
+    "/is_contract",
+    tags=["subscriptions"],
+    response_model=data.SubscriptionTypesListResponse,
+)
+async def address_info(request: Request, address: str):
+    """
+    Looking if address is contract
+    """
+
+    user_id = request.state.user.id
+    user_token = request.state.token
+
+    try:
+        resource = bc.list_resources(
+            token=user_token,
+            params={
+                "type": "nodebalancer-access",
+            },
+        )
+    except Exception as e:
+        logger.error(f"Error reading contract info from Brood API: {str(e)}")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    access_id = resource.resources[0].resource_data["access_id"]
+
+    if not access_id:
+        raise MoonstreamHTTPException(
+            status_code=404,
+            detail="Not found access id",
+        )
+
+    contract_info = {}
+
+    for blockchain_type in AvailableBlockchainType:
+        try:
+            # connnect to blockchain
+
+            address_is_contract = await check_if_smartcontract(
+                address=address, blockchain_type=blockchain_type, access_id=access_id
+            )
+
+            if address_is_contract:
+                contract_info[blockchain_type] = address_is_contract
+
+        except Exception as e:
+            logger.error(f"Error reading contract info from web3: {str(e)}")
+            raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    return data.ContractInfoResponse(
+        contract_info=contract_info,
+    )
+
+
+@router.get(
+    "/supported_interfaces",
+    tags=["subscriptions"],
+    response_model=data.SubscriptionTypesListResponse,
+)
+def get_contract_interfaces(
+    request: Request,
+    address: str,
+    blockchain_type: str,
+):
+    """
+    Request contract interfaces from web3
+    """
+
+    user_token = request.state.token
+
+    try:
+        resource = bc.list_resources(
+            token=user_token,
+            params={
+                "type": "nodebalancer-access",
+            },
+        )
+    except Exception as e:
+        logger.error(f"Error reading contract info from Brood API: {str(e)}")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    access_id = resource.resources[0].resource_data["access_id"]
+
+    if not access_id:
+        raise MoonstreamHTTPException(
+            status_code=404,
+            detail="Not found access id",
+        )
+
+    try:
+        interfaces = get_list_of_support_interfaces(
+            blockchain_type=blockchain_type,
+            address=address,
+            access_id=access_id,
+        )
+
+    except Exception as e:
+        logger.error(f"Error reading contract info from web3: {str(e)}")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    return data.ContractInterfacesResponse(
+        interfaces=interfaces,
+    )
