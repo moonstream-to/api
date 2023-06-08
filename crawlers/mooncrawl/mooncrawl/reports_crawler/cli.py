@@ -533,7 +533,10 @@ def generate_report_nft_dashboard_handler(args: argparse.Namespace):
     ).queries:
         params = {}  # type: ignore
 
-        if query.name != "cu_nft_dashboard_data":
+        if (
+            query.name != "cu_nft_dashboard_data"
+            or query.name != "cu_land_nft_dashboard_data"
+        ):
             continue
 
         logger.info(f"Generating report for {query.name}")
