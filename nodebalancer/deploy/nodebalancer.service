@@ -1,0 +1,20 @@
+[Unit]
+Description=Load balancer for blockchain nodes
+After=network.target
+StartLimitIntervalSec=300
+StartLimitBurst=3
+
+[Service]
+WorkingDirectory=/home/ubuntu/moonstream/nodebalancer
+EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
+Restart=on-failure
+RestartSec=15s
+ExecStart=/home/ubuntu/moonstream/nodebalancer/nodebalancer server \
+    -host "${AWS_LOCAL_IPV4}" \
+    -port 8544 \
+    -healthcheck \
+    -config /home/ubuntu/.nodebalancer/config.json
+SyslogIdentifier=nodebalancer
+
+[Install]
+WantedBy=multi-user.target

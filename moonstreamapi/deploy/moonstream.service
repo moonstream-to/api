@@ -1,0 +1,16 @@
+[Unit]
+Description=moonstreamapi-service
+After=network.target
+StartLimitIntervalSec=300
+StartLimitBurst=3
+
+[Service]
+WorkingDirectory=/home/ubuntu/moonstream/moonstreamapi
+EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
+Restart=on-failure
+RestartSec=15s
+ExecStart=/home/ubuntu/moonstream-env/bin/uvicorn --proxy-headers --forwarded-allow-ips='127.0.0.1' --host 127.0.0.1 --port 7481 --workers 8 moonstreamapi.api:app
+SyslogIdentifier=moonstream
+
+[Install]
+WantedBy=multi-user.target

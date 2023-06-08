@@ -1,0 +1,16 @@
+[Unit]
+Description=Engine API service
+After=network.target
+StartLimitIntervalSec=300
+StartLimitBurst=3
+
+[Service]
+WorkingDirectory=/home/ubuntu/api/engineapi
+EnvironmentFile=/home/ubuntu/engineapi-secrets/app.env
+Restart=on-failure
+RestartSec=15s
+ExecStart=/home/ubuntu/engineapi-env/bin/uvicorn --proxy-headers --forwarded-allow-ips='127.0.0.1' --host 127.0.0.1 --port 7191 --workers 8 engineapi.api:app
+SyslogIdentifier=engine
+
+[Install]
+WantedBy=multi-user.target
