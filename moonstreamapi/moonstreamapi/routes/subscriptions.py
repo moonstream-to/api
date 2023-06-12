@@ -5,6 +5,7 @@ import hashlib
 import json
 import logging
 from typing import Any, Dict, List, Optional
+import traceback
 
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Depends, Request, Form, BackgroundTasks
@@ -570,7 +571,7 @@ async def list_subscription_types() -> data.SubscriptionTypesListResponse:
 @router.get(
     "/is_contract",
     tags=["subscriptions"],
-    response_model=data.SubscriptionTypesListResponse,
+    response_model=data.ContractInfoResponse,
 )
 async def address_info(request: Request, address: str):
     """
@@ -605,15 +606,16 @@ async def address_info(request: Request, address: str):
         try:
             # connnect to blockchain
 
-            address_is_contract = await check_if_smartcontract(
+            address_is_contract = check_if_smartcontract(
                 address=address, blockchain_type=blockchain_type, access_id=access_id
             )
 
             if address_is_contract:
-                contract_info[blockchain_type] = address_is_contract
+                contract_info[blockchain_type.value] = address_is_contract
 
         except Exception as e:
             logger.error(f"Error reading contract info from web3: {str(e)}")
+            traceback.print_exc()
             raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     return data.ContractInfoResponse(

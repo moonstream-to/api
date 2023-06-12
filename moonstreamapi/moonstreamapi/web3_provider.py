@@ -41,7 +41,6 @@ def connect(
     access_id: Optional[UUID] = None,
     async_: bool = False,
 ) -> Web3:
-    web3_provider: Union[IPCProvider, HTTPProvider] = Web3.IPCProvider()
 
     request_kwargs: Any = None
     if access_id is not None:
@@ -67,12 +66,13 @@ def connect(
         else:
             raise Exception("Wrong blockchain type provided for web3 URI")
 
+    print(f"Connecting to {web3_uri}")
     if web3_uri.startswith("http://") or web3_uri.startswith("https://"):
         request_kwargs["timeout"] = WEB3_CLIENT_REQUEST_TIMEOUT_SECONDS
-        web3_client = Web3(AsyncHTTPProvider(web3_uri, request_kwargs=request_kwargs))  # type: ignore
+        web3_client = Web3(HTTPProvider(web3_uri, request_kwargs=request_kwargs))  # type: ignore
     else:
         web3_client = Web3(Web3.IPCProvider(web3_uri))
-    web3_client = Web3(web3_provider)
+    # web3_client = Web3(web3_provider)
 
     # Inject --dev middleware if it is not Ethereum mainnet
     # Docs: https://web3py.readthedocs.io/en/stable/middleware.html#geth-style-proof-of-authority
@@ -92,7 +92,8 @@ def check_if_smartcontract(
     """
     web3_client = connect(blockchain_type, access_id=UUID(access_id))
 
-    if web3_client.eth.getCode(address) != "0x":
+    code = web3_client.eth.getCode(address)
+    if code != b"":
         return True
 
     return False
