@@ -296,3 +296,8 @@ class QueryInfoResponse(BaseModel):
     parameters: Dict[str, Any] = Field(default_factory=dict)
     created_at: Optional[datetime]
     updated_at: Optional[datetime]
+
+
+class QueryCopy(BaseModel):
+    query_id: str
+    name: str
