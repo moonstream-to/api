@@ -450,3 +450,67 @@ async def remove_query_handler(
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     return entry
+
+
+@router.get("/suggest", tags=["queries"])
+def get_suggested_queries(
+    request: Request,
+    supported_interfaces: Optional[List[str]] = None,
+    address: Optional[str] = None,    
+)-> Any:
+
+    """
+    Return set of suggested queries for user
+    """
+
+    tags = ["#type:query", "#approved"]
+
+    if supported_interfaces:
+        tags.extend([f"#?interface:{interface}" for interface in supported_interfaces])
+
+
+
+    if address:
+
+        tags.append(f"?#address:{address}")
+
+
+    query = " ".join(tags)
+
+
+    try:
+        queries = bc.search(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
+            query=query,
+            limit=100,
+            timeout=5,
+        )
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+    
+
+    # make split by interfaces
+
+    interfaces = {}
+
+    for entry in queries.results:
+
+        for tag in entry.tags:
+
+            if tag.startswith("?interface:"):
+
+                interface = tag.split(":")[1]
+
+                if interface not in interfaces:
+
+                    interfaces[interface] = []
+
+                interfaces[interface].append(entry)
+
+    
+
+    return interfaces
+
