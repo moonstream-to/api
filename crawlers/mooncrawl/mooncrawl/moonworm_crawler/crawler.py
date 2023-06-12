@@ -341,6 +341,12 @@ def merge_event_crawl_jobs(
                         if contract not in old_crawl_job.contracts
                     ]
                 )
+
+                for contract_address, entries in new_crawl_job.address_entries.items():
+                    if contract_address in old_crawl_job.address_entries:
+                        old_crawl_job.address_entries[contract_address].update(entries)
+                    else:
+                        old_crawl_job.address_entries[contract_address] = entries
                 break
         else:
             old_crawl_jobs.append(new_crawl_job)
@@ -361,6 +367,7 @@ def merge_function_call_crawl_jobs(
         old_crawl_jobs will be modified
     Returns:
         Merged list of function call crawl jobs
+
     """
     for new_crawl_job in new_function_call_crawl_jobs:
         for old_crawl_job in old_crawl_jobs:
