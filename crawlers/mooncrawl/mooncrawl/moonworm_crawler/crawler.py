@@ -637,7 +637,7 @@ def update_entries_status_and_progress(
                 entries_tags_delete,
                 entries_tags_add,
             ) = add_progress_to_tags(
-                entries=entries_ids,
+                entries=event.entries_tags,
                 contract_progress=progress,
                 entries_tags_delete=entries_tags_delete,
                 entries_tags_add=entries_tags_add,
