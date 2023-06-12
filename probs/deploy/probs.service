@@ -1,0 +1,16 @@
+[Unit]
+Description=Clean outdated call_requests from Engine DB
+After=network.target
+StartLimitIntervalSec=300
+StartLimitBurst=3
+
+[Service]
+WorkingDirectory=/home/ubuntu/api/probs
+EnvironmentFile=/home/ubuntu/engineapi-secrets/app.env
+ExecStart=/home/ubuntu/api/probs/probs service
+Restart=on-failure
+RestartSec=15s
+SyslogIdentifier=probs
+
+[Install]
+WantedBy=multi-user.target

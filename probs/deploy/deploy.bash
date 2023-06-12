@@ -21,8 +21,7 @@ SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/engineapi-secrets}"
 PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
 
 # API server service file
-CLEAN_CALL_REQUESTS_SERVICE_FILE="workers-engine-clean-call-requests.service"
-CLEAN_CALL_REQUESTS_TIMER_FILE="workers-engine-clean-call-requests.timer"
+PROBS_SERVICE_FILE="probs.service"
 
 set -eu
 
@@ -62,9 +61,8 @@ XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ENGINE_S
 
 echo
 echo
-echo -e "${PREFIX_INFO} Replacing existing workers-engine-clean-call-requests service and timer with: ${CLEAN_CALL_REQUESTS_SERVICE_FILE}, ${CLEAN_CALL_REQUESTS_TIMER_FILE}"
-chmod 644 "${SCRIPT_DIR}/${CLEAN_CALL_REQUESTS_SERVICE_FILE}" "${SCRIPT_DIR}/${CLEAN_CALL_REQUESTS_TIMER_FILE}"
-cp "${SCRIPT_DIR}/${CLEAN_CALL_REQUESTS_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${CLEAN_CALL_REQUESTS_SERVICE_FILE}"
-cp "${SCRIPT_DIR}/${CLEAN_CALL_REQUESTS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${CLEAN_CALL_REQUESTS_TIMER_FILE}"
+echo -e "${PREFIX_INFO} Replacing existing probs service and timer with: ${PROBS_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${PROBS_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${PROBS_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${PROBS_SERVICE_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${CLEAN_CALL_REQUESTS_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart "${PROBS_SERVICE_FILE}"

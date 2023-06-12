@@ -6,8 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	workers "github.com/moonstream-to/api/workers/pkg"
-	engine "github.com/moonstream-to/api/workers/pkg/engine"
+	probs "github.com/moonstream-to/api/probs/pkg"
+	engine "github.com/moonstream-to/api/probs/pkg/engine"
 )
 
 func CreateRootCommand() *cobra.Command {
@@ -25,7 +25,8 @@ func CreateRootCommand() *cobra.Command {
 
 	versionCmd := CreateVersionCommand()
 	engineCmd := CreateEngineCommand()
-	rootCmd.AddCommand(versionCmd, engineCmd)
+	serviceCmd := CreateServiceCommand()
+	rootCmd.AddCommand(versionCmd, engineCmd, serviceCmd)
 
 	completionCmd := CreateCompletionCommand(rootCmd)
 	rootCmd.AddCommand(completionCmd)
@@ -91,9 +92,9 @@ func CreateVersionCommand() *cobra.Command {
 	versionCmd := &cobra.Command{
 		Use:   "version",
 		Short: "Print the version number of workers",
-		Long:  `All software has versions. This is workers's`,
+		Long:  `All software has versions. This is workers's.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			cmd.Println(workers.VERSION)
+			cmd.Println(probs.VERSION)
 		},
 	}
 	return versionCmd
@@ -106,26 +107,45 @@ func CreateEngineCommand() *cobra.Command {
 	}
 
 	var dbUri string
-	engineCommand.PersistentFlags().StringVarP(&dbUri, "db-uri", "d", "", "Database URI.")
+	engineCommand.PersistentFlags().StringVarP(&dbUri, "db-uri", "d", "", "Database URI")
+	engineCommand.MarkFlagRequired("db-uri")
 
-	cleanCallRequestsCommand := &cobra.Command{
-		Use:   "clean-call-requests",
-		Short: "Clean all inactive call requests from database.",
-		Long:  "Remove records in call_requests database table with ttl value greater then now.",
+	for _, sc := range engine.ENGINE_SUPPORTED_WORKERS {
+		tempCommand := &cobra.Command{
+			Use:   sc.Name,
+			Short: sc.Description,
+			Long:  sc.LonDescription,
+			RunE: func(cmd *cobra.Command, args []string) error {
+				ctx := context.Background()
+
+				dbPool, err := CreateDbPool(ctx, dbUri, "10s")
+				if err != nil {
+					return fmt.Errorf("database connection error: %v", err)
+				}
+				defer dbPool.Close()
+
+				return sc.ExecFunction(ctx, dbPool)
+			},
+		}
+		engineCommand.AddCommand(tempCommand)
+	}
+
+	return engineCommand
+}
+
+func CreateServiceCommand() *cobra.Command {
+	var configPath string
+
+	serviceCmd := &cobra.Command{
+		Use:   "service",
+		Short: "Run workers as background asynchronous services",
+		Long:  `Each active worker specified in configuration will run in go-routine.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx := context.Background()
-
-			dbPool, err := CreateDbPool(ctx, dbUri, "10s")
-			if err != nil {
-				return fmt.Errorf("database connection error: %v", err)
-			}
-			defer dbPool.Close()
-
-			return engine.CleanCallRequestsCommand(ctx, dbPool)
+			return RunService(configPath)
 		},
 	}
 
-	engineCommand.AddCommand(cleanCallRequestsCommand)
+	serviceCmd.PersistentFlags().StringVarP(&configPath, "config", "c", "", "Config path, default: ~/.workers")
 
-	return engineCommand
+	return serviceCmd
 }

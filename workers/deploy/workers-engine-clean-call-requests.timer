@@ -1,9 +1,0 @@
-[Unit]
-Description=Clean outdated call_requests from Engine DB
-
-[Timer]
-OnBootSec=40s
-OnUnitActiveSec=60m
-
-[Install]
-WantedBy=timers.target

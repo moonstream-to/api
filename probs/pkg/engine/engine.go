@@ -7,7 +7,16 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	probs "github.com/moonstream-to/api/probs/pkg"
 )
+
+var ENGINE_SUPPORTED_WORKERS = []probs.ServiceWorker{{
+	Name:           "clean-call-requests",
+	Description:    "Clean all inactive call requests from database",
+	LonDescription: "Remove records in call_requests database table with ttl value greater then now.",
+	ExecFunction:   CleanCallRequestsExec,
+}}
 
 type CallRequest struct {
 	Id                    string      `json:"id"`
@@ -21,7 +30,7 @@ type CallRequest struct {
 	UpdatedAt             time.Time   `json:"updated_at"`
 }
 
-func CleanCallRequestsCommand(ctx context.Context, dbPool *pgxpool.Pool) error {
+func CleanCallRequestsExec(ctx context.Context, dbPool *pgxpool.Pool) error {
 	tag, err := dbPool.Exec(
 		ctx,
 		"DELETE FROM call_requests WHERE expires_at <= NOW() - INTERVAL '1 minute';",
@@ -30,6 +39,6 @@ func CleanCallRequestsCommand(ctx context.Context, dbPool *pgxpool.Pool) error {
 		return fmt.Errorf("delete execution failed, err: %v", err)
 	}
 
-	log.Printf("Deleted %d call requests", tag.RowsAffected())
+	log.Printf("[engine] [clean-call-requests] - Deleted %d call requests", tag.RowsAffected())
 	return nil
 }

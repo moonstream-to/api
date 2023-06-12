@@ -1,4 +1,4 @@
-module github.com/moonstream-to/api/workers
+module github.com/moonstream-to/api/probs
 
 go 1.19
 
