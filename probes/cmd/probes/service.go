@@ -36,7 +36,7 @@ func RunService(configPath string) error {
 	for _, service := range *serviceConfigs {
 		for _, worker := range service.Workers {
 			wg.Add(1)
-			go RunWorker(&wg, worker, service.Name, service.DbUri)
+			go RunWorker(&wg, worker, service.Name, service.DbUri, service.DbTimeout)
 		}
 	}
 	wg.Wait()
@@ -44,16 +44,17 @@ func RunService(configPath string) error {
 	return nil
 }
 
-func RunWorker(wg *sync.WaitGroup, worker probes.ServiceWorker, serviceName, dbUri string) error {
+func RunWorker(wg *sync.WaitGroup, worker probes.ServiceWorker, serviceName, dbUri, dbTimeout string) error {
 	defer wg.Done()
 
 	ctx := context.Background()
 
-	dbPool, err := CreateDbPool(ctx, dbUri, "10s")
+	dbPool, err := CreateDbPool(ctx, dbUri, dbTimeout)
 	if err != nil {
-		log.Printf("[%s] [%s] - database connection error, err: %v", serviceName, worker.Name, err)
+		log.Printf("[%s] [%s] - unable to establish connection with database, err: %v", serviceName, worker.Name, err)
 		return err
 	}
+
 	defer dbPool.Close()
 
 	t := time.NewTicker(time.Duration(worker.Interval) * time.Second)
@@ -63,7 +64,7 @@ func RunWorker(wg *sync.WaitGroup, worker probes.ServiceWorker, serviceName, dbU
 			err = worker.ExecFunction(ctx, dbPool)
 			if err != nil {
 				log.Printf("[%s] [%s] - an error occurred during execution, err: %v", serviceName, worker.Name, err)
-				return err
+				continue
 			}
 		}
 	}

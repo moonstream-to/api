@@ -1,5 +1,5 @@
 [Unit]
-Description=Clean outdated call_requests from Engine DB
+Description=Run probes service
 After=network.target
 StartLimitIntervalSec=300
 StartLimitBurst=3

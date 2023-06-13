@@ -107,7 +107,9 @@ func CreateEngineCommand() *cobra.Command {
 	}
 
 	var dbUri string
+	var dbTimeout string
 	engineCommand.PersistentFlags().StringVarP(&dbUri, "db-uri", "d", "", "Database URI")
+	engineCommand.PersistentFlags().StringVarP(&dbTimeout, "db-timeout", "t", "", "Database timeout (format: 10s)")
 	engineCommand.MarkFlagRequired("db-uri")
 
 	for _, sc := range engine.ENGINE_SUPPORTED_WORKERS {
@@ -118,7 +120,7 @@ func CreateEngineCommand() *cobra.Command {
 			RunE: func(cmd *cobra.Command, args []string) error {
 				ctx := context.Background()
 
-				dbPool, err := CreateDbPool(ctx, dbUri, "10s")
+				dbPool, err := CreateDbPool(ctx, dbUri, dbTimeout)
 				if err != nil {
 					return fmt.Errorf("database connection error: %v", err)
 				}

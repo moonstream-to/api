@@ -11,7 +11,7 @@ import (
 	probes "github.com/moonstream-to/api/probes/pkg"
 )
 
-var ENGINE_SUPPORTED_WORKERS = []probes.ServiceWorker{{
+var ENGINE_SUPPORTED_WORKERS = map[string]probes.ServiceWorker{"engine-clean-call-requests": {
 	Name:           "clean-call-requests",
 	Description:    "Clean all inactive call requests from database",
 	LonDescription: "Remove records in call_requests database table with ttl value greater then now.",

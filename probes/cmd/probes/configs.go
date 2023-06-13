@@ -20,9 +20,10 @@ var (
 
 // Workers configuration
 type ServiceWorkersConfig struct {
-	Name    string                 `json:"name"`
-	DbUri   string                 `json:"db_uri"`
-	Workers []probes.ServiceWorker `json:"workers"`
+	Name      string                 `json:"name"`
+	DbUri     string                 `json:"db_uri"`
+	DbTimeout string                 `json:"db_timeout"`
+	Workers   []probes.ServiceWorker `json:"workers"`
 }
 
 func ReadConfig(configPath string) (*[]ServiceWorkersConfig, int, error) {
@@ -51,31 +52,29 @@ func ReadConfig(configPath string) (*[]ServiceWorkersConfig, int, error) {
 		for w, worker := range service.Workers {
 			switch service.Name {
 			case "engine":
-				for _, engineWorker := range engine.ENGINE_SUPPORTED_WORKERS {
-					if worker.Name == engineWorker.Name {
-						serviceWorkers = append(serviceWorkers, probes.ServiceWorker{
-							Name:         worker.Name,
-							Interval:     worker.Interval,
-							ExecFunction: engineWorker.ExecFunction,
-						})
-						log.Printf("[%s] [%s] - Registered function", service.Name, worker.Name)
-						totalWorkersNum++
-						continue
-					}
-				}
-				if worker.ExecFunction == nil {
+				engineWorker := engine.ENGINE_SUPPORTED_WORKERS[fmt.Sprintf("%s-%s", service.Name, worker.Name)]
+				if engineWorker.ExecFunction == nil {
 					service.Workers = append(service.Workers[:w], service.Workers[w+1:]...)
 					log.Printf("Function for worker %s at service %s not found, removed from the list", worker.Name, service.Name)
+					continue
 				}
+				serviceWorkers = append(serviceWorkers, probes.ServiceWorker{
+					Name:         worker.Name,
+					Interval:     worker.Interval,
+					ExecFunction: engineWorker.ExecFunction,
+				})
+				log.Printf("[%s] [%s] - Registered function", service.Name, worker.Name)
+				totalWorkersNum++
 			default:
 				service.Workers = append(service.Workers[:w], service.Workers[w+1:]...)
 				log.Printf("Unsupported %s service with %s worker from the list", worker.Name, service.Name)
 			}
 		}
 		serviceWorkersConfig = append(serviceWorkersConfig, ServiceWorkersConfig{
-			Name:    service.Name,
-			DbUri:   serviceDbUri,
-			Workers: serviceWorkers,
+			Name:      service.Name,
+			DbUri:     serviceDbUri,
+			DbTimeout: service.DbTimeout,
+			Workers:   serviceWorkers,
 		})
 	}
 
