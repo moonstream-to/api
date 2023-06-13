@@ -1,4 +1,4 @@
-module github.com/moonstream-to/api/probs
+module github.com/moonstream-to/api/probes
 
 go 1.19
 

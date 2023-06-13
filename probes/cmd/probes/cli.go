@@ -6,8 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	probs "github.com/moonstream-to/api/probs/pkg"
-	engine "github.com/moonstream-to/api/probs/pkg/engine"
+	probes "github.com/moonstream-to/api/probes/pkg"
+	engine "github.com/moonstream-to/api/probes/pkg/engine"
 )
 
 func CreateRootCommand() *cobra.Command {
@@ -94,7 +94,7 @@ func CreateVersionCommand() *cobra.Command {
 		Short: "Print the version number of workers",
 		Long:  `All software has versions. This is workers's.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			cmd.Println(probs.VERSION)
+			cmd.Println(probes.VERSION)
 		},
 	}
 	return versionCmd

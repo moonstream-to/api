@@ -62,4 +62,4 @@ dev.env
 prod.env
 test.env
 .venv
-probs_dev
+probes_dev

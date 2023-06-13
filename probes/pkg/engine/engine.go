@@ -8,10 +8,10 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	probs "github.com/moonstream-to/api/probs/pkg"
+	probes "github.com/moonstream-to/api/probes/pkg"
 )
 
-var ENGINE_SUPPORTED_WORKERS = []probs.ServiceWorker{{
+var ENGINE_SUPPORTED_WORKERS = []probes.ServiceWorker{{
 	Name:           "clean-call-requests",
 	Description:    "Clean all inactive call requests from database",
 	LonDescription: "Remove records in call_requests database table with ttl value greater then now.",

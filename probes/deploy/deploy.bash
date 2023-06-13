@@ -21,7 +21,7 @@ SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/engineapi-secrets}"
 PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
 
 # API server service file
-PROBS_SERVICE_FILE="probs.service"
+PROBES_SERVICE_FILE="probes.service"
 
 set -eu
 
@@ -61,8 +61,8 @@ XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ENGINE_S
 
 echo
 echo
-echo -e "${PREFIX_INFO} Replacing existing probs service and timer with: ${PROBS_SERVICE_FILE}"
-chmod 644 "${SCRIPT_DIR}/${PROBS_SERVICE_FILE}"
-cp "${SCRIPT_DIR}/${PROBS_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${PROBS_SERVICE_FILE}"
+echo -e "${PREFIX_INFO} Replacing existing probes service and timer with: ${PROBES_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${PROBES_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${PROBES_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${PROBES_SERVICE_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart "${PROBS_SERVICE_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart "${PROBES_SERVICE_FILE}"

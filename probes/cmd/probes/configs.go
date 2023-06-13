@@ -9,20 +9,20 @@ import (
 	"path/filepath"
 	"strings"
 
-	probs "github.com/moonstream-to/api/probs/pkg"
-	engine "github.com/moonstream-to/api/probs/pkg/engine"
+	probes "github.com/moonstream-to/api/probes/pkg"
+	engine "github.com/moonstream-to/api/probes/pkg/engine"
 )
 
 var (
-	DEFAULT_CONFIG_DIR_NAME  = ".probs"
+	DEFAULT_CONFIG_DIR_NAME  = ".probes"
 	DEFAULT_CONFIG_FILE_NAME = "config.json"
 )
 
 // Workers configuration
 type ServiceWorkersConfig struct {
-	Name    string                `json:"name"`
-	DbUri   string                `json:"db_uri"`
-	Workers []probs.ServiceWorker `json:"workers"`
+	Name    string                 `json:"name"`
+	DbUri   string                 `json:"db_uri"`
+	Workers []probes.ServiceWorker `json:"workers"`
 }
 
 func ReadConfig(configPath string) (*[]ServiceWorkersConfig, int, error) {
@@ -45,7 +45,7 @@ func ReadConfig(configPath string) (*[]ServiceWorkersConfig, int, error) {
 			return nil, totalWorkersNum, fmt.Errorf("unable to load database URI for service %s", service.Name)
 		}
 
-		var serviceWorkers []probs.ServiceWorker
+		var serviceWorkers []probes.ServiceWorker
 
 		// Link worker function
 		for w, worker := range service.Workers {
@@ -53,7 +53,7 @@ func ReadConfig(configPath string) (*[]ServiceWorkersConfig, int, error) {
 			case "engine":
 				for _, engineWorker := range engine.ENGINE_SUPPORTED_WORKERS {
 					if worker.Name == engineWorker.Name {
-						serviceWorkers = append(serviceWorkers, probs.ServiceWorker{
+						serviceWorkers = append(serviceWorkers, probes.ServiceWorker{
 							Name:         worker.Name,
 							Interval:     worker.Interval,
 							ExecFunction: engineWorker.ExecFunction,

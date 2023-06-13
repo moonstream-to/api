@@ -5,12 +5,12 @@ StartLimitIntervalSec=300
 StartLimitBurst=3
 
 [Service]
-WorkingDirectory=/home/ubuntu/api/probs
+WorkingDirectory=/home/ubuntu/api/probes
 EnvironmentFile=/home/ubuntu/engineapi-secrets/app.env
-ExecStart=/home/ubuntu/api/probs/probs service
+ExecStart=/home/ubuntu/api/probes/probes service
 Restart=on-failure
 RestartSec=15s
-SyslogIdentifier=probs
+SyslogIdentifier=probes
 
 [Install]
 WantedBy=multi-user.target

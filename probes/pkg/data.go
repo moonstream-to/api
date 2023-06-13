@@ -1,4 +1,4 @@
-package probs
+package probes
 
 import (
 	"context"

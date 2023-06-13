@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	probs "github.com/moonstream-to/api/probs/pkg"
+	probes "github.com/moonstream-to/api/probes/pkg"
 )
 
 func RunService(configPath string) error {
@@ -44,7 +44,7 @@ func RunService(configPath string) error {
 	return nil
 }
 
-func RunWorker(wg *sync.WaitGroup, worker probs.ServiceWorker, serviceName, dbUri string) error {
+func RunWorker(wg *sync.WaitGroup, worker probes.ServiceWorker, serviceName, dbUri string) error {
 	defer wg.Done()
 
 	ctx := context.Background()
