@@ -18,10 +18,14 @@ APP_DIR="${APP_DIR:-/home/ubuntu/api}"
 AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
 SCRIPT_DIR="$(realpath $(dirname $0))"
 SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/engineapi-secrets}"
+CONFIGS_DIR="${CONFIGS_DIR:-/home/ubuntu/.probes}"
 PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
 
 # API server service file
 PROBES_SERVICE_FILE="probes.service"
+
+# Config files
+ENGINE_CLEAN_CALL_REQUESTS="engine-clean-call-requests.json"
 
 set -eu
 
@@ -52,12 +56,12 @@ echo "AWS_LOCAL_IPV4=$(ec2metadata --local-ipv4)" >> "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Replacing existing Engine API server service definition with ${ENGINE_SERVICE_FILE}"
-chmod 644 "${SCRIPT_DIR}/${ENGINE_SERVICE_FILE}"
-cp "${SCRIPT_DIR}/${ENGINE_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ENGINE_SERVICE_FILE}"
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ENGINE_SERVICE_FILE}"
-
+echo -e "${PREFIX_INFO} Copy configs"
+if [ ! -d "${CONFIGS_DIR}" ]; then
+  mkdir "${CONFIGS_DIR}"
+  echo -e "${CONFIGS_DIR} Created new configs directory"
+fi
+cp "${SCRIPT_DIR}/configs/${ENGINE_CLEAN_CALL_REQUESTS}" "${CONFIGS_DIR}/${ENGINE_CLEAN_CALL_REQUESTS}"
 
 echo
 echo

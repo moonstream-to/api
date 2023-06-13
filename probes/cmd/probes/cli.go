@@ -136,18 +136,18 @@ func CreateEngineCommand() *cobra.Command {
 }
 
 func CreateServiceCommand() *cobra.Command {
-	var configPath string
+	var configPaths []string
 
 	serviceCmd := &cobra.Command{
 		Use:   "service",
 		Short: "Run workers as background asynchronous services",
 		Long:  `Each active worker specified in configuration will run in go-routine.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return RunService(configPath)
+			return RunService(configPaths)
 		},
 	}
 
-	serviceCmd.PersistentFlags().StringVarP(&configPath, "config", "c", "", "Config path, default: ~/.workers")
+	serviceCmd.PersistentFlags().StringSliceVarP(&configPaths, "config", "c", []string{}, "Config paths")
 
 	return serviceCmd
 }

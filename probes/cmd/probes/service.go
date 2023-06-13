@@ -6,64 +6,47 @@ import (
 	"log"
 	"sync"
 	"time"
-
-	probes "github.com/moonstream-to/api/probes/pkg"
 )
 
-func RunService(configPath string) error {
+func RunService(configPaths []string) error {
 	// Load configuration
-	configPlacement, err := GetConfigPlacement(configPath)
-	if err != nil {
-		return err
-	}
-
-	if !configPlacement.ConfigExists {
-		if err := GenerateDefaultConfig(configPlacement); err != nil {
-			return err
-		}
-	} else {
-		log.Printf("Loaded configuration from %s", configPlacement.ConfigPath)
-	}
-
-	serviceConfigs, totalWorkersNum, err := ReadConfig(configPlacement.ConfigPath)
+	configs, err := ReadConfig(configPaths)
 	if err != nil {
 		return fmt.Errorf("unable to read config, err: %v", err)
 	}
 
-	log.Printf("Loaded configurations of %d services with %d workers", len(*serviceConfigs), totalWorkersNum)
+	log.Printf("Loaded configurations of %d application probes", len(*configs))
 
 	var wg sync.WaitGroup
-	for _, service := range *serviceConfigs {
-		for _, worker := range service.Workers {
-			wg.Add(1)
-			go RunWorker(&wg, worker, service.Name, service.DbUri, service.DbTimeout)
-		}
+	for _, config := range *configs {
+		wg.Add(1)
+		go RunWorker(&wg, config)
 	}
 	wg.Wait()
 
 	return nil
 }
 
-func RunWorker(wg *sync.WaitGroup, worker probes.ServiceWorker, serviceName, dbUri, dbTimeout string) error {
+func RunWorker(wg *sync.WaitGroup, config ApplicationProbeConfig) error {
 	defer wg.Done()
 
 	ctx := context.Background()
 
-	dbPool, err := CreateDbPool(ctx, dbUri, dbTimeout)
+	dbPool, err := CreateDbPool(ctx, config.DbUri, config.DbTimeout)
 	if err != nil {
-		log.Printf("[%s] [%s] - unable to establish connection with database, err: %v", serviceName, worker.Name, err)
+		log.Printf("[%s] [%s] - unable to establish connection with database, err: %v", config.Application, config.Probe.Name, err)
 		return err
 	}
 
 	defer dbPool.Close()
 
-	t := time.NewTicker(time.Duration(worker.Interval) * time.Second)
+	t := time.NewTicker(time.Duration(config.Probe.Interval) * time.Second)
 	for {
 		select {
 		case <-t.C:
-			err = worker.ExecFunction(ctx, dbPool)
+			err = config.Probe.ExecFunction(ctx, dbPool)
 			if err != nil {
-				log.Printf("[%s] [%s] - an error occurred during execution, err: %v", serviceName, worker.Name, err)
+				log.Printf("[%s] [%s] - an error occurred during execution, err: %v", config.Application, config.Probe.Name, err)
 				continue
 			}
 		}

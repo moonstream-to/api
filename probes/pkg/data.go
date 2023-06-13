@@ -6,7 +6,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type ServiceWorker struct {
+type ApplicationProbe struct {
 	Name           string `json:"name"`
 	Description    string
 	LonDescription string

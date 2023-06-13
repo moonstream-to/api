@@ -1,0 +1,9 @@
+{
+    "application": "engine",
+    "db_uri": "ENGINE_DB_URI",
+    "db_timeout": "15s",
+    "probe": {
+        "name": "clean-call-requests",
+        "interval": 10
+    }
+}
