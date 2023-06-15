@@ -15,7 +15,7 @@ from moonstreamdb.db import SessionLocal
 from ..settings import BUGOUT_BROOD_URL, BUGOUT_SPIRE_URL, MOONSTREAM_APPLICATION_ID
 from ..web3_provider import yield_web3_provider
 
-from . import subscription_types, subscriptions, moonworm_tasks
+from . import subscription_types, subscriptions, moonworm_tasks, queries
 from .migrations import (
     checksum_address,
     update_dashboard_subscription_key,
@@ -477,6 +477,75 @@ This CLI is configured to work with the following API URLs:
     )
 
     parser_moonworm_tasks_add.set_defaults(func=moonworm_tasks_add_subscription_handler)
+
+    ### Add new cli here
+
+    parser_queries = subcommands.add_parser(
+        "queries", description="Manage Moonstream queries journal and resources."
+    )
+    parser_queries.set_defaults(func=lambda _: parser_queries.print_help())
+    subcommands_queries = parser_queries.add_subparsers()
+
+    parser_queries_ensure_tags = subcommands_queries.add_parser(
+        "ensure-canonical-tags",
+        description="Add connanical tags to query entries",
+        help="Add connanical tags to query entries",
+    )
+    parser_queries_ensure_tags.set_defaults(func=queries.ensure_queries_tags)
+
+    parser_queries_get_users = subcommands_queries.add_parser(
+        "get-users",
+        description="Return list of users with query count.",
+        help="Return list of users with query count.",
+    )
+    parser_queries_get_users.set_defaults(func=queries.get_users)
+
+    parser_queries_get_user_queries = subcommands_queries.add_parser(
+        "get-user-queries",
+        description="Return list of user queries.",
+        help="Return list of user queries.",
+    )
+
+    parser_queries_get_user_queries.add_argument(
+        "-u",
+        "--user-id",
+        type=str,
+        help="User id.",
+    )
+
+    parser_queries_get_user_queries.set_defaults(func=queries.get_user_queries)
+
+    parser_queries_copy_user_queries = subcommands_queries.add_parser(
+        "copy-user-queries",
+        description="Copy user queries to another user.",
+        help="Copy user queries to another user.",
+    )
+
+    parser_queries_copy_user_queries.add_argument(
+        "-f",
+        "--from-user-id",
+        type=str,
+        required=True,
+        help="User id from wich account query will be copied.",
+    )
+
+    parser_queries_copy_user_queries.add_argument(
+        "-t",
+        "--to-user-token",
+        type=str,
+        required=True,
+        help="User id to wich account query will be copied.",
+    )
+
+    parser_queries_copy_user_queries.set_defaults(func=queries.copy_queries)
+
+    parser_get_queries_tags = subcommands_queries.add_parser(
+        "get-queries-tags",
+        description="Return list of queries tags.",
+        help="Return list of queries tags.",
+    )
+
+    parser_get_queries_tags.set_defaults(func=queries.get_all_parameters_tags)
 
     args = parser.parse_args()
     args.func(args)
