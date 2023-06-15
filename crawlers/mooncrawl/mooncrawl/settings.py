@@ -279,3 +279,26 @@ infura_networks = {
 BUGOUT_RESOURCE_TYPE_SUBSCRIPTION = "subscription"
 BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION = "entity_subscription"
 BUGOUT_RESOURCE_TYPE_DASHBOARD = "dashboards"
+
+
+# Historical crawler status config
+
+HISTORICAL_CRAWLER_STATUSES = {
+    "pending": "pending",
+    "running": "running",
+    "finished": "finished",
+}
+
+# Historical crawler moonworm status config
+
+HISTORICAL_CRAWLER_MOONWORM_STATUSES = {
+    "pickedup": True,
+}
+
+# Statuses tags prefixes
+
+HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES = {
+    "moonworm_status": "moonworm_task_pickedup",
+    "historical_crawl_status": "historical_crawl_status",
+    "progress_status": "progress",
+}

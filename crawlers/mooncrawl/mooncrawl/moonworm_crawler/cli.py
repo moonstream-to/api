@@ -8,7 +8,12 @@ from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
 from ..db import yield_db_session_ctx
-from ..settings import MOONSTREAM_MOONWORM_TASKS_JOURNAL, NB_CONTROLLER_ACCESS_ID
+from ..settings import (
+    MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+    NB_CONTROLLER_ACCESS_ID,
+    HISTORICAL_CRAWLER_STATUSES,
+    HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES,
+)
 from .continuous_crawler import _retry_connect_web3, continuous_crawler
 from .crawler import (
     SubscriptionTypes,
@@ -16,6 +21,9 @@ from .crawler import (
     get_crawl_job_entries,
     make_event_crawl_jobs,
     make_function_call_crawl_jobs,
+    find_all_deployed_blocks,
+    update_job_state_with_filters,
+    moonworm_crawler_update_job_as_pickedup,
 )
 from .db import get_first_labeled_block_number, get_last_labeled_block_number
 from .historical_crawler import historical_crawler
@@ -46,6 +54,14 @@ def handle_crawl(args: argparse.Namespace) -> None:
     )
     logger.info(
         f"Initial function call crawl jobs count: {len(initial_function_call_jobs)}"
+    )
+
+    (
+        initial_event_jobs,
+        initial_function_call_jobs,
+    ) = moonworm_crawler_update_job_as_pickedup(
+        event_crawl_jobs=initial_event_jobs,
+        function_call_crawl_jobs=initial_function_call_jobs,
     )
 
     logger.info(f"Blockchain type: {blockchain_type.value}")
@@ -125,20 +141,33 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
     blockchain_type = AvailableBlockchainType(args.blockchain_type)
     subscription_type = blockchain_type_to_subscription_type(blockchain_type)
 
+    extend_tags = []
+
     addresses_filter = []
     if args.address is not None:
         addresses_filter = [Web3.toChecksumAddress(args.address)]
+
+    if args.tasks_journal:
+        addresses_filter = []
+        extend_tags.extend(
+            [
+                "#moonworm_task_pickedup:True",
+                f"!#{HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES['historical_crawl_status']}:{HISTORICAL_CRAWLER_STATUSES['finished']}",
+            ]
+        )
 
     all_event_jobs = make_event_crawl_jobs(
         get_crawl_job_entries(
             subscription_type,
             "event",
             MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+            extend_tags=extend_tags,
         )
     )
+
     filtered_event_jobs = []
     for job in all_event_jobs:
-        if addresses_filter:
+        if addresses_filter and not args.tasks_journal:
             intersection = [
                 address for address in job.contracts if address in addresses_filter
             ]
@@ -155,20 +184,56 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
             subscription_type,
             "function",
             MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+            extend_tags=extend_tags,
         )
     )
+
     if addresses_filter:
-        filtered_function_call_jobs = [
-            job
-            for job in all_function_call_jobs
-            if job.contract_address in addresses_filter
-        ]
+        filtered_function_call_jobs = [job for job in all_function_call_jobs]
     else:
         filtered_function_call_jobs = all_function_call_jobs
+
+    # get set of addresses from event jobs and function call jobs
 
     if args.only_events:
         filtered_function_call_jobs = []
         logger.info(f"Removing function call crawl jobs since --only-events is set")
+
+    if args.only_functions:
+        filtered_event_jobs = []
+        logger.info(
+            f"Removing event crawl jobs since --only-functions is set. Function call jobs count: {len(filtered_function_call_jobs)}"
+        )
+
+    if args.only_events and args.only_functions:
+        raise ValueError(
+            "--only-events and --only-functions cannot be set at the same time"
+        )
+
+    if args.tasks_journal:
+        if len(filtered_event_jobs) > 0:
+            filtered_event_jobs = update_job_state_with_filters(  # type: ignore
+                events=filtered_event_jobs,
+                address_filter=[],
+                required_tags=[
+                    "historical_crawl_status:pending",
+                    "moonworm_task_pickedup:True",
+                ],
+                tags_to_add=["historical_crawl_status:in_progress"],
+                tags_to_delete=["historical_crawl_status:pending"],
+            )
+
+        if len(filtered_function_call_jobs) > 0:
+            filtered_function_call_jobs = update_job_state_with_filters(  # type: ignore
+                events=filtered_function_call_jobs,
+                address_filter=[],
+                required_tags=[
+                    "historical_crawl_status:pending",
+                    "moonworm_task_pickedup:True",
+                ],
+                tags_to_add=["historical_crawl_status:in_progress"],
+                tags_to_delete=["historical_crawl_status:pending"],
+            )
 
     logger.info(
         f"Initial function call crawl jobs count: {len(filtered_function_call_jobs)}"
@@ -198,7 +263,31 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
         )
         logger.info(f"Last labeled block: {last_labeled_block}")
 
-        start_block = args.start
+        addresses_deployment_blocks = None
+
+        end_block = args.end
+
+        # get set of addresses from event jobs and function call jobs
+        if args.find_deployed_blocks:
+            addresses_set = set()
+            for job in filtered_event_jobs:
+                addresses_set.update(job.contracts)
+            for function_job in filtered_function_call_jobs:
+                addresses_set.add(function_job.contract_address)
+
+            if args.start is None:
+                start_block = web3.eth.blockNumber - 1
+
+            addresses_deployment_blocks = find_all_deployed_blocks(
+                web3, list(addresses_set)
+            )
+            if len(addresses_deployment_blocks) == 0:
+                logger.error(
+                    "No addresses found in the blockchain. Please check your addresses and try again"
+                )
+                return
+            end_block = min(addresses_deployment_blocks.values())
+
         if start_block is None:
             logger.info("No start block provided")
             if last_labeled_block is not None:
@@ -226,9 +315,9 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
         else:
             logger.info(f"Using start block: {start_block}")
 
-        if start_block < args.end:
+        if start_block < end_block:
             raise ValueError(
-                f"Start block {start_block} is less than end block {args.end}. This crawler crawls in the reverse direction."
+                f"Start block {start_block} is less than end block {end_block}. This crawler crawls in the reverse direction."
             )
 
         historical_crawler(
@@ -238,10 +327,11 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
             filtered_event_jobs,
             filtered_function_call_jobs,
             start_block,
-            args.end,
+            end_block,
             args.max_blocks_batch,
             args.min_sleep_time,
             access_id=args.access_id,
+            addresses_deployment_blocks=addresses_deployment_blocks,
         )
 
 
@@ -371,7 +461,7 @@ def main() -> None:
         "--end",
         "-e",
         type=int,
-        required=True,
+        required=False,
     )
     historical_crawl_parser.add_argument(
         "--blockchain-type",
@@ -419,6 +509,24 @@ def main() -> None:
         action="store_true",
         default=False,
         help="Only crawl events",
+    )
+    historical_crawl_parser.add_argument(
+        "--only-functions",
+        action="store_true",
+        default=False,
+        help="Only crawl function calls",
+    )
+    historical_crawl_parser.add_argument(
+        "--find-deployed-blocks",
+        action="store_true",
+        default=False,
+        help="Find all deployed blocks",
+    )
+    historical_crawl_parser.add_argument(
+        "--tasks-journal",
+        action="store_true",
+        default=False,
+        help="Use tasks journal wich will fill all required fields for historical crawl",
     )
     historical_crawl_parser.set_defaults(func=handle_historical_crawl)
 

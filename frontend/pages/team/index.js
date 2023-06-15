@@ -32,6 +32,7 @@ const assets = {
   scarab: `${TEAM_PATH}/scarab.png`,
   spider: `${TEAM_PATH}/carpenter-spider.png`,
   weta: `${TEAM_PATH}/weta.png`,
+  dragonfly: `${TEAM_PATH}/dragonfly.png`,
 };
 
 const Team = () => {
@@ -152,7 +153,7 @@ const Team = () => {
             name={"Kellan Wampler"}
             atName={"@wampleek"}
             content={`News junkie. Reformed mathematician. Fantasy Football enthusiast.
-            Enjoys soduku and its variants. Follows artificial intelligence scene for 
+            Enjoys sudoku and its variants. Follows artificial intelligence scene for 
             Chess and Go. Experiments with grilling recipes.`}
           />
           <TeamCard
@@ -163,6 +164,15 @@ const Team = () => {
             working on self-development. Sometimes plays guitar
             and ukulele. Loves meat, went from well done to blue
             rare in a few months.`}
+          />
+          <TeamCard
+            avatarURL={assets["dragonfly"]}
+            name={"Anton Mushnin"}
+            atName={"@mumintrl"}
+            content={`Interface enthusiast. Loves water to swim in, dive deep into, 
+            yacht on, and drink (especially in wine). Chef - you 
+            could see him baking crepes at the Parisian market. Passionate 
+            about rugby and chess.`}
           />
         </Flex>
       </Stack>

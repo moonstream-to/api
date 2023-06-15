@@ -1,0 +1,14 @@
+[Unit]
+Description=Moonstream DB status service
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/moonstream/moonstreamdb/server
+EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
+ExecStart=/home/ubuntu/moonstream/moonstreamdb/server/moonstreamdb -host 127.0.0.1 -port "${MOONSTREAM_DB_SERVER_PORT}"
+SyslogIdentifier=moonstreamdb
+
+[Install]
+WantedBy=multi-user.target
