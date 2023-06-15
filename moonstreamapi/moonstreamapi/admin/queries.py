@@ -2,6 +2,7 @@
 Utilities for managing subscription type resources for a Moonstream application.
 """
 import argparse
+from collections import Counter
 import json
 
 from bugout.data import BugoutResources
@@ -9,6 +10,8 @@ from bugout.exceptions import BugoutResponseException
 from moonstream.client import Moonstream  # type: ignore
 import logging
 from typing import Dict, Any
+from sqlalchemy import text
+
 
 from ..data import BUGOUT_RESOURCE_QUERY_RESOLVER
 from ..settings import (
@@ -17,6 +20,7 @@ from ..settings import (
     MOONSTREAM_QUERIES_JOURNAL_ID,
 )
 from ..settings import bugout_client as bc
+from ..actions import get_all_entries_from_search
 
 
 logger = logging.getLogger(__name__)
@@ -280,3 +284,109 @@ def copy_queries(args: argparse.Namespace) -> None:
                 continue
 
             logger.info(f"Add approved tag for {created_query.id}")
+
+
+def get_all_parameters_tags(args: argparse.Namespace) -> None:
+    """
+    Get all parameters tags for all queries.
+    Directly from queries journal.
+    """
+
+    entries = get_all_entries_from_search(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
+        search_query="",  # get all entries
+        limit=100,
+    )
+
+    parameters_tags = []
+
+    for entry in entries:
+        if entry.tags is None:
+            continue
+
+        entry_parameters_tags = [
+            tag
+            for tag in entry.tags
+            if not any(
+                tag.startswith(x)
+                for x in [
+                    "user_name",
+                    "query_name",
+                    "user_id",
+                    "query_id",
+                    "preapprove",
+                    "approved",
+                ]
+            )
+        ]
+
+        parameters_tags.extend(entry_parameters_tags)
+
+    print(Counter(parameters_tags))
+
+
+def search_unmapped_query(args: argparse.Namespace) -> None:
+    """
+    Get all entries from queries journal and search for unmapped queries.
+    where query parameters not in tags.
+    """
+
+    entries = get_all_entries_from_search(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
+        search_query="",  # get all entries
+        limit=100,
+    )
+
+    for entry in entries:
+        # Check if it can transform to TextClause
+
+        if entry.content is None:
+            continue
+
+        try:
+            query = text(entry.content)
+        except Exception as e:
+            logger.error(
+                f"Can't parse query {entry.id} to TextClause in drones /query_update endpoint, error: {e}"  # type: ignore
+            )
+
+        # Get requried keys for query
+        expected_query_parameters = query._bindparams.keys()
+
+        entry_parameters_tags = [
+            tag
+            for tag in entry.tags
+            if not any(
+                tag.startswith(x)
+                for x in [
+                    "user_name",
+                    "query_name",
+                    "user_id",
+                    "query_id",
+                    "preapprove",
+                    "approved",
+                ]
+            )
+        ]
+
+        # make keys from tags
+
+        entry_parameters_tags_dict = {
+            tag.split(":")[0]: tag.split(":")[1] for tag in entry_parameters_tags
+        }
+
+        # make ordered set from keys
+
+        expected_parameters = list(expected_query_parameters).sort()
+
+        entry_parameters = list(entry_parameters_tags_dict.keys()).sort()
+
+        if expected_parameters != entry_parameters:
+            print(f"Query {entry.id} {entry.title} not mapped")  # type: ignore
+            print(f"Expected parameters: {expected_parameters}")
+            print(f"Entry parameters: {entry_parameters}")
+            print(f"Entry parameters tags: {entry_parameters_tags_dict}")
+            # print(f"Query: {entry.content}")
+            print("=====================================")

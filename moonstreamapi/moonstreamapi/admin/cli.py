@@ -539,6 +539,14 @@ This CLI is configured to work with the following API URLs:
 
     parser_queries_copy_user_queries.set_defaults(func=queries.copy_queries)
 
+    parser_get_queries_tags = subcommands_queries.add_parser(
+        "get-queries-tags",
+        description="Return list of queries tags.",
+        help="Return list of queries tags.",
+    )
+
+    parser_get_queries_tags.set_defaults(func=queries.get_all_parameters_tags)
+
     args = parser.parse_args()
     args.func(args)
 

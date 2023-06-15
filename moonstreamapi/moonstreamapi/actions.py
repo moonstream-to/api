@@ -467,6 +467,9 @@ def get_all_entries_from_search(
 
     results: List[BugoutSearchResult] = []
 
+    print(bc.spire_url)
+    print(journal_id)
+
     try:
         existing_metods = bc.search(
             token=token,
@@ -480,6 +483,7 @@ def get_all_entries_from_search(
         results.extend(existing_metods.results)
 
     except Exception as e:
+        logger.error(f"Error get entries: {str(e)}")
         reporter.error_report(e)
 
     if len(results) != existing_metods.total_results:
