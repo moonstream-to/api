@@ -22,6 +22,7 @@ from entity.exceptions import EntityUnexpectedResponse  # type: ignore
 from ens.utils import is_valid_ens_name  # type: ignore
 from eth_utils.address import is_address  # type: ignore
 from moonstreamdb.models import EthereumLabel
+from moonstreamdb.blockchain import AvailableBlockchainType
 from slugify import slugify  # type: ignore
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -41,8 +42,12 @@ from .settings import (
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
     MOONSTREAM_MOONWORM_TASKS_JOURNAL,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
+    support_interfaces,
+    supportsInterface_abi,
 )
 from .settings import bugout_client as bc, entity_client as ec
+from .web3_provider import multicall, FunctionSignature, connect
+
 
 logger = logging.getLogger(__name__)
 
@@ -793,3 +798,79 @@ def get_moonworm_jobs(
     )
 
     return entries
+
+
+def get_list_of_support_interfaces(
+    blockchain_type: AvailableBlockchainType,
+    address: str,
+    access_id: Optional[str] = None,
+    multicall_method: str = "tryAggregate",
+):
+    """
+    Returns list of interfaces supported by given address
+    """
+    web3_client = connect(blockchain_type, access_id=uuid.UUID(access_id))
+
+    contract = web3_client.eth.contract(
+        address=Web3.toChecksumAddress(address),
+        abi=supportsInterface_abi,
+    )
+
+    calls = []
+
+    for interaface in support_interfaces:
+        calls.append(
+            (
+                contract.address,
+                FunctionSignature(contract.get_function_by_name("supportsInterface"))
+                .encode_data([bytes.fromhex(interaface["selector"].replace("0x", ""))])
+                .hex(),
+            )
+        )
+    try:
+        multicall_result = multicall(
+            web3_client=web3_client,
+            blockchain_type=blockchain_type,
+            calls=calls,
+            method=multicall_method,
+        )
+    except Exception as e:
+        logger.error(f"Error while getting list of support interfaces: {e}")
+
+    result = {}
+
+    for i, interface in enumerate(support_interfaces):
+        info = {
+            "name": interface["name"],
+            "selector": interface["selector"],
+            "supported": False,
+        }
+
+        if multicall_result[i][0]:
+            info["supported"] = FunctionSignature(
+                contract.get_function_by_name("supportsInterface")
+            ).decode_data(multicall_result[i][1])
+
+        result[interface["name"]] = {
+            "supported": info["supported"],
+            "selector": info["selector"],
+        }
+
+    return result
+
+
+def check_if_smartcontract(
+    blockchain_type: AvailableBlockchainType,
+    address: str,
+    access_id: Optional[str] = None,
+):
+    """
+    Checks if address is a smart contract on blockchain
+    """
+    web3_client = connect(blockchain_type, access_id=uuid.UUID(access_id))
+
+    code = web3_client.eth.getCode(address)
+    if code != b"":
+        return True
+
+    return False

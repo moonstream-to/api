@@ -18,6 +18,8 @@ from ..actions import (
     get_entity_subscription_collection_id,
     EntityCollectionNotFoundException,
     get_moonworm_jobs,
+    check_if_smartcontract,
+    get_list_of_support_interfaces,
 )
 from ..admin import subscription_types
 from .. import data
@@ -28,9 +30,6 @@ from ..settings import bugout_client as bc, entity_client as ec
 from ..settings import MOONSTREAM_ADMIN_ACCESS_TOKEN, MOONSTREAM_MOONWORM_TASKS_JOURNAL
 from ..web3_provider import (
     yield_web3_provider,
-    check_if_smartcontract,
-    connect,
-    get_list_of_support_interfaces,
 )
 
 

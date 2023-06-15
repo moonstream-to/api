@@ -22,10 +22,8 @@ from .settings import (
     MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI,
     MOONSTREAM_XDAI_WEB3_PROVIDER_URI,
     MOONSTREAM_WYRM_WEB3_PROVIDER_URI,
-    support_interfaces,
     multicall_contracts,
     multicall_contract_abi,
-    supportsInterface_abi,
 )
 from moonstreamdb.blockchain import AvailableBlockchainType
 
@@ -74,7 +72,6 @@ def connect(
         else:
             raise Exception("Wrong blockchain type provided for web3 URI")
 
-    print(f"Connecting to {web3_uri}")
     if web3_uri.startswith("http://") or web3_uri.startswith("https://"):
         request_kwargs["timeout"] = WEB3_CLIENT_REQUEST_TIMEOUT_SECONDS
         web3_client = Web3(HTTPProvider(web3_uri, request_kwargs=request_kwargs))  # type: ignore
@@ -87,23 +84,6 @@ def connect(
         web3_client.middleware_onion.inject(geth_poa_middleware, layer=0)
 
     return web3_client
-
-
-def check_if_smartcontract(
-    blockchain_type: AvailableBlockchainType,
-    address: str,
-    access_id: Optional[str] = None,
-):
-    """
-    Checks if address is a smart contract on blockchain
-    """
-    web3_client = connect(blockchain_type, access_id=UUID(access_id))
-
-    code = web3_client.eth.getCode(address)
-    if code != b"":
-        return True
-
-    return False
 
 
 def multicall(
@@ -122,72 +102,9 @@ def multicall(
         abi=multicall_contract_abi,
     )
 
-    # block_number = multicall_contract.functions.getBlockNumber.call()
-    # print(f"Block number: {block_number}")
-
     return multicall_contract.get_function_by_name(method)(False, calls).call(
         block_identifier=block_identifier
     )
-
-
-def get_list_of_support_interfaces(
-    blockchain_type: AvailableBlockchainType,
-    address: str,
-    access_id: Optional[str] = None,
-    multicall_method: str = "tryAggregate",
-):
-    """
-    Returns list of interfaces supported by given address
-    """
-    web3_client = connect(blockchain_type, access_id=UUID(access_id))
-
-    contract = web3_client.eth.contract(
-        address=Web3.toChecksumAddress(address),
-        abi=supportsInterface_abi,
-    )
-
-    calls = []
-
-    for interaface in support_interfaces:
-        calls.append(
-            (
-                contract.address,
-                FunctionSignature(contract.get_function_by_name("supportsInterface"))
-                .encode_data([bytes.fromhex(interaface["selector"].replace("0x", ""))])
-                .hex(),
-            )
-        )
-    try:
-        multicall_result = multicall(
-            web3_client=web3_client,
-            blockchain_type=blockchain_type,
-            calls=calls,
-            method=multicall_method,
-        )
-    except Exception as e:
-        traceback.print_exc()
-        logger.error(f"Error while getting list of support interfaces: {e}")
-
-    result = {}
-
-    for i, interface in enumerate(support_interfaces):
-        info = {
-            "name": interface["name"],
-            "selector": interface["selector"],
-            "supported": False,
-        }
-
-        if multicall_result[i][0]:
-            info["supported"] = FunctionSignature(
-                contract.get_function_by_name("supportsInterface")
-            ).decode_data(multicall_result[i][1])
-
-        result[interface["name"]] = {
-            "supported": info["supported"],
-            "selector": info["selector"],
-        }
-
-    return result
 
 
 def cast_to_python_type(evm_type: str) -> Callable:

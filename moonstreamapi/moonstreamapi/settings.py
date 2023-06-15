@@ -192,60 +192,58 @@ multicall_contracts: Dict[AvailableBlockchainType, str] = {
 }
 
 
-multicall_contract_abi = (
-    [
-        {
-            "inputs": [
-                {"internalType": "bool", "name": "requireSuccess", "type": "bool"},
-                {
-                    "components": [
-                        {
-                            "internalType": "address",
-                            "name": "target",
-                            "type": "address",
-                        },
-                        {
-                            "internalType": "bytes",
-                            "name": "callData",
-                            "type": "bytes",
-                        },
-                    ],
-                    "internalType": "struct Multicall2.Call[]",
-                    "name": "calls",
-                    "type": "tuple[]",
-                },
-            ],
-            "name": "tryAggregate",
-            "outputs": [
-                {
-                    "components": [
-                        {"internalType": "bool", "name": "success", "type": "bool"},
-                        {
-                            "internalType": "bytes",
-                            "name": "returnData",
-                            "type": "bytes",
-                        },
-                    ],
-                    "internalType": "struct Multicall2.Result[]",
-                    "name": "returnData",
-                    "type": "tuple[]",
-                }
-            ],
-            "stateMutability": "nonpayable",
-            "type": "function",
-        },
-        {
-            "inputs": [{"internalType": "bytes", "name": "data", "type": "bytes"}],
-            "name": "aggregate",
-            "outputs": [
-                {"internalType": "bool", "name": "success", "type": "bool"},
-                {"internalType": "bytes", "name": "result", "type": "bytes"},
-            ],
-            "stateMutability": "payable",
-            "type": "function",
-        },
-    ],
-)
+multicall_contract_abi = [
+    {
+        "inputs": [
+            {"internalType": "bool", "name": "requireSuccess", "type": "bool"},
+            {
+                "components": [
+                    {
+                        "internalType": "address",
+                        "name": "target",
+                        "type": "address",
+                    },
+                    {
+                        "internalType": "bytes",
+                        "name": "callData",
+                        "type": "bytes",
+                    },
+                ],
+                "internalType": "struct Multicall2.Call[]",
+                "name": "calls",
+                "type": "tuple[]",
+            },
+        ],
+        "name": "tryAggregate",
+        "outputs": [
+            {
+                "components": [
+                    {"internalType": "bool", "name": "success", "type": "bool"},
+                    {
+                        "internalType": "bytes",
+                        "name": "returnData",
+                        "type": "bytes",
+                    },
+                ],
+                "internalType": "struct Multicall2.Result[]",
+                "name": "returnData",
+                "type": "tuple[]",
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function",
+    },
+    {
+        "inputs": [{"internalType": "bytes", "name": "data", "type": "bytes"}],
+        "name": "aggregate",
+        "outputs": [
+            {"internalType": "bool", "name": "success", "type": "bool"},
+            {"internalType": "bytes", "name": "result", "type": "bytes"},
+        ],
+        "stateMutability": "payable",
+        "type": "function",
+    },
+]
 
 
 supportsInterface_abi = [
