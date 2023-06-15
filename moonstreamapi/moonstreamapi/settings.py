@@ -1,9 +1,10 @@
 import os
-from typing import Optional
+from typing import Optional, Dict
 from uuid import UUID
 
 from bugout.app import Bugout
 from entity.client import Entity  # type: ignore
+from moonstreamdb.blockchain import AvailableBlockchainType
 
 
 # Bugout
@@ -172,10 +173,87 @@ except:
 
 
 support_interfaces = [
+    {"name": "_INTERFACE_ID_ERC165", "selector": "0x01ffc9a7"},
+    {"name": "_INTERFACE_ID_ERC20", "selector": "0x36372b07"},
     {"name": "_INTERFACE_ID_ERC721", "selector": "0x80ac58cd"},
     {"name": "_INTERFACE_ID_ERC721_METADATA", "selector": "0x5b5e139f"},
     {"name": "_INTERFACE_ID_ERC721_ENUMERABLE", "selector": "0x780e9d63"},
     {"name": "_INTERFACE_ID_ERC721_RECEIVED", "selector": "0x150b7a02"},
     {"name": "_INTERFACE_ID_ERC721_METADATA_RECEIVED", "selector": "0x0e89341c"},
     {"name": "_INTERFACE_ID_ERC721_ENUMERABLE_RECEIVED", "selector": "0x4e2312e0"},
+    {"name": "_INTERFACE_ID_ERC1155", "selector": "0xd9b67a26"},
+]
+
+
+multicall_contracts: Dict[AvailableBlockchainType, str] = {
+    AvailableBlockchainType.POLYGON: "0xc8E51042792d7405184DfCa245F2d27B94D013b6",
+    AvailableBlockchainType.MUMBAI: "0xe9939e7Ea7D7fb619Ac57f648Da7B1D425832631",
+    AvailableBlockchainType.ETHEREUM: "0x5BA1e12693Dc8F9c48aAD8770482f4739bEeD696",
+}
+
+
+multicall_contract_abi = (
+    [
+        {
+            "inputs": [
+                {"internalType": "bool", "name": "requireSuccess", "type": "bool"},
+                {
+                    "components": [
+                        {
+                            "internalType": "address",
+                            "name": "target",
+                            "type": "address",
+                        },
+                        {
+                            "internalType": "bytes",
+                            "name": "callData",
+                            "type": "bytes",
+                        },
+                    ],
+                    "internalType": "struct Multicall2.Call[]",
+                    "name": "calls",
+                    "type": "tuple[]",
+                },
+            ],
+            "name": "tryAggregate",
+            "outputs": [
+                {
+                    "components": [
+                        {"internalType": "bool", "name": "success", "type": "bool"},
+                        {
+                            "internalType": "bytes",
+                            "name": "returnData",
+                            "type": "bytes",
+                        },
+                    ],
+                    "internalType": "struct Multicall2.Result[]",
+                    "name": "returnData",
+                    "type": "tuple[]",
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function",
+        },
+        {
+            "inputs": [{"internalType": "bytes", "name": "data", "type": "bytes"}],
+            "name": "aggregate",
+            "outputs": [
+                {"internalType": "bool", "name": "success", "type": "bool"},
+                {"internalType": "bytes", "name": "result", "type": "bytes"},
+            ],
+            "stateMutability": "payable",
+            "type": "function",
+        },
+    ],
+)
+
+
+supportsInterface_abi = [
+    {
+        "inputs": [{"internalType": "bytes4", "name": "interfaceId", "type": "bytes4"}],
+        "name": "supportsInterface",
+        "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+        "stateMutability": "view",
+        "type": "function",
+    }
 ]

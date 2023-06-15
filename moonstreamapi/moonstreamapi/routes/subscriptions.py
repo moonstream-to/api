@@ -626,18 +626,20 @@ async def address_info(request: Request, address: str):
 @router.get(
     "/supported_interfaces",
     tags=["subscriptions"],
-    response_model=data.SubscriptionTypesListResponse,
+    response_model=data.ContractInterfacesResponse,
 )
 def get_contract_interfaces(
     request: Request,
     address: str,
-    blockchain_type: str,
+    blockchain: str,
 ):
     """
     Request contract interfaces from web3
     """
 
     user_token = request.state.token
+
+    blockchain_type = AvailableBlockchainType(blockchain)
 
     try:
         resource = bc.list_resources(
@@ -666,6 +668,7 @@ def get_contract_interfaces(
         )
 
     except Exception as e:
+        traceback.print_exc()
         logger.error(f"Error reading contract info from web3: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 

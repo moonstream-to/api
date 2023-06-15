@@ -1,13 +1,18 @@
 import logging
 from uuid import UUID
+import traceback
 
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, Callable
 from web3 import Web3
-from web3.eth import AsyncEth
 from web3.middleware import geth_poa_middleware
+from eth_abi import encode_single, decode_single
+from eth_utils import function_signature_to_4byte_selector
+from web3 import Web3
+from web3.contract import ContractFunction
 from web3.providers.ipc import IPCProvider
 from web3.providers.rpc import HTTPProvider
-from web3.providers.async_rpc import AsyncHTTPProvider
+from web3._utils.abi import normalize_event_input_types
+
 
 from .settings import (
     MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI,
@@ -18,6 +23,9 @@ from .settings import (
     MOONSTREAM_XDAI_WEB3_PROVIDER_URI,
     MOONSTREAM_WYRM_WEB3_PROVIDER_URI,
     support_interfaces,
+    multicall_contracts,
+    multicall_contract_abi,
+    supportsInterface_abi,
 )
 from moonstreamdb.blockchain import AvailableBlockchainType
 
@@ -72,7 +80,6 @@ def connect(
         web3_client = Web3(HTTPProvider(web3_uri, request_kwargs=request_kwargs))  # type: ignore
     else:
         web3_client = Web3(Web3.IPCProvider(web3_uri))
-    # web3_client = Web3(web3_provider)
 
     # Inject --dev middleware if it is not Ethereum mainnet
     # Docs: https://web3py.readthedocs.io/en/stable/middleware.html#geth-style-proof-of-authority
@@ -101,39 +108,24 @@ def check_if_smartcontract(
 
 def multicall(
     web3_client: Web3,
+    blockchain_type: AvailableBlockchainType,
     calls: list,
     method: str = "tryAggregate",
-    block_identifier: Optional[int] = None,
+    block_identifier: Union[str, int, bytes, None] = "latest",
 ) -> list:
     """
     Calls multicall contract with given calls and returns list of results
     """
+
     multicall_contract = web3_client.eth.contract(
-        address=Web3.toChecksumAddress("0xeefba1e63905ef1d7acba5a8513c70307c1ce441"),
-        abi=[
-            {
-                "inputs": [{"internalType": "bytes", "name": "data", "type": "bytes"}],
-                "name": "tryAggregate",
-                "outputs": [
-                    {"internalType": "bool", "name": "success", "type": "bool"},
-                    {"internalType": "bytes", "name": "result", "type": "bytes"},
-                ],
-                "stateMutability": "payable",
-                "type": "function",
-            },
-            {
-                "inputs": [{"internalType": "bytes", "name": "data", "type": "bytes"}],
-                "name": "aggregate",
-                "outputs": [
-                    {"internalType": "bool", "name": "success", "type": "bool"},
-                    {"internalType": "bytes", "name": "result", "type": "bytes"},
-                ],
-                "stateMutability": "payable",
-                "type": "function",
-            },
-        ],
+        address=Web3.toChecksumAddress(multicall_contracts[blockchain_type]),
+        abi=multicall_contract_abi,
     )
-    return getattr(multicall_contract.functions, method)(calls).call(
+
+    # block_number = multicall_contract.functions.getBlockNumber.call()
+    # print(f"Block number: {block_number}")
+
+    return multicall_contract.get_function_by_name(method)(False, calls).call(
         block_identifier=block_identifier
     )
 
@@ -142,6 +134,7 @@ def get_list_of_support_interfaces(
     blockchain_type: AvailableBlockchainType,
     address: str,
     access_id: Optional[str] = None,
+    multicall_method: str = "tryAggregate",
 ):
     """
     Returns list of interfaces supported by given address
@@ -150,17 +143,7 @@ def get_list_of_support_interfaces(
 
     contract = web3_client.eth.contract(
         address=Web3.toChecksumAddress(address),
-        abi=[
-            {
-                "inputs": [
-                    {"internalType": "bytes4", "name": "interfaceId", "type": "bytes4"}
-                ],
-                "name": "supportsInterface",
-                "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
-                "stateMutability": "view",
-                "type": "function",
-            }
-        ],
+        abi=supportsInterface_abi,
     )
 
     calls = []
@@ -169,20 +152,23 @@ def get_list_of_support_interfaces(
         calls.append(
             (
                 contract.address,
-                contract.encodeABI(
-                    fn_name="supportsInterface", args=[interaface["selector"]]
-                ),
+                FunctionSignature(contract.get_function_by_name("supportsInterface"))
+                .encode_data([bytes.fromhex(interaface["selector"].replace("0x", ""))])
+                .hex(),
             )
         )
     try:
         multicall_result = multicall(
-            web3_client,
-            calls,
+            web3_client=web3_client,
+            blockchain_type=blockchain_type,
+            calls=calls,
+            method=multicall_method,
         )
     except Exception as e:
+        traceback.print_exc()
         logger.error(f"Error while getting list of support interfaces: {e}")
 
-    result = []
+    result = {}
 
     for i, interface in enumerate(support_interfaces):
         info = {
@@ -190,9 +176,73 @@ def get_list_of_support_interfaces(
             "selector": interface["selector"],
             "supported": False,
         }
-        if multicall_result[i][0]:
-            info["supported"] = True
 
-        result.append(info)
+        if multicall_result[i][0]:
+            info["supported"] = FunctionSignature(
+                contract.get_function_by_name("supportsInterface")
+            ).decode_data(multicall_result[i][1])
+
+        result[interface["name"]] = {
+            "supported": info["supported"],
+            "selector": info["selector"],
+        }
 
     return result
+
+
+def cast_to_python_type(evm_type: str) -> Callable:
+    if evm_type.startswith(("uint", "int")):
+        return int
+    elif evm_type.startswith("bytes"):
+        return bytes
+    elif evm_type == "string":
+        return str
+    elif evm_type == "address":
+        return Web3.toChecksumAddress
+    elif evm_type == "bool":
+        return bool
+    else:
+        raise ValueError(f"Cannot convert to python type {evm_type}")
+
+
+class FunctionInput:
+    def __init__(self, name: str, value: Any, solidity_type: str):
+        self.name = name
+        self.value = value
+        self.solidity_type = solidity_type
+
+
+class FunctionSignature:
+    def __init__(self, function: ContractFunction):
+        self.name = function.abi["name"]
+        self.inputs = [
+            {"name": arg["name"], "type": arg["type"]}
+            for arg in normalize_event_input_types(function.abi.get("inputs", []))
+        ]
+        self.input_types_signature = "({})".format(
+            ",".join([inp["type"] for inp in self.inputs])
+        )
+        self.output_types_signature = "({})".format(
+            ",".join(
+                [
+                    arg["type"]
+                    for arg in normalize_event_input_types(
+                        function.abi.get("outputs", [])
+                    )
+                ]
+            )
+        )
+
+        self.signature = "{}{}".format(self.name, self.input_types_signature)
+
+        self.fourbyte = function_signature_to_4byte_selector(self.signature)
+
+    def encode_data(self, args=None) -> bytes:
+        return (
+            self.fourbyte + encode_single(self.input_types_signature, args)
+            if args
+            else self.fourbyte
+        )
+
+    def decode_data(self, output):
+        return decode_single(self.output_types_signature, output)
