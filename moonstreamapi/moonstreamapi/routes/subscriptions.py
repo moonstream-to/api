@@ -577,8 +577,16 @@ async def address_info(request: Request, address: str):
     Looking if address is contract
     """
 
-    user_id = request.state.user.id
     user_token = request.state.token
+
+    try:
+        Web3.toChecksumAddress(address)
+    except ValueError as e:
+        raise MoonstreamHTTPException(
+            status_code=400,
+            detail=str(e),
+            internal_error=e,
+        )
 
     try:
         resource = bc.list_resources(
@@ -614,8 +622,12 @@ async def address_info(request: Request, address: str):
 
         except Exception as e:
             logger.error(f"Error reading contract info from web3: {str(e)}")
-            traceback.print_exc()
             raise MoonstreamHTTPException(status_code=500, internal_error=e)
+    if len(contract_info) == 0:
+        raise MoonstreamHTTPException(
+            status_code=404,
+            detail="Not found contract on chains. EOA address or not used valid address.",
+        )
 
     return data.ContractInfoResponse(
         contract_info=contract_info,
@@ -638,7 +650,23 @@ def get_contract_interfaces(
 
     user_token = request.state.token
 
-    blockchain_type = AvailableBlockchainType(blockchain)
+    try:
+        Web3.toChecksumAddress(address)
+    except ValueError as e:
+        raise MoonstreamHTTPException(
+            status_code=400,
+            detail=str(e),
+            internal_error=e,
+        )
+
+    try:
+        blockchain_type = AvailableBlockchainType(blockchain)
+    except ValueError as e:
+        raise MoonstreamHTTPException(
+            status_code=400,
+            detail=str(e),
+            internal_error=e,
+        )
 
     try:
         resource = bc.list_resources(
