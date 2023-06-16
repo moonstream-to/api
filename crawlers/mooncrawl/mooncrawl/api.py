@@ -243,18 +243,20 @@ async def queries_data_update_handler(
             logger.error(f"Unknown blockchain {request_data.blockchain}")
             raise MoonstreamHTTPException(status_code=403, detail="Unknown blockchain")
 
+        blockchain = AvailableBlockchainType(request_data.blockchain)
+
         requested_query = (
             requested_query.replace(
                 "transaction_table",
-                f"{request_data.blockchain}_transactions",
+                get_transaction_model(blockchain).__tablename__,
             )
             .replace(
                 "block_table",
-                f"{request_data.blockchain}_blocks",
+                get_block_model(blockchain).__tablename__,
             )
             .replace(
                 "label_table",
-                f"{request_data.blockchain}_labels",
+                get_label_model(blockchain).__tablename__,
             )
         )
 
