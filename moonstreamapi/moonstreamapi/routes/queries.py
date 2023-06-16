@@ -272,15 +272,41 @@ async def update_query_data_handler(
 
     token = request.state.token
 
+    # normalize query name
+
+    query_name_normalized = name_normalization(query_name)
+
+    # check in admin resources
+
+    params = {
+        "type": data.BUGOUT_RESOURCE_QUERY_RESOLVER,
+        "name": query_name_normalized,
+    }
+
     try:
-        query_id = get_query_by_name(query_name, token)
-    except NameNormalizationException:
-        raise MoonstreamHTTPException(
-            status_code=403,
-            detail=f"Provided query name can't be normalize please select different.",
+        admin_resources: BugoutResources = bc.list_resources(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN, params=params
         )
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
+        logger.error(f"Error in get query: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    if len(admin_resources.resources) == 0:
+
+        try:
+            query_id = get_query_by_name(query_name, token)
+        except NameNormalizationException:
+            raise MoonstreamHTTPException(
+                status_code=403,
+                detail=f"Provided query name can't be normalize please select different.",
+            )
+        except Exception as e:
+            raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    else:
+        query_id = admin_resources.resources[0].resource_data["entry_id"]
 
     try:
         entries = bc.search(
@@ -348,16 +374,39 @@ async def get_access_link_handler(
 
     token = request.state.token
 
+    # normalize query name
+
+    query_name_normalized = name_normalization(query_name)
+
+    params = {
+        "type": data.BUGOUT_RESOURCE_QUERY_RESOLVER,
+        "name": query_name_normalized,
+    }
+
     try:
-        query_id = get_query_by_name(query_name, token)
-    except NameNormalizationException:
-        raise MoonstreamHTTPException(
-            status_code=403,
-            detail=f"Provided query name can't be normalize please select different.",
+        admin_resources: BugoutResources = bc.list_resources(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN, params=params
         )
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
         logger.error(f"Error in get query: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    if len(admin_resources.resources) == 0:
+
+        try:
+            query_id = get_query_by_name(query_name, token)
+        except NameNormalizationException:
+            raise MoonstreamHTTPException(
+                status_code=403,
+                detail=f"Provided query name can't be normalize please select different.",
+            )
+        except Exception as e:
+            raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    else:
+        query_id = admin_resources.resources[0].resource_data["entry_id"]
 
     try:
         entries = bc.search(
@@ -452,27 +501,34 @@ async def remove_query_handler(
     return entry
 
 
-@router.get("/suggest", tags=["queries"])
+@router.get("/templates", tags=["queries"])
 def get_suggested_queries(
     request: Request,
     supported_interfaces: Optional[List[str]] = None,
     address: Optional[str] = None,
+    title: Optional[str] = None,
+    limit: int = 10,
 ) -> Any:
 
     """
     Return set of suggested queries for user
     """
 
-    tags = ["#type:query", "#approved", "#template"]
+    filters = ["#type:query", "#approved", "#template"]
 
     if supported_interfaces:
-        tags.extend([f"?#interface:{interface}" for interface in supported_interfaces])
+        filters.extend(
+            [f"?#interface:{interface}" for interface in supported_interfaces]
+        )
 
     if address:
 
-        tags.append(f"?#address:{address}")
+        filters.append(f"?#address:{address}")
 
-    query = " ".join(tags)
+    if title:
+        filters.append(title)
+
+    query = " ".join(filters)
 
     try:
         queries = bc.search(
