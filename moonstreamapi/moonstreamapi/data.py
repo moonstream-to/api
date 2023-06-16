@@ -271,6 +271,7 @@ class DashboardUpdate(BaseModel):
 
 class UpdateDataRequest(BaseModel):
     params: Dict[str, Any] = Field(default_factory=dict)
+    blockchain: Optional[str] = None
 
 
 class UpdateQueryRequest(BaseModel):

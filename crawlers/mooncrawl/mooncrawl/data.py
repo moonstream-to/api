@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -49,6 +49,7 @@ class QueryDataUpdate(BaseModel):
     file_type: str
     query: str
     params: Dict[str, Any] = Field(default_factory=dict)
+    blockchain: Optional[str] = None
 
 
 class TokenURIs(BaseModel):

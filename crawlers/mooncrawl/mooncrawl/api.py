@@ -13,6 +13,13 @@ from bugout.data import BugoutResource
 from entity.data import EntityResponse  # type: ignore
 from fastapi import BackgroundTasks, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from moonstreamdb.blockchain import (
+    AvailableBlockchainType,
+    get_label_model,
+    get_block_model,
+    get_transaction_model,
+)
+
 from sqlalchemy import text
 
 from .actions import (
@@ -228,6 +235,28 @@ async def queries_data_update_handler(
     except Exception as e:
         logger.error(f"Unhandled query execute exception, error: {e}")
         raise MoonstreamHTTPException(status_code=500)
+
+    requested_query = request_data.query
+
+    if request_data.blockchain:
+        if request_data.blockchain not in AvailableBlockchainType.values():
+            logger.error(f"Unknown blockchain {request_data.blockchain}")
+            raise MoonstreamHTTPException(status_code=403, detail="Unknown blockchain")
+
+        requested_query = (
+            requested_query.replace(
+                "transaction_table",
+                f"{request_data.blockchain}_transactions",
+            )
+            .replace(
+                "block_table",
+                f"{request_data.blockchain}_blocks",
+            )
+            .replace(
+                "label_table",
+                f"{request_data.blockchain}_labels",
+            )
+        )
 
     # Check if it can transform to TextClause
     try:

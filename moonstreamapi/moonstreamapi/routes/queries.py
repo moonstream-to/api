@@ -10,6 +10,7 @@ from bugout.data import BugoutResources, BugoutJournalEntryContent, BugoutJourna
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Body, Request
 import requests  # type: ignore
+from moonstreamdb.blockchain import AvailableBlockchainType
 from sqlalchemy import text
 
 
@@ -272,6 +273,15 @@ async def update_query_data_handler(
 
     token = request.state.token
 
+    if request_update.blockchain:
+        try:
+            AvailableBlockchainType(request_update.blockchain)
+        except ValueError:
+            raise MoonstreamHTTPException(
+                status_code=400,
+                detail=f"Provided blockchain is not supported.",
+            )
+
     # normalize query name
 
     query_name_normalized = name_normalization(query_name)
@@ -294,7 +304,6 @@ async def update_query_data_handler(
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     if len(admin_resources.resources) == 0:
-
         try:
             query_id = get_query_by_name(query_name, token)
         except NameNormalizationException:
@@ -340,6 +349,9 @@ async def update_query_data_handler(
                     "query": content,
                     "params": request_update.params,
                     "file_type": file_type,
+                    "blockchain": request_update.blockchain
+                    if request_update.blockchain
+                    else None,
                 },
                 timeout=5,
             )
@@ -394,7 +406,6 @@ async def get_access_link_handler(
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     if len(admin_resources.resources) == 0:
-
         try:
             query_id = get_query_by_name(query_name, token)
         except NameNormalizationException:
@@ -509,7 +520,6 @@ def get_suggested_queries(
     title: Optional[str] = None,
     limit: int = 10,
 ) -> Any:
-
     """
     Return set of suggested queries for user
     """
@@ -522,7 +532,6 @@ def get_suggested_queries(
         )
 
     if address:
-
         filters.append(f"?#address:{address}")
 
     if title:
@@ -548,15 +557,11 @@ def get_suggested_queries(
     interfaces: Dict[str, Any] = {}
 
     for entry in queries.results:
-
         for tag in entry.tags:
-
             if tag.startswith("interface:"):
-
                 interface = tag.split(":")[1]
 
                 if interface not in interfaces:
-
                     interfaces[interface] = []
 
                 interfaces[interface].append(entry)
@@ -577,7 +582,7 @@ def copy_query(request: Request, query_copy: data.QueryCopy) -> BugoutJournalEnt
 
     try:
         entry = bc.get_entry(
-            token=token,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
             entry_id=query_copy.query_id,
         )
@@ -621,8 +626,8 @@ def copy_query(request: Request, query_copy: data.QueryCopy) -> BugoutJournalEnt
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
             title=f"Query:{query_name}",
-            tags=[tag for tag in entry.tags if tag != "template"],
-            content=entry.content,
+            tags=[tag for tag in entry.tags if tag not in ["template", "approved"]],
+            content=entry.content if entry.content else None,  # type: ignore
         )
     except BugoutResponseException as e:
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
