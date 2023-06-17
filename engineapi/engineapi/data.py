@@ -23,6 +23,10 @@ class NowResponse(BaseModel):
     epoch_time: float
 
 
+class CORSResponse(BaseModel):
+    cors: str
+
+
 class SignerListResponse(BaseModel):
     instances: List[Any] = Field(default_factory=list)
 

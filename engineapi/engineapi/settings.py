@@ -1,5 +1,6 @@
 import os
 import warnings
+from typing import List
 
 from web3 import Web3, HTTPProvider
 from web3.middleware import geth_poa_middleware
@@ -21,7 +22,12 @@ if RAW_ORIGINS is None:
     raise ValueError(
         "ENGINE_CORS_ALLOWED_ORIGINS environment variable must be set (comma-separated list of CORS allowed origins)"
     )
-ORIGINS = RAW_ORIGINS.split(",")
+ALLOW_ORIGINS: List[str] = RAW_ORIGINS.split(",")
+
+BUGOUT_RESOURCE_TYPE_APPLICATION_CONFIG = "application-config"
+BUGOUT_REQUEST_TIMEOUT_SECONDS = 5
+
+ENGINE_REDIS_URI = os.environ.get("ENGINE_REDIS_URI")
 
 # Open API documentation path
 DOCS_TARGET_PATH = os.environ.get("DOCS_TARGET_PATH", "docs")
