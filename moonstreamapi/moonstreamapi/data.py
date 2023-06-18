@@ -302,3 +302,7 @@ class QueryInfoResponse(BaseModel):
 class QueryCopy(BaseModel):
     query_id: str
     name: str
+
+class SuggestedQueriesResponse(BaseModel):
+    interfaces: Dict[str, Any] = Field(default_factory=dict)
+    queries: List[Any] = Field(default_factory=list)
