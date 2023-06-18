@@ -292,10 +292,9 @@ async def update_query_data_handler(
         entries = bc.search(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
-            query=f"tag:template",
+            query=f"tag:query_template tag:query_url:{query_name_normalized}",
             filters=[
                 f"context_type:{MOONSTREAM_QUERY_TEMPLATE_CONTEXT_TYPE}",
-                f"context_id:{query_name_normalized}",
             ],
             limit=1,
         )
@@ -314,6 +313,7 @@ async def update_query_data_handler(
                 detail=f"Provided query name can't be normalize please select different.",
             )
         except Exception as e:
+            logger.error(f"Error in get query: {str(e)}")
             raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
         try:
@@ -335,7 +335,7 @@ async def update_query_data_handler(
                 status_code=403, detail="Query not approved yet."
             )
     else:
-        query_id = entries.results[0].id
+        query_id = entries.results[0].entry_url.split("/")[-1]
 
     s3_response = None
 
@@ -397,10 +397,9 @@ async def get_access_link_handler(
         entries = bc.search(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
-            query=f"tag:template",
+            query=f"tag:query_template tag:query_url:{query_name_normalized}",
             filters=[
-                f"context_type:{MOONSTREAM_QUERY_TEMPLATE_CONTEXT_TYPE}",
-                f"context_id:{query_name_normalized}",
+                f"context_type:{MOONSTREAM_QUERY_TEMPLATE_CONTEXT_TYPE}"
             ],
             limit=1,
         )
@@ -529,7 +528,7 @@ def get_suggested_queries(
     Return set of suggested queries for user
     """
 
-    filters = ["#type:query", "#approved", "#template"]
+    filters = ["tag:approved", "tag:query_template"]
 
     if supported_interfaces:
         filters.extend(
