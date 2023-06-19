@@ -158,7 +158,6 @@ async def create_query_handler(
 
 @router.get("/templates", tags=["queries"])
 def get_suggested_queries(
-    request: Request,
     supported_interfaces: Optional[List[str]] = None,
     address: Optional[str] = None,
     title: Optional[str] = None,
@@ -188,7 +187,7 @@ def get_suggested_queries(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
             query=query,
-            limit=100,
+            limit=limit,
             timeout=5,
         )
     except BugoutResponseException as e:
