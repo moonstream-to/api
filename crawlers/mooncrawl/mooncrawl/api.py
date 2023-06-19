@@ -13,6 +13,13 @@ from bugout.data import BugoutResource
 from entity.data import EntityResponse  # type: ignore
 from fastapi import BackgroundTasks, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from moonstreamdb.blockchain import (
+    AvailableBlockchainType,
+    get_label_model,
+    get_block_model,
+    get_transaction_model,
+)
+
 from sqlalchemy import text
 
 from .actions import (
@@ -229,9 +236,33 @@ async def queries_data_update_handler(
         logger.error(f"Unhandled query execute exception, error: {e}")
         raise MoonstreamHTTPException(status_code=500)
 
+    requested_query = request_data.query
+
+    if request_data.blockchain:
+        if request_data.blockchain not in [i.value for i in AvailableBlockchainType]:
+            logger.error(f"Unknown blockchain {request_data.blockchain}")
+            raise MoonstreamHTTPException(status_code=403, detail="Unknown blockchain")
+
+        blockchain = AvailableBlockchainType(request_data.blockchain)
+
+        requested_query = (
+            requested_query.replace(
+                "__transactions_table__",
+                get_transaction_model(blockchain).__tablename__,
+            )
+            .replace(
+                "__blocks_table__",
+                get_block_model(blockchain).__tablename__,
+            )
+            .replace(
+                "__labels_table__",
+                get_label_model(blockchain).__tablename__,
+            )
+        )
+
     # Check if it can transform to TextClause
     try:
-        query = text(request_data.query)
+        query = text(requested_query)
     except Exception as e:
         logger.error(
             f"Can't parse query {query_id} to TextClause in drones /query_update endpoint, error: {e}"
