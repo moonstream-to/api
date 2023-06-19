@@ -869,8 +869,10 @@ def check_if_smartcontract(
     """
     web3_client = connect(blockchain_type, access_id=uuid.UUID(access_id))
 
+    is_contract = False
+
     code = web3_client.eth.getCode(address)
     if code != b"":
-        return True
+        is_contract = True
 
-    return False
+    return blockchain_type, address, is_contract

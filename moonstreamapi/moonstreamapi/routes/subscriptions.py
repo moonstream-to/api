@@ -1,6 +1,7 @@
 """
 The Moonstream subscriptions HTTP API
 """
+from concurrent.futures import as_completed, ProcessPoolExecutor, ThreadPoolExecutor
 import hashlib
 import json
 import logging
@@ -613,12 +614,24 @@ async def address_info(request: Request, address: str):
         try:
             # connnect to blockchain
 
-            address_is_contract = check_if_smartcontract(
-                address=address, blockchain_type=blockchain_type, access_id=access_id
-            )
+            futures = []
 
-            if address_is_contract:
-                contract_info[blockchain_type.value] = address_is_contract
+            with ThreadPoolExecutor(max_workers=5) as executor:
+                futures.append(
+                        executor.submit(
+                            check_if_smartcontract,
+                            address=address,
+                            blockchain_type=blockchain_type,
+                            access_id=access_id,
+                        )
+                )
+
+                for future in as_completed(futures):
+
+                    blockchain_type, address, is_contract = future.result()
+
+                    if is_contract:
+                        contract_info[blockchain_type.value] = is_contract
 
         except Exception as e:
             logger.error(f"Error reading contract info from web3: {str(e)}")
