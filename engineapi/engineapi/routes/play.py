@@ -10,7 +10,6 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 from hexbytes import HexBytes
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from web3 import Web3
 
 from ..models import DropperClaimant
@@ -19,7 +18,7 @@ from .. import data
 from .. import db
 from .. import signatures
 from ..contracts import Dropper_interface
-from ..middleware import EngineHTTPException
+from ..middleware import EngineHTTPException, BugoutCORSMiddleware
 from ..settings import BLOCKCHAIN_WEB3_PROVIDERS, DOCS_TARGET_PATH
 from ..version import VERSION
 
@@ -42,8 +41,7 @@ app = FastAPI(
 
 
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins="*",
+    BugoutCORSMiddleware,
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -126,11 +124,9 @@ async def get_drop_batch_handler(
     commit_required = False
 
     for claimant_drop in claimant_drops:
-
         transformed_amount = claimant_drop.raw_amount
 
         if transformed_amount is None:
-
             transformed_amount = actions.transform_claim_amount(
                 db_session, claimant_drop.dropper_claim_id, claimant_drop.amount
             )
@@ -394,7 +390,6 @@ async def get_drops_terminus_handler(
     blockchain: str = Query(None),
     db_session: Session = Depends(db.yield_db_session),
 ) -> List[data.DropperTerminusResponse]:
-
     """
     Return distinct terminus pools
     """

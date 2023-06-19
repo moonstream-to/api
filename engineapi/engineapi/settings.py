@@ -1,10 +1,14 @@
+import logging
 import os
 import warnings
 from typing import List
 
-from web3 import Web3, HTTPProvider
-from web3.middleware import geth_poa_middleware
 from bugout.app import Bugout
+from bugout.data import BugoutUser
+from web3 import HTTPProvider, Web3
+from web3.middleware import geth_poa_middleware
+
+logger = logging.getLogger(__name__)
 
 # Bugout
 BUGOUT_BROOD_URL = os.environ.get("BUGOUT_BROOD_URL", "https://auth.bugout.dev")
@@ -184,3 +188,11 @@ LEADERBOARD_RESOURCE_TYPE = "leaderboard"
 MOONSTREAM_ADMIN_ACCESS_TOKEN = os.environ.get("MOONSTREAM_ADMIN_ACCESS_TOKEN", "")
 if MOONSTREAM_ADMIN_ACCESS_TOKEN == "":
     raise ValueError("MOONSTREAM_ADMIN_ACCESS_TOKEN environment variable must be set")
+
+try:
+    MOONSTREAM_ADMIN_USER: BugoutUser = bugout_client.get_user(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+    )
+except Exception as err:
+    logger.error(f"Unable to get Moonstream admin user with token, err: {str(err)}")
+    logger.error("Running application partly functional")

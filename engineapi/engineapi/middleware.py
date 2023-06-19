@@ -1,9 +1,7 @@
 import base64
-import functools
 import json
 import logging
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Sequence, Set, cast
-from uuid import UUID
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Sequence, Set
 
 from bugout.data import BugoutResources, BugoutUser
 from bugout.exceptions import BugoutResponseException
@@ -26,6 +24,7 @@ from .settings import (
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
     BUGOUT_RESOURCE_TYPE_APPLICATION_CONFIG,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
+    MOONSTREAM_ADMIN_USER,
     MOONSTREAM_APPLICATION_ID,
 )
 from .settings import bugout_client as bc
@@ -215,11 +214,36 @@ class ExtractBearerTokenMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
-def fetch_application_settings_cors(token: str):
+def parse_origins_from_resources(origins: List[str]) -> Set[str]:
+    resource_origins_set = set()
+    for resource in origins:
+        origins = resource.resource_data.get("origins", [])
+        for o in origins:
+            try:
+                parse_obj_as(AnyHttpUrl, o)
+                resource_origins_set.add(o)
+            except Exception:
+                logger.info(f"Unable to parse origin: {o} as URL")
+                continue
+
+    return resource_origins_set
+
+
+# To prevent default origins loss
+def check_default_origins(origins: Set[str]):
+    for o in ALLOW_ORIGINS:
+        if o not in origins:
+            origins.add(o)
+    return origins
+
+
+def fetch_application_settings_cors_origins(token: str) -> Set[str]:
     """
     Fetch application config resources with CORS origins setting.
     If there are no such resources create new one with default origins from environment variable.
     """
+
+    # Fetch CORS origins configs from resources for specified application
     resources: BugoutResources
     try:
         resources = bc.list_resources(
@@ -233,73 +257,37 @@ def fetch_application_settings_cors(token: str):
         )
 
     except Exception as err:
-        raise Exception(
-            f"Error fetching bugout resources with CORS origins: {str(err)}"
-        )
-
-    if len(resources.resources) == 0:
-        moonstream_admin_user = bc.get_user(
-            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-        )
-        resource = bc.create_resource(
-            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-            application_id=MOONSTREAM_APPLICATION_ID,
-            resource_data={
-                "type": BUGOUT_RESOURCE_TYPE_APPLICATION_CONFIG,
-                "setting": "cors",
-                "user_id": str(moonstream_admin_user.id),
-                "cors": ALLOW_ORIGINS,
-            },
-        )
-        resources.resources.append(resource)
-        logger.info(
-            "Created resource with default CORS origins setting by moonstream admin user"
-        )
-
-    return resources
-
-
-def parse_origins_from_resources(resources: BugoutResources) -> set:
-    if len(resources.resources) == 0:
+        logger.error(f"Error fetching bugout resources with CORS origins: {str(err)}")
         return ALLOW_ORIGINS
 
-    resource_cors_origins = set()
-    for resource in resources.resources:
-        origins = resource.resource_data.get("cors", [])
-        for o in origins:
-            try:
-                parse_obj_as(AnyHttpUrl, o)
-                resource_cors_origins.add(o)
-            except Exception:
-                logger.info(f"Unable to parse origin: {o} as URL")
-                continue
-
-    for o in ALLOW_ORIGINS:
-        if o not in resource_cors_origins:
-            resource_cors_origins.add(o)
-
-    return resource_cors_origins
-
-
-def initialize_origins() -> set:
-    allow_origins: set = set(ALLOW_ORIGINS)
-    try:
-        resources = fetch_application_settings_cors(token=MOONSTREAM_ADMIN_ACCESS_TOKEN)
-        resource_origins = parse_origins_from_resources(resources=resources)
+    # If there are no resources with CORS origins configuration, create new one
+    # with default list of origins from environment variable
+    if len(resources.resources) == 0:
         try:
-            origins_str = ",".join(list(resource_origins))
-            rc_client.set("cors", origins_str)
-        except Exception:
-            logger.warning("Unable to set CORS origins at Redis cache")
-        finally:
-            rc_client.close()
-        allow_origins = resource_origins
-    except Exception as err:
-        logger.error(
-            f"Unable to get CORS origins from Brood resources application config, err: {str(err)}"
-        )
+            resource = bc.create_resource(
+                token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                application_id=MOONSTREAM_APPLICATION_ID,
+                resource_data={
+                    "type": BUGOUT_RESOURCE_TYPE_APPLICATION_CONFIG,
+                    "setting": "cors",
+                    "user_id": str(MOONSTREAM_ADMIN_USER.id),
+                    "origins": ALLOW_ORIGINS,
+                },
+            )
+            resources.resources.append(resource)
+            logger.info(
+                "Created resource with default CORS origins setting by moonstream admin user"
+            )
+        except Exception as err:
+            logger.error(
+                f"Unable to write default CORS origins to resources: {str(err)}"
+            )
+            return ALLOW_ORIGINS
 
-    return allow_origins
+    resource_origins_set: Set[str] = parse_origins_from_resources(resources.resources)
+    resource_origins_set = check_default_origins(resource_origins_set)
+
+    return list(resource_origins_set)
 
 
 class BugoutCORSMiddleware(CORSMiddleware):
@@ -316,7 +304,21 @@ class BugoutCORSMiddleware(CORSMiddleware):
         expose_headers: Sequence[str] = (),
         max_age: int = 600,
     ):
-        self.allow_origins = initialize_origins()
+        allow_origins = fetch_application_settings_cors_origins(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN
+        )
+
+        try:
+            allow_origins_str = ",".join(list(allow_origins))
+            rc_client.set("cors", allow_origins_str)
+        except Exception:
+            logger.warning(
+                "Unable to set CORS origins at Redis cache, using default from environment variable"
+            )
+        finally:
+            rc_client.close()
+
+        self.allow_origins = list(allow_origins)
 
         super().__init__(
             app=app,
@@ -331,11 +333,15 @@ class BugoutCORSMiddleware(CORSMiddleware):
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
         try:
-            allow_origins = initialize_origins()
-            self.allow_origins = allow_origins
-        except Exception:
-            logger.info(
-                "Unable to parse CORS configs, used default CORS origins by middleware"
+            async with yield_rc_async_session() as rc:
+                corse_rc = await rc.get("cors")
+                if corse_rc is not None:
+                    self.allow_origins = corse_rc.split(",")
+                else:
+                    rc.set("cors", ",".join(self.allow_origins))
+        except Exception as err:
+            logger.warning(
+                f"Unable to get CORS origins from Redis cache, err: {str(err)}"
             )
 
         await super().__call__(scope, receive, send)
