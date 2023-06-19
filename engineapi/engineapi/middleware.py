@@ -215,6 +215,9 @@ class ExtractBearerTokenMiddleware(BaseHTTPMiddleware):
 
 
 def parse_origins_from_resources(origins: List[str]) -> Set[str]:
+    """
+    Parse list of CORS origins with HTTP validation and remove duplications.
+    """
     resource_origins_set = set()
     for resource in origins:
         origins = resource.resource_data.get("origins", [])
@@ -229,8 +232,10 @@ def parse_origins_from_resources(origins: List[str]) -> Set[str]:
     return resource_origins_set
 
 
-# To prevent default origins loss
-def check_default_origins(origins: Set[str]):
+def check_default_origins(origins: Set[str]) -> Set[str]:
+    """
+    To prevent default origins loss.
+    """
     for o in ALLOW_ORIGINS:
         if o not in origins:
             origins.add(o)
@@ -241,6 +246,8 @@ def fetch_application_settings_cors_origins(token: str) -> Set[str]:
     """
     Fetch application config resources with CORS origins setting.
     If there are no such resources create new one with default origins from environment variable.
+
+    Should return in any case some list of origins, by default it will be ALLOW_ORIGINS.
     """
 
     # Fetch CORS origins configs from resources for specified application
@@ -290,9 +297,29 @@ def fetch_application_settings_cors_origins(token: str) -> Set[str]:
     return list(resource_origins_set)
 
 
+def set_cors_origins_cache(allow_origins: Set[str]) -> None:
+    try:
+        allow_origins_str = ",".join(list(allow_origins))
+        rc_client.set("cors", allow_origins_str)
+    except Exception:
+        logger.warning("Unable to set CORS origins at Redis cache")
+    finally:
+        rc_client.close()
+
+
+def fetch_and_set_cors_origins_cache():
+    allow_origins = fetch_application_settings_cors_origins(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN
+    )
+    set_cors_origins_cache(allow_origins)
+
+    return list(allow_origins)
+
+
 class BugoutCORSMiddleware(CORSMiddleware):
     """
-    Modified CORSMiddleware from starlette.middleware.cors.py to work with Redis cache.
+    Modified CORSMiddleware from starlette.middleware.cors.py to work with Redis cache
+    and store application configuration for each user in Brood resources.
     """
 
     def __init__(
@@ -304,21 +331,7 @@ class BugoutCORSMiddleware(CORSMiddleware):
         expose_headers: Sequence[str] = (),
         max_age: int = 600,
     ):
-        allow_origins = fetch_application_settings_cors_origins(
-            token=MOONSTREAM_ADMIN_ACCESS_TOKEN
-        )
-
-        try:
-            allow_origins_str = ",".join(list(allow_origins))
-            rc_client.set("cors", allow_origins_str)
-        except Exception:
-            logger.warning(
-                "Unable to set CORS origins at Redis cache, using default from environment variable"
-            )
-        finally:
-            rc_client.close()
-
-        self.allow_origins = list(allow_origins)
+        self.allow_origins = fetch_and_set_cors_origins_cache()
 
         super().__init__(
             app=app,
@@ -338,10 +351,18 @@ class BugoutCORSMiddleware(CORSMiddleware):
                 if corse_rc is not None:
                     self.allow_origins = corse_rc.split(",")
                 else:
-                    rc.set("cors", ",".join(self.allow_origins))
+                    allow_origins = fetch_application_settings_cors_origins(
+                        token=MOONSTREAM_ADMIN_ACCESS_TOKEN
+                    )
+                    rc.set("cors", ",".join(allow_origins))
+                    self.allow_origins = list(allow_origins)
         except Exception as err:
             logger.warning(
-                f"Unable to get CORS origins from Redis cache, err: {str(err)}"
+                f"Unable to get CORS origins from Redis cache, using default from environment variable, err: {str(err)}"
             )
+            allow_origins = fetch_application_settings_cors_origins(
+                token=MOONSTREAM_ADMIN_ACCESS_TOKEN
+            )
+            self.allow_origins = list(allow_origins)
 
         await super().__call__(scope, receive, send)

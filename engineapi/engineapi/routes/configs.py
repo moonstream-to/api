@@ -2,7 +2,15 @@ import logging
 from typing import Any, Dict, List, Set
 
 from bugout.data import BugoutResource
-from fastapi import Body, Depends, FastAPI, HTTPException, Query, Request
+from fastapi import (
+    BackgroundTasks,
+    Body,
+    Depends,
+    FastAPI,
+    HTTPException,
+    Query,
+    Request,
+)
 from pydantic import AnyHttpUrl
 
 from .. import actions, data
@@ -11,6 +19,7 @@ from ..middleware import (
     BugoutCORSMiddleware,
     EngineHTTPException,
     check_default_origins,
+    fetch_and_set_cors_origins_cache,
     parse_origins_from_resources,
 )
 from ..settings import (
@@ -86,6 +95,7 @@ async def get_cors(
 @app.put("/cors", response_model=data.CORSResponse)
 async def update_cors(
     request: Request,
+    background_tasks: BackgroundTasks,
     new_origins: List[AnyHttpUrl] = Body(...),
 ):
     new_origins = set(new_origins)
@@ -143,5 +153,9 @@ async def update_cors(
     except Exception as err:
         logger.error(repr(err))
         raise EngineHTTPException(status_code=500)
+
+    background_tasks.add_task(
+        fetch_and_set_cors_origins_cache,
+    )
 
     return data.CORSResponse(cors=",".join(target_resource.resource_data["origins"]))
