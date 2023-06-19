@@ -818,10 +818,3 @@ tokenomics_orange_dao_queries = [
         """,
     },
 ]
-
-
-"""
-
-"""
-
-template_queries = []
