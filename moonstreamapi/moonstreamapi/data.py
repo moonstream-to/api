@@ -295,8 +295,8 @@ class QueryInfoResponse(BaseModel):
     preapprove: bool = False
     approved: bool = False
     parameters: Dict[str, Any] = Field(default_factory=dict)
-    created_at: Optional[datetime]
-    updated_at: Optional[datetime]
+    created_at: str
+    updated_at: str
 
 class SuggestedQueriesResponse(BaseModel):
     interfaces: Dict[str, Any] = Field(default_factory=dict)

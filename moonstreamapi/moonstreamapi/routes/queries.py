@@ -221,28 +221,68 @@ async def get_query_handler(
 ) -> data.QueryInfoResponse:
     token = request.state.token
 
+
+    # normalize query name
+
     try:
-        query_id = get_query_by_name(query_name, token)
+        query_name_normalized = name_normalization(query_name)
     except NameNormalizationException:
         raise MoonstreamHTTPException(
             status_code=403,
             detail=f"Provided query name can't be normalize please select different.",
         )
-    except Exception as e:
-        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+
+    # check in templates
 
     try:
-        entry = bc.get_entry(
+        entries = bc.search(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
-            entry_id=query_id,
+            query=f"tag:query_template tag:query_url:{query_name_normalized}",
+            filters=[
+                f"context_type:{MOONSTREAM_QUERY_TEMPLATE_CONTEXT_TYPE}",
+            ],
+            limit=1,
         )
-
     except BugoutResponseException as e:
         logger.error(f"Error in get query: {str(e)}")
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    if len(entries.results) == 0:
+        try:
+            query_id = get_query_by_name(query_name, token)
+        except NameNormalizationException:
+            raise MoonstreamHTTPException(
+                status_code=403,
+                detail=f"Provided query name can't be normalize please select different.",
+            )
+
+        try:
+            entries = bc.search(
+                token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
+                query=f"tag:approved tag:query_id:{query_id} !tag:preapprove",
+                limit=1,
+                timeout=5,
+            )
+        except BugoutResponseException as e:
+            logger.error(f"Error in get query: {str(e)}")
+            raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+        except Exception as e:
+            raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+        if len(entries.results) == 0:
+            raise MoonstreamHTTPException(
+                status_code=403, detail="Query not approved yet."
+            )
+    else:
+        query_id = entries.results[0].entry_url.split("/")[-1]
+
+
+    entry = entries.results[0]
 
     try:
         if entry.content is None:
@@ -272,7 +312,7 @@ async def get_query_handler(
 
     return data.QueryInfoResponse(
         query=entry.content,
-        query_id=str(entry.id),
+        query_id=str(query_id),
         preapprove="preapprove" in tags_dict,
         approved="approved" in tags_dict,
         parameters=query_parameters,
@@ -296,8 +336,6 @@ async def update_query_handler(
             status_code=403,
             detail=f"Provided query name can't be normalize please select different.",
         )
-    except Exception as e:
-        raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     try:
         entry = bc.update_entry_content(
@@ -344,7 +382,14 @@ async def update_query_data_handler(
 
     # normalize query name
 
-    query_name_normalized = name_normalization(query_name)
+    try:
+        query_name_normalized = name_normalization(query_name)
+    except NameNormalizationException:
+        raise MoonstreamHTTPException(
+            status_code=403,
+            detail=f"Provided query name can't be normalize please select different.",
+        )
+
 
     # check in templates
 
@@ -372,9 +417,6 @@ async def update_query_data_handler(
                 status_code=403,
                 detail=f"Provided query name can't be normalize please select different.",
             )
-        except Exception as e:
-            logger.error(f"Error in get query: {str(e)}")
-            raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
         try:
             entries = bc.search(
@@ -448,8 +490,13 @@ async def get_access_link_handler(
     token = request.state.token
 
     # normalize query name
-
-    query_name_normalized = name_normalization(query_name)
+    try:
+        query_name_normalized = name_normalization(query_name)
+    except NameNormalizationException:
+        raise MoonstreamHTTPException(
+            status_code=403,
+            detail=f"Provided query name can't be normalize please select different.",
+        )
 
     # check in templattes
 
@@ -471,7 +518,13 @@ async def get_access_link_handler(
 
     if len(entries.results) == 0:
 
-        query_id = get_query_by_name(query_name, token)
+        try:
+            query_id = get_query_by_name(query_name, token)
+        except NameNormalizationException:
+            raise MoonstreamHTTPException(
+                status_code=403,
+                detail=f"Provided query name can't be normalize please select different.",
+            )
 
         try:
 
