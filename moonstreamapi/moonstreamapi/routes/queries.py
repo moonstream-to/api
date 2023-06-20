@@ -1,9 +1,11 @@
 """
 The Moonstream queries HTTP API
 """
+from datetime import datetime
 import logging
 from typing import Any, Dict, List, Optional, Tuple, Union
 from uuid import UUID
+
 
 
 from bugout.data import BugoutResources, BugoutJournalEntryContent, BugoutJournalEntry
@@ -310,14 +312,17 @@ async def get_query_handler(
         else:
             query_parameters[param] = None
 
+
+    print(type(entry.created_at))
+
     return data.QueryInfoResponse(
         query=entry.content,
         query_id=str(query_id),
         preapprove="preapprove" in tags_dict,
         approved="approved" in tags_dict,
         parameters=query_parameters,
-        created_at=entry.created_at,
-        updated_at=entry.updated_at,
+        created_at=entry.created_at,  # type: ignore
+        updated_at=entry.updated_at,  # type: ignore
     )
 
 
