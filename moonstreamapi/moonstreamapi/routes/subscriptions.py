@@ -618,12 +618,12 @@ async def address_info(request: Request, address: str):
 
             with ThreadPoolExecutor(max_workers=5) as executor:
                 futures.append(
-                        executor.submit(
-                            check_if_smartcontract,
-                            address=address,
-                            blockchain_type=blockchain_type,
-                            access_id=access_id,
-                        )
+                    executor.submit(
+                        check_if_smartcontract,
+                        address=address,
+                        blockchain_type=blockchain_type,
+                        access_id=access_id,
+                    )
                 )
 
                 for future in as_completed(futures):
@@ -691,6 +691,12 @@ def get_contract_interfaces(
     except Exception as e:
         logger.error(f"Error reading contract info from Brood API: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    if len(resource.resources) == 0:
+        raise MoonstreamHTTPException(
+            status_code=404,
+            detail="Not found access id",
+        )
 
     access_id = resource.resources[0].resource_data["access_id"]
 

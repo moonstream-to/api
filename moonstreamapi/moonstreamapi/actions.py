@@ -47,6 +47,7 @@ from .settings import (
 )
 from .settings import bugout_client as bc, entity_client as ec
 from .web3_provider import multicall, FunctionSignature, connect
+from .selectors_storage import selectors
 
 
 logger = logging.getLogger(__name__)
@@ -818,12 +819,16 @@ def get_list_of_support_interfaces(
 
     calls = []
 
-    for interaface in support_interfaces:
+    list_of_interfaces = list(selectors.keys())
+
+    list_of_interfaces.sort()
+
+    for interaface in list_of_interfaces:
         calls.append(
             (
                 contract.address,
                 FunctionSignature(contract.get_function_by_name("supportsInterface"))
-                .encode_data([bytes.fromhex(interaface["selector"].replace("0x", ""))])
+                .encode_data([bytes.fromhex(interaface)])
                 .hex(),
             )
         )
@@ -839,22 +844,19 @@ def get_list_of_support_interfaces(
 
     result = {}
 
-    for i, interface in enumerate(support_interfaces):
-        info = {
-            "name": interface["name"],
-            "selector": interface["selector"],
-            "supported": False,
-        }
+    for i, selector in enumerate(list_of_interfaces):
 
         if multicall_result[i][0]:
-            info["supported"] = FunctionSignature(
+            supported = FunctionSignature(
                 contract.get_function_by_name("supportsInterface")
             ).decode_data(multicall_result[i][1])
+            print(supported[0], selector, selectors[selector]["name"])
+            if supported[0]:
 
-        result[interface["name"]] = {
-            "supported": info["supported"],
-            "selector": info["selector"],
-        }
+                result[selectors[selector]["name"]] = {  # type: ignore
+                    "selector": selector,
+                    "abi": selectors[selector]["abi"],  # type: ignore
+                }
 
     return result
 
