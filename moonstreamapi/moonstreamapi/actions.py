@@ -850,7 +850,8 @@ def get_list_of_support_interfaces(
             supported = FunctionSignature(
                 contract.get_function_by_name("supportsInterface")
             ).decode_data(multicall_result[i][1])
-            print(supported[0], selector, selectors[selector]["name"])
+
+
             if supported[0]:
 
                 result[selectors[selector]["name"]] = {  # type: ignore

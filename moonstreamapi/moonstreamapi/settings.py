@@ -156,6 +156,7 @@ if MOONSTREAM_S3_QUERIES_BUCKET_PREFIX == "":
 BUGOUT_RESOURCE_TYPE_SUBSCRIPTION = "subscription"
 BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION = "entity_subscription"
 BUGOUT_RESOURCE_TYPE_DASHBOARD = "dashboards"
+MOONSTREAM_QUERY_TEMPLATE_CONTEXT_TYPE = "query_template"
 
 
 # Node balancer
@@ -176,10 +177,10 @@ support_interfaces = [
     {"name": "_INTERFACE_ID_ERC165", "selector": "0x01ffc9a7"},
     {"name": "_INTERFACE_ID_ERC20", "selector": "0x36372b07"},
     {"name": "_INTERFACE_ID_ERC721", "selector": "0x80ac58cd"},
-    {"name": "_INTERFACE_ID_ERC721_METADATA", "selector": "0x5b5e139f"},
-    {"name": "_INTERFACE_ID_ERC721_ENUMERABLE", "selector": "0x780e9d63"},
+    {"name": "_INTERFACE_ID_ERC721_METADATA", "selector": "0x5b5e139f"}, # miss
+    {"name": "_INTERFACE_ID_ERC721_ENUMERABLE", "selector": "0x780e9d63"}, # miss
     {"name": "_INTERFACE_ID_ERC721_RECEIVED", "selector": "0x150b7a02"},
-    {"name": "_INTERFACE_ID_ERC721_METADATA_RECEIVED", "selector": "0x0e89341c"},
+    {"name": "_INTERFACE_ID_ERC721_METADATA_RECEIVED", "selector": "0x0e89341c"}, # miss
     {"name": "_INTERFACE_ID_ERC721_ENUMERABLE_RECEIVED", "selector": "0x4e2312e0"},
     {"name": "_INTERFACE_ID_ERC1155", "selector": "0xd9b67a26"},
 ]
