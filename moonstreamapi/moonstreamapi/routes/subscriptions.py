@@ -23,7 +23,7 @@ from ..admin import subscription_types
 from ..middleware import MoonstreamHTTPException
 from ..reporter import reporter
 from ..settings import bugout_client as bc, entity_client as ec
-from ..settings import MOONSTREAM_ADMIN_ACCESS_TOKEN, MOONSTREAM_MOONWORM_TASKS_JOURNAL
+from ..settings import MOONSTREAM_ADMIN_ACCESS_TOKEN, MOONSTREAM_ENTITIES_RESERVED_TAGS
 from ..web3_provider import yield_web3_provider
 
 
@@ -131,16 +131,7 @@ async def add_subscription_handler(
         allowed_required_fields = {
             key: value
             for key, value in additional_required_fields_dict.items()
-            if key
-            not in [
-                "type",
-                "subscription_type_id",
-                "color",
-                "label",
-                "user_id",
-                "address",
-                "blockchain",
-            ]
+            if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS
         }
 
     required_fields = [
@@ -389,7 +380,11 @@ async def update_subscriptions_handler(
 
         subscription_type_id = None
 
-        update_required_fields = subscription_entity.required_fields
+        update_required_fields = [
+            field
+            for field in subscription_entity.required_fields
+            if any(key in field for key in MOONSTREAM_ENTITIES_RESERVED_TAGS)
+        ]
 
         update_secondary_fields = subscription_entity.secondary_fields
 
@@ -417,6 +412,8 @@ async def update_subscriptions_handler(
             f"Error get subscriptions for user ({user.id}) with token ({token}), error: {str(e)}"
         )
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    #
 
     for field in update_required_fields:
         if "color" in field and color is not None:
@@ -449,23 +446,13 @@ async def update_subscriptions_handler(
         allowed_required_fields = {
             key: value
             for key, value in additional_required_fields_dict.items()
-            if key
-            not in [
-                "type",
-                "subscription_type_id",
-                "color",
-                "label",
-                "user_id",
-                "address",
-                "blockchain",
-            ]
+            if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS
         }
 
         if allowed_required_fields:
             update_required_fields.extend(
                 [{key: value} for key, value in allowed_required_fields.items()]
             )
-
     try:
         subscription = ec.update_entity(
             token=token,
