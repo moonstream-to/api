@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, Union, Literal
 from uuid import UUID
 from xmlrpc.client import Boolean
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 from sqlalchemy import false
 
 USER_ONBOARDING_STATE = "onboarding_state"
@@ -271,6 +271,7 @@ class DashboardUpdate(BaseModel):
 
 class UpdateDataRequest(BaseModel):
     params: Dict[str, Any] = Field(default_factory=dict)
+    blockchain: Optional[str] = None
 
 
 class UpdateQueryRequest(BaseModel):

@@ -15,7 +15,7 @@ from moonstreamdb.db import SessionLocal
 from ..settings import BUGOUT_BROOD_URL, BUGOUT_SPIRE_URL, MOONSTREAM_APPLICATION_ID
 from ..web3_provider import yield_web3_provider
 
-from . import subscription_types, subscriptions, moonworm_tasks
+from . import subscription_types, subscriptions, moonworm_tasks, queries
 from .migrations import (
     checksum_address,
     update_dashboard_subscription_key,
@@ -478,6 +478,33 @@ This CLI is configured to work with the following API URLs:
 
     parser_moonworm_tasks_add.set_defaults(func=moonworm_tasks_add_subscription_handler)
 
+
+
+    queries_parser = subcommands.add_parser(
+        "queries", description="Manage Moonstream queries"
+    )
+    queries_parser.set_defaults(func=lambda _: queries_parser.print_help())
+
+
+    
+    queries_subcommands = queries_parser.add_subparsers(
+        description="Query commands"
+    )
+
+    create_query_parser = queries_subcommands.add_parser(
+        "create-template", description="Create query template"
+    )
+
+    create_query_parser.add_argument(
+        "--query-file",
+        required=True,
+        type=argparse.FileType("r"),
+        help="File containing the query to add",
+    )
+    create_query_parser.add_argument(
+        "-n", "--name", required=True, help="Name for the new query"
+    )
+    create_query_parser.set_defaults(func=queries.create_query_template)
     args = parser.parse_args()
     args.func(args)
 

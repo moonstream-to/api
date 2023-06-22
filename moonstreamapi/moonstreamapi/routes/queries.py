@@ -1,15 +1,18 @@
 """
 The Moonstream queries HTTP API
 """
+from datetime import datetime
 import logging
 from typing import Any, Dict, List, Optional, Tuple, Union
 from uuid import UUID
+
 
 
 from bugout.data import BugoutResources, BugoutJournalEntryContent, BugoutJournalEntry
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Body, Request
 import requests  # type: ignore
+from moonstreamdb.blockchain import AvailableBlockchainType
 from sqlalchemy import text
 
 
@@ -31,7 +34,7 @@ from ..settings import (
     MOONSTREAM_S3_QUERIES_BUCKET_PREFIX,
     MOONSTREAM_QUERIES_JOURNAL_ID,
 )
-from ..settings import bugout_client as bc
+from ..settings import bugout_client as bc, MOONSTREAM_QUERY_TEMPLATE_CONTEXT_TYPE
 
 
 logger = logging.getLogger(__name__)
@@ -154,34 +157,134 @@ async def create_query_handler(
     return entry
 
 
+
+@router.get("/templates", tags=["queries"])
+def get_suggested_queries(
+    supported_interfaces: Optional[List[str]] = None,
+    address: Optional[str] = None,
+    title: Optional[str] = None,
+    limit: int = 10,
+) -> data.SuggestedQueriesResponse:
+    """
+    Return set of suggested queries for user
+    """
+
+    filters = ["tag:approved", "tag:query_template"]
+
+    if supported_interfaces:
+        filters.extend(
+            [f"?#interface:{interface}" for interface in supported_interfaces]
+        )
+
+    if address:
+        filters.append(f"?#address:{address}")
+
+    if title:
+        filters.append(title)
+
+    query = " ".join(filters)
+
+    try:
+        queries = bc.search(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
+            query=query,
+            limit=limit,
+            timeout=5,
+        )
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    # make split by interfaces
+
+    interfaces: Dict[str, Any] = {}
+
+    for entry in queries.results:
+        for tag in entry.tags:
+            if tag.startswith("interface:"):
+                interface = tag.split(":")[1]
+
+                if interface not in interfaces:
+                    interfaces[interface] = []
+
+                interfaces[interface].append(entry)
+
+    return data.SuggestedQueriesResponse(
+        queries=queries.results,
+        interfaces=interfaces,
+    )
+
+
 @router.get("/{query_name}/query", tags=["queries"])
 async def get_query_handler(
     request: Request, query_name: str
 ) -> data.QueryInfoResponse:
     token = request.state.token
 
+
+    # normalize query name
+
     try:
-        query_id = get_query_by_name(query_name, token)
+        query_name_normalized = name_normalization(query_name)
     except NameNormalizationException:
         raise MoonstreamHTTPException(
             status_code=403,
             detail=f"Provided query name can't be normalize please select different.",
         )
-    except Exception as e:
-        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+
+    # check in templates
 
     try:
-        entry = bc.get_entry(
+        entries = bc.search(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
-            entry_id=query_id,
+            query=f"tag:query_template tag:query_url:{query_name_normalized}",
+            filters=[
+                f"context_type:{MOONSTREAM_QUERY_TEMPLATE_CONTEXT_TYPE}",
+            ],
+            limit=1,
         )
-
     except BugoutResponseException as e:
         logger.error(f"Error in get query: {str(e)}")
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    if len(entries.results) == 0:
+        try:
+            query_id = get_query_by_name(query_name, token)
+        except NameNormalizationException:
+            raise MoonstreamHTTPException(
+                status_code=403,
+                detail=f"Provided query name can't be normalize please select different.",
+            )
+
+        try:
+            entries = bc.search(
+                token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
+                query=f"tag:approved tag:query_id:{query_id} !tag:preapprove",
+                limit=1,
+                timeout=5,
+            )
+        except BugoutResponseException as e:
+            logger.error(f"Error in get query: {str(e)}")
+            raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+        except Exception as e:
+            raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+        if len(entries.results) == 0:
+            raise MoonstreamHTTPException(
+                status_code=403, detail="Query not approved yet."
+            )
+    else:
+        query_id = entries.results[0].entry_url.split("/")[-1]
+
+
+    entry = entries.results[0]
 
     try:
         if entry.content is None:
@@ -209,14 +312,17 @@ async def get_query_handler(
         else:
             query_parameters[param] = None
 
+
+    print(type(entry.created_at))
+
     return data.QueryInfoResponse(
         query=entry.content,
-        query_id=str(entry.id),
+        query_id=str(query_id),
         preapprove="preapprove" in tags_dict,
         approved="approved" in tags_dict,
         parameters=query_parameters,
-        created_at=entry.created_at,
-        updated_at=entry.updated_at,
+        created_at=entry.created_at,  # type: ignore
+        updated_at=entry.updated_at,  # type: ignore
     )
 
 
@@ -235,8 +341,6 @@ async def update_query_handler(
             status_code=403,
             detail=f"Provided query name can't be normalize please select different.",
         )
-    except Exception as e:
-        raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     try:
         entry = bc.update_entry_content(
@@ -272,64 +376,106 @@ async def update_query_data_handler(
 
     token = request.state.token
 
+    if request_update.blockchain:
+        try:
+            AvailableBlockchainType(request_update.blockchain)
+        except ValueError:
+            raise MoonstreamHTTPException(
+                status_code=400,
+                detail=f"Provided blockchain is not supported.",
+            )
+
+    # normalize query name
+
     try:
-        query_id = get_query_by_name(query_name, token)
+        query_name_normalized = name_normalization(query_name)
     except NameNormalizationException:
         raise MoonstreamHTTPException(
             status_code=403,
             detail=f"Provided query name can't be normalize please select different.",
         )
-    except Exception as e:
-        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+
+    # check in templates
 
     try:
         entries = bc.search(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
-            query=f"tag:approved tag:query_id:{query_id} !tag:preapprove",
+            query=f"tag:query_template tag:query_url:{query_name_normalized}",
+            filters=[
+                f"context_type:{MOONSTREAM_QUERY_TEMPLATE_CONTEXT_TYPE}",
+            ],
             limit=1,
-            timeout=5,
         )
+    except BugoutResponseException as e:
+        logger.error(f"Error in get query: {str(e)}")
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    if len(entries.results) == 0:
+        try:
+            query_id = get_query_by_name(query_name, token)
+        except NameNormalizationException:
+            raise MoonstreamHTTPException(
+                status_code=403,
+                detail=f"Provided query name can't be normalize please select different.",
+            )
+
+        try:
+            entries = bc.search(
+                token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
+                query=f"tag:approved tag:query_id:{query_id} !tag:preapprove",
+                limit=1,
+                timeout=5,
+            )
+        except BugoutResponseException as e:
+            logger.error(f"Error in get query: {str(e)}")
+            raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+        except Exception as e:
+            raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
         if len(entries.results) == 0:
             raise MoonstreamHTTPException(
                 status_code=403, detail="Query not approved yet."
             )
+    else:
+        query_id = entries.results[0].entry_url.split("/")[-1]
 
-        s3_response = None
+    s3_response = None
 
-        if entries.results[0].content:
-            content = entries.results[0].content
+    if entries.results[0].content:
+        content = entries.results[0].content
 
-            tags = entries.results[0].tags
+        tags = entries.results[0].tags
 
-            file_type = "json"
+        file_type = "json"
 
-            if "ext:csv" in tags:
-                file_type = "csv"
+        if "ext:csv" in tags:
+            file_type = "csv"
 
-            responce = requests.post(
-                f"{MOONSTREAM_CRAWLERS_SERVER_URL}:{MOONSTREAM_CRAWLERS_SERVER_PORT}/jobs/{query_id}/query_update",
-                json={
-                    "query": content,
-                    "params": request_update.params,
-                    "file_type": file_type,
-                },
-                timeout=5,
+        responce = requests.post(
+            f"{MOONSTREAM_CRAWLERS_SERVER_URL}:{MOONSTREAM_CRAWLERS_SERVER_PORT}/jobs/{query_id}/query_update",
+            json={
+                "query": content,
+                "params": request_update.params,
+                "file_type": file_type,
+                "blockchain": request_update.blockchain
+                if request_update.blockchain
+                else None,
+            },
+            timeout=5,
+        )
+
+        if responce.status_code != 200:
+            raise MoonstreamHTTPException(
+                status_code=responce.status_code,
+                detail=responce.text,
             )
 
-            if responce.status_code != 200:
-                raise MoonstreamHTTPException(
-                    status_code=responce.status_code,
-                    detail=responce.text,
-                )
-
-            s3_response = data.QueryPresignUrl(**responce.json())
-    except BugoutResponseException as e:
-        logger.error(f"Error in updating query: {str(e)}")
-        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
-    except Exception as e:
-        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+        s3_response = data.QueryPresignUrl(**responce.json())
 
     return s3_response
 
@@ -348,29 +494,68 @@ async def get_access_link_handler(
 
     token = request.state.token
 
+    # normalize query name
     try:
-        query_id = get_query_by_name(query_name, token)
+        query_name_normalized = name_normalization(query_name)
     except NameNormalizationException:
         raise MoonstreamHTTPException(
             status_code=403,
             detail=f"Provided query name can't be normalize please select different.",
         )
-    except Exception as e:
-        logger.error(f"Error in get query: {str(e)}")
-        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    # check in templattes
 
     try:
         entries = bc.search(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
-            query=f"tag:approved tag:query_id:{query_id} !tag:preapprove",
+            query=f"tag:query_template tag:query_url:{query_name_normalized}",
+            filters=[
+                f"context_type:{MOONSTREAM_QUERY_TEMPLATE_CONTEXT_TYPE}"
+            ],
             limit=1,
-            timeout=5,
         )
+    except BugoutResponseException as e:
+        logger.error(f"Error in get query: {str(e)}")
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    if len(entries.results) == 0:
+
+        try:
+            query_id = get_query_by_name(query_name, token)
+        except NameNormalizationException:
+            raise MoonstreamHTTPException(
+                status_code=403,
+                detail=f"Provided query name can't be normalize please select different.",
+            )
+
+        try:
+
+            entries = bc.search(
+                token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
+                query=f"tag:approved tag:query_id:{query_id} !tag:preapprove",
+                limit=1,
+                timeout=5,
+            )
+        except BugoutResponseException as e:
+            logger.error(f"Error in get query: {str(e)}")
+            raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+        except Exception as e:
+            raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+        if len(entries.results) == 0:
+            raise MoonstreamHTTPException(
+                status_code=403, detail="Query not approved yet."
+            )
+
+    try:
 
         s3_response = None
 
-        if entries.results and entries.results[0].content:
+        if entries.results[0].content:
             passed_params = dict(request_update.params)
 
             tags = entries.results[0].tags
@@ -393,9 +578,6 @@ async def get_access_link_handler(
                 http_method="GET",
             )
             s3_response = data.QueryPresignUrl(url=stats_presigned_url)
-    except BugoutResponseException as e:
-        logger.error(f"Error in get access link: {str(e)}")
-        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
         logger.error(f"Error in get access link: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)

@@ -81,7 +81,7 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/ethereum/eth-diamond-purple.png",
         stripe_product_id=None,
         stripe_price_id=None,
-        active=True,
+        active=False,
     ),
     "polygon_blockchain": SubscriptionTypeResourceData(
         id="polygon_blockchain",
@@ -92,7 +92,7 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/matic-token-inverted-icon.png",
         stripe_product_id=None,
         stripe_price_id=None,
-        active=True,
+        active=False,
     ),
     "mumbai_blockchain": SubscriptionTypeResourceData(
         id="mumbai_blockchain",
@@ -103,7 +103,7 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/matic-token-inverted-icon.png",
         stripe_product_id=None,
         stripe_price_id=None,
-        active=True,
+        active=False,
     ),
     "xdai_blockchain": SubscriptionTypeResourceData(
         id="xdai_blockchain",
@@ -114,7 +114,7 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/xdai-token-logo.png",
         stripe_product_id=None,
         stripe_price_id=None,
-        active=True,
+        active=False,
     ),
     "wyrm_blockchain": SubscriptionTypeResourceData(
         id="wyrm_blockchain",
@@ -125,7 +125,7 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/great-wyrm-network-logo.png",
         stripe_product_id=None,
         stripe_price_id=None,
-        active=True,
+        active=False,
     ),
     "ethereum_whalewatch": SubscriptionTypeResourceData(
         id="ethereum_whalewatch",
@@ -137,7 +137,7 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/whalewatch.png",
         stripe_product_id=None,
         stripe_price_id=None,
-        active=True,
+        active=False,
     ),
     "ethereum_txpool": SubscriptionTypeResourceData(
         id="ethereum_txpool",
@@ -145,6 +145,17 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         blockchain="ethereum",
         description="Transactions that have been submitted into the Ethereum transaction pool but not necessarily mined yet",
         choices=["input:address", "tag:erc721"],
+        icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/ethereum/eth-diamond-rainbow.png",
+        stripe_product_id=None,
+        stripe_price_id=None,
+        active=False,
+    ),
+    "externaly_owned_account": SubscriptionTypeResourceData(
+        id="externaly_owned_account",
+        name="Externally owned account",
+        blockchain="Any",
+        description="Externally owned account",
+        choices=[],
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/ethereum/eth-diamond-rainbow.png",
         stripe_product_id=None,
         stripe_price_id=None,
@@ -180,6 +191,7 @@ def create_subscription_type(
     description: str,
     icon_url: str,
     choices: List[str] = [],
+    blockchain: Optional[str] = None,
     stripe_product_id: Optional[str] = None,
     stripe_price_id: Optional[str] = None,
     active: bool = False,
@@ -218,6 +230,7 @@ def create_subscription_type(
         "name": name,
         "description": description,
         "choices": choices,
+        "blockchain": blockchain,
         "icon_url": icon_url,
         "stripe_product_id": stripe_product_id,
         "stripe_price_id": stripe_price_id,
@@ -241,6 +254,7 @@ def cli_create_subscription_type(args: argparse.Namespace) -> None:
         args.id,
         args.name,
         args.description,
+        args.blockchain,
         args.icon,
         args.choices,
         args.stripe_product_id,
@@ -329,6 +343,7 @@ def update_subscription_type(
     name: Optional[str] = None,
     description: Optional[str] = None,
     choices: Optional[List[str]] = None,
+    blockchain: Optional[str] = None,
     icon_url: Optional[str] = None,
     stripe_product_id: Optional[str] = None,
     stripe_price_id: Optional[str] = None,
@@ -365,6 +380,8 @@ def update_subscription_type(
         updated_resource_data["description"] = description
     if choices is not None:
         updated_resource_data["choices"] = choices
+    if blockchain is not None:
+        updated_resource_data["blockchain"] = blockchain
     if icon_url is not None:
         updated_resource_data["icon_url"] = icon_url
     if stripe_product_id is not None:
@@ -403,6 +420,7 @@ def cli_update_subscription_type(args: argparse.Namespace) -> None:
         args.name,
         args.description,
         args.choices,
+        args.blockchain,
         args.icon,
         args.stripe_product_id,
         args.stripe_price_id,
@@ -475,6 +493,7 @@ def ensure_canonical_subscription_types() -> BugoutResources:
                 canonical_subscription_type.description,
                 canonical_subscription_type.icon_url,
                 canonical_subscription_type.choices,
+                canonical_subscription_type.blockchain,
                 canonical_subscription_type.stripe_product_id,
                 canonical_subscription_type.stripe_price_id,
                 canonical_subscription_type.active,
@@ -487,6 +506,7 @@ def ensure_canonical_subscription_types() -> BugoutResources:
                 canonical_subscription_type.name,
                 canonical_subscription_type.description,
                 canonical_subscription_type.choices,
+                canonical_subscription_type.blockchain,
                 canonical_subscription_type.icon_url,
                 canonical_subscription_type.stripe_product_id,
                 canonical_subscription_type.stripe_price_id,

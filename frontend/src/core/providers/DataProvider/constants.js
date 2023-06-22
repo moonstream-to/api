@@ -1,1 +1,0 @@
-export const SPIRE_URL = process.env.NEXT_PUBLIC_SIMIOTICS_JOURNALS_URL;
