@@ -1,7 +1,7 @@
 import logging
 import os
 import warnings
-from typing import List
+from typing import Set
 
 from bugout.app import Bugout
 from bugout.data import BugoutUser
@@ -26,7 +26,11 @@ if RAW_ORIGINS is None:
     raise ValueError(
         "ENGINE_CORS_ALLOWED_ORIGINS environment variable must be set (comma-separated list of CORS allowed origins)"
     )
-ALLOW_ORIGINS: List[str] = RAW_ORIGINS.split(",")
+RAW_ORIGINS_LST = RAW_ORIGINS.split(",")
+ALLOW_ORIGINS: Set[str] = set()
+for o_raw in RAW_ORIGINS_LST:
+    ALLOW_ORIGINS.add(o_raw.strip())
+
 
 BUGOUT_RESOURCE_TYPE_APPLICATION_CONFIG = "application-config"
 BUGOUT_REQUEST_TIMEOUT_SECONDS = 5

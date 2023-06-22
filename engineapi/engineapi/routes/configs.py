@@ -1,24 +1,25 @@
 import logging
 from typing import Any, Dict, List, Set
 
-from bugout.data import BugoutResource
+from bugout.data import BugoutResource, BugoutResources
 from fastapi import (
     BackgroundTasks,
     Body,
     Depends,
     FastAPI,
+    Form,
     HTTPException,
     Query,
     Request,
 )
 from pydantic import AnyHttpUrl
 
-from .. import actions, data
+from .. import data
 from ..middleware import (
     BroodAuthMiddleware,
     BugoutCORSMiddleware,
     EngineHTTPException,
-    check_default_origins,
+    create_application_settings_cors_origin,
     fetch_and_set_cors_origins_cache,
     parse_origins_from_resources,
 )
@@ -26,6 +27,7 @@ from ..settings import (
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
     BUGOUT_RESOURCE_TYPE_APPLICATION_CONFIG,
     DOCS_TARGET_PATH,
+    MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_ADMIN_USER,
     MOONSTREAM_APPLICATION_ID,
 )
@@ -44,6 +46,7 @@ whitelist_paths.update(
     {
         "/configs/docs": "GET",
         "/configs/openapi.json": "GET",
+        "/configs/is_origin": "GET",
     }
 )
 
@@ -68,10 +71,42 @@ app.add_middleware(
 )
 
 
-@app.get("/cors", response_model=data.CORSResponse)
-async def get_cors(
+@app.get("/is_origin", response_model=data.IsCORSResponse)
+async def is_cors_origin(origin: str = Query(...)) -> data.IsCORSResponse:
+    is_cors_origin = data.IsCORSResponse()
+    try:
+        resources = bc.list_resources(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            params={
+                "application_id": MOONSTREAM_APPLICATION_ID,
+                "type": BUGOUT_RESOURCE_TYPE_APPLICATION_CONFIG,
+                "setting": "cors",
+            },
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+        )
+        cors_origins: data.CORSOrigins = parse_origins_from_resources(
+            resources.resources
+        )
+        if origin in cors_origins.origins_set:
+            for resource in cors_origins.resources:
+                resource_origin = resource.resource_data.get("origin", "")
+                # TODO(kompotkot): There are could be multiple creations by different users.
+                # Add logic to show most recent updated_at and oldest created_at.
+                if resource_origin == origin:
+                    is_cors_origin.origin = resource_origin
+                    is_cors_origin.created_at = resource.created_at
+                    is_cors_origin.updated_at = resource.updated_at
+    except Exception as err:
+        logger.error(repr(err))
+        raise EngineHTTPException(status_code=500)
+
+    return is_cors_origin
+
+
+@app.get("/origins", response_model=data.CORSOrigins)
+async def get_cors_origins(
     request: Request,
-) -> data.CORSResponse:
+) -> data.CORSOrigins:
     try:
         resources = bc.list_resources(
             token=request.state.token,
@@ -82,27 +117,23 @@ async def get_cors(
             },
             timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
         )
-        resource_origins_set: Set[str] = parse_origins_from_resources(
+        cors_origins: data.CORSOrigins = parse_origins_from_resources(
             resources.resources
         )
     except Exception as err:
         logger.error(repr(err))
         raise EngineHTTPException(status_code=500)
 
-    return data.CORSResponse(cors=list(resource_origins_set))
+    return cors_origins
 
 
-@app.put("/cors", response_model=data.CORSResponse)
-async def update_cors(
+@app.post("/origin", response_model=data.CORSOrigins)
+async def add_cors_origin(
     request: Request,
     background_tasks: BackgroundTasks,
-    new_origins: List[AnyHttpUrl] = Body(...),
-) -> data.CORSResponse:
-    new_origins = set(new_origins)
-
+    new_origin: AnyHttpUrl = Form(...),
+) -> data.CORSOrigins:
     try:
-        target_resource: BugoutResource
-
         resources = bc.list_resources(
             token=request.state.token,
             params={
@@ -112,50 +143,29 @@ async def update_cors(
             },
             timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
         )
-        if len(resources.resources) == 0:
-            target_resource = bc.create_resource(
-                token=request.state.token,
-                application_id=MOONSTREAM_APPLICATION_ID,
-                resource_data={
-                    "type": BUGOUT_RESOURCE_TYPE_APPLICATION_CONFIG,
-                    "setting": "cors",
-                    "user_id": str(request.state.user.id),
-                    "origins": list(new_origins),
-                },
-            )
-            bc.add_resource_holder_permissions(
-                token=request.state.token,
-                resource_id=target_resource.id,
-                holder_permissions={
-                    "holder_id": str(MOONSTREAM_ADMIN_USER.id),
-                    "holder_type": "user",
-                    "permissions": ["admin", "create", "read", "update", "delete"],
-                },
-            )
-        elif len(resources.resources) == 1:
-            target_resource = resources.resources[0]
-            resource_origins_set: Set[str] = parse_origins_from_resources(
-                [target_resource]
-            )
-            resource_origins_set.update(new_origins)
-
-            target_resource = bc.update_resource(
-                token=request.state.token,
-                resource_id=target_resource.id,
-                resource_data={
-                    "update": {"origins": list(resource_origins_set)},
-                    "drop_keys": [],
-                },
-            )
-        elif len(resources.resources) > 1:
-            # TODO(kompotkot): Remove all resource and save only one
-            raise EngineHTTPException(status_code=500)
     except Exception as err:
-        logger.error(repr(err))
+        logger.error(f"Unable to fetch resource from Brood, err: {repr(err)}")
         raise EngineHTTPException(status_code=500)
+
+    cors_origins: data.CORSOrigins = parse_origins_from_resources(resources.resources)
+
+    if new_origin in cors_origins.origins_set:
+        raise EngineHTTPException(
+            status_code=409,
+            detail=f"Provided origin {new_origin} already set by user",
+        )
+
+    resource = create_application_settings_cors_origin(
+        token=request.state.token,
+        user_id=request.state.user.id,
+        username=request.state.user.username,
+        origin=new_origin,
+    )
+    cors_origins.origins_set.add(new_origin)
+    cors_origins.resources.append(resource)
 
     background_tasks.add_task(
         fetch_and_set_cors_origins_cache,
     )
 
-    return data.CORSResponse(cors=target_resource.resource_data["origins"])
+    return cors_origins

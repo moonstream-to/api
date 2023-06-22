@@ -20,6 +20,7 @@ setup(
         "redis",
         "psycopg2-binary",
         "pydantic",
+        "python-multipart",
         "sqlalchemy",
         "tqdm",
         "uvicorn",
