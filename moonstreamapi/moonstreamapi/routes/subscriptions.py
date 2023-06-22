@@ -172,13 +172,7 @@ async def add_subscription_handler(
                 subscription_type_id
             ].blockchain,
             name=label,
-            required_fields=[
-                {"type": "subscription"},
-                {"subscription_type_id": f"{subscription_type_id}"},
-                {"color": f"{color}"},
-                {"label": f"{label}"},
-                {"user_id": f"{user.id}"},
-            ],
+            required_fields=required_fields,
             secondary_fields=content,
         )
     except EntityCollectionNotFoundException as e:
