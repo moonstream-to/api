@@ -49,14 +49,19 @@ def connect(
     async_: bool = False,
 ) -> Web3:
     request_kwargs: Any = None
+
     if access_id is not None:
         request_kwargs = {
             "headers": {
-                NB_ACCESS_ID_HEADER: str(access_id),
-                NB_DATA_SOURCE_HEADER: NB_DATA_SOURCE_HEADER_VALUE,
                 "Content-Type": "application/json",
             }
         }
+
+        if blockchain_type != AvailableBlockchainType.WYRM:
+            request_kwargs["headers"][NB_ACCESS_ID_HEADER] = str(access_id)
+            request_kwargs["headers"][
+                NB_DATA_SOURCE_HEADER
+            ] = NB_DATA_SOURCE_HEADER_VALUE
 
     if web3_uri is None:
         if blockchain_type == AvailableBlockchainType.ETHEREUM:
