@@ -153,7 +153,7 @@ CANONICAL_SUBSCRIPTION_TYPES = {
     "externaly_owned_account": SubscriptionTypeResourceData(
         id="externaly_owned_account",
         name="Externally owned account",
-        blockchain=None,
+        blockchain="Any",
         description="Externally owned account",
         choices=[],
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/ethereum/eth-diamond-rainbow.png",
