@@ -18,6 +18,7 @@ from .settings import (
     MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI,
     NB_ACCESS_ID_HEADER,
     NB_DATA_SOURCE_HEADER,
+    NB_DATA_SOURCE_HEADER_VALUE,
     MOONSTREAM_POLYGON_WEB3_PROVIDER_URI,
     MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI,
     MOONSTREAM_XDAI_WEB3_PROVIDER_URI,
@@ -47,13 +48,12 @@ def connect(
     access_id: Optional[UUID] = None,
     async_: bool = False,
 ) -> Web3:
-
     request_kwargs: Any = None
     if access_id is not None:
         request_kwargs = {
             "headers": {
                 NB_ACCESS_ID_HEADER: str(access_id),
-                NB_DATA_SOURCE_HEADER: "blockchain",
+                NB_DATA_SOURCE_HEADER: NB_DATA_SOURCE_HEADER_VALUE,
                 "Content-Type": "application/json",
             }
         }
@@ -78,8 +78,6 @@ def connect(
     else:
         web3_client = Web3(Web3.IPCProvider(web3_uri))
 
-    # Inject --dev middleware if it is not Ethereum mainnet
-    # Docs: https://web3py.readthedocs.io/en/stable/middleware.html#geth-style-proof-of-authority
     if blockchain_type != AvailableBlockchainType.ETHEREUM:
         web3_client.middleware_onion.inject(geth_poa_middleware, layer=0)
 

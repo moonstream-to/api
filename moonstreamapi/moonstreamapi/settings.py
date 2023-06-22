@@ -164,23 +164,22 @@ NB_ACCESS_ID_HEADER = os.environ.get("NB_ACCESS_ID_HEADER", "x-node-balancer-acc
 NB_DATA_SOURCE_HEADER = os.environ.get(
     "NB_DATA_SOURCE_HEADER", "x-node-balancer-data-source"
 )
-
-NB_CONTROLLER_ACCESS_ID: Optional[UUID] = None
-NB_CONTROLLER_ACCESS_ID_RAW = os.environ.get("NB_CONTROLLER_ACCESS_ID", "")
-try:
-    NB_CONTROLLER_ACCESS_ID = UUID(NB_CONTROLLER_ACCESS_ID_RAW)
-except:
-    pass
+NB_DATA_SOURCE_HEADER_VALUE = os.environ.get(
+    "NB_DATA_SOURCE_HEADER_VALUE", "blockchain"
+)
 
 
 support_interfaces = [
     {"name": "_INTERFACE_ID_ERC165", "selector": "0x01ffc9a7"},
     {"name": "_INTERFACE_ID_ERC20", "selector": "0x36372b07"},
     {"name": "_INTERFACE_ID_ERC721", "selector": "0x80ac58cd"},
-    {"name": "_INTERFACE_ID_ERC721_METADATA", "selector": "0x5b5e139f"}, # miss
-    {"name": "_INTERFACE_ID_ERC721_ENUMERABLE", "selector": "0x780e9d63"}, # miss
+    {"name": "_INTERFACE_ID_ERC721_METADATA", "selector": "0x5b5e139f"},  # miss
+    {"name": "_INTERFACE_ID_ERC721_ENUMERABLE", "selector": "0x780e9d63"},  # miss
     {"name": "_INTERFACE_ID_ERC721_RECEIVED", "selector": "0x150b7a02"},
-    {"name": "_INTERFACE_ID_ERC721_METADATA_RECEIVED", "selector": "0x0e89341c"}, # miss
+    {
+        "name": "_INTERFACE_ID_ERC721_METADATA_RECEIVED",
+        "selector": "0x0e89341c",
+    },  # miss
     {"name": "_INTERFACE_ID_ERC721_ENUMERABLE_RECEIVED", "selector": "0x4e2312e0"},
     {"name": "_INTERFACE_ID_ERC1155", "selector": "0xd9b67a26"},
 ]
