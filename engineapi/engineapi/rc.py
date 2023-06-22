@@ -6,6 +6,8 @@ from redis import asyncio as aioredis
 
 from .settings import ENGINE_REDIS_URI
 
+REDIS_CONFIG_CORS_KEY = "configs:cors:engineapi"
+
 
 def create_redis_client() -> Redis:
     rc_pool = ConnectionPool.from_url(

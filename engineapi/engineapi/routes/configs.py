@@ -71,7 +71,7 @@ app.add_middleware(
 @app.get("/cors", response_model=data.CORSResponse)
 async def get_cors(
     request: Request,
-):
+) -> data.CORSResponse:
     try:
         resources = bc.list_resources(
             token=request.state.token,
@@ -89,7 +89,7 @@ async def get_cors(
         logger.error(repr(err))
         raise EngineHTTPException(status_code=500)
 
-    return data.CORSResponse(cors=",".join(list(resource_origins_set)))
+    return data.CORSResponse(cors=list(resource_origins_set))
 
 
 @app.put("/cors", response_model=data.CORSResponse)
@@ -97,7 +97,7 @@ async def update_cors(
     request: Request,
     background_tasks: BackgroundTasks,
     new_origins: List[AnyHttpUrl] = Body(...),
-):
+) -> data.CORSResponse:
     new_origins = set(new_origins)
 
     try:
@@ -158,4 +158,4 @@ async def update_cors(
         fetch_and_set_cors_origins_cache,
     )
 
-    return data.CORSResponse(cors=",".join(target_resource.resource_data["origins"]))
+    return data.CORSResponse(cors=target_resource.resource_data["origins"])

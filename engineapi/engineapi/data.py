@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, root_validator, validator
+from pydantic import AnyHttpUrl, BaseModel, Field, root_validator, validator
 from web3 import Web3
 
 
@@ -24,7 +24,7 @@ class NowResponse(BaseModel):
 
 
 class CORSResponse(BaseModel):
-    cors: str
+    cors: List[AnyHttpUrl] = Field(default_factory=list)
 
 
 class SignerListResponse(BaseModel):
