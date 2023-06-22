@@ -45,6 +45,8 @@ async def add_subscription_handler(
     color: str = Form(...),
     label: str = Form(...),
     subscription_type_id: str = Form(...),
+    description: Optional[str] = Form(None),
+    tags: Optional[str] = Form(None),
     abi: Optional[str] = Form(None),
     web3: Web3 = Depends(yield_web3_provider),
 ) -> data.SubscriptionResourceData:
@@ -116,6 +118,43 @@ async def add_subscription_handler(
             address,
         )
 
+    if description:
+        content["description"] = description
+
+    allowed_required_fields = {}
+    if tags:
+        # filter out subscription_type_id, color, label, user_id, address, blockchain
+
+        additional_required_fields_dict = json.loads(tags)
+
+        allowed_required_fields = {
+            key: value
+            for key, value in additional_required_fields_dict.items()
+            if key
+            not in [
+                "type",
+                "subscription_type_id",
+                "color",
+                "label",
+                "user_id",
+                "address",
+                "blockchain",
+            ]
+        }
+
+    required_fields = [
+        {"type": "subscription"},
+        {"subscription_type_id": f"{subscription_type_id}"},
+        {"color": f"{color}"},
+        {"label": f"{label}"},
+        {"user_id": f"{user.id}"},
+    ]
+
+    if allowed_required_fields:
+        required_fields.extend(
+            [{key: value} for key, value in allowed_required_fields.items()]
+        )
+
     try:
         collection_id = get_entity_subscription_collection_id(
             resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
@@ -162,6 +201,8 @@ async def add_subscription_handler(
         color=color,
         label=label,
         abi=entity.secondary_fields.get("abi"),
+        description=entity.secondary_fields.get("description"),
+        tags=entity.required_fields,
         subscription_type_id=subscription_type_id,
         updated_at=entity.updated_at,
         created_at=entity.created_at,
@@ -232,6 +273,8 @@ async def delete_subscription_handler(request: Request, subscription_id: str):
         color=color,
         label=label,
         abi=abi,
+        description=deleted_entity.secondary_fields.get("description"),
+        tags=deleted_entity.required_fields,
         subscription_type_id=subscription_type_id,
         updated_at=deleted_entity.updated_at,
         created_at=deleted_entity.created_at,
@@ -303,6 +346,8 @@ async def get_subscriptions_handler(
                 color=color,
                 label=label,
                 abi="True" if subscription.secondary_fields.get("abi") else None,
+                description=subscription.secondary_fields.get("description"),
+                tags=subscription.required_fields,
                 subscription_type_id=subscription_type_id,
                 updated_at=subscription.updated_at,
                 created_at=subscription.created_at,
@@ -323,6 +368,8 @@ async def update_subscriptions_handler(
     color: Optional[str] = Form(None),
     label: Optional[str] = Form(None),
     abi: Optional[str] = Form(None),
+    description: Optional[str] = Form(None),
+    tags: Optional[str] = Form(None),
 ) -> data.SubscriptionResourceData:
     """
     Get user's subscriptions.
@@ -330,10 +377,6 @@ async def update_subscriptions_handler(
     token = request.state.token
 
     user = request.state.user
-
-    update_required_fields = []
-
-    update_secondary_fields = {}
 
     try:
         collection_id = get_entity_subscription_collection_id(
@@ -352,6 +395,8 @@ async def update_subscriptions_handler(
         subscription_type_id = None
 
         update_required_fields = subscription_entity.required_fields
+
+        update_secondary_fields = subscription_entity.secondary_fields
 
         for field in update_required_fields:
             if "subscription_type_id" in field:
@@ -399,8 +444,32 @@ async def update_subscriptions_handler(
         hash = hashlib.md5(abi_string.encode("utf-8")).hexdigest()
 
         update_secondary_fields["abi_hash"] = hash
-    else:
-        update_secondary_fields = subscription_entity.secondary_fields
+
+    if description:
+        update_secondary_fields["description"] = description
+
+    if tags:
+        additional_required_fields_dict = json.loads(tags)
+
+        allowed_required_fields = {
+            key: value
+            for key, value in additional_required_fields_dict.items()
+            if key
+            not in [
+                "type",
+                "subscription_type_id",
+                "color",
+                "label",
+                "user_id",
+                "address",
+                "blockchain",
+            ]
+        }
+
+        if allowed_required_fields:
+            update_required_fields.extend(
+                [{key: value} for key, value in allowed_required_fields.items()]
+            )
 
     try:
         subscription = ec.update_entity(
@@ -433,6 +502,8 @@ async def update_subscriptions_handler(
         color=color,
         label=label,
         abi=subscription.secondary_fields.get("abi"),
+        description=subscription.secondary_fields.get("description"),
+        tags=subscription.required_fields,
         subscription_type_id=subscription_type_id,
         updated_at=subscription_entity.updated_at,
         created_at=subscription_entity.created_at,

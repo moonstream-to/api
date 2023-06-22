@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, Union, Literal
 from uuid import UUID
 from xmlrpc.client import Boolean
 
-from pydantic import BaseModel, Field,  validator
+from pydantic import BaseModel, Field, validator
 from sqlalchemy import false
 
 USER_ONBOARDING_STATE = "onboarding_state"
@@ -47,6 +47,8 @@ class SubscriptionResourceData(BaseModel):
     abi: Optional[str]
     color: Optional[str]
     label: Optional[str]
+    description: Optional[str] = None
+    tags: List[str] = Field(default_factory=list)
     user_id: str
     subscription_type_id: Optional[str]
     created_at: Optional[datetime]
@@ -297,7 +299,7 @@ class QueryInfoResponse(BaseModel):
     parameters: Dict[str, Any] = Field(default_factory=dict)
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-            
+
 
 class SuggestedQueriesResponse(BaseModel):
     interfaces: Dict[str, Any] = Field(default_factory=dict)
