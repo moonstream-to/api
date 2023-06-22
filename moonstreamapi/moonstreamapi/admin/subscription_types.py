@@ -230,6 +230,7 @@ def create_subscription_type(
         "name": name,
         "description": description,
         "choices": choices,
+        "blockchain": blockchain,
         "icon_url": icon_url,
         "stripe_product_id": stripe_product_id,
         "stripe_price_id": stripe_price_id,
@@ -379,6 +380,8 @@ def update_subscription_type(
         updated_resource_data["description"] = description
     if choices is not None:
         updated_resource_data["choices"] = choices
+    if blockchain is not None:
+        updated_resource_data["blockchain"] = blockchain
     if icon_url is not None:
         updated_resource_data["icon_url"] = icon_url
     if stripe_product_id is not None:

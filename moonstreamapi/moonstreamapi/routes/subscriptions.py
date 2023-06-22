@@ -547,7 +547,7 @@ async def list_subscription_types() -> data.SubscriptionTypesListResponse:
     """
     results: List[data.SubscriptionTypeResourceData] = []
     try:
-        response = subscription_types.list_subscription_types()
+        response = subscription_types.list_subscription_types(active_only=True)
         results = [
             data.SubscriptionTypeResourceData.validate(resource.resource_data)
             for resource in response.resources
