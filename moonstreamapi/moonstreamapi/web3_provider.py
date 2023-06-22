@@ -1,6 +1,5 @@
 import logging
 from uuid import UUID
-import traceback
 
 from typing import Any, Optional, Union, Callable
 from web3 import Web3
@@ -9,7 +8,6 @@ from eth_abi import encode_single, decode_single
 from eth_utils import function_signature_to_4byte_selector
 from web3 import Web3
 from web3.contract import ContractFunction
-from web3.providers.ipc import IPCProvider
 from web3.providers.rpc import HTTPProvider
 from web3._utils.abi import normalize_event_input_types
 
@@ -17,8 +15,6 @@ from web3._utils.abi import normalize_event_input_types
 from .settings import (
     MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI,
     NB_ACCESS_ID_HEADER,
-    NB_DATA_SOURCE_HEADER,
-    NB_DATA_SOURCE_HEADER_VALUE,
     MOONSTREAM_POLYGON_WEB3_PROVIDER_URI,
     MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI,
     MOONSTREAM_XDAI_WEB3_PROVIDER_URI,
@@ -46,22 +42,21 @@ def connect(
     blockchain_type: AvailableBlockchainType,
     web3_uri: Optional[str] = None,
     access_id: Optional[UUID] = None,
-    async_: bool = False,
+    user_token: Optional[UUID] = None,
 ) -> Web3:
-    request_kwargs: Any = None
+    request_kwargs: D = {}
 
-    if access_id is not None:
+    if blockchain_type != AvailableBlockchainType.WYRM:
         request_kwargs = {
             "headers": {
                 "Content-Type": "application/json",
             }
         }
 
-        if blockchain_type != AvailableBlockchainType.WYRM:
+        if access_id is not None:
             request_kwargs["headers"][NB_ACCESS_ID_HEADER] = str(access_id)
-            request_kwargs["headers"][
-                NB_DATA_SOURCE_HEADER
-            ] = NB_DATA_SOURCE_HEADER_VALUE
+        elif user_token is not None:
+            request_kwargs["headers"]["Authorization"] = f"Bearer {user_token}"
 
     if web3_uri is None:
         if blockchain_type == AvailableBlockchainType.ETHEREUM:

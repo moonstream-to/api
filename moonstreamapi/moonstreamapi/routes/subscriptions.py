@@ -6,6 +6,7 @@ import hashlib
 import json
 import logging
 from typing import Any, Dict, List, Optional
+import traceback
 
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Depends, Request, Form, BackgroundTasks
@@ -588,25 +589,6 @@ async def address_info(request: Request, address: str):
             internal_error=e,
         )
 
-    try:
-        resource = bc.list_resources(
-            token=user_token,
-            params={
-                "type": "nodebalancer-access",
-            },
-        )
-    except Exception as e:
-        logger.error(f"Error reading contract info from Brood API: {str(e)}")
-        raise MoonstreamHTTPException(status_code=500, internal_error=e)
-
-    access_id = resource.resources[0].resource_data["access_id"]
-
-    if not access_id:
-        raise MoonstreamHTTPException(
-            status_code=404,
-            detail="Not found access id",
-        )
-
     contract_info = {}
 
     for blockchain_type in AvailableBlockchainType:
@@ -621,7 +603,7 @@ async def address_info(request: Request, address: str):
                         check_if_smartcontract,
                         address=address,
                         blockchain_type=blockchain_type,
-                        access_id=access_id,
+                        user_token=user_token,
                     )
                 )
 
@@ -682,35 +664,10 @@ def get_contract_interfaces(
         )
 
     try:
-        resource = bc.list_resources(
-            token=user_token,
-            params={
-                "type": "nodebalancer-access",
-            },
-        )
-    except Exception as e:
-        logger.error(f"Error reading contract info from Brood API: {str(e)}")
-        raise MoonstreamHTTPException(status_code=500, internal_error=e)
-
-    if len(resource.resources) == 0:
-        raise MoonstreamHTTPException(
-            status_code=404,
-            detail="Not found access id",
-        )
-
-    access_id = resource.resources[0].resource_data["access_id"]
-
-    if not access_id:
-        raise MoonstreamHTTPException(
-            status_code=404,
-            detail="Not found access id",
-        )
-
-    try:
         interfaces = get_list_of_support_interfaces(
             blockchain_type=blockchain_type,
             address=address,
-            access_id=access_id,
+            user_token=user_token,
         )
 
     except Exception as e:

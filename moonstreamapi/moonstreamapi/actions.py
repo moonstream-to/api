@@ -804,13 +804,13 @@ def get_moonworm_jobs(
 def get_list_of_support_interfaces(
     blockchain_type: AvailableBlockchainType,
     address: str,
-    access_id: Optional[str] = None,
+    user_token: uuid.UUID,
     multicall_method: str = "tryAggregate",
 ):
     """
     Returns list of interfaces supported by given address
     """
-    web3_client = connect(blockchain_type, access_id=uuid.UUID(access_id))
+    web3_client = connect(blockchain_type, user_token=user_token)
 
     contract = web3_client.eth.contract(
         address=Web3.toChecksumAddress(address),
@@ -845,15 +845,12 @@ def get_list_of_support_interfaces(
     result = {}
 
     for i, selector in enumerate(list_of_interfaces):
-
         if multicall_result[i][0]:
             supported = FunctionSignature(
                 contract.get_function_by_name("supportsInterface")
             ).decode_data(multicall_result[i][1])
 
-
             if supported[0]:
-
                 result[selectors[selector]["name"]] = {  # type: ignore
                     "selector": selector,
                     "abi": selectors[selector]["abi"],  # type: ignore
@@ -865,12 +862,12 @@ def get_list_of_support_interfaces(
 def check_if_smartcontract(
     blockchain_type: AvailableBlockchainType,
     address: str,
-    access_id: Optional[str] = None,
+    user_token: uuid.UUID,
 ):
     """
     Checks if address is a smart contract on blockchain
     """
-    web3_client = connect(blockchain_type, access_id=uuid.UUID(access_id))
+    web3_client = connect(blockchain_type, user_token=user_token)
 
     is_contract = False
 
