@@ -169,6 +169,10 @@ NB_DATA_SOURCE_HEADER_VALUE = os.environ.get(
 )
 
 
+# Thread timeout
+
+THREAD_TIMEOUT_SECONDS = 10
+
 support_interfaces = [
     {"name": "_INTERFACE_ID_ERC165", "selector": "0x01ffc9a7"},
     {"name": "_INTERFACE_ID_ERC20", "selector": "0x36372b07"},

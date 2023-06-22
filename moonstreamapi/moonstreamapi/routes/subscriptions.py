@@ -6,7 +6,6 @@ import hashlib
 import json
 import logging
 from typing import Any, Dict, List, Optional
-import traceback
 
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Depends, Request, Form, BackgroundTasks
@@ -28,7 +27,7 @@ from ..admin import subscription_types
 from ..middleware import MoonstreamHTTPException
 from ..reporter import reporter
 from ..settings import bugout_client as bc, entity_client as ec
-from ..settings import MOONSTREAM_ADMIN_ACCESS_TOKEN, MOONSTREAM_MOONWORM_TASKS_JOURNAL
+from ..settings import MOONSTREAM_ADMIN_ACCESS_TOKEN, THREAD_TIMEOUT_SECONDS
 from ..web3_provider import (
     yield_web3_provider,
 )
@@ -627,8 +626,9 @@ async def address_info(request: Request, address: str):
                 )
 
                 for future in as_completed(futures):
-
-                    blockchain_type, address, is_contract = future.result()
+                    blockchain_type, address, is_contract = future.result(
+                        timeout=THREAD_TIMEOUT_SECONDS
+                    )
 
                     if is_contract:
                         contract_info[blockchain_type.value] = is_contract
@@ -714,7 +714,6 @@ def get_contract_interfaces(
         )
 
     except Exception as e:
-        traceback.print_exc()
         logger.error(f"Error reading contract info from web3: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
