@@ -299,6 +299,11 @@ class QueryInfoResponse(BaseModel):
     updated_at: Optional[datetime]
 
 
+class SuggestedQueriesResponse(BaseModel):
+    interfaces: Dict[str, Any] = Field(default_factory=dict)
+    queries: List[Any] = Field(default_factory=list)
+
+
 class ContractInfoResponse(BaseModel):
     contract_info: Dict[str, Any] = Field(default_factory=dict)
 

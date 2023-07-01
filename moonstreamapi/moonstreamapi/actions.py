@@ -473,20 +473,16 @@ def get_all_entries_from_search(
 
     results: List[BugoutSearchResult] = []
 
-    try:
-        existing_metods = bc.search(
-            token=token,
-            journal_id=journal_id,
-            query=search_query,
-            content=False,
-            timeout=10.0,
-            limit=limit,
-            offset=offset,
-        )
-        results.extend(existing_metods.results)
-
-    except Exception as e:
-        reporter.error_report(e)
+    existing_metods = bc.search(
+        token=token,
+        journal_id=journal_id,
+        query=search_query,
+        content=False,
+        timeout=10.0,
+        limit=limit,
+        offset=offset,
+    )
+    results.extend(existing_metods.results)
 
     if len(results) != existing_metods.total_results:
         for offset in range(limit, existing_metods.total_results, limit):
@@ -786,19 +782,60 @@ def query_parameter_hash(params: Dict[str, Any]) -> str:
     return hash
 
 
-def get_moonworm_jobs(
-    address: str,
-    subscription_type_id: str,
-    entries_limit: int = 100,
-):
+def parse_abi_to_name_tags(user_abi: List[Dict[str, Any]]):
+    return [
+        f"abi_name:{method['name']}"
+        for method in user_abi
+        if method["type"] in ("event", "function")
+    ]
+
+
+def filter_tasks(entries, tag_filters):
+    return [entry for entry in entries if any(tag in tag_filters for tag in entry.tags)]
+
+
+def fetch_and_filter_tasks(
+    journal_id, address, subscription_type_id, token, user_abi, limit=100
+) -> List[BugoutSearchResult]:
+    """
+    Fetch tasks from journal and filter them by user abi
+    """
     entries = get_all_entries_from_search(
-        journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+        journal_id=journal_id,
         search_query=f"tag:address:{address} tag:subscription_type:{subscription_type_id}",
-        limit=entries_limit,  # load per request
-        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        limit=limit,
+        token=token,
     )
 
-    return entries
+    user_loaded_abi_tags = parse_abi_to_name_tags(json.loads(user_abi))
+
+    moonworm_tasks = filter_tasks(entries, user_loaded_abi_tags)
+
+    return moonworm_tasks
+
+
+def get_moonworm_tasks(
+    subscription_type_id: str,
+    address: str,
+    user_abi: List[Dict[str, Any]],
+) -> List[BugoutSearchResult]:
+    """
+    Get moonworm tasks from journal and filter them by user abi
+    """
+
+    try:
+        moonworm_tasks = fetch_and_filter_tasks(
+            journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+            address=address,
+            subscription_type_id=subscription_type_id,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            user_abi=user_abi,
+        )
+    except Exception as e:
+        logger.error(f"Error get moonworm tasks: {str(e)}")
+        MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    return moonworm_tasks
 
 
 def get_list_of_support_interfaces(

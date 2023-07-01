@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional
 import traceback
 
 from bugout.exceptions import BugoutResponseException
+from bugout.data import BugoutSearchResult
 from fastapi import APIRouter, Depends, Request, Form, BackgroundTasks
 from moonstreamdb.blockchain import AvailableBlockchainType
 from web3 import Web3
@@ -18,7 +19,7 @@ from ..actions import (
     apply_moonworm_tasks,
     get_entity_subscription_collection_id,
     EntityCollectionNotFoundException,
-    get_moonworm_jobs,
+    get_moonworm_tasks,
     check_if_smartcontract,
     get_list_of_support_interfaces,
 )
@@ -495,7 +496,7 @@ async def get_subscription_abi_handler(
 @router.get(
     "/{subscription_id}/jobs",
     tags=["subscriptions"],
-    response_model=data.SubdcriptionsAbiResponse,
+    response_model=List[BugoutSearchResult],
 )
 async def get_subscription_jobs_handler(
     request: Request,
@@ -534,12 +535,12 @@ async def get_subscription_jobs_handler(
         if "subscription_type_id" in field:
             subscription_type_id = field["subscription_type_id"]
 
-        if "address" in field:
-            subscription_address = field["address"]
+    subscription_address = subscription_resource.address
 
-    get_moonworm_jobs_response = get_moonworm_jobs(
+    get_moonworm_jobs_response = get_moonworm_tasks(
         subscription_type_id=subscription_type_id,
         address=subscription_address,
+        user_abi=subscription_resource.secondary_fields.get("abi") or [],
     )
 
     return get_moonworm_jobs_response
