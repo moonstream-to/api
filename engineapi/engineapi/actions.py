@@ -92,7 +92,6 @@ def create_dropper_contract(
 def delete_dropper_contract(
     db_session: Session, blockchain: Optional[str], dropper_contract_address
 ):
-
     dropper_contract = (
         db_session.query(DropperContract)
         .filter(
@@ -877,7 +876,6 @@ def refetch_drop_signatures(
         for outdated_signature, transformed_claim_amount in zip(
             page, transformed_claim_amounts
         ):
-
             message_hash_raw = dropper_contract.claimMessageHash(
                 claim.claim_id,
                 outdated_signature.address,
@@ -1174,7 +1172,6 @@ def add_scores(
     addresses = [score.address for score in scores]
 
     if len(addresses) != len(set(addresses)):
-
         duplicates = [key for key, value in Counter(addresses).items() if value > 1]
 
         raise DuplicateLeaderboardAddressError("Dublicated addresses", duplicates)
@@ -1225,7 +1222,6 @@ def create_leaderboard_resource(
     leaderboard_id: uuid.UUID,
     token: Optional[uuid.UUID] = None,
 ) -> BugoutResource:
-
     resource_data: Dict[str, Any] = {
         "type": LEADERBOARD_RESOURCE_TYPE,
         "leaderboard_id": leaderboard_id,
@@ -1248,7 +1244,6 @@ def assign_resource(
     leaderboard_id: uuid.UUID,
     resource_id: Optional[uuid.UUID] = None,
 ):
-
     """
     Assign a resource handler to a leaderboard
     """
@@ -1258,7 +1253,6 @@ def assign_resource(
     )
 
     if leaderboard.resource_id is not None:
-
         raise Exception("Leaderboard already has a resource")
 
     if resource_id is not None:
@@ -1281,7 +1275,6 @@ def assign_resource(
 def list_leaderboards_resources(
     db_session: Session,
 ):
-
     """
     List all leaderboards resources
     """
@@ -1292,7 +1285,6 @@ def list_leaderboards_resources(
 
 
 def revoke_resource(db_session: Session, leaderboard_id: uuid.UUID):
-
     """
     Revoke a resource handler to a leaderboard
     """
@@ -1304,7 +1296,6 @@ def revoke_resource(db_session: Session, leaderboard_id: uuid.UUID):
     )
 
     if leaderboard.resource_id is None:
-
         raise Exception("Leaderboard does not have a resource")
 
     leaderboard.resource_id = None

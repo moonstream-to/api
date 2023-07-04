@@ -1,20 +1,35 @@
 import base64
 import json
 import logging
-from typing import Any, Awaitable, Callable, Dict, Optional
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Sequence, Set, Tuple
+from uuid import UUID
 
-from bugout.data import BugoutUser
+from bugout.data import BugoutResource, BugoutResources, BugoutUser
 from bugout.exceptions import BugoutResponseException
 from fastapi import HTTPException, Request, Response
+from pydantic import AnyHttpUrl, parse_obj_as
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.cors import CORSMiddleware
+from starlette.responses import Response
+from starlette.types import ASGIApp
 from web3 import Web3
 
+from . import data
 from .auth import (
     MoonstreamAuthorizationExpired,
     MoonstreamAuthorizationVerificationError,
     verify,
 )
-from .settings import bugout_client as bc, MOONSTREAM_APPLICATION_ID
+from .rc import REDIS_CONFIG_CORS_KEY, rc_client
+from .settings import (
+    ALLOW_ORIGINS,
+    BUGOUT_REQUEST_TIMEOUT_SECONDS,
+    BUGOUT_RESOURCE_TYPE_APPLICATION_CONFIG,
+    MOONSTREAM_ADMIN_ACCESS_TOKEN,
+    MOONSTREAM_ADMIN_USER,
+    MOONSTREAM_APPLICATION_ID,
+)
+from .settings import bugout_client as bc
 
 logger = logging.getLogger(__name__)
 
@@ -199,3 +214,198 @@ class ExtractBearerTokenMiddleware(BaseHTTPMiddleware):
         request.state.token = user_token
 
         return await call_next(request)
+
+
+def parse_origins_from_resources(
+    resources: List[BugoutResources],
+) -> data.CORSOrigins:
+    """
+    Parse list of CORS origins with HTTP validation and remove duplications.
+    """
+    cors_origins = data.CORSOrigins(origins_set=set())
+    for resource in resources:
+        origin = resource.resource_data.get("origin", "")
+        try:
+            parse_obj_as(AnyHttpUrl, origin)
+            cors_origins.origins_set.add(origin)
+            cors_origins.resources.append(resource)
+        except Exception:
+            logger.warning(
+                f"Unable to parse origin: {origin} as URL from resource {resource.id}"
+            )
+            continue
+
+    return cors_origins
+
+
+def check_default_origins(cors_origins: data.CORSOrigins) -> data.CORSOrigins:
+    """
+    To prevent default origins loss.
+    """
+    for o in ALLOW_ORIGINS:
+        if o not in cors_origins.origins_set:
+            cors_origins.origins_set.add(o)
+    return cors_origins
+
+
+def create_application_settings_cors_origin(
+    token: str, user_id: Tuple[str, UUID], username: str, origin: str
+) -> Optional[BugoutResource]:
+    resource: Optional[BugoutResource] = None
+    try:
+        resource = bc.create_resource(
+            token=token,
+            application_id=MOONSTREAM_APPLICATION_ID,
+            resource_data={
+                "type": BUGOUT_RESOURCE_TYPE_APPLICATION_CONFIG,
+                "setting": "cors",
+                "user_id": str(user_id),
+                "username": username,
+                "origin": origin,
+            },
+        )
+        if token != MOONSTREAM_ADMIN_ACCESS_TOKEN:
+            bc.add_resource_holder_permissions(
+                token=token,
+                resource_id=resource.id,
+                holder_permissions={
+                    "holder_id": str(MOONSTREAM_ADMIN_USER.id),
+                    "holder_type": "user",
+                    "permissions": ["admin", "create", "read", "update", "delete"],
+                },
+            )
+    except Exception as err:
+        logger.error(
+            f"Unable to write default CORS origin {origin} to Brood resource: {str(err)}"
+        )
+
+    return resource
+
+
+def fetch_application_settings_cors_origins(token: str) -> data.CORSOrigins:
+    """
+    Fetch application config resources with CORS origins setting.
+    If there are no such resources create new one with default origins from environment variable.
+
+    Should return in any case some list of origins, by default it will be ALLOW_ORIGINS.
+    """
+
+    # Fetch CORS origins configs from resources for specified application
+    resources: BugoutResources
+    try:
+        resources = bc.list_resources(
+            token=token,
+            params={
+                "application_id": MOONSTREAM_APPLICATION_ID,
+                "type": BUGOUT_RESOURCE_TYPE_APPLICATION_CONFIG,
+                "setting": "cors",
+            },
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+        )
+
+    except Exception as err:
+        logger.error(f"Error fetching bugout resources with CORS origins: {str(err)}")
+        return data.CORSOrigins(origins_set=ALLOW_ORIGINS)
+
+    # If there are no resources with CORS origins configuration, create resources
+    # for each default origin from environment variable
+    if len(resources.resources) == 0:
+        default_origins_cnt = 0
+        for o in ALLOW_ORIGINS:
+            # Try to add new origins to Bugout resources application config,
+            # use 3 retries to assure origin added and not passed because of some network error.
+            retry_cnt = 0
+            while retry_cnt < 3:
+                resource = create_application_settings_cors_origin(
+                    token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                    user_id=str(MOONSTREAM_ADMIN_USER.id),
+                    username=MOONSTREAM_ADMIN_USER.username,
+                    origin=o,
+                )
+                if resource is not None:
+                    resources.resources.append(resource)
+                    default_origins_cnt += 1
+                    break
+                retry_cnt += 1
+
+        if default_origins_cnt != len(ALLOW_ORIGINS):
+            return data.CORSOrigins(origins_set=ALLOW_ORIGINS)
+
+        logger.info(
+            f"Created resources with default {default_origins_cnt} CORS origins setting by moonstream admin user"
+        )
+
+    cors_origins: data.CORSOrigins = parse_origins_from_resources(resources.resources)
+    cors_origins = check_default_origins(cors_origins)
+
+    return cors_origins
+
+
+def set_cors_origins_cache(origins_set: Set[str]) -> None:
+    try:
+        rc_client.sadd(REDIS_CONFIG_CORS_KEY, *origins_set)
+    except Exception:
+        logger.warning("Unable to set CORS origins at Redis cache")
+    finally:
+        rc_client.close()
+
+
+def fetch_and_set_cors_origins_cache() -> data.CORSOrigins:
+    cors_origins = fetch_application_settings_cors_origins(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN
+    )
+    set_cors_origins_cache(cors_origins.origins_set)
+
+    return cors_origins
+
+
+class BugoutCORSMiddleware(CORSMiddleware):
+    """
+    Modified CORSMiddleware from starlette.middleware.cors.py to work with Redis cache
+    and store application configuration for each user in Brood resources.
+    """
+
+    def __init__(
+        self,
+        app: ASGIApp,
+        allow_methods: Sequence[str] = ("GET",),
+        allow_headers: Sequence[str] = (),
+        allow_credentials: bool = False,
+        expose_headers: Sequence[str] = (),
+        max_age: int = 600,
+    ):
+        application_configs_allowed_origins: data.CORSOrigins = (
+            fetch_and_set_cors_origins_cache()
+        )
+
+        super().__init__(
+            app=app,
+            allow_origins=list(application_configs_allowed_origins.origins_set),
+            allow_methods=allow_methods,
+            allow_headers=allow_headers,
+            allow_credentials=allow_credentials,
+            allow_origin_regex=None,
+            expose_headers=expose_headers,
+            max_age=max_age,
+        )
+
+    def is_allowed_origin(self, origin: str) -> bool:
+        if self.allow_all_origins:
+            return True
+
+        if self.allow_origin_regex is not None and self.allow_origin_regex.fullmatch(
+            origin
+        ):
+            return True
+
+        try:
+            is_allowed_origin = rc_client.sismember(REDIS_CONFIG_CORS_KEY, origin)
+            return is_allowed_origin
+        except Exception as err:
+            logger.warning(
+                f"Unable to fetch CORS origins from Redis cache, err: {str(err)}"
+            )
+        finally:
+            rc_client.close()
+
+        return origin in self.allow_origins

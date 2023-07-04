@@ -7,15 +7,14 @@ from uuid import UUID
 
 from web3 import Web3
 from fastapi import Body, FastAPI, Request, Depends, Query
-from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 
 from .. import actions
 from .. import data
 from .. import db
-from ..middleware import EngineHTTPException, EngineAuthMiddleware
-from ..settings import DOCS_TARGET_PATH, ORIGINS
+from ..middleware import EngineHTTPException, EngineAuthMiddleware, BugoutCORSMiddleware
+from ..settings import DOCS_TARGET_PATH
 from ..version import VERSION
 
 
@@ -46,8 +45,7 @@ app = FastAPI(
 app.add_middleware(EngineAuthMiddleware, whitelist=whitelist_paths)
 
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ORIGINS,
+    BugoutCORSMiddleware,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -113,7 +111,6 @@ async def create_drop(
     register_request: data.DropRegisterRequest = Body(...),
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.DropCreatedResponse:
-
     """
     Create a drop for a given dropper contract.
     """
@@ -173,7 +170,6 @@ async def activate_drop(
     dropper_claim_id: UUID,
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.DropUpdatedResponse:
-
     """
     Activate a given drop by drop id.
     """
@@ -220,7 +216,6 @@ async def deactivate_drop(
     dropper_claim_id: UUID,
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.DropUpdatedResponse:
-
     """
     Activate a given drop by drop id.
     """
@@ -265,7 +260,6 @@ async def update_drop(
     update_request: data.DropUpdateRequest = Body(...),
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.DropUpdatedResponse:
-
     """
     Update a given drop by drop id.
     """
@@ -407,7 +401,6 @@ async def delete_claimants(
     claimants_list: data.BatchRemoveClaimantsRequest = Body(...),
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.RemoveClaimantsResponse:
-
     """
     Remove addresses to particular claim
     """
@@ -447,7 +440,6 @@ async def get_claimant_in_drop(
     address: str,
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.Claimant:
-
     """
     Return claimant from drop
     """
