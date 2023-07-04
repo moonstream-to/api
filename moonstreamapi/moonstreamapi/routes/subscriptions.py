@@ -1,13 +1,17 @@
 """
 The Moonstream subscriptions HTTP API
 """
+from concurrent.futures import as_completed, ProcessPoolExecutor, ThreadPoolExecutor
 import hashlib
 import json
 import logging
 from typing import Any, Dict, List, Optional
+import traceback
 
 from bugout.exceptions import BugoutResponseException
+from bugout.data import BugoutSearchResult
 from fastapi import APIRouter, Depends, Request, Form, BackgroundTasks
+from moonstreamdb.blockchain import AvailableBlockchainType
 from web3 import Web3
 
 from ..actions import (
@@ -15,7 +19,9 @@ from ..actions import (
     apply_moonworm_tasks,
     get_entity_subscription_collection_id,
     EntityCollectionNotFoundException,
-    get_moonworm_jobs,
+    get_moonworm_tasks,
+    check_if_smartcontract,
+    get_list_of_support_interfaces,
 )
 from ..admin import subscription_types
 from .. import data
@@ -23,8 +29,10 @@ from ..admin import subscription_types
 from ..middleware import MoonstreamHTTPException
 from ..reporter import reporter
 from ..settings import bugout_client as bc, entity_client as ec
-from ..settings import MOONSTREAM_ADMIN_ACCESS_TOKEN, MOONSTREAM_MOONWORM_TASKS_JOURNAL
-from ..web3_provider import yield_web3_provider
+from ..settings import MOONSTREAM_ADMIN_ACCESS_TOKEN, THREAD_TIMEOUT_SECONDS
+from ..web3_provider import (
+    yield_web3_provider,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -488,7 +496,7 @@ async def get_subscription_abi_handler(
 @router.get(
     "/{subscription_id}/jobs",
     tags=["subscriptions"],
-    response_model=data.SubdcriptionsAbiResponse,
+    response_model=List[BugoutSearchResult],
 )
 async def get_subscription_jobs_handler(
     request: Request,
@@ -527,12 +535,12 @@ async def get_subscription_jobs_handler(
         if "subscription_type_id" in field:
             subscription_type_id = field["subscription_type_id"]
 
-        if "address" in field:
-            subscription_address = field["address"]
+    subscription_address = subscription_resource.address
 
-    get_moonworm_jobs_response = get_moonworm_jobs(
+    get_moonworm_jobs_response = get_moonworm_tasks(
         subscription_type_id=subscription_type_id,
         address=subscription_address,
+        user_abi=subscription_resource.secondary_fields.get("abi") or [],
     )
 
     return get_moonworm_jobs_response
@@ -559,3 +567,114 @@ async def list_subscription_types() -> data.SubscriptionTypesListResponse:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     return data.SubscriptionTypesListResponse(subscription_types=results)
+
+
+@router.get(
+    "/is_contract",
+    tags=["subscriptions"],
+    response_model=data.ContractInfoResponse,
+)
+async def address_info(request: Request, address: str):
+    """
+    Looking if address is contract
+    """
+
+    user_token = request.state.token
+
+    try:
+        Web3.toChecksumAddress(address)
+    except ValueError as e:
+        raise MoonstreamHTTPException(
+            status_code=400,
+            detail=str(e),
+            internal_error=e,
+        )
+
+    contract_info = {}
+
+    for blockchain_type in AvailableBlockchainType:
+        try:
+            # connnect to blockchain
+
+            futures = []
+
+            with ThreadPoolExecutor(max_workers=5) as executor:
+                futures.append(
+                    executor.submit(
+                        check_if_smartcontract,
+                        address=address,
+                        blockchain_type=blockchain_type,
+                        user_token=user_token,
+                    )
+                )
+
+                for future in as_completed(futures):
+                    blockchain_type, address, is_contract = future.result(
+                        timeout=THREAD_TIMEOUT_SECONDS
+                    )
+
+                    if is_contract:
+                        contract_info[blockchain_type.value] = is_contract
+
+        except Exception as e:
+            logger.error(f"Error reading contract info from web3: {str(e)}")
+            raise MoonstreamHTTPException(status_code=500, internal_error=e)
+    if len(contract_info) == 0:
+        raise MoonstreamHTTPException(
+            status_code=404,
+            detail="Not found contract on chains. EOA address or not used valid address.",
+        )
+
+    return data.ContractInfoResponse(
+        contract_info=contract_info,
+    )
+
+
+@router.get(
+    "/supported_interfaces",
+    tags=["subscriptions"],
+    response_model=data.ContractInterfacesResponse,
+)
+def get_contract_interfaces(
+    request: Request,
+    address: str,
+    blockchain: str,
+):
+    """
+    Request contract interfaces from web3
+    """
+
+    user_token = request.state.token
+
+    try:
+        Web3.toChecksumAddress(address)
+    except ValueError as e:
+        raise MoonstreamHTTPException(
+            status_code=400,
+            detail=str(e),
+            internal_error=e,
+        )
+
+    try:
+        blockchain_type = AvailableBlockchainType(blockchain)
+    except ValueError as e:
+        raise MoonstreamHTTPException(
+            status_code=400,
+            detail=str(e),
+            internal_error=e,
+        )
+
+    try:
+        interfaces = get_list_of_support_interfaces(
+            blockchain_type=blockchain_type,
+            address=address,
+            user_token=user_token,
+        )
+
+    except Exception as e:
+        logger.error(f"Error reading contract info from web3: {str(e)}")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    return data.ContractInterfacesResponse(
+        interfaces=interfaces,
+    )

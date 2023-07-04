@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, Union, Literal
 from uuid import UUID
 from xmlrpc.client import Boolean
 
-from pydantic import BaseModel, Field,  validator
+from pydantic import BaseModel, Field, validator
 from sqlalchemy import false
 
 USER_ONBOARDING_STATE = "onboarding_state"
@@ -295,10 +295,18 @@ class QueryInfoResponse(BaseModel):
     preapprove: bool = False
     approved: bool = False
     parameters: Dict[str, Any] = Field(default_factory=dict)
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-            
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
+
 
 class SuggestedQueriesResponse(BaseModel):
     interfaces: Dict[str, Any] = Field(default_factory=dict)
     queries: List[Any] = Field(default_factory=list)
+
+
+class ContractInfoResponse(BaseModel):
+    contract_info: Dict[str, Any] = Field(default_factory=dict)
+
+
+class ContractInterfacesResponse(BaseModel):
+    interfaces: Dict[str, Any] = Field(default_factory=dict)
