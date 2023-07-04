@@ -10,13 +10,12 @@ from typing import Dict, List, Optional
 from uuid import UUID
 
 from fastapi import Body, Depends, FastAPI, Query, Request, Path
-from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
 from .. import contracts_actions, data, db
-from ..middleware import BroodAuthMiddleware, EngineHTTPException
-from ..settings import DOCS_TARGET_PATH, ORIGINS
+from ..middleware import BroodAuthMiddleware, EngineHTTPException, BugoutCORSMiddleware
+from ..settings import DOCS_TARGET_PATH
 from ..version import VERSION
 
 logger = logging.getLogger(__name__)
@@ -56,8 +55,7 @@ app = FastAPI(
 app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
 
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ORIGINS,
+    BugoutCORSMiddleware,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
