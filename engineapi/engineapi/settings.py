@@ -1,7 +1,7 @@
 import logging
 import os
 import warnings
-from typing import Set
+from typing import Optional, Set
 
 from bugout.app import Bugout
 from bugout.data import BugoutUser
@@ -35,7 +35,8 @@ for o_raw in RAW_ORIGINS_LST:
 BUGOUT_RESOURCE_TYPE_APPLICATION_CONFIG = "application-config"
 BUGOUT_REQUEST_TIMEOUT_SECONDS = 5
 
-ENGINE_REDIS_URI = os.environ.get("ENGINE_REDIS_URI")
+ENGINE_REDIS_URL = os.environ.get("ENGINE_REDIS_URL")
+ENGINE_REDIS_PASSWORD = os.environ.get("ENGINE_REDIS_PASSWORD")
 
 # Open API documentation path
 DOCS_TARGET_PATH = os.environ.get("DOCS_TARGET_PATH", "docs")
@@ -193,8 +194,9 @@ MOONSTREAM_ADMIN_ACCESS_TOKEN = os.environ.get("MOONSTREAM_ADMIN_ACCESS_TOKEN", 
 if MOONSTREAM_ADMIN_ACCESS_TOKEN == "":
     raise ValueError("MOONSTREAM_ADMIN_ACCESS_TOKEN environment variable must be set")
 
+MOONSTREAM_ADMIN_USER: Optional[BugoutUser] = None
 try:
-    MOONSTREAM_ADMIN_USER: BugoutUser = bugout_client.get_user(
+    MOONSTREAM_ADMIN_USER = bugout_client.get_user(
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
     )
 except Exception as err:
