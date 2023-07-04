@@ -15,7 +15,7 @@ from moonstreamdb.db import SessionLocal
 from ..settings import BUGOUT_BROOD_URL, BUGOUT_SPIRE_URL, MOONSTREAM_APPLICATION_ID
 from ..web3_provider import yield_web3_provider
 
-from . import subscription_types, subscriptions, moonworm_tasks, queries
+from . import subscription_types, subscriptions, moonworm_tasks, queries, billing
 from .migrations import (
     checksum_address,
     update_dashboard_subscription_key,
@@ -222,6 +222,16 @@ def moonworm_tasks_list_handler(args: argparse.Namespace) -> None:
 
 def moonworm_tasks_add_subscription_handler(args: argparse.Namespace) -> None:
     moonworm_tasks.add_subscription(args.id)
+
+
+def generate_billing_handler(args: argparse.Namespace) -> None:
+    billing_info = billing.collect_billing(
+        month=args.month,
+        token=args.user_token,
+        user_id=args.user_id,
+    )
+
+    print(json.dumps(billing_info, indent=4))
 
 
 def main() -> None:
@@ -478,18 +488,12 @@ This CLI is configured to work with the following API URLs:
 
     parser_moonworm_tasks_add.set_defaults(func=moonworm_tasks_add_subscription_handler)
 
-
-
     queries_parser = subcommands.add_parser(
         "queries", description="Manage Moonstream queries"
     )
     queries_parser.set_defaults(func=lambda _: queries_parser.print_help())
 
-
-    
-    queries_subcommands = queries_parser.add_subparsers(
-        description="Query commands"
-    )
+    queries_subcommands = queries_parser.add_subparsers(description="Query commands")
 
     create_query_parser = queries_subcommands.add_parser(
         "create-template", description="Create query template"
@@ -505,6 +509,42 @@ This CLI is configured to work with the following API URLs:
         "-n", "--name", required=True, help="Name for the new query"
     )
     create_query_parser.set_defaults(func=queries.create_query_template)
+
+    billing_parser = subcommands.add_parser(
+        "billing", description="Manage Moonstream billing"
+    )
+
+    billing_parser.set_defaults(func=lambda _: billing_parser.print_help())
+
+    billing_subcommands = billing_parser.add_subparsers(description="Billing commands")
+
+    generate_billing_parser = billing_subcommands.add_parser(
+        "generate", description="Generate billing"
+    )
+
+    generate_billing_parser.add_argument(
+        "--month",
+        required=True,
+        type=str,
+        help="Month for which to generate billing",
+    )
+
+    generate_billing_parser.add_argument(
+        "--user-token",
+        required=False,
+        type=str,
+        help="User token for which to generate billing",
+    )
+
+    generate_billing_parser.add_argument(
+        "--user-id",
+        required=False,
+        type=str,
+        help="User token for which to generate billing",
+    )
+
+    generate_billing_parser.set_defaults(func=generate_billing_handler)
+
     args = parser.parse_args()
     args.func(args)
 
