@@ -26,9 +26,8 @@ from .settings import (
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
     BUGOUT_RESOURCE_TYPE_APPLICATION_CONFIG,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
-    MOONSTREAM_ADMIN_USER,
     MOONSTREAM_APPLICATION_ID,
-    fetch_moonstream_admin_user,
+    MOONSTREAM_ADMIN_ID,
 )
 from .settings import bugout_client as bc
 
@@ -266,14 +265,11 @@ def create_application_settings_cors_origin(
             },
         )
         if token != MOONSTREAM_ADMIN_ACCESS_TOKEN:
-            if MOONSTREAM_ADMIN_USER is None:
-                fetch_moonstream_admin_user()
-
             bc.add_resource_holder_permissions(
                 token=token,
                 resource_id=resource.id,
                 holder_permissions={
-                    "holder_id": str(MOONSTREAM_ADMIN_USER.id),
+                    "holder_id": str(MOONSTREAM_ADMIN_ID),
                     "holder_type": "user",
                     "permissions": ["admin", "create", "read", "update", "delete"],
                 },

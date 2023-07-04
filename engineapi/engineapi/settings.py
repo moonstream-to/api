@@ -195,21 +195,6 @@ MOONSTREAM_ADMIN_ACCESS_TOKEN = os.environ.get("MOONSTREAM_ADMIN_ACCESS_TOKEN", 
 if MOONSTREAM_ADMIN_ACCESS_TOKEN == "":
     raise ValueError("MOONSTREAM_ADMIN_ACCESS_TOKEN environment variable must be set")
 
-MOONSTREAM_ADMIN_USER: Optional[BugoutUser] = None
-
-
-def fetch_moonstream_admin_user():
-    retry_cnt = 0
-    while retry_cnt < 3:
-        try:
-            MOONSTREAM_ADMIN_USER = bugout_client.get_user(
-                token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-            )
-            break
-        except Exception as err:
-            logger.error(f"Unable to get Moonstream admin user with its token")
-            retry_cnt += 1
-            sleep(1)
-
-
-fetch_moonstream_admin_user()
+MOONSTREAM_ADMIN_ID = os.environ.get("MOONSTREAM_ADMIN_ID", "")
+if MOONSTREAM_ADMIN_ID == "":
+    raise ValueError("MOONSTREAM_ADMIN_ID environment variable must be set")
