@@ -312,6 +312,9 @@ class LeaderboardPosition(BaseModel):
     score: int
     points_data: Dict[str, Any]
 
+    class Config:
+        orm_mode = True
+
 
 class RanksResponse(BaseModel):
     rank: int

@@ -8,7 +8,7 @@ from web3 import Web3
 from fastapi import FastAPI, Request, Depends, Response
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from .. import actions
 from .. import data
@@ -121,7 +121,7 @@ async def quartiles(
     )
 
 
-@app.get("/position")
+@app.get("/position", response_model=List[data.LeaderboardPosition])
 async def position(
     leaderboard_id: UUID,
     address: str,
