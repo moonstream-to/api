@@ -5,14 +5,20 @@ import json
 import logging
 from uuid import UUID
 
+from pydantic import AnyHttpUrl, parse_obj_as
+
 from engineapi.models import Leaderboard
 
-from . import actions
-from . import db
-from . import signatures
-from . import data
-from . import auth
-from . import contracts_actions
+from . import (
+    actions,
+    auth,
+    contracts_actions,
+    data,
+    db,
+    middleware,
+    settings,
+    signatures,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -402,6 +408,43 @@ def delete_user_handler(args: argparse.Namespace) -> None:
     Delete read access from resource cross bugout api.
     """
     pass
+
+
+def origins_add_handler(args: argparse.Namespace) -> None:
+    origins_raw = args.origins.replace(" ", "").split(",")
+    origins_set = set()
+
+    for origin_raw in origins_raw:
+        try:
+            parse_obj_as(AnyHttpUrl, origin_raw)
+            origins_set.add(origin_raw)
+        except Exception:
+            logger.warning(f"Unable to parse origin: {origin_raw} as URL")
+            continue
+
+    if settings.MOONSTREAM_ADMIN_USER is None:
+        logger.error("Unable to fetch Moonstream admin user")
+        return
+
+    default_origins_cnt = 0
+    for origin in origins_set:
+        # Try to add new origins to Bugout resources application config,
+        # use 3 retries to assure origin added and not passed because of some network error.
+        retry_cnt = 0
+        while retry_cnt < 3:
+            resource = middleware.create_application_settings_cors_origin(
+                token=settings.MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                user_id=str(settings.MOONSTREAM_ADMIN_USER.id),
+                username=settings.MOONSTREAM_ADMIN_USER.username,
+                origin=origin,
+            )
+            if resource is not None:
+                logger.info(f"Added resource with id {resource.id} and origin {origin}")
+                default_origins_cnt += 1
+                break
+            retry_cnt += 1
+
+    logger.info(f"Created resources with default {default_origins_cnt} CORS origins")
 
 
 def sign_handler(args: argparse.Namespace) -> None:
@@ -916,6 +959,26 @@ def main() -> None:
     subparsers_engine_database.add_parser(
         "contracts", parents=[contracts_parser], add_help=False
     )
+
+    parser_origins = subparsers.add_parser(
+        "origins", description="Configure application CORS origins"
+    )
+    parser_origins.set_defaults(func=lambda _: parser_origins.print_help())
+    subparsers_origins = parser_origins.add_subparsers(
+        description="CORS origins commands"
+    )
+
+    parser_origins_add = subparsers_origins.add_parser(
+        "add", description="Add CORS origins"
+    )
+    parser_origins_add.add_argument(
+        "-o",
+        "--origins",
+        required=True,
+        type=str,
+        help="CORS origin or list of origins separated by comma",
+    )
+    parser_origins_add.set_defaults(func=origins_add_handler)
 
     args = parser.parse_args()
     args.func(args)
