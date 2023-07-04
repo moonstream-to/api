@@ -6,7 +6,6 @@ from typing import List, Optional, Any, Dict
 from uuid import UUID
 
 
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Body, Request, Depends, Query
 from hexbytes import HexBytes
 from sqlalchemy.orm import Session
@@ -20,9 +19,8 @@ from ..contracts import Dropper_interface
 from .. import data
 from .. import db
 from .. import signatures
-from ..middleware import EngineHTTPException, EngineAuthMiddleware
+from ..middleware import EngineHTTPException, EngineAuthMiddleware, BugoutCORSMiddleware
 from ..settings import (
-    ORIGINS,
     DOCS_TARGET_PATH,
     BLOCKCHAIN_WEB3_PROVIDERS,
     UNSUPPORTED_BLOCKCHAIN_ERROR_MESSAGE,
@@ -65,8 +63,7 @@ app = FastAPI(
 app.add_middleware(EngineAuthMiddleware, whitelist=whitelist_paths)
 
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ORIGINS,
+    BugoutCORSMiddleware,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -220,11 +217,9 @@ async def get_drop_batch_handler(
     commit_required = False
 
     for claimant_drop in claimant_drops:
-
         transformed_amount = claimant_drop.raw_amount
 
         if transformed_amount is None:
-
             transformed_amount = actions.transform_claim_amount(
                 db_session, claimant_drop.dropper_claim_id, claimant_drop.amount
             )
@@ -345,7 +340,6 @@ async def get_drops_terminus_handler(
     blockchain: str = Query(None),
     db_session: Session = Depends(db.yield_db_session),
 ) -> List[data.DropperTerminusResponse]:
-
     """
     Return distinct terminus pools
     """
@@ -512,7 +506,6 @@ async def create_drop(
     register_request: data.DropRegisterRequest = Body(...),
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.DropCreatedResponse:
-
     """
     Create a drop for a given dropper contract.
     """
@@ -572,7 +565,6 @@ async def activate_drop(
     dropper_claim_id: UUID,
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.DropUpdatedResponse:
-
     """
     Activate a given drop by drop id.
     """
@@ -619,7 +611,6 @@ async def deactivate_drop(
     dropper_claim_id: UUID,
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.DropUpdatedResponse:
-
     """
     Activate a given drop by drop id.
     """
@@ -664,7 +655,6 @@ async def update_drop(
     update_request: data.DropUpdateRequest = Body(...),
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.DropUpdatedResponse:
-
     """
     Update a given drop by drop id.
     """
@@ -795,7 +785,6 @@ async def delete_claimants(
     remove_claimants_request: data.DropRemoveClaimantsRequest = Body(...),
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.RemoveClaimantsResponse:
-
     """
     Remove addresses to particular claim
     """
@@ -835,7 +824,6 @@ async def get_claimant_in_drop(
     address: str,
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.Claimant:
-
     """
     Return claimant from drop
     """

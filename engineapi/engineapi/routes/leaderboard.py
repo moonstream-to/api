@@ -6,7 +6,6 @@ from uuid import UUID
 
 from web3 import Web3
 from fastapi import FastAPI, Request, Depends, Response
-from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 from typing import List, Optional
@@ -14,7 +13,11 @@ from typing import List, Optional
 from .. import actions
 from .. import data
 from .. import db
-from ..middleware import ExtractBearerTokenMiddleware, EngineHTTPException
+from ..middleware import (
+    ExtractBearerTokenMiddleware,
+    EngineHTTPException,
+    BugoutCORSMiddleware,
+)
 from ..settings import DOCS_TARGET_PATH, bugout_client as bc
 from ..version import VERSION
 
@@ -49,8 +52,7 @@ app = FastAPI(
 app.add_middleware(ExtractBearerTokenMiddleware, whitelist=leaderboad_whitelist)
 
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins="*",
+    BugoutCORSMiddleware,
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -62,7 +64,6 @@ async def count_addresses(
     leaderboard_id: UUID,
     db_session: Session = Depends(db.yield_db_session),
 ):
-
     """
     Returns the number of addresses in the leaderboard.
     """
@@ -89,7 +90,6 @@ async def quartiles(
     leaderboard_id: UUID,
     db_session: Session = Depends(db.yield_db_session),
 ):
-
     """
     Returns the quartiles of the leaderboard.
     """
@@ -131,7 +131,6 @@ async def position(
     normalize_addresses: bool = True,
     db_session: Session = Depends(db.yield_db_session),
 ):
-
     """
     Returns the leaderboard posotion for the given address.
     With given window size.
@@ -167,7 +166,6 @@ async def leaderboard(
     offset: int = 0,
     db_session: Session = Depends(db.yield_db_session),
 ) -> List[data.LeaderboardPosition]:
-
     """
     Returns the leaderboard positions.
     """
@@ -208,7 +206,6 @@ async def rank(
     offset: Optional[int] = None,
     db_session: Session = Depends(db.yield_db_session),
 ) -> List[data.LeaderboardPosition]:
-
     """
     Returns the leaderboard scores for the given rank.
     """
@@ -244,7 +241,6 @@ async def rank(
 async def ranks(
     leaderboard_id: UUID, db_session: Session = Depends(db.yield_db_session)
 ) -> List[data.RanksResponse]:
-
     """
     Returns the leaderboard rank buckets overview with score and size of bucket.
     """
@@ -282,7 +278,6 @@ async def leaderboard(
     normalize_addresses: bool = True,
     db_session: Session = Depends(db.yield_db_session),
 ):
-
     """
     Put the leaderboard to the database.
     """
