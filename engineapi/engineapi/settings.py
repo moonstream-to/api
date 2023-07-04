@@ -1,6 +1,7 @@
 import logging
 import os
 import warnings
+from time import sleep
 from typing import Optional, Set
 
 from bugout.app import Bugout
@@ -198,13 +199,17 @@ MOONSTREAM_ADMIN_USER: Optional[BugoutUser] = None
 
 
 def fetch_moonstream_admin_user():
-    try:
-        MOONSTREAM_ADMIN_USER = bugout_client.get_user(
-            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-        )
-    except Exception as err:
-        logger.error(f"Unable to get Moonstream admin user with token, err: {str(err)}")
-        logger.error("Running application partly functional")
+    retry_cnt = 0
+    while retry_cnt < 3:
+        try:
+            MOONSTREAM_ADMIN_USER = bugout_client.get_user(
+                token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            )
+            break
+        except Exception as err:
+            logger.error(f"Unable to get Moonstream admin user with its token")
+            retry_cnt += 1
+            sleep(1)
 
 
 fetch_moonstream_admin_user()
