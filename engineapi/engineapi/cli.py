@@ -422,10 +422,6 @@ def origins_add_handler(args: argparse.Namespace) -> None:
             logger.warning(f"Unable to parse origin: {origin_raw} as URL")
             continue
 
-    if settings.MOONSTREAM_ADMIN_USER is None:
-        logger.error("Unable to fetch Moonstream admin user")
-        return
-
     default_origins_cnt = 0
     for origin in origins_set:
         # Try to add new origins to Bugout resources application config,
@@ -434,8 +430,8 @@ def origins_add_handler(args: argparse.Namespace) -> None:
         while retry_cnt < 3:
             resource = middleware.create_application_settings_cors_origin(
                 token=settings.MOONSTREAM_ADMIN_ACCESS_TOKEN,
-                user_id=str(settings.MOONSTREAM_ADMIN_USER.id),
-                username=settings.MOONSTREAM_ADMIN_USER.username,
+                user_id=str(settings.MOONSTREAM_ADMIN_ID),
+                username="unknown-moonstream-admin-user",
                 origin=origin,
             )
             if resource is not None:

@@ -28,7 +28,6 @@ from ..settings import (
     BUGOUT_RESOURCE_TYPE_APPLICATION_CONFIG,
     DOCS_TARGET_PATH,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
-    MOONSTREAM_ADMIN_USER,
     MOONSTREAM_APPLICATION_ID,
 )
 from ..settings import bugout_client as bc

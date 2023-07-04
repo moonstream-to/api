@@ -1,6 +1,7 @@
 import logging
 import os
 import warnings
+from time import sleep
 from typing import Optional, Set
 
 from bugout.app import Bugout
@@ -194,11 +195,6 @@ MOONSTREAM_ADMIN_ACCESS_TOKEN = os.environ.get("MOONSTREAM_ADMIN_ACCESS_TOKEN", 
 if MOONSTREAM_ADMIN_ACCESS_TOKEN == "":
     raise ValueError("MOONSTREAM_ADMIN_ACCESS_TOKEN environment variable must be set")
 
-MOONSTREAM_ADMIN_USER: Optional[BugoutUser] = None
-try:
-    MOONSTREAM_ADMIN_USER = bugout_client.get_user(
-        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-    )
-except Exception as err:
-    logger.error(f"Unable to get Moonstream admin user with token, err: {str(err)}")
-    logger.error("Running application partly functional")
+MOONSTREAM_ADMIN_ID = os.environ.get("MOONSTREAM_ADMIN_ID", "")
+if MOONSTREAM_ADMIN_ID == "":
+    raise ValueError("MOONSTREAM_ADMIN_ID environment variable must be set")

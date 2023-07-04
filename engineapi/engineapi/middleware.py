@@ -26,8 +26,8 @@ from .settings import (
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
     BUGOUT_RESOURCE_TYPE_APPLICATION_CONFIG,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
-    MOONSTREAM_ADMIN_USER,
     MOONSTREAM_APPLICATION_ID,
+    MOONSTREAM_ADMIN_ID,
 )
 from .settings import bugout_client as bc
 
@@ -269,7 +269,7 @@ def create_application_settings_cors_origin(
                 token=token,
                 resource_id=resource.id,
                 holder_permissions={
-                    "holder_id": str(MOONSTREAM_ADMIN_USER.id),
+                    "holder_id": str(MOONSTREAM_ADMIN_ID),
                     "holder_type": "user",
                     "permissions": ["admin", "create", "read", "update", "delete"],
                 },
