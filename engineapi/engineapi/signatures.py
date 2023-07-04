@@ -98,6 +98,7 @@ class AccountSigner(Signer):
         return signed_message_bytes.hex()
 
     def batch_sign_message(self, messages_list: List[str]):
+
         signed_messages_list = {}
 
         for message in messages_list:

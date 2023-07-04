@@ -1,10 +1,9 @@
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from bugout.data import BugoutResource
-from pydantic import AnyHttpUrl, BaseModel, Field, root_validator, validator
+from pydantic import BaseModel, Field, root_validator, validator
 from web3 import Web3
 
 
@@ -22,17 +21,6 @@ class NowResponse(BaseModel):
     """
 
     epoch_time: float
-
-
-class CORSOrigins(BaseModel):
-    origins_set: Set[str] = Field(default_factory=set)
-    resources: List[BugoutResource] = Field(default_factory=list)
-
-
-class IsCORSResponse(BaseModel):
-    origin: Optional[str] = None
-    updated_at: Optional[datetime] = None
-    created_at: Optional[datetime] = None
 
 
 class SignerListResponse(BaseModel):
