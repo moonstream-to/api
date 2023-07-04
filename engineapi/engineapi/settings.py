@@ -195,10 +195,16 @@ if MOONSTREAM_ADMIN_ACCESS_TOKEN == "":
     raise ValueError("MOONSTREAM_ADMIN_ACCESS_TOKEN environment variable must be set")
 
 MOONSTREAM_ADMIN_USER: Optional[BugoutUser] = None
-try:
-    MOONSTREAM_ADMIN_USER = bugout_client.get_user(
-        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-    )
-except Exception as err:
-    logger.error(f"Unable to get Moonstream admin user with token, err: {str(err)}")
-    logger.error("Running application partly functional")
+
+
+def fetch_moonstream_admin_user():
+    try:
+        MOONSTREAM_ADMIN_USER = bugout_client.get_user(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        )
+    except Exception as err:
+        logger.error(f"Unable to get Moonstream admin user with token, err: {str(err)}")
+        logger.error("Running application partly functional")
+
+
+fetch_moonstream_admin_user()

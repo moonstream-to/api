@@ -28,6 +28,7 @@ from .settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_ADMIN_USER,
     MOONSTREAM_APPLICATION_ID,
+    fetch_moonstream_admin_user,
 )
 from .settings import bugout_client as bc
 
@@ -265,6 +266,9 @@ def create_application_settings_cors_origin(
             },
         )
         if token != MOONSTREAM_ADMIN_ACCESS_TOKEN:
+            if MOONSTREAM_ADMIN_USER is None:
+                fetch_moonstream_admin_user()
+
             bc.add_resource_holder_permissions(
                 token=token,
                 resource_id=resource.id,

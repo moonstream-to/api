@@ -423,8 +423,7 @@ def origins_add_handler(args: argparse.Namespace) -> None:
             continue
 
     if settings.MOONSTREAM_ADMIN_USER is None:
-        logger.error("Unable to fetch Moonstream admin user")
-        return
+        settings.fetch_moonstream_admin_user()
 
     default_origins_cnt = 0
     for origin in origins_set:
