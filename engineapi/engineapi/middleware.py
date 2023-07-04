@@ -375,7 +375,7 @@ class BugoutCORSMiddleware(CORSMiddleware):
         max_age: int = 600,
     ):
         application_configs_allowed_origins: data.CORSOrigins = (
-            fetch_and_set_cors_origins_cache()
+            fetch_application_settings_cors_origins(token=MOONSTREAM_ADMIN_ACCESS_TOKEN)
         )
 
         super().__init__(
