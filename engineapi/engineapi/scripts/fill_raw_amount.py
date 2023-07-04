@@ -16,6 +16,7 @@ def run_fill_raw_amount(args: argparse.Namespace):
     token_types: Dict[str, Dict[str, List[Dict[str, Any]]]] = dict()
 
     with db.yield_db_session_ctx() as db_session:
+
         res = db_session.execute(
             """select distinct dropper_contracts.blockchain, dropper_contracts.address, dropper_claims.claim_id from dropper_contracts
                             left join dropper_claims on dropper_contracts.id = dropper_claims.dropper_contract_id

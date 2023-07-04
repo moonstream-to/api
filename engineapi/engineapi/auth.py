@@ -57,6 +57,7 @@ class MoonstreamAuthorization(EIP712Message):
 
 
 def sign_message(message_hash_bytes: HexBytes, private_key: HexBytes) -> HexBytes:
+
     eth_private_key = eth_keys.keys.PrivateKey(private_key)
     _, _, _, signed_message_bytes = sign_message_hash(
         eth_private_key, message_hash_bytes

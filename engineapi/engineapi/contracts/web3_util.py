@@ -53,6 +53,7 @@ def get_nonce(web3: Web3, address: ChecksumAddress) -> Nonce:
 def submit_transaction(
     web3: Web3, transaction: Union[TxParams, Any], signer_private_key: str
 ) -> HexBytes:
+
     """
     Signs and submits json transaction to blockchain from the name of signer
     """
