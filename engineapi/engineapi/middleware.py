@@ -307,33 +307,12 @@ def fetch_application_settings_cors_origins(token: str) -> data.CORSOrigins:
         logger.error(f"Error fetching bugout resources with CORS origins: {str(err)}")
         return data.CORSOrigins(origins_set=ALLOW_ORIGINS)
 
-    # If there are no resources with CORS origins configuration, create resources
-    # for each default origin from environment variable
     if len(resources.resources) == 0:
-        default_origins_cnt = 0
-        for o in ALLOW_ORIGINS:
-            # Try to add new origins to Bugout resources application config,
-            # use 3 retries to assure origin added and not passed because of some network error.
-            retry_cnt = 0
-            while retry_cnt < 3:
-                resource = create_application_settings_cors_origin(
-                    token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-                    user_id=str(MOONSTREAM_ADMIN_USER.id),
-                    username=MOONSTREAM_ADMIN_USER.username,
-                    origin=o,
-                )
-                if resource is not None:
-                    resources.resources.append(resource)
-                    default_origins_cnt += 1
-                    break
-                retry_cnt += 1
-
-        if default_origins_cnt != len(ALLOW_ORIGINS):
-            return data.CORSOrigins(origins_set=ALLOW_ORIGINS)
-
-        logger.info(
-            f"Created resources with default {default_origins_cnt} CORS origins setting by moonstream admin user"
+        logger.warning(
+            "There are no resources with configuration CORS origins, create in manually, "
+            "using default from environment variable"
         )
+        return data.CORSOrigins(origins_set=ALLOW_ORIGINS)
 
     cors_origins: data.CORSOrigins = parse_origins_from_resources(resources.resources)
     cors_origins = check_default_origins(cors_origins)
@@ -375,7 +354,7 @@ class BugoutCORSMiddleware(CORSMiddleware):
         max_age: int = 600,
     ):
         application_configs_allowed_origins: data.CORSOrigins = (
-            fetch_application_settings_cors_origins(token=MOONSTREAM_ADMIN_ACCESS_TOKEN)
+            fetch_and_set_cors_origins_cache()
         )
 
         super().__init__(
