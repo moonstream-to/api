@@ -1,6 +1,6 @@
 from datetime import datetime
 from collections import Counter
-from typing import List, Any, Optional, Dict
+from typing import List, Any, Optional, Dict, Union
 import uuid
 import logging
 
@@ -14,7 +14,7 @@ from sqlalchemy import func, text, or_
 from web3 import Web3
 from web3.types import ChecksumAddress
 
-from .data import Score
+from .data import Score, LeaderboardScore
 from .contracts import Dropper_interface, ERC20_interface, Terminus_interface
 from .models import (
     DropperClaimant,
@@ -31,6 +31,10 @@ from .settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     bugout_client as bc,
 )
+
+
+class LeaderboardsResourcesNotFound(Exception):
+    pass
 
 
 class AuthorizationError(Exception):
@@ -937,6 +941,48 @@ def get_leaderboard_total_count(db_session: Session, leaderboard_id):
         .filter(LeaderboardScores.leaderboard_id == leaderboard_id)
         .count()
     )
+
+
+def get_leaderboard(db_session: Session, leaderboard_id: uuid.UUID):
+    """
+    Get the leaderboard from the database
+    """
+
+    leaderboard = (
+        db_session.query(Leaderboard).filter(Leaderboard.id == leaderboard_id).one()
+    )
+
+    return leaderboard
+
+
+def get_leaderboards(
+    db_session: Session,
+    token: Union[str, uuid.UUID],
+):
+    """
+    Get the leaderboards resources
+    """
+
+    user_resources = bc.list_resources(
+        token=token,
+        params={"type": "leaderboard"},
+    )
+
+    if len(user_resources.resources) == 0:
+        raise LeaderboardsResourcesNotFound(f"Leaderboard not found for token")
+
+    leaderboards_ids = []
+
+    for resource in user_resources.resources:
+        leaderboard_id = resource.resource_data["leaderboard_id"]
+
+        leaderboards_ids.append(leaderboard_id)
+
+    leaderboards = (
+        db_session.query(Leaderboard).filter(Leaderboard.id.in_(leaderboards_ids)).all()
+    )
+
+    return leaderboards
 
 
 def get_position(

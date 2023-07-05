@@ -30,6 +30,7 @@ tags_metadata = [
 
 
 leaderboad_whitelist = {
+    "/leaderboard/info": "GET",
     "/leaderboard/quartiles": "GET",
     "/leaderboard/count/addresses": "GET",
     "/leaderboard/position": "GET",
@@ -57,6 +58,68 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.get("/info")
+async def get_leadeboard(
+    leaderboard_id: UUID,
+    db_session: Session = Depends(db.yield_db_session),
+):
+    """
+    Returns leaderboard info.
+    """
+    try:
+        leaderboard = actions.get_leaderboard(db_session, leaderboard_id)
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard not found.",
+        )
+    except Exception as e:
+        logger.error(f"Error while getting leaderboard: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    return data.LeaderboardInfoResponse(
+        id=leaderboard.id,
+        title=leaderboard.title,
+        description=leaderboard.description,
+    )
+
+
+@app.get("/leaderboards")
+async def get_leaderboards(
+    request: Request, db_session: Session = Depends(db.yield_db_session)
+):
+    """
+    Returns leaderboard list to which user has access.
+    """
+
+    token = request.state.token
+
+    try:
+        leaderboards = actions.get_leaderboards(db_session, token)
+    except actions.LeaderboardsResourcesNotFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboards not found.",
+        )
+    except Exception as e:
+        logger.error(f"Error while getting leaderboards: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    results = [
+        data.Leaderboard(
+            id=leaderboard.id,
+            title=leaderboard.title,
+            description=leaderboard.description,
+            resource_id=leaderboard.resource_id,
+            created_at=leaderboard.created_at,
+            updated_at=leaderboard.updated_at,
+        )
+        for leaderboard in leaderboards
+    ]
+
+    return results
 
 
 @app.get("/count/addresses")
@@ -155,7 +218,17 @@ async def position(
         db_session, leaderboard_id, address, window_size, limit, offset
     )
 
-    return positions
+    results = [
+        data.LeaderboardPosition(
+            address=position.address,
+            score=position.score,
+            rank=position.rank,
+            points_data=position.points_data,
+        )
+        for position in positions
+    ]
+
+    return results
 
 
 @app.get("")
@@ -237,7 +310,7 @@ async def rank(
     return results
 
 
-@app.get("/ranks")
+@app.get("/ranks", response_model=List[data.RanksResponse])
 async def ranks(
     leaderboard_id: UUID, db_session: Session = Depends(db.yield_db_session)
 ) -> List[data.RanksResponse]:
@@ -269,15 +342,15 @@ async def ranks(
     return results
 
 
-@app.put("/{leaderboard_id}/scores")
-async def leaderboard(
+@app.put("/{leaderboard_id}/scores", response_model=List[data.LeaderboardScore])
+async def leaderboard_push_scores(
     request: Request,
     leaderboard_id: UUID,
     scores: List[data.Score],
     overwrite: bool = False,
     normalize_addresses: bool = True,
     db_session: Session = Depends(db.yield_db_session),
-):
+) -> List[data.LeaderboardScore]:
     """
     Put the leaderboard to the database.
     """
@@ -328,4 +401,14 @@ async def leaderboard(
         logger.error(f"Score update failed with error: {e}")
         raise EngineHTTPException(status_code=500, detail="Score update failed.")
 
-    return leaderboard_points
+    result = [
+        data.LeaderboardScore(
+            leaderboard_id=score["leaderboard_id"],
+            address=score["address"],
+            score=score["score"],
+            points_data=score["points_data"],
+        )
+        for score in leaderboard_points
+    ]
+
+    return result
