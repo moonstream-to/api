@@ -65,6 +65,14 @@ cp "${SCRIPT_DIR}/configs/${ENGINE_CLEAN_CALL_REQUESTS}" "${CONFIGS_DIR}/${ENGIN
 
 echo
 echo
+echo -e "${PREFIX_INFO} Building executable probes application with Go"
+EXEC_DIR=$(pwd)
+cd "${APP_DIR}/probes"
+HOME=/home/ubuntu /usr/local/go/bin/go build -o "${APP_DIR}/probes/probes" "${APP_DIR}/probes/cmd/probes/*.go"
+cd "${EXEC_DIR}"
+
+echo
+echo
 echo -e "${PREFIX_INFO} Replacing existing probes service and timer with: ${PROBES_SERVICE_FILE}"
 chmod 644 "${SCRIPT_DIR}/${PROBES_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${PROBES_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${PROBES_SERVICE_FILE}"
