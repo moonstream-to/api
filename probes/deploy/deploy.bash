@@ -17,7 +17,7 @@ PREFIX_CRIT="${C_RED}[CRIT]${C_RESET} [$(date +%d-%m\ %T)]"
 APP_DIR="${APP_DIR:-/home/ubuntu/api}"
 AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
 SCRIPT_DIR="$(realpath $(dirname $0))"
-SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/engineapi-secrets}"
+SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/probes-secrets}"
 CONFIGS_DIR="${CONFIGS_DIR:-/home/ubuntu/.probes}"
 PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
 
@@ -41,7 +41,7 @@ if [ ! -d "${SECRETS_DIR}" ]; then
   mkdir "${SECRETS_DIR}"
   echo -e "${PREFIX_WARN} Created new secrets directory"
 fi
-AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" /home/ubuntu/go/bin/checkenv show aws_ssm+engine:true > "${PARAMETERS_ENV_PATH}"
+AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" /home/ubuntu/go/bin/checkenv show aws_ssm+probes:true > "${PARAMETERS_ENV_PATH}"
 chmod 0640 "${PARAMETERS_ENV_PATH}"
 
 echo
