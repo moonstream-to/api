@@ -68,7 +68,7 @@ echo
 echo -e "${PREFIX_INFO} Building executable probes application with Go"
 EXEC_DIR=$(pwd)
 cd "${APP_DIR}/probes"
-HOME=/home/ubuntu /usr/local/go/bin/go build -o "${APP_DIR}/probes/probes" "${APP_DIR}/probes/cmd/probes/*.go"
+HOME=/home/ubuntu /usr/local/go/bin/go build -o "${APP_DIR}/probes/probes" "${APP_DIR}/probes/cmd/probes/"
 cd "${EXEC_DIR}"
 
 echo
