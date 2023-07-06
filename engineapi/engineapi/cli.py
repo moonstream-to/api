@@ -151,7 +151,7 @@ def dropper_create_drop_handler(args: argparse.Namespace) -> None:
 def dropper_activate_drop_handler(args: argparse.Namespace) -> None:
     try:
         with db.yield_db_session_ctx() as db_session:
-            activated_claim = actions.activate_claim(
+            activated_claim = actions.activate_drop(
                 db_session=db_session,
                 dropper_claim_id=args.dropper_claim_id,
             )
@@ -164,7 +164,7 @@ def dropper_activate_drop_handler(args: argparse.Namespace) -> None:
 def dropper_deactivate_drop_handler(args: argparse.Namespace) -> None:
     try:
         with db.yield_db_session_ctx() as db_session:
-            deactivated_claim = actions.deactivate_claim(
+            deactivated_claim = actions.deactivate_drop(
                 db_session=db_session,
                 dropper_claim_id=args.dropper_claim_id,
             )
