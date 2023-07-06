@@ -231,8 +231,8 @@ async def position(
     return results
 
 
-@app.get("")
-@app.get("/")
+@app.get("", response_model=List[data.LeaderboardPosition])
+@app.get("/", response_model=List[data.LeaderboardPosition])
 async def leaderboard(
     leaderboard_id: UUID,
     limit: int = 10,
