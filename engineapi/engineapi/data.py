@@ -91,6 +91,7 @@ class Claimant(BaseModel):
     address: str
     amount: int
     raw_amount: Optional[str] = None
+    added_by: Optional[str] = None
 
 
 class BatchAddClaimantsRequest(BaseModel):
@@ -155,8 +156,20 @@ class DropBatchResponseItem(BaseModel):
     blockchain: str
 
 
+class DropsResponseItem(BaseModel):
+    id: UUID
+    title: str
+    description: str
+    terminus_address: Optional[str] = None
+    terminus_pool_id: Optional[int] = None
+    claim_block_deadline: Optional[int] = None
+    drop_number: Optional[int] = None
+    active: bool = True
+    dropper_contract_address: str
+
+
 class DropListResponse(BaseModel):
-    drops: List[Any] = Field(default_factory=list)
+    drops: List[DropsResponseItem] = Field(default_factory=list)
 
 
 class DropClaimant(BaseModel):

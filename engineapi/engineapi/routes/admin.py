@@ -102,7 +102,22 @@ async def get_drop_list_handler(
         logger.error(f"Can't get drops. Failed with error: {e}")
         raise EngineHTTPException(status_code=500, detail="Can't get claims")
 
-    return data.DropListResponse(drops=[result for result in results])
+    return data.DropListResponse(
+        drops=[
+            data.DropsResponseItem(
+                id=result.id,
+                title=result.title,
+                description=result.description,
+                terminus_address=result.terminus_address,
+                terminus_pool_id=result.terminus_pool_id,
+                claim_block_deadline=result.claim_block_deadline,
+                drop_number=result.drop_number,
+                active=result.active,
+                dropper_contract_address=result.dropper_contract_address,
+            )
+            for result in results
+        ]
+    )
 
 
 @app.post("/drops", response_model=data.DropCreatedResponse)
@@ -314,7 +329,7 @@ async def get_claimants(
     limit: int = 10,
     offset: int = 0,
     db_session: Session = Depends(db.yield_db_session),
-) -> data.DropListResponse:
+) -> data.ClaimantsResponse:
     """
     Get list of claimants for a given dropper contract.
     """
@@ -346,7 +361,17 @@ async def get_claimants(
         logger.info(f"Can't add claimants for claim {dropper_claim_id} with error: {e}")
         raise EngineHTTPException(status_code=500, detail=f"Error adding claimants")
 
-    return data.ClaimantsResponse(claimants=list(results))
+    return data.ClaimantsResponse(
+        claimants=[
+            data.Claimant(
+                address=result.address,
+                amount=result.amount,
+                raw_amount=result.raw_amount,
+                added_by=result.added_by,
+            )
+            for result in results
+        ]
+    )
 
 
 @app.post(
