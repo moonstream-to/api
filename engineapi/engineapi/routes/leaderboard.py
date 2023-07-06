@@ -60,11 +60,11 @@ app.add_middleware(
 )
 
 
-@app.get("/info")
+@app.get("/info", response_model=data.LeaderboardInfoResponse)
 async def get_leadeboard(
     leaderboard_id: UUID,
     db_session: Session = Depends(db.yield_db_session),
-):
+) -> data.LeaderboardInfoResponse:
     """
     Returns leaderboard info.
     """
@@ -86,10 +86,10 @@ async def get_leadeboard(
     )
 
 
-@app.get("/leaderboards")
+@app.get("/leaderboards", response_model=List[data.Leaderboard])
 async def get_leaderboards(
     request: Request, db_session: Session = Depends(db.yield_db_session)
-):
+) -> List[data.Leaderboard]:
     """
     Returns leaderboard list to which user has access.
     """
@@ -122,11 +122,11 @@ async def get_leaderboards(
     return results
 
 
-@app.get("/count/addresses")
+@app.get("/count/addresses", response_model=data.CountAddressesResponse)
 async def count_addresses(
     leaderboard_id: UUID,
     db_session: Session = Depends(db.yield_db_session),
-):
+) -> data.CountAddressesResponse:
     """
     Returns the number of addresses in the leaderboard.
     """
@@ -148,11 +148,11 @@ async def count_addresses(
     return data.CountAddressesResponse(count=count)
 
 
-@app.get("/quartiles")
+@app.get("/quartiles", response_model=data.QuartilesResponse)
 async def quartiles(
     leaderboard_id: UUID,
     db_session: Session = Depends(db.yield_db_session),
-):
+) -> data.QuartilesResponse:
     """
     Returns the quartiles of the leaderboard.
     """
@@ -172,7 +172,7 @@ async def quartiles(
         q1, q2, q3 = actions.get_qurtiles(db_session, leaderboard_id)
 
     except actions.LeaderboardIsEmpty:
-        return Response(status_code=204)
+        raise EngineHTTPException(status_code=204, detail="Leaderboard is empty.")
     except Exception as e:
         logger.error(f"Error while getting quartiles: {e}")
         raise EngineHTTPException(status_code=500, detail="Internal server error")
@@ -193,7 +193,7 @@ async def position(
     offset: int = 0,
     normalize_addresses: bool = True,
     db_session: Session = Depends(db.yield_db_session),
-):
+) -> List[data.LeaderboardPosition]:
     """
     Returns the leaderboard posotion for the given address.
     With given window size.
@@ -271,7 +271,7 @@ async def leaderboard(
     return result
 
 
-@app.get("/rank")
+@app.get("/rank", response_model=List[data.LeaderboardPosition])
 async def rank(
     leaderboard_id: UUID,
     rank: int = 1,
