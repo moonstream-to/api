@@ -943,7 +943,7 @@ def get_leaderboard_total_count(db_session: Session, leaderboard_id):
     )
 
 
-def get_leaderboard(db_session: Session, leaderboard_id: uuid.UUID):
+def get_leaderboard(db_session: Session, leaderboard_id: uuid.UUID) -> Leaderboard:
     """
     Get the leaderboard from the database
     """
@@ -958,7 +958,7 @@ def get_leaderboard(db_session: Session, leaderboard_id: uuid.UUID):
 def get_leaderboards(
     db_session: Session,
     token: Union[str, uuid.UUID],
-):
+) -> List[Leaderboard]:
     """
     Get the leaderboards resources
     """
