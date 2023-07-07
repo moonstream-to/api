@@ -51,9 +51,13 @@ app = FastAPI(
 
 app.add_middleware(ExtractBearerTokenMiddleware, whitelist=leaderboad_whitelist)
 
+# Fast fix
+from fastapi.middleware.cors import CORSMiddleware
+from ..settings import RAW_ORIGINS_LST
 app.add_middleware(
-    BugoutCORSMiddleware,
-    allow_credentials=False,
+    CORSMiddleware,
+    allow_origins=RAW_ORIGINS_LST,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
