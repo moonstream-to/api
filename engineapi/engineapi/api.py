@@ -31,8 +31,12 @@ app = FastAPI(
     docs_url=None,
 )
 
+# Fast fix
+from fastapi.middleware.cors import CORSMiddleware
+from .settings import RAW_ORIGINS_LST
 app.add_middleware(
-    BugoutCORSMiddleware,
+    CORSMiddleware,
+    allow_origins=RAW_ORIGINS_LST,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
