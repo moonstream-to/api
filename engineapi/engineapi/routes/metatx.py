@@ -54,12 +54,8 @@ app = FastAPI(
 
 app.add_middleware(BroodAuthMiddleware, whitelist=whitelist_paths)
 
-# Fast fix
-from fastapi.middleware.cors import CORSMiddleware
-from ..settings import RAW_ORIGINS_LST
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins=RAW_ORIGINS_LST,
+    BugoutCORSMiddleware,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
