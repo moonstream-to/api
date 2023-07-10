@@ -1,6 +1,6 @@
 from datetime import datetime
 from collections import Counter
-from typing import List, Any, Optional, Dict
+from typing import List, Any, Optional, Dict, Union
 import uuid
 import logging
 
@@ -14,7 +14,7 @@ from sqlalchemy import func, text, or_
 from web3 import Web3
 from web3.types import ChecksumAddress
 
-from .data import Score
+from .data import Score, LeaderboardScore
 from .contracts import Dropper_interface, ERC20_interface, Terminus_interface
 from .models import (
     DropperClaimant,
@@ -31,6 +31,10 @@ from .settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     bugout_client as bc,
 )
+
+
+class LeaderboardsResourcesNotFound(Exception):
+    pass
 
 
 class AuthorizationError(Exception):
@@ -92,7 +96,6 @@ def create_dropper_contract(
 def delete_dropper_contract(
     db_session: Session, blockchain: Optional[str], dropper_contract_address
 ):
-
     dropper_contract = (
         db_session.query(DropperContract)
         .filter(
@@ -877,7 +880,6 @@ def refetch_drop_signatures(
         for outdated_signature, transformed_claim_amount in zip(
             page, transformed_claim_amounts
         ):
-
             message_hash_raw = dropper_contract.claimMessageHash(
                 claim.claim_id,
                 outdated_signature.address,
@@ -939,6 +941,48 @@ def get_leaderboard_total_count(db_session: Session, leaderboard_id):
         .filter(LeaderboardScores.leaderboard_id == leaderboard_id)
         .count()
     )
+
+
+def get_leaderboard(db_session: Session, leaderboard_id: uuid.UUID) -> Leaderboard:
+    """
+    Get the leaderboard from the database
+    """
+
+    leaderboard = (
+        db_session.query(Leaderboard).filter(Leaderboard.id == leaderboard_id).one()
+    )
+
+    return leaderboard
+
+
+def get_leaderboards(
+    db_session: Session,
+    token: Union[str, uuid.UUID],
+) -> List[Leaderboard]:
+    """
+    Get the leaderboards resources
+    """
+
+    user_resources = bc.list_resources(
+        token=token,
+        params={"type": "leaderboard"},
+    )
+
+    if len(user_resources.resources) == 0:
+        raise LeaderboardsResourcesNotFound(f"Leaderboard not found for token")
+
+    leaderboards_ids = []
+
+    for resource in user_resources.resources:
+        leaderboard_id = resource.resource_data["leaderboard_id"]
+
+        leaderboards_ids.append(leaderboard_id)
+
+    leaderboards = (
+        db_session.query(Leaderboard).filter(Leaderboard.id.in_(leaderboards_ids)).all()
+    )
+
+    return leaderboards
 
 
 def get_position(
@@ -1174,7 +1218,6 @@ def add_scores(
     addresses = [score.address for score in scores]
 
     if len(addresses) != len(set(addresses)):
-
         duplicates = [key for key, value in Counter(addresses).items() if value > 1]
 
         raise DuplicateLeaderboardAddressError("Dublicated addresses", duplicates)
@@ -1225,7 +1268,6 @@ def create_leaderboard_resource(
     leaderboard_id: uuid.UUID,
     token: Optional[uuid.UUID] = None,
 ) -> BugoutResource:
-
     resource_data: Dict[str, Any] = {
         "type": LEADERBOARD_RESOURCE_TYPE,
         "leaderboard_id": leaderboard_id,
@@ -1248,7 +1290,6 @@ def assign_resource(
     leaderboard_id: uuid.UUID,
     resource_id: Optional[uuid.UUID] = None,
 ):
-
     """
     Assign a resource handler to a leaderboard
     """
@@ -1258,7 +1299,6 @@ def assign_resource(
     )
 
     if leaderboard.resource_id is not None:
-
         raise Exception("Leaderboard already has a resource")
 
     if resource_id is not None:
@@ -1281,7 +1321,6 @@ def assign_resource(
 def list_leaderboards_resources(
     db_session: Session,
 ):
-
     """
     List all leaderboards resources
     """
@@ -1292,7 +1331,6 @@ def list_leaderboards_resources(
 
 
 def revoke_resource(db_session: Session, leaderboard_id: uuid.UUID):
-
     """
     Revoke a resource handler to a leaderboard
     """
@@ -1304,7 +1342,6 @@ def revoke_resource(db_session: Session, leaderboard_id: uuid.UUID):
     )
 
     if leaderboard.resource_id is None:
-
         raise Exception("Leaderboard does not have a resource")
 
     leaderboard.resource_id = None

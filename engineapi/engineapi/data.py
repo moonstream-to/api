@@ -1,9 +1,10 @@
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
 from uuid import UUID
 
-from pydantic import BaseModel, Field, root_validator, validator
+from bugout.data import BugoutResource
+from pydantic import AnyHttpUrl, BaseModel, Field, root_validator, validator
 from web3 import Web3
 
 
@@ -21,6 +22,17 @@ class NowResponse(BaseModel):
     """
 
     epoch_time: float
+
+
+class CORSOrigins(BaseModel):
+    origins_set: Set[str] = Field(default_factory=set)
+    resources: List[BugoutResource] = Field(default_factory=list)
+
+
+class IsCORSResponse(BaseModel):
+    origin: Optional[str] = None
+    updated_at: Optional[datetime] = None
+    created_at: Optional[datetime] = None
 
 
 class SignerListResponse(BaseModel):
@@ -79,6 +91,7 @@ class Claimant(BaseModel):
     address: str
     amount: int
     raw_amount: Optional[str] = None
+    added_by: Optional[str] = None
 
 
 class BatchAddClaimantsRequest(BaseModel):
@@ -143,8 +156,20 @@ class DropBatchResponseItem(BaseModel):
     blockchain: str
 
 
+class DropsResponseItem(BaseModel):
+    id: UUID
+    title: str
+    description: str
+    terminus_address: Optional[str] = None
+    terminus_pool_id: Optional[int] = None
+    claim_block_deadline: Optional[int] = None
+    drop_number: Optional[int] = None
+    active: bool = True
+    dropper_contract_address: str
+
+
 class DropListResponse(BaseModel):
-    drops: List[Any] = Field(default_factory=list)
+    drops: List[DropsResponseItem] = Field(default_factory=list)
 
 
 class DropClaimant(BaseModel):
@@ -300,8 +325,33 @@ class LeaderboardPosition(BaseModel):
     score: int
     points_data: Dict[str, Any]
 
+    class Config:
+        orm_mode = True
+
 
 class RanksResponse(BaseModel):
     rank: int
     score: int
     size: int
+
+
+class LeaderboardScore(BaseModel):
+    leaderboard_id: UUID
+    address: str
+    score: int
+    points_data: Dict[str, Any]
+
+
+class Leaderboard(BaseModel):
+    id: UUID
+    title: str
+    description: Optional[str] = None
+    resource_id: Optional[UUID] = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class LeaderboardInfoResponse(BaseModel):
+    id: UUID
+    title: str
+    description: Optional[str] = None
