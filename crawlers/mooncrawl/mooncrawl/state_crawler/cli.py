@@ -30,8 +30,6 @@ from .db import clean_labels, commit_session, view_call_to_label
 from .Multicall2_interface import Contract as Multicall2
 from .web3_util import FunctionSignature, connect
 
-import traceback
-
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
