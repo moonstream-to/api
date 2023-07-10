@@ -134,7 +134,6 @@ async def add_subscription_handler(
         content["description"] = description
 
     allowed_required_fields = {}
-    print(tags)
     if tags:
         # filter out subscription_type_id, color, label, user_id, address, blockchain
 
