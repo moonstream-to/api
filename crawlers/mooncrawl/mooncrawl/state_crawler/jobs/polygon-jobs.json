@@ -43,7 +43,7 @@
                 "value": {
                     "type": "queryAPI",
                     "query_url": "template_erc721_minting",
-                    "blockchain": "mumbai",
+                    "blockchain": "polygon",
                     "params": {
                         "address": "0xA2a13cE1824F3916fC84C65e559391fc6674e6e8"
                     },
