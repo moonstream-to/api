@@ -133,6 +133,7 @@ def recive_S3_data_from_query(
         headers = {
             "Authorization": f"Bearer {token}",
         }
+        print(headers)
         json = custom_body
 
         response = requests.post(
@@ -141,6 +142,7 @@ def recive_S3_data_from_query(
             json=json,
             timeout=5,
         )
+        print(response.text)
         data_url = MoonstreamQueryResultUrl(url=response.json()["url"])
         print(data_url)
     else:

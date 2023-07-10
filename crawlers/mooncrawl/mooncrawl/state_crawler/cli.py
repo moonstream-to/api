@@ -30,6 +30,8 @@ from .db import clean_labels, commit_session, view_call_to_label
 from .Multicall2_interface import Contract as Multicall2
 from .web3_util import FunctionSignature, connect
 
+import traceback
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -112,6 +114,8 @@ def make_multicall(
                 )
             )
         except Exception as e:
+            traceback.print_exc()
+            breakpoint()
             logger.error(
                 f'Error encoding data for method {call["method"].name} call: {call}'
             )
@@ -123,6 +127,7 @@ def make_multicall(
     results = []
 
     # Handle the case with not successful calls
+    print("multicall_result")
     for index, encoded_data in enumerate(multicall_result):
         try:
             if encoded_data[0]:
@@ -156,6 +161,8 @@ def make_multicall(
                     }
                 )
         except Exception as e:
+            traceback.print_exc()
+            breakpoint()
             results.append(
                 {
                     "result": str(encoded_data[1]),
@@ -212,7 +219,7 @@ def crawl_calls_level(
                 if input["value"] not in responces:
                     parameters.append([input["value"]])
                 else:
-                    if (
+                    if input["value"] in contracts_ABIs[call["address"]] and (
                         contracts_ABIs[call["address"]][input["value"]]["name"]
                         == "totalSupply"
                     ):  # hack for totalSupply TODO(Andrey): need add propper support for response parsing
