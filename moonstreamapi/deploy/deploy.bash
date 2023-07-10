@@ -36,7 +36,7 @@ echo -e "${PREFIX_INFO} Upgrading Python pip and setuptools"
 echo
 echo
 echo -e "${PREFIX_INFO} Installing Python dependencies"
-"${PIP}" install -e "${APP_DIR}/moonstreamapi/"
+"${PIP}" install --exists-action i -r "${APP_DIR}/moonstreamapi/requirements.txt"
 
 echo
 echo
