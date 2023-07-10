@@ -41,7 +41,8 @@ client = Moonstream()
 
 def execute_query(query: Dict[str, Any], token: str):
     """
-    Format of that query is:
+    Query task example:
+
     {
         "type": "queryAPI",
         "query_url": "template_erc721_minting",
@@ -53,6 +54,7 @@ def execute_query(query: Dict[str, Any], token: str):
             "token_id"
         ]
     }
+
     """
 
     # get the query url
@@ -114,8 +116,6 @@ def make_multicall(
                 )
             )
         except Exception as e:
-            traceback.print_exc()
-            breakpoint()
             logger.error(
                 f'Error encoding data for method {call["method"].name} call: {call}'
             )
@@ -127,7 +127,6 @@ def make_multicall(
     results = []
 
     # Handle the case with not successful calls
-    print("multicall_result")
     for index, encoded_data in enumerate(multicall_result):
         try:
             if encoded_data[0]:
@@ -161,8 +160,6 @@ def make_multicall(
                     }
                 )
         except Exception as e:
-            traceback.print_exc()
-            breakpoint()
             results.append(
                 {
                     "result": str(encoded_data[1]),
@@ -214,8 +211,6 @@ def crawl_calls_level(
 
         for input in call["inputs"]:
             if type(input["value"]) in (str, int):
-                print(input["value"])
-                print(responces.keys())
                 if input["value"] not in responces:
                     parameters.append([input["value"]])
                 else:
@@ -223,7 +218,6 @@ def crawl_calls_level(
                         contracts_ABIs[call["address"]][input["value"]]["name"]
                         == "totalSupply"
                     ):  # hack for totalSupply TODO(Andrey): need add propper support for response parsing
-                        print(responces[input["value"]][0])
                         parameters.append(
                             list(range(1, responces[input["value"]][0][0] + 1))
                         )
@@ -295,7 +289,7 @@ def crawl_calls_level(
             logger.error(f"Exception: {e}")
             raise (e)
         time.sleep(2)
-        print(f"retry: {retry}")
+        logger.info(f"Retry: {retry}")
         # results parsing and writing to database
         add_to_session_count = 0
         for result in make_multicall_result:
