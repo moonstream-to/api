@@ -41,17 +41,15 @@
                 "name": "tokenId",
                 "type": "uint256",
                 "value": {
-                    "type": "function",
-                    "name": "totalSupply",
-                    "outputs": [
-                        {
-                            "internalType": "uint256",
-                            "name": "",
-                            "type": "uint256"
-                        }
-                    ],
-                    "address": "0x230E4e85d4549343A460F5dE0a7035130F62d74C",
-                    "inputs": []
+                    "type": "queryAPI",
+                    "query_url": "template_erc721_minting",
+                    "blockchain": "mumbai",
+                    "params": {
+                        "address": "0x230E4e85d4549343A460F5dE0a7035130F62d74C"
+                    },
+                    "keys": [
+                        "token_id"
+                    ]
                 }
             }
         ],

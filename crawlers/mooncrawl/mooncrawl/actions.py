@@ -1,14 +1,19 @@
 from collections import OrderedDict
+from datetime import datetime
 import hashlib
 import json
 import logging
+import time
 from typing import Any, Dict, Optional, Union
 import uuid
+
 
 from bugout.data import (
     BugoutResources,
 )
 from bugout.exceptions import BugoutResponseException
+from moonstream.client import Moonstream, ENDPOINT_QUERIES, MoonstreamQueryResultUrl  # type: ignore
+import requests  # type: ignore
 from .middleware import MoonstreamHTTPException
 from .settings import bugout_client as bc
 
@@ -101,3 +106,67 @@ def get_entity_subscription_collection_id(
     else:
         resource = resources.resources[0]
     return resource.resource_data["collection_id"]
+
+
+def recive_S3_data_from_query(
+    client: Moonstream,
+    token: Union[str, uuid.UUID],
+    query_name: str,
+    params: Dict[str, Any] = {},
+    time_await: int = 2,
+    max_retries: int = 30,
+    custom_body: Optional[Dict[str, Any]] = None,
+) -> Any:
+    """
+    Await the query to be update data on S3 with if_modified_since and return new the data.
+    """
+
+    keep_going = True
+
+    repeat = 0
+
+    if_modified_since_datetime = datetime.utcnow()
+    if_modified_since = if_modified_since_datetime.strftime("%a, %d %b %Y %H:%M:%S GMT")
+
+    time.sleep(2)
+    if custom_body:
+        headers = {
+            "Authorization": f"Bearer {token}",
+        }
+        json = custom_body
+
+        response = requests.post(
+            url=f"{client.api.endpoints[ENDPOINT_QUERIES]}/{query_name}/update_data",
+            headers=headers,
+            json=json,
+            timeout=5,
+        )
+        data_url = MoonstreamQueryResultUrl(url=response.json()["url"])
+    else:
+        data_url = client.exec_query(
+            token=token,
+            name=query_name,
+            params=params,
+        )  # S3 presign_url
+
+    while keep_going:
+        time.sleep(time_await)
+        try:
+            data_response = requests.get(
+                data_url.url,
+                headers={"If-Modified-Since": if_modified_since},
+                timeout=5,
+            )
+        except Exception as e:
+            logger.error(e)
+            continue
+
+        if data_response.status_code == 200:
+            break
+
+        repeat += 1
+
+        if repeat > max_retries:
+            logger.info("Too many retries")
+            break
+    return data_response.json()
