@@ -2,7 +2,7 @@
 
 ## Installation
 
--   Prepare environment variables, according with `sample.env`.
+-   Prepare environment variables, according to `sample.env`.
 -   Build application
 
 ```bash
@@ -60,14 +60,14 @@ This command will return a list of bugout resources of registered users to acces
 ]
 ```
 
-`access_id` - token which allow access to nodebalancer, could be specified in both ways:
+`access_id` - token which allows access to nodebalancer, could be specified in both ways:
 
 -   as a header `x-moonstream-access-id` with value `access_id`
 -   as query parameter `access_id=access_id`
 
-`blockchain_access` - boolean which allow you or not to have access to blockchain node, otherwise you will be redirected to database
+`blockchain_access` - boolean which allows you or not to have access to blockchain node, otherwise you will be redirected to database
 
-`extended_methods` - boolean which allow you to call not whitelisted method to blockchain node, by default for new user this is equal to `false`
+`extended_methods` - boolean which allows you to call not whitelisted method to blockchain node, by default for new user this is equal to `false`
 
 ### server
 
