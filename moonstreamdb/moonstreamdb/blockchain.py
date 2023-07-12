@@ -1,25 +1,26 @@
-from .db import yield_db_session, yield_db_session_ctx
+from enum import Enum
+from typing import Type, Union
+
 from .models import (
     EthereumBlock,
     EthereumLabel,
     EthereumTransaction,
-    PolygonBlock,
-    PolygonLabel,
-    PolygonTransaction,
     MumbaiBlock,
     MumbaiLabel,
     MumbaiTransaction,
-    XDaiBlock,
-    XDaiLabel,
-    XDaiTransaction,
+    PolygonBlock,
+    PolygonLabel,
+    PolygonTransaction,
     WyrmBlock,
     WyrmLabel,
     WyrmTransaction,
+    XDaiBlock,
+    XDaiLabel,
+    XDaiTransaction,
+    ZkSyncEraTestnetBlock,
+    ZkSyncEraTestnetLabel,
+    ZkSyncEraTestnetTransaction,
 )
-
-from enum import Enum
-
-from typing import Type, Union
 
 
 class AvailableBlockchainType(Enum):
@@ -28,17 +29,34 @@ class AvailableBlockchainType(Enum):
     MUMBAI = "mumbai"
     XDAI = "xdai"
     WYRM = "wyrm"
+    ZKSYNC_ERA_TESTNET = "zksync_era_testnet"
 
 
 def get_block_model(
     blockchain_type: AvailableBlockchainType,
-) -> Type[Union[EthereumBlock, PolygonBlock, MumbaiBlock, XDaiBlock, WyrmBlock]]:
+) -> Type[
+    Union[
+        EthereumBlock,
+        PolygonBlock,
+        MumbaiBlock,
+        XDaiBlock,
+        WyrmBlock,
+        ZkSyncEraTestnetBlock,
+    ]
+]:
     """
     Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm
     set proper blocks model.
     """
     block_model: Type[
-        Union[EthereumBlock, PolygonBlock, MumbaiBlock, XDaiBlock, WyrmBlock]
+        Union[
+            EthereumBlock,
+            PolygonBlock,
+            MumbaiBlock,
+            XDaiBlock,
+            WyrmBlock,
+            ZkSyncEraTestnetBlock,
+        ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
         block_model = EthereumBlock
@@ -50,6 +68,8 @@ def get_block_model(
         block_model = XDaiBlock
     elif blockchain_type == AvailableBlockchainType.WYRM:
         block_model = WyrmBlock
+    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET:
+        block_model = ZkSyncEraTestnetBlock
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -58,13 +78,29 @@ def get_block_model(
 
 def get_label_model(
     blockchain_type: AvailableBlockchainType,
-) -> Type[Union[EthereumLabel, PolygonLabel, MumbaiLabel, XDaiLabel, WyrmLabel]]:
+) -> Type[
+    Union[
+        EthereumLabel,
+        PolygonLabel,
+        MumbaiLabel,
+        XDaiLabel,
+        WyrmLabel,
+        ZkSyncEraTestnetLabel,
+    ]
+]:
     """
     Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm
     set proper block label model.
     """
     label_model: Type[
-        Union[EthereumLabel, PolygonLabel, MumbaiLabel, XDaiLabel, WyrmLabel]
+        Union[
+            EthereumLabel,
+            PolygonLabel,
+            MumbaiLabel,
+            XDaiLabel,
+            WyrmLabel,
+            ZkSyncEraTestnetLabel,
+        ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
         label_model = EthereumLabel
@@ -76,6 +112,8 @@ def get_label_model(
         label_model = XDaiLabel
     elif blockchain_type == AvailableBlockchainType.WYRM:
         label_model = WyrmLabel
+    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET:
+        label_model = ZkSyncEraTestnetLabel
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -91,6 +129,7 @@ def get_transaction_model(
         MumbaiTransaction,
         XDaiTransaction,
         WyrmTransaction,
+        ZkSyncEraTestnetTransaction,
     ]
 ]:
     """
@@ -104,6 +143,7 @@ def get_transaction_model(
             MumbaiTransaction,
             XDaiTransaction,
             WyrmTransaction,
+            ZkSyncEraTestnetTransaction,
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -116,6 +156,8 @@ def get_transaction_model(
         transaction_model = XDaiTransaction
     elif blockchain_type == AvailableBlockchainType.WYRM:
         transaction_model = WyrmTransaction
+    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET:
+        transaction_model = ZkSyncEraTestnetTransaction
     else:
         raise Exception("Unsupported blockchain type provided")
 
