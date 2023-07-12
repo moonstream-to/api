@@ -49,7 +49,7 @@ the schema for this Postgres database as well as migrations that you can use to 
 database yourself.
 
 The [`db/`](../db/) directory contains:
-1. A Python package called `moonstreamdb` which defines the databse schema and can be used as a
+1. A Python package called `moonstreamdb` which defines the database schema and can be used as a
 Python library to interact with the data store.
 2. [Alembic](https://alembic.sqlalchemy.org/en/latest/) migrations which can be used via the
 [`alembic.sh`](../db/alembic.sh) shell script to run the migrations against a Postgres database
