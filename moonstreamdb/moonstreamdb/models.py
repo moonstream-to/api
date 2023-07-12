@@ -642,11 +642,11 @@ class ZkSyncEraTestnetBlock(Base):  # type: ignore
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )
 
-    mix_hash = Column(VARCHAR(256))
-    sha3_uncles = Column(VARCHAR(256))
+    mix_hash = Column(VARCHAR(256), nullable=True)
+    sha3_uncles = Column(VARCHAR(256), nullable=True)
 
-    l1_batch_number = Column(BigInteger, index=True)
-    l1_batch_timestamp = Column(BigInteger)
+    l1_batch_number = Column(BigInteger, nullable=True)
+    l1_batch_timestamp = Column(BigInteger, nullable=True)
 
 
 class ZkSyncEraTestnetTransaction(Base):  # type: ignore
@@ -677,8 +677,8 @@ class ZkSyncEraTestnetTransaction(Base):  # type: ignore
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )
 
-    l1_batch_number = Column(BigInteger, index=True)
-    l1_batch_tx_index = Column(BigInteger, index=True)
+    l1_batch_number = Column(BigInteger, nullable=True)
+    l1_batch_tx_index = Column(BigInteger, nullable=True)
 
 
 class ZkSyncEraTestnetLabel(Base):  # type: ignore
