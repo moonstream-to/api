@@ -35,6 +35,7 @@ class SubscriptionTypes(Enum):
     MUMBAI_BLOCKCHAIN = "mumbai_smartcontract"
     XDAI_BLOCKCHAIN = "xdai_smartcontract"
     WYRM_BLOCKCHAIN = "wyrm_smartcontract"
+    ZKSYNC_ERA_TESTNET_BLOCKCHAIN = "zksync_era_testnet_smartcontract"
 
 
 def abi_input_signature(input_abi: Dict[str, Any]) -> str:
@@ -139,6 +140,8 @@ def blockchain_type_to_subscription_type(
         return SubscriptionTypes.XDAI_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.WYRM:
         return SubscriptionTypes.WYRM_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET:
+        return SubscriptionTypes.ZKSYNC_ERA_TESTNET_BLOCKCHAIN
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 
