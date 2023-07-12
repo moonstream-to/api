@@ -6,7 +6,6 @@ import hashlib
 import json
 import logging
 from typing import Any, Dict, List, Optional
-import traceback
 
 from bugout.exceptions import BugoutResponseException
 from bugout.data import BugoutSearchResult
@@ -37,6 +36,8 @@ from ..settings import (
 from ..web3_provider import (
     yield_web3_provider,
 )
+
+import traceback
 
 
 logger = logging.getLogger(__name__)
@@ -184,6 +185,7 @@ async def add_subscription_handler(
             internal_error=e,
         )
     except Exception as e:
+        traceback.print_exc()
         logger.error(f"Failed to get collection id")
         raise MoonstreamHTTPException(
             status_code=500,
@@ -362,11 +364,6 @@ async def update_subscriptions_handler(
     request: Request,
     subscription_id: str,
     background_tasks: BackgroundTasks,
-    color: Optional[str] = Form(None),
-    label: Optional[str] = Form(None),
-    abi: Optional[str] = Form(None),
-    description: Optional[str] = Form(None),
-    tags: Optional[str] = Form(None),
 ) -> data.SubscriptionResourceData:
     """
     Get user's subscriptions.
@@ -374,6 +371,16 @@ async def update_subscriptions_handler(
     token = request.state.token
 
     user = request.state.user
+
+    form = await request.form()
+
+    form_data = data.UpdateSubscriptionRequest(**form)
+
+    color = form_data.color
+    label = form_data.label
+    abi = form_data.abi
+    description = form_data.description
+    tags = form_data.tags
 
     try:
         collection_id = get_entity_subscription_collection_id(
@@ -408,7 +415,7 @@ async def update_subscriptions_handler(
                 f"Subscription entity {subscription_id} in collection {collection_id} has no subscription_type_id malformed subscription entity"
             )
             raise MoonstreamHTTPException(
-                status_code=404,
+                status_code=409,
                 detail="Not valid subscription entity",
             )
 
@@ -424,16 +431,20 @@ async def update_subscriptions_handler(
         )
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
-    #
-
     for field in update_required_fields:
-        if "color" in field and color is not None:
-            field["color"] = color
+        if "color" in field:
+            if color is not None:
+                field["color"] = color
+            else:
+                color = field["color"]
 
-        if "label" in field and label is not None:
-            field["label"] = label
+        if "label" in field:
+            if label is not None:
+                field["label"] = label
+            else:
+                label = field["label"]
 
-    if abi:
+    if abi is not None:
         try:
             json_abi = json.loads(abi)
         except json.JSONDecodeError:
@@ -448,11 +459,11 @@ async def update_subscriptions_handler(
 
         update_secondary_fields["abi_hash"] = hash
 
-    if description:
+    if description is not None:
         update_secondary_fields["description"] = description
 
-    if tags:
-        additional_required_fields_dict = json.loads(tags)
+    if tags is not None:
+        additional_required_fields_dict = tags
 
         allowed_required_fields = {
             key: value
