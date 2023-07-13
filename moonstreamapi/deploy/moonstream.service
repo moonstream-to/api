@@ -5,7 +5,7 @@ StartLimitIntervalSec=300
 StartLimitBurst=3
 
 [Service]
-WorkingDirectory=/home/ubuntu/moonstream/moonstreamapi
+WorkingDirectory=/home/ubuntu/api/moonstreamapi
 EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
 Restart=on-failure
 RestartSec=15s
