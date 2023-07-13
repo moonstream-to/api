@@ -96,10 +96,10 @@ def get_uris_of_tokens(
     results = [
         TokenURIs(
             token_id=data[0],
-            token_uri=data[1][0],
-            block_number=data[2],
-            block_timestamp=data[3],
-            address=data[4],
+            address=data[1],
+            token_uri=data[2][0],
+            block_number=data[3],
+            block_timestamp=data[4],
         )
         for data in metadata_for_parsing
         if data[1] is not None and len(data[1]) > 0
