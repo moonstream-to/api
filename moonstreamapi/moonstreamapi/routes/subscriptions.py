@@ -192,6 +192,13 @@ async def add_subscription_handler(
             detail="Currently unable to get collection id",
         )
 
+    normalized_entity_tags = [
+        f"{key}:{value}"
+        for tag in entity.required_fields
+        for key, value in tag.items()
+        if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS
+    ]
+
     return data.SubscriptionResourceData(
         id=str(entity.entity_id),
         user_id=str(user.id),
@@ -200,7 +207,7 @@ async def add_subscription_handler(
         label=label,
         abi=entity.secondary_fields.get("abi"),
         description=entity.secondary_fields.get("description"),
-        tags=entity.required_fields,
+        tags=normalized_entity_tags,
         subscription_type_id=subscription_type_id,
         updated_at=entity.updated_at,
         created_at=entity.created_at,
@@ -336,6 +343,13 @@ async def get_subscriptions_handler(
             if "label" in tag:
                 label = tag["label"]
 
+        normalized_entity_tags = [
+            f"{key}:{value}"
+            for tag in tags
+            for key, value in tag.items()
+            if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS
+        ]
+
         subscriptions.append(
             data.SubscriptionResourceData(
                 id=str(subscription.entity_id),
@@ -345,7 +359,7 @@ async def get_subscriptions_handler(
                 label=label,
                 abi="True" if subscription.secondary_fields.get("abi") else None,
                 description=subscription.secondary_fields.get("description"),
-                tags=subscription.required_fields,
+                tags=normalized_entity_tags,
                 subscription_type_id=subscription_type_id,
                 updated_at=subscription.updated_at,
                 created_at=subscription.created_at,
@@ -496,6 +510,13 @@ async def update_subscriptions_handler(
             subscription.address,
         )
 
+    normalized_entity_tags = [
+        f"{key}:{value}"
+        for tag in subscription.required_fields
+        for key, value in tag.items()
+        if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS
+    ]
+
     return data.SubscriptionResourceData(
         id=str(subscription.entity_id),
         user_id=str(user.id),
@@ -504,7 +525,7 @@ async def update_subscriptions_handler(
         label=label,
         abi=subscription.secondary_fields.get("abi"),
         description=subscription.secondary_fields.get("description"),
-        tags=subscription.required_fields,
+        tags=normalized_entity_tags,
         subscription_type_id=subscription_type_id,
         updated_at=subscription_entity.updated_at,
         created_at=subscription_entity.created_at,

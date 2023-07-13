@@ -51,7 +51,7 @@ class SubscriptionResourceData(BaseModel):
     color: Optional[str]
     label: Optional[str]
     description: Optional[str] = None
-    tags: List[Dict[str, Any]] = Field(default_factory=list)
+    tags: List[str] = Field(default_factory=list)
     user_id: str
     subscription_type_id: Optional[str]
     created_at: Optional[datetime]
