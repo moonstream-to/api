@@ -114,6 +114,8 @@ def parse_metadata(
             return
 
     for address in tokens_uri_by_address:
+        if address == "0xdC0479CC5BbA033B3e7De9F178607150B3AbCe1f":
+            continue
         with yield_session_maker(engine=RO_pre_ping_engine) as db_session_read_only:
             try:
                 logger.info(f"Starting to crawl metadata for address: {address}")
