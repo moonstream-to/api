@@ -7,7 +7,7 @@ on:
 
 defaults:
   run:
-    working-directory: db
+    working-directory: moonstreamdb
 
 jobs:
   publish:

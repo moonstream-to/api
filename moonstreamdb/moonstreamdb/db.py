@@ -1,12 +1,12 @@
 """
 Moonstream database connection.
 """
-from contextlib import contextmanager
 import os
+from contextlib import contextmanager
 from typing import Generator
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import Session, sessionmaker
 
 MOONSTREAM_DB_URI = os.environ.get("MOONSTREAM_DB_URI")
 if MOONSTREAM_DB_URI is None:

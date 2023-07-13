@@ -137,6 +137,13 @@ MOONSTREAM_WYRM_WEB3_PROVIDER_URI = os.environ.get(
 if MOONSTREAM_WYRM_WEB3_PROVIDER_URI == "":
     raise Exception("MOONSTREAM_WYRM_WEB3_PROVIDER_URI env variable is not set")
 
+MOONSTREAM_ZKSYNC_ERA_TESTNET_WEB3_PROVIDER_URI = os.environ.get(
+    "MOONSTREAM_ZKSYNC_ERA_TESTNET_WEB3_PROVIDER_URI", ""
+)
+if MOONSTREAM_ZKSYNC_ERA_TESTNET_WEB3_PROVIDER_URI == "":
+    raise Exception(
+        "MOONSTREAM_ZKSYNC_ERA_TESTNET_WEB3_PROVIDER_URI env variable is not set"
+    )
 
 MOONSTREAM_S3_QUERIES_BUCKET = os.environ.get("MOONSTREAM_S3_QUERIES_BUCKET", "")
 if MOONSTREAM_S3_QUERIES_BUCKET == "":
@@ -150,6 +157,16 @@ if MOONSTREAM_S3_QUERIES_BUCKET_PREFIX == "":
         "MOONSTREAM_S3_QUERIES_BUCKET_PREFIX environment variable must be set"
     )
 
+# Entities reserved tags
+MOONSTREAM_ENTITIES_RESERVED_TAGS = [
+    "type",
+    "subscription_type_id",
+    "color",
+    "label",
+    "user_id",
+    "address",
+    "blockchain",
+]
 
 ## Moonstream resources types
 

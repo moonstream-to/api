@@ -1,7 +1,6 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 
@@ -26,18 +25,27 @@ target_metadata = MoonstreamBase.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 from moonstreamdb.models import (
-    EthereumBlock,
-    EthereumTransaction,
-    EthereumLabel,
-    PolygonBlock,
-    PolygonTransaction,
-    PolygonLabel,
-    MumbaiBlock,
-    MumbaiTransaction,
-    MumbaiLabel,
-    ESDFunctionSignature,
     ESDEventSignature,
+    ESDFunctionSignature,
+    EthereumBlock,
+    EthereumLabel,
+    EthereumTransaction,
+    MumbaiBlock,
+    MumbaiLabel,
+    MumbaiTransaction,
     OpenSeaCrawlingState,
+    PolygonBlock,
+    PolygonLabel,
+    PolygonTransaction,
+    WyrmBlock,
+    WyrmLabel,
+    WyrmTransaction,
+    XDaiBlock,
+    XDaiLabel,
+    XDaiTransaction,
+    ZkSyncEraTestnetBlock,
+    ZkSyncEraTestnetLabel,
+    ZkSyncEraTestnetTransaction,
 )
 
 
@@ -55,6 +63,15 @@ def include_symbol(tablename, schema):
         ESDFunctionSignature.__tablename__,
         ESDEventSignature.__tablename__,
         OpenSeaCrawlingState.__tablename__,
+        WyrmBlock.__tablename__,
+        WyrmLabel.__tablename__,
+        WyrmTransaction.__tablename__,
+        XDaiBlock.__tablename__,
+        XDaiLabel.__tablename__,
+        XDaiTransaction.__tablename__,
+        ZkSyncEraTestnetBlock.__tablename__,
+        ZkSyncEraTestnetLabel.__tablename__,
+        ZkSyncEraTestnetTransaction.__tablename__,
     }
 
 

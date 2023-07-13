@@ -6,7 +6,6 @@ import hashlib
 import json
 import logging
 from typing import Any, Dict, List, Optional
-import traceback
 
 from bugout.exceptions import BugoutResponseException
 from bugout.data import BugoutSearchResult
@@ -29,7 +28,11 @@ from ..admin import subscription_types
 from ..middleware import MoonstreamHTTPException
 from ..reporter import reporter
 from ..settings import bugout_client as bc, entity_client as ec
-from ..settings import MOONSTREAM_ADMIN_ACCESS_TOKEN, THREAD_TIMEOUT_SECONDS
+from ..settings import (
+    MOONSTREAM_ADMIN_ACCESS_TOKEN,
+    MOONSTREAM_ENTITIES_RESERVED_TAGS,
+    THREAD_TIMEOUT_SECONDS,
+)
 from ..web3_provider import (
     yield_web3_provider,
 )
@@ -49,17 +52,27 @@ BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION = "entity_subscription"
 async def add_subscription_handler(
     request: Request,
     background_tasks: BackgroundTasks,
-    address: str = Form(...),
-    color: str = Form(...),
-    label: str = Form(...),
-    subscription_type_id: str = Form(...),
-    abi: Optional[str] = Form(None),
     web3: Web3 = Depends(yield_web3_provider),
 ) -> data.SubscriptionResourceData:
     """
     Add subscription to blockchain stream data for user.
     """
     token = request.state.token
+
+    form = await request.form()
+
+    try:
+        form_data = data.CreateSubscriptionRequest(**form)
+    except Exception as e:
+        raise MoonstreamHTTPException(status_code=400, detail=str(e))
+
+    address = form_data.address
+    color = form_data.color
+    label = form_data.label
+    abi = form_data.abi
+    description = form_data.description
+    tags = form_data.tags
+    subscription_type_id = form_data.subscription_type_id
 
     if subscription_type_id != "ethereum_whalewatch":
         try:
@@ -124,6 +137,28 @@ async def add_subscription_handler(
             address,
         )
 
+    if description:
+        content["description"] = description
+
+    allowed_required_fields = []
+    if tags:
+        allowed_required_fields = [
+            item
+            for item in tags
+            if not any(key in item for key in MOONSTREAM_ENTITIES_RESERVED_TAGS)
+        ]
+
+    required_fields = [
+        {"type": "subscription"},
+        {"subscription_type_id": f"{subscription_type_id}"},
+        {"color": f"{color}"},
+        {"label": f"{label}"},
+        {"user_id": f"{user.id}"},
+    ]
+
+    if allowed_required_fields:
+        required_fields.extend(allowed_required_fields)
+
     try:
         collection_id = get_entity_subscription_collection_id(
             resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
@@ -140,13 +175,7 @@ async def add_subscription_handler(
                 subscription_type_id
             ].blockchain,
             name=label,
-            required_fields=[
-                {"type": "subscription"},
-                {"subscription_type_id": f"{subscription_type_id}"},
-                {"color": f"{color}"},
-                {"label": f"{label}"},
-                {"user_id": f"{user.id}"},
-            ],
+            required_fields=required_fields,
             secondary_fields=content,
         )
     except EntityCollectionNotFoundException as e:
@@ -163,6 +192,13 @@ async def add_subscription_handler(
             detail="Currently unable to get collection id",
         )
 
+    normalized_entity_tags = [
+        f"{key}:{value}"
+        for tag in entity.required_fields
+        for key, value in tag.items()
+        if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS
+    ]
+
     return data.SubscriptionResourceData(
         id=str(entity.entity_id),
         user_id=str(user.id),
@@ -170,6 +206,8 @@ async def add_subscription_handler(
         color=color,
         label=label,
         abi=entity.secondary_fields.get("abi"),
+        description=entity.secondary_fields.get("description"),
+        tags=normalized_entity_tags,
         subscription_type_id=subscription_type_id,
         updated_at=entity.updated_at,
         created_at=entity.created_at,
@@ -240,6 +278,8 @@ async def delete_subscription_handler(request: Request, subscription_id: str):
         color=color,
         label=label,
         abi=abi,
+        description=deleted_entity.secondary_fields.get("description"),
+        tags=deleted_entity.required_fields,
         subscription_type_id=subscription_type_id,
         updated_at=deleted_entity.updated_at,
         created_at=deleted_entity.created_at,
@@ -303,6 +343,13 @@ async def get_subscriptions_handler(
             if "label" in tag:
                 label = tag["label"]
 
+        normalized_entity_tags = [
+            f"{key}:{value}"
+            for tag in tags
+            for key, value in tag.items()
+            if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS
+        ]
+
         subscriptions.append(
             data.SubscriptionResourceData(
                 id=str(subscription.entity_id),
@@ -311,6 +358,8 @@ async def get_subscriptions_handler(
                 color=color,
                 label=label,
                 abi=subscription.secondary_fields.get("abi", None),
+                description=subscription.secondary_fields.get("description"),
+                tags=normalized_entity_tags,
                 subscription_type_id=subscription_type_id,
                 updated_at=subscription.updated_at,
                 created_at=subscription.created_at,
@@ -335,9 +384,6 @@ async def update_subscriptions_handler(
     request: Request,
     subscription_id: str,
     background_tasks: BackgroundTasks,
-    color: Optional[str] = Form(None),
-    label: Optional[str] = Form(None),
-    abi: Optional[str] = Form(None),
 ) -> data.SubscriptionResourceData:
     """
     Get user's subscriptions.
@@ -346,9 +392,17 @@ async def update_subscriptions_handler(
 
     user = request.state.user
 
-    update_required_fields = []
+    form = await request.form()
+    try:
+        form_data = data.UpdateSubscriptionRequest(**form)
+    except Exception as e:
+        raise MoonstreamHTTPException(status_code=400, detail=str(e))
 
-    update_secondary_fields = {}
+    color = form_data.color
+    label = form_data.label
+    abi = form_data.abi
+    description = form_data.description
+    tags = form_data.tags
 
     try:
         collection_id = get_entity_subscription_collection_id(
@@ -366,7 +420,13 @@ async def update_subscriptions_handler(
 
         subscription_type_id = None
 
-        update_required_fields = subscription_entity.required_fields
+        update_required_fields = [
+            field
+            for field in subscription_entity.required_fields
+            if any(key in field for key in MOONSTREAM_ENTITIES_RESERVED_TAGS)
+        ]
+
+        update_secondary_fields = subscription_entity.secondary_fields
 
         for field in update_required_fields:
             if "subscription_type_id" in field:
@@ -377,7 +437,7 @@ async def update_subscriptions_handler(
                 f"Subscription entity {subscription_id} in collection {collection_id} has no subscription_type_id malformed subscription entity"
             )
             raise MoonstreamHTTPException(
-                status_code=404,
+                status_code=409,
                 detail="Not valid subscription entity",
             )
 
@@ -394,13 +454,19 @@ async def update_subscriptions_handler(
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     for field in update_required_fields:
-        if "color" in field and color is not None:
-            field["color"] = color
+        if "color" in field:
+            if color is not None:
+                field["color"] = color
+            else:
+                color = field["color"]
 
-        if "label" in field and label is not None:
-            field["label"] = label
+        if "label" in field:
+            if label is not None:
+                field["label"] = label
+            else:
+                label = field["label"]
 
-    if abi:
+    if abi is not None:
         try:
             json_abi = json.loads(abi)
         except json.JSONDecodeError:
@@ -414,9 +480,19 @@ async def update_subscriptions_handler(
         hash = hashlib.md5(abi_string.encode("utf-8")).hexdigest()
 
         update_secondary_fields["abi_hash"] = hash
-    else:
-        update_secondary_fields = subscription_entity.secondary_fields
 
+    if description is not None:
+        update_secondary_fields["description"] = description
+
+    if tags:
+        allowed_required_fields = [
+            item
+            for item in tags
+            if not any(key in item for key in MOONSTREAM_ENTITIES_RESERVED_TAGS)
+        ]
+
+        if allowed_required_fields:
+            update_required_fields.extend(allowed_required_fields)
     try:
         subscription = ec.update_entity(
             token=token,
@@ -441,6 +517,13 @@ async def update_subscriptions_handler(
             subscription.address,
         )
 
+    normalized_entity_tags = [
+        f"{key}:{value}"
+        for tag in subscription.required_fields
+        for key, value in tag.items()
+        if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS
+    ]
+
     return data.SubscriptionResourceData(
         id=str(subscription.entity_id),
         user_id=str(user.id),
@@ -448,6 +531,8 @@ async def update_subscriptions_handler(
         color=color,
         label=label,
         abi=subscription.secondary_fields.get("abi"),
+        description=subscription.secondary_fields.get("description"),
+        tags=normalized_entity_tags,
         subscription_type_id=subscription_type_id,
         updated_at=subscription_entity.updated_at,
         created_at=subscription_entity.created_at,

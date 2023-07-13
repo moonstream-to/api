@@ -7,7 +7,6 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from uuid import UUID
 
 
-
 from bugout.data import BugoutResources, BugoutJournalEntryContent, BugoutJournalEntry
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Body, Request
@@ -157,7 +156,6 @@ async def create_query_handler(
     return entry
 
 
-
 @router.get("/templates", tags=["queries"])
 def get_suggested_queries(
     supported_interfaces: Optional[List[str]] = None,
@@ -223,7 +221,6 @@ async def get_query_handler(
 ) -> data.QueryInfoResponse:
     token = request.state.token
 
-
     # normalize query name
 
     try:
@@ -233,7 +230,6 @@ async def get_query_handler(
             status_code=403,
             detail=f"Provided query name can't be normalize please select different.",
         )
-
 
     # check in templates
 
@@ -283,7 +279,6 @@ async def get_query_handler(
     else:
         query_id = entries.results[0].entry_url.split("/")[-1]
 
-
     entry = entries.results[0]
 
     try:
@@ -311,7 +306,6 @@ async def get_query_handler(
             query_parameters[param] = tags_dict[param]
         else:
             query_parameters[param] = None
-
 
     print(type(entry.created_at))
 
@@ -394,7 +388,6 @@ async def update_query_data_handler(
             status_code=403,
             detail=f"Provided query name can't be normalize please select different.",
         )
-
 
     # check in templates
 
@@ -510,9 +503,7 @@ async def get_access_link_handler(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
             query=f"tag:query_template tag:query_url:{query_name_normalized}",
-            filters=[
-                f"context_type:{MOONSTREAM_QUERY_TEMPLATE_CONTEXT_TYPE}"
-            ],
+            filters=[f"context_type:{MOONSTREAM_QUERY_TEMPLATE_CONTEXT_TYPE}"],
             limit=1,
         )
     except BugoutResponseException as e:
@@ -522,7 +513,6 @@ async def get_access_link_handler(
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     if len(entries.results) == 0:
-
         try:
             query_id = get_query_by_name(query_name, token)
         except NameNormalizationException:
@@ -532,7 +522,6 @@ async def get_access_link_handler(
             )
 
         try:
-
             entries = bc.search(
                 token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
                 journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
@@ -552,7 +541,6 @@ async def get_access_link_handler(
             )
 
     try:
-
         s3_response = None
 
         if entries.results[0].content:
