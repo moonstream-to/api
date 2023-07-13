@@ -783,7 +783,6 @@ def query_parameter_hash(params: Dict[str, Any]) -> str:
 
 
 def parse_abi_to_name_tags(user_abi: List[Dict[str, Any]]):
-    print(type(user_abi))
     return [
         f"abi_name:{method['name']}"
         for method in user_abi
@@ -804,19 +803,30 @@ def subscriptions_to_moonworm_jobs(
     Fetch tasks from journal and filter them by user abi
     """
 
-    query_list: List[str] = []
+    query_per_chain: Dict[str, List[str]] = {}
 
     for subscription in subscriptions:
-        query_list.append(
-            f"?tag:address:{subscription.address} ?tag:subscription_type:{subscription.subscription_type_id}"
+        subscription_type_id = subscription.subscription_type_id
+
+        if subscription_type_id not in query_per_chain:
+            query_per_chain[subscription_type_id] = []
+
+        query_per_chain[subscription_type_id].append(
+            f"?tag:address:{subscription.address}"
         )
 
-    entries = get_all_entries_from_search(
-        journal_id=journal_id,
-        search_query=f" ".join(query_list),
-        limit=limit,
-        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-    )
+    entries = []
+
+    for chain in query_per_chain:
+        query_per_chain[chain].append(f"tag:subscription_type:{chain}")
+        entries = get_all_entries_from_search(
+            journal_id=journal_id,
+            search_query=f" ".join(query_per_chain[chain]),
+            limit=limit,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        )
+
+        entries.extend(entries)
 
     result: Dict[str, List[BugoutSearchResult]] = {}
 
@@ -838,18 +848,15 @@ def subscriptions_to_moonworm_jobs(
             moonworm_tasks_normilized[subscription_type_id] = {}
 
         if address not in moonworm_tasks_normilized[subscription_type_id]:
-            moonworm_tasks_normilized[subscription_type_id][address] = {}
+            moonworm_tasks_normilized[subscription_type_id][address] = []
 
         moonworm_tasks_normilized[subscription_type_id][address].append(entry)
-
-    print(moonworm_tasks_normilized.keys())
 
     for subscription in subscriptions:
         try:
             abi = json.loads(subscription.abi)
         except Exception as e:
             logger.error(f"Error parse abi: {str(e)}")
-            print(subscription.abi)
             continue
         abi_name_tags = parse_abi_to_name_tags(abi)
 
