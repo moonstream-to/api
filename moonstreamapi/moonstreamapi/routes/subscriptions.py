@@ -19,9 +19,9 @@ from ..actions import (
     apply_moonworm_tasks,
     get_entity_subscription_collection_id,
     EntityCollectionNotFoundException,
-    get_moonworm_tasks,
     check_if_smartcontract,
     get_list_of_support_interfaces,
+    get_moonworm_tasks_batch,
 )
 from ..admin import subscription_types
 from .. import data
@@ -310,12 +310,19 @@ async def get_subscriptions_handler(
                 address=subscription.address,
                 color=color,
                 label=label,
-                abi="True" if subscription.secondary_fields.get("abi") else None,
+                abi=subscription.secondary_fields.get("abi", None),
                 subscription_type_id=subscription_type_id,
                 updated_at=subscription.updated_at,
                 created_at=subscription.created_at,
             )
         )
+
+    jobs = get_moonworm_tasks_batch(subscriptions=subscriptions, token=token)
+
+    for subscription in subscriptions:
+        if subscription.id in jobs:
+            subscription.jobs_status = jobs[subscription.id]
+
     return data.SubscriptionsListResponse(subscriptions=subscriptions)
 
 
@@ -537,13 +544,13 @@ async def get_subscription_jobs_handler(
 
     subscription_address = subscription_resource.address
 
-    get_moonworm_jobs_response = get_moonworm_tasks(
-        subscription_type_id=subscription_type_id,
-        address=subscription_address,
-        user_abi=subscription_resource.secondary_fields.get("abi") or [],
-    )
+    # get_moonworm_jobs_response = get_moonworm_tasks(
+    #     subscription_type_id=subscription_type_id,
+    #     address=subscription_address,
+    #     user_abi=subscription_resource.secondary_fields.get("abi") or [],
+    # )
 
-    return get_moonworm_jobs_response
+    return []
 
 
 @router.get(
