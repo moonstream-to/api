@@ -24,12 +24,11 @@ from ..actions import get_all_entries_from_search, name_normalization
 logger = logging.getLogger(__name__)
 
 
-
 def create_query_template(args: argparse.Namespace) -> None:
     """
     Create query template for all queries resources.
     """
-    
+
     query = ""
     with args.query_file:
         query = textwrap.indent(args.query_file.read(), "    ")
@@ -39,7 +38,6 @@ def create_query_template(args: argparse.Namespace) -> None:
     name = f"template_{name_normalization(args.name)}"
 
     try:
-
         entry = bc.create_entry(
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
             title=args.name,
@@ -51,17 +49,16 @@ def create_query_template(args: argparse.Namespace) -> None:
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
         )
-    
+
     except BugoutResponseException as err:
         logger.error(f"Failed to create query template: {err}")
         return
     except Exception as err:
         logger.error(f"Failed to create query template: {err}")
         return
-    
+
     logger.info(f"Query template created: {entry.id}")
     logger.info(f"Query template created url name: {name}")
-
 
     ### Add query id
 
