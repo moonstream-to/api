@@ -37,8 +37,6 @@ from ..web3_provider import (
     yield_web3_provider,
 )
 
-import traceback
-
 
 logger = logging.getLogger(__name__)
 
@@ -185,7 +183,6 @@ async def add_subscription_handler(
             internal_error=e,
         )
     except Exception as e:
-        traceback.print_exc()
         logger.error(f"Failed to get collection id")
         raise MoonstreamHTTPException(
             status_code=500,
