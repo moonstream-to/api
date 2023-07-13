@@ -106,6 +106,11 @@ WYRM_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE="wyrm-historical-crawl-transaction
 WYRM_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE="wyrm-historical-crawl-events.service"
 WYRM_HISTORICAL_CRAWL_EVENTS_TIMER_FILE="wyrm-historical-crawl-events.timer"
 
+# ZkSync Era testnet
+ZKSYNC_ERA_TESTNET_SYNCHRONIZE_SERVICE="zksync-era-testnet-synchronize.service"
+ZKSYNC_ERA_TESTNET_MISSING_SERVICE_FILE="zksync-era-testnet-missing.service"
+ZKSYNC_ERA_TESTNET_MISSING_TIMER_FILE="zksync-era-testnet-missing.service"
+
 set -eu
 
 echo
@@ -499,3 +504,21 @@ cp "${SCRIPT_DIR}/${WYRM_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}" "/home/ubuntu/.c
 cp "${SCRIPT_DIR}/${WYRM_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${WYRM_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${WYRM_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+
+# ZkSync Era
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing ZkSync Era testnet block with transactions syncronizer service definition with ${ZKSYNC_ERA_TESTNET_SYNCHRONIZE_SERVICE}"
+chmod 644 "${SCRIPT_DIR}/${ZKSYNC_ERA_TESTNET_SYNCHRONIZE_SERVICE}"
+cp "${SCRIPT_DIR}/${ZKSYNC_ERA_TESTNET_SYNCHRONIZE_SERVICE}" "/home/ubuntu/.config/systemd/user/${ZKSYNC_ERA_TESTNET_SYNCHRONIZE_SERVICE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ZKSYNC_ERA_TESTNET_SYNCHRONIZE_SERVICE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing ZkSync Era testnet missing service and timer with: ${ZKSYNC_ERA_TESTNET_MISSING_SERVICE_FILE}, ${ZKSYNC_ERA_TESTNET_MISSING_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ZKSYNC_ERA_TESTNET_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${ZKSYNC_ERA_TESTNET_MISSING_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ZKSYNC_ERA_TESTNET_MISSING_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ZKSYNC_ERA_TESTNET_MISSING_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ZKSYNC_ERA_TESTNET_MISSING_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ZKSYNC_ERA_TESTNET_MISSING_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ZKSYNC_ERA_TESTNET_MISSING_TIMER_FILE}"
