@@ -2,13 +2,16 @@
 Pydantic schemas for the Moonstream HTTP API
 """
 from datetime import datetime
+import json
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union, Literal
 from uuid import UUID
 from xmlrpc.client import Boolean
 
+from fastapi import Form
 from pydantic import BaseModel, Field, validator
 from sqlalchemy import false
+
 
 USER_ONBOARDING_STATE = "onboarding_state"
 
@@ -47,6 +50,8 @@ class SubscriptionResourceData(BaseModel):
     abi: Optional[str]
     color: Optional[str]
     label: Optional[str]
+    description: Optional[str] = None
+    tags: List[Dict[str, Any]] = Field(default_factory=list)
     user_id: str
     subscription_type_id: Optional[str]
     created_at: Optional[datetime]
@@ -243,6 +248,40 @@ class SubdcriptionsAbiResponse(BaseModel):
     abi: str
 
 
+class UpdateSubscriptionRequest(BaseModel):
+    color: Optional[str] = Form(None)
+    label: Optional[str] = Form(None)
+    abi: Optional[str] = Form(None)
+    description: Optional[str] = Form(None)
+    tags: Optional[List[Dict[str, str]]] = Form(None)
+
+    @validator("tags", pre=True, always=True)
+    def transform_to_dict(cls, v):
+        if isinstance(v, str):
+            return json.loads(v)
+        elif isinstance(v, list):
+            return v
+        return []
+
+
+class CreateSubscriptionRequest(BaseModel):
+    address: str = Form(...)
+    subscription_type_id: str = Form(...)
+    color: str = Form(...)
+    label: str = Form(...)
+    abi: Optional[str] = Form(None)
+    description: Optional[str] = Form(None)
+    tags: Optional[List[Dict[str, str]]] = Form(None)
+
+    @validator("tags", pre=True, always=True)
+    def transform_to_dict(cls, v):
+        if isinstance(v, str):
+            return json.loads(v)
+        elif isinstance(v, list):
+            return v
+        return []
+
+
 class DashboardMeta(BaseModel):
     subscription_id: UUID
     generic: Optional[List[Dict[str, str]]]
@@ -295,8 +334,8 @@ class QueryInfoResponse(BaseModel):
     preapprove: bool = False
     approved: bool = False
     parameters: Dict[str, Any] = Field(default_factory=dict)
-    created_at: Optional[datetime]
-    updated_at: Optional[datetime]
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 
 class SuggestedQueriesResponse(BaseModel):
