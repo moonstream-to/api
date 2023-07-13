@@ -61,7 +61,10 @@ async def add_subscription_handler(
 
     form = await request.form()
 
-    form_data = data.CreateSubscriptionRequest(**form)
+    try:
+        form_data = data.UpdateSubscriptionRequest(**form)
+    except Exception as e:
+        raise MoonstreamHTTPException(status_code=400, detail=str(e))
 
     address = form_data.address
     color = form_data.color
@@ -369,8 +372,10 @@ async def update_subscriptions_handler(
     user = request.state.user
 
     form = await request.form()
-
-    form_data = data.UpdateSubscriptionRequest(**form)
+    try:
+        form_data = data.UpdateSubscriptionRequest(**form)
+    except Exception as e:
+        raise MoonstreamHTTPException(status_code=400, detail=str(e))
 
     color = form_data.color
     label = form_data.label
