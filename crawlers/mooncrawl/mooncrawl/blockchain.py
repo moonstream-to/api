@@ -129,8 +129,16 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
     if blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET:
         block_obj.mix_hash = block.get("mixHash", "")
         block_obj.sha3_uncles = block.get("sha3Uncles", "")
-        block_obj.l1_batch_number = block.get("l1BatchNumber", None)
-        block_obj.l1_batch_timestamp = block.get("l1BatchTimestamp", None)
+        block_obj.l1_batch_number = (
+            int(block.get("l1BatchNumber"), 0)
+            if block.get("l1BatchNumber") is not None
+            else None
+        )
+        block_obj.l1_batch_timestamp = (
+            int(block.get("l1BatchTimestamp"), 0)
+            if block.get("l1BatchTimestamp") is not None
+            else None
+        )
 
     db_session.add(block_obj)
 
@@ -161,8 +169,16 @@ def add_block_transactions(
             value=tx.value,
         )
         if blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET:
-            tx_obj.l1_batch_number = tx.get("l1BatchNumber", None)
-            tx_obj.l1_batch_tx_index = tx.get("l1BatchTxIndex", None)
+            tx_obj.l1_batch_number = (
+                int(tx.get("l1BatchNumber"), 0)
+                if tx.get("l1BatchNumber") is not None
+                else None
+            )
+            tx_obj.l1_batch_tx_index = (
+                int(tx.get("l1BatchTxIndex"), 0)
+                if tx.get("l1BatchTxIndex") is not None
+                else None
+            )
 
         db_session.add(tx_obj)
 
