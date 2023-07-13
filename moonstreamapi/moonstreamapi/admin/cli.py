@@ -478,12 +478,18 @@ This CLI is configured to work with the following API URLs:
 
     parser_moonworm_tasks_add.set_defaults(func=moonworm_tasks_add_subscription_handler)
 
+
+
     queries_parser = subcommands.add_parser(
         "queries", description="Manage Moonstream queries"
     )
     queries_parser.set_defaults(func=lambda _: queries_parser.print_help())
 
-    queries_subcommands = queries_parser.add_subparsers(description="Query commands")
+
+    
+    queries_subcommands = queries_parser.add_subparsers(
+        description="Query commands"
+    )
 
     create_query_parser = queries_subcommands.add_parser(
         "create-template", description="Create query template"

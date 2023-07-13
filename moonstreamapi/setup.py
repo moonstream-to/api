@@ -16,7 +16,7 @@ setup(
         "bugout>=0.2.9",
         "moonstream-entity>=0.0.5",
         "fastapi",
-        "moonstreamdb>=0.3.4",
+        "moonstreamdb>=0.3.3",
         "humbug",
         "pydantic",
         "pyevmasm",
