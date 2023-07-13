@@ -52,19 +52,24 @@ BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION = "entity_subscription"
 async def add_subscription_handler(
     request: Request,
     background_tasks: BackgroundTasks,
-    address: str = Form(...),
-    color: str = Form(...),
-    label: str = Form(...),
-    subscription_type_id: str = Form(...),
-    description: Optional[str] = Form(None),
-    tags: Optional[str] = Form(None),
-    abi: Optional[str] = Form(None),
     web3: Web3 = Depends(yield_web3_provider),
 ) -> data.SubscriptionResourceData:
     """
     Add subscription to blockchain stream data for user.
     """
     token = request.state.token
+
+    form = await request.form()
+
+    form_data = data.CreateSubscriptionRequest(**form)
+
+    address = form_data.address
+    color = form_data.color
+    label = form_data.label
+    abi = form_data.abi
+    description = form_data.description
+    tags = form_data.tags
+    subscription_type_id = form_data.subscription_type_id
 
     if subscription_type_id != "ethereum_whalewatch":
         try:
@@ -132,17 +137,13 @@ async def add_subscription_handler(
     if description:
         content["description"] = description
 
-    allowed_required_fields = {}
+    allowed_required_fields = []
     if tags:
-        # filter out subscription_type_id, color, label, user_id, address, blockchain
-
-        additional_required_fields_dict = json.loads(tags)
-
-        allowed_required_fields = {
-            key: value
-            for key, value in additional_required_fields_dict.items()
-            if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS
-        }
+        allowed_required_fields = [
+            item
+            for item in tags
+            if not any(key in item for key in MOONSTREAM_ENTITIES_RESERVED_TAGS)
+        ]
 
     required_fields = [
         {"type": "subscription"},
@@ -153,9 +154,7 @@ async def add_subscription_handler(
     ]
 
     if allowed_required_fields:
-        required_fields.extend(
-            [{key: value} for key, value in allowed_required_fields.items()]
-        )
+        required_fields.extend(allowed_required_fields)
 
     try:
         collection_id = get_entity_subscription_collection_id(
@@ -459,19 +458,15 @@ async def update_subscriptions_handler(
     if description is not None:
         update_secondary_fields["description"] = description
 
-    if tags is not None:
-        additional_required_fields_dict = tags
-
-        allowed_required_fields = {
-            key: value
-            for key, value in additional_required_fields_dict.items()
-            if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS
-        }
+    if tags:
+        allowed_required_fields = [
+            item
+            for item in tags
+            if not any(key in item for key in MOONSTREAM_ENTITIES_RESERVED_TAGS)
+        ]
 
         if allowed_required_fields:
-            update_required_fields.extend(
-                [{key: value} for key, value in allowed_required_fields.items()]
-            )
+            update_required_fields.extend(allowed_required_fields)
     try:
         subscription = ec.update_entity(
             token=token,

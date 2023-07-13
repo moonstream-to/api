@@ -253,7 +253,25 @@ class UpdateSubscriptionRequest(BaseModel):
     label: Optional[str] = Form(None)
     abi: Optional[str] = Form(None)
     description: Optional[str] = Form(None)
-    tags: Optional[List[Dict[str, Any]]] = Form(None)
+    tags: Optional[List[Dict[str, str]]] = Form(None)
+
+    @validator("tags", pre=True, always=True)
+    def transform_to_dict(cls, v):
+        if isinstance(v, str):
+            return json.loads(v)
+        elif isinstance(v, list):
+            return v
+        return []
+
+
+class CreateSubscriptionRequest(BaseModel):
+    address: str = Form(...)
+    subscription_type_id: str = Form(...)
+    color: str = Form(...)
+    label: str = Form(...)
+    abi: Optional[str] = Form(None)
+    description: Optional[str] = Form(None)
+    tags: Optional[List[Dict[str, str]]] = Form(None)
 
     @validator("tags", pre=True, always=True)
     def transform_to_dict(cls, v):
