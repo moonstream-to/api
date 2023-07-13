@@ -19,6 +19,7 @@ from .settings import (
     MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI,
     MOONSTREAM_XDAI_WEB3_PROVIDER_URI,
     MOONSTREAM_WYRM_WEB3_PROVIDER_URI,
+    MOONSTREAM_ZKSYNC_ERA_TESTNET_WEB3_PROVIDER_URI,
     multicall_contracts,
     multicall_contract_abi,
 )
@@ -69,6 +70,8 @@ def connect(
             web3_uri = MOONSTREAM_XDAI_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.WYRM:
             web3_uri = MOONSTREAM_WYRM_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET:
+            web3_uri = MOONSTREAM_ZKSYNC_ERA_TESTNET_WEB3_PROVIDER_URI
         else:
             raise Exception("Wrong blockchain type provided for web3 URI")
 
