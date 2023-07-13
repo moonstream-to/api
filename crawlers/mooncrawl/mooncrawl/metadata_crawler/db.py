@@ -73,12 +73,10 @@ def get_uris_of_tokens(
     metadata_for_parsing = db_session.execute(
         text(
             """ SELECT
-            DISTINCT ON(label_data -> 'inputs'-> 0 ) label_data -> 'inputs'-> 0 as token_id,
+            DISTINCT ON(label_data -> 'inputs'-> 0, address ) label_data -> 'inputs'-> 0 as token_id, address as address,
             label_data -> 'result' as token_uri,
             block_number as block_number,
-            block_timestamp as block_timestamp,
-            address as address
-
+            block_timestamp as block_timestamp
         FROM
             {}
         WHERE
@@ -86,6 +84,7 @@ def get_uris_of_tokens(
             AND label_data ->> 'name' = :name
         ORDER BY
             label_data -> 'inputs'-> 0 ASC,
+            address ASC,
             block_number :: INT DESC;
     """.format(
                 table
@@ -97,10 +96,10 @@ def get_uris_of_tokens(
     results = [
         TokenURIs(
             token_id=data[0],
-            token_uri=data[1][0],
-            block_number=data[2],
-            block_timestamp=data[3],
-            address=data[4],
+            address=data[1],
+            token_uri=data[2][0],
+            block_number=data[3],
+            block_timestamp=data[4],
         )
         for data in metadata_for_parsing
         if data[1] is not None and len(data[1]) > 0
