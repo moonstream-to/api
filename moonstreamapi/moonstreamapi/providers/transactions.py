@@ -475,10 +475,3 @@ XDaiTransactions = TransactionsProvider(
     description="Provider for resiving transactions from XDai tables.",
     streamboaundary_range_limit=2 * 60 * 60,
 )
-
-ZkSyncEraTestnetTransactions = TransactionsProvider(
-    event_type="zksync_era_testnet_blockchain",
-    blockchain=AvailableBlockchainType("zksync_era_testnet"),
-    description="Provider for resiving transactions from ZkSync Era testnet tables.",
-    streamboaundary_range_limit=2 * 60 * 60,
-)

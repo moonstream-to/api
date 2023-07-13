@@ -21,7 +21,6 @@ ethereum_event_type = "ethereum_blockchain"
 polygon_event_type = "polygon_blockchain"
 mumbai_event_type = "mumbai_blockchain"
 xdai_event_type = "xdai_blockchain"
-zksync_era_testnet_event_type = "zksync_era_testnet_blockchain"
 allowed_tags = ["tag:erc721"]
 
 description = f"""Event provider for transactions from the Ethereum blockchain.
@@ -412,12 +411,5 @@ XDaiMoonwormProvider = MoonwormProvider(
     event_type="xdai_smartcontract",
     blockchain=AvailableBlockchainType("xdai"),
     description="Provider for reviving transactions from XDai tables.",
-    streamboaundary_range_limit=2 * 60 * 60,
-)
-
-ZkSyncEraTestnetMoonwormProvider = MoonwormProvider(
-    event_type="zksync_era_testnet_smartcontract",
-    blockchain=AvailableBlockchainType("zksync_era_testnet"),
-    description="Provider for reviving transactions from zkSync Era testnet tables.",
     streamboaundary_range_limit=2 * 60 * 60,
 )
