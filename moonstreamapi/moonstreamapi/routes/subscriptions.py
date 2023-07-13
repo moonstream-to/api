@@ -62,7 +62,7 @@ async def add_subscription_handler(
     form = await request.form()
 
     try:
-        form_data = data.UpdateSubscriptionRequest(**form)
+        form_data = data.CreateSubscriptionRequest(**form)
     except Exception as e:
         raise MoonstreamHTTPException(status_code=400, detail=str(e))
 
