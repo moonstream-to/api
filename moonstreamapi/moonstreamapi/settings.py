@@ -157,6 +157,16 @@ if MOONSTREAM_S3_QUERIES_BUCKET_PREFIX == "":
         "MOONSTREAM_S3_QUERIES_BUCKET_PREFIX environment variable must be set"
     )
 
+# Entities reserved tags
+MOONSTREAM_ENTITIES_RESERVED_TAGS = [
+    "type",
+    "subscription_type_id",
+    "color",
+    "label",
+    "user_id",
+    "address",
+    "blockchain",
+]
 
 ## Moonstream resources types
 
