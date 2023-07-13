@@ -28,7 +28,7 @@ future==0.18.2
 greenlet==2.0.1
 h11==0.14.0
 hexbytes==0.3.0
-humbug==0.2.7
+humbug==0.3.2
 idna==3.4
 ipfshttpclient==0.8.0a2
 jmespath==1.0.1

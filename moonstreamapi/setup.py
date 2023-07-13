@@ -17,7 +17,7 @@ setup(
         "moonstream-entity>=0.0.5",
         "fastapi",
         "moonstreamdb>=0.3.4",
-        "humbug",
+        "humbug>=0.3.2",
         "pydantic",
         "pyevmasm",
         "python-dateutil",
