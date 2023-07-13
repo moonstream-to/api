@@ -37,7 +37,7 @@ setup(
         "bugout>=0.2.8",
         "chardet",
         "fastapi",
-        "moonstreamdb>=0.3.3",
+        "moonstreamdb>=0.3.4",
         "moonstream>=0.1.1",
         "moonstream-entity>=0.0.5",
         "moonworm[moonstream]>=0.6.2",
