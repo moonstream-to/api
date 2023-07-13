@@ -54,6 +54,7 @@ class SubscriptionResourceData(BaseModel):
     tags: List[str] = Field(default_factory=list)
     user_id: str
     subscription_type_id: Optional[str]
+    jobs_status: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
     created_at: Optional[datetime]
     updated_at: Optional[datetime]
 
