@@ -4,13 +4,14 @@ import logging
 import random
 import urllib.request
 from contextlib import contextmanager
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Dict, List, Optional
 from urllib.error import HTTPError
 
 from moonstreamdb.blockchain import AvailableBlockchainType
 from sqlalchemy.orm import sessionmaker
 
-from ..db import PrePing_SessionLocal, RO_pre_ping_engine
+from ..db import pre_ping_engine, RO_pre_ping_engine
 from ..settings import MOONSTREAM_CRAWLERS_DB_STATEMENT_TIMEOUT_MILLIS
 from .db import (
     clean_labels_from_db,
@@ -110,9 +111,12 @@ def parse_metadata(
             return
 
     for address in tokens_uri_by_address:
-        with yield_session_maker(engine=RO_pre_ping_engine) as db_session_read_only:
+        with yield_session_maker(
+            engine=RO_pre_ping_engine
+        ) as db_session_read_only, yield_session_maker(
+            engine=pre_ping_engine
+        ) as db_session:
             try:
-                db_session = PrePing_SessionLocal()
                 logger.info(f"Starting to crawl metadata for address: {address}")
 
                 already_parsed = get_current_metadata_for_address(
@@ -177,8 +181,11 @@ def parse_metadata(
                     try:
                         with db_session.begin():
                             for token_uri_data in requests_chunk:
-                                metadata = crawl_uri(token_uri_data.token_uri)
-
+                                with ThreadPoolExecutor(max_workers=1) as executor:
+                                    future = executor.submit(
+                                        crawl_uri, token_uri_data.token_uri
+                                    )
+                                    metadata = future.result(timeout=10)
                                 db_session.add(
                                     metadata_to_label(
                                         blockchain_type=blockchain_type,
@@ -213,9 +220,6 @@ def parse_metadata(
             except Exception as err:
                 logger.error(err)
                 logger.error(f"Error while crawling metadata for address: {address}")
-
-            finally:
-                db_session.close()
 
 
 def handle_crawl(args: argparse.Namespace) -> None:
