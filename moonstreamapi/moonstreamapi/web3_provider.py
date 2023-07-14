@@ -1,7 +1,7 @@
 import logging
 from uuid import UUID
 
-from typing import Any, Optional, Union, Callable
+from typing import Any, Optional, Union, Callable, Dict
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 from eth_abi import encode_single, decode_single
@@ -45,7 +45,7 @@ def connect(
     access_id: Optional[UUID] = None,
     user_token: Optional[UUID] = None,
 ) -> Web3:
-    request_kwargs: D = {}
+    request_kwargs: Dict[str, Any] = {}
 
     if blockchain_type != AvailableBlockchainType.WYRM:
         request_kwargs = {

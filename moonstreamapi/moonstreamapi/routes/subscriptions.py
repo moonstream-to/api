@@ -20,7 +20,6 @@ from ..actions import (
     EntityCollectionNotFoundException,
     check_if_smartcontract,
     get_list_of_support_interfaces,
-    get_moonworm_tasks_batch,
 )
 from ..admin import subscription_types
 from .. import data
@@ -357,7 +356,9 @@ async def get_subscriptions_handler(
                 address=subscription.address,
                 color=color,
                 label=label,
-                abi=subscription.secondary_fields.get("abi", None),
+                abi="True"
+                if subscription.secondary_fields.get("abi", None)
+                else "False",  ### TODO(ANDREY): remove this hack when frontend is updated
                 description=subscription.secondary_fields.get("description"),
                 tags=normalized_entity_tags,
                 subscription_type_id=subscription_type_id,
@@ -365,12 +366,6 @@ async def get_subscriptions_handler(
                 created_at=subscription.created_at,
             )
         )
-
-    jobs = get_moonworm_tasks_batch(subscriptions=subscriptions, token=token)
-
-    for subscription in subscriptions:
-        if subscription.id in jobs:
-            subscription.jobs_status = jobs[subscription.id]
 
     return data.SubscriptionsListResponse(subscriptions=subscriptions)
 
