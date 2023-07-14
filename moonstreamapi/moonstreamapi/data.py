@@ -47,7 +47,7 @@ class SubscriptionTypesListResponse(BaseModel):
 class SubscriptionResourceData(BaseModel):
     id: str
     address: Optional[str]
-    abi: Optional[str]
+    abi: Optional[Union[str, bool]]
     color: Optional[str]
     label: Optional[str]
     description: Optional[str] = None

@@ -358,7 +358,9 @@ async def get_subscriptions_handler(
                 address=subscription.address,
                 color=color,
                 label=label,
-                abi=subscription.secondary_fields.get("abi", None),
+                abi="True"
+                if subscription.secondary_fields.get("abi", None)
+                else "False",
                 description=subscription.secondary_fields.get("description"),
                 tags=normalized_entity_tags,
                 subscription_type_id=subscription_type_id,
