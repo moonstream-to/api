@@ -291,7 +291,6 @@ async def get_subscriptions_handler(
     request: Request,
     limit: Optional[int] = 10,
     offset: Optional[int] = 0,
-    job_status: Optional[bool] = False,
 ) -> data.SubscriptionsListResponse:
     """
     Get user's subscriptions.
@@ -368,12 +367,6 @@ async def get_subscriptions_handler(
                 created_at=subscription.created_at,
             )
         )
-    if job_status:
-        jobs = get_moonworm_tasks_batch(subscriptions=subscriptions, token=token)
-
-        for subscription in subscriptions:
-            if subscription.id in jobs:
-                subscription.jobs_status = jobs[subscription.id]
 
     return data.SubscriptionsListResponse(subscriptions=subscriptions)
 
