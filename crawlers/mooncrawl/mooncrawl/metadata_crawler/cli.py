@@ -91,8 +91,6 @@ def parse_metadata(
     logger.info("Starting metadata crawler")
     logger.info(f"Processing blockchain {blockchain_type.value}")
 
-    db_session = PrePing_SessionLocal()
-
     # run crawling of levels
     with yield_session_maker(engine=RO_pre_ping_engine) as db_session_read_only:
         try:
@@ -109,13 +107,12 @@ def parse_metadata(
 
         except Exception as err:
             logger.error(f"Error while requesting tokens with uri from database: {err}")
-            db_session.rollback()
-            db_session.close()
             return
 
     for address in tokens_uri_by_address:
         with yield_session_maker(engine=RO_pre_ping_engine) as db_session_read_only:
             try:
+                db_session = PrePing_SessionLocal()
                 logger.info(f"Starting to crawl metadata for address: {address}")
 
                 already_parsed = get_current_metadata_for_address(
@@ -213,6 +210,9 @@ def parse_metadata(
                     blockchain_type=blockchain_type,
                     address=address,
                 )
+            except Exception as err:
+                logger.error(err)
+                logger.error(f"Error while crawling metadata for address: {address}")
 
             finally:
                 db_session.close()
