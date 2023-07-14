@@ -366,7 +366,7 @@ async def get_subscriptions_handler(
                 created_at=subscription.created_at,
             )
         )
-    if not job_status:
+    if job_status:
         jobs = get_moonworm_tasks_batch(subscriptions=subscriptions, token=token)
 
         for subscription in subscriptions:
