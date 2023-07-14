@@ -867,6 +867,12 @@ def subscriptions_to_moonworm_jobs(
         if subscription.subscription_type_id not in moonworm_tasks_normilized:
             continue
 
+        if (
+            subscription.address
+            not in moonworm_tasks_normilized[subscription.subscription_type_id]
+        ):
+            continue
+
         filtered_tasks = filter_tasks(
             moonworm_tasks_normilized[subscription.subscription_type_id][
                 subscription.address
