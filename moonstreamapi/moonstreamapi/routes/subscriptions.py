@@ -20,7 +20,6 @@ from ..actions import (
     EntityCollectionNotFoundException,
     check_if_smartcontract,
     get_list_of_support_interfaces,
-    get_moonworm_tasks_batch,
 )
 from ..admin import subscription_types
 from .. import data
