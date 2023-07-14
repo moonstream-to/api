@@ -291,6 +291,7 @@ async def get_subscriptions_handler(
     request: Request,
     limit: Optional[int] = 10,
     offset: Optional[int] = 0,
+    job_status: Optional[bool] = False,
 ) -> data.SubscriptionsListResponse:
     """
     Get user's subscriptions.
@@ -309,6 +310,7 @@ async def get_subscriptions_handler(
             token=token,
             collection_id=collection_id,
             required_field=[f"type:subscription"],
+            secondary_field=[],
             limit=limit,
             offset=offset,
         )
