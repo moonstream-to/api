@@ -358,7 +358,7 @@ async def get_subscriptions_handler(
                 label=label,
                 abi="True"
                 if subscription.secondary_fields.get("abi", None)
-                else "False",
+                else "False",  ### TODO(ANDREY): remove this hack when frontend is updated
                 description=subscription.secondary_fields.get("description"),
                 tags=normalized_entity_tags,
                 subscription_type_id=subscription_type_id,
