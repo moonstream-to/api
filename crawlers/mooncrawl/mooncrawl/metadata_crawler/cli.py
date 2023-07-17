@@ -11,7 +11,10 @@ from urllib.error import HTTPError
 from moonstreamdb.blockchain import AvailableBlockchainType
 from sqlalchemy.orm import sessionmaker
 
-from ..db import pre_ping_engine, RO_pre_ping_engine
+from ..db import (
+    yield_db_preping_session_ctx,
+    yield_db_read_only_preping_session_ctx,
+)
 from ..settings import MOONSTREAM_CRAWLERS_DB_STATEMENT_TIMEOUT_MILLIS
 from .db import (
     clean_labels_from_db,
@@ -26,16 +29,6 @@ logger = logging.getLogger(__name__)
 
 
 batch_size = 50
-
-
-@contextmanager
-def yield_session_maker(engine):
-    SessionLocal = sessionmaker(bind=engine)
-    session = SessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
 
 
 def leak_of_crawled_uri(
@@ -93,7 +86,7 @@ def parse_metadata(
     logger.info(f"Processing blockchain {blockchain_type.value}")
 
     # run crawling of levels
-    with yield_session_maker(engine=RO_pre_ping_engine) as db_session_read_only:
+    with yield_db_read_only_preping_session_ctx() as db_session_read_only:
         try:
             # get all tokens with uri
             logger.info("Requesting all tokens with uri from database")
@@ -111,14 +104,8 @@ def parse_metadata(
             return
 
     for address in tokens_uri_by_address:
-        with yield_session_maker(
-            engine=RO_pre_ping_engine
-        ) as db_session_read_only, yield_session_maker(
-            engine=pre_ping_engine
-        ) as db_session:
+        with yield_db_read_only_preping_session_ctx() as db_session_read_only:
             try:
-                logger.info(f"Starting to crawl metadata for address: {address}")
-
                 already_parsed = get_current_metadata_for_address(
                     db_session=db_session_read_only,
                     blockchain_type=blockchain_type,
@@ -130,6 +117,17 @@ def parse_metadata(
                     blockchain_type=blockchain_type,
                     address=address,
                 )
+            except Exception as err:
+                logger.warning(err)
+                logger.warning(
+                    f"Error while requesting metadata for address: {address}"
+                )
+                continue
+
+        with yield_db_preping_session_ctx() as db_session:
+            try:
+                logger.info(f"Starting to crawl metadata for address: {address}")
+
                 leak_rate = 0.0
 
                 if len(maybe_updated) > 0:
@@ -206,8 +204,8 @@ def parse_metadata(
                                 )
                         # trasaction is commited here
                     except Exception as err:
-                        logger.error(err)
-                        logger.error(
+                        logger.warning(err)
+                        logger.warning(
                             f"Error while writing labels for address: {address}"
                         )
                         db_session.rollback()
@@ -218,8 +216,10 @@ def parse_metadata(
                     address=address,
                 )
             except Exception as err:
-                logger.error(err)
-                logger.error(f"Error while crawling metadata for address: {address}")
+                logger.warning(err)
+                logger.warning(f"Error while crawling metadata for address: {address}")
+                db_session.rollback()
+                continue
 
 
 def handle_crawl(args: argparse.Namespace) -> None:

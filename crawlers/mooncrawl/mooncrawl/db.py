@@ -41,6 +41,18 @@ pre_ping_engine = create_moonstream_engine(
 )
 PrePing_SessionLocal = sessionmaker(bind=pre_ping_engine)
 
+
+def yield_db_preping_session() -> Generator[Session, None, None]:
+    session = PrePing_SessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()
+
+
+yield_db_preping_session_ctx = contextmanager(yield_db_preping_session)
+
+
 # Read only
 RO_engine = create_moonstream_engine(
     url=MOONSTREAM_DB_URI_READ_ONLY,
@@ -67,6 +79,23 @@ RO_pre_ping_engine = create_moonstream_engine(
     statement_timeout=MOONSTREAM_CRAWLERS_DB_STATEMENT_TIMEOUT_MILLIS,
     pool_pre_ping=True,
 )
+
+
+RO_SessionLocal_preping = sessionmaker(bind=RO_pre_ping_engine)
+
+
+def yield_db_read_only_preping_session() -> Generator[Session, None, None]:
+    session = RO_SessionLocal_preping()
+    try:
+        yield session
+    finally:
+        session.close()
+
+
+yield_db_read_only_preping_session_ctx = contextmanager(
+    yield_db_read_only_preping_session
+)
+
 
 # Read only pre-ping query timeout
 RO_pre_ping_query_engine = create_moonstream_engine(
