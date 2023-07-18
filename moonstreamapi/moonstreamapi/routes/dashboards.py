@@ -173,7 +173,7 @@ async def get_dashboards_handler(
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
         logger.error(
-            f"Error listing subscriptions for user ({request.user.id}) with token ({request.state.token}), error: {str(e)}"
+            f"Error listing subscriptions for user ({request.user.id}), error: {str(e)}"
         )
         reporter.error_report(e)
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
@@ -200,7 +200,7 @@ async def get_dashboard_handler(
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
         logger.error(
-            f"Error listing subscriptions for user ({request.user.id}) with token ({request.state.token}), error: {str(e)}"
+            f"Error listing subscriptions for user ({request.user.id}), error: {str(e)}"
         )
         reporter.error_report(e)
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
@@ -319,7 +319,7 @@ async def get_dashboard_data_links_handler(
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
         logger.error(
-            f"Error listing subscriptions for user ({request.user.id}) with token ({request.state.token}), error: {str(e)}"
+            f"Error listing subscriptions for user ({request.user.id}), error: {str(e)}"
         )
         reporter.error_report(e)
         raise MoonstreamHTTPException(status_code=500, internal_error=e)

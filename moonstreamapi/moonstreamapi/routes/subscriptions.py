@@ -320,7 +320,7 @@ async def get_subscriptions_handler(
         )
     except Exception as e:
         logger.error(
-            f"Error listing subscriptions for user ({user.id}) with token ({token}), error: {str(e)}"
+            f"Error listing subscriptions for user ({user.id}), error: {str(e)}"
         )
         reporter.error_report(e)
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
@@ -443,9 +443,7 @@ async def update_subscriptions_handler(
             internal_error=e,
         )
     except Exception as e:
-        logger.error(
-            f"Error get subscriptions for user ({user.id}) with token ({token}), error: {str(e)}"
-        )
+        logger.error(f"Error get subscriptions for user ({user.id}), error: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     for field in update_required_fields:
@@ -567,9 +565,7 @@ async def get_subscription_abi_handler(
             internal_error=e,
         )
     except Exception as e:
-        logger.error(
-            f"Error get subscriptions for user ({user}) with token ({token}), error: {str(e)}"
-        )
+        logger.error(f"Error get subscriptions for user ({user}), error: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     if "abi" not in subscription_resource.secondary_fields.keys():
