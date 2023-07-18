@@ -48,7 +48,9 @@ async def get_user_handler(request: Request) -> BugoutUser:
 @router.post("/password/reset_initiate", tags=["users"], response_model=Dict[str, Any])
 async def restore_password_handler(email: str = Form(...)) -> Dict[str, Any]:
     try:
-        response = bc.restore_password(email=email)
+        response = bc.restore_password(
+            email=email, application_id=MOONSTREAM_APPLICATION_ID
+        )
     except BugoutResponseException as e:
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
