@@ -9,7 +9,7 @@ base58==2.1.1
 bitarray==2.6.0
 boto3==1.26.5
 botocore==1.29.5
-bugout==0.2.9
+bugout>=0.2.10
 certifi==2022.9.24
 charset-normalizer==2.1.1
 click==8.1.3
