@@ -654,7 +654,7 @@ def get_entity_subscription_collection_id(
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
         logger.error(
-            f"Error listing subscriptions for user ({user_id}) with token ({token}), error: {str(e)}"
+            f"Error listing subscriptions for user ({user_id}), error: {str(e)}"
         )
         reporter.error_report(e)
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
