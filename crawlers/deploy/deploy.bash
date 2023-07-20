@@ -110,6 +110,7 @@ WYRM_HISTORICAL_CRAWL_EVENTS_TIMER_FILE="wyrm-historical-crawl-events.timer"
 ZKSYNC_ERA_TESTNET_SYNCHRONIZE_SERVICE="zksync-era-testnet-synchronize.service"
 ZKSYNC_ERA_TESTNET_MISSING_SERVICE_FILE="zksync-era-testnet-missing.service"
 ZKSYNC_ERA_TESTNET_MISSING_TIMER_FILE="zksync-era-testnet-missing.service"
+ZKSYNC_ERA_TESTNET_MOONWORM_CRAWLER_SERVICE_FILE="zksync-era-testnet-moonworm-crawler.service"
 
 set -eu
 
@@ -522,3 +523,11 @@ cp "${SCRIPT_DIR}/${ZKSYNC_ERA_TESTNET_MISSING_SERVICE_FILE}" "/home/ubuntu/.con
 cp "${SCRIPT_DIR}/${ZKSYNC_ERA_TESTNET_MISSING_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ZKSYNC_ERA_TESTNET_MISSING_TIMER_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ZKSYNC_ERA_TESTNET_MISSING_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing ZkSync Era testnet moonworm crawler service definition with ${ZKSYNC_ERA_TESTNET_MOONWORM_CRAWLER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ZKSYNC_ERA_TESTNET_MOONWORM_CRAWLER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ZKSYNC_ERA_TESTNET_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ZKSYNC_ERA_TESTNET_MOONWORM_CRAWLER_SERVICE_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ZKSYNC_ERA_TESTNET_MOONWORM_CRAWLER_SERVICE_FILE}"
