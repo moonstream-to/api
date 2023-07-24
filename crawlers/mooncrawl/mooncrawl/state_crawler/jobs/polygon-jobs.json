@@ -72,15 +72,17 @@
                 "name": "tokenId",
                 "type": "uint256",
                 "value": {
-                    "type": "queryAPI",
-                    "query_url": "template_erc721_minting",
-                    "blockchain": "polygon",
-                    "params": {
-                        "address": "0x20B807b9AF56977EF475C089A0e7977540743560"
-                    },
-                    "keys": [
-                        "token_id"
-                    ]
+                    "type": "function",
+                    "name": "totalSupply",
+                    "outputs": [
+                        {
+                            "internalType": "uint256",
+                            "name": "",
+                            "type": "uint256"
+                        }
+                    ],
+                    "address": "0x20B807b9AF56977EF475C089A0e7977540743560",
+                    "inputs": []
                 }
             }
         ],
