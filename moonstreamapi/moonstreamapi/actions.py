@@ -44,6 +44,7 @@ from .settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     support_interfaces,
     supportsInterface_abi,
+    multicall_contracts,
 )
 from .settings import bugout_client as bc, entity_client as ec
 from .web3_provider import multicall, FunctionSignature, connect
@@ -90,6 +91,12 @@ class ResourceQueryFetchException(Exception):
 class EntityCollectionNotFoundException(Exception):
     """
     Raised when entity collection is not found
+    """
+
+
+class AddressNotSmartContractException(Exception):
+    """
+    Raised when address not are smart contract
     """
 
 
@@ -793,6 +800,14 @@ def get_list_of_support_interfaces(
     """
     Returns list of interfaces supported by given address
     """
+
+    _, _, is_contract = check_if_smart_contract(
+        blockchain_type=blockchain_type, address=address, user_token=user_token
+    )
+
+    if not is_contract:
+        raise AddressNotSmartContractException(f"Address not are smart contract")
+
     web3_client = connect(blockchain_type, user_token=user_token)
 
     contract = web3_client.eth.contract(
@@ -815,34 +830,73 @@ def get_list_of_support_interfaces(
                 .hex(),
             )
         )
-    try:
-        multicall_result = multicall(
-            web3_client=web3_client,
-            blockchain_type=blockchain_type,
-            calls=calls,
-            method=multicall_method,
-        )
-    except Exception as e:
-        logger.error(f"Error while getting list of support interfaces: {e}")
 
     result = {}
 
-    for i, selector in enumerate(list_of_interfaces):
-        if multicall_result[i][0]:
-            supported = FunctionSignature(
-                contract.get_function_by_name("supportsInterface")
-            ).decode_data(multicall_result[i][1])
+    if blockchain_type in multicall_contracts:
+        calls = []
 
-            if supported[0]:
-                result[selectors[selector]["name"]] = {  # type: ignore
-                    "selector": selector,
-                    "abi": selectors[selector]["abi"],  # type: ignore
+        list_of_interfaces = list(selectors.keys())
+
+        list_of_interfaces.sort()
+
+        for interaface in list_of_interfaces:
+            calls.append(
+                (
+                    contract.address,
+                    FunctionSignature(
+                        contract.get_function_by_name("supportsInterface")
+                    )
+                    .encode_data([bytes.fromhex(interaface)])
+                    .hex(),
+                )
+            )
+
+        try:
+            multicall_result = multicall(
+                web3_client=web3_client,
+                blockchain_type=blockchain_type,
+                calls=calls,
+                method=multicall_method,
+            )
+        except Exception as e:
+            logger.error(f"Error while getting list of support interfaces: {e}")
+
+        for i, selector in enumerate(list_of_interfaces):
+            if multicall_result[i][0]:
+                supported = FunctionSignature(
+                    contract.get_function_by_name("supportsInterface")
+                ).decode_data(multicall_result[i][1])
+
+                if supported[0]:
+                    result[selectors[selector]["name"]] = {  # type: ignore
+                        "selector": selector,
+                        "abi": selectors[selector]["abi"],  # type: ignore
+                    }
+
+    else:
+        general_interfaces = ["IERC165", "IERC721", "IERC1155", "IERC20"]
+
+        basic_selectors = {
+            interface["name"]: selector
+            for selector, interface in selectors.items()
+            if interface["name"] in general_interfaces
+        }
+
+        for selector_name in basic_selectors:
+            selector_result = contract.get_function_by_name("supportsInterface").call(
+                bytes.fromhex(selectors[selector_name])
+            )
+            if selector_result:
+                result[selector_name] = {
+                    "selector": basic_selectors[selector_name],
+                    "abi": selectors[selectors[selector_name]]["abi"],
                 }
 
     return result
 
 
-def check_if_smartcontract(
+def check_if_smart_contract(
     blockchain_type: AvailableBlockchainType,
     address: str,
     user_token: uuid.UUID,
