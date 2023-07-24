@@ -14,6 +14,7 @@ from moonstreamdb.blockchain import AvailableBlockchainType
 from web3 import Web3
 
 from ..actions import (
+    AddressNotAreSmartContractException,
     validate_abi_json,
     apply_moonworm_tasks,
     get_entity_subscription_collection_id,
@@ -703,6 +704,12 @@ def get_contract_interfaces(
             blockchain_type=blockchain_type,
             address=address,
             user_token=user_token,
+        )
+    except AddressNotAreSmartContractException as e:
+        raise MoonstreamHTTPException(
+            status_code=409,
+            detail=str(e),
+            internal_error=e,
         )
 
     except Exception as e:
