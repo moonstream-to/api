@@ -94,7 +94,7 @@ class EntityCollectionNotFoundException(Exception):
     """
 
 
-class AddressNotAreSmartContractException(Exception):
+class AddressNotSmartContractException(Exception):
     """
     Raised when address not are smart contract
     """
@@ -801,10 +801,12 @@ def get_list_of_support_interfaces(
     Returns list of interfaces supported by given address
     """
 
-    if not check_if_smartcontract(
+    _, _, is_contract = check_if_smart_contract(
         blockchain_type=blockchain_type, address=address, user_token=user_token
-    )[2]:
-        raise AddressNotAreSmartContractException(f"Address not are smart contract")
+    )
+
+    if not is_contract:
+        raise AddressNotSmartContractException(f"Address not are smart contract")
 
     web3_client = connect(blockchain_type, user_token=user_token)
 
@@ -894,7 +896,7 @@ def get_list_of_support_interfaces(
     return result
 
 
-def check_if_smartcontract(
+def check_if_smart_contract(
     blockchain_type: AvailableBlockchainType,
     address: str,
     user_token: uuid.UUID,

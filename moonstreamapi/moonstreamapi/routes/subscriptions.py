@@ -14,12 +14,12 @@ from moonstreamdb.blockchain import AvailableBlockchainType
 from web3 import Web3
 
 from ..actions import (
-    AddressNotAreSmartContractException,
+    AddressNotSmartContractException,
     validate_abi_json,
     apply_moonworm_tasks,
     get_entity_subscription_collection_id,
     EntityCollectionNotFoundException,
-    check_if_smartcontract,
+    check_if_smart_contract,
     get_list_of_support_interfaces,
 )
 from ..admin import subscription_types
@@ -636,7 +636,7 @@ async def address_info(request: Request, address: str):
             with ThreadPoolExecutor(max_workers=5) as executor:
                 futures.append(
                     executor.submit(
-                        check_if_smartcontract,
+                        check_if_smart_contract,
                         address=address,
                         blockchain_type=blockchain_type,
                         user_token=user_token,
@@ -705,7 +705,7 @@ def get_contract_interfaces(
             address=address,
             user_token=user_token,
         )
-    except AddressNotAreSmartContractException as e:
+    except AddressNotSmartContractException as e:
         raise MoonstreamHTTPException(
             status_code=409,
             detail=str(e),
