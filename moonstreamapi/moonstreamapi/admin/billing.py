@@ -88,7 +88,7 @@ def recive_S3_data_from_query(
     return data_response.json()
 
 
-def collect_billing(
+def collect_billing_information(
     month: str,
     token: Optional[str] = None,
     user_id: Optional[str] = None,
