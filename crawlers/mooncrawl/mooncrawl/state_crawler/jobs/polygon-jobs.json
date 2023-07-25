@@ -62,5 +62,38 @@
             }
         ],
         "address": "0xA2a13cE1824F3916fC84C65e559391fc6674e6e8"
+    },
+    {
+        "type": "function",
+        "stateMutability": "view",
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256",
+                "value": {
+                    "type": "function",
+                    "name": "totalSupply",
+                    "outputs": [
+                        {
+                            "internalType": "uint256",
+                            "name": "",
+                            "type": "uint256"
+                        }
+                    ],
+                    "address": "0x20B807b9AF56977EF475C089A0e7977540743560",
+                    "inputs": []
+                }
+            }
+        ],
+        "name": "tokenURI",
+        "outputs": [
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "address": "0x20B807b9AF56977EF475C089A0e7977540743560"
     }
 ]
