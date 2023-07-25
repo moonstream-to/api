@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any, Union
+from typing import Optional, Dict, Any, Union, List
 from datetime import datetime
 import logging
 import time
@@ -9,14 +9,14 @@ from ..settings import bugout_client as bc
 from ..settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
-    BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
 )
 from ..data import BUGOUT_RESOURCE_QUERY_RESOLVER
+
+from web3 import Web3
 
 from moonstream.client import (
     Moonstream,
     ENDPOINT_QUERIES,
-    ENDPOINT_PING,
     MoonstreamQueryResultUrl,
 )
 
@@ -92,6 +92,7 @@ def collect_billing(
     month: str,
     token: Optional[str] = None,
     user_id: Optional[str] = None,
+    contracts: Optional[Dict[str, List[str]]] = None,
 ) -> Dict[str, Any]:
     """
     Collect billing information for a user.
@@ -106,7 +107,6 @@ def collect_billing(
         - leaderboards
 
     Contracts:
-        - smart contracts
         - moonstream contracts
     """
 
@@ -170,49 +170,42 @@ def collect_billing(
 
     ### Get user's leaderboards resources
 
-    leaderboard_resources = bc.list_resources(
-        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,  # type: ignore
-        params={
-            "type": "leaderboard",
-        },
-        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
-    )
+    leaderboards = requests.get(
+        "https://engineapi.moonstream.to/leaderboard/leaderboards",
+        headers={"Authorization": f"Bearer {token}"},
+    ).json()
 
-    leaderboards = [
-        {
-            "leaderboard_id": resource.resource_data["leaderboard_id"],
-            "resource_id": str(resource.id),
-        }
-        for resource in leaderboard_resources.resources
-    ]
+    # Get user leaderboards
 
     ### contracts events
 
-    contract_data = []
+    contract_data = {}
 
-    if user_id == "<user_id>":
+    if contracts is not None:
         client = Moonstream()
 
         ### run query
 
-        contract_data = recive_S3_data_from_query(
-            client=client,
-            token=token,  # type: ignore
-            query_name="template_contract_events_per_month",
-            params={},
-            time_await=2,
-            max_retries=30,
-            custom_body={
-                "blockchain": "polygon",
-                "params": {
-                    "block_month": month,
-                    "addresses": [
-                        "0x6bc613A25aFe159b70610b64783cA51C9258b92e",
-                        "0x99A558BDBdE247C2B2716f0D4cFb0E246DFB697D",
-                    ],
+        for blockchain, addresses in contracts.items():
+            contracts_events = recive_S3_data_from_query(
+                client=client,
+                token=token,  # type: ignore
+                query_name="template_contract_events_per_month",
+                params={},
+                time_await=2,
+                max_retries=30,
+                custom_body={
+                    "blockchain": blockchain,
+                    "params": {
+                        "block_month": month,
+                        "addresses": [
+                            Web3.toChecksumAddress(addresses) for addresses in addresses
+                        ],
+                    },
                 },
-            },
-        )["data"]
+            )["data"]
+
+            contract_data[blockchain] = contracts_events
 
     return {
         "subscriptions": subscription_amount,

@@ -229,9 +229,19 @@ def generate_billing_handler(args: argparse.Namespace) -> None:
         month=args.month,
         token=args.user_token,
         user_id=args.user_id,
+        contracts=args.contracts,
     )
 
-    print(json.dumps(billing_info, indent=4))
+    if args.output is not None:
+        # create path if not exists
+
+        if not os.path.exists(os.path.dirname(args.output)):
+            os.makedirs(os.path.dirname(args.output))
+
+        with open(args.output, "w") as output_file:
+            output_file.write(json.dumps(billing_info, indent=4))
+    else:
+        logger.info(json.dumps(billing_info, indent=4))
 
 
 def main() -> None:
@@ -526,21 +536,34 @@ This CLI is configured to work with the following API URLs:
         "--month",
         required=True,
         type=str,
-        help="Month for which to generate billing",
+        help="Month for which to generate billing in YYYY-MM format (e.g. 2021-10)",
     )
 
     generate_billing_parser.add_argument(
         "--user-token",
         required=False,
         type=str,
-        help="User token for which to generate billing",
+        help="User token for which to generate billing (currently works)",
     )
 
     generate_billing_parser.add_argument(
         "--user-id",
         required=False,
         type=str,
-        help="User token for which to generate billing",
+        help="User token for which to generate billing (not implemented yet - use user-token instead)",
+    )
+    generate_billing_parser.add_argument(
+        "--contracts",
+        required=False,
+        type=json.loads,
+        help="Contracts for which to generate billing Json format( { 'blockchain': ['contract_address',...] })",
+    )
+
+    generate_billing_parser.add_argument(
+        "--output",
+        required=False,
+        type=str,
+        help="Output file for billing",
     )
 
     generate_billing_parser.set_defaults(func=generate_billing_handler)
