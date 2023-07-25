@@ -117,7 +117,7 @@
                 }
             }
         ],
-        "name": "tokenURI",
+        "name": "uri",
         "outputs": [
             {
                 "internalType": "string",
@@ -148,7 +148,7 @@
                 }
             }
         ],
-        "name": "tokenURI",
+        "name": "uri",
         "outputs": [
             {
                 "internalType": "string",
@@ -179,7 +179,7 @@
                 }
             }
         ],
-        "name": "tokenURI",
+        "name": "uri",
         "outputs": [
             {
                 "internalType": "string",
