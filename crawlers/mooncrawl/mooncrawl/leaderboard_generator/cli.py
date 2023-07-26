@@ -34,7 +34,7 @@ def handle_leaderboards(args: argparse.Namespace) -> None:
     query = "#leaderboard"
 
     if args.leaderboard_id:
-        query += f" leaderboard_id:{args.leaderboard_id}"
+        query += f" #cleaderboard_id:{args.leaderboard_id}"
 
     leaderboards = bc.search(
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -74,7 +74,7 @@ def handle_leaderboards(args: argparse.Namespace) -> None:
 
         query_results = get_results_for_moonstream_query(
             args.query_api_access_token,
-            args.query_name,
+            query_name,
             params,
             args.query_api,
             args.max_retries,
@@ -87,7 +87,9 @@ def handle_leaderboards(args: argparse.Namespace) -> None:
             logger.error(f"Could not get results for query {query_name}")
             continue
 
-        leaderboard_push_api_url = f"{args.engine_api}/leaderboards/{leaderboard_id}"
+        leaderboard_push_api_url = (
+            f"{args.engine_api}/leaderboard/{leaderboard_id}/scores"
+        )
 
         leaderboard_api_headers = {
             "Authorization": f"Bearer {args.query_api_access_token}",
@@ -96,7 +98,7 @@ def handle_leaderboards(args: argparse.Namespace) -> None:
 
         leaderboard_api_response = requests.put(
             leaderboard_push_api_url,
-            json=query_results,
+            json=query_results["data"],
             headers=leaderboard_api_headers,
             timeout=10,
         )
@@ -112,7 +114,7 @@ def handle_leaderboards(args: argparse.Namespace) -> None:
         ### get leaderboard from leaderboard API
 
         leaderboard_api_info_url = (
-            f"{args.engine_api}/leaderboards/info?leaderboard_id={leaderboard_id}"
+            f"{args.engine_api}/leaderboard/info?leaderboard_id={leaderboard_id}"
         )
 
         leaderboard_api_response = requests.get(
@@ -130,20 +132,21 @@ def handle_leaderboards(args: argparse.Namespace) -> None:
         info = leaderboard_api_response.json()
 
         logger.info(
-            f"Successfully pushed results to leaderboard {info['id']}: {info['name']}"
+            f"Successfully pushed results to leaderboard {info['id']}: {info['title']}"
         )
 
 
-def generate_cli() -> argparse.ArgumentParser:
+def main():
     """
     Generates an argument parser for the "autocorns judge" command.
     """
+
     parser = argparse.ArgumentParser(description="The Judge: Generate leaderboards")
     parser.set_defaults(func=lambda _: parser.print_help())
     subparsers = parser.add_subparsers()
 
     shadowcorns_throwing_shade_parser = subparsers.add_parser(
-        "throwing-shade", description="Shadowcorns: Throwing Shade Leaderboard"
+        "leaderboards-generate", description="Generate Leaderboard"
     )
     shadowcorns_throwing_shade_parser.add_argument(
         "--query-api",
@@ -158,7 +161,7 @@ def generate_cli() -> argparse.ArgumentParser:
     shadowcorns_throwing_shade_parser.add_argument(
         "--leaderboard-id",
         type=uuid.UUID,
-        required=True,
+        required=False,
         help="Leaderboard ID on Engine API",
     )
     shadowcorns_throwing_shade_parser.add_argument(
@@ -176,6 +179,7 @@ def generate_cli() -> argparse.ArgumentParser:
     shadowcorns_throwing_shade_parser.add_argument(
         "--params",
         type=json.loads,
+        required=False,
         help="Parameters to pass to Moonstream Query API",
     )
     shadowcorns_throwing_shade_parser.add_argument(
@@ -187,10 +191,9 @@ def generate_cli() -> argparse.ArgumentParser:
 
     shadowcorns_throwing_shade_parser.set_defaults(func=handle_leaderboards)
 
-    return parser
+    args = parser.parse_args()
+    args.func(args)
 
 
 if __name__ == "__main__":
-    parser = generate_cli()
-    args = parser.parse_args()
-    args.func(args)
+    main()
