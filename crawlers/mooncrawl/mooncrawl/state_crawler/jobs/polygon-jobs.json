@@ -95,5 +95,98 @@
             }
         ],
         "address": "0x20B807b9AF56977EF475C089A0e7977540743560"
+    },
+    {
+        "type": "function",
+        "stateMutability": "view",
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256",
+                "value": {
+                    "type": "queryAPI",
+                    "query_url": "template_erc1155_token_ids",
+                    "blockchain": "polygon",
+                    "params": {
+                        "address": "0xd4D53d8D61adc3B8114C1cd17B89393640db9733"
+                    },
+                    "keys": [
+                        "token_id"
+                    ]
+                }
+            }
+        ],
+        "name": "uri",
+        "outputs": [
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "address": "0xd4D53d8D61adc3B8114C1cd17B89393640db9733"
+    },
+    {
+        "type": "function",
+        "stateMutability": "view",
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256",
+                "value": {
+                    "type": "queryAPI",
+                    "query_url": "template_erc1155_token_ids",
+                    "blockchain": "polygon",
+                    "params": {
+                        "address": "0x74d4567fd8B0b873B61FA180618a82183012F369"
+                    },
+                    "keys": [
+                        "token_id"
+                    ]
+                }
+            }
+        ],
+        "name": "uri",
+        "outputs": [
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "address": "0x74d4567fd8B0b873B61FA180618a82183012F369"
+    },
+    {
+        "type": "function",
+        "stateMutability": "view",
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256",
+                "value": {
+                    "type": "queryAPI",
+                    "query_url": "template_erc1155_token_ids",
+                    "blockchain": "polygon",
+                    "params": {
+                        "address": "0x44b3f42e2BF34F62868Ff9e9dAb7C2F807ba97Cb"
+                    },
+                    "keys": [
+                        "token_id"
+                    ]
+                }
+            }
+        ],
+        "name": "uri",
+        "outputs": [
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "address": "0x44b3f42e2BF34F62868Ff9e9dAb7C2F807ba97Cb"
     }
 ]
