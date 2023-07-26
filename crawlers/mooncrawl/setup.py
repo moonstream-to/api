@@ -67,7 +67,7 @@ setup(
             "state-crawler=mooncrawl.state_crawler.cli:main",
             "metadata-crawler=mooncrawl.metadata_crawler.cli:main",
             "custom-crawler=mooncrawl.reports_crawler.cli:main",
-            "leaderboard-generator=mooncrawl.leaderboard_generator.cli:main",
+            "leaderboards-generator=mooncrawl.leaderboards_generator.cli:main",
         ]
     },
 )
