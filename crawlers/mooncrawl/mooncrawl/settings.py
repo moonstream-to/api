@@ -310,3 +310,14 @@ HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES = {
     "historical_crawl_status": "historical_crawl_status",
     "progress_status": "progress",
 }
+
+
+# Leaderboard generator
+
+MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID = os.environ.get(
+    "MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID", ""
+)
+if MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID == "":
+    raise ValueError(
+        "MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID environment variable must be set"
+    )
