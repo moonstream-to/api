@@ -1,0 +1,9 @@
+[Unit]
+Description=Runs leaderboard update script every 10 minutes
+
+[Timer]
+OnBootSec=60s
+OnUnitActiveSec=10m
+
+[Install]
+WantedBy=timers.target

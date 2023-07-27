@@ -26,6 +26,9 @@ SCRIPT_DIR="$(realpath $(dirname $0))"
 
 # Service files
 MOONCRAWL_SERVICE_FILE="mooncrawl.service"
+LEADERBOARDS_WORKER_SERVICE_FILE="leaderboards-worker.service"
+LEADERBOARDS_WORKER_TIMER_FILE="leaderboards-worker.timer"
+
 
 # Ethereum service files
 ETHEREUM_SYNCHRONIZE_SERVICE_FILE="ethereum-synchronize.service"
@@ -553,3 +556,14 @@ cp "${SCRIPT_DIR}/${ZKSYNC_ERA_TESTNET_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}" "/
 cp "${SCRIPT_DIR}/${ZKSYNC_ERA_TESTNET_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ZKSYNC_ERA_TESTNET_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ZKSYNC_ERA_TESTNET_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+
+
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Leaderboards worker service and timer with: ${LEADERBOARDS_WORKER_SERVICE_FILE}, ${LEADERBOARDS_WORKER_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${LEADERBOARDS_WORKER_SERVICE_FILE}" "${SCRIPT_DIR}/${LEADERBOARDS_WORKER_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${LEADERBOARDS_WORKER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${LEADERBOARDS_WORKER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${LEADERBOARDS_WORKER_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${LEADERBOARDS_WORKER_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${LEADERBOARDS_WORKER_TIMER_FILE}"
