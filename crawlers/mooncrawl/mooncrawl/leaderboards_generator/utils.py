@@ -8,6 +8,8 @@ from typing import Any, Dict, Optional
 
 import requests  # type: ignore
 
+from ..settings import MOONSTREAM_API_URL
+
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -17,10 +19,32 @@ def get_results_for_moonstream_query(
     moonstream_access_token: str,
     query_name: str,
     params: Dict[str, Any],
-    api_url: str = "https://api.moonstream.to",
+    blockchain: Optional[str] = None,
+    api_url: str = MOONSTREAM_API_URL,
     max_retries: int = 100,
     interval: float = 30.0,
 ) -> Optional[Dict[str, Any]]:
+    """
+
+    Run update of query data and avaiting update of query result on S3.
+    TODO: Move to moonstream-client.
+
+    :param moonstream_access_token: Moonstream access token.
+
+    :param query_name: Name of the query to run.
+
+    :param params: Parameters to pass to the query.
+
+    :param api_url: URL of the Moonstream API.
+
+    :param max_retries: Maximum number of times to retry getting results from the Moonstream Query API.
+
+    :param interval: Number of seconds to wait between attempts to get results from the Moonstream Query API.
+
+    :return: Results of the query.
+
+    """
+
     result: Optional[Dict[str, Any]] = None
 
     api_url = api_url.rstrip("/")
@@ -33,7 +57,10 @@ def get_results_for_moonstream_query(
     if_modified_since_datetime = datetime.datetime.utcnow()
     if_modified_since = if_modified_since_datetime.strftime("%a, %d %b %Y %H:%M:%S GMT")
 
-    request_body = {"params": params}
+    request_body: Dict[str, Any] = {"params": params}
+
+    if blockchain is not None:
+        request_body["blockchain"] = blockchain
 
     success = False
     attempts = 0

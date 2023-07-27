@@ -13,6 +13,8 @@ from ..settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID,
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
+    MOONSTREAM_API_URL,
+    MOONSTREAM_ENGINE_URL,
 )
 
 from ..settings import bugout_client as bc
@@ -20,6 +22,10 @@ from ..settings import bugout_client as bc
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
+blue_c = "\033[94m"
+green_c = "\033[92m"
+end_c = "\033[0m"
 
 
 def handle_leaderboards(args: argparse.Namespace) -> None:
@@ -33,19 +39,23 @@ def handle_leaderboards(args: argparse.Namespace) -> None:
 
     query = "#leaderboard"
 
-    if args.leaderboard_id:
-        query += f" #cleaderboard_id:{args.leaderboard_id}"
-
-    leaderboards = bc.search(
-        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-        journal_id=MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID,
-        query=query,
-        limit=100,
-        timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
-    )
+    if args.leaderboard_id:  # way to run only one leaderboard
+        query += f" #leaderboard_id:{args.leaderboard_id}"
+    try:
+        leaderboards = bc.search(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            journal_id=MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID,
+            query=query,
+            limit=100,
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+        )
+    except Exception as e:
+        logger.error(f"Could not get leaderboards from journal: {e}")
+        return
 
     if len(leaderboards.results) == 0:
-        raise ValueError("No leaderboard found")
+        logger.error("No leaderboard found")
+        return
 
     logger.info(f"Found {len(leaderboards.results)} leaderboards")
 
@@ -61,7 +71,7 @@ def handle_leaderboards(args: argparse.Namespace) -> None:
             leaderboard_data = json.loads(leaderboard.content)
         except json.JSONDecodeError:
             logger.error(
-                f"Could not parse leaderboard content: {[tag for tag in leaderboard.tags if tag.startswith('leaderboard_id')]}"
+                f"Could not parse leaderboard content: {[tag for tag in leaderboard.tags if tag.startswith('leaderboard_id')]} in entry {leaderboard.entry_url.split('/')[-1]}"
             )
             continue
 
@@ -76,36 +86,48 @@ def handle_leaderboards(args: argparse.Namespace) -> None:
         else:
             params = leaderboard_data["params"]
 
-        ### execute query
+        blockchain = leaderboard_data.get("blockchain", None)
 
-        query_results = get_results_for_moonstream_query(
-            args.query_api_access_token,
-            query_name,
-            params,
-            args.query_api,
-            args.max_retries,
-            args.interval,
-        )
+        ### execute query
+        try:
+            query_results = get_results_for_moonstream_query(
+                args.query_api_access_token,
+                query_name,
+                params,
+                blockchain,
+                MOONSTREAM_API_URL,
+                args.max_retries,
+                args.interval,
+            )
+        except Exception as e:
+            logger.error(f"Could not get results for query {query_name}: error: {e}")
+            continue
 
         ### push results to leaderboard API
 
         if query_results is None:
-            logger.error(f"Could not get results for query {query_name}")
+            logger.error(f"Could not get results for query {query_name} in time")
             continue
 
-        leaderboard_push_api_url = f"{args.engine_api}/leaderboard/{leaderboard_id}/scores?normalize_addresses={leaderboard_data['normalize_addresses']}"
+        leaderboard_push_api_url = f"{MOONSTREAM_ENGINE_URL}/leaderboard/{leaderboard_id}/scores?normalize_addresses={leaderboard_data['normalize_addresses']}"
 
         leaderboard_api_headers = {
             "Authorization": f"Bearer {args.query_api_access_token}",
             "Content-Type": "application/json",
         }
 
-        leaderboard_api_response = requests.put(
-            leaderboard_push_api_url,
-            json=query_results["data"],
-            headers=leaderboard_api_headers,
-            timeout=10,
-        )
+        try:
+            leaderboard_api_response = requests.put(
+                leaderboard_push_api_url,
+                json=query_results["data"],
+                headers=leaderboard_api_headers,
+                timeout=10,
+            )
+        except Exception as e:
+            logger.error(
+                f"Could not push results to leaderboard API: {e} for leaderboard {leaderboard_id}"
+            )
+            continue
 
         try:
             leaderboard_api_response.raise_for_status()
@@ -118,7 +140,7 @@ def handle_leaderboards(args: argparse.Namespace) -> None:
         ### get leaderboard from leaderboard API
 
         leaderboard_api_info_url = (
-            f"{args.engine_api}/leaderboard/info?leaderboard_id={leaderboard_id}"
+            f"{MOONSTREAM_ENGINE_URL}/leaderboard/info?leaderboard_id={leaderboard_id}"
         )
 
         leaderboard_api_response = requests.get(
@@ -136,16 +158,16 @@ def handle_leaderboards(args: argparse.Namespace) -> None:
         info = leaderboard_api_response.json()
 
         logger.info(
-            f"Successfully pushed results to leaderboard {info['id']}: {info['title']}"
+            f"Successfully pushed results to leaderboard {info['id']}:{blue_c} {info['title']} {end_c}"
         )
         logger.info(
-            f"can be check on:{args.engine_api}/leaderboard/?leaderboard_id={leaderboard_id}"
+            f"can be check on:{green_c} {MOONSTREAM_ENGINE_URL}/leaderboard/?leaderboard_id={leaderboard_id} {end_c}"
         )
 
 
 def main():
     """
-    Generates an argument parser for the "autocorns judge" command.
+    CLI for generating leaderboards from Moonstream Query API
     """
 
     parser = argparse.ArgumentParser(description="The Judge: Generate leaderboards")
@@ -154,16 +176,6 @@ def main():
 
     leaderboard_generator_parser = subparsers.add_parser(
         "leaderboards-generate", description="Generate Leaderboard"
-    )
-    leaderboard_generator_parser.add_argument(
-        "--query-api",
-        default="https://api.moonstream.to",
-        help="Moonstream API URL.",
-    )
-    leaderboard_generator_parser.add_argument(
-        "--engine-api",
-        default="https://engineapi.moonstream.to",
-        help="Moonstream Engine API URL.",
     )
     leaderboard_generator_parser.add_argument(
         "--leaderboard-id",

@@ -23,6 +23,11 @@ if MOONSTREAM_ENTITY_URL == "":
 
 entity_client = Entity(MOONSTREAM_ENTITY_URL)
 
+MOONSTREAM_API_URL = os.environ.get("MOONSTREAM_API_URL", "https://api.moonstream.to")
+MOONSTREAM_ENGINE_URL = os.environ.get(
+    "MOONSTREAM_ENGINE_URL", "https://engineapi.moonstream.to"
+)
+
 
 BUGOUT_REQUEST_TIMEOUT_SECONDS_RAW = os.environ.get(
     "MOONSTREAM_BUGOUT_TIMEOUT_SECONDS", 30
