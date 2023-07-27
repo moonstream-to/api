@@ -26,7 +26,7 @@ def get_results_for_moonstream_query(
 ) -> Optional[Dict[str, Any]]:
     """
 
-    Run update of query data and avaiting update of query result on S3.
+    Run update of query data and waiting update of query result on S3.
     TODO: Move to moonstream-client.
 
     :param moonstream_access_token: Moonstream access token.
