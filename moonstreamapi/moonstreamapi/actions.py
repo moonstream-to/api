@@ -915,14 +915,14 @@ def get_list_of_support_interfaces(
             if interface["name"] in general_interfaces
         }
 
-        for selector_name in basic_selectors:
+        for interface_name, selector in basic_selectors.items():
             selector_result = contract.get_function_by_name("supportsInterface").call(
-                bytes.fromhex(selectors[selector_name])
+                bytes.fromhex(selector)
             )
             if selector_result:
-                result[selector_name] = {
-                    "selector": basic_selectors[selector_name],
-                    "abi": selectors[selectors[selector_name]]["abi"],
+                result[interface_name] = {
+                    "selector": basic_selectors[interface_name],
+                    "abi": selectors[selectors[interface_name]]["abi"],
                 }
 
     return result
