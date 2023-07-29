@@ -791,6 +791,38 @@ def query_parameter_hash(params: Dict[str, Any]) -> str:
     return hash
 
 
+def parse_abi_to_name_tags(user_abi: List[Dict[str, Any]]):
+    return [
+        f"abi_name:{method['name']}"
+        for method in user_abi
+        if method["type"] in ("event", "function")
+    ]
+
+
+def filter_tasks(entries, tag_filters):
+    return [entry for entry in entries if any(tag in tag_filters for tag in entry.tags)]
+
+
+def fetch_and_filter_tasks(
+    journal_id, address, subscription_type_id, token, user_abi, limit=100
+) -> List[BugoutSearchResult]:
+    """
+    Fetch tasks from journal and filter them by user abi
+    """
+    entries = get_all_entries_from_search(
+        journal_id=journal_id,
+        search_query=f"tag:address:{address} tag:subscription_type:{subscription_type_id}",
+        limit=limit,
+        token=token,
+    )
+
+    user_loaded_abi_tags = parse_abi_to_name_tags(json.loads(user_abi))
+
+    moonworm_tasks = filter_tasks(entries, user_loaded_abi_tags)
+
+    return moonworm_tasks
+
+
 def get_list_of_support_interfaces(
     blockchain_type: AvailableBlockchainType,
     address: str,

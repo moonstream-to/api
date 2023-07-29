@@ -21,6 +21,7 @@ from ..actions import (
     EntityCollectionNotFoundException,
     check_if_smart_contract,
     get_list_of_support_interfaces,
+    get_moonworm_tasks,
 )
 from ..admin import subscription_types
 from .. import data
@@ -598,6 +599,59 @@ async def list_subscription_types() -> data.SubscriptionTypesListResponse:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     return data.SubscriptionTypesListResponse(subscription_types=results)
+
+
+@router.get(
+    "/{subscription_id}/jobs",
+    tags=["subscriptions"],
+    response_model=List[BugoutSearchResult],
+)
+async def get_subscription_jobs_handler(
+    request: Request,
+    subscription_id: str,
+) -> Any:
+    token = request.state.token
+    user = request.state.user
+
+    try:
+        collection_id = get_entity_subscription_collection_id(
+            resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            user_id=user.id,
+        )
+
+        # get subscription entity
+        subscription_resource = ec.get_entity(
+            token=token,
+            collection_id=collection_id,
+            entity_id=subscription_id,
+        )
+
+    except EntityCollectionNotFoundException as e:
+        raise MoonstreamHTTPException(
+            status_code=404,
+            detail="User subscriptions collection not found",
+            internal_error=e,
+        )
+    except Exception as e:
+        logger.error(
+            f"Error get subscriptions for user ({user}) with token ({token}), error: {str(e)}"
+        )
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    for field in subscription_resource.required_fields:
+        if "subscription_type_id" in field:
+            subscription_type_id = field["subscription_type_id"]
+
+    subscription_address = subscription_resource.address
+
+    get_moonworm_jobs_response = get_moonworm_tasks(
+        subscription_type_id=subscription_type_id,
+        address=subscription_address,
+        user_abi=subscription_resource.secondary_fields.get("abi") or [],
+    )
+
+    return get_moonworm_jobs_response
 
 
 @router.get(
