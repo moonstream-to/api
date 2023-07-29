@@ -169,11 +169,14 @@ def collect_billing_information(
     query_amount = len(query_resources.resources)
 
     ### Get user's leaderboards resources
+    if user_id is None:
+        leaderboards = requests.get(
+            "https://engineapi.moonstream.to/leaderboard/leaderboards",
+            headers={"Authorization": f"Bearer {token}"},
+        ).json()
 
-    leaderboards = requests.get(
-        "https://engineapi.moonstream.to/leaderboard/leaderboards",
-        headers={"Authorization": f"Bearer {token}"},
-    ).json()
+    else:
+        Leaderboards = {}
 
     # Get user leaderboards
 

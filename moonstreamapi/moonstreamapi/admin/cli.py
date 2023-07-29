@@ -521,7 +521,7 @@ This CLI is configured to work with the following API URLs:
     create_query_parser.set_defaults(func=queries.create_query_template)
 
     billing_parser = subcommands.add_parser(
-        "billing", description="Manage Moonstream billing"
+        "usage", description="Manage Moonstream billing"
     )
 
     billing_parser.set_defaults(func=lambda _: billing_parser.print_help())
