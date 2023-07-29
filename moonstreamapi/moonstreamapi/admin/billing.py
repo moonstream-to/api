@@ -123,12 +123,12 @@ def collect_billing_information(
 
         user_id = str(bugout_user.id)
 
-        token = token
+        used_token = token
 
-    elif user_id is not None and token is None:
+    elif user_id is not None and used_token is None:
         # Get user's subscriptions resources
 
-        token = MOONSTREAM_ADMIN_ACCESS_TOKEN
+        used_token = MOONSTREAM_ADMIN_ACCESS_TOKEN
 
     subscription_resources = bc.list_resources(
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,  # type: ignore
@@ -149,7 +149,7 @@ def collect_billing_information(
         ### search in subscriptions collection
 
         subscription_collection = bc.search(
-            token=token,  # type: ignore
+            token=used_token,  # type: ignore
             journal_id=collection_id,
             content=False,
             query="",
@@ -161,7 +161,7 @@ def collect_billing_information(
     ### Get user's queries resources
 
     query_resources = bc.list_resources(
-        token=token,  # type: ignore
+        token=used_token,  # type: ignore
         params={"user_id": user_id, "type": BUGOUT_RESOURCE_QUERY_RESOLVER},
         timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
     )
@@ -169,14 +169,14 @@ def collect_billing_information(
     query_amount = len(query_resources.resources)
 
     ### Get user's leaderboards resources
-    if user_id is None:
+    if used_token is not None:
         leaderboards = requests.get(
             "https://engineapi.moonstream.to/leaderboard/leaderboards",
             headers={"Authorization": f"Bearer {token}"},
         ).json()
 
     else:
-        Leaderboards = {}
+        leaderboards = {}
 
     # Get user leaderboards
 
@@ -192,7 +192,7 @@ def collect_billing_information(
         for blockchain, addresses in contracts.items():
             contracts_events = recive_S3_data_from_query(
                 client=client,
-                token=token,  # type: ignore
+                token=used_token,  # type: ignore
                 query_name="template_contract_events_per_month",
                 params={},
                 time_await=2,
