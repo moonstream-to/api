@@ -5,9 +5,8 @@ from uuid import UUID
 
 import boto3  # type: ignore
 import requests  # type: ignore
-from bugout.data import BugoutResource, BugoutResources
+from bugout.data import BugoutResource, BugoutResources, BugoutSearchResultAsEntity
 from bugout.exceptions import BugoutResponseException
-from entity.data import EntitiesResponse, EntityResponse  # type: ignore
 from fastapi import APIRouter, Body, Path, Query, Request
 
 from .. import actions, data
@@ -59,7 +58,7 @@ async def add_dashboard_handler(
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
     )
 
-    subscriprions_list = bc.search(
+    subscriptions_list = bc.search(
         token=token,
         journal_id=journal_id,
         required_field=[f"type:subscription"],
@@ -69,9 +68,9 @@ async def add_dashboard_handler(
 
     # process existing subscriptions with supplied ids
 
-    available_subscriptions_ids: Dict[Union[UUID, str], EntityResponse] = {
+    available_subscriptions_ids: Dict[Union[UUID, str], BugoutSearchResultAsEntity] = {
         subscription.entity_id: subscription
-        for subscription in subscriprions_list.entities
+        for subscription in subscriptions_list.entities
     }
 
     for dashboard_subscription in subscription_settings:
@@ -232,7 +231,7 @@ async def update_dashboard_handler(
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
     )
 
-    subscriprions_list = bc.search(
+    subscriptions_list = bc.search(
         token=token,
         journal_id=journal_id,
         required_field=[f"type:subscription"],
@@ -240,9 +239,9 @@ async def update_dashboard_handler(
         representation="entity",
     )
 
-    available_subscriptions_ids: Dict[Union[UUID, str], EntityResponse] = {
+    available_subscriptions_ids: Dict[Union[UUID, str], BugoutSearchResultAsEntity] = {
         subscription.entity_id: subscription
-        for subscription in subscriprions_list.entities
+        for subscription in subscriptions_list.entities
     }
 
     for dashboard_subscription in subscription_settings:
@@ -335,7 +334,7 @@ async def get_dashboard_data_links_handler(
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
     )
 
-    subscriprions_list = bc.search(
+    subscriptions_list = bc.search(
         token=token,
         journal_id=journal_id,
         required_field=[f"type:subscription"],
@@ -352,9 +351,9 @@ async def get_dashboard_data_links_handler(
         ]
     ]
 
-    dashboard_subscriptions: Dict[Union[UUID, str], EntitiesResponse] = {
+    dashboard_subscriptions: Dict[Union[UUID, str], BugoutSearchResultAsEntity] = {
         subscription.entity_id: subscription
-        for subscription in subscriprions_list.entities
+        for subscription in subscriptions_list.entities
         if str(subscription.entity_id) in subscriptions_ids
     }
 

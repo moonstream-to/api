@@ -57,13 +57,6 @@ class SubscriptionResourceData(BaseModel):
     updated_at: Optional[datetime]
 
 
-class CreateSubscriptionRequest(BaseModel):
-    address: str
-    color: str
-    label: str
-    subscription_type_id: str
-
-
 class PingResponse(BaseModel):
     """
     Schema for ping response

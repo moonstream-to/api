@@ -5,7 +5,7 @@ import hashlib
 import json
 import logging
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from bugout.data import BugoutSearchResult
 from bugout.exceptions import BugoutResponseException
@@ -136,7 +136,7 @@ async def add_subscription_handler(
     if description:
         content["description"] = description
 
-    allowed_required_fields = []
+    allowed_required_fields: List[Any] = []
     if tags:
         allowed_required_fields = [
             item
@@ -144,7 +144,7 @@ async def add_subscription_handler(
             if not any(key in item for key in MOONSTREAM_ENTITIES_RESERVED_TAGS)
         ]
 
-    required_fields = [
+    required_fields: List[Dict[str, Union[str, bool, int, List[Any]]]] = [
         {"type": "subscription"},
         {"subscription_type_id": f"{subscription_type_id}"},
         {"color": f"{color}"},
@@ -162,13 +162,14 @@ async def add_subscription_handler(
             user_id=user.id,
             create_if_not_exist=True,
         )
+        blockchain = subscription_types.CANONICAL_SUBSCRIPTION_TYPES[
+            subscription_type_id
+        ].blockchain
         entity = bc.create_entity(
             token=token,
             journal_id=journal_id,
             address=address,
-            blockchain=subscription_types.CANONICAL_SUBSCRIPTION_TYPES[
-                subscription_type_id
-            ].blockchain,
+            blockchain=blockchain if blockchain is not None else "",
             title=label,
             required_fields=required_fields,
             secondary_fields=content,
@@ -186,10 +187,15 @@ async def add_subscription_handler(
             internal_error=e,
             detail="Currently unable to get journal id",
         )
-
+    entity_required_fields = (
+        entity.required_fields if entity.required_fields is not None else []
+    )
+    entity_secondary_fields = (
+        entity.secondary_fields if entity.secondary_fields is not None else {}
+    )
     normalized_entity_tags = [
         f"{key}:{value}"
-        for tag in entity.required_fields
+        for tag in entity_required_fields
         for key, value in tag.items()
         if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS
     ]
@@ -200,8 +206,8 @@ async def add_subscription_handler(
         address=address,
         color=color,
         label=label,
-        abi=entity.secondary_fields.get("abi"),
-        description=entity.secondary_fields.get("description"),
+        abi=entity_secondary_fields.get("abi"),
+        description=entity_secondary_fields.get("description"),
         tags=normalized_entity_tags,
         subscription_type_id=subscription_type_id,
         updated_at=entity.updated_at,
@@ -252,6 +258,7 @@ async def delete_subscription_handler(
     color = None
     label = None
     abi = None
+    description = None
 
     if tags is not None:
         for tag in tags:
@@ -266,6 +273,13 @@ async def delete_subscription_handler(
 
     if deleted_entity.secondary_fields is not None:
         abi = deleted_entity.secondary_fields.get("abi")
+        description = deleted_entity.secondary_fields.get("description")
+
+    deleted_entity_required_fields = (
+        deleted_entity.required_fields
+        if deleted_entity.required_fields is not None
+        else []
+    )
 
     return data.SubscriptionResourceData(
         id=str(deleted_entity.id),
@@ -274,8 +288,8 @@ async def delete_subscription_handler(
         color=color,
         label=label,
         abi=abi,
-        description=deleted_entity.secondary_fields.get("description"),
-        tags=deleted_entity.required_fields,
+        description=description,
+        tags=deleted_entity_required_fields,
         subscription_type_id=subscription_type_id,
         updated_at=deleted_entity.updated_at,
         created_at=deleted_entity.created_at,

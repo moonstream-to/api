@@ -477,7 +477,7 @@ def get_all_entries_from_search(
 
     results: List[BugoutSearchResult] = []
 
-    existing_metods = bc.search(
+    existing_methods = bc.search(
         token=token,
         journal_id=journal_id,
         query=search_query,
@@ -486,11 +486,11 @@ def get_all_entries_from_search(
         limit=limit,
         offset=offset,
     )
-    results.extend(existing_metods.results)
+    results.extend(existing_methods.results) # type: ignore
 
-    if len(results) != existing_metods.total_results:
-        for offset in range(limit, existing_metods.total_results, limit):
-            existing_metods = bc.search(
+    if len(results) != existing_methods.total_results:
+        for offset in range(limit, existing_methods.total_results, limit):
+            existing_methods = bc.search(
                 token=token,
                 journal_id=journal_id,
                 query=search_query,
@@ -499,7 +499,7 @@ def get_all_entries_from_search(
                 limit=limit,
                 offset=offset,
             )
-        results.extend(existing_metods.results)
+        results.extend(existing_methods.results) # type: ignore
 
     return results
 
@@ -641,7 +641,7 @@ def get_entity_subscription_journal_id(
     token: Union[uuid.UUID, str],
     user_id: uuid.UUID,
     create_if_not_exist: bool = False,
-) -> Optional[str]:
+) -> str:
     """
     Get collection_id (journal_id) from brood resources. If journal not exist and create_if_not_exist is True
     """
@@ -684,7 +684,7 @@ def generate_journal_for_user(
         journals: BugoutJournals = bc.list_journals(token=token)
 
         available_journals: Dict[str, str] = {
-            journal.name: journal.id for journal in journals.journals
+            journal.name: str(journal.id) for journal in journals.journals
         }
 
         subscription_journal_name = f"subscriptions_{user_id}"
@@ -693,7 +693,7 @@ def generate_journal_for_user(
             journal: BugoutJournal = bc.create_journal(
                 token=token, name=subscription_journal_name
             )
-            journal_id = journal.id
+            journal_id = str(journal.id)
         else:
             journal_id = available_journals[subscription_journal_name]
     except Exception as e:
@@ -705,7 +705,7 @@ def generate_journal_for_user(
     resource_data = {
         "type": resource_type,
         "user_id": str(user_id),
-        "collection_id": str(journal_id),
+        "collection_id": journal_id,
     }
 
     try:
@@ -832,14 +832,14 @@ def get_list_of_support_interfaces(
 
         list_of_interfaces.sort()
 
-        for interaface in list_of_interfaces:
+        for interface in list_of_interfaces:
             calls.append(
                 (
                     contract.address,
                     FunctionSignature(
                         contract.get_function_by_name("supportsInterface")
                     )
-                    .encode_data([bytes.fromhex(interaface)])
+                    .encode_data([bytes.fromhex(interface)])
                     .hex(),
                 )
             )

@@ -68,7 +68,8 @@ def add_entity_subscription(
             f"Unknown subscription type ID: {subscription_type_id}. "
             f"Known subscription type IDs: {CANONICAL_SUBSCRIPTION_TYPES.keys()}"
         )
-    elif CANONICAL_SUBSCRIPTION_TYPES[subscription_type_id].blockchain is None:
+    blockchain = CANONICAL_SUBSCRIPTION_TYPES[subscription_type_id].blockchain
+    if blockchain is None:
         raise ValueError(
             f"Subscription type ID {subscription_type_id} is not a blockchain subscription type."
         )
@@ -77,7 +78,7 @@ def add_entity_subscription(
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
         journal_id=journal_id,
         address=address,
-        blockchain=CANONICAL_SUBSCRIPTION_TYPES[subscription_type_id].blockchain,
+        blockchain=blockchain,
         title=label,
         required_fields=[
             {"type": "subscription"},
