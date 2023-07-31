@@ -1,17 +1,16 @@
 """
 Pydantic schemas for the Moonstream HTTP API
 """
-from datetime import datetime
 import json
+from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union, Literal
+from typing import Any, Dict, List, Literal, Optional, Union
 from uuid import UUID
 from xmlrpc.client import Boolean
 
 from fastapi import Form
 from pydantic import BaseModel, Field, validator
 from sqlalchemy import false
-
 
 USER_ONBOARDING_STATE = "onboarding_state"
 
@@ -244,7 +243,7 @@ class OnboardingState(BaseModel):
     steps: Dict[str, int]
 
 
-class SubdcriptionsAbiResponse(BaseModel):
+class SubscriptionsAbiResponse(BaseModel):
     abi: str
 
 

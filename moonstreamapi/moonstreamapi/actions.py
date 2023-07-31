@@ -1,28 +1,27 @@
-from collections import OrderedDict
 import hashlib
 import json
-from itertools import chain
 import logging
-from typing import List, Optional, Dict, Any, Union
-from enum import Enum
 import uuid
+from collections import OrderedDict
+from enum import Enum
+from itertools import chain
+from typing import Any, Dict, List, Optional, Union
 
 import boto3  # type: ignore
-
 from bugout.data import (
-    BugoutSearchResults,
-    BugoutSearchResult,
+    BugoutJournal,
+    BugoutJournals,
     BugoutResource,
     BugoutResources,
+    BugoutSearchResult,
+    BugoutSearchResults,
 )
-from bugout.journal import SearchOrder
 from bugout.exceptions import BugoutResponseException
-from entity.data import EntityCollectionsResponse, EntityCollectionResponse  # type: ignore
-from entity.exceptions import EntityUnexpectedResponse  # type: ignore
+from bugout.journal import SearchOrder
 from ens.utils import is_valid_ens_name  # type: ignore
 from eth_utils.address import is_address  # type: ignore
-from moonstreamdb.models import EthereumLabel
 from moonstreamdb.blockchain import AvailableBlockchainType
+from moonstreamdb.models import EthereumLabel
 from slugify import slugify  # type: ignore
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -32,24 +31,20 @@ from web3._utils.validation import validate_abi
 from . import data
 from .middleware import MoonstreamHTTPException
 from .reporter import reporter
+from .selectors_storage import selectors
 from .settings import (
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
     ETHERSCAN_SMARTCONTRACTS_BUCKET,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_APPLICATION_ID,
     MOONSTREAM_DATA_JOURNAL_ID,
+    MOONSTREAM_MOONWORM_TASKS_JOURNAL,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
-    MOONSTREAM_MOONWORM_TASKS_JOURNAL,
-    MOONSTREAM_ADMIN_ACCESS_TOKEN,
-    support_interfaces,
-    supportsInterface_abi,
-    multicall_contracts,
 )
-from .settings import bugout_client as bc, entity_client as ec
-from .web3_provider import multicall, FunctionSignature, connect
-from .selectors_storage import selectors
-
+from .settings import bugout_client as bc
+from .settings import multicall_contracts, support_interfaces, supportsInterface_abi
+from .web3_provider import FunctionSignature, connect, multicall
 
 logger = logging.getLogger(__name__)
 
@@ -88,9 +83,9 @@ class ResourceQueryFetchException(Exception):
     """
 
 
-class EntityCollectionNotFoundException(Exception):
+class EntityJournalNotFoundException(Exception):
     """
-    Raised when entity collection is not found
+    Raised when journal (collection prev.) with entities not found.
     """
 
 
@@ -641,14 +636,14 @@ def get_query_by_name(query_name: str, token: uuid.UUID) -> str:
     return query_id
 
 
-def get_entity_subscription_collection_id(
+def get_entity_subscription_journal_id(
     resource_type: str,
     token: Union[uuid.UUID, str],
     user_id: uuid.UUID,
     create_if_not_exist: bool = False,
 ) -> Optional[str]:
     """
-    Get collection_id from brood resources. If collection not exist and create_if_not_exist is True
+    Get collection_id (journal_id) from brood resources. If journal not exist and create_if_not_exist is True
     """
 
     params = {
@@ -668,52 +663,49 @@ def get_entity_subscription_collection_id(
 
     if len(resources.resources) == 0:
         if not create_if_not_exist:
-            raise EntityCollectionNotFoundException(
-                "Subscription collection not found."
-            )
-        collection_id = generate_collection_for_user(resource_type, token, user_id)
+            raise EntityJournalNotFoundException("Subscription journal not found.")
+        journal_id = generate_journal_for_user(resource_type, token, user_id)
 
-        return collection_id
+        return journal_id
 
     else:
         resource = resources.resources[0]
     return resource.resource_data["collection_id"]
 
 
-def generate_collection_for_user(
+def generate_journal_for_user(
     resource_type: str,
     token: Union[uuid.UUID, str],
     user_id: uuid.UUID,
 ) -> str:
     try:
-        # try get collection
+        # Try get journal
 
-        collections: EntityCollectionsResponse = ec.list_collections(token=token)
+        journals: BugoutJournals = bc.list_journals(token=token)
 
-        available_collections: Dict[str, str] = {
-            collection.name: collection.collection_id
-            for collection in collections.collections
+        available_journals: Dict[str, str] = {
+            journal.name: journal.id for journal in journals.journals
         }
 
-        subscription_collection_name = f"subscriptions_{user_id}"
+        subscription_journal_name = f"subscriptions_{user_id}"
 
-        if subscription_collection_name not in available_collections:
-            collection: EntityCollectionResponse = ec.add_collection(
-                token=token, name=subscription_collection_name
+        if subscription_journal_name not in available_journals:
+            journal: BugoutJournal = bc.create_journal(
+                token=token, name=subscription_journal_name
             )
-            collection_id = collection.collection_id
+            journal_id = journal.id
         else:
-            collection_id = available_collections[subscription_collection_name]
-    except EntityUnexpectedResponse as e:
-        logger.error(f"Error create collection, error: {str(e)}")
+            journal_id = available_journals[subscription_journal_name]
+    except Exception as e:
+        logger.error(f"Error create journal, error: {str(e)}")
         raise MoonstreamHTTPException(
-            status_code=500, detail="Can't create collection for subscriptions"
+            status_code=500, detail="Can't create journal for subscriptions"
         )
 
     resource_data = {
         "type": resource_type,
         "user_id": str(user_id),
-        "collection_id": str(collection_id),
+        "collection_id": str(journal_id),
     }
 
     try:
@@ -727,14 +719,14 @@ def generate_collection_for_user(
     except Exception as e:
         logger.error(f"Error creating subscription resource: {str(e)}")
         logger.error(
-            f"Required create resource data: {resource_data}, and grand access to journal: {collection_id}, for user: {user_id}"
+            f"Required create resource data: {resource_data}, and grand access to journal: {journal_id}, for user: {user_id}"
         )
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     try:
         bc.update_journal_scopes(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-            journal_id=collection_id,
+            journal_id=journal_id,
             holder_type="user",
             holder_id=user_id,
             permission_list=[
@@ -746,16 +738,16 @@ def generate_collection_for_user(
             ],
         )
         logger.info(
-            f"Grand access to journal: {collection_id}, for user: {user_id} successfully"
+            f"Grand access to journal: {journal_id}, for user: {user_id} successfully"
         )
     except Exception as e:
         logger.error(f"Error updating journal scopes: {str(e)}")
         logger.error(
-            f"Required grand access to journal: {collection_id}, for user: {user_id}"
+            f"Required grand access to journal: {journal_id}, for user: {user_id}"
         )
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
-    return collection_id
+    return journal_id
 
 
 def generate_s3_access_links(

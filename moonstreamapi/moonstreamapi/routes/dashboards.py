@@ -1,6 +1,5 @@
 import json
 import logging
-from os import read
 from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
@@ -16,15 +15,16 @@ from ..middleware import MoonstreamHTTPException
 from ..reporter import reporter
 from ..settings import (
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
+    BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_APPLICATION_ID,
-    MOONSTREAM_CRAWLERS_SERVER_URL,
     MOONSTREAM_CRAWLERS_SERVER_PORT,
+    MOONSTREAM_CRAWLERS_SERVER_URL,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
-    BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
 )
-from ..settings import bugout_client as bc, entity_client as ec
+from ..settings import bugout_client as bc
+from ..settings import entity_client as ec
 
 logger = logging.getLogger(__name__)
 
@@ -52,19 +52,20 @@ async def add_dashboard_handler(
 
     subscription_settings = dashboard.subscription_settings
 
-    # Get user collection id
+    # Get user journal (collection) id
 
-    collection_id = actions.get_entity_subscription_collection_id(
+    journal_id = actions.get_entity_subscription_journal_id(
         resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
         user_id=user.id,
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
     )
 
-    subscriprions_list = ec.search_entities(
+    subscriprions_list = bc.search(
         token=token,
-        collection_id=collection_id,
+        journal_id=journal_id,
         required_field=[f"type:subscription"],
         limit=1000,
+        representation="entity",
     )
 
     # process existing subscriptions with supplied ids
@@ -137,7 +138,7 @@ async def add_dashboard_handler(
     tags=["subscriptions"],
     response_model=BugoutResource,
 )
-async def delete_subscription_handler(request: Request, dashboard_id: str):
+async def delete_subscription_handler(request: Request, dashboard_id: str = Path(...)):
     """
     Delete subscriptions.
     """
@@ -181,9 +182,9 @@ async def get_dashboards_handler(
     return resources
 
 
-@router.get("/{dashboarsd_id}", tags=["dashboards"], response_model=BugoutResource)
+@router.get("/{dashboard_id}", tags=["dashboards"], response_model=BugoutResource)
 async def get_dashboard_handler(
-    request: Request, dashboarsd_id: UUID
+    request: Request, dashboard_id: UUID = Path(...)
 ) -> BugoutResource:
     """
     Get user's subscriptions.
@@ -193,7 +194,7 @@ async def get_dashboard_handler(
     try:
         resource: BugoutResource = bc.get_resource(
             token=token,
-            resource_id=dashboarsd_id,
+            resource_id=dashboard_id,
             timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
         )
     except BugoutResponseException as e:
@@ -211,7 +212,7 @@ async def get_dashboard_handler(
 @router.put("/{dashboard_id}", tags=["dashboards"], response_model=BugoutResource)
 async def update_dashboard_handler(
     request: Request,
-    dashboard_id: str,
+    dashboard_id: str = Path(...),
     dashboard: data.DashboardUpdate = Body(...),
 ) -> BugoutResource:
     """
@@ -224,19 +225,20 @@ async def update_dashboard_handler(
 
     subscription_settings = dashboard.subscription_settings
 
-    # Get user collection id
+    # Get user journal (collection) id
 
-    collection_id = actions.get_entity_subscription_collection_id(
+    journal_id = actions.get_entity_subscription_journal_id(
         resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
         user_id=user.id,
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
     )
 
-    subscriprions_list = ec.search_entities(
+    subscriprions_list = bc.search(
         token=token,
-        collection_id=collection_id,
+        journal_id=journal_id,
         required_field=[f"type:subscription"],
         limit=1000,
+        representation="entity",
     )
 
     available_subscriptions_ids: Dict[Union[UUID, str], EntityResponse] = {
@@ -301,7 +303,7 @@ async def update_dashboard_handler(
 
 @router.get("/{dashboard_id}/stats", tags=["dashboards"])
 async def get_dashboard_data_links_handler(
-    request: Request, dashboard_id: str
+    request: Request, dashboard_id: str = Path(...)
 ) -> Dict[Union[UUID, str], Any]:
     """
     Get s3 presign urls for dashboard grafics
@@ -328,17 +330,18 @@ async def get_dashboard_data_links_handler(
 
     # get subscriptions
 
-    collection_id = actions.get_entity_subscription_collection_id(
+    journal_id = actions.get_entity_subscription_journal_id(
         resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
         user_id=user.id,
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
     )
 
-    subscriprions_list = ec.search_entities(
+    subscriprions_list = bc.search(
         token=token,
-        collection_id=collection_id,
+        journal_id=journal_id,
         required_field=[f"type:subscription"],
         limit=1000,
+        representation="entity",
     )
 
     # filter out dasboards

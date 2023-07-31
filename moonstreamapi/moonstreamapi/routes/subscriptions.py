@@ -1,42 +1,38 @@
 """
 The Moonstream subscriptions HTTP API
 """
-from concurrent.futures import as_completed, ProcessPoolExecutor, ThreadPoolExecutor
 import hashlib
 import json
 import logging
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 from typing import Any, Dict, List, Optional
 
-from bugout.exceptions import BugoutResponseException
 from bugout.data import BugoutSearchResult
-from fastapi import APIRouter, Depends, Request, Form, BackgroundTasks
+from bugout.exceptions import BugoutResponseException
+from fastapi import APIRouter, BackgroundTasks, Depends, Form, Path, Query, Request
 from moonstreamdb.blockchain import AvailableBlockchainType
 from web3 import Web3
 
+from .. import data
 from ..actions import (
     AddressNotSmartContractException,
-    validate_abi_json,
+    EntityJournalNotFoundException,
     apply_moonworm_tasks,
-    get_entity_subscription_collection_id,
-    EntityCollectionNotFoundException,
     check_if_smart_contract,
+    get_entity_subscription_journal_id,
     get_list_of_support_interfaces,
+    validate_abi_json,
 )
-from ..admin import subscription_types
-from .. import data
 from ..admin import subscription_types
 from ..middleware import MoonstreamHTTPException
 from ..reporter import reporter
-from ..settings import bugout_client as bc, entity_client as ec
 from ..settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_ENTITIES_RESERVED_TAGS,
     THREAD_TIMEOUT_SECONDS,
 )
-from ..web3_provider import (
-    yield_web3_provider,
-)
-
+from ..settings import bugout_client as bc
+from ..web3_provider import yield_web3_provider
 
 logger = logging.getLogger(__name__)
 
@@ -160,36 +156,35 @@ async def add_subscription_handler(
         required_fields.extend(allowed_required_fields)
 
     try:
-        collection_id = get_entity_subscription_collection_id(
+        journal_id = get_entity_subscription_journal_id(
             resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             user_id=user.id,
             create_if_not_exist=True,
         )
-
-        entity = ec.add_entity(
+        entity = bc.create_entity(
             token=token,
-            collection_id=collection_id,
+            journal_id=journal_id,
             address=address,
             blockchain=subscription_types.CANONICAL_SUBSCRIPTION_TYPES[
                 subscription_type_id
             ].blockchain,
-            name=label,
+            title=label,
             required_fields=required_fields,
             secondary_fields=content,
         )
-    except EntityCollectionNotFoundException as e:
+    except EntityJournalNotFoundException as e:
         raise MoonstreamHTTPException(
             status_code=404,
-            detail="User subscriptions collection not found",
+            detail="User subscriptions journal not found",
             internal_error=e,
         )
     except Exception as e:
-        logger.error(f"Failed to get collection id")
+        logger.error(f"Failed to get journal id")
         raise MoonstreamHTTPException(
             status_code=500,
             internal_error=e,
-            detail="Currently unable to get collection id",
+            detail="Currently unable to get journal id",
         )
 
     normalized_entity_tags = [
@@ -200,7 +195,7 @@ async def add_subscription_handler(
     ]
 
     return data.SubscriptionResourceData(
-        id=str(entity.entity_id),
+        id=str(entity.id),
         user_id=str(user.id),
         address=address,
         color=color,
@@ -219,28 +214,29 @@ async def add_subscription_handler(
     tags=["subscriptions"],
     response_model=data.SubscriptionResourceData,
 )
-async def delete_subscription_handler(request: Request, subscription_id: str):
+async def delete_subscription_handler(
+    request: Request, subscription_id: str = Path(...)
+):
     """
     Delete subscriptions.
     """
     token = request.state.token
     user = request.state.user
     try:
-        collection_id = get_entity_subscription_collection_id(
+        journal_id = get_entity_subscription_journal_id(
             resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             user_id=user.id,
         )
-
-        deleted_entity = ec.delete_entity(
+        deleted_entity = bc.delete_entity(
             token=token,
-            collection_id=collection_id,
+            journal_id=journal_id,
             entity_id=subscription_id,
         )
-    except EntityCollectionNotFoundException as e:
+    except EntityJournalNotFoundException as e:
         raise MoonstreamHTTPException(
             status_code=404,
-            detail="User subscriptions collection not found",
+            detail="User subscriptions journal not found",
             internal_error=e,
         )
     except Exception as e:
@@ -272,7 +268,7 @@ async def delete_subscription_handler(request: Request, subscription_id: str):
         abi = deleted_entity.secondary_fields.get("abi")
 
     return data.SubscriptionResourceData(
-        id=str(deleted_entity.entity_id),
+        id=str(deleted_entity.id),
         user_id=str(user.id),
         address=deleted_entity.address,
         color=color,
@@ -289,8 +285,8 @@ async def delete_subscription_handler(request: Request, subscription_id: str):
 @router.get("/", tags=["subscriptions"], response_model=data.SubscriptionsListResponse)
 async def get_subscriptions_handler(
     request: Request,
-    limit: Optional[int] = 10,
-    offset: Optional[int] = 0,
+    limit: Optional[int] = Query(10),
+    offset: Optional[int] = Query(0),
 ) -> data.SubscriptionsListResponse:
     """
     Get user's subscriptions.
@@ -298,25 +294,24 @@ async def get_subscriptions_handler(
     token = request.state.token
     user = request.state.user
     try:
-        collection_id = get_entity_subscription_collection_id(
+        journal_id = get_entity_subscription_journal_id(
             resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             user_id=user.id,
             create_if_not_exist=True,
         )
-
-        subscriprions_list = ec.search_entities(
+        subscriptions_list = bc.search(
             token=token,
-            collection_id=collection_id,
-            required_field=[f"type:subscription"],
+            journal_id=journal_id,
+            query="tag:type:subscription",
             limit=limit,
             offset=offset,
         )
 
-    except EntityCollectionNotFoundException as e:
+    except EntityJournalNotFoundException as e:
         raise MoonstreamHTTPException(
             status_code=404,
-            detail="User subscriptions collection not found",
+            detail="User subscriptions journal not found",
             internal_error=e,
         )
     except Exception as e:
@@ -328,7 +323,7 @@ async def get_subscriptions_handler(
 
     subscriptions = []
 
-    for subscription in subscriprions_list.entities:
+    for subscription in subscriptions_list.entities:
         tags = subscription.required_fields
 
         label, color, subscription_type_id = None, None, None
@@ -352,7 +347,7 @@ async def get_subscriptions_handler(
 
         subscriptions.append(
             data.SubscriptionResourceData(
-                id=str(subscription.entity_id),
+                id=str(subscription.id),
                 user_id=str(user.id),
                 address=subscription.address,
                 color=color,
@@ -378,8 +373,8 @@ async def get_subscriptions_handler(
 )
 async def update_subscriptions_handler(
     request: Request,
-    subscription_id: str,
     background_tasks: BackgroundTasks,
+    subscription_id: str = Path(...),
 ) -> data.SubscriptionResourceData:
     """
     Get user's subscriptions.
@@ -401,16 +396,16 @@ async def update_subscriptions_handler(
     tags = form_data.tags
 
     try:
-        collection_id = get_entity_subscription_collection_id(
+        journal_id = get_entity_subscription_journal_id(
             resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             user_id=user.id,
         )
 
         # get subscription entity
-        subscription_entity = ec.get_entity(
+        subscription_entity = bc.get_entity(
             token=token,
-            collection_id=collection_id,
+            journal_id=journal_id,
             entity_id=subscription_id,
         )
 
@@ -430,17 +425,17 @@ async def update_subscriptions_handler(
 
         if not subscription_type_id:
             logger.error(
-                f"Subscription entity {subscription_id} in collection {collection_id} has no subscription_type_id malformed subscription entity"
+                f"Subscription entity {subscription_id} in journal (collection) {journal_id} has no subscription_type_id malformed subscription entity"
             )
             raise MoonstreamHTTPException(
                 status_code=409,
                 detail="Not valid subscription entity",
             )
 
-    except EntityCollectionNotFoundException as e:
+    except EntityJournalNotFoundException as e:
         raise MoonstreamHTTPException(
             status_code=404,
-            detail="User subscriptions collection not found",
+            detail="User subscriptions journal not found",
             internal_error=e,
         )
     except Exception as e:
@@ -488,17 +483,16 @@ async def update_subscriptions_handler(
         if allowed_required_fields:
             update_required_fields.extend(allowed_required_fields)
     try:
-        subscription = ec.update_entity(
+        subscription = bc.update_entity(
             token=token,
-            collection_id=collection_id,
+            journal_id=journal_id,
             entity_id=subscription_id,
+            title=subscription_entity.title,
             address=subscription_entity.address,
             blockchain=subscription_entity.blockchain,
-            name=subscription_entity.name,
             required_fields=update_required_fields,
             secondary_fields=update_secondary_fields,
         )
-
     except Exception as e:
         logger.error(f"Error update user subscriptions: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
@@ -519,7 +513,7 @@ async def update_subscriptions_handler(
     ]
 
     return data.SubscriptionResourceData(
-        id=str(subscription.entity_id),
+        id=str(subscription.id),
         user_id=str(user.id),
         address=subscription.address,
         color=color,
@@ -536,33 +530,33 @@ async def update_subscriptions_handler(
 @router.get(
     "/{subscription_id}/abi",
     tags=["subscriptions"],
-    response_model=data.SubdcriptionsAbiResponse,
+    response_model=data.SubscriptionsAbiResponse,
 )
 async def get_subscription_abi_handler(
     request: Request,
-    subscription_id: str,
-) -> data.SubdcriptionsAbiResponse:
+    subscription_id: str = Path(...),
+) -> data.SubscriptionsAbiResponse:
     token = request.state.token
     user = request.state.user
 
     try:
-        collection_id = get_entity_subscription_collection_id(
+        journal_id = get_entity_subscription_journal_id(
             resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             user_id=user.id,
         )
 
         # get subscription entity
-        subscription_resource = ec.get_entity(
+        subscription_resource = bc.get_entity(
             token=token,
-            collection_id=collection_id,
+            journal_id=journal_id,
             entity_id=subscription_id,
         )
 
-    except EntityCollectionNotFoundException as e:
+    except EntityJournalNotFoundException as e:
         raise MoonstreamHTTPException(
             status_code=404,
-            detail="User subscriptions collection not found",
+            detail="User subscriptions journal not found",
             internal_error=e,
         )
     except Exception as e:
@@ -572,7 +566,7 @@ async def get_subscription_abi_handler(
     if "abi" not in subscription_resource.secondary_fields.keys():
         raise MoonstreamHTTPException(status_code=404, detail="Abi not found")
 
-    return data.SubdcriptionsAbiResponse(
+    return data.SubscriptionsAbiResponse(
         abi=subscription_resource.secondary_fields["abi"]
     )
 
@@ -605,7 +599,7 @@ async def list_subscription_types() -> data.SubscriptionTypesListResponse:
     tags=["subscriptions"],
     response_model=data.ContractInfoResponse,
 )
-async def address_info(request: Request, address: str):
+async def address_info(request: Request, address: str = Query(...)):
     """
     Looking if address is contract
     """
@@ -668,8 +662,8 @@ async def address_info(request: Request, address: str):
 )
 def get_contract_interfaces(
     request: Request,
-    address: str,
-    blockchain: str,
+    address: str = Query(...),
+    blockchain: str = Query(...),
 ):
     """
     Request contract interfaces from web3
