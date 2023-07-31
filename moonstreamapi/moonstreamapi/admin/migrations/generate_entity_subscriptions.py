@@ -774,12 +774,7 @@ def fix_duplicates_keys_in_entity_subscription():
 
             secondary_fields = secondary_fields["secondary_fields"]
 
-            # get entity id
-
-            entity_id = entity.entity_id
-
             # get entity type
-
             entity_type = None
 
             # extract required fields
@@ -800,7 +795,7 @@ def fix_duplicates_keys_in_entity_subscription():
                 new_required_fields.append(
                     {"type": "copy_of_malformed_entity_20230213"}
                 )
-                new_required_fields.append({"entity_id": str(entity_id)})
+                new_required_fields.append({"entity_id": str(entity.id)})
 
                 new_entity = bc.create_entity(
                     token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -812,12 +807,12 @@ def fix_duplicates_keys_in_entity_subscription():
                     secondary_fields=entity.secondary_fields,
                 )
                 logger.info(
-                    f"Entity {new_entity.entity_id} created successfully for journal (collection) {journal_id}"
+                    f"Entity {new_entity.id} created successfully for journal (collection) {journal_id}"
                 )
 
             except Exception as e:
                 logger.error(
-                    f"Failed to create entity {entity_id} for journal (collection) {journal_id}: {str(e)}, user_id: {user_id}"
+                    f"Failed to create entity {entity.id} for journal (collection) {journal_id}: {str(e)}, user_id: {user_id}"
                 )
                 continue
 
@@ -827,7 +822,7 @@ def fix_duplicates_keys_in_entity_subscription():
                 bc.update_entity(
                     token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
                     journal_id=journal_id,
-                    entity_id=entity_id,
+                    entity_id=entity.id,
                     blockchain=entity.blockchain,
                     address=entity.address,
                     title=entity.title,
@@ -835,10 +830,10 @@ def fix_duplicates_keys_in_entity_subscription():
                     secondary_fields=secondary_fields,
                 )
                 logger.info(
-                    f"Entity {entity_id} updated successfully for journal (collection) {journal_id}"
+                    f"Entity {entity.id} updated successfully for journal (collection) {journal_id}"
                 )
 
             except Exception as e:
                 logger.error(
-                    f"Failed to update entity {entity_id} for journal (collection) {journal_id}: {str(e)}, user_id: {user_id}"
+                    f"Failed to update entity {entity.id} for journal (collection) {journal_id}: {str(e)}, user_id: {user_id}"
                 )

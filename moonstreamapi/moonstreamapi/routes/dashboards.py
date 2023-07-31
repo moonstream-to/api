@@ -24,7 +24,6 @@ from ..settings import (
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
 )
 from ..settings import bugout_client as bc
-from ..settings import entity_client as ec
 
 logger = logging.getLogger(__name__)
 
