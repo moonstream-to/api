@@ -252,7 +252,11 @@ async def delete_subscription_handler(
             detail="Internal error",
         )
 
-    tags = deleted_entity.required_fields
+    tags_raw = (
+        deleted_entity.required_fields
+        if deleted_entity.required_fields is not None
+        else {}
+    )
 
     subscription_type_id = None
     color = None
@@ -260,16 +264,20 @@ async def delete_subscription_handler(
     abi = None
     description = None
 
-    if tags is not None:
-        for tag in tags:
-            if "subscription_type_id" in tag:
-                subscription_type_id = tag["subscription_type_id"]
+    for tag in tags_raw:
+        if "subscription_type_id" in tag:
+            subscription_type_id = tag["subscription_type_id"]
+        if "color" in tag:
+            color = tag["color"]
+        if "label" in tag:
+            label = tag["label"]
 
-            if "color" in tag:
-                color = tag["color"]
-
-            if "label" in tag:
-                label = tag["label"]
+    normalized_entity_tags = [
+        f"{key}:{value}"
+        for tag in tags_raw
+        for key, value in tag.items()
+        if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS
+    ]
 
     if deleted_entity.secondary_fields is not None:
         abi = deleted_entity.secondary_fields.get("abi")
@@ -283,7 +291,7 @@ async def delete_subscription_handler(
         label=label,
         abi=abi,
         description=description,
-        tags=deleted_entity.required_fields,
+        tags=normalized_entity_tags,
         subscription_type_id=subscription_type_id,
         updated_at=deleted_entity.updated_at,
         created_at=deleted_entity.created_at,
@@ -594,6 +602,10 @@ async def get_subscription_abi_handler(
         logger.error(f"Error get subscriptions for user ({user}), error: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
+    if subscription_resource.secondary_fields is None:
+        raise MoonstreamHTTPException(
+            status_code=500, detail=f"Malformed subscription entity {subscription_id}"
+        )
     if "abi" not in subscription_resource.secondary_fields.keys():
         raise MoonstreamHTTPException(status_code=404, detail="Abi not found")
 

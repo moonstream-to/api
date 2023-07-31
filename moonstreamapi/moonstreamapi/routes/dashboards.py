@@ -262,12 +262,10 @@ async def update_dashboard_handler(
                     status_code=404,
                     detail=f"Error on dashboard resource {dashboard_subscription.subscription_id} does not have an abi",
                 )
-
-            abi = json.loads(
-                available_subscriptions_ids[
-                    dashboard_subscription.subscription_id
-                ].secondary_fields.get("abi")
-            )
+            abi_raw = available_subscriptions_ids[
+                dashboard_subscription.subscription_id
+            ].secondary_fields.get("abi")
+            abi = json.loads(abi_raw if abi_raw is not None else "")
 
             actions.dashboards_abi_validation(dashboard_subscription, abi)
 
