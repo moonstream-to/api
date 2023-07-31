@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, cast
 from uuid import UUID
 
 import boto3  # type: ignore
@@ -61,17 +61,18 @@ async def add_dashboard_handler(
     subscriptions_list = bc.search(
         token=token,
         journal_id=journal_id,
-        required_field=[f"type:subscription"],
+        query="tag:type:subscription",
         limit=1000,
         representation="entity",
     )
 
     # process existing subscriptions with supplied ids
-
-    available_subscriptions_ids: Dict[Union[UUID, str], BugoutSearchResultAsEntity] = {
-        subscription.entity_id: subscription
-        for subscription in subscriptions_list.entities
-    }
+    available_subscriptions_ids: Dict[Union[UUID, str], BugoutSearchResultAsEntity]
+    for result in subscriptions_list.results:
+        entity = cast(BugoutSearchResultAsEntity, result)
+        entity_url_list = entity.entity_url.split("/")
+        subscription_id = entity_url_list[len(entity_url_list) - 1]
+        available_subscriptions_ids[subscription_id] = entity
 
     for dashboard_subscription in subscription_settings:
         if dashboard_subscription.subscription_id in available_subscriptions_ids.keys():
@@ -234,15 +235,17 @@ async def update_dashboard_handler(
     subscriptions_list = bc.search(
         token=token,
         journal_id=journal_id,
-        required_field=[f"type:subscription"],
+        query="tag:type:subscription",
         limit=1000,
         representation="entity",
     )
 
-    available_subscriptions_ids: Dict[Union[UUID, str], BugoutSearchResultAsEntity] = {
-        subscription.entity_id: subscription
-        for subscription in subscriptions_list.entities
-    }
+    available_subscriptions_ids: Dict[Union[UUID, str], BugoutSearchResultAsEntity]
+    for result in subscriptions_list.results:
+        entity = cast(BugoutSearchResultAsEntity, result)
+        entity_url_list = entity.entity_url.split("/")
+        subscription_id = entity_url_list[len(entity_url_list) - 1]
+        available_subscriptions_ids[subscription_id] = entity
 
     for dashboard_subscription in subscription_settings:
         if dashboard_subscription.subscription_id in available_subscriptions_ids:
@@ -337,12 +340,12 @@ async def get_dashboard_data_links_handler(
     subscriptions_list = bc.search(
         token=token,
         journal_id=journal_id,
-        required_field=[f"type:subscription"],
+        query="tag:type:subscription",
         limit=1000,
         representation="entity",
     )
 
-    # filter out dasboards
+    # filter out dashboards
 
     subscriptions_ids = [
         subscription_meta["subscription_id"]
@@ -351,11 +354,12 @@ async def get_dashboard_data_links_handler(
         ]
     ]
 
-    dashboard_subscriptions: Dict[Union[UUID, str], BugoutSearchResultAsEntity] = {
-        subscription.entity_id: subscription
-        for subscription in subscriptions_list.entities
-        if str(subscription.entity_id) in subscriptions_ids
-    }
+    dashboard_subscriptions: Dict[Union[UUID, str], BugoutSearchResultAsEntity]
+    for result in subscriptions_list.results:
+        entity = cast(BugoutSearchResultAsEntity, result)
+        entity_url_list = entity.entity_url.split("/")
+        subscription_id = entity_url_list[len(entity_url_list) - 1]
+        dashboard_subscriptions[subscription_id] = entity
 
     # generate s3 links
 

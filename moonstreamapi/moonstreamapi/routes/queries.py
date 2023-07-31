@@ -1,40 +1,38 @@
 """
 The Moonstream queries HTTP API
 """
-from datetime import datetime
 import logging
+from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple, Union
 from uuid import UUID
 
-
-from bugout.data import BugoutResources, BugoutJournalEntryContent, BugoutJournalEntry
-from bugout.exceptions import BugoutResponseException
-from fastapi import APIRouter, Body, Request
 import requests  # type: ignore
+from bugout.data import BugoutJournalEntry, BugoutJournalEntryContent, BugoutResources
+from bugout.exceptions import BugoutResponseException
+from fastapi import APIRouter, Body, Path, Request
 from moonstreamdb.blockchain import AvailableBlockchainType
 from sqlalchemy import text
 
-
 from .. import data
 from ..actions import (
+    NameNormalizationException,
+    generate_s3_access_links,
     get_query_by_name,
     name_normalization,
-    NameNormalizationException,
     query_parameter_hash,
-    generate_s3_access_links,
 )
 from ..middleware import MoonstreamHTTPException
 from ..settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_APPLICATION_ID,
-    MOONSTREAM_CRAWLERS_SERVER_URL,
     MOONSTREAM_CRAWLERS_SERVER_PORT,
+    MOONSTREAM_CRAWLERS_SERVER_URL,
+    MOONSTREAM_QUERIES_JOURNAL_ID,
+    MOONSTREAM_QUERY_TEMPLATE_CONTEXT_TYPE,
     MOONSTREAM_S3_QUERIES_BUCKET,
     MOONSTREAM_S3_QUERIES_BUCKET_PREFIX,
-    MOONSTREAM_QUERIES_JOURNAL_ID,
 )
-from ..settings import bugout_client as bc, MOONSTREAM_QUERY_TEMPLATE_CONTEXT_TYPE
-
+from ..settings import bugout_client as bc
 
 logger = logging.getLogger(__name__)
 
@@ -183,7 +181,7 @@ def get_suggested_queries(
     query = " ".join(filters)
 
     try:
-        queries = bc.search(
+        queries: Any = bc.search(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
             query=query,
@@ -232,7 +230,7 @@ async def get_query_handler(
         )
 
     # check in templates
-
+    entries: Any
     try:
         entries = bc.search(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -390,6 +388,7 @@ async def update_query_data_handler(
         )
 
     # check in templates
+    entries: Any
 
     try:
         entries = bc.search(
@@ -497,6 +496,7 @@ async def get_access_link_handler(
         )
 
     # check in templattes
+    entries: Any
 
     try:
         entries = bc.search(

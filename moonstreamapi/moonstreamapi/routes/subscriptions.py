@@ -275,12 +275,6 @@ async def delete_subscription_handler(
         abi = deleted_entity.secondary_fields.get("abi")
         description = deleted_entity.secondary_fields.get("description")
 
-    deleted_entity_required_fields = (
-        deleted_entity.required_fields
-        if deleted_entity.required_fields is not None
-        else []
-    )
-
     return data.SubscriptionResourceData(
         id=str(deleted_entity.id),
         user_id=str(user.id),
@@ -289,7 +283,7 @@ async def delete_subscription_handler(
         label=label,
         abi=abi,
         description=description,
-        tags=deleted_entity_required_fields,
+        tags=deleted_entity.required_fields,
         subscription_type_id=subscription_type_id,
         updated_at=deleted_entity.updated_at,
         created_at=deleted_entity.created_at,
@@ -299,8 +293,8 @@ async def delete_subscription_handler(
 @router.get("/", tags=["subscriptions"], response_model=data.SubscriptionsListResponse)
 async def get_subscriptions_handler(
     request: Request,
-    limit: Optional[int] = Query(10),
-    offset: Optional[int] = Query(0),
+    limit: int = Query(10),
+    offset: int = Query(0),
 ) -> data.SubscriptionsListResponse:
     """
     Get user's subscriptions.
@@ -314,7 +308,7 @@ async def get_subscriptions_handler(
             user_id=user.id,
             create_if_not_exist=True,
         )
-        subscriptions_list = bc.search(
+        subscriptions_list: Any = bc.search(
             token=token,
             journal_id=journal_id,
             query="tag:type:subscription",
@@ -423,16 +417,21 @@ async def update_subscriptions_handler(
             entity_id=subscription_id,
         )
 
+        update_required_fields = []
+        if subscription_entity.required_fields is not None:
+            update_required_fields = [
+                field
+                for field in subscription_entity.required_fields
+                if any(key in field for key in MOONSTREAM_ENTITIES_RESERVED_TAGS)
+            ]
+
+        update_secondary_fields = (
+            subscription_entity.secondary_fields
+            if subscription_entity.secondary_fields is not None
+            else {}
+        )
+
         subscription_type_id = None
-
-        update_required_fields = [
-            field
-            for field in subscription_entity.required_fields
-            if any(key in field for key in MOONSTREAM_ENTITIES_RESERVED_TAGS)
-        ]
-
-        update_secondary_fields = subscription_entity.secondary_fields
-
         for field in update_required_fields:
             if "subscription_type_id" in field:
                 subscription_type_id = field["subscription_type_id"]
@@ -496,14 +495,24 @@ async def update_subscriptions_handler(
 
         if allowed_required_fields:
             update_required_fields.extend(allowed_required_fields)
+
+    address = subscription_entity.address
+    if address is None:
+        logger.error(f"Lost address at entity {subscription_id} for subscription")
+        raise MoonstreamHTTPException(status_code=500)
+
     try:
         subscription = bc.update_entity(
             token=token,
             journal_id=journal_id,
             entity_id=subscription_id,
-            title=subscription_entity.title,
-            address=subscription_entity.address,
-            blockchain=subscription_entity.blockchain,
+            title=subscription_entity.title
+            if subscription_entity.title is not None
+            else "",
+            address=address,
+            blockchain=subscription_entity.blockchain
+            if subscription_entity.blockchain is not None
+            else "",
             required_fields=update_required_fields,
             secondary_fields=update_secondary_fields,
         )
@@ -516,12 +525,20 @@ async def update_subscriptions_handler(
             apply_moonworm_tasks,
             subscription_type_id,
             json_abi,
-            subscription.address,
+            address,
         )
+    subscription_required_fields = (
+        subscription.required_fields if subscription.required_fields is not None else {}
+    )
+    subscription_secondary_fields = (
+        subscription.secondary_fields
+        if subscription.secondary_fields is not None
+        else {}
+    )
 
     normalized_entity_tags = [
         f"{key}:{value}"
-        for tag in subscription.required_fields
+        for tag in subscription_required_fields
         for key, value in tag.items()
         if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS
     ]
@@ -532,8 +549,8 @@ async def update_subscriptions_handler(
         address=subscription.address,
         color=color,
         label=label,
-        abi=subscription.secondary_fields.get("abi"),
-        description=subscription.secondary_fields.get("description"),
+        abi=subscription_secondary_fields.get("abi"),
+        description=subscription_secondary_fields.get("description"),
         tags=normalized_entity_tags,
         subscription_type_id=subscription_type_id,
         updated_at=subscription_entity.updated_at,
