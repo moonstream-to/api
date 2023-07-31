@@ -109,7 +109,7 @@ def handle_leaderboards(args: argparse.Namespace) -> None:
             logger.error(f"Could not get results for query {query_name} in time")
             continue
 
-        leaderboard_push_api_url = f"{MOONSTREAM_ENGINE_URL}/leaderboard/{leaderboard_id}/scores?normalize_addresses={leaderboard_data['normalize_addresses']}"
+        leaderboard_push_api_url = f"{MOONSTREAM_ENGINE_URL}/leaderboard/{leaderboard_id}/scores?normalize_addresses={leaderboard_data['normalize_addresses']}&overwrite=true"
 
         leaderboard_api_headers = {
             "Authorization": f"Bearer {args.query_api_access_token}",
