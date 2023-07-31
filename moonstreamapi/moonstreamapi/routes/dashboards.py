@@ -359,7 +359,8 @@ async def get_dashboard_data_links_handler(
         entity = cast(BugoutSearchResultAsEntity, result)
         entity_url_list = entity.entity_url.split("/")
         subscription_id = entity_url_list[len(entity_url_list) - 1]
-        dashboard_subscriptions[subscription_id] = entity
+        if str(subscription_id) in subscriptions_ids:
+            dashboard_subscriptions[subscription_id] = entity
 
     # generate s3 links
 
