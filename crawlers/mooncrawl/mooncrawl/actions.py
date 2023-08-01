@@ -82,7 +82,7 @@ def get_entity_subscription_collection_id(
     resource_type: str,
     token: Union[uuid.UUID, str],
     user_id: uuid.UUID,
-) -> Optional[str]:
+) -> str:
     """
     Get collection_id from brood resources. If collection not exist and create_if_not_exist is True
     """

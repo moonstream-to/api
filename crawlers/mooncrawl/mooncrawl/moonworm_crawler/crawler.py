@@ -195,7 +195,7 @@ def get_crawl_job_entries(
         query += f" created_at:>={created_at_filter}"
 
     current_offset = 0
-    entries = []
+    entries: List[BugoutSearchResult] = []
     while True:
         search_result = bugout_client.search(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -205,10 +205,11 @@ def get_crawl_job_entries(
             limit=limit,
             timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
         )
-        entries.extend(search_result.results)
+        search_results = cast(List[BugoutSearchResult], search_result.results)
+        entries.extend(search_results)
 
         # if len(entries) >= search_result.total_results:
-        if len(search_result.results) == 0:
+        if len(search_results) == 0:
             break
         current_offset += limit
     return entries
@@ -402,8 +403,9 @@ def _get_heartbeat_entry_id(
         limit=1,
         timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
     )
-    if entries.results:
-        return entries.results[0].entry_url.split("/")[-1]
+    search_results = cast(List[BugoutSearchResult], entries.results)
+    if search_results:
+        return search_results[0].entry_url.split("/")[-1]
     else:
         logger.info(f"No {crawler_type} heartbeat entry found, creating one")
         entry = bugout_client.create_entry(
