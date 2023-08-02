@@ -81,7 +81,7 @@ def get_uris_of_tokens(
             {}
         WHERE
             label = :label
-            AND label_data ->> 'name' = :name
+            AND label_data ->> 'name' in :names
         ORDER BY
             label_data -> 'inputs'-> 0 ASC,
             address ASC,
@@ -90,7 +90,11 @@ def get_uris_of_tokens(
                 table
             )
         ),
-        {"table": table, "label": VIEW_STATE_CRAWLER_LABEL, "name": "tokenURI"},
+        {
+            "table": table,
+            "label": VIEW_STATE_CRAWLER_LABEL,
+            "names": ("tokenURI", "uri"),
+        },
     )
 
     results = [
