@@ -5,9 +5,9 @@ import hashlib
 import json
 import logging
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, cast
 
-from bugout.data import BugoutSearchResult
+from bugout.data import BugoutSearchResult, BugoutSearchResultAsEntity
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, BackgroundTasks, Depends, Form, Path, Query, Request
 from moonstreamdb.blockchain import AvailableBlockchainType
@@ -322,6 +322,7 @@ async def get_subscriptions_handler(
             query="tag:type:subscription",
             limit=limit,
             offset=offset,
+            representation="entity",
         )
 
     except EntityJournalNotFoundException as e:
@@ -339,7 +340,11 @@ async def get_subscriptions_handler(
 
     subscriptions = []
 
-    for subscription in subscriptions_list.entities:
+    user_subscriptions_results = cast(
+        List[BugoutSearchResultAsEntity], subscriptions_list.results
+    )
+
+    for subscription in user_subscriptions_results:
         tags = subscription.required_fields
 
         label, color, subscription_type_id = None, None, None
@@ -363,7 +368,7 @@ async def get_subscriptions_handler(
 
         subscriptions.append(
             data.SubscriptionResourceData(
-                id=str(subscription.id),
+                id=str(subscription.entity_url.split("/")[-1]),
                 user_id=str(user.id),
                 address=subscription.address,
                 color=color,
