@@ -4,10 +4,10 @@ Event providers powered by Bugout journals.
 import json
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 from bugout.app import Bugout
-from bugout.data import BugoutResource, BugoutSearchResult
+from bugout.data import BugoutResource, BugoutSearchResult, BugoutSearchResultAsEntity
 from bugout.journal import SearchOrder
 from dateutil.parser import isoparse
 from dateutil.tz import UTC
@@ -155,7 +155,7 @@ class BugoutEventProvider:
                 timeout=self.timeout,
                 order=SearchOrder.DESCENDING,
             )
-            events.extend([self.entry_event(entry) for entry in search_results.results])
+            events.extend([self.entry_event(entry) for entry in search_results.results])    # type: ignore
             offset = search_results.next_offset
 
         return stream_boundary, events
@@ -192,7 +192,7 @@ class BugoutEventProvider:
             timeout=self.timeout,
             order=SearchOrder.DESCENDING,
         )
-        return [self.entry_event(entry) for entry in search_results.results]
+        return [self.entry_event(entry) for entry in search_results.results] # type: ignore
 
     def next_event(
         self,
@@ -233,7 +233,7 @@ class BugoutEventProvider:
         )
         if not search_results.results:
             return None
-        return self.entry_event(search_results.results[0])
+        return self.entry_event(search_results.results[0]) # type: ignore
 
     def previous_event(
         self,
@@ -274,7 +274,7 @@ class BugoutEventProvider:
         )
         if not search_results.results:
             return None
-        return self.entry_event(search_results.results[0])
+        return self.entry_event(search_results.results[0]) # type: ignore
 
 
 class EthereumTXPoolProvider(BugoutEventProvider):

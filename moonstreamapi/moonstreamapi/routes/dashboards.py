@@ -1,14 +1,12 @@
 import json
 import logging
-from os import read
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, cast
 from uuid import UUID
 
 import boto3  # type: ignore
 import requests  # type: ignore
-from bugout.data import BugoutResource, BugoutResources
+from bugout.data import BugoutResource, BugoutResources, BugoutSearchResultAsEntity
 from bugout.exceptions import BugoutResponseException
-from entity.data import EntitiesResponse, EntityResponse  # type: ignore
 from fastapi import APIRouter, Body, Path, Query, Request
 
 from .. import actions, data
@@ -16,15 +14,15 @@ from ..middleware import MoonstreamHTTPException
 from ..reporter import reporter
 from ..settings import (
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
+    BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_APPLICATION_ID,
-    MOONSTREAM_CRAWLERS_SERVER_URL,
     MOONSTREAM_CRAWLERS_SERVER_PORT,
+    MOONSTREAM_CRAWLERS_SERVER_URL,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
-    BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
 )
-from ..settings import bugout_client as bc, entity_client as ec
+from ..settings import bugout_client as bc
 
 logger = logging.getLogger(__name__)
 
@@ -52,27 +50,29 @@ async def add_dashboard_handler(
 
     subscription_settings = dashboard.subscription_settings
 
-    # Get user collection id
+    # Get user journal (collection) id
 
-    collection_id = actions.get_entity_subscription_collection_id(
+    journal_id = actions.get_entity_subscription_journal_id(
         resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
         user_id=user.id,
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
     )
 
-    subscriprions_list = ec.search_entities(
+    subscriptions_list = bc.search(
         token=token,
-        collection_id=collection_id,
-        required_field=[f"type:subscription"],
+        journal_id=journal_id,
+        query="tag:type:subscription",
         limit=1000,
+        representation="entity",
     )
 
     # process existing subscriptions with supplied ids
-
-    available_subscriptions_ids: Dict[Union[UUID, str], EntityResponse] = {
-        subscription.entity_id: subscription
-        for subscription in subscriprions_list.entities
-    }
+    available_subscriptions_ids: Dict[Union[UUID, str], BugoutSearchResultAsEntity]
+    for result in subscriptions_list.results:
+        entity = cast(BugoutSearchResultAsEntity, result)
+        entity_url_list = entity.entity_url.split("/")
+        subscription_id = entity_url_list[len(entity_url_list) - 1]
+        available_subscriptions_ids[subscription_id] = entity
 
     for dashboard_subscription in subscription_settings:
         if dashboard_subscription.subscription_id in available_subscriptions_ids.keys():
@@ -137,7 +137,7 @@ async def add_dashboard_handler(
     tags=["subscriptions"],
     response_model=BugoutResource,
 )
-async def delete_subscription_handler(request: Request, dashboard_id: str):
+async def delete_subscription_handler(request: Request, dashboard_id: str = Path(...)):
     """
     Delete subscriptions.
     """
@@ -181,9 +181,9 @@ async def get_dashboards_handler(
     return resources
 
 
-@router.get("/{dashboarsd_id}", tags=["dashboards"], response_model=BugoutResource)
+@router.get("/{dashboard_id}", tags=["dashboards"], response_model=BugoutResource)
 async def get_dashboard_handler(
-    request: Request, dashboarsd_id: UUID
+    request: Request, dashboard_id: UUID = Path(...)
 ) -> BugoutResource:
     """
     Get user's subscriptions.
@@ -193,7 +193,7 @@ async def get_dashboard_handler(
     try:
         resource: BugoutResource = bc.get_resource(
             token=token,
-            resource_id=dashboarsd_id,
+            resource_id=dashboard_id,
             timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
         )
     except BugoutResponseException as e:
@@ -211,7 +211,7 @@ async def get_dashboard_handler(
 @router.put("/{dashboard_id}", tags=["dashboards"], response_model=BugoutResource)
 async def update_dashboard_handler(
     request: Request,
-    dashboard_id: str,
+    dashboard_id: str = Path(...),
     dashboard: data.DashboardUpdate = Body(...),
 ) -> BugoutResource:
     """
@@ -224,25 +224,28 @@ async def update_dashboard_handler(
 
     subscription_settings = dashboard.subscription_settings
 
-    # Get user collection id
+    # Get user journal (collection) id
 
-    collection_id = actions.get_entity_subscription_collection_id(
+    journal_id = actions.get_entity_subscription_journal_id(
         resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
         user_id=user.id,
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
     )
 
-    subscriprions_list = ec.search_entities(
+    subscriptions_list = bc.search(
         token=token,
-        collection_id=collection_id,
-        required_field=[f"type:subscription"],
+        journal_id=journal_id,
+        query="tag:type:subscription",
         limit=1000,
+        representation="entity",
     )
 
-    available_subscriptions_ids: Dict[Union[UUID, str], EntityResponse] = {
-        subscription.entity_id: subscription
-        for subscription in subscriprions_list.entities
-    }
+    available_subscriptions_ids: Dict[Union[UUID, str], BugoutSearchResultAsEntity]
+    for result in subscriptions_list.results:
+        entity = cast(BugoutSearchResultAsEntity, result)
+        entity_url_list = entity.entity_url.split("/")
+        subscription_id = entity_url_list[len(entity_url_list) - 1]
+        available_subscriptions_ids[subscription_id] = entity
 
     for dashboard_subscription in subscription_settings:
         if dashboard_subscription.subscription_id in available_subscriptions_ids:
@@ -259,12 +262,10 @@ async def update_dashboard_handler(
                     status_code=404,
                     detail=f"Error on dashboard resource {dashboard_subscription.subscription_id} does not have an abi",
                 )
-
-            abi = json.loads(
-                available_subscriptions_ids[
-                    dashboard_subscription.subscription_id
-                ].secondary_fields.get("abi")
-            )
+            abi_raw = available_subscriptions_ids[
+                dashboard_subscription.subscription_id
+            ].secondary_fields.get("abi")
+            abi = json.loads(abi_raw if abi_raw is not None else "")
 
             actions.dashboards_abi_validation(dashboard_subscription, abi)
 
@@ -301,7 +302,7 @@ async def update_dashboard_handler(
 
 @router.get("/{dashboard_id}/stats", tags=["dashboards"])
 async def get_dashboard_data_links_handler(
-    request: Request, dashboard_id: str
+    request: Request, dashboard_id: str = Path(...)
 ) -> Dict[Union[UUID, str], Any]:
     """
     Get s3 presign urls for dashboard grafics
@@ -328,20 +329,21 @@ async def get_dashboard_data_links_handler(
 
     # get subscriptions
 
-    collection_id = actions.get_entity_subscription_collection_id(
+    journal_id = actions.get_entity_subscription_journal_id(
         resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
         user_id=user.id,
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
     )
 
-    subscriprions_list = ec.search_entities(
+    subscriptions_list = bc.search(
         token=token,
-        collection_id=collection_id,
-        required_field=[f"type:subscription"],
+        journal_id=journal_id,
+        query="tag:type:subscription",
         limit=1000,
+        representation="entity",
     )
 
-    # filter out dasboards
+    # filter out dashboards
 
     subscriptions_ids = [
         subscription_meta["subscription_id"]
@@ -350,11 +352,13 @@ async def get_dashboard_data_links_handler(
         ]
     ]
 
-    dashboard_subscriptions: Dict[Union[UUID, str], EntitiesResponse] = {
-        subscription.entity_id: subscription
-        for subscription in subscriprions_list.entities
-        if str(subscription.entity_id) in subscriptions_ids
-    }
+    dashboard_subscriptions: Dict[Union[UUID, str], BugoutSearchResultAsEntity]
+    for result in subscriptions_list.results:
+        entity = cast(BugoutSearchResultAsEntity, result)
+        entity_url_list = entity.entity_url.split("/")
+        subscription_id = entity_url_list[len(entity_url_list) - 1]
+        if str(subscription_id) in subscriptions_ids:
+            dashboard_subscriptions[subscription_id] = entity
 
     # generate s3 links
 
