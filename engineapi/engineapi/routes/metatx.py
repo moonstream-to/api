@@ -88,7 +88,7 @@ async def blockchains_route(
     tags=["contracts"],
     response_model=List[data.RegisteredContractResponse],
 )
-async def list_registered_contracts(
+async def list_registered_contracts_route(
     request: Request,
     blockchain: Optional[str] = Query(None),
     address: Optional[str] = Query(None),
@@ -133,20 +133,20 @@ async def list_registered_contracts(
 @app.get(
     "/contracts/{contract_id}",
     tags=["contracts"],
-    response_model=data.RegisteredContract,
+    response_model=data.RegisteredContractResponse,
 )
-async def get_registered_contract(
+async def get_registered_contract_route(
     request: Request,
     contract_id: UUID = Path(...),
     db_session: Session = Depends(db.yield_db_read_only_session),
-) -> List[data.RegisteredContract]:
+) -> List[data.RegisteredContractResponse]:
     """
     Get the contract by ID.
     """
     try:
-        contract = contracts_actions.get_registered_contract(
+        contract_with_blockchain = contracts_actions.get_registered_contract(
             db_session=db_session,
-            moonstream_user_id=request.state.user.id,
+            metatx_holder_id=request.state.user.id,
             contract_id=contract_id,
         )
     except NoResultFound:
@@ -157,57 +157,87 @@ async def get_registered_contract(
     except Exception as err:
         logger.error(repr(err))
         raise EngineHTTPException(status_code=500)
-    return contract
+
+    return data.RegisteredContractResponse(
+        id=contract_with_blockchain[0].id,
+        blockchain=contract_with_blockchain[1].name,
+        address=contract_with_blockchain[0].address,
+        metatx_holder_id=contract_with_blockchain[0].metatx_holder_id,
+        title=contract_with_blockchain[0].title,
+        description=contract_with_blockchain[0].description,
+        image_uri=contract_with_blockchain[0].image_uri,
+        created_at=contract_with_blockchain[0].created_at,
+        updated_at=contract_with_blockchain[0].updated_at,
+    )
 
 
-@app.post("/contracts", tags=["contracts"], response_model=data.RegisteredContract)
-async def register_contract(
+@app.post(
+    "/contracts", tags=["contracts"], response_model=data.RegisteredContractResponse
+)
+async def register_contract_route(
     request: Request,
     contract: data.RegisterContractRequest = Body(...),
     db_session: Session = Depends(db.yield_db_session),
-) -> data.RegisteredContract:
+) -> data.RegisteredContractResponse:
     """
     Allows users to register contracts.
     """
     try:
-        registered_contract = contracts_actions.register_contract(
+        contract_with_blockchain = contracts_actions.register_contract(
             db_session=db_session,
-            moonstream_user_id=request.state.user.id,
-            blockchain=contract.blockchain,
+            metatx_holder_id=request.state.user.id,
+            blockchain_name=contract.blockchain,
             address=contract.address,
-            contract_type=contract.contract_type,
             title=contract.title,
             description=contract.description,
             image_uri=contract.image_uri,
+        )
+    except contracts_actions.UnsupportedBlockchain:
+        raise EngineHTTPException(
+            status_code=400, detail="Unsupported blockchain specified"
         )
     except contracts_actions.ContractAlreadyRegistered:
         raise EngineHTTPException(
             status_code=409,
             detail="Contract already registered",
         )
-    return registered_contract
+    except Exception as err:
+        logger.error(repr(err))
+        raise EngineHTTPException(status_code=500)
+
+    return data.RegisteredContractResponse(
+        id=contract_with_blockchain[0].id,
+        blockchain=contract_with_blockchain[1].name,
+        address=contract_with_blockchain[0].address,
+        metatx_holder_id=contract_with_blockchain[0].metatx_holder_id,
+        title=contract_with_blockchain[0].title,
+        description=contract_with_blockchain[0].description,
+        image_uri=contract_with_blockchain[0].image_uri,
+        created_at=contract_with_blockchain[0].created_at,
+        updated_at=contract_with_blockchain[0].updated_at,
+    )
 
 
 @app.put(
     "/contracts/{contract_id}",
     tags=["contracts"],
-    response_model=data.RegisteredContract,
+    response_model=data.RegisteredContractResponse,
 )
-async def update_contract(
+async def update_contract_route(
     request: Request,
     contract_id: UUID = Path(...),
     update_info: data.UpdateContractRequest = Body(...),
     db_session: Session = Depends(db.yield_db_session),
-) -> data.RegisteredContract:
+) -> data.RegisteredContractResponse:
     try:
-        contract = contracts_actions.update_registered_contract(
-            db_session,
-            request.state.user.id,
-            contract_id,
-            update_info.title,
-            update_info.description,
-            update_info.image_uri,
-            update_info.ignore_nulls,
+        contract_with_blockchain = contracts_actions.update_registered_contract(
+            db_session=db_session,
+            metatx_holder_id=request.state.user.id,
+            contract_id=contract_id,
+            title=update_info.title,
+            description=update_info.description,
+            image_uri=update_info.image_uri,
+            ignore_nulls=update_info.ignore_nulls,
         )
     except NoResultFound:
         raise EngineHTTPException(
@@ -218,33 +248,53 @@ async def update_contract(
         logger.error(repr(err))
         raise EngineHTTPException(status_code=500)
 
-    return contract
+    return data.RegisteredContractResponse(
+        id=contract_with_blockchain[0].id,
+        blockchain=contract_with_blockchain[1].name,
+        address=contract_with_blockchain[0].address,
+        metatx_holder_id=contract_with_blockchain[0].metatx_holder_id,
+        title=contract_with_blockchain[0].title,
+        description=contract_with_blockchain[0].description,
+        image_uri=contract_with_blockchain[0].image_uri,
+        created_at=contract_with_blockchain[0].created_at,
+        updated_at=contract_with_blockchain[0].updated_at,
+    )
 
 
 @app.delete(
     "/contracts/{contract_id}",
     tags=["contracts"],
-    response_model=data.RegisteredContract,
+    response_model=data.RegisteredContractResponse,
 )
-async def delete_contract(
+async def delete_contract_route(
     request: Request,
-    contract_id: UUID,
+    contract_id: UUID = Path(...),
     db_session: Session = Depends(db.yield_db_session),
-) -> data.RegisteredContract:
+) -> data.RegisteredContractResponse:
     """
     Allows users to delete contracts that they have registered.
     """
     try:
-        deleted_contract = contracts_actions.delete_registered_contract(
+        deleted_contract_with_blockchain = contracts_actions.delete_registered_contract(
             db_session=db_session,
-            moonstream_user_id=request.state.user.id,
+            metatx_holder_id=request.state.user.id,
             registered_contract_id=contract_id,
         )
     except Exception as err:
         logger.error(repr(err))
         raise EngineHTTPException(status_code=500)
 
-    return deleted_contract
+    return data.RegisteredContractResponse(
+        id=deleted_contract_with_blockchain[0].id,
+        blockchain=deleted_contract_with_blockchain[1].name,
+        address=deleted_contract_with_blockchain[0].address,
+        metatx_holder_id=deleted_contract_with_blockchain[0].metatx_holder_id,
+        title=deleted_contract_with_blockchain[0].title,
+        description=deleted_contract_with_blockchain[0].description,
+        image_uri=deleted_contract_with_blockchain[0].image_uri,
+        created_at=deleted_contract_with_blockchain[0].created_at,
+        updated_at=deleted_contract_with_blockchain[0].updated_at,
+    )
 
 
 # TODO(kompotkot): route `/contracts/types` deprecated

@@ -238,7 +238,6 @@ class BlockchainsResponse(BaseModel):
 class RegisterContractRequest(BaseModel):
     blockchain: str
     address: str
-    contract_type: ContractType
     title: Optional[str] = None
     description: Optional[str] = None
     image_uri: Optional[str] = None
@@ -249,29 +248,6 @@ class UpdateContractRequest(BaseModel):
     description: Optional[str] = None
     image_uri: Optional[str] = None
     ignore_nulls: bool = True
-
-
-class RegisteredContract(BaseModel):
-    id: UUID
-    blockchain: str
-    address: str
-    metatx_holder_id: UUID
-    title: Optional[str] = None
-    description: Optional[str] = None
-    image_uri: Optional[str] = None
-    created_at: datetime
-    updated_at: datetime
-
-    @validator("id", "metatx_holder_id")
-    def validate_uuids(cls, v):
-        return str(v)
-
-    @validator("created_at", "updated_at")
-    def validate_datetimes(cls, v):
-        return v.isoformat()
-
-    class Config:
-        orm_mode = True
 
 
 class RegisteredContractResponse(BaseModel):

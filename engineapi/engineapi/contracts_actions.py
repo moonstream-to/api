@@ -6,13 +6,21 @@ from datetime import timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy import func, text
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.engine import Row
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session
 from web3 import Web3
 
 from . import data, db
 from .data import ContractType
-from .models import Blockchain, CallRequest, CallRequestType, RegisteredContract
+from .models import (
+    Blockchain,
+    CallRequest,
+    CallRequestType,
+    MetatxHolder,
+    RegisteredContract,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -27,6 +35,12 @@ class CallRequestNotFound(Exception):
 class InvalidAddressFormat(Exception):
     """
     Raised when address not pass web3checksum validation.
+    """
+
+
+class UnsupportedBlockchain(Exception):
+    """
+    Raised when unsupported blockchain specified.
     """
 
 
@@ -72,23 +86,33 @@ def validate_method_and_params(
 
 def register_contract(
     db_session: Session,
-    blockchain: str,
+    blockchain_name: str,
     address: str,
-    contract_type: ContractType,
-    moonstream_user_id: uuid.UUID,
+    metatx_holder_id: uuid.UUID,
     title: Optional[str],
     description: Optional[str],
     image_uri: Optional[str],
-) -> data.RegisteredContract:
+) -> Tuple[RegisteredContract, Blockchain]:
     """
     Register a contract against the Engine instance
     """
     try:
+        blockchain = (
+            db_session.query(Blockchain)
+            .filter(Blockchain.name == blockchain_name)
+            .one_or_none()
+        )
+        if blockchain is None:
+            raise UnsupportedBlockchain("Unsupported blockchain specified")
+
+        metatx_holder_stmt = insert(MetatxHolder.__table__).values(id=metatx_holder_id)
+        metatx_holder_stmt_do_nothing_stmt = metatx_holder_stmt.on_conflict_do_nothing()
+        db_session.execute(metatx_holder_stmt_do_nothing_stmt)
+
         contract = RegisteredContract(
-            blockchain=blockchain,
+            blockchain_id=blockchain.id,
             address=Web3.toChecksumAddress(address),
-            contract_type=contract_type.value,
-            moonstream_user_id=moonstream_user_id,
+            metatx_holder_id=metatx_holder_id,
             title=title,
             description=description,
             image_uri=image_uri,
@@ -103,38 +127,42 @@ def register_contract(
         logger.error(repr(err))
         raise
 
-    return contract
+    return (contract, blockchain)
 
 
 def update_registered_contract(
     db_session: Session,
-    moonstream_user_id: uuid.UUID,
+    metatx_holder_id: uuid.UUID,
     contract_id: uuid.UUID,
     title: Optional[str] = None,
     description: Optional[str] = None,
     image_uri: Optional[str] = None,
     ignore_nulls: bool = True,
-) -> data.RegisteredContract:
+) -> Tuple[RegisteredContract, Blockchain]:
     """
-    Update the registered contract with the given contract ID provided that the user with moonstream_user_id
+    Update the registered contract with the given contract ID provided that the user with metatx_holder_id
     has access to it.
     """
-    query = db_session.query(RegisteredContract).filter(
-        RegisteredContract.id == contract_id,
-        RegisteredContract.moonstream_user_id == moonstream_user_id,
+    contract_with_blockchain = (
+        db_session.query(RegisteredContract, Blockchain)
+        .join(Blockchain, Blockchain.id == RegisteredContract.blockchain_id)
+        .filter(
+            RegisteredContract.id == contract_id,
+            RegisteredContract.metatx_holder_id == metatx_holder_id,
+        )
+        .one()
     )
-
-    contract = query.one()
+    registered_contract, blockchain = contract_with_blockchain
 
     if not (title is None and ignore_nulls):
-        contract.title = title
+        registered_contract.title = title
     if not (description is None and ignore_nulls):
-        contract.description = description
+        registered_contract.description = description
     if not (image_uri is None and ignore_nulls):
-        contract.image_uri = image_uri
+        registered_contract.image_uri = image_uri
 
     try:
-        db_session.add(contract)
+        db_session.add(registered_contract)
         db_session.commit()
     except Exception as err:
         logger.error(
@@ -143,24 +171,27 @@ def update_registered_contract(
         db_session.rollback()
         raise
 
-    return contract
+    return (registered_contract, blockchain)
 
 
 def get_registered_contract(
     db_session: Session,
-    moonstream_user_id: uuid.UUID,
+    metatx_holder_id: uuid.UUID,
     contract_id: uuid.UUID,
-) -> RegisteredContract:
+) -> Tuple[RegisteredContract, Blockchain]:
     """
     Get registered contract by ID.
     """
-    contract = (
-        db_session.query(RegisteredContract)
-        .filter(RegisteredContract.moonstream_user_id == moonstream_user_id)
+    contract_with_blockchain = (
+        db_session.query(RegisteredContract, Blockchain)
+        .join(Blockchain, Blockchain.id == RegisteredContract.blockchain_id)
+        .filter(RegisteredContract.metatx_holder_id == metatx_holder_id)
         .filter(RegisteredContract.id == contract_id)
         .one()
     )
-    return contract
+    registered_contract, blockchain = contract_with_blockchain
+
+    return (registered_contract, blockchain)
 
 
 def lookup_registered_contracts(
@@ -170,7 +201,7 @@ def lookup_registered_contracts(
     address: Optional[str] = None,
     limit: int = 10,
     offset: Optional[int] = None,
-) -> List[Tuple[RegisteredContract, Blockchain]]:
+) -> List[Row[Tuple[RegisteredContract, Blockchain]]]:
     """
     Lookup a registered contract
     """
@@ -191,35 +222,39 @@ def lookup_registered_contracts(
     if offset is not None:
         query = query.offset(offset)
 
-    registered_contracts_with_blockchain = query.limit(limit).all()
+    contracts_with_blockchain = query.limit(limit).all()
 
-    return registered_contracts_with_blockchain
+    return contracts_with_blockchain
 
 
 def delete_registered_contract(
     db_session: Session,
-    moonstream_user_id: uuid.UUID,
+    metatx_holder_id: uuid.UUID,
     registered_contract_id: uuid.UUID,
-) -> RegisteredContract:
+) -> Tuple[RegisteredContract, Blockchain]:
     """
     Delete a registered contract
     """
     try:
-        registered_contract = (
-            db_session.query(RegisteredContract)
-            .filter(RegisteredContract.moonstream_user_id == moonstream_user_id)
+        contract_with_blockchain = (
+            db_session.query(RegisteredContract, Blockchain)
+            .join(Blockchain, Blockchain.id == RegisteredContract.blockchain_id)
+            .filter(RegisteredContract.metatx_holder_id == metatx_holder_id)
             .filter(RegisteredContract.id == registered_contract_id)
             .one()
         )
+        contract = contract_with_blockchain[0]
 
-        db_session.delete(registered_contract)
+        db_session.delete(contract)
         db_session.commit()
     except Exception as err:
         db_session.rollback()
         logger.error(repr(err))
         raise
 
-    return registered_contract
+    registered_contract, blockchain = contract_with_blockchain
+
+    return (registered_contract, blockchain)
 
 
 def request_calls(
