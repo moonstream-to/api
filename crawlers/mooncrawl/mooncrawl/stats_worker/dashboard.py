@@ -6,21 +6,25 @@ import hashlib
 import json
 import logging
 import time
-import traceback
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, cast, Dict, List, Optional, Union
 from uuid import UUID
 
 import boto3  # type: ignore
-from bugout.data import BugoutResource, BugoutResources
-from entity.data import EntityResponse, EntityCollectionResponse  # type: ignore
+from bugout.data import (
+    BugoutJournalEntity,
+    BugoutResource,
+    BugoutResources,
+    BugoutSearchResultAsEntity,
+)
 from moonstreamdb.blockchain import (
     AvailableBlockchainType,
     get_label_model,
     get_transaction_model,
 )
-from sqlalchemy import and_, cast, distinct, extract, func, text
+from sqlalchemy import and_, distinct, extract, func, text
+from sqlalchemy import cast as sqlalchemy_cast
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.operators import in_op
 from web3 import Web3
@@ -29,14 +33,14 @@ from ..blockchain import connect
 from ..db import yield_db_read_only_session_ctx
 from ..reporter import reporter
 from ..settings import (
+    BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
     CRAWLER_LABEL,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
+    MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
     NB_CONTROLLER_ACCESS_ID,
-    MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
-    BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
 )
-from ..settings import bugout_client as bc, entity_client as ec
+from ..settings import bugout_client as bc
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -157,11 +161,13 @@ def generate_data(
         .filter(in_op(label_model.label_data["name"].astext, functions))
         .filter(
             label_model.block_timestamp
-            >= cast(extract("epoch", start), label_model.block_timestamp.type)
+            >= sqlalchemy_cast(
+                extract("epoch", start), label_model.block_timestamp.type
+            )
         )
         .filter(
             label_model.block_timestamp
-            < cast(
+            < sqlalchemy_cast(
                 extract("epoch", (start + timescales_delta[timescale]["timedelta"])),
                 label_model.block_timestamp.type,
             )
@@ -652,25 +658,26 @@ def stats_generate_handler(args: argparse.Namespace):
 
         address_dashboard_id_subscription_id_tree: Dict[str, Any] = {}
 
-        for user_id, collection_id in user_collection_by_id.items():
+        for user_id, journal_id in user_collection_by_id.items():
             # request all subscriptions for user
 
-            user_subscriptions: EntityCollectionResponse = ec.search_entities(
+            user_subscriptions = bc.search(
                 token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-                collection_id=collection_id,
-                required_field=[
-                    "subscription_type_id:{}".format(
-                        subscription_id_by_blockchain[args.blockchain]
-                    )
-                ],
+                journal_id=journal_id,
+                query=f"tag:subscription_type_id:{subscription_id_by_blockchain[args.blockchain]}",
+                representation="entity",
             )
 
+            user_subscriptions_results = cast(
+                List[BugoutSearchResultAsEntity], user_subscriptions.results
+            )
             logger.info(
-                f"Amount of user subscriptions: {len(user_subscriptions.entities)}"
+                f"Amount of user subscriptions: {len(user_subscriptions_results)}"
             )
 
-            for subscription in user_subscriptions.entities:
-                subscription_id = str(subscription.entity_id)
+            for subscription in user_subscriptions_results:
+                entity_url_list = subscription.entity_url.split("/")
+                subscription_id = entity_url_list[len(entity_url_list) - 1]
 
                 if subscription_id not in dashboards_by_subscription:
                     logger.info(
@@ -1014,7 +1021,7 @@ def stats_generate_handler(args: argparse.Namespace):
 def stats_generate_api_task(
     timescales: List[str],
     dashboard: BugoutResource,
-    subscription_by_id: Dict[str, EntityResponse],
+    subscription_by_id: Dict[str, BugoutJournalEntity],
     access_id: Optional[UUID] = None,
 ):
     """
