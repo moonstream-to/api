@@ -9,12 +9,12 @@ import logging
 from typing import Dict, List, Optional
 from uuid import UUID
 
-from fastapi import Body, Depends, FastAPI, Query, Request, Path
+from fastapi import Body, Depends, FastAPI, Path, Query, Request
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
 from .. import contracts_actions, data, db
-from ..middleware import BroodAuthMiddleware, EngineHTTPException, BugoutCORSMiddleware
+from ..middleware import BroodAuthMiddleware, BugoutCORSMiddleware, EngineHTTPException
 from ..settings import DOCS_TARGET_PATH
 from ..version import VERSION
 
@@ -37,6 +37,7 @@ tags_metadata = [
 whitelist_paths = {
     "/metatx/openapi.json": "GET",
     f"/metatx/{DOCS_TARGET_PATH}": "GET",
+    "/metatx/blockchains": "GET",
     "/metatx/contracts/types": "GET",
     "/metatx/requests/types": "GET",
     "/metatx/requests": "GET",
@@ -61,6 +62,25 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.get("/blockchains", tags=["blockchains"], response_model=data.BlockchainsResponse)
+async def blockchains_route(
+    db_session: Session = Depends(db.yield_db_read_only_session),
+) -> data.BlockchainsResponse:
+    """
+    Returns supported list of blockchains.
+    """
+    try:
+        blockchains = contracts_actions.list_blockchains(
+            db_session=db_session,
+        )
+    except Exception as e:
+        logger.error(repr(e))
+        raise EngineHTTPException(status_code=500)
+    return data.BlockchainsResponse(
+        blockchains=[blockchain for blockchain in blockchains]
+    )
 
 
 @app.get("/contracts", tags=["contracts"], response_model=List[data.RegisteredContract])
@@ -214,7 +234,7 @@ async def delete_contract(
 @app.get(
     "/requests/types", tags=["requests"], response_model=data.CallRequestTypesResponse
 )
-async def contract_types(
+async def call_request_types_route(
     db_session: Session = Depends(db.yield_db_read_only_session),
 ) -> data.CallRequestTypesResponse:
     """

@@ -221,6 +221,20 @@ class CallRequestTypesResponse(BaseModel):
     call_request_types: List[CallRequestTypeResponse] = Field(default_factory=list)
 
 
+class BlockchainResponse(BaseModel):
+    id: UUID
+    name: str
+    chain_id: int
+    testnet: bool
+
+    class Config:
+        orm_mode = True
+
+
+class BlockchainsResponse(BaseModel):
+    blockchains: List[BlockchainResponse] = Field(default_factory=list)
+
+
 class RegisterContractRequest(BaseModel):
     blockchain: str
     address: str
