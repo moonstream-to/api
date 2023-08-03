@@ -1,11 +1,8 @@
 import os
-from typing import Optional, Dict
-from uuid import UUID
+from typing import Dict, Optional
 
 from bugout.app import Bugout
-from entity.client import Entity  # type: ignore
 from moonstreamdb.blockchain import AvailableBlockchainType
-
 
 # Bugout
 BUGOUT_BROOD_URL = os.environ.get("BUGOUT_BROOD_URL", "https://auth.bugout.dev")
@@ -13,15 +10,6 @@ BUGOUT_SPIRE_URL = os.environ.get("BUGOUT_SPIRE_URL", "https://spire.bugout.dev"
 
 
 bugout_client = Bugout(brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIRE_URL)
-
-# Entity
-
-MOONSTREAM_ENTITY_URL = os.environ.get("MOONSTREAM_ENTITY_URL", "")
-if MOONSTREAM_ENTITY_URL == "":
-    raise ValueError("MOONSTREAM_ENTITY_URL environment variable must be set")
-
-entity_client = Entity(MOONSTREAM_ENTITY_URL)
-
 
 BUGOUT_REQUEST_TIMEOUT_SECONDS = 5
 

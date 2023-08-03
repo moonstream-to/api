@@ -1,4 +1,6 @@
-selectors = {
+from typing import Any, Dict
+
+selectors: Dict[str, Any] = {
     "274c7b3c": {
         "name": "ERC20PresetMinterPauser",
         "selector": "274c7b3c",
