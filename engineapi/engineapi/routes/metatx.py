@@ -83,33 +83,51 @@ async def blockchains_route(
     )
 
 
-@app.get("/contracts", tags=["contracts"], response_model=List[data.RegisteredContract])
+@app.get(
+    "/contracts",
+    tags=["contracts"],
+    response_model=List[data.RegisteredContractResponse],
+)
 async def list_registered_contracts(
     request: Request,
     blockchain: Optional[str] = Query(None),
     address: Optional[str] = Query(None),
-    contract_type: Optional[data.ContractType] = Query(None),
     limit: int = Query(10),
     offset: Optional[int] = Query(None),
     db_session: Session = Depends(db.yield_db_read_only_session),
-) -> List[data.RegisteredContract]:
+) -> List[data.RegisteredContractResponse]:
     """
     Users can use this endpoint to look up the contracts they have registered against this API.
     """
     try:
-        contracts = contracts_actions.lookup_registered_contracts(
-            db_session=db_session,
-            moonstream_user_id=request.state.user.id,
-            blockchain=blockchain,
-            address=address,
-            contract_type=contract_type,
-            limit=limit,
-            offset=offset,
+        registered_contracts_with_blockchain = (
+            contracts_actions.lookup_registered_contracts(
+                db_session=db_session,
+                metatx_holder_id=request.state.user.id,
+                blockchain=blockchain,
+                address=address,
+                limit=limit,
+                offset=offset,
+            )
         )
     except Exception as err:
         logger.error(repr(err))
         raise EngineHTTPException(status_code=500)
-    return [contract for contract in contracts]
+
+    return [
+        data.RegisteredContractResponse(
+            id=rc_with_b[0].id,
+            blockchain=rc_with_b[1].name,
+            address=rc_with_b[0].address,
+            metatx_holder_id=rc_with_b[0].metatx_holder_id,
+            title=rc_with_b[0].title,
+            description=rc_with_b[0].description,
+            image_uri=rc_with_b[0].image_uri,
+            created_at=rc_with_b[0].created_at,
+            updated_at=rc_with_b[0].updated_at,
+        )
+        for rc_with_b in registered_contracts_with_blockchain
+    ]
 
 
 @app.get(

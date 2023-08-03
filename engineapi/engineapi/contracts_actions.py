@@ -3,7 +3,7 @@ import json
 import logging
 import uuid
 from datetime import timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy import func, text
 from sqlalchemy.exc import IntegrityError, NoResultFound
@@ -165,37 +165,35 @@ def get_registered_contract(
 
 def lookup_registered_contracts(
     db_session: Session,
-    moonstream_user_id: uuid.UUID,
+    metatx_holder_id: uuid.UUID,
     blockchain: Optional[str] = None,
     address: Optional[str] = None,
-    contract_type: Optional[ContractType] = None,
     limit: int = 10,
     offset: Optional[int] = None,
-) -> List[RegisteredContract]:
+) -> List[Tuple[RegisteredContract, Blockchain]]:
     """
     Lookup a registered contract
     """
-    query = db_session.query(RegisteredContract).filter(
-        RegisteredContract.moonstream_user_id == moonstream_user_id
+    query = (
+        db_session.query(RegisteredContract, Blockchain)
+        .join(Blockchain, Blockchain.id == RegisteredContract.blockchain_id)
+        .filter(RegisteredContract.metatx_holder_id == metatx_holder_id)
     )
 
     if blockchain is not None:
-        query = query.filter(RegisteredContract.blockchain == blockchain)
+        query = query.filter(Blockchain.name == blockchain)
 
     if address is not None:
         query = query.filter(
             RegisteredContract.address == Web3.toChecksumAddress(address)
         )
 
-    if contract_type is not None:
-        query = query.filter(RegisteredContract.contract_type == contract_type.value)
-
     if offset is not None:
         query = query.offset(offset)
 
-    query = query.limit(limit)
+    registered_contracts_with_blockchain = query.limit(limit).all()
 
-    return query.all()
+    return registered_contracts_with_blockchain
 
 
 def delete_registered_contract(

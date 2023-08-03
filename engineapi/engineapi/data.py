@@ -255,15 +255,37 @@ class RegisteredContract(BaseModel):
     id: UUID
     blockchain: str
     address: str
-    contract_type: str
-    moonstream_user_id: UUID
+    metatx_holder_id: UUID
     title: Optional[str] = None
     description: Optional[str] = None
     image_uri: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
-    @validator("id", "moonstream_user_id")
+    @validator("id", "metatx_holder_id")
+    def validate_uuids(cls, v):
+        return str(v)
+
+    @validator("created_at", "updated_at")
+    def validate_datetimes(cls, v):
+        return v.isoformat()
+
+    class Config:
+        orm_mode = True
+
+
+class RegisteredContractResponse(BaseModel):
+    id: UUID
+    blockchain: Optional[str] = None
+    address: str
+    metatx_holder_id: UUID
+    title: Optional[str] = None
+    description: Optional[str] = None
+    image_uri: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+    @validator("id", "metatx_holder_id")
     def validate_uuids(cls, v):
         return str(v)
 
