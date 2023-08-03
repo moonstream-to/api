@@ -38,6 +38,7 @@ whitelist_paths = {
     "/metatx/openapi.json": "GET",
     f"/metatx/{DOCS_TARGET_PATH}": "GET",
     "/metatx/contracts/types": "GET",
+    "/metatx/requests/types": "GET",
     "/metatx/requests": "GET",
 }
 
@@ -60,17 +61,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.get("/contracts/types", tags=["contracts"])
-async def contract_types() -> Dict[str, str]:
-    """
-    Describes the contract_types that users can register contracts as against this API.
-    """
-    return {
-        data.ContractType.raw.value: "A generic smart contract. You can ask users to submit arbitrary calldata to this contract.",
-        data.ContractType.dropper.value: "A Dropper contract. You can authorize users to submit claims against this contract.",
-    }
 
 
 @app.get("/contracts", tags=["contracts"], response_model=List[data.RegisteredContract])
@@ -217,6 +207,31 @@ async def delete_contract(
         raise EngineHTTPException(status_code=500)
 
     return deleted_contract
+
+
+# TODO(kompotkot): route `/contracts/types` deprecated
+@app.get("/contracts/types", tags=["contracts"])
+@app.get(
+    "/requests/types", tags=["requests"], response_model=data.CallRequestTypesResponse
+)
+async def contract_types(
+    db_session: Session = Depends(db.yield_db_read_only_session),
+) -> data.CallRequestTypesResponse:
+    """
+    Describes the call_request_types that users can register call requests as against this API.
+    """
+    try:
+        call_request_types = contracts_actions.list_call_request_types(
+            db_session=db_session,
+        )
+    except Exception as e:
+        logger.error(repr(e))
+        raise EngineHTTPException(status_code=500)
+    return data.CallRequestTypesResponse(
+        call_request_types=[
+            call_request_type for call_request_type in call_request_types
+        ]
+    )
 
 
 @app.get("/requests", tags=["requests"], response_model=List[data.CallRequest])

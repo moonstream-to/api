@@ -172,6 +172,7 @@ class CallRequestType(Base):  # type: ignore
         unique=True,
     )
     request_type = Column(VARCHAR(128), nullable=False, unique=True, index=True)
+    description = Column(String, nullable=True)
 
     call_requests = relationship(
         "CallRequest",

@@ -52,6 +52,7 @@ def upgrade():
     op.create_table('call_request_types',
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('request_type', sa.VARCHAR(length=128), nullable=False),
+    sa.Column('description', sa.String(), nullable=True),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_call_request_types')),
     sa.UniqueConstraint('id', name=op.f('uq_call_request_types_id'))
     )
@@ -62,8 +63,8 @@ def upgrade():
     op.create_foreign_key(op.f('fk_call_requests_call_request_type_id_call_request_types'), 'call_requests', 'call_request_types', ['call_request_type_id'], ['id'], ondelete='CASCADE')
 
     # Manual - Start
-    op.execute(f"INSERT INTO call_request_types (id, request_type) VALUES ('{str(uuid.uuid4())}', 'raw');")
-    op.execute(f"INSERT INTO call_request_types (id, request_type) VALUES ('{str(uuid.uuid4())}', 'dropper-v0.2.0');")
+    op.execute(f"INSERT INTO call_request_types (id, request_type, description) VALUES ('{str(uuid.uuid4())}', 'raw', 'A generic smart contract. You can ask users to submit arbitrary calldata to this contract.');")
+    op.execute(f"INSERT INTO call_request_types (id, request_type, description) VALUES ('{str(uuid.uuid4())}', 'dropper-v0.2.0', 'A Dropper v0.2.0 contract. You can authorize users to submit claims against this contract.');")
     op.execute("UPDATE call_requests SET call_request_type_id = (SELECT call_request_types.id FROM call_request_types INNER JOIN registered_contracts ON call_requests.registered_contract_id = registered_contracts.id WHERE call_request_types.request_type = registered_contracts.contract_type);")
     op.alter_column("call_requests", "call_request_type_id", nullable=False)
     # Manual - End

@@ -12,7 +12,7 @@ from web3 import Web3
 
 from . import data, db
 from .data import ContractType
-from .models import CallRequest, RegisteredContract
+from .models import CallRequest, RegisteredContract, CallRequestType
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -332,6 +332,13 @@ def get_call_requests(
     return data.CallRequest(
         contract_address=results[0][1].address, **results[0][0].__dict__
     )
+
+
+def list_call_request_types(
+    db_session: Session,
+) -> List[CallRequestType]:
+    call_request_types = db_session.query(CallRequestType).all()
+    return call_request_types
 
 
 def list_call_requests(

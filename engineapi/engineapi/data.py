@@ -208,6 +208,19 @@ class ContractType(Enum):
     dropper = "dropper-v0.2.0"
 
 
+class CallRequestTypeResponse(BaseModel):
+    id: UUID
+    request_type: str
+    description: str
+
+    class Config:
+        orm_mode = True
+
+
+class CallRequestTypesResponse(BaseModel):
+    call_request_types: List[CallRequestTypeResponse] = Field(default_factory=list)
+
+
 class RegisterContractRequest(BaseModel):
     blockchain: str
     address: str
