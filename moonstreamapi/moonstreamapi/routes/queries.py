@@ -3,11 +3,16 @@ The Moonstream queries HTTP API
 """
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 from uuid import UUID
 
 import requests  # type: ignore
-from bugout.data import BugoutJournalEntry, BugoutJournalEntryContent, BugoutResources
+from bugout.data import (
+    BugoutJournalEntry,
+    BugoutJournalEntryContent,
+    BugoutResources,
+    BugoutSearchResult,
+)
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Body, Path, Request
 from moonstreamdb.blockchain import AvailableBlockchainType
@@ -181,7 +186,7 @@ def get_suggested_queries(
     query = " ".join(filters)
 
     try:
-        queries: Any = bc.search(
+        queries = bc.search(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
             query=query,
@@ -197,7 +202,9 @@ def get_suggested_queries(
 
     interfaces: Dict[str, Any] = {}
 
-    for entry in queries.results:
+    queries_results = cast(List[BugoutSearchResult], queries.results)
+
+    for entry in queries_results:
         for tag in entry.tags:
             if tag.startswith("interface:"):
                 interface = tag.split(":")[1]
@@ -208,7 +215,7 @@ def get_suggested_queries(
                 interfaces[interface].append(entry)
 
     return data.SuggestedQueriesResponse(
-        queries=queries.results,
+        queries=queries_results,
         interfaces=interfaces,
     )
 
@@ -230,7 +237,6 @@ async def get_query_handler(
         )
 
     # check in templates
-    entries: Any
     try:
         entries = bc.search(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -275,9 +281,11 @@ async def get_query_handler(
                 status_code=403, detail="Query not approved yet."
             )
     else:
-        query_id = entries.results[0].entry_url.split("/")[-1]
+        entries_results = cast(List[BugoutSearchResult], entries.results)
+        query_id = entries_results[0].entry_url.split("/")[-1]
 
-    entry = entries.results[0]
+    entries_results = cast(List[BugoutSearchResult], entries.results)
+    entry = entries_results[0]
 
     try:
         if entry.content is None:
@@ -388,8 +396,6 @@ async def update_query_data_handler(
         )
 
     # check in templates
-    entries: Any
-
     try:
         entries = bc.search(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -434,14 +440,16 @@ async def update_query_data_handler(
                 status_code=403, detail="Query not approved yet."
             )
     else:
-        query_id = entries.results[0].entry_url.split("/")[-1]
+        entries_results = cast(List[BugoutSearchResult], entries.results)
+        query_id = entries_results[0].entry_url.split("/")[-1]
 
     s3_response = None
 
-    if entries.results[0].content:
-        content = entries.results[0].content
+    entries_results = cast(List[BugoutSearchResult], entries.results)
+    if entries_results[0].content:
+        content = entries_results[0].content
 
-        tags = entries.results[0].tags
+        tags = entries_results[0].tags
 
         file_type = "json"
 
@@ -496,8 +504,6 @@ async def get_access_link_handler(
         )
 
     # check in templattes
-    entries: Any
-
     try:
         entries = bc.search(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -540,13 +546,14 @@ async def get_access_link_handler(
                 status_code=403, detail="Query not approved yet."
             )
 
+    entries_results = cast(List[BugoutSearchResult], entries.results)
     try:
         s3_response = None
 
-        if entries.results[0].content:
+        if entries_results[0].content:
             passed_params = dict(request_update.params)
 
-            tags = entries.results[0].tags
+            tags = entries_results[0].tags
 
             file_type = "json"
 
