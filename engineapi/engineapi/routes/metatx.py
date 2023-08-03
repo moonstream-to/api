@@ -9,12 +9,12 @@ import logging
 from typing import Dict, List, Optional
 from uuid import UUID
 
-from fastapi import Body, Depends, FastAPI, Query, Request, Path
+from fastapi import Body, Depends, FastAPI, Path, Query, Request
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
 from .. import contracts_actions, data, db
-from ..middleware import BroodAuthMiddleware, EngineHTTPException, BugoutCORSMiddleware
+from ..middleware import BroodAuthMiddleware, BugoutCORSMiddleware, EngineHTTPException
 from ..settings import DOCS_TARGET_PATH
 from ..version import VERSION
 
@@ -37,7 +37,9 @@ tags_metadata = [
 whitelist_paths = {
     "/metatx/openapi.json": "GET",
     f"/metatx/{DOCS_TARGET_PATH}": "GET",
+    "/metatx/blockchains": "GET",
     "/metatx/contracts/types": "GET",
+    "/metatx/requests/types": "GET",
     "/metatx/requests": "GET",
 }
 
@@ -62,44 +64,70 @@ app.add_middleware(
 )
 
 
-@app.get("/contracts/types", tags=["contracts"])
-async def contract_types() -> Dict[str, str]:
+@app.get("/blockchains", tags=["blockchains"], response_model=data.BlockchainsResponse)
+async def blockchains_route(
+    db_session: Session = Depends(db.yield_db_read_only_session),
+) -> data.BlockchainsResponse:
     """
-    Describes the contract_types that users can register contracts as against this API.
+    Returns supported list of blockchains.
     """
-    return {
-        data.ContractType.raw.value: "A generic smart contract. You can ask users to submit arbitrary calldata to this contract.",
-        data.ContractType.dropper.value: "A Dropper contract. You can authorize users to submit claims against this contract.",
-    }
+    try:
+        blockchains = contracts_actions.list_blockchains(
+            db_session=db_session,
+        )
+    except Exception as e:
+        logger.error(repr(e))
+        raise EngineHTTPException(status_code=500)
+    return data.BlockchainsResponse(
+        blockchains=[blockchain for blockchain in blockchains]
+    )
 
 
-@app.get("/contracts", tags=["contracts"], response_model=List[data.RegisteredContract])
+@app.get(
+    "/contracts",
+    tags=["contracts"],
+    response_model=List[data.RegisteredContractResponse],
+)
 async def list_registered_contracts(
     request: Request,
     blockchain: Optional[str] = Query(None),
     address: Optional[str] = Query(None),
-    contract_type: Optional[data.ContractType] = Query(None),
     limit: int = Query(10),
     offset: Optional[int] = Query(None),
     db_session: Session = Depends(db.yield_db_read_only_session),
-) -> List[data.RegisteredContract]:
+) -> List[data.RegisteredContractResponse]:
     """
     Users can use this endpoint to look up the contracts they have registered against this API.
     """
     try:
-        contracts = contracts_actions.lookup_registered_contracts(
-            db_session=db_session,
-            moonstream_user_id=request.state.user.id,
-            blockchain=blockchain,
-            address=address,
-            contract_type=contract_type,
-            limit=limit,
-            offset=offset,
+        registered_contracts_with_blockchain = (
+            contracts_actions.lookup_registered_contracts(
+                db_session=db_session,
+                metatx_holder_id=request.state.user.id,
+                blockchain=blockchain,
+                address=address,
+                limit=limit,
+                offset=offset,
+            )
         )
     except Exception as err:
         logger.error(repr(err))
         raise EngineHTTPException(status_code=500)
-    return [contract for contract in contracts]
+
+    return [
+        data.RegisteredContractResponse(
+            id=rc_with_b[0].id,
+            blockchain=rc_with_b[1].name,
+            address=rc_with_b[0].address,
+            metatx_holder_id=rc_with_b[0].metatx_holder_id,
+            title=rc_with_b[0].title,
+            description=rc_with_b[0].description,
+            image_uri=rc_with_b[0].image_uri,
+            created_at=rc_with_b[0].created_at,
+            updated_at=rc_with_b[0].updated_at,
+        )
+        for rc_with_b in registered_contracts_with_blockchain
+    ]
 
 
 @app.get(
@@ -217,6 +245,31 @@ async def delete_contract(
         raise EngineHTTPException(status_code=500)
 
     return deleted_contract
+
+
+# TODO(kompotkot): route `/contracts/types` deprecated
+@app.get("/contracts/types", tags=["contracts"])
+@app.get(
+    "/requests/types", tags=["requests"], response_model=data.CallRequestTypesResponse
+)
+async def call_request_types_route(
+    db_session: Session = Depends(db.yield_db_read_only_session),
+) -> data.CallRequestTypesResponse:
+    """
+    Describes the call_request_types that users can register call requests as against this API.
+    """
+    try:
+        call_request_types = contracts_actions.list_call_request_types(
+            db_session=db_session,
+        )
+    except Exception as e:
+        logger.error(repr(e))
+        raise EngineHTTPException(status_code=500)
+    return data.CallRequestTypesResponse(
+        call_request_types=[
+            call_request_type for call_request_type in call_request_types
+        ]
+    )
 
 
 @app.get("/requests", tags=["requests"], response_model=List[data.CallRequest])

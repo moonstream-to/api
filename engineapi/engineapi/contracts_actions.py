@@ -3,7 +3,7 @@ import json
 import logging
 import uuid
 from datetime import timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy import func, text
 from sqlalchemy.exc import IntegrityError, NoResultFound
@@ -12,7 +12,7 @@ from web3 import Web3
 
 from . import data, db
 from .data import ContractType
-from .models import CallRequest, RegisteredContract
+from .models import Blockchain, CallRequest, CallRequestType, RegisteredContract
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -66,7 +66,6 @@ def validate_method_and_params(
             Web3.toChecksumAddress(parameters["signer"])
         except:
             raise InvalidAddressFormat("Parameter signer must be a valid address")
-        required_params["amount"] = str(required_params["amount"])
     else:
         raise ValueError(f"Unknown contract type {contract_type}")
 
@@ -166,37 +165,35 @@ def get_registered_contract(
 
 def lookup_registered_contracts(
     db_session: Session,
-    moonstream_user_id: uuid.UUID,
+    metatx_holder_id: uuid.UUID,
     blockchain: Optional[str] = None,
     address: Optional[str] = None,
-    contract_type: Optional[ContractType] = None,
     limit: int = 10,
     offset: Optional[int] = None,
-) -> List[RegisteredContract]:
+) -> List[Tuple[RegisteredContract, Blockchain]]:
     """
     Lookup a registered contract
     """
-    query = db_session.query(RegisteredContract).filter(
-        RegisteredContract.moonstream_user_id == moonstream_user_id
+    query = (
+        db_session.query(RegisteredContract, Blockchain)
+        .join(Blockchain, Blockchain.id == RegisteredContract.blockchain_id)
+        .filter(RegisteredContract.metatx_holder_id == metatx_holder_id)
     )
 
     if blockchain is not None:
-        query = query.filter(RegisteredContract.blockchain == blockchain)
+        query = query.filter(Blockchain.name == blockchain)
 
     if address is not None:
         query = query.filter(
             RegisteredContract.address == Web3.toChecksumAddress(address)
         )
 
-    if contract_type is not None:
-        query = query.filter(RegisteredContract.contract_type == contract_type.value)
-
     if offset is not None:
         query = query.offset(offset)
 
-    query = query.limit(limit)
+    registered_contracts_with_blockchain = query.limit(limit).all()
 
-    return query.all()
+    return registered_contracts_with_blockchain
 
 
 def delete_registered_contract(
@@ -333,6 +330,20 @@ def get_call_requests(
     return data.CallRequest(
         contract_address=results[0][1].address, **results[0][0].__dict__
     )
+
+
+def list_blockchains(
+    db_session: Session,
+) -> List[Blockchain]:
+    blockchains = db_session.query(Blockchain).all()
+    return blockchains
+
+
+def list_call_request_types(
+    db_session: Session,
+) -> List[CallRequestType]:
+    call_request_types = db_session.query(CallRequestType).all()
+    return call_request_types
 
 
 def list_call_requests(
