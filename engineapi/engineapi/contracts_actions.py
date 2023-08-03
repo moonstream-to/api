@@ -66,7 +66,6 @@ def validate_method_and_params(
             Web3.toChecksumAddress(parameters["signer"])
         except:
             raise InvalidAddressFormat("Parameter signer must be a valid address")
-        required_params["amount"] = str(required_params["amount"])
     else:
         raise ValueError(f"Unknown contract type {contract_type}")
 
