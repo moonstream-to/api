@@ -48,6 +48,40 @@ class ContractAlreadyRegistered(Exception):
     pass
 
 
+def parse_registered_contract_response(
+    obj: Tuple[RegisteredContract, Blockchain]
+) -> data.RegisteredContractResponse:
+    return data.RegisteredContractResponse(
+        id=obj[0].id,
+        blockchain=obj[1].name,
+        address=obj[0].address,
+        metatx_holder_id=obj[0].metatx_holder_id,
+        title=obj[0].title,
+        description=obj[0].description,
+        image_uri=obj[0].image_uri,
+        created_at=obj[0].created_at,
+        updated_at=obj[0].updated_at,
+    )
+
+
+def parse_call_request_response(
+    obj: Tuple[CallRequest, RegisteredContract, CallRequestType, CallRequestType]
+) -> data.CallRequestResponse:
+    return data.CallRequestResponse(
+        id=obj[0].id,
+        contract_id=obj[0].registered_contract_id,
+        contract_address=obj[1].address,
+        metatx_holder_id=obj[0].metatx_holder_id,
+        call_request_type=obj[2].request_type,
+        caller=obj[0].caller,
+        method=obj[0].method,
+        parameters=obj[0].parameters,
+        expires_at=obj[0].expires_at,
+        created_at=obj[0].created_at,
+        updated_at=obj[0].updated_at,
+    )
+
+
 def validate_method_and_params(
     contract_type: ContractType, method: str, parameters: Dict[str, Any]
 ) -> None:
@@ -259,7 +293,7 @@ def delete_registered_contract(
 
 def request_calls(
     db_session: Session,
-    moonstream_user_id: uuid.UUID,
+    metatx_holder_id: uuid.UUID,
     registered_contract_id: Optional[uuid.UUID],
     contract_address: Optional[str],
     call_specs: List[data.CallSpecification],
@@ -283,7 +317,7 @@ def request_calls(
 
     # Check that the moonstream_user_id matches a RegisteredContract with the given id or address
     query = db_session.query(RegisteredContract).filter(
-        RegisteredContract.moonstream_user_id == moonstream_user_id
+        RegisteredContract.metatx_holder_id == metatx_holder_id
     )
 
     if registered_contract_id is not None:
@@ -297,7 +331,7 @@ def request_calls(
     try:
         registered_contract = query.one()
     except NoResultFound:
-        raise ValueError("Invalid registered_contract_id or moonstream_user_id")
+        raise ValueError("Invalid registered_contract_id or metatx_holder_id")
 
     # Normalize the caller argument using Web3.toChecksumAddress
     contract_type = ContractType(registered_contract.contract_type)
@@ -343,15 +377,19 @@ def request_calls(
 def get_call_requests(
     db_session: Session,
     request_id: uuid.UUID,
-) -> data.CallRequest:
+) -> Tuple[CallRequest, RegisteredContract, CallRequestType, CallRequestType]:
     """
     Get call request by ID.
     """
     results = (
-        db_session.query(CallRequest, RegisteredContract)
+        db_session.query(CallRequest, RegisteredContract, CallRequestType)
         .join(
             RegisteredContract,
             CallRequest.registered_contract_id == RegisteredContract.id,
+        )
+        .join(
+            CallRequestType,
+            CallRequest.call_request_type_id == CallRequestType.id,
         )
         .filter(CallRequest.id == request_id)
         .all()
@@ -360,11 +398,12 @@ def get_call_requests(
         raise CallRequestNotFound("Call request with given ID not found")
     elif len(results) != 1:
         raise Exception(
-            f"Incorrect number of results found for moonstream_user_id {moonstream_user_id} and request_id {request_id}"
+            f"Incorrect number of results found for request_id {request_id}"
         )
-    return data.CallRequest(
-        contract_address=results[0][1].address, **results[0][0].__dict__
-    )
+
+    call_request, registered_contract, call_request_type = results[0]
+
+    return (call_request, registered_contract, call_request_type)
 
 
 def list_blockchains(
@@ -389,7 +428,7 @@ def list_call_requests(
     limit: int = 10,
     offset: Optional[int] = None,
     show_expired: bool = False,
-) -> List[data.CallRequest]:
+) -> List[Row[Tuple[CallRequest, RegisteredContract, CallRequestType]]]:
     """
     List call requests for the given moonstream_user_id
     """
@@ -403,10 +442,14 @@ def list_call_requests(
 
     # If show_expired is False, filter out expired requests using current time on database server
     query = (
-        db_session.query(CallRequest, RegisteredContract)
+        db_session.query(CallRequest, RegisteredContract, CallRequestType)
         .join(
             RegisteredContract,
             CallRequest.registered_contract_id == RegisteredContract.id,
+        )
+        .join(
+            CallRequestType,
+            CallRequest.call_request_type_id == CallRequestType.id,
         )
         .filter(CallRequest.caller == Web3.toChecksumAddress(caller))
     )
@@ -429,12 +472,7 @@ def list_call_requests(
 
     query = query.limit(limit)
     results = query.all()
-    return [
-        data.CallRequest(
-            contract_address=registered_contract.address, **call_request.__dict__
-        )
-        for call_request, registered_contract in results
-    ]
+    return results
 
 
 # TODO(zomglings): What should the delete functionality for call requests look like?
@@ -449,7 +487,7 @@ def list_call_requests(
 
 def delete_requests(
     db_session: Session,
-    moonstream_user_id: uuid.UUID,
+    metatx_holder_id: uuid.UUID,
     request_ids: List[uuid.UUID] = [],
 ) -> int:
     """
@@ -458,7 +496,7 @@ def delete_requests(
     try:
         requests_to_delete_query = (
             db_session.query(CallRequest)
-            .filter(CallRequest.moonstream_user_id == moonstream_user_id)
+            .filter(CallRequest.metatx_holder_id == metatx_holder_id)
             .filter(CallRequest.id.in_(request_ids))
         )
         requests_to_delete_num: int = requests_to_delete_query.delete(

@@ -115,18 +115,8 @@ async def list_registered_contracts_route(
         raise EngineHTTPException(status_code=500)
 
     return [
-        data.RegisteredContractResponse(
-            id=rc_with_b[0].id,
-            blockchain=rc_with_b[1].name,
-            address=rc_with_b[0].address,
-            metatx_holder_id=rc_with_b[0].metatx_holder_id,
-            title=rc_with_b[0].title,
-            description=rc_with_b[0].description,
-            image_uri=rc_with_b[0].image_uri,
-            created_at=rc_with_b[0].created_at,
-            updated_at=rc_with_b[0].updated_at,
-        )
-        for rc_with_b in registered_contracts_with_blockchain
+        contracts_actions.parse_registered_contract_response(rc)
+        for rc in registered_contracts_with_blockchain
     ]
 
 
@@ -158,16 +148,8 @@ async def get_registered_contract_route(
         logger.error(repr(err))
         raise EngineHTTPException(status_code=500)
 
-    return data.RegisteredContractResponse(
-        id=contract_with_blockchain[0].id,
-        blockchain=contract_with_blockchain[1].name,
-        address=contract_with_blockchain[0].address,
-        metatx_holder_id=contract_with_blockchain[0].metatx_holder_id,
-        title=contract_with_blockchain[0].title,
-        description=contract_with_blockchain[0].description,
-        image_uri=contract_with_blockchain[0].image_uri,
-        created_at=contract_with_blockchain[0].created_at,
-        updated_at=contract_with_blockchain[0].updated_at,
+    return contracts_actions.parse_registered_contract_response(
+        contract_with_blockchain
     )
 
 
@@ -205,16 +187,8 @@ async def register_contract_route(
         logger.error(repr(err))
         raise EngineHTTPException(status_code=500)
 
-    return data.RegisteredContractResponse(
-        id=contract_with_blockchain[0].id,
-        blockchain=contract_with_blockchain[1].name,
-        address=contract_with_blockchain[0].address,
-        metatx_holder_id=contract_with_blockchain[0].metatx_holder_id,
-        title=contract_with_blockchain[0].title,
-        description=contract_with_blockchain[0].description,
-        image_uri=contract_with_blockchain[0].image_uri,
-        created_at=contract_with_blockchain[0].created_at,
-        updated_at=contract_with_blockchain[0].updated_at,
+    return contracts_actions.parse_registered_contract_response(
+        contract_with_blockchain
     )
 
 
@@ -248,16 +222,8 @@ async def update_contract_route(
         logger.error(repr(err))
         raise EngineHTTPException(status_code=500)
 
-    return data.RegisteredContractResponse(
-        id=contract_with_blockchain[0].id,
-        blockchain=contract_with_blockchain[1].name,
-        address=contract_with_blockchain[0].address,
-        metatx_holder_id=contract_with_blockchain[0].metatx_holder_id,
-        title=contract_with_blockchain[0].title,
-        description=contract_with_blockchain[0].description,
-        image_uri=contract_with_blockchain[0].image_uri,
-        created_at=contract_with_blockchain[0].created_at,
-        updated_at=contract_with_blockchain[0].updated_at,
+    return contracts_actions.parse_registered_contract_response(
+        contract_with_blockchain
     )
 
 
@@ -284,27 +250,21 @@ async def delete_contract_route(
         logger.error(repr(err))
         raise EngineHTTPException(status_code=500)
 
-    return data.RegisteredContractResponse(
-        id=deleted_contract_with_blockchain[0].id,
-        blockchain=deleted_contract_with_blockchain[1].name,
-        address=deleted_contract_with_blockchain[0].address,
-        metatx_holder_id=deleted_contract_with_blockchain[0].metatx_holder_id,
-        title=deleted_contract_with_blockchain[0].title,
-        description=deleted_contract_with_blockchain[0].description,
-        image_uri=deleted_contract_with_blockchain[0].image_uri,
-        created_at=deleted_contract_with_blockchain[0].created_at,
-        updated_at=deleted_contract_with_blockchain[0].updated_at,
+    return contracts_actions.parse_registered_contract_response(
+        deleted_contract_with_blockchain
     )
 
 
 # TODO(kompotkot): route `/contracts/types` deprecated
 @app.get("/contracts/types", tags=["contracts"])
 @app.get(
-    "/requests/types", tags=["requests"], response_model=data.CallRequestTypesResponse
+    "/requests/types",
+    tags=["requests"],
+    response_model=List[data.CallRequestTypeResponse],
 )
 async def call_request_types_route(
     db_session: Session = Depends(db.yield_db_read_only_session),
-) -> data.CallRequestTypesResponse:
+) -> List[data.CallRequestTypeResponse]:
     """
     Describes the call_request_types that users can register call requests as against this API.
     """
@@ -315,15 +275,11 @@ async def call_request_types_route(
     except Exception as e:
         logger.error(repr(e))
         raise EngineHTTPException(status_code=500)
-    return data.CallRequestTypesResponse(
-        call_request_types=[
-            call_request_type for call_request_type in call_request_types
-        ]
-    )
+    return call_request_types
 
 
-@app.get("/requests", tags=["requests"], response_model=List[data.CallRequest])
-async def list_requests(
+@app.get("/requests", tags=["requests"], response_model=List[data.CallRequestResponse])
+async def list_requests_route(
     contract_id: Optional[UUID] = Query(None),
     contract_address: Optional[str] = Query(None),
     caller: str = Query(...),
@@ -331,7 +287,7 @@ async def list_requests(
     offset: Optional[int] = Query(None),
     show_expired: Optional[bool] = Query(False),
     db_session: Session = Depends(db.yield_db_read_only_session),
-) -> List[data.CallRequest]:
+) -> List[data.CallRequestResponse]:
     """
     Allows API user to see all unexpired call requests for a given caller against a given contract.
 
@@ -354,21 +310,23 @@ async def list_requests(
         logger.error(repr(e))
         raise EngineHTTPException(status_code=500)
 
-    return requests
+    return [contracts_actions.parse_call_request_response(r) for r in requests]
 
 
-@app.get("/requests/{request_id}", tags=["requests"], response_model=data.CallRequest)
+@app.get(
+    "/requests/{request_id}", tags=["requests"], response_model=data.CallRequestResponse
+)
 async def get_request(
     request_id: UUID = Path(...),
     db_session: Session = Depends(db.yield_db_read_only_session),
-) -> List[data.CallRequest]:
+) -> List[data.CallRequestResponse]:
     """
     Allows API user to see call request.
 
     At least one of `contract_id` or `contract_address` must be provided as query parameters.
     """
     try:
-        result = contracts_actions.get_call_requests(
+        request = contracts_actions.get_call_requests(
             db_session=db_session,
             request_id=request_id,
         )
@@ -381,7 +339,7 @@ async def get_request(
         logger.error(repr(e))
         raise EngineHTTPException(status_code=500)
 
-    return result
+    return contracts_actions.parse_call_request_response(request)
 
 
 @app.post("/requests", tags=["requests"], response_model=int)
@@ -398,7 +356,7 @@ async def create_requests(
     try:
         num_requests = contracts_actions.request_calls(
             db_session=db_session,
-            moonstream_user_id=request.state.user.id,
+            metatx_holder_id=request.state.user.id,
             registered_contract_id=data.contract_id,
             contract_address=data.contract_address,
             call_specs=data.specifications,
@@ -428,7 +386,7 @@ async def delete_requests(
     try:
         deleted_requests = contracts_actions.delete_requests(
             db_session=db_session,
-            moonstream_user_id=request.state.user.id,
+            metatx_holder_id=request.state.user.id,
             request_ids=request_ids,
         )
     except Exception as err:

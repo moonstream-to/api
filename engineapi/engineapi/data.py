@@ -299,22 +299,23 @@ class CreateCallRequestsAPIRequest(BaseModel):
         return values
 
 
-class CallRequest(BaseModel):
+class CallRequestResponse(BaseModel):
     id: UUID
-    contract_id: UUID = Field(alias="registered_contract_id")
+    contract_id: UUID
     contract_address: Optional[str] = None
-    moonstream_user_id: UUID
+    metatx_holder_id: UUID
+    call_request_type: Optional[str] = None
     caller: str
     method: str
     parameters: Dict[str, Any]
-    expires_at: Optional[datetime]
+    expires_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
 
     class Config:
         orm_mode = True
 
-    @validator("id", "contract_id", "moonstream_user_id")
+    @validator("id", "contract_id", "metatx_holder_id")
     def validate_uuids(cls, v):
         return str(v)
 
