@@ -21,7 +21,7 @@ def get_results_for_moonstream_query(
     params: Dict[str, Any],
     blockchain: Optional[str] = None,
     api_url: str = MOONSTREAM_API_URL,
-    max_retries: int = 100,
+    max_retries: int = 10,
     interval: float = 30.0,
 ) -> Optional[Dict[str, Any]]:
     """
