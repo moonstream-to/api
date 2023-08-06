@@ -356,6 +356,7 @@ class LeaderboardInfoResponse(BaseModel):
     title: str
     description: Optional[str] = None
     users_count: int
+    last_updated_at: Optional[datetime] = None
 
 
 class LeaderboardCreateRequest(BaseModel):

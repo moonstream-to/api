@@ -87,7 +87,7 @@ async def get_leadeboard(
         title=leaderboard.title,
         description=leaderboard.description,
         users_count=leaderboard.users_count,
-        last_updated=leaderboard.last_update,
+        last_updated_at=leaderboard.last_update,
     )
 
 

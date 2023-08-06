@@ -968,7 +968,7 @@ def get_leaderboard_info(db_session: Session, leaderboard_id: uuid.UUID) -> Any:
             func.count(LeaderboardScores.id).label("users_count"),
             func.max(LeaderboardScores.updated_at).label("last_update"),
         )
-        .join(LeaderboardScores, LeaderboardScores.leaderboard_id == Leaderboard.id)
+        .join(LeaderboardScores, LeaderboardScores.leaderboard_id == Leaderboard.id, isouter=True)
         .filter(Leaderboard.id == leaderboard_id)
         .group_by(Leaderboard.id, Leaderboard.title, Leaderboard.description)
         .one()
