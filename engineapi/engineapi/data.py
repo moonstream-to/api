@@ -355,3 +355,46 @@ class LeaderboardInfoResponse(BaseModel):
     id: UUID
     title: str
     description: Optional[str] = None
+    users_count: int
+
+
+class LeaderboardCreateRequest(BaseModel):
+    title: str
+    description: Optional[str] = None
+
+
+class LeaderboardCreatedResponse(BaseModel):
+    id: UUID
+    title: str
+    description: Optional[str] = None
+    resource_id: Optional[UUID] = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class LeaderboardUpdatedResponse(BaseModel):
+    id: UUID
+    title: str
+    description: Optional[str] = None
+    resource_id: Optional[UUID] = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class LeaderboardUpdateRequest(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+
+
+class LeaderboardDeletedResponse(BaseModel):
+    id: UUID
+    title: str
+    description: Optional[str] = None
+    resource_id: Optional[UUID] = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class LeaderboardScoresChangesResponse(BaseModel):
+    players_count: int
+    date: datetime

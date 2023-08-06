@@ -1,6 +1,7 @@
 """
 Leaderboard API.
 """
+from datetime import datetime
 import logging
 from uuid import UUID
 
@@ -37,6 +38,8 @@ leaderboad_whitelist = {
     "/leaderboard": "GET",
     "/leaderboard/rank": "GET",
     "/leaderboard/ranks": "GET",
+    "/leaderboard/docs": "GET",
+    "/leaderboard/openapi.json": "GET",
 }
 
 app = FastAPI(
@@ -69,7 +72,7 @@ async def get_leadeboard(
     Returns leaderboard info.
     """
     try:
-        leaderboard = actions.get_leaderboard(db_session, leaderboard_id)
+        leaderboard = actions.get_leaderboard_info(db_session, leaderboard_id)
     except NoResultFound as e:
         raise EngineHTTPException(
             status_code=404,
@@ -83,6 +86,8 @@ async def get_leadeboard(
         id=leaderboard.id,
         title=leaderboard.title,
         description=leaderboard.description,
+        users_count=leaderboard.users_count,
+        last_updated=leaderboard.last_update,
     )
 
 
@@ -120,6 +125,35 @@ async def get_leaderboards(
     ]
 
     return results
+
+
+@app.get("/scores/changes")
+async def get_scores_changes(
+    leaderboard_id: UUID,
+    db_session: Session = Depends(db.yield_db_session),
+) -> Any:
+
+    """
+    Returns the score history for the given address.
+    """
+
+    try:
+
+        scores = actions.get_leaderboard_scores_changes(db_session, leaderboard_id)
+    except actions.LeaderboardIsEmpty:
+        raise EngineHTTPException(status_code=204, detail="Leaderboard is empty.")
+
+    except Exception as e:
+        logger.error(f"Error while getting scores: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    return [
+        data.LeaderboardScoresChangesResponse(
+            players_count=score.players_count,
+            date=score.date,
+        )
+        for score in scores
+    ]
 
 
 @app.get("/count/addresses", response_model=data.CountAddressesResponse)
@@ -269,6 +303,158 @@ async def leaderboard(
     ]
 
     return result
+
+
+@app.post("", response_model=data.LeaderboardCreatedResponse)
+@app.post("/", response_model=data.LeaderboardCreatedResponse)
+async def create_leaderboard(
+    request: Request,
+    leaderboard: data.LeaderboardCreateRequest,
+    db_session: Session = Depends(db.yield_db_session),
+) -> data.LeaderboardCreatedResponse:
+
+    """
+
+    Create leaderboard.
+    """
+
+    token = request.state.token
+
+    try:
+        created_leaderboard = actions.create_leaderboard(
+            db_session,
+            title=leaderboard.title,
+            description=leaderboard.description,
+            token=token,
+        )
+    except actions.LeaderboardCreateError as e:
+        logger.error(f"Error while creating leaderboard: {e}")
+        raise EngineHTTPException(
+            status_code=500,
+            detail="Leaderboard creation failed. Please try again.",
+        )
+
+    except Exception as e:
+        logger.error(f"Error while creating leaderboard: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    # Add resource to the leaderboard
+
+    return data.LeaderboardCreatedResponse(
+        id=created_leaderboard.id,
+        title=created_leaderboard.title,
+        description=created_leaderboard.description,
+        resource_id=created_leaderboard.resource_id,
+        created_at=created_leaderboard.created_at,
+        updated_at=created_leaderboard.updated_at,
+    )
+
+
+@app.put("/{leaderboard_id}", response_model=data.LeaderboardUpdatedResponse)
+async def update_leaderboard(
+    request: Request,
+    leaderboard_id: UUID,
+    leaderboard: data.LeaderboardUpdateRequest,
+    db_session: Session = Depends(db.yield_db_session),
+) -> data.LeaderboardUpdatedResponse:
+
+    """
+
+    Update leaderboard.
+    """
+
+    token = request.state.token
+
+    access = actions.check_leaderboard_resource_permissions(
+        db_session=db_session,
+        leaderboard_id=leaderboard_id,
+        token=request.state.token,
+    )
+
+    if access != True:
+        raise EngineHTTPException(
+            status_code=403, detail="You don't have access to this leaderboard."
+        )
+
+    try:
+        updated_leaderboard = actions.update_leaderboard(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            title=leaderboard.title,
+            description=leaderboard.description,
+            token=token,
+        )
+    except actions.LeaderboardUpdateError as e:
+        logger.error(f"Error while updating leaderboard: {e}")
+        raise EngineHTTPException(
+            status_code=500,
+            detail="Leaderboard update failed. Please try again.",
+        )
+
+    except Exception as e:
+        logger.error(f"Error while updating leaderboard: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    return data.LeaderboardUpdatedResponse(
+        id=updated_leaderboard.id,
+        title=updated_leaderboard.title,
+        description=updated_leaderboard.description,
+        resource_id=updated_leaderboard.resource_id,
+        created_at=updated_leaderboard.created_at,
+        updated_at=updated_leaderboard.updated_at,
+    )
+
+
+@app.delete("/{leaderboard_id}", response_model=data.LeaderboardDeletedResponse)
+async def delete_leaderboard(
+    request: Request,
+    leaderboard_id: UUID,
+    db_session: Session = Depends(db.yield_db_session),
+) -> data.LeaderboardDeletedResponse:
+
+    """
+
+    Delete leaderboard.
+    """
+
+    token = request.state.token
+
+    access = actions.check_leaderboard_resource_permissions(
+        db_session=db_session,
+        leaderboard_id=leaderboard_id,
+        token=request.state.token,
+    )
+
+    if access != True:
+        raise EngineHTTPException(
+            status_code=403, detail="You don't have access to this leaderboard."
+        )
+
+    try:
+        deleted_leaderboard = actions.delete_leaderboard(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            token=token,
+        )
+    except actions.LeaderboardDeleteError as e:
+        logger.error(f"Error while deleting leaderboard: {e}")
+        raise EngineHTTPException(
+            status_code=500,
+            detail="Leaderboard deletion failed. Please try again.",
+        )
+
+    except Exception as e:
+        logger.error(f"Error while deleting leaderboard: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    return data.LeaderboardDeletedResponse(
+        id=deleted_leaderboard.id,
+        title=deleted_leaderboard.title,
+        description=deleted_leaderboard.description,
+        resource_id=deleted_leaderboard.resource_id,
+        created_at=deleted_leaderboard.created_at,
+        updated_at=deleted_leaderboard.updated_at,
+    )
 
 
 @app.get("/rank", response_model=List[data.LeaderboardPosition])
