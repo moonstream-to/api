@@ -36,6 +36,7 @@ leaderboad_whitelist = {
     "/leaderboard/count/addresses": "GET",
     "/leaderboard/position": "GET",
     "/leaderboard": "GET",
+    "/leaderboard/": "GET",
     "/leaderboard/rank": "GET",
     "/leaderboard/ranks": "GET",
     "/leaderboard/docs": "GET",
@@ -62,207 +63,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-@app.get("/info", response_model=data.LeaderboardInfoResponse)
-async def get_leadeboard(
-    leaderboard_id: UUID,
-    db_session: Session = Depends(db.yield_db_session),
-) -> data.LeaderboardInfoResponse:
-    """
-    Returns leaderboard info.
-    """
-    try:
-        leaderboard = actions.get_leaderboard_info(db_session, leaderboard_id)
-    except NoResultFound as e:
-        raise EngineHTTPException(
-            status_code=404,
-            detail="Leaderboard not found.",
-        )
-    except Exception as e:
-        logger.error(f"Error while getting leaderboard: {e}")
-        raise EngineHTTPException(status_code=500, detail="Internal server error")
-
-    return data.LeaderboardInfoResponse(
-        id=leaderboard.id,
-        title=leaderboard.title,
-        description=leaderboard.description,
-        users_count=leaderboard.users_count,
-        last_updated_at=leaderboard.last_update,
-    )
-
-
-@app.get("/leaderboards", response_model=List[data.Leaderboard])
-async def get_leaderboards(
-    request: Request, db_session: Session = Depends(db.yield_db_session)
-) -> List[data.Leaderboard]:
-    """
-    Returns leaderboard list to which user has access.
-    """
-
-    token = request.state.token
-
-    try:
-        leaderboards = actions.get_leaderboards(db_session, token)
-    except actions.LeaderboardsResourcesNotFound as e:
-        raise EngineHTTPException(
-            status_code=404,
-            detail="Leaderboards not found.",
-        )
-    except Exception as e:
-        logger.error(f"Error while getting leaderboards: {e}")
-        raise EngineHTTPException(status_code=500, detail="Internal server error")
-
-    results = [
-        data.Leaderboard(
-            id=leaderboard.id,
-            title=leaderboard.title,
-            description=leaderboard.description,
-            resource_id=leaderboard.resource_id,
-            created_at=leaderboard.created_at,
-            updated_at=leaderboard.updated_at,
-        )
-        for leaderboard in leaderboards
-    ]
-
-    return results
-
-
-@app.get("/scores/changes")
-async def get_scores_changes(
-    leaderboard_id: UUID,
-    db_session: Session = Depends(db.yield_db_session),
-) -> Any:
-
-    """
-    Returns the score history for the given address.
-    """
-
-    try:
-
-        scores = actions.get_leaderboard_scores_changes(db_session, leaderboard_id)
-    except actions.LeaderboardIsEmpty:
-        raise EngineHTTPException(status_code=204, detail="Leaderboard is empty.")
-
-    except Exception as e:
-        logger.error(f"Error while getting scores: {e}")
-        raise EngineHTTPException(status_code=500, detail="Internal server error")
-
-    return [
-        data.LeaderboardScoresChangesResponse(
-            players_count=score.players_count,
-            date=score.date,
-        )
-        for score in scores
-    ]
-
-
-@app.get("/count/addresses", response_model=data.CountAddressesResponse)
-async def count_addresses(
-    leaderboard_id: UUID,
-    db_session: Session = Depends(db.yield_db_session),
-) -> data.CountAddressesResponse:
-    """
-    Returns the number of addresses in the leaderboard.
-    """
-
-    ### Check if leaderboard exists
-    try:
-        actions.get_leaderboard_by_id(db_session, leaderboard_id)
-    except NoResultFound as e:
-        raise EngineHTTPException(
-            status_code=404,
-            detail="Leaderboard not found.",
-        )
-    except Exception as e:
-        logger.error(f"Error while getting leaderboard: {e}")
-        raise EngineHTTPException(status_code=500, detail="Internal server error")
-
-    count = actions.get_leaderboard_total_count(db_session, leaderboard_id)
-
-    return data.CountAddressesResponse(count=count)
-
-
-@app.get("/quartiles", response_model=data.QuartilesResponse)
-async def quartiles(
-    leaderboard_id: UUID,
-    db_session: Session = Depends(db.yield_db_session),
-) -> data.QuartilesResponse:
-    """
-    Returns the quartiles of the leaderboard.
-    """
-    ### Check if leaderboard exists
-    try:
-        actions.get_leaderboard_by_id(db_session, leaderboard_id)
-    except NoResultFound as e:
-        raise EngineHTTPException(
-            status_code=404,
-            detail="Leaderboard not found.",
-        )
-    except Exception as e:
-        logger.error(f"Error while getting leaderboard: {e}")
-        raise EngineHTTPException(status_code=500, detail="Internal server error")
-
-    try:
-        q1, q2, q3 = actions.get_qurtiles(db_session, leaderboard_id)
-
-    except actions.LeaderboardIsEmpty:
-        raise EngineHTTPException(status_code=204, detail="Leaderboard is empty.")
-    except Exception as e:
-        logger.error(f"Error while getting quartiles: {e}")
-        raise EngineHTTPException(status_code=500, detail="Internal server error")
-
-    return data.QuartilesResponse(
-        percentile_25={"address": q1[0], "score": q1[1], "rank": q1[2]},
-        percentile_50={"address": q2[0], "score": q2[1], "rank": q2[2]},
-        percentile_75={"address": q3[0], "score": q3[1], "rank": q3[2]},
-    )
-
-
-@app.get("/position", response_model=List[data.LeaderboardPosition])
-async def position(
-    leaderboard_id: UUID,
-    address: str,
-    window_size: int = 1,
-    limit: int = 10,
-    offset: int = 0,
-    normalize_addresses: bool = True,
-    db_session: Session = Depends(db.yield_db_session),
-) -> List[data.LeaderboardPosition]:
-    """
-    Returns the leaderboard posotion for the given address.
-    With given window size.
-    """
-
-    ### Check if leaderboard exists
-    try:
-        actions.get_leaderboard_by_id(db_session, leaderboard_id)
-    except NoResultFound as e:
-        raise EngineHTTPException(
-            status_code=404,
-            detail="Leaderboard not found.",
-        )
-    except Exception as e:
-        logger.error(f"Error while getting leaderboard: {e}")
-        raise EngineHTTPException(status_code=500, detail="Internal server error")
-
-    if normalize_addresses:
-        address = Web3.toChecksumAddress(address)
-
-    positions = actions.get_position(
-        db_session, leaderboard_id, address, window_size, limit, offset
-    )
-
-    results = [
-        data.LeaderboardPosition(
-            address=position.address,
-            score=position.score,
-            rank=position.rank,
-            points_data=position.points_data,
-        )
-        for position in positions
-    ]
-
-    return results
 
 
 @app.get("", response_model=List[data.LeaderboardPosition])
@@ -455,6 +255,208 @@ async def delete_leaderboard(
         created_at=deleted_leaderboard.created_at,
         updated_at=deleted_leaderboard.updated_at,
     )
+
+
+@app.get("/count/addresses", response_model=data.CountAddressesResponse)
+async def count_addresses(
+    leaderboard_id: UUID,
+    db_session: Session = Depends(db.yield_db_session),
+) -> data.CountAddressesResponse:
+    """
+    Returns the number of addresses in the leaderboard.
+    """
+
+    ### Check if leaderboard exists
+    try:
+        actions.get_leaderboard_by_id(db_session, leaderboard_id)
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard not found.",
+        )
+    except Exception as e:
+        logger.error(f"Error while getting leaderboard: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    count = actions.get_leaderboard_total_count(db_session, leaderboard_id)
+
+    return data.CountAddressesResponse(count=count)
+
+
+@app.get("/info", response_model=data.LeaderboardInfoResponse)
+async def get_leadeboard(
+    leaderboard_id: UUID,
+    db_session: Session = Depends(db.yield_db_session),
+) -> data.LeaderboardInfoResponse:
+    """
+    Returns leaderboard info.
+    """
+    try:
+        leaderboard = actions.get_leaderboard_info(db_session, leaderboard_id)
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard not found.",
+        )
+    except Exception as e:
+        logger.error(f"Error while getting leaderboard: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    return data.LeaderboardInfoResponse(
+        id=leaderboard.id,
+        title=leaderboard.title,
+        description=leaderboard.description,
+        users_count=leaderboard.users_count,
+        last_updated_at=leaderboard.last_update,
+    )
+
+
+@app.get("/leaderboards", response_model=List[data.Leaderboard])
+async def get_leaderboards(
+    request: Request, db_session: Session = Depends(db.yield_db_session)
+) -> List[data.Leaderboard]:
+    """
+    Returns leaderboard list to which user has access.
+    """
+
+    token = request.state.token
+
+    try:
+        leaderboards = actions.get_leaderboards(db_session, token)
+    except actions.LeaderboardsResourcesNotFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboards not found.",
+        )
+    except Exception as e:
+        logger.error(f"Error while getting leaderboards: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    results = [
+        data.Leaderboard(
+            id=leaderboard.id,
+            title=leaderboard.title,
+            description=leaderboard.description,
+            resource_id=leaderboard.resource_id,
+            created_at=leaderboard.created_at,
+            updated_at=leaderboard.updated_at,
+        )
+        for leaderboard in leaderboards
+    ]
+
+    return results
+
+
+@app.get("/scores/changes")
+async def get_scores_changes(
+    leaderboard_id: UUID,
+    db_session: Session = Depends(db.yield_db_session),
+) -> Any:
+
+    """
+    Returns the score history for the given address.
+    """
+
+    try:
+
+        scores = actions.get_leaderboard_scores_changes(db_session, leaderboard_id)
+    except actions.LeaderboardIsEmpty:
+        raise EngineHTTPException(status_code=204, detail="Leaderboard is empty.")
+
+    except Exception as e:
+        logger.error(f"Error while getting scores: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    return [
+        data.LeaderboardScoresChangesResponse(
+            players_count=score.players_count,
+            date=score.date,
+        )
+        for score in scores
+    ]
+
+
+@app.get("/quartiles", response_model=data.QuartilesResponse)
+async def quartiles(
+    leaderboard_id: UUID,
+    db_session: Session = Depends(db.yield_db_session),
+) -> data.QuartilesResponse:
+    """
+    Returns the quartiles of the leaderboard.
+    """
+    ### Check if leaderboard exists
+    try:
+        actions.get_leaderboard_by_id(db_session, leaderboard_id)
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard not found.",
+        )
+    except Exception as e:
+        logger.error(f"Error while getting leaderboard: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    try:
+        q1, q2, q3 = actions.get_qurtiles(db_session, leaderboard_id)
+
+    except actions.LeaderboardIsEmpty:
+        raise EngineHTTPException(status_code=204, detail="Leaderboard is empty.")
+    except Exception as e:
+        logger.error(f"Error while getting quartiles: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    return data.QuartilesResponse(
+        percentile_25={"address": q1[0], "score": q1[1], "rank": q1[2]},
+        percentile_50={"address": q2[0], "score": q2[1], "rank": q2[2]},
+        percentile_75={"address": q3[0], "score": q3[1], "rank": q3[2]},
+    )
+
+
+@app.get("/position", response_model=List[data.LeaderboardPosition])
+async def position(
+    leaderboard_id: UUID,
+    address: str,
+    window_size: int = 1,
+    limit: int = 10,
+    offset: int = 0,
+    normalize_addresses: bool = True,
+    db_session: Session = Depends(db.yield_db_session),
+) -> List[data.LeaderboardPosition]:
+    """
+    Returns the leaderboard posotion for the given address.
+    With given window size.
+    """
+
+    ### Check if leaderboard exists
+    try:
+        actions.get_leaderboard_by_id(db_session, leaderboard_id)
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard not found.",
+        )
+    except Exception as e:
+        logger.error(f"Error while getting leaderboard: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    if normalize_addresses:
+        address = Web3.toChecksumAddress(address)
+
+    positions = actions.get_position(
+        db_session, leaderboard_id, address, window_size, limit, offset
+    )
+
+    results = [
+        data.LeaderboardPosition(
+            address=position.address,
+            score=position.score,
+            rank=position.rank,
+            points_data=position.points_data,
+        )
+        for position in positions
+    ]
+
+    return results
 
 
 @app.get("/rank", response_model=List[data.LeaderboardPosition])
