@@ -39,6 +39,7 @@ leaderboad_whitelist = {
     "/leaderboard/": "GET",
     "/leaderboard/rank": "GET",
     "/leaderboard/ranks": "GET",
+    "/scores/changes": "GET",
     "/leaderboard/docs": "GET",
     "/leaderboard/openapi.json": "GET",
 }
