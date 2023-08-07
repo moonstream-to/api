@@ -203,11 +203,6 @@ class DropUpdatedResponse(BaseModel):
     active: bool = True
 
 
-class ContractType(Enum):
-    raw = "raw"
-    dropper = "dropper-v0.2.0"
-
-
 class CallRequestTypeResponse(BaseModel):
     id: UUID
     request_type: str
@@ -276,6 +271,7 @@ class RegisteredContractResponse(BaseModel):
 class CallSpecification(BaseModel):
     caller: str
     method: str
+    call_request_type: str
     parameters: Dict[str, Any]
 
     @validator("caller")

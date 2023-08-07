@@ -367,6 +367,21 @@ async def create_requests(
             status_code=400,
             detail=f"Address not passed web3checksum validation, err: {err}",
         )
+    except contracts_actions.UnsupportedCallRequestType as err:
+        raise EngineHTTPException(
+            status_code=400,
+            detail=f"Unsupported call request type specified, err: {err}",
+        )
+    except contracts_actions.CallRequestMethodValueError as err:
+        raise EngineHTTPException(
+            status_code=400,
+            detail=f"Unacceptable call request method specified, err: {err}",
+        )
+    except contracts_actions.CallRequestRequiredParamsValueError as err:
+        raise EngineHTTPException(
+            status_code=400,
+            detail=f"Unacceptable call request required params specified, err: {err}",
+        )
     except Exception as err:
         logger.error(repr(err))
         raise EngineHTTPException(status_code=500)

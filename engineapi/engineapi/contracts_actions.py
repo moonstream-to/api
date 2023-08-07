@@ -13,7 +13,6 @@ from sqlalchemy.orm import Session
 from web3 import Web3
 
 from . import data, db
-from .data import ContractType
 from .models import (
     Blockchain,
     CallRequest,
@@ -38,9 +37,27 @@ class InvalidAddressFormat(Exception):
     """
 
 
+class UnsupportedCallRequestType(Exception):
+    """
+    Raised when unsupported call request type specified.
+    """
+
+
 class UnsupportedBlockchain(Exception):
     """
     Raised when unsupported blockchain specified.
+    """
+
+
+class CallRequestMethodValueError(Exception):
+    """
+    Raised when method not acceptable for specified request type.
+    """
+
+
+class CallRequestRequiredParamsValueError(Exception):
+    """
+    Raised when required params not acceptable for specified request type.
     """
 
 
@@ -83,39 +100,38 @@ def parse_call_request_response(
 
 
 def validate_method_and_params(
-    contract_type: ContractType, method: str, parameters: Dict[str, Any]
-) -> None:
+    call_request_type: str,
+    method: str,
+    parameters: Dict[str, Any],
+    request_types: List[CallRequestType],
+) -> CallRequestType:
     """
     Validate the given method and parameters for the specified contract_type.
     """
-    if contract_type == ContractType.raw:
-        if method != "":
-            raise ValueError("Method must be empty string for raw contract type")
-        if set(parameters.keys()) != {"calldata"}:
-            raise ValueError(
-                "Parameters must have only 'calldata' key for raw contract type"
-            )
-    elif contract_type == ContractType.dropper:
-        if method != "claim":
-            raise ValueError("Method must be 'claim' for dropper contract type")
-        required_params = {
-            "dropId",
-            "requestID",
-            "blockDeadline",
-            "amount",
-            "signer",
-            "signature",
-        }
-        if set(parameters.keys()) != required_params:
-            raise ValueError(
-                f"Parameters must have {required_params} keys for dropper contract type"
-            )
-        try:
-            Web3.toChecksumAddress(parameters["signer"])
-        except:
-            raise InvalidAddressFormat("Parameter signer must be a valid address")
-    else:
-        raise ValueError(f"Unknown contract type {contract_type}")
+    for rt in request_types:
+        if rt.request_type == call_request_type:
+            if method != rt.method:
+                raise CallRequestMethodValueError(
+                    f"Method must be {rt.method} for {rt.request_type} request type"
+                )
+
+            required_params_set = set(rt.required_params)
+            if set(parameters.keys()) != required_params_set:
+                raise CallRequestRequiredParamsValueError(
+                    f"Parameters must have only {rt.required_params} key for {rt.request_type} request type"
+                )
+
+            if "signer" in parameters:
+                try:
+                    Web3.toChecksumAddress(parameters["signer"])
+                except:
+                    raise InvalidAddressFormat(
+                        "Parameter signer must be a valid address"
+                    )
+
+            return rt
+
+    raise UnsupportedCallRequestType(f"Unknown request type {call_request_type}")
 
 
 def register_contract(
@@ -337,16 +353,26 @@ def request_calls(
     except NoResultFound:
         raise ValueError("Invalid registered_contract_id or metatx_requester_id")
 
+    request_types = db_session.query(CallRequestType).all()
+
     # Normalize the caller argument using Web3.toChecksumAddress
-    contract_type = ContractType(registered_contract.contract_type)
     for specification in call_specs:
         normalized_caller = Web3.toChecksumAddress(specification.caller)
 
         # Validate the method and parameters for the contract_type
         try:
-            validate_method_and_params(
-                contract_type, specification.method, specification.parameters
+            call_request_type = validate_method_and_params(
+                specification.call_request_type,
+                specification.method,
+                specification.parameters,
+                request_types,
             )
+        except UnsupportedCallRequestType as err:
+            raise UnsupportedCallRequestType(err)
+        except CallRequestMethodValueError as err:
+            raise CallRequestMethodValueError(err)
+        except CallRequestRequiredParamsValueError as err:
+            raise CallRequestRequiredParamsValueError(err)
         except InvalidAddressFormat as err:
             raise InvalidAddressFormat(err)
         except Exception as err:
@@ -360,8 +386,9 @@ def request_calls(
 
         request = CallRequest(
             registered_contract_id=registered_contract.id,
+            call_request_type_id=call_request_type.id,
+            metatx_requester_id=metatx_requester_id,
             caller=normalized_caller,
-            moonstream_user_id=moonstream_user_id,
             method=specification.method,
             parameters=specification.parameters,
             expires_at=expires_at,
@@ -661,8 +688,6 @@ def generate_cli() -> argparse.ArgumentParser:
     register_parser.add_argument(
         "-c",
         "--contract-type",
-        type=ContractType,
-        choices=ContractType,
         required=True,
         help="The type of the contract",
     )
@@ -722,8 +747,6 @@ def generate_cli() -> argparse.ArgumentParser:
     list_contracts_parser.add_argument(
         "-c",
         "--contract-type",
-        type=ContractType,
-        choices=ContractType,
         required=False,
         default=None,
         help="The type of the contract",

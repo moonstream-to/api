@@ -13,7 +13,7 @@ from sqlalchemy import (
     UniqueConstraint,
     Integer,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID, ARRAY
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -173,6 +173,8 @@ class CallRequestType(Base):  # type: ignore
     )
     request_type = Column(VARCHAR(128), nullable=False, unique=True, index=True)
     description = Column(String, nullable=True)
+    required_params = Column(ARRAY(String), nullable=False)
+    method = Column(String, nullable=False)
 
     call_requests = relationship(
         "CallRequest",
