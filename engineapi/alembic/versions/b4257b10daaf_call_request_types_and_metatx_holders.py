@@ -1,4 +1,4 @@
-"""Call request types and Metatx holders
+"""Call request types and Metatx requesters
 
 Revision ID: b4257b10daaf
 Revises: dedd8a7d0624
@@ -38,8 +38,7 @@ def upgrade():
     op.create_foreign_key(op.f('fk_registered_contracts_blockchain_id_blockchains'), 'registered_contracts', 'blockchains', ['blockchain_id'], ['id'], ondelete='CASCADE')
 
     # Manual - Start
-    op.execute(f"INSERT INTO blockchains (id, name, chain_id, testnet) VALUES ('{str(uuid.uuid4())}', 'polygon', 137, FALSE);")
-    op.execute(f"INSERT INTO blockchains (id, name, chain_id, testnet) VALUES ('{str(uuid.uuid4())}', 'mumbai', 80001, TRUE);")
+    op.execute(f"INSERT INTO blockchains (id, name, chain_id, testnet) VALUES ('{str(uuid.uuid4())}', 'ethereum', 1, FALSE),('{str(uuid.uuid4())}', 'polygon', 137, FALSE),('{str(uuid.uuid4())}', 'mumbai', 80001, TRUE),('{str(uuid.uuid4())}', 'wyrm', 322, FALSE),('{str(uuid.uuid4())}', 'zksync_era', 324, FALSE),('{str(uuid.uuid4())}', 'zksync_era_testnet', 280, TRUE),('{str(uuid.uuid4())}', 'gnosis', 100, FALSE);")
     op.execute("UPDATE registered_contracts SET blockchain_id = (SELECT id FROM blockchains WHERE blockchains.name = registered_contracts.blockchain);")
     op.alter_column("registered_contracts", "blockchain_id", nullable=False)
     # Manual - End
@@ -63,8 +62,7 @@ def upgrade():
     op.create_foreign_key(op.f('fk_call_requests_call_request_type_id_call_request_types'), 'call_requests', 'call_request_types', ['call_request_type_id'], ['id'], ondelete='CASCADE')
 
     # Manual - Start
-    op.execute(f"INSERT INTO call_request_types (id, request_type, description) VALUES ('{str(uuid.uuid4())}', 'raw', 'A generic smart contract. You can ask users to submit arbitrary calldata to this contract.');")
-    op.execute(f"INSERT INTO call_request_types (id, request_type, description) VALUES ('{str(uuid.uuid4())}', 'dropper-v0.2.0', 'A Dropper v0.2.0 contract. You can authorize users to submit claims against this contract.');")
+    op.execute(f"INSERT INTO call_request_types (id, request_type, description) VALUES ('{str(uuid.uuid4())}', 'raw', 'A generic smart contract. You can ask users to submit arbitrary calldata to this contract.'),('{str(uuid.uuid4())}', 'dropper-v0.2.0', 'A Dropper v0.2.0 contract. You can authorize users to submit claims against this contract.');")
     op.execute("UPDATE call_requests SET call_request_type_id = (SELECT call_request_types.id FROM call_request_types INNER JOIN registered_contracts ON call_requests.registered_contract_id = registered_contracts.id WHERE call_request_types.request_type = registered_contracts.contract_type);")
     op.alter_column("call_requests", "call_request_type_id", nullable=False)
     # Manual - End
@@ -73,25 +71,25 @@ def upgrade():
     op.drop_column('registered_contracts', 'contract_type')
 
     # Holders
-    op.create_table('metatx_holders',
+    op.create_table('metatx_requesters',
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text("TIMEZONE('utc', statement_timestamp())"), nullable=False),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_metatx_holders')),
-    sa.UniqueConstraint('id', name=op.f('uq_metatx_holders_id'))
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_metatx_requesters')),
+    sa.UniqueConstraint('id', name=op.f('uq_metatx_requesters_id'))
     )
 
-    op.add_column('call_requests', sa.Column('metatx_holder_id', sa.UUID(), nullable=True))
-    op.create_foreign_key(op.f('fk_call_requests_metatx_holder_id_metatx_holders'), 'call_requests', 'metatx_holders', ['metatx_holder_id'], ['id'], ondelete='CASCADE')
-    op.add_column('registered_contracts', sa.Column('metatx_holder_id', sa.UUID(), nullable=True))
-    op.create_foreign_key(op.f('fk_registered_contracts_metatx_holder_id_metatx_holders'), 'registered_contracts', 'metatx_holders', ['metatx_holder_id'], ['id'], ondelete='CASCADE')
+    op.add_column('call_requests', sa.Column('metatx_requester_id', sa.UUID(), nullable=True))
+    op.create_foreign_key(op.f('fk_call_requests_metatx_requester_id_metatx_requesters'), 'call_requests', 'metatx_requesters', ['metatx_requester_id'], ['id'], ondelete='CASCADE')
+    op.add_column('registered_contracts', sa.Column('metatx_requester_id', sa.UUID(), nullable=True))
+    op.create_foreign_key(op.f('fk_registered_contracts_metatx_requester_id_metatx_requesters'), 'registered_contracts', 'metatx_requesters', ['metatx_requester_id'], ['id'], ondelete='CASCADE')
 
     # Manual - Start
-    op.execute("INSERT INTO metatx_holders (id) SELECT DISTINCT moonstream_user_id FROM registered_contracts ON CONFLICT (id) DO NOTHING;")
-    op.execute("INSERT INTO metatx_holders (id) SELECT DISTINCT moonstream_user_id FROM call_requests ON CONFLICT (id) DO NOTHING;")
-    op.execute("UPDATE registered_contracts SET metatx_holder_id = moonstream_user_id;")
-    op.execute("UPDATE call_requests SET metatx_holder_id = moonstream_user_id;")
-    op.alter_column("call_requests", "metatx_holder_id", nullable=False)
-    op.alter_column("registered_contracts", "metatx_holder_id", nullable=False)
+    op.execute("INSERT INTO metatx_requesters (id) SELECT DISTINCT moonstream_user_id FROM registered_contracts ON CONFLICT (id) DO NOTHING;")
+    op.execute("INSERT INTO metatx_requesters (id) SELECT DISTINCT moonstream_user_id FROM call_requests ON CONFLICT (id) DO NOTHING;")
+    op.execute("UPDATE registered_contracts SET metatx_requester_id = moonstream_user_id;")
+    op.execute("UPDATE call_requests SET metatx_requester_id = moonstream_user_id;")
+    op.alter_column("call_requests", "metatx_requester_id", nullable=False)
+    op.alter_column("registered_contracts", "metatx_requester_id", nullable=False)
     # Manual - End
 
     op.drop_index('ix_call_requests_moonstream_user_id', table_name='call_requests')
@@ -100,7 +98,7 @@ def upgrade():
     op.drop_column('registered_contracts', 'moonstream_user_id')
 
     # Other
-    op.create_unique_constraint(op.f('uq_registered_contracts_blockchain_id'), 'registered_contracts', ['blockchain_id', 'metatx_holder_id', 'address'])
+    op.create_unique_constraint(op.f('uq_registered_contracts_blockchain_id'), 'registered_contracts', ['blockchain_id', 'metatx_requester_id', 'address'])
 
     op.create_unique_constraint(op.f('uq_call_requests_id'), 'call_requests', ['id'])
     op.create_unique_constraint(op.f('uq_registered_contracts_id'), 'registered_contracts', ['id'])
@@ -152,18 +150,18 @@ def downgrade():
     op.create_index('ix_call_requests_moonstream_user_id', 'call_requests', ['moonstream_user_id'], unique=False)
 
     # Manual - Start
-    op.execute("UPDATE registered_contracts SET moonstream_user_id = metatx_holder_id;")
-    op.execute("UPDATE call_requests SET moonstream_user_id = metatx_holder_id;")
+    op.execute("UPDATE registered_contracts SET moonstream_user_id = metatx_requester_id;")
+    op.execute("UPDATE call_requests SET moonstream_user_id = metatx_requester_id;")
     op.alter_column("registered_contracts", "moonstream_user_id", nullable=False)
     op.alter_column("call_requests", "moonstream_user_id", nullable=False)
     # Manual - End
 
-    op.drop_constraint(op.f('fk_registered_contracts_metatx_holder_id_metatx_holders'), 'registered_contracts', type_='foreignkey')
-    op.drop_column('registered_contracts', 'metatx_holder_id')
-    op.drop_constraint(op.f('fk_call_requests_metatx_holder_id_metatx_holders'), 'call_requests', type_='foreignkey')
-    op.drop_column('call_requests', 'metatx_holder_id')
+    op.drop_constraint(op.f('fk_registered_contracts_metatx_requester_id_metatx_requesters'), 'registered_contracts', type_='foreignkey')
+    op.drop_column('registered_contracts', 'metatx_requester_id')
+    op.drop_constraint(op.f('fk_call_requests_metatx_requester_id_metatx_requesters'), 'call_requests', type_='foreignkey')
+    op.drop_column('call_requests', 'metatx_requester_id')
 
-    op.drop_table('metatx_holders')
+    op.drop_table('metatx_requesters')
 
     # Other
     op.create_unique_constraint('uq_registered_contracts_blockchain', 'registered_contracts', ['blockchain', 'moonstream_user_id', 'address', 'contract_type'])

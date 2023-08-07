@@ -18,7 +18,7 @@ from .models import (
     Blockchain,
     CallRequest,
     CallRequestType,
-    MetatxHolder,
+    MetatxRequester,
     RegisteredContract,
 )
 
@@ -55,7 +55,7 @@ def parse_registered_contract_response(
         id=obj[0].id,
         blockchain=obj[1].name,
         address=obj[0].address,
-        metatx_holder_id=obj[0].metatx_holder_id,
+        metatx_requester_id=obj[0].metatx_requester_id,
         title=obj[0].title,
         description=obj[0].description,
         image_uri=obj[0].image_uri,
@@ -71,7 +71,7 @@ def parse_call_request_response(
         id=obj[0].id,
         contract_id=obj[0].registered_contract_id,
         contract_address=obj[1].address,
-        metatx_holder_id=obj[0].metatx_holder_id,
+        metatx_requester_id=obj[0].metatx_requester_id,
         call_request_type=obj[2].request_type,
         caller=obj[0].caller,
         method=obj[0].method,
@@ -122,7 +122,7 @@ def register_contract(
     db_session: Session,
     blockchain_name: str,
     address: str,
-    metatx_holder_id: uuid.UUID,
+    metatx_requester_id: uuid.UUID,
     title: Optional[str],
     description: Optional[str],
     image_uri: Optional[str],
@@ -139,14 +139,18 @@ def register_contract(
         if blockchain is None:
             raise UnsupportedBlockchain("Unsupported blockchain specified")
 
-        metatx_holder_stmt = insert(MetatxHolder.__table__).values(id=metatx_holder_id)
-        metatx_holder_stmt_do_nothing_stmt = metatx_holder_stmt.on_conflict_do_nothing()
-        db_session.execute(metatx_holder_stmt_do_nothing_stmt)
+        metatx_requester_stmt = insert(MetatxRequester.__table__).values(
+            id=metatx_requester_id
+        )
+        metatx_requester_stmt_do_nothing_stmt = (
+            metatx_requester_stmt.on_conflict_do_nothing()
+        )
+        db_session.execute(metatx_requester_stmt_do_nothing_stmt)
 
         contract = RegisteredContract(
             blockchain_id=blockchain.id,
             address=Web3.toChecksumAddress(address),
-            metatx_holder_id=metatx_holder_id,
+            metatx_requester_id=metatx_requester_id,
             title=title,
             description=description,
             image_uri=image_uri,
@@ -166,7 +170,7 @@ def register_contract(
 
 def update_registered_contract(
     db_session: Session,
-    metatx_holder_id: uuid.UUID,
+    metatx_requester_id: uuid.UUID,
     contract_id: uuid.UUID,
     title: Optional[str] = None,
     description: Optional[str] = None,
@@ -174,7 +178,7 @@ def update_registered_contract(
     ignore_nulls: bool = True,
 ) -> Tuple[RegisteredContract, Blockchain]:
     """
-    Update the registered contract with the given contract ID provided that the user with metatx_holder_id
+    Update the registered contract with the given contract ID provided that the user with metatx_requester_id
     has access to it.
     """
     contract_with_blockchain = (
@@ -182,7 +186,7 @@ def update_registered_contract(
         .join(Blockchain, Blockchain.id == RegisteredContract.blockchain_id)
         .filter(
             RegisteredContract.id == contract_id,
-            RegisteredContract.metatx_holder_id == metatx_holder_id,
+            RegisteredContract.metatx_requester_id == metatx_requester_id,
         )
         .one()
     )
@@ -210,7 +214,7 @@ def update_registered_contract(
 
 def get_registered_contract(
     db_session: Session,
-    metatx_holder_id: uuid.UUID,
+    metatx_requester_id: uuid.UUID,
     contract_id: uuid.UUID,
 ) -> Tuple[RegisteredContract, Blockchain]:
     """
@@ -219,7 +223,7 @@ def get_registered_contract(
     contract_with_blockchain = (
         db_session.query(RegisteredContract, Blockchain)
         .join(Blockchain, Blockchain.id == RegisteredContract.blockchain_id)
-        .filter(RegisteredContract.metatx_holder_id == metatx_holder_id)
+        .filter(RegisteredContract.metatx_requester_id == metatx_requester_id)
         .filter(RegisteredContract.id == contract_id)
         .one()
     )
@@ -230,7 +234,7 @@ def get_registered_contract(
 
 def lookup_registered_contracts(
     db_session: Session,
-    metatx_holder_id: uuid.UUID,
+    metatx_requester_id: uuid.UUID,
     blockchain: Optional[str] = None,
     address: Optional[str] = None,
     limit: int = 10,
@@ -242,7 +246,7 @@ def lookup_registered_contracts(
     query = (
         db_session.query(RegisteredContract, Blockchain)
         .join(Blockchain, Blockchain.id == RegisteredContract.blockchain_id)
-        .filter(RegisteredContract.metatx_holder_id == metatx_holder_id)
+        .filter(RegisteredContract.metatx_requester_id == metatx_requester_id)
     )
 
     if blockchain is not None:
@@ -263,7 +267,7 @@ def lookup_registered_contracts(
 
 def delete_registered_contract(
     db_session: Session,
-    metatx_holder_id: uuid.UUID,
+    metatx_requester_id: uuid.UUID,
     registered_contract_id: uuid.UUID,
 ) -> Tuple[RegisteredContract, Blockchain]:
     """
@@ -273,7 +277,7 @@ def delete_registered_contract(
         contract_with_blockchain = (
             db_session.query(RegisteredContract, Blockchain)
             .join(Blockchain, Blockchain.id == RegisteredContract.blockchain_id)
-            .filter(RegisteredContract.metatx_holder_id == metatx_holder_id)
+            .filter(RegisteredContract.metatx_requester_id == metatx_requester_id)
             .filter(RegisteredContract.id == registered_contract_id)
             .one()
         )
@@ -293,7 +297,7 @@ def delete_registered_contract(
 
 def request_calls(
     db_session: Session,
-    metatx_holder_id: uuid.UUID,
+    metatx_requester_id: uuid.UUID,
     registered_contract_id: Optional[uuid.UUID],
     contract_address: Optional[str],
     call_specs: List[data.CallSpecification],
@@ -317,7 +321,7 @@ def request_calls(
 
     # Check that the moonstream_user_id matches a RegisteredContract with the given id or address
     query = db_session.query(RegisteredContract).filter(
-        RegisteredContract.metatx_holder_id == metatx_holder_id
+        RegisteredContract.metatx_requester_id == metatx_requester_id
     )
 
     if registered_contract_id is not None:
@@ -331,7 +335,7 @@ def request_calls(
     try:
         registered_contract = query.one()
     except NoResultFound:
-        raise ValueError("Invalid registered_contract_id or metatx_holder_id")
+        raise ValueError("Invalid registered_contract_id or metatx_requester_id")
 
     # Normalize the caller argument using Web3.toChecksumAddress
     contract_type = ContractType(registered_contract.contract_type)
@@ -487,7 +491,7 @@ def list_call_requests(
 
 def delete_requests(
     db_session: Session,
-    metatx_holder_id: uuid.UUID,
+    metatx_requester_id: uuid.UUID,
     request_ids: List[uuid.UUID] = [],
 ) -> int:
     """
@@ -496,7 +500,7 @@ def delete_requests(
     try:
         requests_to_delete_query = (
             db_session.query(CallRequest)
-            .filter(CallRequest.metatx_holder_id == metatx_holder_id)
+            .filter(CallRequest.metatx_requester_id == metatx_requester_id)
             .filter(CallRequest.id.in_(request_ids))
         )
         requests_to_delete_num: int = requests_to_delete_query.delete(

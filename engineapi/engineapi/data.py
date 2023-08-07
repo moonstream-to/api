@@ -254,14 +254,14 @@ class RegisteredContractResponse(BaseModel):
     id: UUID
     blockchain: Optional[str] = None
     address: str
-    metatx_holder_id: UUID
+    metatx_requester_id: UUID
     title: Optional[str] = None
     description: Optional[str] = None
     image_uri: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
-    @validator("id", "metatx_holder_id")
+    @validator("id", "metatx_requester_id")
     def validate_uuids(cls, v):
         return str(v)
 
@@ -303,7 +303,7 @@ class CallRequestResponse(BaseModel):
     id: UUID
     contract_id: UUID
     contract_address: Optional[str] = None
-    metatx_holder_id: UUID
+    metatx_requester_id: UUID
     call_request_type: Optional[str] = None
     caller: str
     method: str
@@ -315,7 +315,7 @@ class CallRequestResponse(BaseModel):
     class Config:
         orm_mode = True
 
-    @validator("id", "contract_id", "metatx_holder_id")
+    @validator("id", "contract_id", "metatx_requester_id")
     def validate_uuids(cls, v):
         return str(v)
 

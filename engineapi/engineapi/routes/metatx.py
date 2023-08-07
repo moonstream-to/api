@@ -103,7 +103,7 @@ async def list_registered_contracts_route(
         registered_contracts_with_blockchain = (
             contracts_actions.lookup_registered_contracts(
                 db_session=db_session,
-                metatx_holder_id=request.state.user.id,
+                metatx_requester_id=request.state.user.id,
                 blockchain=blockchain,
                 address=address,
                 limit=limit,
@@ -136,7 +136,7 @@ async def get_registered_contract_route(
     try:
         contract_with_blockchain = contracts_actions.get_registered_contract(
             db_session=db_session,
-            metatx_holder_id=request.state.user.id,
+            metatx_requester_id=request.state.user.id,
             contract_id=contract_id,
         )
     except NoResultFound:
@@ -167,7 +167,7 @@ async def register_contract_route(
     try:
         contract_with_blockchain = contracts_actions.register_contract(
             db_session=db_session,
-            metatx_holder_id=request.state.user.id,
+            metatx_requester_id=request.state.user.id,
             blockchain_name=contract.blockchain,
             address=contract.address,
             title=contract.title,
@@ -206,7 +206,7 @@ async def update_contract_route(
     try:
         contract_with_blockchain = contracts_actions.update_registered_contract(
             db_session=db_session,
-            metatx_holder_id=request.state.user.id,
+            metatx_requester_id=request.state.user.id,
             contract_id=contract_id,
             title=update_info.title,
             description=update_info.description,
@@ -243,7 +243,7 @@ async def delete_contract_route(
     try:
         deleted_contract_with_blockchain = contracts_actions.delete_registered_contract(
             db_session=db_session,
-            metatx_holder_id=request.state.user.id,
+            metatx_requester_id=request.state.user.id,
             registered_contract_id=contract_id,
         )
     except Exception as err:
@@ -356,7 +356,7 @@ async def create_requests(
     try:
         num_requests = contracts_actions.request_calls(
             db_session=db_session,
-            metatx_holder_id=request.state.user.id,
+            metatx_requester_id=request.state.user.id,
             registered_contract_id=data.contract_id,
             contract_address=data.contract_address,
             call_specs=data.specifications,
@@ -386,7 +386,7 @@ async def delete_requests(
     try:
         deleted_requests = contracts_actions.delete_requests(
             db_session=db_session,
-            metatx_holder_id=request.state.user.id,
+            metatx_requester_id=request.state.user.id,
             request_ids=request_ids,
         )
     except Exception as err:

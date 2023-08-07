@@ -181,17 +181,16 @@ class CallRequestType(Base):  # type: ignore
     )
 
 
-class MetatxHolder(Base):  # type: ignore
+class MetatxRequester(Base):  # type: ignore
     """
-    MetatxHolder represents id of user from bugout authorization.
+    MetatxRequester represents id of user from bugout authorization.
     """
 
-    __tablename__ = "metatx_holders"
+    __tablename__ = "metatx_requesters"
 
     id = Column(
         UUID(as_uuid=True),
         primary_key=True,
-        default=uuid.uuid4,
         unique=True,
     )
 
@@ -201,12 +200,12 @@ class MetatxHolder(Base):  # type: ignore
 
     registered_contracts = relationship(
         "RegisteredContract",
-        back_populates="metatx_holder",
+        back_populates="metatx_requester",
         cascade="all, delete, delete-orphan",
     )
     call_requests = relationship(
         "CallRequest",
-        back_populates="metatx_holder",
+        back_populates="metatx_requester",
         cascade="all, delete, delete-orphan",
     )
 
@@ -236,7 +235,7 @@ class RegisteredContract(Base):  # type: ignore
     __table_args__ = (
         UniqueConstraint(
             "blockchain_id",
-            "metatx_holder_id",
+            "metatx_requester_id",
             "address",
         ),
     )
@@ -247,9 +246,9 @@ class RegisteredContract(Base):  # type: ignore
         default=uuid.uuid4,
         unique=True,
     )
-    metatx_holder_id = Column(
+    metatx_requester_id = Column(
         UUID(as_uuid=True),
-        ForeignKey("metatx_holders.id", ondelete="CASCADE"),
+        ForeignKey("metatx_requesters.id", ondelete="CASCADE"),
         nullable=False,
     )
     blockchain_id = Column(
@@ -279,7 +278,9 @@ class RegisteredContract(Base):  # type: ignore
         cascade="all, delete, delete-orphan",
     )
 
-    metatx_holder = relationship("MetatxHolder", back_populates="registered_contracts")
+    metatx_requester = relationship(
+        "MetatxRequester", back_populates="registered_contracts"
+    )
     blockchain = relationship("Blockchain", back_populates="registered_contracts")
 
 
@@ -303,9 +304,9 @@ class CallRequest(Base):
         ForeignKey("call_request_types.id", ondelete="CASCADE"),
         nullable=False,
     )
-    metatx_holder_id = Column(
+    metatx_requester_id = Column(
         UUID(as_uuid=True),
-        ForeignKey("metatx_holders.id", ondelete="CASCADE"),
+        ForeignKey("metatx_requesters.id", ondelete="CASCADE"),
         nullable=False,
     )
 
@@ -330,7 +331,7 @@ class CallRequest(Base):
         "RegisteredContract", back_populates="call_requests"
     )
     call_request_type = relationship("CallRequestType", back_populates="call_requests")
-    metatx_holder = relationship("MetatxHolder", back_populates="call_requests")
+    metatx_requester = relationship("MetatxRequester", back_populates="call_requests")
 
 
 class Leaderboard(Base):  # type: ignore
