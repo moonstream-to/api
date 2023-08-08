@@ -203,15 +203,35 @@ class DropUpdatedResponse(BaseModel):
     active: bool = True
 
 
-class ContractType(Enum):
-    raw = "raw"
-    dropper = "dropper-v0.2.0"
+class CallRequestTypeResponse(BaseModel):
+    name: str
+    description: str
+
+    class Config:
+        orm_mode = True
+
+
+class CallRequestTypesResponse(BaseModel):
+    call_request_types: List[CallRequestTypeResponse] = Field(default_factory=list)
+
+
+class BlockchainResponse(BaseModel):
+    id: UUID
+    name: str
+    chain_id: int
+    testnet: bool
+
+    class Config:
+        orm_mode = True
+
+
+class BlockchainsResponse(BaseModel):
+    blockchains: List[BlockchainResponse] = Field(default_factory=list)
 
 
 class RegisterContractRequest(BaseModel):
     blockchain: str
     address: str
-    contract_type: ContractType
     title: Optional[str] = None
     description: Optional[str] = None
     image_uri: Optional[str] = None
@@ -224,19 +244,18 @@ class UpdateContractRequest(BaseModel):
     ignore_nulls: bool = True
 
 
-class RegisteredContract(BaseModel):
+class RegisteredContractResponse(BaseModel):
     id: UUID
-    blockchain: str
+    blockchain: Optional[str] = None
     address: str
-    contract_type: str
-    moonstream_user_id: UUID
+    metatx_requester_id: UUID
     title: Optional[str] = None
     description: Optional[str] = None
     image_uri: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
-    @validator("id", "moonstream_user_id")
+    @validator("id", "metatx_requester_id")
     def validate_uuids(cls, v):
         return str(v)
 
@@ -251,6 +270,7 @@ class RegisteredContract(BaseModel):
 class CallSpecification(BaseModel):
     caller: str
     method: str
+    call_request_type: str = "dropper-v0.2.0"
     parameters: Dict[str, Any]
 
     @validator("caller")
@@ -274,22 +294,23 @@ class CreateCallRequestsAPIRequest(BaseModel):
         return values
 
 
-class CallRequest(BaseModel):
+class CallRequestResponse(BaseModel):
     id: UUID
-    contract_id: UUID = Field(alias="registered_contract_id")
+    contract_id: UUID
     contract_address: Optional[str] = None
-    moonstream_user_id: UUID
+    metatx_requester_id: UUID
+    call_request_type: Optional[str] = None
     caller: str
     method: str
     parameters: Dict[str, Any]
-    expires_at: Optional[datetime]
+    expires_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
 
     class Config:
         orm_mode = True
 
-    @validator("id", "contract_id", "moonstream_user_id")
+    @validator("id", "contract_id", "metatx_requester_id")
     def validate_uuids(cls, v):
         return str(v)
 
