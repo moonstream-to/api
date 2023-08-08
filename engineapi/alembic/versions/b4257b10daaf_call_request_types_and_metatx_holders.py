@@ -50,26 +50,19 @@ def upgrade():
 
     # Types
     op.create_table('call_request_types',
-    sa.Column('id', sa.UUID(), nullable=False),
-    sa.Column('request_type', sa.VARCHAR(length=128), nullable=False),
+    sa.Column('name', sa.VARCHAR(length=128), nullable=False),
     sa.Column('description', sa.String(), nullable=True),
-    sa.Column('required_params', postgresql.ARRAY(sa.String()), nullable=True),
-    sa.Column('method', sa.String(), nullable=True),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_call_request_types')),
-    sa.UniqueConstraint('id', name=op.f('uq_call_request_types_id'))
+    sa.PrimaryKeyConstraint('name', name=op.f('pk_call_request_types')),
+    sa.UniqueConstraint('name', name=op.f('uq_call_request_types_name'))
     )
 
-    op.create_index(op.f('ix_call_request_types_request_type'), 'call_request_types', ['request_type'], unique=True)
-
-    op.add_column('call_requests', sa.Column('call_request_type_id', sa.UUID(), nullable=True))
-    op.create_foreign_key(op.f('fk_call_requests_call_request_type_id_call_request_types'), 'call_requests', 'call_request_types', ['call_request_type_id'], ['id'], ondelete='CASCADE')
+    op.add_column('call_requests', sa.Column('call_request_type_name', sa.VARCHAR(length=128), nullable=True))
+    op.create_foreign_key(op.f('fk_call_requests_call_request_type_name_call_request_types'), 'call_requests', 'call_request_types', ['call_request_type_name'], ['name'], ondelete='CASCADE')
 
     # Manual - Start
-    op.execute(f"INSERT INTO call_request_types (id, request_type, description, required_params, method) VALUES ('{str(uuid.uuid4())}', 'raw', 'A generic smart contract. You can ask users to submit arbitrary calldata to this contract.',ARRAY ['calldata'],''),('{str(uuid.uuid4())}', 'dropper-v0.2.0', 'A Dropper v0.2.0 contract. You can authorize users to submit claims against this contract.',ARRAY ['dropId','requestID','blockDeadline','amount','signer','signature'],'claim');")
-    op.execute("UPDATE call_requests SET call_request_type_id = (SELECT call_request_types.id FROM call_request_types INNER JOIN registered_contracts ON call_requests.registered_contract_id = registered_contracts.id WHERE call_request_types.request_type = registered_contracts.contract_type);")
-    op.alter_column("call_requests", "call_request_type_id", nullable=False)
-    op.alter_column("call_request_types", "required_params", nullable=False)
-    op.alter_column("call_request_types", "method", nullable=False)
+    op.execute(f"INSERT INTO call_request_types (name, description) VALUES ('raw','A generic smart contract. You can ask users to submit arbitrary calldata to this contract.'),('dropper-v0.2.0','A Dropper v0.2.0 contract. You can authorize users to submit claims against this contract.');")
+    op.execute("UPDATE call_requests SET call_request_type_name = (SELECT call_request_types.name FROM call_request_types INNER JOIN registered_contracts ON call_requests.registered_contract_id = registered_contracts.id WHERE call_request_types.name = registered_contracts.contract_type);")
+    op.alter_column("call_requests", "call_request_type_name", nullable=False)
     # Manual - End
 
     op.drop_index('ix_registered_contracts_contract_type', table_name='registered_contracts')
@@ -105,10 +98,10 @@ def upgrade():
     # Other
     op.create_unique_constraint(op.f('uq_registered_contracts_blockchain_id'), 'registered_contracts', ['blockchain_id', 'metatx_requester_id', 'address'])
 
-    op.create_unique_constraint(op.f('uq_call_requests_id'), 'call_requests', ['id'])
-    op.create_unique_constraint(op.f('uq_registered_contracts_id'), 'registered_contracts', ['id'])
-    op.create_unique_constraint(op.f('uq_leaderboard_scores_id'), 'leaderboard_scores', ['id'])
-    op.create_unique_constraint(op.f('uq_leaderboards_id'), 'leaderboards', ['id'])
+    # op.create_unique_constraint(op.f('uq_call_requests_id'), 'call_requests', ['id'])
+    # op.create_unique_constraint(op.f('uq_registered_contracts_id'), 'registered_contracts', ['id'])
+    # op.create_unique_constraint(op.f('uq_leaderboard_scores_id'), 'leaderboard_scores', ['id'])
+    # op.create_unique_constraint(op.f('uq_leaderboards_id'), 'leaderboards', ['id'])
     # ### end Alembic commands ###
 
 

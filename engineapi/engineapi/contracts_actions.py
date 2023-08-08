@@ -82,14 +82,14 @@ def parse_registered_contract_response(
 
 
 def parse_call_request_response(
-    obj: Tuple[CallRequest, RegisteredContract, CallRequestType, CallRequestType]
+    obj: Tuple[CallRequest, RegisteredContract]
 ) -> data.CallRequestResponse:
     return data.CallRequestResponse(
         id=obj[0].id,
         contract_id=obj[0].registered_contract_id,
         contract_address=obj[1].address,
         metatx_requester_id=obj[0].metatx_requester_id,
-        call_request_type=obj[2].request_type,
+        call_request_type=obj[0].call_request_type_name,
         caller=obj[0].caller,
         method=obj[0].method,
         parameters=obj[0].parameters,
@@ -100,38 +100,48 @@ def parse_call_request_response(
 
 
 def validate_method_and_params(
-    call_request_type: str,
-    method: str,
-    parameters: Dict[str, Any],
-    request_types: List[CallRequestType],
-) -> CallRequestType:
+    method: str, parameters: Dict[str, Any], call_request_type: Optional[str] = None
+) -> str:
     """
     Validate the given method and parameters for the specified contract_type.
     """
-    for rt in request_types:
-        if rt.request_type == call_request_type:
-            if method != rt.method:
-                raise CallRequestMethodValueError(
-                    f"Method must be {rt.method} for {rt.request_type} request type"
-                )
+    if call_request_type is None or call_request_type == "dropper-v0.2.0":
+        call_request_type = "dropper-v0.2.0"
+        if method != "claim":
+            raise CallRequestMethodValueError(
+                "Method must be 'claim' for dropper contract type"
+            )
+        required_params = {
+            "dropId",
+            "requestID",
+            "blockDeadline",
+            "amount",
+            "signer",
+            "signature",
+        }
+        if set(parameters.keys()) != required_params:
+            raise CallRequestRequiredParamsValueError(
+                f"Parameters must have {required_params} keys for dropper contract type"
+            )
+        try:
+            Web3.toChecksumAddress(parameters["signer"])
+        except:
+            raise InvalidAddressFormat("Parameter signer must be a valid address")
 
-            required_params_set = set(rt.required_params)
-            if set(parameters.keys()) != required_params_set:
-                raise CallRequestRequiredParamsValueError(
-                    f"Parameters must have only {rt.required_params} key for {rt.request_type} request type"
-                )
+    elif call_request_type == "raw":
+        if method != "":
+            raise CallRequestMethodValueError(
+                "Method must be empty string for raw contract type"
+            )
+        if set(parameters.keys()) != {"calldata"}:
+            raise CallRequestRequiredParamsValueError(
+                "Parameters must have only 'calldata' key for raw contract type"
+            )
 
-            if "signer" in parameters:
-                try:
-                    Web3.toChecksumAddress(parameters["signer"])
-                except:
-                    raise InvalidAddressFormat(
-                        "Parameter signer must be a valid address"
-                    )
+    else:
+        raise UnsupportedCallRequestType(f"Unknown contract type {call_request_type}")
 
-            return rt
-
-    raise UnsupportedCallRequestType(f"Unknown request type {call_request_type}")
+    return call_request_type
 
 
 def register_contract(
@@ -353,8 +363,6 @@ def request_calls(
     except NoResultFound:
         raise ValueError("Invalid registered_contract_id or metatx_requester_id")
 
-    request_types = db_session.query(CallRequestType).all()
-
     # Normalize the caller argument using Web3.toChecksumAddress
     for specification in call_specs:
         normalized_caller = Web3.toChecksumAddress(specification.caller)
@@ -362,10 +370,9 @@ def request_calls(
         # Validate the method and parameters for the contract_type
         try:
             call_request_type = validate_method_and_params(
-                specification.call_request_type,
-                specification.method,
-                specification.parameters,
-                request_types,
+                method=specification.method,
+                parameters=specification.parameters,
+                call_request_type=specification.call_request_type,
             )
         except UnsupportedCallRequestType as err:
             raise UnsupportedCallRequestType(err)
@@ -379,6 +386,7 @@ def request_calls(
             logger.error(
                 f"Unhandled error occurred during methods and parameters validation, err: {err}"
             )
+            raise Exception()
 
         expires_at = None
         if ttl_days is not None:
@@ -386,7 +394,7 @@ def request_calls(
 
         request = CallRequest(
             registered_contract_id=registered_contract.id,
-            call_request_type_id=call_request_type.id,
+            call_request_type_name=call_request_type,
             metatx_requester_id=metatx_requester_id,
             caller=normalized_caller,
             method=specification.method,
@@ -408,19 +416,15 @@ def request_calls(
 def get_call_requests(
     db_session: Session,
     request_id: uuid.UUID,
-) -> Tuple[CallRequest, RegisteredContract, CallRequestType, CallRequestType]:
+) -> Tuple[CallRequest, RegisteredContract]:
     """
     Get call request by ID.
     """
     results = (
-        db_session.query(CallRequest, RegisteredContract, CallRequestType)
+        db_session.query(CallRequest, RegisteredContract)
         .join(
             RegisteredContract,
             CallRequest.registered_contract_id == RegisteredContract.id,
-        )
-        .join(
-            CallRequestType,
-            CallRequest.call_request_type_id == CallRequestType.id,
         )
         .filter(CallRequest.id == request_id)
         .all()
@@ -432,9 +436,9 @@ def get_call_requests(
             f"Incorrect number of results found for request_id {request_id}"
         )
 
-    call_request, registered_contract, call_request_type = results[0]
+    call_request, registered_contract = results[0]
 
-    return (call_request, registered_contract, call_request_type)
+    return (call_request, registered_contract)
 
 
 def list_blockchains(
@@ -473,14 +477,10 @@ def list_call_requests(
 
     # If show_expired is False, filter out expired requests using current time on database server
     query = (
-        db_session.query(CallRequest, RegisteredContract, CallRequestType)
+        db_session.query(CallRequest, RegisteredContract)
         .join(
             RegisteredContract,
             CallRequest.registered_contract_id == RegisteredContract.id,
-        )
-        .join(
-            CallRequestType,
-            CallRequest.call_request_type_id == CallRequestType.id,
         )
         .filter(CallRequest.caller == Web3.toChecksumAddress(caller))
     )

@@ -165,22 +165,12 @@ class CallRequestType(Base):  # type: ignore
 
     __tablename__ = "call_request_types"
 
-    id = Column(
-        UUID(as_uuid=True),
+    name = Column(
+        VARCHAR(128),
         primary_key=True,
-        default=uuid.uuid4,
         unique=True,
     )
-    request_type = Column(VARCHAR(128), nullable=False, unique=True, index=True)
     description = Column(String, nullable=True)
-    required_params = Column(ARRAY(String), nullable=False)
-    method = Column(String, nullable=False)
-
-    call_requests = relationship(
-        "CallRequest",
-        back_populates="call_request_type",
-        cascade="all, delete, delete-orphan",
-    )
 
 
 class MetatxRequester(Base):  # type: ignore
@@ -301,9 +291,9 @@ class CallRequest(Base):
         ForeignKey("registered_contracts.id", ondelete="CASCADE"),
         nullable=False,
     )
-    call_request_type_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("call_request_types.id", ondelete="CASCADE"),
+    call_request_type_name = Column(
+        VARCHAR(128),
+        ForeignKey("call_request_types.name", ondelete="CASCADE"),
         nullable=False,
     )
     metatx_requester_id = Column(
@@ -332,7 +322,6 @@ class CallRequest(Base):
     registered_contract = relationship(
         "RegisteredContract", back_populates="call_requests"
     )
-    call_request_type = relationship("CallRequestType", back_populates="call_requests")
     metatx_requester = relationship("MetatxRequester", back_populates="call_requests")
 
 

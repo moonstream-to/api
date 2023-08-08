@@ -204,8 +204,7 @@ class DropUpdatedResponse(BaseModel):
 
 
 class CallRequestTypeResponse(BaseModel):
-    id: UUID
-    request_type: str
+    name: str
     description: str
 
     class Config:
@@ -271,7 +270,7 @@ class RegisteredContractResponse(BaseModel):
 class CallSpecification(BaseModel):
     caller: str
     method: str
-    call_request_type: str
+    call_request_type: Optional[str] = None
     parameters: Dict[str, Any]
 
     @validator("caller")
