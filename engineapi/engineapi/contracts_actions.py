@@ -100,13 +100,12 @@ def parse_call_request_response(
 
 
 def validate_method_and_params(
-    method: str, parameters: Dict[str, Any], call_request_type: Optional[str] = None
+    call_request_type: str, method: str, parameters: Dict[str, Any]
 ) -> str:
     """
     Validate the given method and parameters for the specified contract_type.
     """
-    if call_request_type is None or call_request_type == "dropper-v0.2.0":
-        call_request_type = "dropper-v0.2.0"
+    if call_request_type == "dropper-v0.2.0":
         if method != "claim":
             raise CallRequestMethodValueError(
                 "Method must be 'claim' for dropper contract type"
@@ -370,9 +369,9 @@ def request_calls(
         # Validate the method and parameters for the contract_type
         try:
             call_request_type = validate_method_and_params(
+                call_request_type=specification.call_request_type,
                 method=specification.method,
                 parameters=specification.parameters,
-                call_request_type=specification.call_request_type,
             )
         except UnsupportedCallRequestType as err:
             raise UnsupportedCallRequestType(err)

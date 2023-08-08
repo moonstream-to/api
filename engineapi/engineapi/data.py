@@ -270,7 +270,7 @@ class RegisteredContractResponse(BaseModel):
 class CallSpecification(BaseModel):
     caller: str
     method: str
-    call_request_type: Optional[str] = None
+    call_request_type: str = "dropper-v0.2.0"
     parameters: Dict[str, Any]
 
     @validator("caller")
