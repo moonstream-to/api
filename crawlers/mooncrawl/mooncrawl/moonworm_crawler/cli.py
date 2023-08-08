@@ -189,7 +189,11 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
     )
 
     if addresses_filter:
-        filtered_function_call_jobs = [job for job in all_function_call_jobs]
+        filtered_function_call_jobs = [
+            job
+            for job in all_function_call_jobs
+            if job.contract_address in addresses_filter
+        ]
     else:
         filtered_function_call_jobs = all_function_call_jobs
 
@@ -266,6 +270,8 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
         addresses_deployment_blocks = None
 
         end_block = args.end
+
+        start_block = args.start
 
         # get set of addresses from event jobs and function call jobs
         if args.find_deployed_blocks:

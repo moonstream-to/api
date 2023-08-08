@@ -30,6 +30,8 @@ tags_metadata = [
 
 
 leaderboad_whitelist = {
+    f"/leaderboard/{DOCS_TARGET_PATH}": "GET",
+    "/leaderboard/openapi.json": "GET",
     "/leaderboard/info": "GET",
     "/leaderboard/quartiles": "GET",
     "/leaderboard/count/addresses": "GET",
