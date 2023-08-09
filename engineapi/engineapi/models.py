@@ -12,6 +12,7 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
     Integer,
+    text,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID, ARRAY
 from sqlalchemy.ext.compiler import compiles
@@ -317,6 +318,22 @@ class CallRequest(Base):
         server_default=utcnow(),
         onupdate=utcnow(),
         nullable=False,
+    )
+
+    __table_args__ = (
+        Index(
+            "uq_call_requests_dropperv020_requestid",
+            text("(parameters->'requestID')"),
+            unique=True,
+            postgresql_where=call_request_type_name.__eq__("dropper-v0.2.0"),
+        ),
+        Index(
+            "uq_call_requests_raw_caller_calldata",
+            "caller",
+            text("(parameters->'calldata')"),
+            unique=True,
+            postgresql_where=call_request_type_name.__eq__("raw"),
+        ),
     )
 
     registered_contract = relationship(
