@@ -98,7 +98,7 @@ def parse_call_request_response(
         call_request_type=obj[0].call_request_type_name,
         caller=obj[0].caller,
         method=obj[0].method,
-        request_id=obj[0].request_id,
+        request_id=str(obj[0].request_id),
         parameters=obj[0].parameters,
         expires_at=obj[0].expires_at,
         created_at=obj[0].created_at,

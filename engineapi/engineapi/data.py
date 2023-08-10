@@ -271,7 +271,7 @@ class CallSpecification(BaseModel):
     caller: str
     method: str
     call_request_type: str = "dropper-v0.2.0"
-    request_id: int
+    request_id: str
     parameters: Dict[str, Any]
 
     @validator("caller")
@@ -303,7 +303,7 @@ class CallRequestResponse(BaseModel):
     call_request_type: Optional[str] = None
     caller: str
     method: str
-    request_id: int
+    request_id: str
     parameters: Dict[str, Any]
     expires_at: Optional[datetime] = None
     created_at: datetime
