@@ -13,7 +13,7 @@ from sqlalchemy import (
     UniqueConstraint,
     Integer,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID, ARRAY
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -278,6 +278,12 @@ class RegisteredContract(Base):  # type: ignore
 
 class CallRequest(Base):
     __tablename__ = "call_requests"
+    __table_args__ = (
+        UniqueConstraint(
+            "registered_contract_id",
+            "request_id",
+        ),
+    )
 
     id = Column(
         UUID(as_uuid=True),
@@ -304,6 +310,7 @@ class CallRequest(Base):
 
     caller = Column(VARCHAR(256), nullable=False, index=True)
     method = Column(String, nullable=False, index=True)
+    request_id = Column(BigInteger, nullable=False, index=True)
     # TODO(zomglings): Should we conditional indices on parameters depending on the contract type?
     parameters = Column(JSONB, nullable=False)
 
