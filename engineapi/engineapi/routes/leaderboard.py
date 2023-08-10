@@ -160,17 +160,21 @@ async def update_leaderboard(
 ) -> data.LeaderboardUpdatedResponse:
 
     """
-
     Update leaderboard.
     """
 
     token = request.state.token
-
-    access = actions.check_leaderboard_resource_permissions(
-        db_session=db_session,
-        leaderboard_id=leaderboard_id,
-        token=request.state.token,
-    )
+    try:
+        access = actions.check_leaderboard_resource_permissions(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            token=token,
+        )
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard not found.",
+        )
 
     if access != True:
         raise EngineHTTPException(
@@ -214,17 +218,21 @@ async def delete_leaderboard(
 ) -> data.LeaderboardDeletedResponse:
 
     """
-
     Delete leaderboard.
     """
 
     token = request.state.token
-
-    access = actions.check_leaderboard_resource_permissions(
-        db_session=db_session,
-        leaderboard_id=leaderboard_id,
-        token=request.state.token,
-    )
+    try:
+        access = actions.check_leaderboard_resource_permissions(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            token=token,
+        )   
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard not found.",
+        )
 
     if access != True:
         raise EngineHTTPException(
@@ -256,6 +264,75 @@ async def delete_leaderboard(
         created_at=deleted_leaderboard.created_at,
         updated_at=deleted_leaderboard.updated_at,
     )
+
+
+@app.get("/leaderboards", response_model=List[data.Leaderboard])
+async def get_leaderboards(
+    request: Request, db_session: Session = Depends(db.yield_db_session)
+) -> List[data.Leaderboard]:
+    """
+    Returns leaderboard list to which user has access.
+    """
+
+    token = request.state.token
+
+    try:
+        leaderboards = actions.get_leaderboards(db_session, token)
+    except actions.LeaderboardsResourcesNotFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboards not found.",
+        )
+    except Exception as e:
+        logger.error(f"Error while getting leaderboards: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    results = [
+        data.Leaderboard(
+            id=leaderboard.id,
+            title=leaderboard.title,
+            description=leaderboard.description,
+            resource_id=leaderboard.resource_id,
+            created_at=leaderboard.created_at,
+            updated_at=leaderboard.updated_at,
+        )
+        for leaderboard in leaderboards
+    ]
+
+    return results
+
+
+@app.get("/{leaderboard_id}/autoconfig", response_model=data.AutoConfigResponse)
+async def autoconfig(
+    request: Request,
+    leaderboard_id: UUID,
+    db_session: Session = Depends(db.yield_db_session),
+) -> data.AutoConfigResponse:
+    """
+    Returns the autoconfig for the leaderboard.
+    """
+    
+    token = request.state.token
+    try:
+        access = actions.check_leaderboard_resource_permissions(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            token=token,
+        )
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard not found.",
+        )
+
+    if access != True:
+        raise EngineHTTPException(
+            status_code=403, detail="You don't have access to this leaderboard."
+        )
+
+    autoconfig = actions.get_autoconfig(db_session, leaderboard_id)
+
+    return data.AutoConfigResponse(autoconfig=autoconfig)
 
 
 @app.get("/count/addresses", response_model=data.CountAddressesResponse)
@@ -310,42 +387,6 @@ async def get_leadeboard(
         users_count=leaderboard.users_count,
         last_updated_at=leaderboard.last_update,
     )
-
-
-@app.get("/leaderboards", response_model=List[data.Leaderboard])
-async def get_leaderboards(
-    request: Request, db_session: Session = Depends(db.yield_db_session)
-) -> List[data.Leaderboard]:
-    """
-    Returns leaderboard list to which user has access.
-    """
-
-    token = request.state.token
-
-    try:
-        leaderboards = actions.get_leaderboards(db_session, token)
-    except actions.LeaderboardsResourcesNotFound as e:
-        raise EngineHTTPException(
-            status_code=404,
-            detail="Leaderboards not found.",
-        )
-    except Exception as e:
-        logger.error(f"Error while getting leaderboards: {e}")
-        raise EngineHTTPException(status_code=500, detail="Internal server error")
-
-    results = [
-        data.Leaderboard(
-            id=leaderboard.id,
-            title=leaderboard.title,
-            description=leaderboard.description,
-            resource_id=leaderboard.resource_id,
-            created_at=leaderboard.created_at,
-            updated_at=leaderboard.updated_at,
-        )
-        for leaderboard in leaderboards
-    ]
-
-    return results
 
 
 @app.get("/scores/changes")
@@ -543,29 +584,23 @@ async def leaderboard_push_scores(
     """
     Put the leaderboard to the database.
     """
-
-    access = actions.check_leaderboard_resource_permissions(
-        db_session=db_session,
-        leaderboard_id=leaderboard_id,
-        token=request.state.token,
-    )
-
-    if not access:
-        raise EngineHTTPException(
-            status_code=403, detail="You don't have access to this leaderboard."
-        )
-
-    ### Check if leaderboard exists
+    token = request.state.token
     try:
-        actions.get_leaderboard_by_id(db_session, leaderboard_id)
+        access = actions.check_leaderboard_resource_permissions(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            token=token,
+        )
     except NoResultFound as e:
         raise EngineHTTPException(
             status_code=404,
             detail="Leaderboard not found.",
         )
-    except Exception as e:
-        logger.error(f"Error while getting leaderboard: {e}")
-        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    if not access:
+        raise EngineHTTPException(
+            status_code=403, detail="You don't have access to this leaderboard."
+        )
 
     try:
         leaderboard_points = actions.add_scores(
