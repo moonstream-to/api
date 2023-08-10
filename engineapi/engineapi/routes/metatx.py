@@ -382,6 +382,11 @@ async def create_requests(
             status_code=400,
             detail=f"Unacceptable call request required params specified, err: {err}",
         )
+    except contracts_actions.CallRequestAlreadyRegistered:
+        raise EngineHTTPException(
+            status_code=409,
+            detail="Call request with same parameters registered",
+        )
     except Exception as err:
         logger.error(repr(err))
         raise EngineHTTPException(status_code=500)
