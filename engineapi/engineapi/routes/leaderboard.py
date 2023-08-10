@@ -32,6 +32,7 @@ tags_metadata = [
 
 leaderboad_whitelist = {
     "/leaderboard/info": "GET",
+    "/leaderboard/scores/changes": "GET",
     "/leaderboard/quartiles": "GET",
     "/leaderboard/count/addresses": "GET",
     "/leaderboard/position": "GET",
@@ -300,40 +301,6 @@ async def get_leaderboards(
     ]
 
     return results
-
-
-@app.get("/{leaderboard_id}/autoconfig", response_model=data.AutoConfigResponse)
-async def autoconfig(
-    request: Request,
-    leaderboard_id: UUID,
-    db_session: Session = Depends(db.yield_db_session),
-) -> data.AutoConfigResponse:
-    """
-    Returns the autoconfig for the leaderboard.
-    """
-    
-    token = request.state.token
-    try:
-        access = actions.check_leaderboard_resource_permissions(
-            db_session=db_session,
-            leaderboard_id=leaderboard_id,
-            token=token,
-        )
-    except NoResultFound as e:
-        raise EngineHTTPException(
-            status_code=404,
-            detail="Leaderboard not found.",
-        )
-
-    if access != True:
-        raise EngineHTTPException(
-            status_code=403, detail="You don't have access to this leaderboard."
-        )
-
-    autoconfig = actions.get_autoconfig(db_session, leaderboard_id)
-
-    return data.AutoConfigResponse(autoconfig=autoconfig)
-
 
 @app.get("/count/addresses", response_model=data.CountAddressesResponse)
 async def count_addresses(
