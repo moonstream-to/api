@@ -65,6 +65,12 @@ class ContractAlreadyRegistered(Exception):
     pass
 
 
+class CallRequestAlreadyRegistered(Exception):
+    """
+    Raised when call request with same parameters registered.
+    """
+
+
 def parse_registered_contract_response(
     obj: Tuple[RegisteredContract, Blockchain]
 ) -> data.RegisteredContractResponse:
@@ -92,6 +98,7 @@ def parse_call_request_response(
         call_request_type=obj[0].call_request_type_name,
         caller=obj[0].caller,
         method=obj[0].method,
+        request_id=str(obj[0].request_id),
         parameters=obj[0].parameters,
         expires_at=obj[0].expires_at,
         created_at=obj[0].created_at,
@@ -112,7 +119,6 @@ def validate_method_and_params(
             )
         required_params = {
             "dropId",
-            "requestID",
             "blockDeadline",
             "amount",
             "signer",
@@ -397,6 +403,7 @@ def request_calls(
             metatx_requester_id=metatx_requester_id,
             caller=normalized_caller,
             method=specification.method,
+            request_id=specification.request_id,
             parameters=specification.parameters,
             expires_at=expires_at,
         )
@@ -405,6 +412,9 @@ def request_calls(
     # Insert the new rows into the database in a single transaction
     try:
         db_session.commit()
+    except IntegrityError as err:
+        db_session.rollback()
+        raise CallRequestAlreadyRegistered()
     except Exception as e:
         db_session.rollback()
         raise e

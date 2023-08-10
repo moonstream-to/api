@@ -1,6 +1,7 @@
 import uuid
 
 from sqlalchemy import (
+    DECIMAL,
     VARCHAR,
     BigInteger,
     Boolean,
@@ -8,15 +9,15 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Index,
+    Integer,
     MetaData,
     String,
     UniqueConstraint,
-    Integer,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID, ARRAY
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.compiler import compiles
-from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import and_, expression
 
 """
@@ -278,6 +279,12 @@ class RegisteredContract(Base):  # type: ignore
 
 class CallRequest(Base):
     __tablename__ = "call_requests"
+    __table_args__ = (
+        UniqueConstraint(
+            "registered_contract_id",
+            "request_id",
+        ),
+    )
 
     id = Column(
         UUID(as_uuid=True),
@@ -304,7 +311,7 @@ class CallRequest(Base):
 
     caller = Column(VARCHAR(256), nullable=False, index=True)
     method = Column(String, nullable=False, index=True)
-    # TODO(zomglings): Should we conditional indices on parameters depending on the contract type?
+    request_id = Column(DECIMAL, nullable=False, index=True)
     parameters = Column(JSONB, nullable=False)
 
     expires_at = Column(DateTime(timezone=True), nullable=True, index=True)
