@@ -62,9 +62,9 @@ DELETE FROM call_requests WHERE id IN (SELECT id FROM DeleteDuplicates);""")
     op.alter_column("call_requests", "request_id", nullable=False)
 
     # Other
-    # op.create_unique_constraint(op.f('uq_blockchains_id'), 'blockchains', ['id'])
-    # op.create_unique_constraint(op.f('uq_call_request_types_name'), 'call_request_types', ['name'])
-    # op.create_unique_constraint(op.f('uq_metatx_requesters_id'), 'metatx_requesters', ['id'])
+    op.create_unique_constraint(op.f('uq_blockchains_id'), 'blockchains', ['id'])
+    op.create_unique_constraint(op.f('uq_call_request_types_name'), 'call_request_types', ['name'])
+    op.create_unique_constraint(op.f('uq_metatx_requesters_id'), 'metatx_requesters', ['id'])
     # ### end Alembic commands ###
 
 

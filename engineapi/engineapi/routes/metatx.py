@@ -385,7 +385,7 @@ async def create_requests(
     except contracts_actions.CallRequestAlreadyRegistered:
         raise EngineHTTPException(
             status_code=409,
-            detail="Call request with same parameters registered",
+            detail="Call request with same request_id already registered",
         )
     except Exception as err:
         logger.error(repr(err))
