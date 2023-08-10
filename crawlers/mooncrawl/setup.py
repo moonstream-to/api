@@ -34,7 +34,7 @@ setup(
     zip_safe=False,
     install_requires=[
         "boto3",
-        "bugout>=0.2.12",
+        "bugout>=0.2.13",
         "chardet",
         "fastapi",
         "moonstreamdb>=0.3.4",
