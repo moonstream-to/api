@@ -324,7 +324,7 @@ async def count_addresses(
 
 
 @app.get("/info", response_model=data.LeaderboardInfoResponse)
-async def get_leadeboard(
+async def leadeboard_info(
     leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.LeaderboardInfoResponse:
