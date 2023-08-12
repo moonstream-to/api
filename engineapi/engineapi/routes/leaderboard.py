@@ -6,7 +6,7 @@ import logging
 from uuid import UUID
 
 from web3 import Web3
-from fastapi import FastAPI, Request, Depends, Response
+from fastapi import FastAPI, Request, Depends, Response, Query
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 from typing import Any, Dict, List, Optional
@@ -70,8 +70,8 @@ app.add_middleware(
 @app.get("/", response_model=List[data.LeaderboardPosition])
 async def leaderboard(
     leaderboard_id: UUID,
-    limit: int = 10,
-    offset: int = 0,
+    limit: int = Query(10),
+    offset: int = Query(0),
     db_session: Session = Depends(db.yield_db_session),
 ) -> List[data.LeaderboardPosition]:
     """
@@ -418,9 +418,9 @@ async def quartiles(
 async def position(
     leaderboard_id: UUID,
     address: str,
-    window_size: int = 1,
-    limit: int = 10,
-    offset: int = 0,
+    window_size: int = Query(1),
+    limit: int = Query(10),
+    offset: int = Query(0),
     normalize_addresses: bool = True,
     db_session: Session = Depends(db.yield_db_session),
 ) -> List[data.LeaderboardPosition]:
@@ -464,9 +464,9 @@ async def position(
 @app.get("/rank", response_model=List[data.LeaderboardPosition])
 async def rank(
     leaderboard_id: UUID,
-    rank: int = 1,
-    limit: Optional[int] = None,
-    offset: Optional[int] = None,
+    rank: int = Query(1),
+    limit: Optional[int] = Query(None),
+    offset: Optional[int] = Query(None),
     db_session: Session = Depends(db.yield_db_session),
 ) -> List[data.LeaderboardPosition]:
     """
