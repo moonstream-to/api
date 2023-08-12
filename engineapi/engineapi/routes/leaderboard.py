@@ -6,7 +6,7 @@ import logging
 from uuid import UUID
 
 from web3 import Web3
-from fastapi import FastAPI, Request, Depends, Response, Query
+from fastapi import FastAPI, Request, Depends, Response, Query, Path, Body
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 from typing import Any, Dict, List, Optional
@@ -69,7 +69,7 @@ app.add_middleware(
 @app.get("", response_model=List[data.LeaderboardPosition])
 @app.get("/", response_model=List[data.LeaderboardPosition])
 async def leaderboard(
-    leaderboard_id: UUID,
+    leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
     limit: int = Query(10),
     offset: int = Query(0),
     db_session: Session = Depends(db.yield_db_session),
@@ -110,7 +110,7 @@ async def leaderboard(
 @app.post("/", response_model=data.LeaderboardCreatedResponse)
 async def create_leaderboard(
     request: Request,
-    leaderboard: data.LeaderboardCreateRequest,
+    leaderboard: data.LeaderboardCreateRequest = Body(...),
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.LeaderboardCreatedResponse:
     """
@@ -153,8 +153,8 @@ async def create_leaderboard(
 @app.put("/{leaderboard_id}", response_model=data.LeaderboardUpdatedResponse)
 async def update_leaderboard(
     request: Request,
-    leaderboard_id: UUID,
-    leaderboard: data.LeaderboardUpdateRequest,
+    leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
+    leaderboard: data.LeaderboardUpdateRequest = Body(...),
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.LeaderboardUpdatedResponse:
     """
@@ -210,7 +210,7 @@ async def update_leaderboard(
 @app.delete("/{leaderboard_id}", response_model=data.LeaderboardDeletedResponse)
 async def delete_leaderboard(
     request: Request,
-    leaderboard_id: UUID,
+    leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.LeaderboardDeletedResponse:
     """
@@ -299,7 +299,7 @@ async def get_leaderboards(
 
 @app.get("/count/addresses", response_model=data.CountAddressesResponse)
 async def count_addresses(
-    leaderboard_id: UUID,
+    leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.CountAddressesResponse:
     """
@@ -325,7 +325,7 @@ async def count_addresses(
 
 @app.get("/info", response_model=data.LeaderboardInfoResponse)
 async def get_leadeboard(
-    leaderboard_id: UUID,
+    leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.LeaderboardInfoResponse:
     """
@@ -353,9 +353,9 @@ async def get_leadeboard(
 
 @app.get("/scores/changes")
 async def get_scores_changes(
-    leaderboard_id: UUID,
+    leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
     db_session: Session = Depends(db.yield_db_session),
-) -> Any:
+) -> List[data.LeaderboardScoresChangesResponse]:
     """
     Returns the score history for the given address.
     """
@@ -380,7 +380,7 @@ async def get_scores_changes(
 
 @app.get("/quartiles", response_model=data.QuartilesResponse)
 async def quartiles(
-    leaderboard_id: UUID,
+    leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.QuartilesResponse:
     """
@@ -416,12 +416,14 @@ async def quartiles(
 
 @app.get("/position", response_model=List[data.LeaderboardPosition])
 async def position(
-    leaderboard_id: UUID,
-    address: str,
-    window_size: int = Query(1),
+    leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
+    address: str = Query(..., description="Address to get position for."),
+    window_size: int = Query(1, description="Amount of positions up and down."),
     limit: int = Query(10),
     offset: int = Query(0),
-    normalize_addresses: bool = True,
+    normalize_addresses: bool = Query(
+        True, description="Normalize addresses to checksum."
+    ),
     db_session: Session = Depends(db.yield_db_session),
 ) -> List[data.LeaderboardPosition]:
     """
@@ -463,8 +465,8 @@ async def position(
 
 @app.get("/rank", response_model=List[data.LeaderboardPosition])
 async def rank(
-    leaderboard_id: UUID,
-    rank: int = Query(1),
+    leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
+    rank: int = Query(1, description="Rank to get."),
     limit: Optional[int] = Query(None),
     offset: Optional[int] = Query(None),
     db_session: Session = Depends(db.yield_db_session),
@@ -502,7 +504,8 @@ async def rank(
 
 @app.get("/ranks", response_model=List[data.RanksResponse])
 async def ranks(
-    leaderboard_id: UUID, db_session: Session = Depends(db.yield_db_session)
+    leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
+    db_session: Session = Depends(db.yield_db_session),
 ) -> List[data.RanksResponse]:
     """
     Returns the leaderboard rank buckets overview with score and size of bucket.
@@ -535,10 +538,17 @@ async def ranks(
 @app.put("/{leaderboard_id}/scores", response_model=List[data.LeaderboardScore])
 async def leaderboard_push_scores(
     request: Request,
-    leaderboard_id: UUID,
-    scores: List[data.Score],
-    overwrite: bool = False,
-    normalize_addresses: bool = True,
+    leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
+    scores: List[data.Score] = Body(
+        ..., description="Scores to put to the leaderboard."
+    ),
+    overwrite: bool = Query(
+        False,
+        description="If enabled, this will delete all current scores and replace them with the new scores provided.",
+    ),
+    normalize_addresses: bool = Query(
+        True, description="Normalize addresses to checksum."
+    ),
     db_session: Session = Depends(db.yield_db_session),
 ) -> List[data.LeaderboardScore]:
     """
