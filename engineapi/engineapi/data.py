@@ -372,6 +372,9 @@ class LeaderboardCreatedResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+    class Config:
+        orm_mode = True
+
 
 class LeaderboardUpdatedResponse(BaseModel):
     id: UUID
@@ -380,6 +383,9 @@ class LeaderboardUpdatedResponse(BaseModel):
     resource_id: Optional[UUID] = None
     created_at: datetime
     updated_at: datetime
+
+    class Config:
+        orm_mode = True
 
 
 class LeaderboardUpdateRequest(BaseModel):

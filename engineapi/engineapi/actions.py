@@ -1,6 +1,6 @@
 from datetime import datetime
 from collections import Counter
-from typing import List, Any, Optional, Dict, Union
+from typing import List, Any, Optional, Dict, Union, Tuple
 import uuid
 import logging
 
@@ -11,6 +11,7 @@ import requests  # type: ignore
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 from sqlalchemy import func, text, or_
+from sqlalchemy.engine import Row
 from web3 import Web3
 from web3.types import ChecksumAddress
 
@@ -944,7 +945,7 @@ def refetch_drop_signatures(
     return claimant_objects
 
 
-def get_leaderboard_total_count(db_session: Session, leaderboard_id):
+def get_leaderboard_total_count(db_session: Session, leaderboard_id) -> int:
     """
     Get the total number of claimants in the leaderboard
     """
@@ -955,7 +956,9 @@ def get_leaderboard_total_count(db_session: Session, leaderboard_id):
     )
 
 
-def get_leaderboard_info(db_session: Session, leaderboard_id: uuid.UUID) -> Any:
+def get_leaderboard_info(
+    db_session: Session, leaderboard_id: uuid.UUID
+) -> Row[Tuple[uuid.UUID, str, str, int, Optional[datetime]]]:
     """
     Get the leaderboard from the database with users count
     """
@@ -968,7 +971,11 @@ def get_leaderboard_info(db_session: Session, leaderboard_id: uuid.UUID) -> Any:
             func.count(LeaderboardScores.id).label("users_count"),
             func.max(LeaderboardScores.updated_at).label("last_update"),
         )
-        .join(LeaderboardScores, LeaderboardScores.leaderboard_id == Leaderboard.id, isouter=True)
+        .join(
+            LeaderboardScores,
+            LeaderboardScores.leaderboard_id == Leaderboard.id,
+            isouter=True,
+        )
         .filter(Leaderboard.id == leaderboard_id)
         .group_by(Leaderboard.id, Leaderboard.title, Leaderboard.description)
         .one()
@@ -979,8 +986,7 @@ def get_leaderboard_info(db_session: Session, leaderboard_id: uuid.UUID) -> Any:
 
 def get_leaderboard_scores_changes(
     db_session: Session, leaderboard_id: uuid.UUID
-) -> Any:
-
+) -> List[Row[Tuple[int, datetime]]]:
     """
     Return the leaderboard scores changes timeline changes of leaderboard scores
     """
@@ -994,7 +1000,7 @@ def get_leaderboard_scores_changes(
         .filter(LeaderboardScores.leaderboard_id == leaderboard_id)
         .group_by(LeaderboardScores.updated_at)
         .order_by(LeaderboardScores.updated_at.desc())
-    )
+    ).all()
 
     return leaderboard_scores_changes
 
@@ -1005,8 +1011,7 @@ def get_leaderboard_scores_by_timestamp(
     date: datetime,
     limit: int,
     offset: int,
-) -> Any:
-
+) -> List[LeaderboardScores]:
     """
     Return the leaderboard scores by timestamp
     """
@@ -1060,7 +1065,7 @@ def get_leaderboards(
 
 def get_position(
     db_session: Session, leaderboard_id, address, window_size, limit: int, offset: int
-):
+) -> List[Row[Tuple[str, int, int, int, Any]]]:
     """
 
     Return position by address with window size
@@ -1112,7 +1117,7 @@ def get_position(
 
 def get_leaderboard_positions(
     db_session: Session, leaderboard_id, limit: int, offset: int
-):
+) -> List[Row[Tuple[uuid.UUID, str, int, str, int]]]:
     """
     Get the leaderboard positions
     """
@@ -1137,7 +1142,9 @@ def get_leaderboard_positions(
     return query
 
 
-def get_qurtiles(db_session: Session, leaderboard_id):
+def get_qurtiles(
+    db_session: Session, leaderboard_id
+) -> Tuple[Row[Tuple[str, float, int]], ...]:
     """
     Get the leaderboard qurtiles
     https://docs.sqlalchemy.org/en/14/core/functions.html#sqlalchemy.sql.functions.percentile_disc
@@ -1171,7 +1178,7 @@ def get_qurtiles(db_session: Session, leaderboard_id):
     return q1, q2, q3
 
 
-def get_ranks(db_session: Session, leaderboard_id):
+def get_ranks(db_session: Session, leaderboard_id) -> List[Row[Tuple[int, int, int]]]:
     """
     Get the leaderboard rank buckets(rank, size, score)
     """
@@ -1199,7 +1206,7 @@ def get_rank(
     rank: int,
     limit: Optional[int] = None,
     offset: Optional[int] = None,
-):
+) -> List[Row[Tuple[uuid.UUID, str, int, str, int]]]:
     """
     Get bucket in leaderboard by rank
     """
@@ -1234,11 +1241,14 @@ def create_leaderboard(
     db_session: Session,
     title: str,
     description: Optional[str],
-    token: uuid.UUID,
-):
+    token: Optional[uuid.UUID],
+) -> Leaderboard:
     """
     Create a leaderboard
     """
+
+    if not token:
+        token = uuid.UUID(MOONSTREAM_ADMIN_ACCESS_TOKEN)
     try:
         leaderboard = Leaderboard(title=title, description=description)
         db_session.add(leaderboard)
@@ -1262,8 +1272,7 @@ def create_leaderboard(
 
 def delete_leaderboard(
     db_session: Session, leaderboard_id: uuid.UUID, token: uuid.UUID
-):
-
+) -> Leaderboard:
     """
     Delete a leaderboard
     """
@@ -1280,6 +1289,10 @@ def delete_leaderboard(
                 )
             except Exception as e:
                 logger.error(f"Error deleting leaderboard resource: {e}")
+        else:
+            logger.error(
+                f"Leaderboard {leaderboard_id} has no resource id. Skipping. Better delete it manually."
+            )
 
         db_session.delete(leaderboard)
         db_session.commit()
@@ -1296,9 +1309,7 @@ def update_leaderboard(
     leaderboard_id: uuid.UUID,
     title: Optional[str],
     description: Optional[str],
-    token: uuid.UUID,
-):
-
+) -> Leaderboard:
     """
     Update a leaderboard
     """
@@ -1317,21 +1328,23 @@ def update_leaderboard(
     return leaderboard
 
 
-def get_leaderboard_by_id(db_session: Session, leaderboard_id):
+def get_leaderboard_by_id(db_session: Session, leaderboard_id) -> Leaderboard:
     """
     Get the leaderboard by id
     """
     return db_session.query(Leaderboard).filter(Leaderboard.id == leaderboard_id).one()  # type: ignore
 
 
-def get_leaderboard_by_title(db_session: Session, title):
+def get_leaderboard_by_title(db_session: Session, title) -> Leaderboard:
     """
     Get the leaderboard by title
     """
     return db_session.query(Leaderboard).filter(Leaderboard.title == title).one()  # type: ignore
 
 
-def list_leaderboards(db_session: Session, limit: int, offset: int):
+def list_leaderboards(
+    db_session: Session, limit: int, offset: int
+) -> List[Row[Tuple[uuid.UUID, str, str]]]:
     """
     List all leaderboards
     """
@@ -1413,10 +1426,7 @@ def add_scores(
 
 
 def create_leaderboard_resource(
-    leaderboard_id: str,
-    token: Union[Optional[uuid.UUID], str] = None,
-    title: Optional[str] = None,
-    user_id: Optional[uuid.UUID] = None,
+    leaderboard_id: str, token: Union[Optional[uuid.UUID], str] = None
 ) -> BugoutResource:
     resource_data: Dict[str, Any] = {
         "type": LEADERBOARD_RESOURCE_TYPE,
@@ -1481,7 +1491,9 @@ def list_leaderboards_resources(
     return query.all()
 
 
-def revoke_resource(db_session: Session, leaderboard_id: uuid.UUID):
+def revoke_resource(
+    db_session: Session, leaderboard_id: uuid.UUID
+) -> Optional[uuid.UUID]:
     """
     Revoke a resource handler to a leaderboard
     """
@@ -1505,7 +1517,7 @@ def revoke_resource(db_session: Session, leaderboard_id: uuid.UUID):
 
 def check_leaderboard_resource_permissions(
     db_session: Session, leaderboard_id: uuid.UUID, token: uuid.UUID
-):
+) -> bool:
     """
     Check if the user has permissions to access the leaderboard
     """

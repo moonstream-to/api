@@ -66,7 +66,6 @@ app.add_middleware(
 )
 
 
-
 @app.get("", response_model=List[data.LeaderboardPosition])
 @app.get("/", response_model=List[data.LeaderboardPosition])
 async def leaderboard(
@@ -114,7 +113,6 @@ async def create_leaderboard(
     leaderboard: data.LeaderboardCreateRequest,
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.LeaderboardCreatedResponse:
-
     """
 
     Create leaderboard.
@@ -143,12 +141,12 @@ async def create_leaderboard(
     # Add resource to the leaderboard
 
     return data.LeaderboardCreatedResponse(
-        id=created_leaderboard.id,
-        title=created_leaderboard.title,
-        description=created_leaderboard.description,
-        resource_id=created_leaderboard.resource_id,
-        created_at=created_leaderboard.created_at,
-        updated_at=created_leaderboard.updated_at,
+        id=created_leaderboard.id,  # type: ignore
+        title=created_leaderboard.title,  # type: ignore
+        description=created_leaderboard.description,  # type: ignore
+        resource_id=created_leaderboard.resource_id,  # type: ignore
+        created_at=created_leaderboard.created_at,  # type: ignore
+        updated_at=created_leaderboard.updated_at,  # type: ignore
     )
 
 
@@ -159,7 +157,6 @@ async def update_leaderboard(
     leaderboard: data.LeaderboardUpdateRequest,
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.LeaderboardUpdatedResponse:
-
     """
     Update leaderboard.
     """
@@ -188,7 +185,6 @@ async def update_leaderboard(
             leaderboard_id=leaderboard_id,
             title=leaderboard.title,
             description=leaderboard.description,
-            token=token,
         )
     except actions.LeaderboardUpdateError as e:
         logger.error(f"Error while updating leaderboard: {e}")
@@ -202,12 +198,12 @@ async def update_leaderboard(
         raise EngineHTTPException(status_code=500, detail="Internal server error")
 
     return data.LeaderboardUpdatedResponse(
-        id=updated_leaderboard.id,
-        title=updated_leaderboard.title,
-        description=updated_leaderboard.description,
-        resource_id=updated_leaderboard.resource_id,
-        created_at=updated_leaderboard.created_at,
-        updated_at=updated_leaderboard.updated_at,
+        id=updated_leaderboard.id,  # type: ignore
+        title=updated_leaderboard.title,  # type: ignore
+        description=updated_leaderboard.description,  # type: ignore
+        resource_id=updated_leaderboard.resource_id,  # type: ignore
+        created_at=updated_leaderboard.created_at,  # type: ignore
+        updated_at=updated_leaderboard.updated_at,  # type: ignore
     )
 
 
@@ -217,7 +213,6 @@ async def delete_leaderboard(
     leaderboard_id: UUID,
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.LeaderboardDeletedResponse:
-
     """
     Delete leaderboard.
     """
@@ -228,7 +223,7 @@ async def delete_leaderboard(
             db_session=db_session,
             leaderboard_id=leaderboard_id,
             token=token,
-        )   
+        )
     except NoResultFound as e:
         raise EngineHTTPException(
             status_code=404,
@@ -258,12 +253,11 @@ async def delete_leaderboard(
         raise EngineHTTPException(status_code=500, detail="Internal server error")
 
     return data.LeaderboardDeletedResponse(
-        id=deleted_leaderboard.id,
-        title=deleted_leaderboard.title,
-        description=deleted_leaderboard.description,
-        resource_id=deleted_leaderboard.resource_id,
-        created_at=deleted_leaderboard.created_at,
-        updated_at=deleted_leaderboard.updated_at,
+        id=deleted_leaderboard.id,  # type: ignore
+        title=deleted_leaderboard.title,  # type: ignore
+        description=deleted_leaderboard.description,  # type: ignore
+        created_at=deleted_leaderboard.created_at,  # type: ignore
+        updated_at=deleted_leaderboard.updated_at,  # type: ignore
     )
 
 
@@ -290,17 +284,18 @@ async def get_leaderboards(
 
     results = [
         data.Leaderboard(
-            id=leaderboard.id,
-            title=leaderboard.title,
-            description=leaderboard.description,
-            resource_id=leaderboard.resource_id,
-            created_at=leaderboard.created_at,
-            updated_at=leaderboard.updated_at,
+            id=leaderboard.id,  # type: ignore
+            title=leaderboard.title,  # type: ignore
+            description=leaderboard.description,  # type: ignore
+            resource_id=leaderboard.resource_id,  # type: ignore
+            created_at=leaderboard.created_at,  # type: ignore
+            updated_at=leaderboard.updated_at,  # type: ignore
         )
         for leaderboard in leaderboards
     ]
 
     return results
+
 
 @app.get("/count/addresses", response_model=data.CountAddressesResponse)
 async def count_addresses(
@@ -361,13 +356,11 @@ async def get_scores_changes(
     leaderboard_id: UUID,
     db_session: Session = Depends(db.yield_db_session),
 ) -> Any:
-
     """
     Returns the score history for the given address.
     """
 
     try:
-
         scores = actions.get_leaderboard_scores_changes(db_session, leaderboard_id)
     except actions.LeaderboardIsEmpty:
         raise EngineHTTPException(status_code=204, detail="Leaderboard is empty.")
