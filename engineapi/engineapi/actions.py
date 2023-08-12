@@ -1241,7 +1241,7 @@ def create_leaderboard(
     db_session: Session,
     title: str,
     description: Optional[str],
-    token: Optional[uuid.UUID],
+    token: Optional[Union[uuid.UUID, str]] = None,
 ) -> Leaderboard:
     """
     Create a leaderboard
