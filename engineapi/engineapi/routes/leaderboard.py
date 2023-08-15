@@ -6,7 +6,7 @@ import logging
 from uuid import UUID
 
 from web3 import Web3
-from fastapi import FastAPI, Request, Depends, Response, Query, Path, Body
+from fastapi import FastAPI, Request, Depends, Response, Query, Path, Body, Header
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 from typing import Any, Dict, List, Optional
@@ -75,6 +75,9 @@ async def leaderboard(
     limit: int = Query(10),
     offset: int = Query(0),
     db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = Header(
+        ..., description="The expected format is 'Bearer YOUR_MOONSTREAM_ACCESS_TOKEN'."
+    ),
 ) -> List[data.LeaderboardPosition]:
     """
     Returns the leaderboard positions.
@@ -118,6 +121,9 @@ async def create_leaderboard(
     request: Request,
     leaderboard: data.LeaderboardCreateRequest = Body(...),
     db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = Header(
+        ..., description="The expected format is 'Bearer YOUR_MOONSTREAM_ACCESS_TOKEN'."
+    ),
 ) -> data.LeaderboardCreatedResponse:
     """
 
@@ -166,6 +172,9 @@ async def update_leaderboard(
     leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
     leaderboard: data.LeaderboardUpdateRequest = Body(...),
     db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = Header(
+        ..., description="The expected format is 'Bearer YOUR_MOONSTREAM_ACCESS_TOKEN'."
+    ),
 ) -> data.LeaderboardUpdatedResponse:
     """
     Update leaderboard.
@@ -226,6 +235,9 @@ async def delete_leaderboard(
     request: Request,
     leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
     db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = Header(
+        ..., description="The expected format is 'Bearer YOUR_MOONSTREAM_ACCESS_TOKEN'."
+    ),
 ) -> data.LeaderboardDeletedResponse:
     """
     Delete leaderboard.
@@ -281,7 +293,11 @@ async def delete_leaderboard(
     tags=["Authorized Endpoints"],
 )
 async def get_leaderboards(
-    request: Request, db_session: Session = Depends(db.yield_db_session)
+    request: Request,
+    db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = Header(
+        ..., description="The expected format is 'Bearer YOUR_MOONSTREAM_ACCESS_TOKEN'."
+    ),
 ) -> List[data.Leaderboard]:
     """
     Returns leaderboard list to which user has access.
@@ -588,6 +604,9 @@ async def leaderboard_push_scores(
         True, description="Normalize addresses to checksum."
     ),
     db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = Header(
+        ..., description="The expected format is 'Bearer YOUR_MOONSTREAM_ACCESS_TOKEN'."
+    ),
 ) -> List[data.LeaderboardScore]:
     """
     Put the leaderboard to the database.
