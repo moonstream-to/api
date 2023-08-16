@@ -37,7 +37,7 @@ def handle_leaderboards(args: argparse.Namespace) -> None:
 
     ### get leaderboard journal
 
-    query = "#leaderboard"
+    query = "#leaderboard #status:active"
 
     if args.leaderboard_id:  # way to run only one leaderboard
         query += f" #leaderboard_id:{args.leaderboard_id}"
@@ -47,7 +47,7 @@ def handle_leaderboards(args: argparse.Namespace) -> None:
             journal_id=MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID,
             query=query,
             limit=100,
-            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+            timeout=10,
         )
         leaderboards_results = cast(List[BugoutSearchResult], leaderboards.results)
     except Exception as e:
