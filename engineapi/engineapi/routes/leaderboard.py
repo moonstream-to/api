@@ -6,7 +6,7 @@ import logging
 from uuid import UUID
 
 from web3 import Web3
-from fastapi import FastAPI, Request, Depends, Response, Query, Path, Body
+from fastapi import FastAPI, Request, Depends, Response, Query, Path, Body, Header
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 from typing import Any, Dict, List, Optional
@@ -26,8 +26,26 @@ logger = logging.getLogger(__name__)
 
 
 tags_metadata = [
-    {"name": "leaderboard", "description": "Moonstream Engine leaderboard API"}
+    {
+        "name": "Public Endpoints",
+        "description": "Endpoints under this tag can be accessed without any authentication. They are open to all and do not require any specific headers or tokens to be passed. Suitable for general access and non-sensitive operations.",
+    },
+    {
+        "name": "Authorized Endpoints",
+        "description": """
+Endpoints under this tag require authentication. To access these endpoints, a valid `moonstream token` must be included in the request header as:
+
+```
+Authorization: Bearer <moonstream token>
+```
+
+Failure to provide a valid token will result in unauthorized access errors. These endpoints are suitable for operations that involve sensitive data or actions that only authenticated users are allowed to perform.""",
+    },
 ]
+
+AuthHeader = Header(
+    ..., description="The expected format is 'Bearer YOUR_MOONSTREAM_ACCESS_TOKEN'."
+)
 
 
 leaderboad_whitelist = {
@@ -68,8 +86,8 @@ app.add_middleware(
 )
 
 
-@app.get("", response_model=List[data.LeaderboardPosition])
-@app.get("/", response_model=List[data.LeaderboardPosition])
+@app.get("", response_model=List[data.LeaderboardPosition], tags=["Public Endpoints"])
+@app.get("/", response_model=List[data.LeaderboardPosition], tags=["Public Endpoints"])
 async def leaderboard(
     leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
     limit: int = Query(10),
@@ -108,12 +126,17 @@ async def leaderboard(
     return result
 
 
-@app.post("", response_model=data.LeaderboardCreatedResponse)
-@app.post("/", response_model=data.LeaderboardCreatedResponse)
+@app.post(
+    "", response_model=data.LeaderboardCreatedResponse, tags=["Authorized Endpoints"]
+)
+@app.post(
+    "/", response_model=data.LeaderboardCreatedResponse, tags=["Authorized Endpoints"]
+)
 async def create_leaderboard(
     request: Request,
     leaderboard: data.LeaderboardCreateRequest = Body(...),
     db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = AuthHeader,
 ) -> data.LeaderboardCreatedResponse:
     """
 
@@ -152,12 +175,17 @@ async def create_leaderboard(
     )
 
 
-@app.put("/{leaderboard_id}", response_model=data.LeaderboardUpdatedResponse)
+@app.put(
+    "/{leaderboard_id}",
+    response_model=data.LeaderboardUpdatedResponse,
+    tags=["Authorized Endpoints"],
+)
 async def update_leaderboard(
     request: Request,
     leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
     leaderboard: data.LeaderboardUpdateRequest = Body(...),
     db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = AuthHeader,
 ) -> data.LeaderboardUpdatedResponse:
     """
     Update leaderboard.
@@ -209,11 +237,16 @@ async def update_leaderboard(
     )
 
 
-@app.delete("/{leaderboard_id}", response_model=data.LeaderboardDeletedResponse)
+@app.delete(
+    "/{leaderboard_id}",
+    response_model=data.LeaderboardDeletedResponse,
+    tags=["Authorized Endpoints"],
+)
 async def delete_leaderboard(
     request: Request,
     leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
     db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = AuthHeader,
 ) -> data.LeaderboardDeletedResponse:
     """
     Delete leaderboard.
@@ -263,9 +296,15 @@ async def delete_leaderboard(
     )
 
 
-@app.get("/leaderboards", response_model=List[data.Leaderboard])
+@app.get(
+    "/leaderboards",
+    response_model=List[data.Leaderboard],
+    tags=["Authorized Endpoints"],
+)
 async def get_leaderboards(
-    request: Request, db_session: Session = Depends(db.yield_db_session)
+    request: Request,
+    db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = AuthHeader,
 ) -> List[data.Leaderboard]:
     """
     Returns leaderboard list to which user has access.
@@ -299,7 +338,11 @@ async def get_leaderboards(
     return results
 
 
-@app.get("/count/addresses", response_model=data.CountAddressesResponse)
+@app.get(
+    "/count/addresses",
+    response_model=data.CountAddressesResponse,
+    tags=["Public Endpoints"],
+)
 async def count_addresses(
     leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
     db_session: Session = Depends(db.yield_db_session),
@@ -325,7 +368,9 @@ async def count_addresses(
     return data.CountAddressesResponse(count=count)
 
 
-@app.get("/info", response_model=data.LeaderboardInfoResponse)
+@app.get(
+    "/info", response_model=data.LeaderboardInfoResponse, tags=["Public Endpoints"]
+)
 async def leadeboard_info(
     leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
     db_session: Session = Depends(db.yield_db_session),
@@ -353,7 +398,11 @@ async def leadeboard_info(
     )
 
 
-@app.get("/scores/changes")
+@app.get(
+    "/scores/changes",
+    response_model=List[data.LeaderboardScoresChangesResponse],
+    tags=["Public Endpoints"],
+)
 async def get_scores_changes(
     leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
     db_session: Session = Depends(db.yield_db_session),
@@ -380,7 +429,7 @@ async def get_scores_changes(
     ]
 
 
-@app.get("/quartiles", response_model=data.QuartilesResponse)
+@app.get("/quartiles", response_model=data.QuartilesResponse, tags=["Public Endpoints"])
 async def quartiles(
     leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
     db_session: Session = Depends(db.yield_db_session),
@@ -416,7 +465,11 @@ async def quartiles(
     )
 
 
-@app.get("/position", response_model=List[data.LeaderboardPosition])
+@app.get(
+    "/position",
+    response_model=List[data.LeaderboardPosition],
+    tags=["Public Endpoints"],
+)
 async def position(
     leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
     address: str = Query(..., description="Address to get position for."),
@@ -465,7 +518,9 @@ async def position(
     return results
 
 
-@app.get("/rank", response_model=List[data.LeaderboardPosition])
+@app.get(
+    "/rank", response_model=List[data.LeaderboardPosition], tags=["Public Endpoints"]
+)
 async def rank(
     leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
     rank: int = Query(1, description="Rank to get."),
@@ -504,7 +559,7 @@ async def rank(
     return results
 
 
-@app.get("/ranks", response_model=List[data.RanksResponse])
+@app.get("/ranks", response_model=List[data.RanksResponse], tags=["Public Endpoints"])
 async def ranks(
     leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
     db_session: Session = Depends(db.yield_db_session),
@@ -537,7 +592,11 @@ async def ranks(
     return results
 
 
-@app.put("/{leaderboard_id}/scores", response_model=List[data.LeaderboardScore])
+@app.put(
+    "/{leaderboard_id}/scores",
+    response_model=List[data.LeaderboardScore],
+    tags=["Authorized Endpoints"],
+)
 async def leaderboard_push_scores(
     request: Request,
     leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
@@ -552,6 +611,7 @@ async def leaderboard_push_scores(
         True, description="Normalize addresses to checksum."
     ),
     db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = AuthHeader,
 ) -> List[data.LeaderboardScore]:
     """
     Put the leaderboard to the database.
