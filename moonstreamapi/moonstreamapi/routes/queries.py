@@ -1,40 +1,43 @@
 """
 The Moonstream queries HTTP API
 """
-from datetime import datetime
 import logging
-from typing import Any, Dict, List, Optional, Tuple, Union
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 from uuid import UUID
 
-
-from bugout.data import BugoutResources, BugoutJournalEntryContent, BugoutJournalEntry
-from bugout.exceptions import BugoutResponseException
-from fastapi import APIRouter, Body, Request
 import requests  # type: ignore
+from bugout.data import (
+    BugoutJournalEntry,
+    BugoutJournalEntryContent,
+    BugoutResources,
+    BugoutSearchResult,
+)
+from bugout.exceptions import BugoutResponseException
+from fastapi import APIRouter, Body, Path, Request
 from moonstreamdb.blockchain import AvailableBlockchainType
 from sqlalchemy import text
 
-
 from .. import data
 from ..actions import (
+    NameNormalizationException,
+    generate_s3_access_links,
     get_query_by_name,
     name_normalization,
-    NameNormalizationException,
     query_parameter_hash,
-    generate_s3_access_links,
 )
 from ..middleware import MoonstreamHTTPException
 from ..settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_APPLICATION_ID,
-    MOONSTREAM_CRAWLERS_SERVER_URL,
     MOONSTREAM_CRAWLERS_SERVER_PORT,
+    MOONSTREAM_CRAWLERS_SERVER_URL,
+    MOONSTREAM_QUERIES_JOURNAL_ID,
+    MOONSTREAM_QUERY_TEMPLATE_CONTEXT_TYPE,
     MOONSTREAM_S3_QUERIES_BUCKET,
     MOONSTREAM_S3_QUERIES_BUCKET_PREFIX,
-    MOONSTREAM_QUERIES_JOURNAL_ID,
 )
-from ..settings import bugout_client as bc, MOONSTREAM_QUERY_TEMPLATE_CONTEXT_TYPE
-
+from ..settings import bugout_client as bc
 
 logger = logging.getLogger(__name__)
 
@@ -199,7 +202,9 @@ def get_suggested_queries(
 
     interfaces: Dict[str, Any] = {}
 
-    for entry in queries.results:
+    queries_results = cast(List[BugoutSearchResult], queries.results)
+
+    for entry in queries_results:
         for tag in entry.tags:
             if tag.startswith("interface:"):
                 interface = tag.split(":")[1]
@@ -210,7 +215,7 @@ def get_suggested_queries(
                 interfaces[interface].append(entry)
 
     return data.SuggestedQueriesResponse(
-        queries=queries.results,
+        queries=queries_results,
         interfaces=interfaces,
     )
 
@@ -232,7 +237,6 @@ async def get_query_handler(
         )
 
     # check in templates
-
     try:
         entries = bc.search(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -277,9 +281,11 @@ async def get_query_handler(
                 status_code=403, detail="Query not approved yet."
             )
     else:
-        query_id = entries.results[0].entry_url.split("/")[-1]
+        entries_results = cast(List[BugoutSearchResult], entries.results)
+        query_id = entries_results[0].entry_url.split("/")[-1]
 
-    entry = entries.results[0]
+    entries_results = cast(List[BugoutSearchResult], entries.results)
+    entry = entries_results[0]
 
     try:
         if entry.content is None:
@@ -390,7 +396,6 @@ async def update_query_data_handler(
         )
 
     # check in templates
-
     try:
         entries = bc.search(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -435,14 +440,16 @@ async def update_query_data_handler(
                 status_code=403, detail="Query not approved yet."
             )
     else:
-        query_id = entries.results[0].entry_url.split("/")[-1]
+        entries_results = cast(List[BugoutSearchResult], entries.results)
+        query_id = entries_results[0].entry_url.split("/")[-1]
 
     s3_response = None
 
-    if entries.results[0].content:
-        content = entries.results[0].content
+    entries_results = cast(List[BugoutSearchResult], entries.results)
+    if entries_results[0].content:
+        content = entries_results[0].content
 
-        tags = entries.results[0].tags
+        tags = entries_results[0].tags
 
         file_type = "json"
 
@@ -497,7 +504,6 @@ async def get_access_link_handler(
         )
 
     # check in templattes
-
     try:
         entries = bc.search(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -540,13 +546,14 @@ async def get_access_link_handler(
                 status_code=403, detail="Query not approved yet."
             )
 
+    entries_results = cast(List[BugoutSearchResult], entries.results)
     try:
         s3_response = None
 
-        if entries.results[0].content:
+        if entries_results[0].content:
             passed_params = dict(request_update.params)
 
-            tags = entries.results[0].tags
+            tags = entries_results[0].tags
 
             file_type = "json"
 

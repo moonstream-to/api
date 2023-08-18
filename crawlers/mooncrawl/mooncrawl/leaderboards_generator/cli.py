@@ -2,11 +2,11 @@ import argparse
 import json
 import logging
 import os
-from typing import Any, Dict
+from typing import cast, List
 import uuid
 
 import requests  # type: ignore
-
+from bugout.data import BugoutSearchResult
 
 from .utils import get_results_for_moonstream_query
 from ..settings import (
@@ -37,7 +37,7 @@ def handle_leaderboards(args: argparse.Namespace) -> None:
 
     ### get leaderboard journal
 
-    query = "#leaderboard"
+    query = "#leaderboard #status:active"
 
     if args.leaderboard_id:  # way to run only one leaderboard
         query += f" #leaderboard_id:{args.leaderboard_id}"
@@ -47,19 +47,20 @@ def handle_leaderboards(args: argparse.Namespace) -> None:
             journal_id=MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID,
             query=query,
             limit=100,
-            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+            timeout=10,
         )
+        leaderboards_results = cast(List[BugoutSearchResult], leaderboards.results)
     except Exception as e:
         logger.error(f"Could not get leaderboards from journal: {e}")
         return
 
-    if len(leaderboards.results) == 0:
+    if len(leaderboards_results) == 0:
         logger.error("No leaderboard found")
         return
 
-    logger.info(f"Found {len(leaderboards.results)} leaderboards")
+    logger.info(f"Found {len(leaderboards_results)} leaderboards")
 
-    for leaderboard in leaderboards.results:
+    for leaderboard in leaderboards_results:
         logger.info(
             f"Processing leaderboard: {leaderboard.title} with id: {[tag for tag in leaderboard.tags if tag.startswith('leaderboard_id')]}"
         )
@@ -109,7 +110,7 @@ def handle_leaderboards(args: argparse.Namespace) -> None:
             logger.error(f"Could not get results for query {query_name} in time")
             continue
 
-        leaderboard_push_api_url = f"{MOONSTREAM_ENGINE_URL}/leaderboard/{leaderboard_id}/scores?normalize_addresses={leaderboard_data['normalize_addresses']}"
+        leaderboard_push_api_url = f"{MOONSTREAM_ENGINE_URL}/leaderboard/{leaderboard_id}/scores?normalize_addresses={leaderboard_data['normalize_addresses']}&overwrite=true"
 
         leaderboard_api_headers = {
             "Authorization": f"Bearer {args.query_api_access_token}",
