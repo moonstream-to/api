@@ -823,6 +823,30 @@ def fetch_and_filter_tasks(
     return moonworm_tasks
 
 
+def get_moonworm_tasks(
+    subscription_type_id: str,
+    address: str,
+    user_abi: List[Dict[str, Any]],
+) -> List[BugoutSearchResult]:
+    """
+    Get moonworm tasks from journal and filter them by user abi
+    """
+
+    try:
+        moonworm_tasks = fetch_and_filter_tasks(
+            journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+            address=address,
+            subscription_type_id=subscription_type_id,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            user_abi=user_abi,
+        )
+    except Exception as e:
+        logger.error(f"Error get moonworm tasks: {str(e)}")
+        MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    return moonworm_tasks
+
+
 def get_list_of_support_interfaces(
     blockchain_type: AvailableBlockchainType,
     address: str,
