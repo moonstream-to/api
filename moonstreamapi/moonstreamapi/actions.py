@@ -853,28 +853,21 @@ def get_list_of_support_interfaces(
     try:
         web3_client = connect(blockchain_type, user_token=user_token)
 
+        # GET LAST BLOCK
+
+        print("web3_client", web3_client.eth.get_block("latest"))
+
         contract = web3_client.eth.contract(
             address=Web3.toChecksumAddress(address),
             abi=supportsInterface_abi,
         )
 
-        calls = []
+        _, _, is_contract = check_if_smart_contract(
+            blockchain_type=blockchain_type, address=address, user_token=user_token
+        )
 
-        list_of_interfaces = list(selectors.keys())
-
-        list_of_interfaces.sort()
-
-        for interaface in list_of_interfaces:
-            calls.append(
-                (
-                    contract.address,
-                    FunctionSignature(
-                        contract.get_function_by_name("supportsInterface")
-                    )
-                    .encode_data([bytes.fromhex(interaface)])
-                    .hex(),
-                )
-            )
+        if not is_contract:
+            raise AddressNotSmartContractException(f"Address not are smart contract")
 
         result = {}
 
@@ -929,25 +922,18 @@ def get_list_of_support_interfaces(
             }
 
             for interface_name, selector in basic_selectors.items():
-                selector_result = contract.get_function_by_name(
-                    "supportsInterface"
-                ).call(bytes.fromhex(selector))
+                selector_result = contract.functions.supportsInterface(
+                    bytes.fromhex(selector)
+                ).call()  # returns bool
+
                 if selector_result:
                     result[interface_name] = {
                         "selector": basic_selectors[interface_name],
-                        "abi": selectors[selectors[interface_name]]["abi"],
+                        "abi": selectors[basic_selectors[interface_name]]["abi"],
                     }
     except Exception as err:
-        traceback.print_exc()
         logger.error(f"Error while getting list of support interfaces: {err}")
-        _, _, is_contract = check_if_smart_contract(
-            blockchain_type=blockchain_type, address=address, user_token=user_token
-        )
-
-        if not is_contract:
-            raise AddressNotSmartContractException(f"Address not are smart contract")
-        else:
-            raise err
+        MoonstreamHTTPException(status_code=500, internal_error=err)
 
     return result
 
