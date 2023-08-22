@@ -6,7 +6,6 @@ from collections import OrderedDict
 from enum import Enum
 from itertools import chain
 from typing import Any, Dict, List, Optional, Union
-import traceback
 
 import boto3  # type: ignore
 from bugout.data import (
