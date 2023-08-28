@@ -72,6 +72,17 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         stripe_price_id=None,
         active=True,
     ),
+    "zksync_era_smartcontract": SubscriptionTypeResourceData(
+        id="zksync_era_smartcontract",
+        name="zkSync Era smartcontract",
+        blockchain="zksync_era",
+        choices=["input:address", "tag:erc721"],
+        description="Contracts events and tx_calls of contract of zkSync Era blockchain.",
+        icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/zksync-era-testnet-token-logo.png",
+        stripe_product_id=None,
+        stripe_price_id=None,
+        active=True,
+    ),
     "zksync_era_testnet_smartcontract": SubscriptionTypeResourceData(
         id="zksync_era_testnet_smartcontract",
         name="zkSync Era testnet smartcontract",
