@@ -483,7 +483,11 @@ def generate_report_nft_dashboard_handler(args: argparse.Namespace):
     ).queries:
         params = {}  # type: ignore
 
-        if query.name not in ["cu_nft_dashboard_data", "cu_land_nft_dashboard_data"]:
+        if query.name not in [
+            "cu_nft_dashboard_data",
+            "cu_land_nft_dashboard_data",
+            "cu_seaport_feed_polygon",
+        ]:
             continue
 
         logger.info(f"Generating report for {query.name}")
