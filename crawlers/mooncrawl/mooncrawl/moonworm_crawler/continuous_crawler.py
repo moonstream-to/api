@@ -9,7 +9,7 @@ from moonstreamdb.blockchain import AvailableBlockchainType
 from moonworm.crawler.moonstream_ethereum_state_provider import (  # type: ignore
     MoonstreamEthereumStateProvider,
 )
-from moonworm.crawler.networks import Network  # type: ignore
+from moonstreamdb.networks import Network
 from sqlalchemy.orm.session import Session
 from web3 import Web3
 
