@@ -28,6 +28,7 @@ from .settings import (
     MOONSTREAM_WYRM_WEB3_PROVIDER_URI,
     MOONSTREAM_XDAI_WEB3_PROVIDER_URI,
     MOONSTREAM_ZKSYNC_ERA_TESTNET_WEB3_PROVIDER_URI,
+    MOONSTREAM_ZKSYNC_ERA_WEB3_PROVIDER_URI,
     NB_ACCESS_ID_HEADER,
     NB_DATA_SOURCE_HEADER,
     WEB3_CLIENT_REQUEST_TIMEOUT_SECONDS,
@@ -73,6 +74,8 @@ def connect(
             web3_uri = MOONSTREAM_WYRM_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET:
             web3_uri = MOONSTREAM_ZKSYNC_ERA_TESTNET_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
+            web3_uri = MOONSTREAM_ZKSYNC_ERA_WEB3_PROVIDER_URI
         else:
             raise Exception("Wrong blockchain type provided for web3 URI")
 
