@@ -20,6 +20,9 @@ from .models import (
     ZkSyncEraTestnetBlock,
     ZkSyncEraTestnetLabel,
     ZkSyncEraTestnetTransaction,
+    ZkSyncEraBlock,
+    ZkSyncEraLabel,
+    ZkSyncEraTransaction,
 )
 
 
@@ -30,6 +33,7 @@ class AvailableBlockchainType(Enum):
     XDAI = "xdai"
     WYRM = "wyrm"
     ZKSYNC_ERA_TESTNET = "zksync_era_testnet"
+    ZKSYNC_ERA = "zksync_era"
 
 
 def get_block_model(
@@ -42,10 +46,11 @@ def get_block_model(
         XDaiBlock,
         WyrmBlock,
         ZkSyncEraTestnetBlock,
+        ZkSyncEraBlock,
     ]
 ]:
     """
-    Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm
+    Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm, ZkSyncEra, ZkSyncEraTestnet
     set proper blocks model.
     """
     block_model: Type[
@@ -56,6 +61,7 @@ def get_block_model(
             XDaiBlock,
             WyrmBlock,
             ZkSyncEraTestnetBlock,
+            ZkSyncEraBlock,
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -70,6 +76,8 @@ def get_block_model(
         block_model = WyrmBlock
     elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET:
         block_model = ZkSyncEraTestnetBlock
+    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
+        block_model = ZkSyncEraBlock
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -86,10 +94,11 @@ def get_label_model(
         XDaiLabel,
         WyrmLabel,
         ZkSyncEraTestnetLabel,
+        ZkSyncEraLabel,
     ]
 ]:
     """
-    Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm
+    Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm, ZkSyncEra, ZkSyncEraTestnet
     set proper block label model.
     """
     label_model: Type[
@@ -100,6 +109,7 @@ def get_label_model(
             XDaiLabel,
             WyrmLabel,
             ZkSyncEraTestnetLabel,
+            ZkSyncEraLabel,
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -114,6 +124,8 @@ def get_label_model(
         label_model = WyrmLabel
     elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET:
         label_model = ZkSyncEraTestnetLabel
+    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
+        label_model = ZkSyncEraLabel
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -130,10 +142,11 @@ def get_transaction_model(
         XDaiTransaction,
         WyrmTransaction,
         ZkSyncEraTestnetTransaction,
+        ZkSyncEraTransaction,
     ]
 ]:
     """
-    Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm
+    Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm, ZkSyncEra, ZkSyncEraTestnet
     set proper block transactions model.
     """
     transaction_model: Type[
@@ -144,6 +157,7 @@ def get_transaction_model(
             XDaiTransaction,
             WyrmTransaction,
             ZkSyncEraTestnetTransaction,
+            ZkSyncEraTransaction,
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -158,6 +172,8 @@ def get_transaction_model(
         transaction_model = WyrmTransaction
     elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET:
         transaction_model = ZkSyncEraTestnetTransaction
+    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
+        transaction_model = ZkSyncEraTransaction
     else:
         raise Exception("Unsupported blockchain type provided")
 
