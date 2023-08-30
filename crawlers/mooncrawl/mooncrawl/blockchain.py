@@ -129,7 +129,10 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
     )
     if blockchain_type == AvailableBlockchainType.XDAI:
         block_obj.author = block.author
-    if blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET:
+    if (
+        blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET
+        or blockchain_type == AvailableBlockchainType.ZKSYNC_ERA
+    ):
         block_obj.mix_hash = block.get("mixHash", "")
         block_obj.sha3_uncles = block.get("sha3Uncles", "")
         block_obj.l1_batch_number = (
@@ -171,7 +174,10 @@ def add_block_transactions(
             transaction_type=int(tx["type"], 0) if tx.get("type") is not None else None,
             value=tx.value,
         )
-        if blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET:
+        if (
+            blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET
+            or blockchain_type == AvailableBlockchainType.ZKSYNC_ERA
+        ):
             tx_obj.l1_batch_number = (
                 int(tx.get("l1BatchNumber"), 0)
                 if tx.get("l1BatchNumber") is not None

@@ -56,6 +56,7 @@ blockchain_by_subscription_id = {
     "xdai_blockchain": "xdai",
     "wyrm_blockchain": "wyrm",
     "zksync_era_testnet_blockchain": "zksync_era_testnet",
+    "zksync_era_blockchain": "zksync_era",
     "ethereum_smartcontract": "ethereum",
     "polygon_smartcontract": "polygon",
     "mumbai_smartcontract": "mumbai",
