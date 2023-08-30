@@ -43,7 +43,7 @@ from .settings import (
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
 )
 from .settings import bugout_client as bc
-from .settings import multicall_contracts, support_interfaces, supportsInterface_abi
+from .settings import multicall_contracts, supportsInterface_abi
 from .web3_provider import FunctionSignature, connect, multicall
 
 logger = logging.getLogger(__name__)
@@ -56,12 +56,14 @@ blockchain_by_subscription_id = {
     "xdai_blockchain": "xdai",
     "wyrm_blockchain": "wyrm",
     "zksync_era_testnet_blockchain": "zksync_era_testnet",
+    "zksync_era_blockchain": "zksync_era",
     "ethereum_smartcontract": "ethereum",
     "polygon_smartcontract": "polygon",
     "mumbai_smartcontract": "mumbai",
     "xdai_smartcontract": "xdai",
     "wyrm_smartcontract": "wyrm",
     "zksync_era_testnet_smartcontract": "zksync_era_testnet",
+    "zksync_era_smartcontract": "zksync_era",
 }
 
 
@@ -486,7 +488,7 @@ def get_all_entries_from_search(
         limit=limit,
         offset=offset,
     )
-    results.extend(existing_methods.results) # type: ignore
+    results.extend(existing_methods.results)  # type: ignore
 
     if len(results) != existing_methods.total_results:
         for offset in range(limit, existing_methods.total_results, limit):
@@ -499,7 +501,7 @@ def get_all_entries_from_search(
                 limit=limit,
                 offset=offset,
             )
-        results.extend(existing_methods.results) # type: ignore
+        results.extend(existing_methods.results)  # type: ignore
 
     return results
 

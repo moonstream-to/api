@@ -53,6 +53,7 @@ subscription_id_by_blockchain = {
     "xdai": "xdai_smartcontract",
     "wyrm": "wyrm_smartcontract",
     "zksync_era_testnet": "zksync_era_testnet_smartcontract",
+    "zksync_era": "zksync_era_smartcontract",
 }
 
 blockchain_by_subscription_id = {
@@ -68,6 +69,7 @@ blockchain_by_subscription_id = {
     "xdai_smartcontract": "xdai",
     "wyrm_smartcontract": "wyrm",
     "zksync_era_testnet_smartcontract": "zksync_era_testnet",
+    "zksync_era_smartcontract": "zksync_era",
 }
 
 

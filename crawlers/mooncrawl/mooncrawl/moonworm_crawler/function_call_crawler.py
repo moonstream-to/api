@@ -9,7 +9,7 @@ from moonworm.crawler.function_call_crawler import (  # type: ignore
 from moonworm.crawler.moonstream_ethereum_state_provider import (  # type: ignore
     MoonstreamEthereumStateProvider,
 )
-from moonworm.crawler.networks import Network  # type: ignore
+from moonstreamdb.networks import Network  # type: ignore
 from moonworm.watch import MockState  # type: ignore
 from sqlalchemy.orm import Session
 from web3 import Web3
@@ -70,6 +70,8 @@ def function_call_crawler(
         network = Network.wyrm
     elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET:
         network = Network.zksync_era_testnet
+    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
+        network = Network.zksync_era
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 

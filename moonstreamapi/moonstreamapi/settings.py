@@ -133,6 +133,12 @@ if MOONSTREAM_ZKSYNC_ERA_TESTNET_WEB3_PROVIDER_URI == "":
         "MOONSTREAM_ZKSYNC_ERA_TESTNET_WEB3_PROVIDER_URI env variable is not set"
     )
 
+MOONSTREAM_ZKSYNC_ERA_WEB3_PROVIDER_URI = os.environ.get(
+    "MOONSTREAM_ZKSYNC_ERA_WEB3_PROVIDER_URI", ""
+)
+if MOONSTREAM_ZKSYNC_ERA_WEB3_PROVIDER_URI == "":
+    raise Exception("MOONSTREAM_ZKSYNC_ERA_WEB3_PROVIDER_URI env variable is not set")
+
 MOONSTREAM_S3_QUERIES_BUCKET = os.environ.get("MOONSTREAM_S3_QUERIES_BUCKET", "")
 if MOONSTREAM_S3_QUERIES_BUCKET == "":
     raise ValueError("MOONSTREAM_S3_QUERIES_BUCKET environment variable must be set")
@@ -177,22 +183,6 @@ NB_DATA_SOURCE_HEADER_VALUE = os.environ.get(
 # Thread timeout
 
 THREAD_TIMEOUT_SECONDS = 10
-
-support_interfaces = [
-    {"name": "_INTERFACE_ID_ERC165", "selector": "0x01ffc9a7"},
-    {"name": "_INTERFACE_ID_ERC20", "selector": "0x36372b07"},
-    {"name": "_INTERFACE_ID_ERC721", "selector": "0x80ac58cd"},
-    {"name": "_INTERFACE_ID_ERC721_METADATA", "selector": "0x5b5e139f"},  # miss
-    {"name": "_INTERFACE_ID_ERC721_ENUMERABLE", "selector": "0x780e9d63"},  # miss
-    {"name": "_INTERFACE_ID_ERC721_RECEIVED", "selector": "0x150b7a02"},
-    {
-        "name": "_INTERFACE_ID_ERC721_METADATA_RECEIVED",
-        "selector": "0x0e89341c",
-    },  # miss
-    {"name": "_INTERFACE_ID_ERC721_ENUMERABLE_RECEIVED", "selector": "0x4e2312e0"},
-    {"name": "_INTERFACE_ID_ERC1155", "selector": "0xd9b67a26"},
-]
-
 
 multicall_contracts: Dict[AvailableBlockchainType, str] = {
     AvailableBlockchainType.POLYGON: "0xc8E51042792d7405184DfCa245F2d27B94D013b6",

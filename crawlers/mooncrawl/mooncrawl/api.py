@@ -30,7 +30,6 @@ from .actions import (
 from .middleware import MoonstreamHTTPException
 from .settings import (
     BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
-    BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
     DOCS_TARGET_PATH,
     LINKS_EXPIRATION_TIME,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -173,7 +172,7 @@ async def status_handler(
             dashboard_subscription_filters["subscription_id"]
         ]
 
-        for reqired_field in subscription.required_fields:
+        for reqired_field in subscription.required_fields:  # type: ignore
             if "subscription_type_id" in reqired_field:
                 subscriprions_type = reqired_field["subscription_type_id"]
 

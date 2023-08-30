@@ -3,19 +3,16 @@ import json
 import logging
 import random
 import urllib.request
-from contextlib import contextmanager
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Dict, List, Optional
 from urllib.error import HTTPError
 
 from moonstreamdb.blockchain import AvailableBlockchainType
-from sqlalchemy.orm import sessionmaker
 
 from ..db import (
     yield_db_preping_session_ctx,
     yield_db_read_only_preping_session_ctx,
 )
-from ..settings import MOONSTREAM_CRAWLERS_DB_STATEMENT_TIMEOUT_MILLIS
 from .db import (
     clean_labels_from_db,
     get_current_metadata_for_address,
