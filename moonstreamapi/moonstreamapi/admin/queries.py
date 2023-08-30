@@ -6,7 +6,6 @@ from typing import Any, Dict
 
 from bugout.data import BugoutResources
 from bugout.exceptions import BugoutResponseException
-from moonstream.client import Moonstream  # type: ignore
 from sqlalchemy import text
 
 from ..actions import get_all_entries_from_search, name_normalization
