@@ -650,7 +650,7 @@ async def list_subscription_types() -> data.SubscriptionTypesListResponse:
 )
 async def get_subscription_jobs_handler(
     request: Request,
-    subscription_id: str,
+    subscription_id: str = Path(...),
 ) -> Any:
     token = request.state.token
     user = request.state.user

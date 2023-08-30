@@ -850,23 +850,19 @@ def get_list_of_support_interfaces(
     """
 
     try:
-        web3_client = connect(blockchain_type, user_token=user_token)
-
-        # GET LAST BLOCK
-
-        print("web3_client", web3_client.eth.get_block("latest"))
-
-        contract = web3_client.eth.contract(
-            address=Web3.toChecksumAddress(address),
-            abi=supportsInterface_abi,
-        )
-
         _, _, is_contract = check_if_smart_contract(
             blockchain_type=blockchain_type, address=address, user_token=user_token
         )
 
         if not is_contract:
             raise AddressNotSmartContractException(f"Address not are smart contract")
+
+        web3_client = connect(blockchain_type, user_token=user_token)
+
+        contract = web3_client.eth.contract(
+            address=Web3.toChecksumAddress(address),
+            abi=supportsInterface_abi,
+        )
 
         result = {}
 
