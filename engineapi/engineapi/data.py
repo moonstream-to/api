@@ -428,3 +428,16 @@ class LeaderboardDeletedResponse(BaseModel):
 class LeaderboardScoresChangesResponse(BaseModel):
     players_count: int
     date: datetime
+
+
+class LeaderboardConfig(BaseModel):
+    leaderboard_id: UUID
+    query_name: str
+    params: Dict[str, int]
+    normalize_addresses: bool
+
+
+class LeaderboardConfigUpdate(BaseModel):
+    query_name: Optional[str] = None
+    params: Dict[str, int]
+    normalize_addresses: Optional[bool] = None

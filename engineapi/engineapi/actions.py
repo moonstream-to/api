@@ -1,10 +1,11 @@
 from datetime import datetime
 from collections import Counter
-from typing import List, Any, Optional, Dict, Union, Tuple
+import json
+from typing import List, Any, Optional, Dict, Union, Tuple, cast
 import uuid
 import logging
 
-from bugout.data import BugoutResource
+from bugout.data import BugoutResource, BugoutSearchResult
 from eth_typing import Address
 from hexbytes import HexBytes
 import requests  # type: ignore
@@ -15,7 +16,7 @@ from sqlalchemy.engine import Row
 from web3 import Web3
 from web3.types import ChecksumAddress
 
-from .data import Score, LeaderboardScore
+from .data import Score, LeaderboardScore, LeaderboardConfigUpdate
 from .contracts import Dropper_interface, ERC20_interface, Terminus_interface
 from .models import (
     DropperClaimant,
@@ -26,11 +27,12 @@ from .models import (
 )
 from . import signatures
 from .settings import (
+    bugout_client as bc,
     BLOCKCHAIN_WEB3_PROVIDERS,
     LEADERBOARD_RESOURCE_TYPE,
     MOONSTREAM_APPLICATION_ID,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
-    bugout_client as bc,
+    MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID,
 )
 
 
@@ -74,6 +76,18 @@ class LeaderboardUpdateError(Exception):
 
 
 class LeaderboardDeleteError(Exception):
+    pass
+
+
+class LeaderboardConfigNotFound(Exception):
+    pass
+
+
+class LeaderboardConfigAlreadyActive(Exception):
+    pass
+
+
+class LeaderboardConfigAlreadyInactive(Exception):
     pass
 
 
@@ -1489,6 +1503,119 @@ def list_leaderboards_resources(
     query = db_session.query(Leaderboard.id, Leaderboard.title, Leaderboard.resource_id)
 
     return query.all()
+
+
+def get_leaderboard_config_entry(
+    leaderboard_id: uuid.UUID,
+) -> BugoutSearchResult:
+    configs = bc.search(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        journal_id=MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID,
+        query=f"#leaderboard_id:{leaderboard_id}",
+        limit=1,
+    )
+
+    results = cast(List[BugoutSearchResult], configs.results)
+
+    if len(configs.results) == 0 or results[0].content is None:
+        raise LeaderboardConfigNotFound(
+            f"Leaderboard config not found for {leaderboard_id}"
+        )
+
+    return results[0]
+
+
+def get_leaderboard_config(
+    leaderboard_id: uuid.UUID,
+) -> Dict[str, Any]:
+    """
+    Return leaderboard config from leaderboard generator journal
+    """
+
+    entry = get_leaderboard_config_entry(leaderboard_id)
+
+    return json.loads(entry.content)  # type: ignore
+
+
+def update_leaderboard_config(
+    leaderboard_id: uuid.UUID, config: LeaderboardConfigUpdate
+) -> Dict[str, Any]:
+    """
+    Update leaderboard config in leaderboard generator journal
+
+    """
+
+    entry_config = get_leaderboard_config_entry(leaderboard_id)
+
+    current_config = LeaderboardConfig(**json.loads(entry_config.content))  # type: ignore
+
+    new_params = config.params
+
+    for key, value in new_params.items():
+        if key not in current_config.params:
+            continue
+
+        current_config.params[key] = value
+
+    # we replace values of parameters that are not None
+
+    entry = bc.update_entry_content(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        journal_id=MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID,
+        title=entry_config.title,
+        entry_id=entry_config.entry_url.split("/")[-1],
+        content=json.dumps(current_config.dict()),
+    )
+
+    return json.loads(entry.content)
+
+
+def activate_leaderboard_config(
+    leaderboard_id: uuid.UUID,
+):
+    """
+    Add tag status:active to leaderboard config journal entry
+    """
+
+    entry_config = get_leaderboard_config_entry(leaderboard_id)
+
+    if "status:active" in entry_config.tags:
+        raise LeaderboardConfigAlreadyActive(
+            f"Leaderboard config {leaderboard_id} already active"
+        )
+
+    bc.create_tags(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        journal_id=MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID,
+        entry_id=entry_config.entry_url.split("/")[-1],
+        tags=["status:active"],
+    )
+
+
+def deactivate_leaderboard_config(
+    leaderboard_id: uuid.UUID,
+):
+    """
+    Remove tag status:active from leaderboard config journal entry
+    """
+
+    entry_config = get_leaderboard_config_entry(leaderboard_id)
+
+    if "status:active" not in entry_config.tags:
+        raise LeaderboardConfigAlreadyInactive(
+            f"Leaderboard config {leaderboard_id} not active"
+        )
+
+    bc.delete_entries_tags(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        journal_id=MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID,
+        entries_tags=[
+            {
+                "journal_entry_id": entry_config.entry_url.split("/")[-1],
+                "tags": ["status:active"],
+            }
+        ],
+    )
 
 
 def revoke_resource(
