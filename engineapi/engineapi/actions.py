@@ -16,7 +16,7 @@ from sqlalchemy.engine import Row
 from web3 import Web3
 from web3.types import ChecksumAddress
 
-from .data import Score, LeaderboardScore, LeaderboardConfigUpdate
+from .data import Score, LeaderboardScore, LeaderboardConfigUpdate, LeaderboardConfig
 from .contracts import Dropper_interface, ERC20_interface, Terminus_interface
 from .models import (
     DropperClaimant,
@@ -1508,10 +1508,11 @@ def list_leaderboards_resources(
 def get_leaderboard_config_entry(
     leaderboard_id: uuid.UUID,
 ) -> BugoutSearchResult:
+    query = f"#leaderboard_id:{leaderboard_id}"
     configs = bc.search(
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
         journal_id=MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID,
-        query=f"#leaderboard_id:{leaderboard_id}",
+        query=query,
         limit=1,
     )
 
@@ -1534,7 +1535,14 @@ def get_leaderboard_config(
 
     entry = get_leaderboard_config_entry(leaderboard_id)
 
-    return json.loads(entry.content)  # type: ignore
+    content = json.loads(entry.content)  # type: ignore
+
+    if "status:active" not in entry.tags:
+        content["leaderboard_auto_update_active"] = False
+    else:
+        content["leaderboard_auto_update_active"] = True
+
+    return content
 
 
 def update_leaderboard_config(
@@ -1567,7 +1575,14 @@ def update_leaderboard_config(
         content=json.dumps(current_config.dict()),
     )
 
-    return json.loads(entry.content)
+    new_config = json.loads(entry.content)
+
+    if "status:active" not in entry.tags:
+        new_config["leaderboard_auto_update_active"] = False
+    else:
+        new_config["leaderboard_auto_update_active"] = True
+
+    return new_config
 
 
 def activate_leaderboard_config(
@@ -1606,15 +1621,11 @@ def deactivate_leaderboard_config(
             f"Leaderboard config {leaderboard_id} not active"
         )
 
-    bc.delete_entries_tags(
+    bc.delete_tag(
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
         journal_id=MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID,
-        entries_tags=[
-            {
-                "journal_entry_id": entry_config.entry_url.split("/")[-1],
-                "tags": ["status:active"],
-            }
-        ],
+        entry_id=entry_config.entry_url.split("/")[-1],
+        tag="status:active",
     )
 
 
@@ -1656,6 +1667,7 @@ def check_leaderboard_resource_permissions(
     headers = {
         "Authorization": f"Bearer {token}",
     }
+
     # If user don't have at least read permission return 404
     result = requests.get(url=permission_url, headers=headers, timeout=10)
 

@@ -431,7 +431,8 @@ class LeaderboardScoresChangesResponse(BaseModel):
 
 
 class LeaderboardConfig(BaseModel):
-    leaderboard_id: UUID
+    leaderboard_id: str
+    leaderboard_auto_update_active: bool = False
     query_name: str
     params: Dict[str, int]
     normalize_addresses: bool
