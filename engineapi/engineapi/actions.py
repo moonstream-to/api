@@ -32,7 +32,7 @@ from .settings import (
     LEADERBOARD_RESOURCE_TYPE,
     MOONSTREAM_APPLICATION_ID,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
-    MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID,
+    MOONSTREAM_LEADERBOARD_CONFIGURATION_JOURNAL_ID,
 )
 
 
@@ -1511,7 +1511,7 @@ def get_leaderboard_config_entry(
     query = f"#leaderboard_id:{leaderboard_id}"
     configs = bc.search(
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-        journal_id=MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID,
+        journal_id=MOONSTREAM_LEADERBOARD_CONFIGURATION_JOURNAL_ID,
         query=query,
         limit=1,
     )
@@ -1569,7 +1569,7 @@ def update_leaderboard_config(
 
     entry = bc.update_entry_content(
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-        journal_id=MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID,
+        journal_id=MOONSTREAM_LEADERBOARD_CONFIGURATION_JOURNAL_ID,
         title=entry_config.title,
         entry_id=entry_config.entry_url.split("/")[-1],
         content=json.dumps(current_config.dict()),
@@ -1601,7 +1601,7 @@ def activate_leaderboard_config(
 
     bc.create_tags(
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-        journal_id=MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID,
+        journal_id=MOONSTREAM_LEADERBOARD_CONFIGURATION_JOURNAL_ID,
         entry_id=entry_config.entry_url.split("/")[-1],
         tags=["status:active"],
     )
@@ -1623,7 +1623,7 @@ def deactivate_leaderboard_config(
 
     bc.delete_tag(
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-        journal_id=MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID,
+        journal_id=MOONSTREAM_LEADERBOARD_CONFIGURATION_JOURNAL_ID,
         entry_id=entry_config.entry_url.split("/")[-1],
         tag="status:active",
     )
