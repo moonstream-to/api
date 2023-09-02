@@ -470,7 +470,7 @@ def upload_abi_to_s3(
 
 
 def get_all_entries_from_search(
-    journal_id: str, search_query: str, limit: int, token: str
+    journal_id: str, search_query: str, limit: int, token: str, content: bool = False
 ) -> List[BugoutSearchResult]:
     """
     Get all required entries from journal using search interface
@@ -483,7 +483,7 @@ def get_all_entries_from_search(
         token=token,
         journal_id=journal_id,
         query=search_query,
-        content=False,
+        content=content,
         timeout=10.0,
         limit=limit,
         offset=offset,
@@ -496,7 +496,7 @@ def get_all_entries_from_search(
                 token=token,
                 journal_id=journal_id,
                 query=search_query,
-                content=False,
+                content=content,
                 timeout=10.0,
                 limit=limit,
                 offset=offset,

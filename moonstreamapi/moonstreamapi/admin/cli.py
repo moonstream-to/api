@@ -20,6 +20,7 @@ from .migrations import (
     checksum_address,
     update_dashboard_subscription_key,
     generate_entity_subscriptions,
+    add_selectors,
 )
 
 
@@ -87,6 +88,9 @@ steps:
 - id: 20230501
 name: fix_duplicates_keys_in_entity_subscription
 description: Fix entity duplicates keys for all subscriptions introduced in 20230213
+- id: 20230904
+name fill_missing_selectors_in_moonworm_tasks
+description: Get all moonworm jobs from moonworm journal and add selector tag if it not represent
     """
     logger.info(entity_migration_overview)
 
@@ -117,6 +121,23 @@ def migrations_run(args: argparse.Namespace) -> None:
     web3_session = yield_web3_provider()
     db_session = SessionLocal()
     try:
+        if args.id == 20230904:
+            step_order = ["fill_missing_selectors_in_moonworm_tasks"]
+            step_map: Dict[str, Dict[str, Any]] = {
+                "upgrade": {
+                    "fill_missing_selectors_in_moonworm_tasks": {
+                        "action": add_selectors.fill_missing_selectors_in_moonworm_tasks,
+                        "description": "Get all moonworm jobs from moonworm journal and add selector tag if it not represent",
+                    },
+                },
+                "downgrade": {},
+            }
+            if args.command not in ["upgrade", "downgrade"]:
+                logger.info("Wrong command. Please use upgrade or downgrade")
+            step = args.step
+
+            migration_run(step_map, args.command, step, step_order)
+
         if args.id == 20230501:
             # fix entity duplicates keys for all subscriptions introduced in 20230213
 
@@ -227,7 +248,7 @@ def moonworm_tasks_add_subscription_handler(args: argparse.Namespace) -> None:
 def main() -> None:
     cli_description = f"""Moonstream Admin CLI
 
-Please make sure that the following environment variables are set in your environment and exported to
+Please m35ake sure that the following environment variables are set in your environment and exported to
 subprocesses:
 1. MOONSTREAM_APPLICATION_ID
 2. MOONSTREAM_ADMIN_ACCESS_TOKEN
