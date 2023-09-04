@@ -1,10 +1,10 @@
 """
 Leaderboard API.
 """
-from datetime import datetime
 import logging
 from uuid import UUID
 
+from bugout.exceptions import BugoutResponseException
 from web3 import Web3
 from fastapi import FastAPI, Request, Depends, Response, Query, Path, Body, Header
 from sqlalchemy.orm import Session
@@ -668,3 +668,215 @@ async def leaderboard_push_scores(
     ]
 
     return result
+
+
+@app.get(
+    "/{leaderboard_id}/config",
+    response_model=data.LeaderboardConfig,
+    tags=["Authorized Endpoints"],
+)
+async def leaderboard_config(
+    request: Request,
+    leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
+    db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = AuthHeader,
+) -> data.LeaderboardConfig:
+    """
+    Get leaderboard config.
+    """
+    token = request.state.token
+    try:
+        access = actions.check_leaderboard_resource_permissions(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            token=token,
+        )
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard not found.",
+        )
+
+    if not access:
+        raise EngineHTTPException(
+            status_code=403, detail="You don't have access to this leaderboard."
+        )
+
+    try:
+        leaderboard_config = actions.get_leaderboard_config(
+            leaderboard_id=leaderboard_id,
+        )
+    except BugoutResponseException as e:
+        raise EngineHTTPException(status_code=e.status_code, detail=e.detail)
+    except actions.LeaderboardConfigNotFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard config not found.",
+        )
+    except Exception as e:
+        logger.error(f"Error while getting leaderboard config: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    return data.LeaderboardConfig(**leaderboard_config)
+
+
+@app.put(
+    "/{leaderboard_id}/config",
+    response_model=data.LeaderboardConfig,
+    tags=["Authorized Endpoints"],
+)
+async def leaderboard_config_update(
+    request: Request,
+    leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
+    config: data.LeaderboardConfigUpdate = Body(..., description="Leaderboard config."),
+    db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = AuthHeader,
+) -> data.LeaderboardConfig:
+    """
+    Update leaderboard config.
+    """
+    token = request.state.token
+    try:
+        access = actions.check_leaderboard_resource_permissions(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            token=token,
+        )
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard not found.",
+        )
+
+    if not access:
+        raise EngineHTTPException(
+            status_code=403, detail="You don't have access to this leaderboard."
+        )
+
+    try:
+        leaderboard_config = actions.update_leaderboard_config(
+            leaderboard_id=leaderboard_id,
+            config=config,
+        )
+    except BugoutResponseException as e:
+        raise EngineHTTPException(status_code=e.status_code, detail=e.detail)
+    except actions.LeaderboardConfigNotFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard config not found.",
+        )
+    except Exception as e:
+        logger.error(f"Error while updating leaderboard config: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    return data.LeaderboardConfig(**leaderboard_config)
+
+
+@app.post(
+    "/{leaderboard_id}/config/activate",
+    response_model=bool,
+    tags=["Authorized Endpoints"],
+)
+async def leaderboard_config_activate(
+    request: Request,
+    leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
+    db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = AuthHeader,
+) -> bool:
+    """
+    Activate leaderboard config.
+    """
+    token = request.state.token
+    try:
+        access = actions.check_leaderboard_resource_permissions(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            token=token,
+        )
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard not found.",
+        )
+
+    if not access:
+        raise EngineHTTPException(
+            status_code=403, detail="You don't have access to this leaderboard."
+        )
+
+    try:
+        actions.activate_leaderboard_config(
+            leaderboard_id=leaderboard_id,
+        )
+    except BugoutResponseException as e:
+        raise EngineHTTPException(status_code=e.status_code, detail=e.detail)
+    except actions.LeaderboardConfigNotFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard config not found.",
+        )
+    except actions.LeaderboardConfigAlreadyActive as e:
+        raise EngineHTTPException(
+            status_code=409,
+            detail="Leaderboard config is already active.",
+        )
+    except Exception as e:
+        logger.error(f"Error while activating leaderboard config: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    return True
+
+
+@app.post(
+    "/{leaderboard_id}/config/deactivate",
+    response_model=bool,
+    tags=["Authorized Endpoints"],
+)
+async def leaderboard_config_deactivate(
+    request: Request,
+    leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
+    db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = AuthHeader,
+) -> bool:
+    """
+    Deactivate leaderboard config.
+    """
+    token = request.state.token
+    try:
+        access = actions.check_leaderboard_resource_permissions(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            token=token,
+        )
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard not found.",
+        )
+
+    if not access:
+        raise EngineHTTPException(
+            status_code=403, detail="You don't have access to this leaderboard."
+        )
+
+    try:
+        actions.deactivate_leaderboard_config(
+            leaderboard_id=leaderboard_id,
+        )
+    except BugoutResponseException as e:
+        raise EngineHTTPException(status_code=e.status_code, detail=e.detail)
+    except actions.LeaderboardConfigNotFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard config not found.",
+        )
+    except actions.LeaderboardConfigAlreadyInactive as e:
+        raise EngineHTTPException(
+            status_code=409,
+            detail="Leaderboard config is already inactive.",
+        )
+    except Exception as e:
+        logger.error(f"Error while deactivating leaderboard config: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    return True
