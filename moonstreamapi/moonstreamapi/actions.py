@@ -538,6 +538,10 @@ def apply_moonworm_tasks(
             if "abi_method_hash" in tag
         ]
 
+        existing_selectors = [
+            tag.split(":")[-1] for tag in chain(*existing_tags) if "abi_selector" in tag
+        ]
+
         abi_hashes_dict = {
             hashlib.md5(json.dumps(method).encode("utf-8")).hexdigest(): method
             for method in abi
@@ -545,17 +549,20 @@ def apply_moonworm_tasks(
             and (method.get("stateMutability", "") != "view")
         }
 
+        abi_selectors_dict = {
+            Web3.keccak(
+                text=abi_hashes_dict[hash]["name"]
+                + "("
+                + ",".join(map(lambda x: x["type"], abi_hashes_dict[hash]["inputs"]))
+                + ")"
+            )[:4].hex(): method
+            for method in abi
+            if (method["type"] in ("event", "function"))
+            and (method.get("stateMutability", "") != "view")
+        }
+
         for hash in abi_hashes_dict:
             if hash not in existing_hashes:
-                abi_selector = Web3.keccak(
-                    text=abi_hashes_dict[hash]["name"]
-                    + "("
-                    + ",".join(
-                        map(lambda x: x["type"], abi_hashes_dict[hash]["inputs"])
-                    )
-                    + ")"
-                )[:4].hex()
-
                 moonworm_abi_tasks_entries_pack.append(
                     {
                         "title": address,

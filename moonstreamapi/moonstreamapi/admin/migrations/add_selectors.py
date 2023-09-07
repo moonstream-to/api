@@ -51,7 +51,7 @@ def fill_missing_selectors_in_moonworm_tasks() -> None:
                 logger.warn(f"Unable to parse abi from task: {task.id}")
                 continue
 
-            if not any([tag.startswith("selector:") for tag in task.tags]):
+            if not any([tag.startswith("abi_selector:") for tag in task.tags]):
                 ## generate selector
 
                 abi_selector = Web3.keccak(
@@ -61,7 +61,7 @@ def fill_missing_selectors_in_moonworm_tasks() -> None:
                     + ")"
                 )[:4].hex()
 
-                tags.append(f"#selector:{abi_selector}")
+                tags.append(f"abi_selector:{abi_selector}")
 
             entries_tags.append(
                 {
