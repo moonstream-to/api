@@ -160,7 +160,7 @@ def generate_data(
         .filter(label_model.address == address)
         .filter(label_model.label == crawler_label)
         .filter(label_model.label_data["type"].astext == metric_type)
-        .filter(in_op(label_model.label_data["name"].astext, functions))
+        .filter(in_op(label_model.label_data["name"].astext, functions))  # type: ignore
         .filter(
             label_model.block_timestamp
             >= sqlalchemy_cast(
@@ -225,8 +225,8 @@ def generate_data(
         .join(
             with_empty_times_series_with_tags,
             and_(
-                with_empty_times_series_with_tags.c.label
-                == with_timetrashold_data.c.label,
+                with_empty_times_series_with_tags.c.label  # type: ignore
+                == with_timetrashold_data.c.label,  # type: ignore
                 with_empty_times_series_with_tags.c.timeseries_points
                 == with_timetrashold_data.c.timeseries_points,
             ),
@@ -405,7 +405,7 @@ def process_external_merged(
 
     for extcall in external_calls_normalized:
         try:
-            contract = web3_client.eth.contract(
+            contract = web3_client.eth.contract(  # type: ignore
                 address=extcall["address"], abi=extcall["abi"]
             )
             response = contract.functions[extcall["name"]](
@@ -472,7 +472,7 @@ def process_external(
 
     for extcall in external_calls:
         try:
-            contract = web3_client.eth.contract(
+            contract = web3_client.eth.contract(  # type: ignore
                 address=extcall["address"], abi=extcall["abi"]
             )
             response = contract.functions[extcall["name"]](
@@ -709,25 +709,29 @@ def stats_generate_handler(args: argparse.Namespace):
                             address = subscription.address
 
                             if address not in address_dashboard_id_subscription_id_tree:
-                                address_dashboard_id_subscription_id_tree[address] = {}
+                                address_dashboard_id_subscription_id_tree[address] = {}  # type: ignore
 
                             if (
                                 str(dashboard.id)
                                 not in address_dashboard_id_subscription_id_tree
                             ):
-                                address_dashboard_id_subscription_id_tree[address][
+                                address_dashboard_id_subscription_id_tree[address][  # type: ignore
                                     str(dashboard.id)
                                 ] = []
 
                             if (
                                 subscription_id
-                                not in address_dashboard_id_subscription_id_tree[
-                                    address
-                                ][str(dashboard.id)]
-                            ):
-                                address_dashboard_id_subscription_id_tree[address][
+                                not in address_dashboard_id_subscription_id_tree[  # type: ignore
+                                    address  # type: ignore
+                                ][
                                     str(dashboard.id)
-                                ].append(subscription_id)
+                                ]
+                            ):  # type: ignore
+                                address_dashboard_id_subscription_id_tree[address][  # type: ignore
+                                    str(dashboard.id)
+                                ].append(
+                                    subscription_id
+                                )
 
                             abi = None
                             if "abi" in subscription.secondary_fields:
@@ -761,23 +765,23 @@ def stats_generate_handler(args: argparse.Namespace):
                                 )
 
                             if address not in merged_events:
-                                merged_events[address] = {}
-                                merged_events[address]["merged"] = set()
+                                merged_events[address] = {}  # type: ignore
+                                merged_events[address]["merged"] = set()  # type: ignore
 
                             if address not in merged_functions:
-                                merged_functions[address] = {}
-                                merged_functions[address]["merged"] = set()
+                                merged_functions[address] = {}  # type: ignore
+                                merged_functions[address]["merged"] = set()  # type: ignore
 
-                            if str(dashboard.id) not in merged_events[address]:
-                                merged_events[address][str(dashboard.id)] = {}
+                            if str(dashboard.id) not in merged_events[address]:  # type: ignore
+                                merged_events[address][str(dashboard.id)] = {}  # type: ignore
 
-                            if str(dashboard.id) not in merged_functions[address]:
-                                merged_functions[address][str(dashboard.id)] = {}
+                            if str(dashboard.id) not in merged_functions[address]:  # type: ignore
+                                merged_functions[address][str(dashboard.id)] = {}  # type: ignore
 
-                            merged_events[address][str(dashboard.id)][
+                            merged_events[address][str(dashboard.id)][  # type: ignore
                                 subscription_id
                             ] = events
-                            merged_functions[address][str(dashboard.id)][
+                            merged_functions[address][str(dashboard.id)][  # type: ignore
                                 subscription_id
                             ] = methods
 
@@ -844,10 +848,10 @@ def stats_generate_handler(args: argparse.Namespace):
                             # Fill merged events and functions calls for all subscriptions
 
                             for event in events:
-                                merged_events[address]["merged"].add(event)
+                                merged_events[address]["merged"].add(event)  # type: ignore
 
                             for method in methods:
-                                merged_functions[address]["merged"].add(method)
+                                merged_functions[address]["merged"].add(method)  # type: ignore
 
                         except Exception as e:
                             logger.error(f"Error while merging subscriptions: {e}")
@@ -996,7 +1000,7 @@ def stats_generate_handler(args: argparse.Namespace):
                                         "statistics",
                                         f"blockchain:{args.blockchain}"
                                         f"subscriptions:{subscription_id}",
-                                        f"dashboard:{dashboard}",
+                                        f"dashboard:{dashboard}",  # type: ignore
                                     ],
                                 )
                                 logger.error(err)
@@ -1040,7 +1044,7 @@ def stats_generate_api_task(
                 subscription_id = dashboard_subscription_filters["subscription_id"]
 
                 subscription_type_id = None
-                for required_field in subscription_by_id[
+                for required_field in subscription_by_id[  # type: ignore
                     subscription_id
                 ].required_fields:
                     if "subscription_type_id" in required_field:
@@ -1065,8 +1069,8 @@ def stats_generate_api_task(
                 crawler_label = CRAWLER_LABEL
 
                 abi = None
-                if "abi" in subscription_by_id[subscription_id].secondary_fields:
-                    abi = subscription_by_id[subscription_id].secondary_fields["abi"]
+                if "abi" in subscription_by_id[subscription_id].secondary_fields:  # type: ignore
+                    abi = subscription_by_id[subscription_id].secondary_fields["abi"]  # type: ignore
 
                 # Read required events, functions and web3_call form ABI
                 if abi is None:
@@ -1097,7 +1101,7 @@ def stats_generate_api_task(
                     db_session=db_session,
                     events=events,
                     blockchain_type=blockchain_type,
-                    address=address,
+                    address=address,  # type: ignore
                     crawler_label=crawler_label,
                     abi_json=abi_json,
                     access_id=access_id,
@@ -1127,7 +1131,7 @@ def stats_generate_api_task(
                     functions_calls_data = generate_data(
                         db_session=db_session,
                         blockchain_type=blockchain_type,
-                        address=address,
+                        address=address,  # type: ignore
                         timescale=timescale,
                         functions=methods,
                         start=start_date,
@@ -1140,7 +1144,7 @@ def stats_generate_api_task(
                     events_data = generate_data(
                         db_session=db_session,
                         blockchain_type=blockchain_type,
-                        address=address,
+                        address=address,  # type: ignore
                         timescale=timescale,
                         functions=events,
                         start=start_date,
@@ -1154,7 +1158,7 @@ def stats_generate_api_task(
                     push_statistics(
                         statistics_data=s3_data_object,
                         subscription_type_id=subscription_type_id,
-                        address=address,
+                        address=address,  # type: ignore
                         timescale=timescale,
                         bucket=MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,  # type: ignore
                         dashboard_id=dashboard.id,
@@ -1165,7 +1169,7 @@ def stats_generate_api_task(
                     [
                         "dashboard",
                         "statistics",
-                        f"subscriptions:{subscription_id}",
+                        f"subscriptions:{subscription_id}",  # type: ignore
                         f"dashboard:{str(dashboard.id)}",
                     ],
                 )
