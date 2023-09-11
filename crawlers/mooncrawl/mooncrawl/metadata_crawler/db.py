@@ -132,6 +132,7 @@ def get_current_metadata_for_address(
         WHERE
             address = :address
             AND label = :label
+            AND label_data ->>'metadata' != 'null'
         ORDER BY
             label_data ->> 'token_id' ASC,
             block_number :: INT DESC;
