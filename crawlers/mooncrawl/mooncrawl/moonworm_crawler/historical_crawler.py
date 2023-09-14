@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 from uuid import UUID
 
 from eth_typing.evm import ChecksumAddress
@@ -8,7 +8,7 @@ from moonstreamdb.blockchain import AvailableBlockchainType
 from moonworm.crawler.moonstream_ethereum_state_provider import (  # type: ignore
     MoonstreamEthereumStateProvider,
 )
-from moonworm.crawler.networks import Network  # type: ignore
+from moonstreamdb.networks import Network  # type: ignore
 from sqlalchemy.orm.session import Session
 from web3 import Web3
 
@@ -51,11 +51,23 @@ def historical_crawler(
         web3.eth.block_number >= start_block
     ), "start_block must be less than current block"
 
-    network = (
-        Network.ethereum
-        if blockchain_type == AvailableBlockchainType.ETHEREUM
-        else Network.polygon
-    )
+    if blockchain_type == AvailableBlockchainType.ETHEREUM:
+        network = Network.ethereum
+    elif blockchain_type == AvailableBlockchainType.POLYGON:
+        network = Network.polygon
+    elif blockchain_type == AvailableBlockchainType.MUMBAI:
+        network = Network.mumbai
+    elif blockchain_type == AvailableBlockchainType.XDAI:
+        network = Network.xdai
+    elif blockchain_type == AvailableBlockchainType.WYRM:
+        network = Network.wyrm
+    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET:
+        network = Network.zksync_era_testnet
+    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
+        network = Network.zksync_era
+    else:
+        raise Exception("Unsupported blockchain type provided")
+
     ethereum_state_provider = MoonstreamEthereumStateProvider(
         web3,
         network,

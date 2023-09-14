@@ -482,3 +482,10 @@ ZkSyncEraTestnetTransactions = TransactionsProvider(
     description="Provider for resiving transactions from ZkSync Era testnet tables.",
     streamboaundary_range_limit=2 * 60 * 60,
 )
+
+ZkSyncEraTransactions = TransactionsProvider(
+    event_type="zksync_era_blockchain",
+    blockchain=AvailableBlockchainType("zksync_era"),
+    description="Provider for resiving transactions from ZkSync Era tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)

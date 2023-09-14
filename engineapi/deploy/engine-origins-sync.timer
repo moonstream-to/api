@@ -1,0 +1,9 @@
+[Unit]
+Description=Synchronize CORS origins for server
+
+[Timer]
+OnBootSec=120s
+OnUnitActiveSec=5m
+
+[Install]
+WantedBy=timers.target

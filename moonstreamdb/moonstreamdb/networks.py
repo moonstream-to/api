@@ -21,6 +21,9 @@ from .models import (
     ZkSyncEraTestnetBlock,
     ZkSyncEraTestnetLabel,
     ZkSyncEraTestnetTransaction,
+    ZkSyncEraBlock,
+    ZkSyncEraLabel,
+    ZkSyncEraTransaction,
 )
 
 
@@ -31,6 +34,7 @@ class Network(Enum):
     xdai = "xdai"
     wyrm = "wyrm"
     zksync_era_testnet = "zksync_era_testnet"
+    zksync_era = "zksync_era"
 
 
 tx_raw_types = Union[
@@ -40,6 +44,7 @@ tx_raw_types = Union[
     WyrmTransaction,
     XDaiTransaction,
     ZkSyncEraTestnetTransaction,
+    ZkSyncEraTransaction,
 ]
 
 MODELS: Dict[Network, Dict[str, Base]] = {
@@ -72,5 +77,10 @@ MODELS: Dict[Network, Dict[str, Base]] = {
         "blocks": ZkSyncEraTestnetBlock,
         "labels": ZkSyncEraTestnetLabel,
         "transactions": ZkSyncEraTestnetTransaction,
+    },
+    Network.zksync_era: {
+        "blocks": ZkSyncEraBlock,
+        "labels": ZkSyncEraLabel,
+        "transactions": ZkSyncEraTransaction,
     },
 }

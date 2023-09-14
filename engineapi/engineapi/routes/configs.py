@@ -1,14 +1,10 @@
 import logging
-from typing import Any, Dict, List, Set
+from typing import Any, Dict
 
-from bugout.data import BugoutResource, BugoutResources
 from fastapi import (
     BackgroundTasks,
-    Body,
-    Depends,
     FastAPI,
     Form,
-    HTTPException,
     Query,
     Request,
 )
@@ -46,6 +42,7 @@ whitelist_paths.update(
         "/configs/docs": "GET",
         "/configs/openapi.json": "GET",
         "/configs/is_origin": "GET",
+        "/configs/origins/sync": "GET",
     }
 )
 
@@ -124,6 +121,14 @@ async def get_cors_origins(
         raise EngineHTTPException(status_code=500)
 
     return cors_origins
+
+
+@app.get("/origins/sync", response_model=int)
+async def synchronize_cors_origins() -> int:
+    cors_origins = fetch_and_set_cors_origins_cache()
+    cors_origins_len = len(cors_origins.origins_set)
+
+    return cors_origins_len
 
 
 @app.post("/origin", response_model=data.CORSOrigins)

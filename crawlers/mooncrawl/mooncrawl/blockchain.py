@@ -28,6 +28,7 @@ from .settings import (
     MOONSTREAM_WYRM_WEB3_PROVIDER_URI,
     MOONSTREAM_XDAI_WEB3_PROVIDER_URI,
     MOONSTREAM_ZKSYNC_ERA_TESTNET_WEB3_PROVIDER_URI,
+    MOONSTREAM_ZKSYNC_ERA_WEB3_PROVIDER_URI,
     NB_ACCESS_ID_HEADER,
     NB_DATA_SOURCE_HEADER,
     WEB3_CLIENT_REQUEST_TIMEOUT_SECONDS,
@@ -73,6 +74,8 @@ def connect(
             web3_uri = MOONSTREAM_WYRM_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET:
             web3_uri = MOONSTREAM_ZKSYNC_ERA_TESTNET_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
+            web3_uri = MOONSTREAM_ZKSYNC_ERA_WEB3_PROVIDER_URI
         else:
             raise Exception("Wrong blockchain type provided for web3 URI")
 
@@ -126,7 +129,10 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
     )
     if blockchain_type == AvailableBlockchainType.XDAI:
         block_obj.author = block.author
-    if blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET:
+    if (
+        blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET
+        or blockchain_type == AvailableBlockchainType.ZKSYNC_ERA
+    ):
         block_obj.mix_hash = block.get("mixHash", "")
         block_obj.sha3_uncles = block.get("sha3Uncles", "")
         block_obj.l1_batch_number = (
@@ -168,7 +174,10 @@ def add_block_transactions(
             transaction_type=int(tx["type"], 0) if tx.get("type") is not None else None,
             value=tx.value,
         )
-        if blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET:
+        if (
+            blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET
+            or blockchain_type == AvailableBlockchainType.ZKSYNC_ERA
+        ):
             tx_obj.l1_batch_number = (
                 int(tx.get("l1BatchNumber"), 0)
                 if tx.get("l1BatchNumber") is not None

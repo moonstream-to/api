@@ -12,7 +12,6 @@ from uuid import UUID
 
 from moonstreamdb.blockchain import AvailableBlockchainType
 from moonstream.client import Moonstream  # type: ignore
-from web3._utils.request import cache_session
 from web3.middleware import geth_poa_middleware
 
 from mooncrawl.moonworm_crawler.crawler import _retry_connect_web3
@@ -21,7 +20,6 @@ from ..actions import recive_S3_data_from_query
 from ..db import PrePing_SessionLocal
 from ..settings import (
     INFURA_PROJECT_ID,
-    MOONSTREAM_ADMIN_ACCESS_TOKEN,
     NB_CONTROLLER_ACCESS_ID,
     infura_networks,
     multicall_contracts,

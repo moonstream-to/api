@@ -1,12 +1,12 @@
 """
 Leaderboard API.
 """
-from datetime import datetime
 import logging
 from uuid import UUID
 
+from bugout.exceptions import BugoutResponseException
 from web3 import Web3
-from fastapi import FastAPI, Request, Depends, Response, Query, Path, Body
+from fastapi import FastAPI, Request, Depends, Response, Query, Path, Body, Header
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 from typing import Any, Dict, List, Optional
@@ -26,8 +26,26 @@ logger = logging.getLogger(__name__)
 
 
 tags_metadata = [
-    {"name": "leaderboard", "description": "Moonstream Engine leaderboard API"}
+    {
+        "name": "Public Endpoints",
+        "description": "Endpoints under this tag can be accessed without any authentication. They are open to all and do not require any specific headers or tokens to be passed. Suitable for general access and non-sensitive operations.",
+    },
+    {
+        "name": "Authorized Endpoints",
+        "description": """
+Endpoints under this tag require authentication. To access these endpoints, a valid `moonstream token` must be included in the request header as:
+
+```
+Authorization: Bearer <moonstream token>
+```
+
+Failure to provide a valid token will result in unauthorized access errors. These endpoints are suitable for operations that involve sensitive data or actions that only authenticated users are allowed to perform.""",
+    },
 ]
+
+AuthHeader = Header(
+    ..., description="The expected format is 'Bearer YOUR_MOONSTREAM_ACCESS_TOKEN'."
+)
 
 
 leaderboad_whitelist = {
@@ -114,6 +132,7 @@ async def create_leaderboard(
     request: Request,
     leaderboard: data.LeaderboardCreateRequest = Body(...),
     db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = AuthHeader,
 ) -> data.LeaderboardCreatedResponse:
     """
 
@@ -158,6 +177,7 @@ async def update_leaderboard(
     leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
     leaderboard: data.LeaderboardUpdateRequest = Body(...),
     db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = AuthHeader,
 ) -> data.LeaderboardUpdatedResponse:
     """
     Update leaderboard.
@@ -214,6 +234,7 @@ async def delete_leaderboard(
     request: Request,
     leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
     db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = AuthHeader,
 ) -> data.LeaderboardDeletedResponse:
     """
     Delete leaderboard.
@@ -265,7 +286,9 @@ async def delete_leaderboard(
 
 @app.get("/leaderboards", response_model=List[data.Leaderboard])
 async def get_leaderboards(
-    request: Request, db_session: Session = Depends(db.yield_db_session)
+    request: Request,
+    db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = AuthHeader,
 ) -> List[data.Leaderboard]:
     """
     Returns leaderboard list to which user has access.
@@ -552,6 +575,7 @@ async def leaderboard_push_scores(
         True, description="Normalize addresses to checksum."
     ),
     db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = AuthHeader,
 ) -> List[data.LeaderboardScore]:
     """
     Put the leaderboard to the database.
@@ -608,3 +632,215 @@ async def leaderboard_push_scores(
     ]
 
     return result
+
+
+@app.get(
+    "/{leaderboard_id}/config",
+    response_model=data.LeaderboardConfig,
+    tags=["Authorized Endpoints"],
+)
+async def leaderboard_config(
+    request: Request,
+    leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
+    db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = AuthHeader,
+) -> data.LeaderboardConfig:
+    """
+    Get leaderboard config.
+    """
+    token = request.state.token
+    try:
+        access = actions.check_leaderboard_resource_permissions(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            token=token,
+        )
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard not found.",
+        )
+
+    if not access:
+        raise EngineHTTPException(
+            status_code=403, detail="You don't have access to this leaderboard."
+        )
+
+    try:
+        leaderboard_config = actions.get_leaderboard_config(
+            leaderboard_id=leaderboard_id,
+        )
+    except BugoutResponseException as e:
+        raise EngineHTTPException(status_code=e.status_code, detail=e.detail)
+    except actions.LeaderboardConfigNotFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard config not found.",
+        )
+    except Exception as e:
+        logger.error(f"Error while getting leaderboard config: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    return data.LeaderboardConfig(**leaderboard_config)
+
+
+@app.put(
+    "/{leaderboard_id}/config",
+    response_model=data.LeaderboardConfig,
+    tags=["Authorized Endpoints"],
+)
+async def leaderboard_config_update(
+    request: Request,
+    leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
+    config: data.LeaderboardConfigUpdate = Body(..., description="Leaderboard config."),
+    db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = AuthHeader,
+) -> data.LeaderboardConfig:
+    """
+    Update leaderboard config.
+    """
+    token = request.state.token
+    try:
+        access = actions.check_leaderboard_resource_permissions(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            token=token,
+        )
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard not found.",
+        )
+
+    if not access:
+        raise EngineHTTPException(
+            status_code=403, detail="You don't have access to this leaderboard."
+        )
+
+    try:
+        leaderboard_config = actions.update_leaderboard_config(
+            leaderboard_id=leaderboard_id,
+            config=config,
+        )
+    except BugoutResponseException as e:
+        raise EngineHTTPException(status_code=e.status_code, detail=e.detail)
+    except actions.LeaderboardConfigNotFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard config not found.",
+        )
+    except Exception as e:
+        logger.error(f"Error while updating leaderboard config: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    return data.LeaderboardConfig(**leaderboard_config)
+
+
+@app.post(
+    "/{leaderboard_id}/config/activate",
+    response_model=bool,
+    tags=["Authorized Endpoints"],
+)
+async def leaderboard_config_activate(
+    request: Request,
+    leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
+    db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = AuthHeader,
+) -> bool:
+    """
+    Activate leaderboard config.
+    """
+    token = request.state.token
+    try:
+        access = actions.check_leaderboard_resource_permissions(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            token=token,
+        )
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard not found.",
+        )
+
+    if not access:
+        raise EngineHTTPException(
+            status_code=403, detail="You don't have access to this leaderboard."
+        )
+
+    try:
+        actions.activate_leaderboard_config(
+            leaderboard_id=leaderboard_id,
+        )
+    except BugoutResponseException as e:
+        raise EngineHTTPException(status_code=e.status_code, detail=e.detail)
+    except actions.LeaderboardConfigNotFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard config not found.",
+        )
+    except actions.LeaderboardConfigAlreadyActive as e:
+        raise EngineHTTPException(
+            status_code=409,
+            detail="Leaderboard config is already active.",
+        )
+    except Exception as e:
+        logger.error(f"Error while activating leaderboard config: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    return True
+
+
+@app.post(
+    "/{leaderboard_id}/config/deactivate",
+    response_model=bool,
+    tags=["Authorized Endpoints"],
+)
+async def leaderboard_config_deactivate(
+    request: Request,
+    leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
+    db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = AuthHeader,
+) -> bool:
+    """
+    Deactivate leaderboard config.
+    """
+    token = request.state.token
+    try:
+        access = actions.check_leaderboard_resource_permissions(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            token=token,
+        )
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard not found.",
+        )
+
+    if not access:
+        raise EngineHTTPException(
+            status_code=403, detail="You don't have access to this leaderboard."
+        )
+
+    try:
+        actions.deactivate_leaderboard_config(
+            leaderboard_id=leaderboard_id,
+        )
+    except BugoutResponseException as e:
+        raise EngineHTTPException(status_code=e.status_code, detail=e.detail)
+    except actions.LeaderboardConfigNotFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard config not found.",
+        )
+    except actions.LeaderboardConfigAlreadyInactive as e:
+        raise EngineHTTPException(
+            status_code=409,
+            detail="Leaderboard config is already inactive.",
+        )
+    except Exception as e:
+        logger.error(f"Error while deactivating leaderboard config: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    return True
