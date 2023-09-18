@@ -188,5 +188,36 @@
             }
         ],
         "address": "0x44b3f42e2BF34F62868Ff9e9dAb7C2F807ba97Cb"
+    },
+    {
+        "type": "function",
+        "stateMutability": "view",
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256",
+                "value": {
+                    "type": "queryAPI",
+                    "query_url": "template_erc721_minting",
+                    "blockchain": "polygon",
+                    "params": {
+                        "address": "0xa7D50EE3D7485288107664cf758E877a0D351725"
+                    },
+                    "keys": [
+                        "token_id"
+                    ]
+                }
+            }
+        ],
+        "name": "tokenURI",
+        "outputs": [
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "address": "0xa7D50EE3D7485288107664cf758E877a0D351725"
     }
 ]

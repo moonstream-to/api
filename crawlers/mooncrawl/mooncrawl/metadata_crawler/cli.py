@@ -55,7 +55,10 @@ def crawl_uri(metadata_uri: str) -> Any:
         try:
             response = urllib.request.urlopen(metadata_uri, timeout=10)
 
-            if response.status == 200:
+            if (
+                metadata_uri.startswith("data:application/json")
+                or response.status == 200
+            ):
                 result = json.loads(response.read())
                 break
             retry += 1
