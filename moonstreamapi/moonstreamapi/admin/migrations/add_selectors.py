@@ -142,7 +142,10 @@ def deduplicate_moonworm_task_by_selector():
         address = address[0].split(":")[1]
 
         if address not in selectors:
-            selectors[address] = {selector: {"entries": {}}}
+            selectors[address] = {}
+
+        if selector not in selectors[address]:
+            selectors[address][selector] = {"entries": {}}
 
         selectors[address][selector]["entries"][
             task.entry_url.split("/")[-1]
