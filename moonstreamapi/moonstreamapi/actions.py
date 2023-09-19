@@ -526,34 +526,19 @@ def apply_moonworm_tasks(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
         )
 
-        # create historical crawl task in journal
-
         # will use create_entries_pack for creating entries in journal
 
         existing_tags = [entry.tags for entry in entries]
-
-        existing_hashes = [
-            tag.split(":")[-1]
-            for tag in chain(*existing_tags)
-            if "abi_method_hash" in tag
-        ]
 
         existing_selectors = [
             tag.split(":")[-1] for tag in chain(*existing_tags) if "abi_selector" in tag
         ]
 
-        abi_hashes_dict = {
-            hashlib.md5(json.dumps(method).encode("utf-8")).hexdigest(): method
-            for method in abi
-            if (method["type"] in ("event", "function"))
-            and (method.get("stateMutability", "") != "view")
-        }
-
         abi_selectors_dict = {
             Web3.keccak(
-                text=abi_hashes_dict[hash]["name"]
+                text=method["name"]
                 + "("
-                + ",".join(map(lambda x: x["type"], abi_hashes_dict[hash]["inputs"]))
+                + ",".join(map(lambda x: x["type"], method["inputs"]))
                 + ")"
             )[:4].hex(): method
             for method in abi
@@ -561,19 +546,25 @@ def apply_moonworm_tasks(
             and (method.get("stateMutability", "") != "view")
         }
 
-        for hash in abi_hashes_dict:
-            if hash not in existing_hashes:
+        for abi_selector in abi_selectors_dict:
+            if abi_selector not in existing_selectors:
+                hash = hashlib.md5(
+                    json.dumps(abi_selectors_dict[abi_selector]).encode("utf-8")
+                ).hexdigest()
+
                 moonworm_abi_tasks_entries_pack.append(
                     {
                         "title": address,
-                        "content": json.dumps(abi_hashes_dict[hash], indent=4),
+                        "content": json.dumps(
+                            abi_selectors_dict[abi_selector], indent=4
+                        ),
                         "tags": [
                             f"address:{address}",
-                            f"type:{abi_hashes_dict[hash]['type']}",
+                            f"type:{abi_selectors_dict[abi_selector]['type']}",
                             f"abi_method_hash:{hash}",
                             f"abi_selector:{abi_selector}",
                             f"subscription_type:{subscription_type}",
-                            f"abi_name:{abi_hashes_dict[hash]['name']}",
+                            f"abi_name:{abi_selectors_dict[abi_selector]['name']}",
                             f"status:active",
                             f"task_type:moonworm",
                             f"moonworm_task_pickedup:False",  # True if task picked up by moonworm-crawler(default each 120 sec)
