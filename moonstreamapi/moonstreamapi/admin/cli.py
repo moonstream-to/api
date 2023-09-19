@@ -12,7 +12,12 @@ from sqlalchemy.orm import with_expression
 
 from moonstreamdb.db import SessionLocal
 
-from ..settings import BUGOUT_BROOD_URL, BUGOUT_SPIRE_URL, MOONSTREAM_APPLICATION_ID
+from ..settings import (
+    BUGOUT_BROOD_URL,
+    BUGOUT_SPIRE_URL,
+    MOONSTREAM_APPLICATION_ID,
+    MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+)
 from ..web3_provider import yield_web3_provider
 
 from . import subscription_types, subscriptions, moonworm_tasks, queries
@@ -248,7 +253,7 @@ def moonworm_tasks_add_subscription_handler(args: argparse.Namespace) -> None:
 def main() -> None:
     cli_description = f"""Moonstream Admin CLI
 
-Please m35ake sure that the following environment variables are set in your environment and exported to
+Please make sure that the following environment variables are set in your environment and exported to
 subprocesses:
 1. MOONSTREAM_APPLICATION_ID
 2. MOONSTREAM_ADMIN_ACCESS_TOKEN
