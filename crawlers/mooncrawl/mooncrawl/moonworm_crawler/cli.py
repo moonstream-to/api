@@ -7,6 +7,7 @@ from moonstreamdb.blockchain import AvailableBlockchainType
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
+from .db import deduplicate_records
 from ..db import yield_db_session_ctx
 from ..settings import (
     MOONSTREAM_MOONWORM_TASKS_JOURNAL,
@@ -338,6 +339,21 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
             args.min_sleep_time,
             access_id=args.access_id,
             addresses_deployment_blocks=addresses_deployment_blocks,
+        )
+
+
+def handle_deduplicate(args: argparse.Namespace) -> None:
+    """
+    Deduplicate database records
+    """
+
+    with yield_db_session_ctx() as db_session:
+        deduplicate_records(
+            db_session,
+            args.blockchain_type,
+            args.table,
+            args.label,
+            args.type,
         )
 
 
