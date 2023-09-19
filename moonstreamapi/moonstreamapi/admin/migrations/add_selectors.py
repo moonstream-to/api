@@ -55,7 +55,6 @@ def fill_missing_selectors_in_moonworm_tasks() -> None:
                 logger.warn(
                     f"Unable to parse abi from task: {task.entry_url.split()[-1]}: {e}"
                 )
-                raise e
                 continue
 
             if "name" not in abi:

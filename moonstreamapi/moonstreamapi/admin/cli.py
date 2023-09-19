@@ -127,12 +127,19 @@ def migrations_run(args: argparse.Namespace) -> None:
     db_session = SessionLocal()
     try:
         if args.id == 20230904:
-            step_order = ["fill_missing_selectors_in_moonworm_tasks"]
+            step_order = [
+                "fill_missing_selectors_in_moonworm_tasks",
+                "deduplicate_moonworm_tasks",
+            ]
             step_map: Dict[str, Dict[str, Any]] = {
                 "upgrade": {
                     "fill_missing_selectors_in_moonworm_tasks": {
                         "action": add_selectors.fill_missing_selectors_in_moonworm_tasks,
                         "description": "Get all moonworm jobs from moonworm journal and add selector tag if it not represent",
+                    },
+                    "deduplicate_moonworm_tasks": {
+                        "action": add_selectors.deduplicate_moonworm_task_by_selector,
+                        "description": "Deduplicate moonworm tasks by selector",
                     },
                 },
                 "downgrade": {},
