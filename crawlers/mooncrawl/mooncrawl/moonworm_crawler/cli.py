@@ -1,6 +1,6 @@
 import argparse
 import logging
-from typing import Optional
+from typing import Optional, Literal
 from uuid import UUID
 
 from moonstreamdb.blockchain import AvailableBlockchainType
@@ -535,6 +535,49 @@ def main() -> None:
         help="Use tasks journal wich will fill all required fields for historical crawl",
     )
     historical_crawl_parser.set_defaults(func=handle_historical_crawl)
+
+    database_cli = subparsers.add_parser("database", help="Database operations")
+    database_cli.add_argument(
+        "--blockchain-type",
+        "-b",
+        type=str,
+        help=f"Available blockchain types: {[member.value for member in AvailableBlockchainType]}",
+    )
+
+    database_cli.set_defaults(func=lambda _: database_cli.print_help())
+
+    database_cli_subparsers = database_cli.add_subparsers()
+
+    deduplicate_parser = database_cli_subparsers.add_parser(
+        "deduplicate",
+        help="Deduplicate database records",
+    )
+
+    deduplicate_parser.add_argument(
+        "--table",
+        "-t",
+        type=str,
+        choices=["blocks", "labels", "transactions"],
+        required=True,
+        help="Table type to deduplicate",
+    )
+
+    deduplicate_parser.add_argument(
+        "--label",
+        "-l",
+        type=str,
+        required=False,
+        help="Label to deduplicate",
+    )
+
+    deduplicate_parser.add_argument(
+        "--type",
+        "-y",
+        type=str,
+        choices=["event", "function"],
+        required=True,
+        help="Type to deduplicate",
+    )
 
     args = parser.parse_args()
     args.func(args)
