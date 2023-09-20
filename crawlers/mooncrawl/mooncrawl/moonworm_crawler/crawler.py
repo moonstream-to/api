@@ -151,7 +151,7 @@ def blockchain_type_to_subscription_type(
 
 @dataclass
 class EventCrawlJob:
-    event_abi_hash: str
+    event_abi_selector: str
     event_abi: Dict[str, Any]
     contracts: List[ChecksumAddress]
     address_entries: Dict[ChecksumAddress, Dict[UUID, List[str]]]
@@ -256,15 +256,15 @@ def make_event_crawl_jobs(entries: List[BugoutSearchResult]) -> List[EventCrawlJ
     Create EventCrawlJob objects from bugout entries.
     """
 
-    crawl_job_by_hash: Dict[str, EventCrawlJob] = {}
+    crawl_job_by_selector: Dict[str, EventCrawlJob] = {}
 
     for entry in entries:
-        abi_hash = _get_tag(entry, "abi_method_hash")
+        abi_selector = _get_tag(entry, "abi_selector")
         contract_address = Web3().toChecksumAddress(_get_tag(entry, "address"))
 
         entry_id = UUID(entry.entry_url.split("/")[-1])  # crying emoji
 
-        existing_crawl_job = crawl_job_by_hash.get(abi_hash)
+        existing_crawl_job = crawl_job_by_selector.get(abi_selector)
         if existing_crawl_job is not None:
             if contract_address not in existing_crawl_job.contracts:
                 existing_crawl_job.contracts.append(contract_address)
@@ -275,15 +275,15 @@ def make_event_crawl_jobs(entries: List[BugoutSearchResult]) -> List[EventCrawlJ
         else:
             abi = cast(str, entry.content)
             new_crawl_job = EventCrawlJob(
-                event_abi_hash=abi_hash,
+                event_abi_selector=abi_selector,
                 event_abi=json.loads(abi),
                 contracts=[contract_address],
                 address_entries={contract_address: {entry_id: entry.tags}},
                 created_at=int(datetime.fromisoformat(entry.created_at).timestamp()),
             )
-            crawl_job_by_hash[abi_hash] = new_crawl_job
+            crawl_job_by_selector[abi_selector] = new_crawl_job
 
-    return [crawl_job for crawl_job in crawl_job_by_hash.values()]
+    return [crawl_job for crawl_job in crawl_job_by_selector.values()]
 
 
 def make_function_call_crawl_jobs(
@@ -300,7 +300,9 @@ def make_function_call_crawl_jobs(
         entry_id = UUID(entry.entry_url.split("/")[-1])  # crying emoji
         contract_address = Web3().toChecksumAddress(_get_tag(entry, "address"))
         abi = json.loads(cast(str, entry.content))
-        method_signature = encode_function_signature(abi)
+        # method_signature = encode_function_signature(abi)
+        method_signature = _get_tag(entry, "abi_selector")
+
         if method_signature is None:
             raise ValueError(f"{abi} is not a function ABI")
 
