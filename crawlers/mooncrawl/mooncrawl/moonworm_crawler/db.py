@@ -156,15 +156,20 @@ def add_events_to_session(
 
     events_hashes_to_save = [event.transaction_hash for event in events]
 
-    existing_labels = (
-        db_session.query(label_model.transaction_hash, label_model.log_index)
-        .filter(
-            label_model.label == label_name,
-            label_model.log_index != None,
-            label_model.transaction_hash.in_(events_hashes_to_save),
-        )
-        .all()
+    # it's a lot of dublicated hashes, but it's the only way to get log_index
+
+    existing_labels = db_session.query(
+        label_model.transaction_hash, label_model.log_index
+    ).filter(
+        label_model.label == label_name,
+        label_model.log_index != None,
+        label_model.transaction_hash.in_(events_hashes_to_save),
     )
+
+    print(existing_labels)
+    breakpoint()
+
+    existing_labels = existing_labels.all()
 
     existing_labels_transactions = []
     existing_log_index_by_tx_hash: Dict[str, List[int]] = {}

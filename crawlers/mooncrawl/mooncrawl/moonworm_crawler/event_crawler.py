@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from moonstreamdb.blockchain import AvailableBlockchainType, get_block_model
 from moonworm.crawler.log_scanner import _fetch_events_chunk, _crawl_events as moonworm_autoscale_crawl_events  # type: ignore
 from sqlalchemy.orm.session import Session
-from sqlalchemy.sql.expression import and_
+from sqlalchemy.sql.expression import and_, func
 from web3 import Web3
 
 from .crawler import EventCrawlJob
@@ -44,6 +44,8 @@ def get_block_timestamp(
     blockchain_type: AvailableBlockchainType,
     block_number: int,
     blocks_cache: Dict[int, int],
+    from_block: int,
+    to_block: int,
     max_blocks_batch: int = 30,
 ) -> int:
     """
@@ -67,31 +69,48 @@ def get_block_timestamp(
 
     block_model = get_block_model(blockchain_type)
 
+    # from_block and to_block can be in reverse order
+
+    if from_block > to_block:
+        from_block, to_block = to_block, from_block
+
+    from_block_filter = from_block - max_blocks_batch - 1
+    to_block_filter = to_block + max_blocks_batch + 1
+
     blocks = (
-        db_session.query(block_model.block_number, block_model.timestamp)
+        db_session.query(
+            func.json_object_agg(block_model.block_number, block_model.timestamp)
+        )
         .filter(
             and_(
-                block_model.block_number >= block_number - max_blocks_batch - 1,
-                block_model.block_number <= block_number + max_blocks_batch + 1,
+                block_model.block_number >= from_block_filter,
+                block_model.block_number <= to_block_filter,
             )
         )
-        .order_by(block_model.block_number.asc())
-        .all()
+        .scalar()
     )
 
+    ### transform all keys to int to avoid casting after
+
+    if blocks is not None:
+        blocks = {
+            int(block_number): timestamp for block_number, timestamp in blocks.items()
+        }
+
     target_block_timestamp: Optional[int] = None
-    if blocks and blocks[0].block_number == block_number:
-        target_block_timestamp = blocks[0].timestamp
+    if blocks:
+        target_block_timestamp = blocks.get(str(block_number))
 
     if target_block_timestamp is None:
-        target_block_timestamp = _get_block_timestamp_from_web3(web3, block_number)
-
-    if len(blocks_cache) > (max_blocks_batch * 3 + 2):
-        blocks_cache.clear()
+        target_block_timestamp = _get_block_timestamp_from_web3(
+            web3, block_number
+        )  # can be improved by using batch call
 
     blocks_cache[block_number] = target_block_timestamp
-    for block in blocks:
-        blocks_cache[block.block_number] = block.timestamp
+
+    if len(blocks_cache) + len(blocks) > (max_blocks_batch * 3 + 2):
+        # clear cache lower than from_block
+        blocks_cache = blocks
 
     return target_block_timestamp
 
@@ -126,6 +145,8 @@ def _crawl_events(
                 raw_event["blockNumber"],
                 blocks_cache,
                 db_block_query_batch,
+                from_block,
+                to_block,
             )
             event = Event(
                 event_name=raw_event["event"],

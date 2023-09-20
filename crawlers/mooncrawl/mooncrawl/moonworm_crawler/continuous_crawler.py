@@ -192,7 +192,7 @@ def continuous_crawler(
                     from_block=start_block,
                     to_block=end_block,
                     blocks_cache=blocks_cache,
-                    db_block_query_batch=min_blocks_batch * 2,
+                    db_block_query_batch=min_blocks_batch * 3,
                 )
                 logger.info(
                     f"Crawled {len(all_events)} events from {start_block} to {end_block}."
