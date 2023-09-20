@@ -193,6 +193,8 @@ def _autoscale_crawl_events(
                 blockchain_type,
                 raw_event["blockNumber"],
                 blocks_cache,
+                from_block,
+                to_block,
                 db_block_query_batch,
             )
             event = Event(

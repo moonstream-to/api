@@ -342,7 +342,7 @@ def merge_event_crawl_jobs(
     """
     for new_crawl_job in new_event_crawl_jobs:
         for old_crawl_job in old_crawl_jobs:
-            if new_crawl_job.event_abi_hash == old_crawl_job.event_abi_hash:
+            if new_crawl_job.event_abi_selector == old_crawl_job.event_abi_selector:
                 old_crawl_job.contracts.extend(
                     [
                         contract
@@ -357,8 +357,8 @@ def merge_event_crawl_jobs(
                     else:
                         old_crawl_job.address_entries[contract_address] = entries
                 break
-        else:
-            old_crawl_jobs.append(new_crawl_job)
+            else:
+                old_crawl_jobs.append(new_crawl_job)
     return old_crawl_jobs
 
 
