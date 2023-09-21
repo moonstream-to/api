@@ -167,7 +167,7 @@ def deduplicate_moonworm_task_by_selector():
             ## remove all tasks except latest
 
             logger.info(
-                f"Found {len(tasks_dict['entries'])} tasks with selector {selector}"
+                f"Found {len(tasks_dict['entries'])} tasks with selector {selector} erliest task {earliest_task_id} with created_at: {tasks_dict['entries'][earliest_task_id]}"
             )
 
             for task_id in tasks_dict["entries"]:
@@ -181,7 +181,7 @@ def deduplicate_moonworm_task_by_selector():
                         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
                     )
                 except BugoutResponseException as e:
-                    logger.error(f"Unable to delete entry: {e}")
+                    logger.error(f"Unable to delete entry with id {task_id} : {e}")
                     continue
 
                 logger.info(f"Deleted entry: {task_id}")
