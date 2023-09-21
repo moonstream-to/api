@@ -5,7 +5,9 @@ from typing import Dict, List, Optional
 from moonstreamdb.blockchain import AvailableBlockchainType, get_label_model
 from moonstreamdb.models import Base
 from moonworm.crawler.function_call_crawler import ContractFunctionCall  # type: ignore
+from sqlalchemy.dialects.postgresql import array
 from sqlalchemy.orm import Session
+
 
 from ..settings import CRAWLER_LABEL
 from .event_crawler import Event
@@ -156,14 +158,12 @@ def add_events_to_session(
 
     events_hashes_to_save = set([event.transaction_hash for event in events])
 
-    # it's a lot of dublicated hashes, but it's the only way to get log_index
-
     existing_labels = db_session.query(
         label_model.transaction_hash, label_model.log_index
     ).filter(
         label_model.label == label_name,
         label_model.log_index != None,
-        label_model.transaction_hash.any_(events_hashes_to_save),
+        label_model.transaction_hash.op("ANY")(array(events_hashes_to_save)),
     )
 
     print(existing_labels)
