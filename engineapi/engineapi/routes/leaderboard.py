@@ -2,24 +2,24 @@
 Leaderboard API.
 """
 import logging
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from bugout.exceptions import BugoutResponseException
-from web3 import Web3
-from fastapi import FastAPI, Request, Depends, Response, Query, Path, Body, Header
+from fastapi import Body, Depends, FastAPI, Header, Path, Query, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
-from typing import Any, Dict, List, Optional
+from web3 import Web3
 
-from .. import actions
-from .. import data
-from .. import db
+from .. import actions, data, db
 from ..middleware import (
-    ExtractBearerTokenMiddleware,
-    EngineHTTPException,
     BugoutCORSMiddleware,
+    EngineHTTPException,
+    ExtractBearerTokenMiddleware,
 )
-from ..settings import DOCS_TARGET_PATH, bugout_client as bc
+from ..settings import ALLOW_ORIGINS, DOCS_TARGET_PATH
+from ..settings import bugout_client as bc
 from ..version import VERSION
 
 logger = logging.getLogger(__name__)
@@ -79,8 +79,9 @@ app = FastAPI(
 app.add_middleware(ExtractBearerTokenMiddleware, whitelist=leaderboad_whitelist)
 
 app.add_middleware(
-    BugoutCORSMiddleware,
-    allow_credentials=False,
+    CORSMiddleware,
+    allow_origins=list(ALLOW_ORIGINS),
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
