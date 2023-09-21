@@ -154,7 +154,7 @@ def add_events_to_session(
 ) -> None:
     label_model = get_label_model(blockchain_type)
 
-    events_hashes_to_save = [event.transaction_hash for event in events]
+    events_hashes_to_save = set([event.transaction_hash for event in events])
 
     # it's a lot of dublicated hashes, but it's the only way to get log_index
 
@@ -163,7 +163,7 @@ def add_events_to_session(
     ).filter(
         label_model.label == label_name,
         label_model.log_index != None,
-        label_model.transaction_hash.in_(events_hashes_to_save),
+        label_model.transaction_hash.any_(events_hashes_to_save),
     )
 
     print(existing_labels)
