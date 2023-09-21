@@ -36,6 +36,7 @@ from ..settings import (
     MOONSTREAM_QUERY_TEMPLATE_CONTEXT_TYPE,
     MOONSTREAM_S3_QUERIES_BUCKET,
     MOONSTREAM_S3_QUERIES_BUCKET_PREFIX,
+    BUGOUT_REQUEST_TIMEOUT_SECONDS,
 )
 from ..settings import bugout_client as bc
 
@@ -121,7 +122,7 @@ async def create_query_handler(
             title=f"Query:{query_name}",
             tags=["type:query"],
             content=query_applied.query,
-            timeout=10,
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS * 2,
         )
     except BugoutResponseException as e:
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
@@ -201,7 +202,7 @@ def get_suggested_queries(
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
             query=query,
             limit=limit,
-            timeout=5,
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
         )
     except BugoutResponseException as e:
         logger.error(f"Error in get suggested queries templates: {str(e)}")
