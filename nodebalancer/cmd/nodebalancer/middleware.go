@@ -305,9 +305,13 @@ func fetchClientAccessFromResources(accessID, authorizationToken string, tsNow i
 func extractAccessID(r *http.Request) string {
 	var accessID string
 
-	accessIDHeaders := r.Header[strings.Title(NB_ACCESS_ID_HEADER)]
-	for _, h := range accessIDHeaders {
-		accessID = h
+	urlPathSlice := strings.Split(r.URL.Path, "/")
+	if len(urlPathSlice) == 5 {
+		potentialUuid := urlPathSlice[4]
+		_, uuidParseErr := uuid.Parse(potentialUuid)
+		if uuidParseErr == nil {
+			accessID = potentialUuid
+		}
 	}
 
 	queries := r.URL.Query()
@@ -315,6 +319,11 @@ func extractAccessID(r *http.Request) string {
 		if k == "access_id" {
 			accessID = v[0]
 		}
+	}
+
+	accessIDHeaders := r.Header[strings.Title(NB_ACCESS_ID_HEADER)]
+	for _, h := range accessIDHeaders {
+		accessID = h
 	}
 
 	return accessID
