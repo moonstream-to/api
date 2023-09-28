@@ -15,8 +15,8 @@ PREFIX_CRIT="${C_RED}[CRIT]${C_RESET} [$(date +%d-%m\ %T)]"
 
 # Main
 AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
-APP_DIR="${APP_DIR:-/home/ubuntu/moonstream}"
-SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/moonstream-secrets}"
+APP_DIR="${APP_DIR:-/home/ubuntu/api}"
+SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/nodebalancer-secrets}"
 PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
 SCRIPT_DIR="$(realpath $(dirname $0))"
 
