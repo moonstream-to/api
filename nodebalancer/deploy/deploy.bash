@@ -33,6 +33,10 @@ HOME=/home/ubuntu /usr/local/go/bin/go install github.com/bugout-dev/checkenv@la
 echo
 echo
 echo -e "${PREFIX_INFO} Retrieving addition deployment parameters"
+if [ ! -d "${SECRETS_DIR}" ]; then
+  mkdir "${SECRETS_DIR}"
+  echo -e "${PREFIX_WARN} Created new secrets directory"
+fi
 AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" /home/ubuntu/go/bin/checkenv show aws_ssm+nodebalancer:true >> "${PARAMETERS_ENV_PATH}"
 
 echo
