@@ -490,8 +490,13 @@ def get_all_entries_from_search(
     )
     results.extend(existing_methods.results)  # type: ignore
 
+    print(existing_methods.total_results)
+    print(len(existing_methods.results))
+
     if len(results) != existing_methods.total_results:
+        print("get all entries from search")
         for offset in range(limit, existing_methods.total_results, limit):
+            print(len(results), existing_methods.total_results, limit, offset)
             existing_methods = bc.search(
                 token=token,
                 journal_id=journal_id,
@@ -501,7 +506,7 @@ def get_all_entries_from_search(
                 limit=limit,
                 offset=offset,
             )
-        results.extend(existing_methods.results)  # type: ignore
+            results.extend(existing_methods.results)  # type: ignore
 
     return results
 

@@ -224,6 +224,15 @@ def moonworm_tasks_add_subscription_handler(args: argparse.Namespace) -> None:
     moonworm_tasks.add_subscription(args.id)
 
 
+def get_moonworm_tasks_report(args: argparse.Namespace) -> str:
+    repot = moonworm_tasks.get_moonworm_tasks_state(
+        blockchain=args.blockchain,
+    )
+
+    with open("moonworm_tasks_report.json", "w") as f:
+        json.dump(repot, f, indent=4)
+
+
 def main() -> None:
     cli_description = f"""Moonstream Admin CLI
 
@@ -477,6 +486,19 @@ This CLI is configured to work with the following API URLs:
     )
 
     parser_moonworm_tasks_add.set_defaults(func=moonworm_tasks_add_subscription_handler)
+
+    parser_moonworm_tasks_report = subcommands_moonworm_tasks.add_parser(
+        "report", description="Return report of moonworm tasks."
+    )
+
+    parser_moonworm_tasks_report.add_argument(
+        "-b",
+        "--blockchain",
+        type=str,
+        help="Blockchain for report.",
+    )
+
+    parser_moonworm_tasks_report.set_defaults(func=get_moonworm_tasks_report)
 
     queries_parser = subcommands.add_parser(
         "queries", description="Manage Moonstream queries"
