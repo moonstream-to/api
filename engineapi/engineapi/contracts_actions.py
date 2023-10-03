@@ -2,7 +2,7 @@ import argparse
 import json
 import logging
 import uuid
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy import func, text
@@ -101,6 +101,7 @@ def parse_call_request_response(
         request_id=str(obj[0].request_id),
         parameters=obj[0].parameters,
         expires_at=obj[0].expires_at,
+        live_at=obj[0].live_at,
         created_at=obj[0].created_at,
         updated_at=obj[0].updated_at,
     )
@@ -326,13 +327,14 @@ def delete_registered_contract(
     return (registered_contract, blockchain)
 
 
-def request_calls(
+def create_request_calls(
     db_session: Session,
     metatx_requester_id: uuid.UUID,
     registered_contract_id: Optional[uuid.UUID],
     contract_address: Optional[str],
     call_specs: List[data.CallSpecification],
     ttl_days: Optional[int] = None,
+    live_at: Optional[int] = None,
 ) -> int:
     """
     Batch creates call requests for the given registered contract.
@@ -349,6 +351,11 @@ def request_calls(
         assert ttl_days == int(ttl_days), "ttl_days must be an integer"
         if ttl_days <= 0:
             raise ValueError("ttl_days must be positive")
+
+    if live_at is not None:
+        assert live_at == int(live_at)
+        if live_at <= 0:
+            raise ValueError("live_at must be positive")
 
     # Check that the moonstream_user_id matches a RegisteredContract with the given id or address
     query = db_session.query(RegisteredContract).filter(
@@ -406,6 +413,7 @@ def request_calls(
             request_id=specification.request_id,
             parameters=specification.parameters,
             expires_at=expires_at,
+            live_at=datetime.fromtimestamp(live_at),
         )
 
         db_session.add(request)
@@ -472,6 +480,8 @@ def list_call_requests(
     limit: int = 10,
     offset: Optional[int] = None,
     show_expired: bool = False,
+    show_before_live_at: bool = False,
+    metatx_requester_id: Optional[uuid.UUID] = None,
 ) -> List[Row[Tuple[CallRequest, RegisteredContract, CallRequestType]]]:
     """
     List call requests for the given moonstream_user_id
@@ -505,6 +515,21 @@ def list_call_requests(
     if not show_expired:
         query = query.filter(
             CallRequest.expires_at > func.now(),
+        )
+
+    # If user id not specified, do not show call_requests before live_at.
+    # Otherwise check show_before_live_at argument from query parameter
+    if metatx_requester_id is not None:
+        query = query.filter(
+            CallRequest.metatx_requester_id == metatx_requester_id,
+        )
+        if not show_before_live_at:
+            query = query.filter(
+                CallRequest.live_at < func.now(),
+            )
+    else:
+        query = query.filter(
+            CallRequest.live_at < func.now(),
         )
 
     if offset is not None:
@@ -633,7 +658,7 @@ def handle_request_calls(args: argparse.Namespace) -> None:
 
     try:
         with db.yield_db_session_ctx() as db_session:
-            request_calls(
+            create_request_calls(
                 db_session=db_session,
                 moonstream_user_id=args.moonstream_user_id,
                 registered_contract_id=args.registered_contract_id,

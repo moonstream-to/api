@@ -284,6 +284,7 @@ class CreateCallRequestsAPIRequest(BaseModel):
     contract_address: Optional[str] = None
     specifications: List[CallSpecification] = Field(default_factory=list)
     ttl_days: Optional[int] = None
+    live_at: Optional[int] = None
 
     # Solution found thanks to https://github.com/pydantic/pydantic/issues/506
     @root_validator
@@ -306,6 +307,7 @@ class CallRequestResponse(BaseModel):
     request_id: str
     parameters: Dict[str, Any]
     expires_at: Optional[datetime] = None
+    live_at: datetime
     created_at: datetime
     updated_at: datetime
 

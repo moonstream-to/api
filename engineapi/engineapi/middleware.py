@@ -26,8 +26,8 @@ from .settings import (
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
     BUGOUT_RESOURCE_TYPE_APPLICATION_CONFIG,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
-    MOONSTREAM_APPLICATION_ID,
     MOONSTREAM_ADMIN_ID,
+    MOONSTREAM_APPLICATION_ID,
 )
 from .settings import bugout_client as bc
 
@@ -72,12 +72,10 @@ class BroodAuthMiddleware(BaseHTTPMiddleware):
         try:
             user: BugoutUser = bc.get_user(user_token)
             if not user.verified:
-                logger.info(
-                    f"Attempted journal access by unverified Brood account: {user.id}"
-                )
+                logger.info(f"Attempted access by unverified Brood account: {user.id}")
                 return Response(
                     status_code=403,
-                    content="Only verified accounts can access journals",
+                    content="Only verified accounts can have access",
                 )
             if str(user.application_id) != str(MOONSTREAM_APPLICATION_ID):
                 return Response(

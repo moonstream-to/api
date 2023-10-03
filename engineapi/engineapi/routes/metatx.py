@@ -9,13 +9,20 @@ import logging
 from typing import Dict, List, Optional
 from uuid import UUID
 
+from bugout.data import BugoutResource, BugoutResources, BugoutUser
+from bugout.exceptions import BugoutResponseException
 from fastapi import Body, Depends, FastAPI, Path, Query, Request
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
 from .. import contracts_actions, data, db
-from ..middleware import BroodAuthMiddleware, BugoutCORSMiddleware, EngineHTTPException
-from ..settings import DOCS_TARGET_PATH
+from ..middleware import (
+    BroodAuthMiddleware,
+    BugoutCORSMiddleware,
+    EngineHTTPException,
+)
+from ..settings import DOCS_TARGET_PATH, MOONSTREAM_APPLICATION_ID
+from ..settings import bugout_client as bc
 from ..version import VERSION
 
 logger = logging.getLogger(__name__)
@@ -40,7 +47,7 @@ whitelist_paths = {
     "/metatx/blockchains": "GET",
     "/metatx/contracts/types": "GET",
     "/metatx/requests/types": "GET",
-    "/metatx/requests": "GET",
+    "/metatx/requests": "GET",  # Controls by custom authentication check
 }
 
 app = FastAPI(
@@ -280,12 +287,14 @@ async def call_request_types_route(
 
 @app.get("/requests", tags=["requests"], response_model=List[data.CallRequestResponse])
 async def list_requests_route(
+    request: Request,
     contract_id: Optional[UUID] = Query(None),
     contract_address: Optional[str] = Query(None),
     caller: str = Query(...),
     limit: int = Query(100),
     offset: Optional[int] = Query(None),
-    show_expired: Optional[bool] = Query(False),
+    show_expired: bool = Query(False),
+    show_before_live_at: bool = Query(False),
     db_session: Session = Depends(db.yield_db_read_only_session),
 ) -> List[data.CallRequestResponse]:
     """
@@ -293,6 +302,33 @@ async def list_requests_route(
 
     At least one of `contract_id` or `contract_address` must be provided as query parameters.
     """
+    authorization_header = request.headers.get("authorization")
+    user: Optional[BugoutUser] = None
+    if authorization_header is not None:
+        try:
+            auth_list = authorization_header.split()
+            if len(auth_list) != 2:
+                return EngineHTTPException(
+                    status_code=403, content="Wrong authorization header"
+                )
+
+            user = bc.get_user(auth_list[-1])
+            if not user.verified:
+                logger.info(f"Attempted access by unverified Brood account: {user.id}")
+                return EngineHTTPException(
+                    status_code=403,
+                    content="Only verified accounts can have access",
+                )
+            if str(user.application_id) != str(MOONSTREAM_APPLICATION_ID):
+                return EngineHTTPException(
+                    status_code=403, content="User does not belong to this application"
+                )
+        except BugoutResponseException as e:
+            return EngineHTTPException(status_code=e.status_code, content=e.detail)
+        except Exception as e:
+            logger.error(f"Error processing Brood response: {str(e)}")
+            return EngineHTTPException(status_code=500, content="Internal server error")
+
     try:
         requests = contracts_actions.list_call_requests(
             db_session=db_session,
@@ -302,6 +338,8 @@ async def list_requests_route(
             limit=limit,
             offset=offset,
             show_expired=show_expired,
+            show_before_live_at=show_before_live_at,
+            metatx_requester_id=user.id if user is not None else None,
         )
     except ValueError as e:
         logger.error(repr(e))
@@ -354,13 +392,14 @@ async def create_requests(
     At least one of `contract_id` or `contract_address` must be provided in the request body.
     """
     try:
-        num_requests = contracts_actions.request_calls(
+        num_requests = contracts_actions.create_request_calls(
             db_session=db_session,
             metatx_requester_id=request.state.user.id,
             registered_contract_id=data.contract_id,
             contract_address=data.contract_address,
             call_specs=data.specifications,
             ttl_days=data.ttl_days,
+            live_at=data.live_at,
         )
     except contracts_actions.InvalidAddressFormat as err:
         raise EngineHTTPException(
