@@ -100,6 +100,7 @@ def parse_call_request_response(
         method=obj[0].method,
         request_id=str(obj[0].request_id),
         parameters=obj[0].parameters,
+        tx_hash=obj[0].tx_hash,
         expires_at=obj[0].expires_at,
         live_at=obj[0].live_at,
         created_at=obj[0].created_at,
