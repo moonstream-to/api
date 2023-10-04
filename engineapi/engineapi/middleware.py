@@ -77,7 +77,7 @@ def bugout_auth(token: str) -> BugoutUser:
     return user
 
 
-def user_for_auth_header(
+async def user_for_auth_header(
     authorization: str = Header(None),
 ) -> Optional[BugoutUser]:
     """
