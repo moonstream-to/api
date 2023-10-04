@@ -430,7 +430,7 @@ def create_request_calls(
     return len(call_specs)
 
 
-def get_call_requests(
+def get_call_request(
     db_session: Session,
     request_id: uuid.UUID,
 ) -> Tuple[CallRequest, RegisteredContract]:

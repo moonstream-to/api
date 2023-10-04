@@ -9,8 +9,7 @@ import logging
 from typing import Dict, List, Optional
 from uuid import UUID
 
-from bugout.data import BugoutResource, BugoutResources, BugoutUser
-from bugout.exceptions import BugoutResponseException
+from bugout.data import BugoutUser
 from fastapi import Body, Depends, FastAPI, Path, Query, Request
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
@@ -20,9 +19,9 @@ from ..middleware import (
     BroodAuthMiddleware,
     BugoutCORSMiddleware,
     EngineHTTPException,
+    user_for_auth_header,
 )
-from ..settings import DOCS_TARGET_PATH, MOONSTREAM_APPLICATION_ID
-from ..settings import bugout_client as bc
+from ..settings import DOCS_TARGET_PATH
 from ..version import VERSION
 
 logger = logging.getLogger(__name__)
@@ -285,9 +284,12 @@ async def call_request_types_route(
     return call_request_types
 
 
-@app.get("/requests", tags=["requests"], response_model=List[data.CallRequestResponse])
+@app.get(
+    "/requests",
+    tags=["requests"],
+    response_model=List[data.CallRequestResponse],
+)
 async def list_requests_route(
-    request: Request,
     contract_id: Optional[UUID] = Query(None),
     contract_address: Optional[str] = Query(None),
     caller: str = Query(...),
@@ -295,6 +297,7 @@ async def list_requests_route(
     offset: Optional[int] = Query(None),
     show_expired: bool = Query(False),
     show_before_live_at: bool = Query(False),
+    user: Optional[BugoutUser] = Depends(user_for_auth_header),
     db_session: Session = Depends(db.yield_db_read_only_session),
 ) -> List[data.CallRequestResponse]:
     """
@@ -302,33 +305,6 @@ async def list_requests_route(
 
     At least one of `contract_id` or `contract_address` must be provided as query parameters.
     """
-    authorization_header = request.headers.get("authorization")
-    user: Optional[BugoutUser] = None
-    if authorization_header is not None:
-        try:
-            auth_list = authorization_header.split()
-            if len(auth_list) != 2:
-                return EngineHTTPException(
-                    status_code=403, content="Wrong authorization header"
-                )
-
-            user = bc.get_user(auth_list[-1])
-            if not user.verified:
-                logger.info(f"Attempted access by unverified Brood account: {user.id}")
-                return EngineHTTPException(
-                    status_code=403,
-                    content="Only verified accounts can have access",
-                )
-            if str(user.application_id) != str(MOONSTREAM_APPLICATION_ID):
-                return EngineHTTPException(
-                    status_code=403, content="User does not belong to this application"
-                )
-        except BugoutResponseException as e:
-            return EngineHTTPException(status_code=e.status_code, content=e.detail)
-        except Exception as e:
-            logger.error(f"Error processing Brood response: {str(e)}")
-            return EngineHTTPException(status_code=500, content="Internal server error")
-
     try:
         requests = contracts_actions.list_call_requests(
             db_session=db_session,
@@ -364,7 +340,7 @@ async def get_request(
     At least one of `contract_id` or `contract_address` must be provided as query parameters.
     """
     try:
-        request = contracts_actions.get_call_requests(
+        request = contracts_actions.get_call_request(
             db_session=db_session,
             request_id=request_id,
         )
