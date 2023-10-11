@@ -124,7 +124,7 @@ def _retry_connect_web3(
             logger.info(f"Retrying in {sleep_time} seconds")
             time.sleep(sleep_time)
     raise Exception(
-        f"Failed to connect to {blockchain_type} blockchain after {retry_count} retries: {error}"
+        f"Failed to connect to {blockchain_type} blockchain after {retry_count} retries: {error}"  # type: ignore
     )
 
 
@@ -226,6 +226,7 @@ def find_all_deployed_blocks(
     """
 
     all_deployed_blocks = {}
+    logger.info(f"Finding deployment blocks for {len(addresses_set)} addresses")
     for address in addresses_set:
         try:
             code = web3.eth.getCode(address)
@@ -237,6 +238,7 @@ def find_all_deployed_blocks(
                 )
                 if block is not None:
                     all_deployed_blocks[address] = block
+                    logger.info(f"Found deployment block for {address}: {block}")
                 if block is None:
                     logger.error(f"Failed to get deployment block for {address}")
         except Exception as e:
@@ -259,7 +261,8 @@ def make_event_crawl_jobs(entries: List[BugoutSearchResult]) -> List[EventCrawlJ
     crawl_job_by_selector: Dict[str, EventCrawlJob] = {}
 
     for entry in entries:
-        abi_selector = _get_tag(entry, "abi_selector")
+        abi_selector = _get_tag(entry, "abi_method_hash")
+        # abi_selector = _get_tag(entry, "abi_selector")
         contract_address = Web3().toChecksumAddress(_get_tag(entry, "address"))
 
         entry_id = UUID(entry.entry_url.split("/")[-1])  # crying emoji
@@ -300,8 +303,8 @@ def make_function_call_crawl_jobs(
         entry_id = UUID(entry.entry_url.split("/")[-1])  # crying emoji
         contract_address = Web3().toChecksumAddress(_get_tag(entry, "address"))
         abi = json.loads(cast(str, entry.content))
-        # method_signature = encode_function_signature(abi)
-        method_signature = _get_tag(entry, "abi_selector")
+        method_signature = encode_function_signature(abi)
+        # method_signature = _get_tag(entry, "abi_selector")
 
         if method_signature is None:
             raise ValueError(f"{abi} is not a function ABI")

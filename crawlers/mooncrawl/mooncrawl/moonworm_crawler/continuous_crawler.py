@@ -26,7 +26,13 @@ from .crawler import (
     merge_function_call_crawl_jobs,
     moonworm_crawler_update_job_as_pickedup,
 )
-from .db import add_events_to_session, add_function_calls_to_session, commit_session
+from .db import (
+    add_events_to_session,
+    add_function_calls_to_session,
+    commit_session,
+    write_to_db,
+    delete_unverified_duplicates,
+)
 from .event_crawler import _crawl_events
 from .function_call_crawler import _crawl_functions
 from ..settings import (
@@ -95,7 +101,7 @@ def continuous_crawler(
     function_call_crawl_jobs: List[FunctionCallCrawlJob],
     start_block: int,
     max_blocks_batch: int = 100,
-    min_blocks_batch: int = 40,
+    min_blocks_batch: int = 5,
     confirmations: int = 60,
     min_sleep_time: float = 0.1,
     heartbeat_interval: float = 60,
@@ -156,13 +162,13 @@ def continuous_crawler(
 
     logger.info(f"Starting continuous event crawler start_block={start_block}")
     logger.info("Sending initial heartbeat")
-    heartbeat(
-        crawler_type=crawler_type,
-        blockchain_type=blockchain_type,
-        crawler_status=heartbeat_template,
-    )
+    # heartbeat(
+    #     crawler_type=crawler_type,
+    #     blockchain_type=blockchain_type,
+    #     crawler_status=heartbeat_template,
+    # )
     last_heartbeat_time = datetime.utcnow()
-    blocks_cache: Dict[int, int] = {}
+    blocks_cache: Dict[int, Optional[int]] = {}
     current_sleep_time = min_sleep_time
     failed_count = 0
     try:
@@ -171,7 +177,7 @@ def continuous_crawler(
                 time.sleep(current_sleep_time)
 
                 end_block = min(
-                    web3.eth.blockNumber - confirmations,
+                    web3.eth.blockNumber - min_blocks_batch,
                     start_block + max_blocks_batch,
                 )
 
@@ -192,7 +198,7 @@ def continuous_crawler(
                     from_block=start_block,
                     to_block=end_block,
                     blocks_cache=blocks_cache,
-                    db_block_query_batch=min_blocks_batch * 3,
+                    db_block_query_batch=max_blocks_batch * 3,
                 )
                 logger.info(
                     f"Crawled {len(all_events)} events from {start_block} to {end_block}."
@@ -220,6 +226,18 @@ def continuous_crawler(
 
                 current_time = datetime.utcnow()
 
+                write_to_db(
+                    web3=web3, db_session=db_session, blockchain_type=blockchain_type
+                )
+
+                delete_unverified_duplicates(
+                    db_session=db_session, blockchain_type=blockchain_type
+                )
+
+                commit_session(db_session)
+
+                ### fetch confirmed transactions and events
+
                 if current_time - jobs_refetchet_time > timedelta(
                     seconds=new_jobs_refetch_interval
                 ):
@@ -243,8 +261,6 @@ def continuous_crawler(
                 if current_time - last_heartbeat_time > timedelta(
                     seconds=heartbeat_interval
                 ):
-                    # Commiting to db
-                    commit_session(db_session)
                     # Update heartbeat
                     heartbeat_template["last_block"] = end_block
                     heartbeat_template["current_time"] = _date_to_str(current_time)
@@ -260,11 +276,11 @@ def continuous_crawler(
                     heartbeat_template[
                         "function_call metrics"
                     ] = ethereum_state_provider.metrics
-                    heartbeat(
-                        crawler_type=crawler_type,
-                        blockchain_type=blockchain_type,
-                        crawler_status=heartbeat_template,
-                    )
+                    # heartbeat(
+                    #     crawler_type=crawler_type,
+                    #     blockchain_type=blockchain_type,
+                    #     crawler_status=heartbeat_template,
+                    # )
                     logger.info("Sending heartbeat.", heartbeat_template)
                     last_heartbeat_time = datetime.utcnow()
 
@@ -304,13 +320,13 @@ def continuous_crawler(
         heartbeat_template[
             "die_reason"
         ] = f"{e.__class__.__name__}: {e}\n error_summary: {error_summary}\n error_traceback: {error_traceback}"
-        heartbeat_template["last_block"] = end_block
-        heartbeat(
-            crawler_type=crawler_type,
-            blockchain_type=blockchain_type,
-            crawler_status=heartbeat_template,
-            is_dead=True,
-        )
+        heartbeat_template["last_block"] = end_block  # type: ignore
+        # heartbeat(
+        #     crawler_type=crawler_type,
+        #     blockchain_type=blockchain_type,
+        #     crawler_status=heartbeat_template,
+        #     is_dead=True,
+        # )
 
         logger.exception(e)
         raise e
