@@ -162,11 +162,11 @@ def continuous_crawler(
 
     logger.info(f"Starting continuous event crawler start_block={start_block}")
     logger.info("Sending initial heartbeat")
-    # heartbeat(
-    #     crawler_type=crawler_type,
-    #     blockchain_type=blockchain_type,
-    #     crawler_status=heartbeat_template,
-    # )
+    heartbeat(
+        crawler_type=crawler_type,
+        blockchain_type=blockchain_type,
+        crawler_status=heartbeat_template,
+    )
     last_heartbeat_time = datetime.utcnow()
     blocks_cache: Dict[int, Optional[int]] = {}
     current_sleep_time = min_sleep_time
@@ -276,11 +276,11 @@ def continuous_crawler(
                     heartbeat_template[
                         "function_call metrics"
                     ] = ethereum_state_provider.metrics
-                    # heartbeat(
-                    #     crawler_type=crawler_type,
-                    #     blockchain_type=blockchain_type,
-                    #     crawler_status=heartbeat_template,
-                    # )
+                    heartbeat(
+                        crawler_type=crawler_type,
+                        blockchain_type=blockchain_type,
+                        crawler_status=heartbeat_template,
+                    )
                     logger.info("Sending heartbeat.", heartbeat_template)
                     last_heartbeat_time = datetime.utcnow()
 
@@ -321,12 +321,12 @@ def continuous_crawler(
             "die_reason"
         ] = f"{e.__class__.__name__}: {e}\n error_summary: {error_summary}\n error_traceback: {error_traceback}"
         heartbeat_template["last_block"] = end_block  # type: ignore
-        # heartbeat(
-        #     crawler_type=crawler_type,
-        #     blockchain_type=blockchain_type,
-        #     crawler_status=heartbeat_template,
-        #     is_dead=True,
-        # )
+        heartbeat(
+            crawler_type=crawler_type,
+            blockchain_type=blockchain_type,
+            crawler_status=heartbeat_template,
+            is_dead=True,
+        )
 
         logger.exception(e)
         raise e
