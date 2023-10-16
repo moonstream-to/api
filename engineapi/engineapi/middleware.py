@@ -6,18 +6,23 @@ from uuid import UUID
 
 from bugout.data import BugoutResource, BugoutResources, BugoutUser
 from bugout.exceptions import BugoutResponseException
+from eip712.messages import EIP712Message, _hash_eip191_message
+from eth_account.messages import encode_defunct
 from fastapi import Header, HTTPException, Request, Response
+from hexbytes import HexBytes
 from pydantic import AnyHttpUrl, parse_obj_as
-from starlette.datastructures import Headers
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import Response
 from starlette.types import ASGIApp
 from web3 import Web3
+from web3.auto import w3 as w3_auto
 
 from . import data
 from .auth import (
+    EIP712_AUTHORIZATION_TYPES,
     MoonstreamAuthorizationExpired,
+    MoonstreamAuthorizationStructureError,
     MoonstreamAuthorizationVerificationError,
     verify,
 )
@@ -93,7 +98,7 @@ async def user_for_auth_header(
                 status_code=403, detail="Wrong authorization header"
             )
         except Exception as e:
-            logger.error(f"Error processing Brood response: {str(e)}")
+            logger.error(f"Error parsing auth header: {str(e)}")
             raise EngineHTTPException(status_code=500, detail="Internal server error")
 
         if user_token != "":
@@ -116,6 +121,57 @@ async def user_for_auth_header(
                 raise HTTPException(status_code=500, detail="Internal server error")
 
     return user
+
+
+async def metatx_sign_header(
+    authorization: str = Header(None),
+) -> Optional[Dict[str, Any]]:
+    message: Optional[Dict[str, Any]] = None
+    if authorization is not None:
+        try:
+            auth_format, user_token = parse_auth_header(auth_header=authorization)
+        except InvalidAuthHeaderFormat:
+            raise EngineHTTPException(
+                status_code=403, detail="Wrong authorization header"
+            )
+        except Exception as e:
+            logger.error(f"Error parsing auth header: {str(e)}")
+            raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+        if auth_format != "metatx":
+            raise EngineHTTPException(
+                status_code=403,
+                detail=f"Wrong authorization header format: {auth_format}",
+            )
+
+        try:
+            json_payload_str = base64.b64decode(user_token).decode("utf-8")
+            payload = json.loads(json_payload_str)
+            verify(
+                authorization_type=EIP712_AUTHORIZATION_TYPES["MetaTXAuthorization"],
+                authorization_payload=payload,
+                signature_name_input="signature",
+            )
+            message = {
+                "caller": Web3.toChecksumAddress(payload.get("caller")),
+                "expires_at": payload.get("expires_at"),
+            }
+        except MoonstreamAuthorizationVerificationError as e:
+            logger.info("MetaTX authorization verification error: %s", e)
+            raise EngineHTTPException(status_code=403, detail="Invalid signer")
+        except MoonstreamAuthorizationExpired as e:
+            logger.info("MetaTX authorization expired: %s", e)
+            raise EngineHTTPException(status_code=403, detail="Authorization expired")
+        except MoonstreamAuthorizationStructureError as e:
+            logger.info("MetaTX authorization incorrect structure error: %s", e)
+            raise EngineHTTPException(
+                status_code=403, detail="Incorrect signature structure"
+            )
+        except Exception as e:
+            logger.error("Unexpected exception: %s", e)
+            raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+        return message
 
 
 class BroodAuthMiddleware(BaseHTTPMiddleware):
@@ -155,7 +211,7 @@ class BroodAuthMiddleware(BaseHTTPMiddleware):
         except InvalidAuthHeaderFormat:
             return Response(status_code=403, content="Wrong authorization header")
         except Exception as e:
-            logger.error(f"Error processing Brood response: {str(e)}")
+            logger.error(f"Error parsing auth header: {str(e)}")
             return Response(status_code=500, content="Internal server error")
 
         try:
@@ -226,9 +282,15 @@ class EngineAuthMiddleware(BaseHTTPMiddleware):
                 authorization_header_components[-1]
             ).decode("utf-8")
 
-            json_payload = json.loads(json_payload_str)
-            verified = verify(json_payload)
-            address = json_payload.get("address")
+            payload = json.loads(json_payload_str)
+            verified = verify(
+                authorization_type=EIP712_AUTHORIZATION_TYPES[
+                    "MoonstreamAuthorization"
+                ],
+                authorization_payload=payload,
+                signature_name_input="signed_message",
+            )
+            address = payload.get("address")
             if address is not None:
                 address = Web3.toChecksumAddress(address)
             else:
