@@ -10,7 +10,7 @@ from typing import Dict, List, Optional
 from uuid import UUID
 
 from bugout.data import BugoutUser
-from fastapi import Body, Depends, FastAPI, Path, Query, Request
+from fastapi import Body, Depends, FastAPI, Form, Path, Query, Request
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
@@ -19,6 +19,7 @@ from ..middleware import (
     BroodAuthMiddleware,
     BugoutCORSMiddleware,
     EngineHTTPException,
+    metatx_sign_header,
     user_for_auth_header,
 )
 from ..settings import DOCS_TARGET_PATH
@@ -47,6 +48,7 @@ whitelist_paths = {
     "/metatx/contracts/types": "GET",
     "/metatx/requests/types": "GET",
     "/metatx/requests": "GET",  # Controls by custom authentication check
+    "/metatx/requests/complete": "POST",    # Controls by metatx authentication check
 }
 
 app = FastAPI(
@@ -429,3 +431,32 @@ async def delete_requests(
         raise EngineHTTPException(status_code=500)
 
     return deleted_requests
+
+
+# @app.post("/requests/{request_id}/complete", tags=["requests"])
+@app.post("/requests/complete", tags=["requests"])
+async def complete_call_request_route(
+    tx_hash: str = Form(...),
+    call_request_id: UUID = Form(...),
+    message=Depends(metatx_sign_header),
+    db_session: Session = Depends(db.yield_db_session),
+):
+    """
+    Set tx hash for specified call_request by verified account.
+    """
+    try:
+        request = contracts_actions.complete_call_request(
+            db_session=db_session,
+            tx_hash=tx_hash,
+            call_request_id=call_request_id,
+        )
+    except contracts_actions.CallRequestNotFound:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="There is no call request with that ID.",
+        )
+    except Exception as e:
+        logger.error(repr(e))
+        raise EngineHTTPException(status_code=500)
+
+    return contracts_actions.parse_call_request_response(request)

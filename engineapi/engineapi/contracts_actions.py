@@ -577,6 +577,44 @@ def delete_requests(
     return requests_to_delete_num
 
 
+def complete_call_request(
+    db_session: Session,
+    tx_hash: str,
+    call_request_id: uuid.UUID,
+) -> CallRequest:
+    results = (
+        db_session.query(CallRequest, RegisteredContract)
+        .join(
+            RegisteredContract,
+            CallRequest.registered_contract_id == RegisteredContract.id,
+        )
+        .filter(CallRequest.id == call_request_id)
+        .all()
+    )
+
+    if len(results) == 0:
+        raise CallRequestNotFound("Call request with given ID not found")
+    elif len(results) != 1:
+        raise Exception(
+            f"Incorrect number of results found for request_id {call_request_id}"
+        )
+    call_request, registered_contract = results[0]
+
+    call_request.tx_hash = tx_hash
+
+    try:
+        db_session.add(call_request)
+        db_session.commit()
+    except Exception as err:
+        logger.error(
+            f"complete_call_request -- error updating in database: {repr(err)}"
+        )
+        db_session.rollback()
+        raise
+
+    return (call_request, registered_contract)
+
+
 def handle_register(args: argparse.Namespace) -> None:
     """
     Handles the register command.
