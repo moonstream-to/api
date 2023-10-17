@@ -28,6 +28,9 @@ from .crawler import (
 from .db import get_first_labeled_block_number, get_last_labeled_block_number
 from .historical_crawler import historical_crawler
 
+from .reorg_recrawl import reorg_scan, update_reorg_labels
+
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -341,6 +344,41 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
         )
 
 
+def handle_reorg_scan(args: argparse.Namespace) -> None:
+    blockchain_type = AvailableBlockchainType(args.blockchain_type)
+
+    with yield_db_session_ctx() as db_session:
+        reorg_labels = reorg_scan(db_session, blockchain_type)
+
+        update_reorg_labels(db_session, blockchain_type, reorg_labels)
+
+        if args.recrawl:
+            handle_historical_crawl(
+                args=argparse.Namespace(
+                    access_id=args.access_id,
+                    blockchain_type=blockchain_type.value,
+                    web3=None,
+                    poa=args.poa,
+                    max_blocks_batch=80,
+                    min_sleep_time=0.1,
+                    force=True,
+                    only_events=False,
+                    only_functions=False,
+                    find_deployed_blocks=False,
+                    tasks_journal=False,
+                    address=None,
+                    start=reorg_labels["start"],
+                    end=reorg_labels["end"],
+                )
+            )
+
+            logger.info(
+                f"Reorg scan finished. Recrawled from {reorg_labels['start']} to {reorg_labels['end']}"
+            )
+
+            clear_reorg_labels(db_session, blockchain_type)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.set_defaults(func=lambda _: parser.print_help())
@@ -535,6 +573,32 @@ def main() -> None:
         help="Use tasks journal wich will fill all required fields for historical crawl",
     )
     historical_crawl_parser.set_defaults(func=handle_historical_crawl)
+
+    reorg_parser = subparsers.add_parser(
+        "reorg-scan", help="Detect reorgs in the database"
+    )
+
+    reorg_parser.add_argument(
+        "--blockchain-type",
+        "-b",
+        type=str,
+        help=f"Available blockchain types: {[member.value for member in AvailableBlockchainType]}",
+    )
+    reorg_parser.add_argument(
+        "--poa",
+        action="store_true",
+        default=False,
+        help="Use PoA middleware",
+    )
+
+    reorg_parser.add_argument(
+        "--recrawl",
+        action="store_true",
+        default=False,
+        help="Recrawl blocks that were affected by reorg",
+    )
+
+    reorg_parser.set_defaults(func=handle_reorg_scan)
 
     args = parser.parse_args()
     args.func(args)
