@@ -1,6 +1,7 @@
 import uuid
 
 from sqlalchemy import (
+    ARRAY,
     VARCHAR,
     BigInteger,
     Column,
@@ -923,3 +924,40 @@ class OpenSeaCrawlingState(Base):  # type: ignore
     )
 
     total_count = Column(Integer, nullable=False)
+
+
+class StarknetBlock(Base):  # type: ignore
+    __tablename__ = "starknet_blocks"
+
+    block_number = Column(
+        BigInteger, primary_key=True, unique=True, nullable=False, index=True
+    )
+    sequencer_address = Column(VARCHAR(256))
+    status = Column(VARCHAR(256))
+    block_hash = Column(VARCHAR(256), index=True, nullable=False)
+    parent_hash = Column(VARCHAR(256))
+    new_root = Column(VARCHAR(256))
+    timestamp = Column(BigInteger, index=True, nullable=False)
+    indexed_at = Column(
+        DateTime(timezone=True), server_default=utcnow(), nullable=False
+    )
+
+
+class StarknetTransaction(Base):  # type: ignore
+    __tablename__ = "starknet_transactions"
+
+    calldata = Column(JSONB, nullable=True)
+    contract_address = Column(VARCHAR(256), index=True, nullable=False)
+    entry_point_selector = Column(VARCHAR(256))
+    max_fee = Column(Numeric(precision=78, scale=0), nullable=True)
+    nonce = Column(VARCHAR(256))
+    signature = Column(ARRAY(Text))
+    transaction_hash = Column(
+        VARCHAR(256), primary_key=True, unique=True, nullable=False, index=True
+    )
+    type = Column(VARCHAR(256))
+    version = Column(VARCHAR(256))
+
+    indexed_at = Column(
+        DateTime(timezone=True), server_default=utcnow(), nullable=False
+    )
