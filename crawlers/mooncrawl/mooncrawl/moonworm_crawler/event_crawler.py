@@ -158,12 +158,13 @@ def _autoscale_crawl_events(
     all_events = []
     for job in jobs:
         raw_events, batch_size = moonworm_autoscale_crawl_events(
-            web3,
-            job.event_abi,
-            from_block,
-            to_block,
-            batch_size,
-            job.contracts[0],
+            web3=web3,
+            event_abi=job.event_abi,
+            from_block=from_block,
+            to_block=to_block,
+            batch_size=batch_size,
+            contract_address=job.contracts[0],
+            max_blocks_batch=3000,
         )
         for raw_event in raw_events:
             raw_event["blockTimestamp"] = get_block_timestamp(
