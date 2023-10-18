@@ -38,25 +38,24 @@ var (
 		"web3_clientVersion": true,
 
 		// zksync methods
-		"zks_estimateFee": true,
-		"zks_estimateGasL1ToL2": true,
-		"zks_getAllAccountBalances": true,
-		"zks_getBlockDetails": true,
-		"zks_getBridgeContracts": true,
-		"zks_getBytecodeByHash": true,
-		"zks_getConfirmedTokens": true,
-		"zks_getL1BatchBlockRange": true,
-		"zks_getL1BatchDetails": true,
-		"zks_getL2ToL1LogProof": true,
-		"zks_getL2ToL1MsgProof": true,
-		"zks_getMainContract": true,
+		"zks_estimateFee":             true,
+		"zks_estimateGasL1ToL2":       true,
+		"zks_getAllAccountBalances":   true,
+		"zks_getBlockDetails":         true,
+		"zks_getBridgeContracts":      true,
+		"zks_getBytecodeByHash":       true,
+		"zks_getConfirmedTokens":      true,
+		"zks_getL1BatchBlockRange":    true,
+		"zks_getL1BatchDetails":       true,
+		"zks_getL2ToL1LogProof":       true,
+		"zks_getL2ToL1MsgProof":       true,
+		"zks_getMainContract":         true,
 		"zks_getRawBlockTransactions": true,
-		"zks_getTestnetPaymaster": true,
-		"zks_getTokenPrice": true,
-		"zks_getTransactionDetails": true,
-		"zks_L1BatchNumber": true,
-		"zks_L1ChainId": true,
-
+		"zks_getTestnetPaymaster":     true,
+		"zks_getTokenPrice":           true,
+		"zks_getTransactionDetails":   true,
+		"zks_L1BatchNumber":           true,
+		"zks_L1ChainId":               true,
 	}
 )
 
@@ -64,7 +63,7 @@ type JSONRPCRequest struct {
 	Jsonrpc string        `json:"jsonrpc"`
 	Method  string        `json:"method"`
 	Params  []interface{} `json:"params"`
-	ID      uint64        `json:"id"`
+	ID      interface{}   `json:"id"` // According to the JSON-RPC specification, the id can be a string, number, or null
 }
 
 type BlockchainConfig struct {
