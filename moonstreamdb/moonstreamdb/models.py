@@ -934,7 +934,7 @@ class StarknetBlock(Base):  # type: ignore
     )
     sequencer_address = Column(VARCHAR(256))
     status = Column(VARCHAR(256))
-    block_hash = Column(VARCHAR(256), index=True, nullable=False)
+    hash = Column(VARCHAR(256), index=True, nullable=False)
     parent_hash = Column(VARCHAR(256))
     new_root = Column(VARCHAR(256))
     timestamp = Column(BigInteger, index=True, nullable=False)
@@ -946,18 +946,67 @@ class StarknetBlock(Base):  # type: ignore
 class StarknetTransaction(Base):  # type: ignore
     __tablename__ = "starknet_transactions"
 
+    hash = Column(
+        VARCHAR(256), primary_key=True, unique=True, nullable=False, index=True
+    )
     calldata = Column(JSONB, nullable=True)
-    contract_address = Column(VARCHAR(256), index=True, nullable=False)
+    address = Column(VARCHAR(256), index=True, nullable=False)
     entry_point_selector = Column(VARCHAR(256))
     max_fee = Column(Numeric(precision=78, scale=0), nullable=True)
     nonce = Column(VARCHAR(256))
     signature = Column(ARRAY(Text))
-    transaction_hash = Column(
-        VARCHAR(256), primary_key=True, unique=True, nullable=False, index=True
-    )
     type = Column(VARCHAR(256))
     version = Column(VARCHAR(256))
 
     indexed_at = Column(
+        DateTime(timezone=True), server_default=utcnow(), nullable=False
+    )
+
+
+class StarknetLabel(Base):  # type: ignore
+    __tablename__ = "starknet_labels"
+
+    __table_args__ = (
+        Index(
+            "ix_polygon_labels_address_block_number",
+            "address",
+            "block_number",
+            unique=False,
+        ),
+        Index(
+            "ix_polygon_labels_address_block_timestamp",
+            "address",
+            "block_timestamp",
+            unique=False,
+        ),
+    )
+
+    id = Column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        unique=True,
+        nullable=False,
+    )
+    label = Column(VARCHAR(256), nullable=False, index=True)
+    block_number = Column(
+        BigInteger,
+        nullable=True,
+        index=True,
+    )
+    address = Column(
+        VARCHAR(256),
+        nullable=True,
+        index=True,
+    )
+    transaction_hash = Column(
+        VARCHAR(256),
+        nullable=True,
+        index=True,
+    )
+    label_data = Column(JSONB, nullable=True)
+    block_timestamp = Column(BigInteger, index=True)
+
+    created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )

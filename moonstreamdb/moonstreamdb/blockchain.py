@@ -23,6 +23,9 @@ from .models import (
     ZkSyncEraBlock,
     ZkSyncEraLabel,
     ZkSyncEraTransaction,
+    StarknetBlock,
+    StarknetTransaction,
+    StarknetLabel,
 )
 
 
@@ -34,6 +37,7 @@ class AvailableBlockchainType(Enum):
     WYRM = "wyrm"
     ZKSYNC_ERA_TESTNET = "zksync_era_testnet"
     ZKSYNC_ERA = "zksync_era"
+    STARKNET = "starknet"
 
 
 def get_block_model(
@@ -47,6 +51,7 @@ def get_block_model(
         WyrmBlock,
         ZkSyncEraTestnetBlock,
         ZkSyncEraBlock,
+        StarknetBlock,
     ]
 ]:
     """
@@ -62,6 +67,7 @@ def get_block_model(
             WyrmBlock,
             ZkSyncEraTestnetBlock,
             ZkSyncEraBlock,
+            StarknetBlock,
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -78,6 +84,8 @@ def get_block_model(
         block_model = ZkSyncEraTestnetBlock
     elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
         block_model = ZkSyncEraBlock
+    elif blockchain_type == AvailableBlockchainType.STARKNET:
+        block_model = StarknetBlock
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -95,6 +103,7 @@ def get_label_model(
         WyrmLabel,
         ZkSyncEraTestnetLabel,
         ZkSyncEraLabel,
+        StarknetLabel,
     ]
 ]:
     """
@@ -110,6 +119,7 @@ def get_label_model(
             WyrmLabel,
             ZkSyncEraTestnetLabel,
             ZkSyncEraLabel,
+            StarknetLabel,
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -126,6 +136,8 @@ def get_label_model(
         label_model = ZkSyncEraTestnetLabel
     elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
         label_model = ZkSyncEraLabel
+    elif blockchain_type == AvailableBlockchainType.STARKNET:
+        label_model = StarknetLabel
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -143,6 +155,7 @@ def get_transaction_model(
         WyrmTransaction,
         ZkSyncEraTestnetTransaction,
         ZkSyncEraTransaction,
+        StarknetTransaction,
     ]
 ]:
     """
@@ -158,6 +171,7 @@ def get_transaction_model(
             WyrmTransaction,
             ZkSyncEraTestnetTransaction,
             ZkSyncEraTransaction,
+            StarknetTransaction,
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -174,6 +188,8 @@ def get_transaction_model(
         transaction_model = ZkSyncEraTestnetTransaction
     elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
         transaction_model = ZkSyncEraTransaction
+    elif blockchain_type == AvailableBlockchainType.STARKNET:
+        transaction_model = StarknetTransaction
     else:
         raise Exception("Unsupported blockchain type provided")
 
