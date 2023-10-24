@@ -201,6 +201,11 @@ func Server() {
 			r.URL.RawQuery = ""
 			r.Header.Del(strings.Title(NB_ACCESS_ID_HEADER))
 			r.Header.Del(strings.Title(NB_DATA_SOURCE_HEADER))
+
+			r.URL.Scheme = endpoint.Scheme
+			r.URL.Host = endpoint.Host
+			r.URL.Path = endpoint.Path
+
 			// Change r.Host from nodebalancer's to end host so TLS check will be passed
 			r.Host = r.URL.Host
 		}
