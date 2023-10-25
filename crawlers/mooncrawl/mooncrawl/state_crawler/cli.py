@@ -90,7 +90,10 @@ def execute_query(query: Dict[str, Any], token: str):
     result = []
 
     for item in data:
-        result.append(tuple([item[key] for key in keys]))
+        if len(keys) == 1:
+            result.append(item[keys[0]])
+        else:
+            result.append(tuple([item[key] for key in keys]))
 
     return result
 
@@ -193,7 +196,7 @@ def crawl_calls_level(
     block_number,
     blockchain_type,
     block_timestamp,
-    max_batch_size=5000,
+    max_batch_size=3000,
     min_batch_size=4,
 ):
     calls_of_level = []
@@ -202,8 +205,6 @@ def crawl_calls_level(
         if call["generated_hash"] in responces:
             continue
         parameters = []
-
-        logger.info(f"Call: {json.dumps(call, indent=4)}")
 
         for input in call["inputs"]:
             if type(input["value"]) in (str, int):
@@ -260,9 +261,6 @@ def crawl_calls_level(
                     block_number,
                 )
                 make_multicall_result = future.result(timeout=20)
-            logger.info(
-                f"Multicall2 returned {len(make_multicall_result)} results at block {block_number}"
-            )
             retry = 0
             calls_of_level = calls_of_level[batch_size:]
             logger.info(f"lenght of task left {len(calls_of_level)}.")
@@ -274,7 +272,7 @@ def crawl_calls_level(
                 time.sleep(4)
             if retry > 5:
                 raise (e)
-            batch_size = max(batch_size // 3, min_batch_size)
+            batch_size = max(batch_size // 4, min_batch_size)
         except TimeoutError as e:  # timeout
             logger.error(f"TimeoutError: {e}, retrying")
             retry += 1
@@ -285,7 +283,7 @@ def crawl_calls_level(
             logger.error(f"Exception: {e}")
             raise (e)
         time.sleep(2)
-        logger.info(f"Retry: {retry}")
+        logger.debug(f"Retry: {retry}")
         # results parsing and writing to database
         add_to_session_count = 0
         for result in make_multicall_result:
@@ -471,8 +469,7 @@ def parse_jobs(
     # run crawling of levels
     try:
         # initial call of level 0 all call without subcalls directly moved there
-        logger.info("Crawl level: 0")
-        logger.info(f"Jobs amount: {len(calls[0])}")
+        logger.info("Crawl level: 0. Jobs amount: {len(calls[0])}")
         logger.info(f"call_tree_levels: {call_tree_levels}")
 
         batch_size = crawl_calls_level(
@@ -490,8 +487,7 @@ def parse_jobs(
         )
 
         for level in call_tree_levels:
-            logger.info(f"Crawl level: {level}")
-            logger.info(f"Jobs amount: {len(calls[level])}")
+            logger.info(f"Crawl level: {level}. Jobs amount: {len(calls[level])}")
 
             batch_size = crawl_calls_level(
                 web3_client,
