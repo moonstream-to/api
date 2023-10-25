@@ -15,6 +15,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 // Main variable of pool of blockchains which contains pool of nodes
@@ -50,7 +51,8 @@ type BlockchainPool struct {
 
 // Node status response struct for HealthCheck
 type NodeStatusResultResponse struct {
-	Number string `json:"number"`
+	BlockNumber uint64 `json:"block_number"`
+	Number      string `json:"number"`
 }
 
 type NodeStatusResponse struct {
@@ -194,14 +196,21 @@ func (bpool *BlockchainPool) StatusLog() {
 // HealthCheck fetch the node latest block
 func (bpool *BlockchainPool) HealthCheck() {
 	for _, b := range bpool.Blockchains {
+		var timeout time.Duration
+		getLatestBlockReq := `{"jsonrpc":"2.0","method":"eth_getBlockByNumber","params":["latest", false],"id":1}`
+		if b.Blockchain == "starknet" {
+			getLatestBlockReq = `{"jsonrpc":"2.0","method":"starknet_getBlockWithTxHashes","params":["latest"],"id":"0"}`
+			timeout = NB_HEALTH_CHECK_CALL_TIMEOUT * 2
+		}
+
 		for _, n := range b.Nodes {
 			alive := false
 
-			httpClient := http.Client{Timeout: NB_HEALTH_CHECK_CALL_TIMEOUT}
+			httpClient := http.Client{Timeout: timeout}
 			resp, err := httpClient.Post(
 				n.Endpoint.String(),
 				"application/json",
-				bytes.NewBuffer([]byte(`{"jsonrpc":"2.0","method":"eth_getBlockByNumber","params":["latest", false],"id":1}`)),
+				bytes.NewBuffer([]byte(getLatestBlockReq)),
 			)
 			if err != nil {
 				n.UpdateNodeState(0, alive)
@@ -231,12 +240,17 @@ func (bpool *BlockchainPool) HealthCheck() {
 				continue
 			}
 
-			blockNumberHex := strings.Replace(statusResponse.Result.Number, "0x", "", -1)
-			blockNumber, err := strconv.ParseUint(blockNumberHex, 16, 64)
-			if err != nil {
-				n.UpdateNodeState(0, alive)
-				log.Printf("Unable to parse block number from hex to string, err: %v", err)
-				continue
+			var blockNumber uint64
+			if b.Blockchain == "starknet" {
+				blockNumber = statusResponse.Result.BlockNumber
+			} else {
+				blockNumberHex := strings.Replace(statusResponse.Result.Number, "0x", "", -1)
+				blockNumber, err = strconv.ParseUint(blockNumberHex, 16, 64)
+				if err != nil {
+					n.UpdateNodeState(0, alive)
+					log.Printf("Unable to parse block number from hex to string, err: %v", err)
+					continue
+				}
 			}
 
 			// Mark node in list of pool as alive and update current block
