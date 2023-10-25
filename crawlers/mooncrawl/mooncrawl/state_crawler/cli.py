@@ -283,7 +283,7 @@ def crawl_calls_level(
             logger.error(f"Exception: {e}")
             raise (e)
         time.sleep(2)
-        logger.info(f"Retry: {retry}")
+        logger.debug(f"Retry: {retry}")
         # results parsing and writing to database
         add_to_session_count = 0
         for result in make_multicall_result:
@@ -469,8 +469,7 @@ def parse_jobs(
     # run crawling of levels
     try:
         # initial call of level 0 all call without subcalls directly moved there
-        logger.info("Crawl level: 0")
-        logger.info(f"Jobs amount: {len(calls[0])}")
+        logger.info("Crawl level: 0. Jobs amount: {len(calls[0])}")
         logger.info(f"call_tree_levels: {call_tree_levels}")
 
         batch_size = crawl_calls_level(
@@ -488,8 +487,7 @@ def parse_jobs(
         )
 
         for level in call_tree_levels:
-            logger.info(f"Crawl level: {level}")
-            logger.info(f"Jobs amount: {len(calls[level])}")
+            logger.info(f"Crawl level: {level}. Jobs amount: {len(calls[level])}")
 
             batch_size = crawl_calls_level(
                 web3_client,
