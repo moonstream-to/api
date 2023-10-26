@@ -7,9 +7,14 @@ from moonstreamdb.blockchain import AvailableBlockchainType
 # Bugout
 BUGOUT_BROOD_URL = os.environ.get("BUGOUT_BROOD_URL", "https://auth.bugout.dev")
 BUGOUT_SPIRE_URL = os.environ.get("BUGOUT_SPIRE_URL", "https://spire.bugout.dev")
+BUGOUT_SPIRE_EXTERNAL_URL = os.environ.get(
+    "BUGOUT_SPIRE_EXTERNAL_URL", "https://spire.bugout.dev"
+)
 
 
-bugout_client = Bugout(brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIRE_URL)
+bugout_client = Bugout(
+    brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIRE_EXTERNAL_URL
+)
 
 BUGOUT_REQUEST_TIMEOUT_SECONDS = 5
 
