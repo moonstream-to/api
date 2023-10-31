@@ -234,7 +234,7 @@ def deduplicate_records(
     label name and label type work only for labels table.
     """
 
-    if table == "bloks":
+    if table == "blocks":
         raise NotImplementedError("Deduplication for blocks is not implemented yet")
 
     if table == "labels":
@@ -280,10 +280,11 @@ def deduplicate_records(
                             created_at ASC
                     )
                     DELETE FROM
-                        {} USING lates_token_metadata
+                        {} USING lates_labels
                     WHERE
                         label=:label
                         AND address=:address
+                        AND label_data->>'type' = :label_type
                         AND {}.id  not in (select id from lates_labels ) RETURNING {}.block_number;
                 """.format(
                             table, table, table, table
@@ -326,16 +327,19 @@ def deduplicate_records(
                             label=:label
                             AND address=:address
                             AND label_data->>'type' = :label_type
+                            AND log_index is null
                         ORDER BY
                             transaction_hash ASC,
                             block_number ASC,
                             created_at ASC
                     )
                     DELETE FROM
-                        {} USING lates_token_metadata
+                        {} USING lates_labels
                     WHERE
                         label=:label
                         AND address=:address
+                        AND label_data->>'type' = :label_type
+                        AND log_index is null
                         AND {}.id  not in (select id from lates_labels ) RETURNING {}.block_number;
                 """.format(
                             table, table, table, table
