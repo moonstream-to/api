@@ -166,7 +166,7 @@ def get_user_queries(args: argparse.Namespace) -> Dict[str, Any]:
 
     for query_id in queries:
         print(
-            f"{query_id} name: {queries[query_id]['entry'].title} status: {queries[query_id]['status']}"
+            f"{query_id} name: {queries[query_id]['entry'].title} status: {queries[query_id].get('status')}"
         )
 
     return queries
