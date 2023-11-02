@@ -1,0 +1,17 @@
+[Unit]
+Description=Monitor crawlers systemd state
+StartLimitIntervalSec=300
+StartLimitBurst=3
+After=network.target
+
+[Service]
+Restart=on-failure
+RestartSec=15s
+WorkingDirectory=/home/ubuntu/
+EnvironmentFile=/home/ubuntu/moonstream-secrets/monitoring.env
+ExecStart=/home/ubuntu/monitoring -plugin systemd -host "${AWS_LOCAL_IPV4}" -port 7171 -healthcheck -server -threshold 3 -config /home/ubuntu/.monitoring/monitoring-crawlers-config.json -service ethereum-moonworm-crawler.service -service mumbai-moonworm-crawler.service -service polygon-moonworm-crawler.service -service zksync-era-moonworm-crawler.service
+CPUWeight=90
+SyslogIdentifier=monitoring-crawlers
+
+[Install]
+WantedBy=multi-user.target
