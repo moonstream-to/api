@@ -23,6 +23,7 @@ def get_results_for_moonstream_query(
     api_url: str = MOONSTREAM_API_URL,
     max_retries: int = 100,
     interval: float = 30.0,
+    query_api_retries: int = 3,
 ) -> Optional[Dict[str, Any]]:
     """
 
@@ -65,11 +66,11 @@ def get_results_for_moonstream_query(
     success = False
     attempts = 0
 
-    while not success and attempts < max_retries:
-        attempts += 1
+    while not success and attempts < query_api_retries:
         response = requests.post(
             request_url, json=request_body, headers=headers, timeout=10
         )
+        attempts += 1
         response.raise_for_status()
         response_body = response.json()
         data_url = response_body["url"]
