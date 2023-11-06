@@ -227,7 +227,6 @@ def moonworm_tasks_add_subscription_handler(args: argparse.Namespace) -> None:
 def generate_billing_handler(args: argparse.Namespace) -> None:
     billing_info = billing.collect_billing_information(
         month=args.month,
-        token=args.user_token,
         user_id=args.user_id,
         contracts=args.contracts,
     )
