@@ -48,7 +48,7 @@ whitelist_paths = {
     "/metatx/contracts/types": "GET",
     "/metatx/requests/types": "GET",
     "/metatx/requests": "GET",  # Controls by custom authentication check
-    "/metatx/requests/complete": "POST",    # Controls by metatx authentication check
+    "/metatx/requests/complete": "POST",  # Controls by metatx authentication check
 }
 
 app = FastAPI(
@@ -449,6 +449,7 @@ async def complete_call_request_route(
             db_session=db_session,
             tx_hash=tx_hash,
             call_request_id=call_request_id,
+            caller=message["caller"],
         )
     except contracts_actions.CallRequestNotFound:
         raise EngineHTTPException(

@@ -581,6 +581,7 @@ def complete_call_request(
     db_session: Session,
     tx_hash: str,
     call_request_id: uuid.UUID,
+    caller: str,
 ) -> CallRequest:
     results = (
         db_session.query(CallRequest, RegisteredContract)
@@ -589,6 +590,7 @@ def complete_call_request(
             CallRequest.registered_contract_id == RegisteredContract.id,
         )
         .filter(CallRequest.id == call_request_id)
+        .filter(CallRequest.caller == caller)
         .all()
     )
 
