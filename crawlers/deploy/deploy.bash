@@ -34,7 +34,6 @@ LEADERBOARDS_WORKER_TIMER_FILE="leaderboards-worker.timer"
 ETHEREUM_SYNCHRONIZE_SERVICE_FILE="ethereum-synchronize.service"
 ETHEREUM_TRENDING_SERVICE_FILE="ethereum-trending.service"
 ETHEREUM_TRENDING_TIMER_FILE="ethereum-trending.timer"
-ETHEREUM_TXPOOL_SERVICE_FILE="ethereum-txpool.service"
 ETHEREUM_MISSING_SERVICE_FILE="ethereum-missing.service"
 ETHEREUM_MISSING_TIMER_FILE="ethereum-missing.timer"
 ETHEREUM_MOONWORM_CRAWLER_SERVICE_FILE="ethereum-moonworm-crawler.service"
@@ -51,7 +50,6 @@ POLYGON_MISSING_SERVICE_FILE="polygon-missing.service"
 POLYGON_MISSING_TIMER_FILE="polygon-missing.timer"
 POLYGON_STATISTICS_SERVICE_FILE="polygon-statistics.service"
 POLYGON_STATISTICS_TIMER_FILE="polygon-statistics.timer"
-POLYGON_TXPOOL_SERVICE_FILE="polygon-txpool.service"
 POLYGON_MOONWORM_CRAWLER_SERVICE_FILE="polygon-moonworm-crawler.service"
 POLYGON_STATE_SERVICE_FILE="polygon-state.service"
 POLYGON_STATE_TIMER_FILE="polygon-state.timer"
@@ -191,14 +189,6 @@ cp "${SCRIPT_DIR}/${ETHEREUM_TRENDING_TIMER_FILE}" "/home/ubuntu/.config/systemd
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ETHEREUM_TRENDING_TIMER_FILE}"
 
-# echo
-# echo
-# echo -e "${PREFIX_INFO} Replacing existing Ethereum transaction pool crawler service definition with ${ETHEREUM_TXPOOL_SERVICE_FILE}"
-# chmod 644 "${SCRIPT_DIR}/${ETHEREUM_TXPOOL_SERVICE_FILE}"
-# cp "${SCRIPT_DIR}/${ETHEREUM_TXPOOL_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ETHEREUM_TXPOOL_SERVICE_FILE}"
-# XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
-# XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ETHEREUM_TXPOOL_SERVICE_FILE}"
-
 echo
 echo
 echo -e "${PREFIX_INFO} Replacing existing Ethereum missing service and timer with: ${ETHEREUM_MISSING_SERVICE_FILE}, ${ETHEREUM_MISSING_TIMER_FILE}"
@@ -269,14 +259,6 @@ cp "${SCRIPT_DIR}/${POLYGON_STATISTICS_SERVICE_FILE}" "/home/ubuntu/.config/syst
 cp "${SCRIPT_DIR}/${POLYGON_STATISTICS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${POLYGON_STATISTICS_TIMER_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${POLYGON_STATISTICS_TIMER_FILE}"
-
-# echo
-# echo
-# echo -e "${PREFIX_INFO} Replacing existing Polygon transaction pool crawler service definition with ${POLYGON_TXPOOL_SERVICE_FILE}"
-# chmod 644 "${SCRIPT_DIR}/${POLYGON_TXPOOL_SERVICE_FILE}"
-# cp "${SCRIPT_DIR}/${POLYGON_TXPOOL_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${POLYGON_TXPOOL_SERVICE_FILE}"
-# XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
-# XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${POLYGON_TXPOOL_SERVICE_FILE}"
 
 echo
 echo
