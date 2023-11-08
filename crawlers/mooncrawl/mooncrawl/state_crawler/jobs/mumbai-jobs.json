@@ -69,7 +69,17 @@
                 "internalType": "uint16",
                 "name": "seasonId",
                 "type": "uint16",
-                "value": 1
+                "value": {
+                    "type": "queryAPI",
+                    "query_url": "twilight_seasons",
+                    "blockchain": "mumbai",
+                    "params": {
+                        "address": "0x665B8Db5b9E3b396e2Ccb0Bd768dc74fC47Ec20D"
+                    },
+                    "keys": [
+                        "season_id"
+                    ]
+                }
             },
             {
                 "internalType": "address",
@@ -112,7 +122,17 @@
                 "internalType": "uint16",
                 "name": "seasonId",
                 "type": "uint16",
-                "value": 1
+                "value": {
+                    "type": "queryAPI",
+                    "query_url": "twilight_seasons",
+                    "blockchain": "mumbai",
+                    "params": {
+                        "address": "0x665B8Db5b9E3b396e2Ccb0Bd768dc74fC47Ec20D"
+                    },
+                    "keys": [
+                        "season_id"
+                    ]
+                }
             }
         ],
         "name": "twtGetSeasonalDominationPointsForAllRegions",
