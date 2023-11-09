@@ -469,7 +469,7 @@ def parse_jobs(
     # run crawling of levels
     try:
         # initial call of level 0 all call without subcalls directly moved there
-        logger.info("Crawl level: 0. Jobs amount: {len(calls[0])}")
+        logger.info(f"Crawl level: 0. Jobs amount: {len(calls[0])}")
         logger.info(f"call_tree_levels: {call_tree_levels}")
 
         batch_size = crawl_calls_level(

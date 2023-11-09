@@ -66,10 +66,20 @@
     {
         "inputs": [
             {
-                "internalType": "uint256",
+                "internalType": "uint16",
                 "name": "seasonId",
-                "type": "uint256",
-                "value": 1
+                "type": "uint16",
+                "value": {
+                    "type": "queryAPI",
+                    "query_url": "twilight_seasons",
+                    "blockchain": "mumbai",
+                    "params": {
+                        "address": "0x665B8Db5b9E3b396e2Ccb0Bd768dc74fC47Ec20D"
+                    },
+                    "keys": [
+                        "season_id"
+                    ]
+                }
             },
             {
                 "internalType": "address",
@@ -89,48 +99,58 @@
             }
         ],
         "name": "twtGetSeasonalDominationPointsByAccount",
-        "address": "0xb93D53A10793C7EA7DaE973625C9BB3b18Eec2A7",
+        "address": "0x665B8Db5b9E3b396e2Ccb0Bd768dc74fC47Ec20D",
         "outputs": [
             {
-                "internalType": "uint256[5]",
+                "internalType": "uint56[5]",
                 "name": "shadowcornDominationPoints",
-                "type": "uint256[5]"
+                "type": "uint56[5]"
             },
             {
-                "internalType": "uint256[5]",
+                "internalType": "uint56[5]",
                 "name": "unicornDominationPoints",
-                "type": "uint256[5]"
+                "type": "uint56[5]"
             }
         ],
         "stateMutability": "view",
         "type": "function",
-        "selector": "0x1c109952"
+        "selector": "0x0b4ef829"
     },
     {
         "inputs": [
             {
-                "internalType": "uint256",
+                "internalType": "uint16",
                 "name": "seasonId",
-                "type": "uint256",
-                "value": 1
+                "type": "uint16",
+                "value": {
+                    "type": "queryAPI",
+                    "query_url": "twilight_seasons",
+                    "blockchain": "mumbai",
+                    "params": {
+                        "address": "0x665B8Db5b9E3b396e2Ccb0Bd768dc74fC47Ec20D"
+                    },
+                    "keys": [
+                        "season_id"
+                    ]
+                }
             }
         ],
         "name": "twtGetSeasonalDominationPointsForAllRegions",
-        "address": "0xb93D53A10793C7EA7DaE973625C9BB3b18Eec2A7",
+        "address": "0x665B8Db5b9E3b396e2Ccb0Bd768dc74fC47Ec20D",
         "outputs": [
             {
-                "internalType": "uint256[5]",
+                "internalType": "uint56[5]",
                 "name": "shadowcornDominationPoints",
-                "type": "uint256[5]"
+                "type": "uint56[5]"
             },
             {
-                "internalType": "uint256[5]",
+                "internalType": "uint56[5]",
                 "name": "unicornDominationPoints",
-                "type": "uint256[5]"
+                "type": "uint56[5]"
             }
         ],
         "stateMutability": "view",
         "type": "function",
-        "selector": "0xa491c0f6"
+        "selector": "0xbddb218c"
     }
 ]
