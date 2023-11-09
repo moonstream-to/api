@@ -114,6 +114,7 @@ async def leaderboard(
     leaderboard_positions = actions.get_leaderboard_positions(
         db_session, leaderboard_id, limit, offset
     )
+
     result = [
         data.LeaderboardPosition(
             address=position.address,
@@ -140,7 +141,6 @@ async def create_leaderboard(
     Authorization: str = AuthHeader,
 ) -> data.LeaderboardCreatedResponse:
     """
-
     Create leaderboard.
     """
 
@@ -152,6 +152,10 @@ async def create_leaderboard(
             title=leaderboard.title,
             description=leaderboard.description,
             token=token,
+            public=leaderboard.public,
+            show_connect=leaderboard.show_connect,
+            blockchain_ids=leaderboard.blockchain_ids,
+            columns_names=leaderboard.columns_names,
         )
     except actions.LeaderboardCreateError as e:
         logger.error(f"Error while creating leaderboard: {e}")
@@ -171,6 +175,10 @@ async def create_leaderboard(
         title=created_leaderboard.title,  # type: ignore
         description=created_leaderboard.description,  # type: ignore
         resource_id=created_leaderboard.resource_id,  # type: ignore
+        public=created_leaderboard.public,  # type: ignore
+        show_connect=created_leaderboard.show_connect,  # type: ignore
+        blockchain_ids=created_leaderboard.blockchain_ids,  # type: ignore
+        columns_names=created_leaderboard.columns_names,  # type: ignore
         created_at=created_leaderboard.created_at,  # type: ignore
         updated_at=created_leaderboard.updated_at,  # type: ignore
     )
@@ -216,6 +224,10 @@ async def update_leaderboard(
             leaderboard_id=leaderboard_id,
             title=leaderboard.title,
             description=leaderboard.description,
+            public=leaderboard.public,
+            show_connect=leaderboard.show_connect,
+            blockchain_ids=leaderboard.blockchain_ids,
+            columns_names=leaderboard.columns_names,
         )
     except actions.LeaderboardUpdateError as e:
         logger.error(f"Error while updating leaderboard: {e}")
@@ -233,6 +245,10 @@ async def update_leaderboard(
         title=updated_leaderboard.title,  # type: ignore
         description=updated_leaderboard.description,  # type: ignore
         resource_id=updated_leaderboard.resource_id,  # type: ignore
+        public=updated_leaderboard.public,  # type: ignore
+        show_connect=updated_leaderboard.show_connect,  # type: ignore
+        blockchain_ids=updated_leaderboard.blockchain_ids,  # type: ignore
+        columns_names=updated_leaderboard.columns_names,  # type: ignore
         created_at=updated_leaderboard.created_at,  # type: ignore
         updated_at=updated_leaderboard.updated_at,  # type: ignore
     )
@@ -292,6 +308,11 @@ async def delete_leaderboard(
         id=deleted_leaderboard.id,  # type: ignore
         title=deleted_leaderboard.title,  # type: ignore
         description=deleted_leaderboard.description,  # type: ignore
+        resource_id=deleted_leaderboard.resource_id,  # type: ignore
+        public=deleted_leaderboard.public,  # type: ignore
+        show_connect=deleted_leaderboard.show_connect,  # type: ignore
+        blockchain_ids=deleted_leaderboard.blockchain_ids,  # type: ignore
+        columns_names=deleted_leaderboard.columns_names,  # type: ignore
         created_at=deleted_leaderboard.created_at,  # type: ignore
         updated_at=deleted_leaderboard.updated_at,  # type: ignore
     )
@@ -330,6 +351,10 @@ async def get_leaderboards(
             title=leaderboard.title,  # type: ignore
             description=leaderboard.description,  # type: ignore
             resource_id=leaderboard.resource_id,  # type: ignore
+            public=leaderboard.public,  # type: ignore
+            show_connect=leaderboard.show_connect,  # type: ignore
+            blockchain_ids=leaderboard.blockchain_ids,  # type: ignore
+            columns_names=leaderboard.columns_names,  # type: ignore
             created_at=leaderboard.created_at,  # type: ignore
             updated_at=leaderboard.updated_at,  # type: ignore
         )

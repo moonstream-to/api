@@ -1,6 +1,7 @@
 import uuid
 
 from sqlalchemy import (
+    ARRAY,
     DECIMAL,
     VARCHAR,
     BigInteger,
@@ -346,6 +347,10 @@ class Leaderboard(Base):  # type: ignore
     title = Column(VARCHAR(128), nullable=False)
     description = Column(String, nullable=True)
     resource_id = Column(UUID(as_uuid=True), nullable=True, index=True)
+    blockchain_ids = Column(ARRAY(Integer), nullable=False, default=[])
+    show_connect = Column(Boolean, default=False, nullable=False)
+    public = Column(Boolean, default=False, nullable=False)
+    columns_names = Column(JSONB, nullable=False, default={})
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )

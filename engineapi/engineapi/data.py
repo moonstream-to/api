@@ -370,6 +370,10 @@ class Leaderboard(BaseModel):
     title: str
     description: Optional[str] = None
     resource_id: Optional[UUID] = None
+    public: Optional[bool] = False
+    show_connect: Optional[bool] = False
+    blockchain_ids: Optional[List[int]] = None
+    columns_names: Optional[Dict[str, str]] = None
     created_at: datetime
     updated_at: datetime
 
@@ -385,6 +389,10 @@ class LeaderboardInfoResponse(BaseModel):
 class LeaderboardCreateRequest(BaseModel):
     title: str
     description: Optional[str] = None
+    public: Optional[bool] = False
+    show_connect: Optional[bool] = False
+    blockchain_ids: Optional[List[int]] = None
+    columns_names: Optional[Dict[str, str]] = None
 
 
 class LeaderboardCreatedResponse(BaseModel):
@@ -392,6 +400,10 @@ class LeaderboardCreatedResponse(BaseModel):
     title: str
     description: Optional[str] = None
     resource_id: Optional[UUID] = None
+    public: Optional[bool] = False
+    show_connect: Optional[bool] = False
+    blockchain_ids: Optional[List[int]] = None
+    columns_names: Optional[Dict[str, str]] = None
     created_at: datetime
     updated_at: datetime
 
@@ -404,6 +416,10 @@ class LeaderboardUpdatedResponse(BaseModel):
     title: str
     description: Optional[str] = None
     resource_id: Optional[UUID] = None
+    public: Optional[bool] = False
+    show_connect: Optional[bool] = False
+    blockchain_ids: Optional[List[int]] = None
+    columns_names: Optional[Dict[str, str]] = None
     created_at: datetime
     updated_at: datetime
 
@@ -414,6 +430,10 @@ class LeaderboardUpdatedResponse(BaseModel):
 class LeaderboardUpdateRequest(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
+    public: Optional[bool] = False
+    show_connect: Optional[bool] = False
+    blockchain_ids: Optional[List[int]] = None
+    columns_names: Optional[Dict[str, str]] = None
 
 
 class LeaderboardDeletedResponse(BaseModel):
@@ -421,6 +441,10 @@ class LeaderboardDeletedResponse(BaseModel):
     title: str
     description: Optional[str] = None
     resource_id: Optional[UUID] = None
+    public: Optional[bool] = False
+    show_connect: Optional[bool] = False
+    blockchain_ids: Optional[List[int]] = None
+    columns_names: Optional[Dict[str, str]] = None
     created_at: datetime
     updated_at: datetime
 
