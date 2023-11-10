@@ -85,6 +85,7 @@
           "type": "queryAPI",
           "query_url": "twilight_tactics_players",
           "blockchain": "mumbai",
+          "params": {},
           "keys": ["player"]
         }
       }
