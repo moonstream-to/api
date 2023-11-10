@@ -234,6 +234,7 @@
           "type": "queryAPI",
           "query_url": "twilight_tactics_players",
           "blockchain": "polygon",
+          "params": {},
           "keys": ["player"]
         }
       }
