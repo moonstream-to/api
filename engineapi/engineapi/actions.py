@@ -1436,7 +1436,7 @@ def add_scores(
     return leaderboard_scores
 
 
-# leadrboard access actions
+# leaderboard access actions
 
 
 def create_leaderboard_resource(

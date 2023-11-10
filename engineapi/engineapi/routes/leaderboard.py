@@ -48,7 +48,7 @@ AuthHeader = Header(
 )
 
 
-leaderboad_whitelist = {
+leaderboard_whitelist = {
     f"/leaderboard/{DOCS_TARGET_PATH}": "GET",
     "/leaderboard/openapi.json": "GET",
     "/leaderboard/info": "GET",
@@ -76,7 +76,7 @@ app = FastAPI(
 )
 
 
-app.add_middleware(ExtractBearerTokenMiddleware, whitelist=leaderboad_whitelist)
+app.add_middleware(ExtractBearerTokenMiddleware, whitelist=leaderboard_whitelist)
 
 app.add_middleware(
     CORSMiddleware,
