@@ -1,156 +1,145 @@
 [
-    {
-        "type": "function",
-        "stateMutability": "view",
-        "inputs": [
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256",
+        "value": {
+          "type": "function",
+          "name": "totalSupply",
+          "outputs": [
             {
-                "internalType": "uint256",
-                "name": "tokenId",
-                "type": "uint256",
-                "value": {
-                    "type": "function",
-                    "name": "totalSupply",
-                    "outputs": [
-                        {
-                            "internalType": "uint256",
-                            "name": "",
-                            "type": "uint256"
-                        }
-                    ],
-                    "address": "0x39858b1A4e48CfFB1019F0A15ff54899213B3f8b",
-                    "inputs": []
-                }
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
             }
-        ],
-        "name": "tokenURI",
-        "outputs": [
-            {
-                "internalType": "string",
-                "name": "",
-                "type": "string"
-            }
-        ],
-        "address": "0x39858b1A4e48CfFB1019F0A15ff54899213B3f8b"
-    },
-    {
-        "type": "function",
-        "stateMutability": "view",
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "tokenId",
-                "type": "uint256",
-                "value": {
-                    "type": "queryAPI",
-                    "query_url": "template_erc721_minting",
-                    "blockchain": "mumbai",
-                    "params": {
-                        "address": "0x230E4e85d4549343A460F5dE0a7035130F62d74C"
-                    },
-                    "keys": [
-                        "token_id"
-                    ]
-                }
-            }
-        ],
-        "name": "tokenURI",
-        "outputs": [
-            {
-                "internalType": "string",
-                "name": "",
-                "type": "string"
-            }
-        ],
-        "address": "0x230E4e85d4549343A460F5dE0a7035130F62d74C"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint16",
-                "name": "seasonId",
-                "type": "uint16",
-                "value": {
-                    "type": "queryAPI",
-                    "query_url": "twilight_seasons",
-                    "blockchain": "mumbai",
-                    "params": {
-                        "address": "0x665B8Db5b9E3b396e2Ccb0Bd768dc74fC47Ec20D"
-                    },
-                    "keys": [
-                        "season_id"
-                    ]
-                }
-            },
-            {
-                "internalType": "address",
-                "name": "user",
-                "type": "address",
-                "value": {
-                    "type": "queryAPI",
-                    "query_url": "twilight_tactics_players",
-                    "blockchain": "mumbai",
-                    "params": {
-                        "season_id": "1"
-                    },
-                    "keys": [
-                        "player"
-                    ]
-                }
-            }
-        ],
-        "name": "twtGetSeasonalDominationPointsByAccount",
-        "address": "0x665B8Db5b9E3b396e2Ccb0Bd768dc74fC47Ec20D",
-        "outputs": [
-            {
-                "internalType": "uint56[5]",
-                "name": "shadowcornDominationPoints",
-                "type": "uint56[5]"
-            },
-            {
-                "internalType": "uint56[5]",
-                "name": "unicornDominationPoints",
-                "type": "uint56[5]"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function",
-        "selector": "0x0b4ef829"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint16",
-                "name": "seasonId",
-                "type": "uint16",
-                "value": {
-                    "type": "queryAPI",
-                    "query_url": "twilight_seasons",
-                    "blockchain": "mumbai",
-                    "params": {
-                        "address": "0x665B8Db5b9E3b396e2Ccb0Bd768dc74fC47Ec20D"
-                    },
-                    "keys": [
-                        "season_id"
-                    ]
-                }
-            }
-        ],
-        "name": "twtGetSeasonalDominationPointsForAllRegions",
-        "address": "0x665B8Db5b9E3b396e2Ccb0Bd768dc74fC47Ec20D",
-        "outputs": [
-            {
-                "internalType": "uint56[5]",
-                "name": "shadowcornDominationPoints",
-                "type": "uint56[5]"
-            },
-            {
-                "internalType": "uint56[5]",
-                "name": "unicornDominationPoints",
-                "type": "uint56[5]"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function",
-        "selector": "0xbddb218c"
-    }
+          ],
+          "address": "0x39858b1A4e48CfFB1019F0A15ff54899213B3f8b",
+          "inputs": []
+        }
+      }
+    ],
+    "name": "tokenURI",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "address": "0x39858b1A4e48CfFB1019F0A15ff54899213B3f8b"
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256",
+        "value": {
+          "type": "queryAPI",
+          "query_url": "template_erc721_minting",
+          "blockchain": "mumbai",
+          "params": {
+            "address": "0x230E4e85d4549343A460F5dE0a7035130F62d74C"
+          },
+          "keys": ["token_id"]
+        }
+      }
+    ],
+    "name": "tokenURI",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "address": "0x230E4e85d4549343A460F5dE0a7035130F62d74C"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint16",
+        "name": "seasonId",
+        "type": "uint16",
+        "value": {
+          "type": "queryAPI",
+          "query_url": "twilight_seasons",
+          "blockchain": "mumbai",
+          "params": {
+            "address": "0x665B8Db5b9E3b396e2Ccb0Bd768dc74fC47Ec20D"
+          },
+          "keys": ["season_id"]
+        }
+      },
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address",
+        "value": {
+          "type": "queryAPI",
+          "query_url": "twilight_tactics_players",
+          "blockchain": "mumbai",
+          "keys": ["player"]
+        }
+      }
+    ],
+    "name": "twtGetSeasonalDominationPointsByAccount",
+    "address": "0x665B8Db5b9E3b396e2Ccb0Bd768dc74fC47Ec20D",
+    "outputs": [
+      {
+        "internalType": "uint56[5]",
+        "name": "shadowcornDominationPoints",
+        "type": "uint56[5]"
+      },
+      {
+        "internalType": "uint56[5]",
+        "name": "unicornDominationPoints",
+        "type": "uint56[5]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "selector": "0x0b4ef829"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint16",
+        "name": "seasonId",
+        "type": "uint16",
+        "value": {
+          "type": "queryAPI",
+          "query_url": "twilight_seasons",
+          "blockchain": "mumbai",
+          "params": {
+            "address": "0x665B8Db5b9E3b396e2Ccb0Bd768dc74fC47Ec20D"
+          },
+          "keys": ["season_id"]
+        }
+      }
+    ],
+    "name": "twtGetSeasonalDominationPointsForAllRegions",
+    "address": "0x665B8Db5b9E3b396e2Ccb0Bd768dc74fC47Ec20D",
+    "outputs": [
+      {
+        "internalType": "uint56[5]",
+        "name": "shadowcornDominationPoints",
+        "type": "uint56[5]"
+      },
+      {
+        "internalType": "uint56[5]",
+        "name": "unicornDominationPoints",
+        "type": "uint56[5]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "selector": "0xbddb218c"
+  }
 ]
