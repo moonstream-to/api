@@ -247,7 +247,7 @@
           "query_url": "twilight_tactics_players",
           "blockchain": "polygon",
           "params": {
-            "address": "0x665B8Db5b9E3b396e2Ccb0Bd768dc74fC47Ec20D"
+            "address": "0xe570fAC6513A8018145aB398Ea71988C688F22C4"
           },
           "keys": [
             "player"
