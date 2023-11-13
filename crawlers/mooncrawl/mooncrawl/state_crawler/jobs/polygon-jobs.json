@@ -47,7 +47,9 @@
           "params": {
             "address": "0xA2a13cE1824F3916fC84C65e559391fc6674e6e8"
           },
-          "keys": ["token_id"]
+          "keys": [
+            "token_id"
+          ]
         }
       }
     ],
@@ -109,7 +111,9 @@
           "params": {
             "address": "0xd4D53d8D61adc3B8114C1cd17B89393640db9733"
           },
-          "keys": ["token_id"]
+          "keys": [
+            "token_id"
+          ]
         }
       }
     ],
@@ -138,7 +142,9 @@
           "params": {
             "address": "0x74d4567fd8B0b873B61FA180618a82183012F369"
           },
-          "keys": ["token_id"]
+          "keys": [
+            "token_id"
+          ]
         }
       }
     ],
@@ -167,7 +173,9 @@
           "params": {
             "address": "0x44b3f42e2BF34F62868Ff9e9dAb7C2F807ba97Cb"
           },
-          "keys": ["token_id"]
+          "keys": [
+            "token_id"
+          ]
         }
       }
     ],
@@ -196,7 +204,9 @@
           "params": {
             "address": "0xa7D50EE3D7485288107664cf758E877a0D351725"
           },
-          "keys": ["token_id"]
+          "keys": [
+            "token_id"
+          ]
         }
       }
     ],
@@ -223,7 +233,9 @@
           "params": {
             "address": "0xe570fAC6513A8018145aB398Ea71988C688F22C4"
           },
-          "keys": ["season_id"]
+          "keys": [
+            "season_id"
+          ]
         }
       },
       {
@@ -234,8 +246,12 @@
           "type": "queryAPI",
           "query_url": "twilight_tactics_players",
           "blockchain": "polygon",
-          "params": {},
-          "keys": ["player"]
+          "params": {
+            "address": "0x665B8Db5b9E3b396e2Ccb0Bd768dc74fC47Ec20D"
+          },
+          "keys": [
+            "player"
+          ]
         }
       }
     ],
@@ -270,7 +286,9 @@
           "params": {
             "address": "0xe570fAC6513A8018145aB398Ea71988C688F22C4"
           },
-          "keys": ["season_id"]
+          "keys": [
+            "season_id"
+          ]
         }
       }
     ],
