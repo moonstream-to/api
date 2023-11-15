@@ -16,7 +16,14 @@ from sqlalchemy.engine import Row
 from web3 import Web3
 from web3.types import ChecksumAddress
 
-from .data import Score, LeaderboardScore, LeaderboardConfigUpdate, LeaderboardConfig
+from .data import (
+    Score,
+    LeaderboardScore,
+    LeaderboardConfigUpdate,
+    LeaderboardConfig,
+    LeaderboardPosition,
+    LeaderboardUnformattedPosition,
+)
 from .contracts import Dropper_interface, ERC20_interface, Terminus_interface
 from .models import (
     DropperClaimant,
@@ -94,6 +101,27 @@ class LeaderboardConfigAlreadyInactive(Exception):
 BATCH_SIGNATURE_PAGE_SIZE = 500
 
 logger = logging.getLogger(__name__)
+
+
+def get_default_columns_names(columns_names: Optional[Dict[str, str]] = {}):
+    default_columns_names = {}
+
+    # Retrieve ordered list of field names from LeaderboardPosition
+    ordered_fields = list(LeaderboardPosition.__annotations__.keys())
+
+    # Mapping these to the corresponding columns in LeaderboardUnformattedPosition
+    for index, field_name in enumerate(ordered_fields, start=1):
+        # Construct the column name like "column_1", "column_2", etc.
+        column_name = f"column_{index}"
+
+        # If custom column name is provided in columns_names, use it
+        if columns_names and field_name in columns_names:
+            default_columns_names[column_name] = columns_names[field_name]
+        else:
+            # Otherwise, use the default field name in title case
+            default_columns_names[column_name] = field_name.replace("_", " ").title()
+
+    return default_columns_names
 
 
 def create_dropper_contract(
@@ -1259,11 +1287,14 @@ def create_leaderboard(
     public: bool = False,
     wallet_connect: bool = False,
     blockchain_ids: Optional[List[int]] = None,
-    columns_names: Optional[Dict[str, str]] = None,
+    columns_names: Optional[Dict[str, str]] = {},
 ) -> Leaderboard:
     """
     Create a leaderboard
     """
+
+    if len(columns_names) > 0:
+        columns_names = get_default_columns_names(columns_names)
 
     if not token:
         token = uuid.UUID(MOONSTREAM_ADMIN_ACCESS_TOKEN)
@@ -1358,6 +1389,7 @@ def update_leaderboard(
     if blockchain_ids is not None:
         leaderboard.blockchain_ids = blockchain_ids
     if columns_names is not None:
+        columns_names = get_default_columns_names(columns_names)
         leaderboard.columns_names = columns_names
 
     db_session.commit()
