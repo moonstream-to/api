@@ -348,7 +348,8 @@ class Leaderboard(Base):  # type: ignore
     description = Column(String, nullable=True)
     resource_id = Column(UUID(as_uuid=True), nullable=True, index=True)
     blockchain_ids = Column(ARRAY(Integer), nullable=False, default=[])
-    show_connect = Column(Boolean, default=False, nullable=False)
+
+    wallet_connect = Column(Boolean, default=False, nullable=False)
     public = Column(Boolean, default=False, nullable=False)
     columns_names = Column(JSONB, nullable=False, default={})
     created_at = Column(

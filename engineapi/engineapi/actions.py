@@ -1257,7 +1257,7 @@ def create_leaderboard(
     description: Optional[str],
     token: Optional[Union[uuid.UUID, str]] = None,
     public: bool = False,
-    show_connect: bool = False,
+    wallet_connect: bool = False,
     blockchain_ids: Optional[List[int]] = None,
     columns_names: Optional[Dict[str, str]] = None,
 ) -> Leaderboard:
@@ -1272,7 +1272,7 @@ def create_leaderboard(
             title=title,
             description=description,
             public=public,
-            show_connect=show_connect,
+            wallet_connect=wallet_connect,
             blockchain_ids=blockchain_ids,
             columns_names=columns_names,
         )
@@ -1335,7 +1335,7 @@ def update_leaderboard(
     title: Optional[str],
     description: Optional[str],
     public: Optional[bool],
-    show_connect: Optional[bool],
+    wallet_connect: Optional[bool],
     blockchain_ids: Optional[List[int]],
     columns_names: Optional[Dict[str, str]],
 ) -> Leaderboard:
@@ -1353,8 +1353,8 @@ def update_leaderboard(
         leaderboard.description = description
     if public is not None:
         leaderboard.public = public
-    if show_connect is not None:
-        leaderboard.show_connect = show_connect
+    if wallet_connect is not None:
+        leaderboard.wallet_connect = wallet_connect
     if blockchain_ids is not None:
         leaderboard.blockchain_ids = blockchain_ids
     if columns_names is not None:
@@ -1369,7 +1369,7 @@ def get_leaderboard_by_id(db_session: Session, leaderboard_id) -> Leaderboard:
     """
     Get the leaderboard by id
     """
-    return db_session.query(Leaderboard).filter(Leaderboard.id == leaderboard_id).filter(leaderboard.public == True).one()  # type: ignore
+    return db_session.query(Leaderboard).filter(Leaderboard.id == leaderboard_id).filter(Leaderboard.public == True).one()  # type: ignore
 
 
 def get_leaderboard_by_title(db_session: Session, title) -> Leaderboard:

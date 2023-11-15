@@ -2,7 +2,7 @@
 Leaderboard API.
 """
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Any, Union
 from uuid import UUID
 
 from bugout.exceptions import BugoutResponseException
@@ -87,21 +87,33 @@ app.add_middleware(
 )
 
 
-@app.get("", response_model=List[data.LeaderboardPosition], tags=["Public Endpoints"])
-@app.get("/", response_model=List[data.LeaderboardPosition], tags=["Public Endpoints"])
+@app.get(
+    "",
+    response_model=Union[
+        List[data.LeaderboardPosition], List[data.LeaderboardUnformattedPosition]
+    ],
+    tags=["Public Endpoints"],
+)
+@app.get(
+    "/",
+    response_model=Union[
+        List[data.LeaderboardPosition], List[data.LeaderboardUnformattedPosition]
+    ],
+    tags=["Public Endpoints"],
+)
 async def leaderboard(
     leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
     limit: int = Query(10),
     offset: int = Query(0),
     db_session: Session = Depends(db.yield_db_session),
-) -> List[data.LeaderboardPosition]:
+) -> Any:
     """
     Returns the leaderboard positions.
     """
 
     ### Check if leaderboard exists
     try:
-        actions.get_leaderboard_by_id(db_session, leaderboard_id)
+        leaderboard = actions.get_leaderboard_by_id(db_session, leaderboard_id)
     except NoResultFound as e:
         raise EngineHTTPException(
             status_code=404,
@@ -114,16 +126,28 @@ async def leaderboard(
     leaderboard_positions = actions.get_leaderboard_positions(
         db_session, leaderboard_id, limit, offset
     )
+    if len(leaderboard.columns_names) > 0:
+        # breakpoint()
+        result = [
+            data.LeaderboardUnformattedPosition(
+                column_1=position[1],
+                column_2=position[2],
+                column_3=position[4],
+                column_4=position[3],
+            )
+            for position in leaderboard_positions
+        ]
 
-    result = [
-        data.LeaderboardPosition(
-            address=position.address,
-            score=position.score,
-            rank=position.rank,
-            points_data=position.points_data,
-        )
-        for position in leaderboard_positions
-    ]
+    else:
+        result = [
+            data.LeaderboardPosition(
+                address=position.address,
+                score=position.score,
+                rank=position.rank,
+                points_data=position.points_data,
+            )
+            for position in leaderboard_positions
+        ]
 
     return result
 
@@ -153,7 +177,7 @@ async def create_leaderboard(
             description=leaderboard.description,
             token=token,
             public=leaderboard.public,
-            show_connect=leaderboard.show_connect,
+            wallet_connect=leaderboard.wallet_connect,
             blockchain_ids=leaderboard.blockchain_ids,
             columns_names=leaderboard.columns_names,
         )
@@ -176,7 +200,7 @@ async def create_leaderboard(
         description=created_leaderboard.description,  # type: ignore
         resource_id=created_leaderboard.resource_id,  # type: ignore
         public=created_leaderboard.public,  # type: ignore
-        show_connect=created_leaderboard.show_connect,  # type: ignore
+        wallet_connect=created_leaderboard.wallet_connect,  # type: ignore
         blockchain_ids=created_leaderboard.blockchain_ids,  # type: ignore
         columns_names=created_leaderboard.columns_names,  # type: ignore
         created_at=created_leaderboard.created_at,  # type: ignore
@@ -225,7 +249,7 @@ async def update_leaderboard(
             title=leaderboard.title,
             description=leaderboard.description,
             public=leaderboard.public,
-            show_connect=leaderboard.show_connect,
+            wallet_connect=leaderboard.wallet_connect,
             blockchain_ids=leaderboard.blockchain_ids,
             columns_names=leaderboard.columns_names,
         )
@@ -246,7 +270,7 @@ async def update_leaderboard(
         description=updated_leaderboard.description,  # type: ignore
         resource_id=updated_leaderboard.resource_id,  # type: ignore
         public=updated_leaderboard.public,  # type: ignore
-        show_connect=updated_leaderboard.show_connect,  # type: ignore
+        wallet_connect=updated_leaderboard.wallet_connect,  # type: ignore
         blockchain_ids=updated_leaderboard.blockchain_ids,  # type: ignore
         columns_names=updated_leaderboard.columns_names,  # type: ignore
         created_at=updated_leaderboard.created_at,  # type: ignore
@@ -310,7 +334,7 @@ async def delete_leaderboard(
         description=deleted_leaderboard.description,  # type: ignore
         resource_id=deleted_leaderboard.resource_id,  # type: ignore
         public=deleted_leaderboard.public,  # type: ignore
-        show_connect=deleted_leaderboard.show_connect,  # type: ignore
+        wallet_connect=deleted_leaderboard.wallet_connect,  # type: ignore
         blockchain_ids=deleted_leaderboard.blockchain_ids,  # type: ignore
         columns_names=deleted_leaderboard.columns_names,  # type: ignore
         created_at=deleted_leaderboard.created_at,  # type: ignore
@@ -352,7 +376,7 @@ async def get_leaderboards(
             description=leaderboard.description,  # type: ignore
             resource_id=leaderboard.resource_id,  # type: ignore
             public=leaderboard.public,  # type: ignore
-            show_connect=leaderboard.show_connect,  # type: ignore
+            wallet_connect=leaderboard.wallet_connect,  # type: ignore
             blockchain_ids=leaderboard.blockchain_ids,  # type: ignore
             columns_names=leaderboard.columns_names,  # type: ignore
             created_at=leaderboard.created_at,  # type: ignore
