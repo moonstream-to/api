@@ -477,9 +477,6 @@ async def position(
     window_size: int = Query(1, description="Amount of positions up and down."),
     limit: int = Query(10),
     offset: int = Query(0),
-    normalize_addresses: bool = Query(
-        True, description="Normalize addresses to checksum."
-    ),
     db_session: Session = Depends(db.yield_db_session),
 ) -> List[data.LeaderboardPosition]:
     """
@@ -498,9 +495,6 @@ async def position(
     except Exception as e:
         logger.error(f"Error while getting leaderboard: {e}")
         raise EngineHTTPException(status_code=500, detail="Internal server error")
-
-    if normalize_addresses:
-        address = Web3.toChecksumAddress(address)
 
     positions = actions.get_position(
         db_session, leaderboard_id, address, window_size, limit, offset
@@ -608,9 +602,6 @@ async def leaderboard_push_scores(
         False,
         description="If enabled, this will delete all current scores and replace them with the new scores provided.",
     ),
-    normalize_addresses: bool = Query(
-        True, description="Normalize addresses to checksum."
-    ),
     db_session: Session = Depends(db.yield_db_session),
     Authorization: str = AuthHeader,
 ) -> List[data.LeaderboardScore]:
@@ -641,7 +632,6 @@ async def leaderboard_push_scores(
             leaderboard_id=leaderboard_id,
             scores=scores,
             overwrite=overwrite,
-            normalize_addresses=normalize_addresses,
         )
     except actions.DuplicateLeaderboardAddressError as e:
         raise EngineHTTPException(

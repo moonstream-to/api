@@ -1378,17 +1378,12 @@ def add_scores(
     leaderboard_id: uuid.UUID,
     scores: List[Score],
     overwrite: bool = False,
-    normalize_addresses: bool = True,
 ):
     """
     Add scores to the leaderboard
     """
 
     leaderboard_scores = []
-
-    normalizer_fn = Web3.toChecksumAddress
-    if not normalize_addresses:
-        normalizer_fn = lambda x: x  # type: ignore
 
     addresses = [score.address for score in scores]
 
@@ -1411,7 +1406,7 @@ def add_scores(
         leaderboard_scores.append(
             {
                 "leaderboard_id": leaderboard_id,
-                "address": normalizer_fn(score.address),
+                "address": score.address,
                 "score": score.score,
                 "points_data": score.points_data,
             }
