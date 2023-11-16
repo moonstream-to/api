@@ -1193,8 +1193,8 @@ def get_qurtiles(
     """
 
     query = db_session.query(
-        LeaderboardScores.address,
-        LeaderboardScores.score,
+        LeaderboardScores.address.label("address"),
+        LeaderboardScores.score.label("score"),
         func.rank().over(order_by=LeaderboardScores.score.desc()).label("rank"),
     ).filter(LeaderboardScores.leaderboard_id == leaderboard_id)
 

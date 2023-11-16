@@ -127,7 +127,6 @@ async def leaderboard(
         db_session, leaderboard_id, limit, offset
     )
     if len(leaderboard.columns_names) > 0:
-        # breakpoint()
         result = [
             data.LeaderboardUnformattedPosition(
                 column_1=position[1],
@@ -489,7 +488,7 @@ async def quartiles(
     """
     ### Check if leaderboard exists
     try:
-        actions.get_leaderboard_by_id(db_session, leaderboard_id)
+        leaderboard = actions.get_leaderboard_by_id(db_session, leaderboard_id)
     except NoResultFound as e:
         raise EngineHTTPException(
             status_code=404,
@@ -501,23 +500,45 @@ async def quartiles(
 
     try:
         q1, q2, q3 = actions.get_qurtiles(db_session, leaderboard_id)
-
     except actions.LeaderboardIsEmpty:
         raise EngineHTTPException(status_code=204, detail="Leaderboard is empty.")
     except Exception as e:
         logger.error(f"Error while getting quartiles: {e}")
         raise EngineHTTPException(status_code=500, detail="Internal server error")
 
-    return data.QuartilesResponse(
-        percentile_25={"address": q1[0], "score": q1[1], "rank": q1[2]},
-        percentile_50={"address": q2[0], "score": q2[1], "rank": q2[2]},
-        percentile_75={"address": q3[0], "score": q3[1], "rank": q3[2]},
-    )
+    if len(leaderboard.columns_names) > 0:
+        result = data.QuartilesResponse(
+            percentile_25={
+                "column_1": q1.address,
+                "column_2": q1.rank,
+                "column_3": q1.score,
+            },
+            percentile_50={
+                "column_1": q2.address,
+                "column_2": q2.rank,
+                "column_3": q2.score,
+            },
+            percentile_75={
+                "column_1": q3.address,
+                "column_2": q3.rank,
+                "column_3": q3.score,
+            },
+        )
+    else:
+        result = data.QuartilesResponse(
+            percentile_25={"address": q1.address, "rank": q1.rank, "score": q1.score},
+            percentile_50={"address": q2.address, "rank": q2.rank, "score": q2.score},
+            percentile_75={"address": q3.address, "rank": q3.rank, "score": q3.score},
+        )
+
+    return result
 
 
 @app.get(
     "/position",
-    response_model=List[data.LeaderboardPosition],
+    response_model=Union[
+        List[data.LeaderboardPosition], List[data.LeaderboardUnformattedPosition]
+    ],
     tags=["Public Endpoints"],
 )
 async def position(
@@ -530,7 +551,7 @@ async def position(
         True, description="Normalize addresses to checksum."
     ),
     db_session: Session = Depends(db.yield_db_session),
-) -> List[data.LeaderboardPosition]:
+) -> Union[List[data.LeaderboardPosition], List[data.LeaderboardUnformattedPosition]]:
     """
     Returns the leaderboard posotion for the given address.
     With given window size.
@@ -538,7 +559,7 @@ async def position(
 
     ### Check if leaderboard exists
     try:
-        actions.get_leaderboard_by_id(db_session, leaderboard_id)
+        leaderboard = actions.get_leaderboard_by_id(db_session, leaderboard_id)
     except NoResultFound as e:
         raise EngineHTTPException(
             status_code=404,
@@ -555,21 +576,37 @@ async def position(
         db_session, leaderboard_id, address, window_size, limit, offset
     )
 
-    results = [
-        data.LeaderboardPosition(
-            address=position.address,
-            score=position.score,
-            rank=position.rank,
-            points_data=position.points_data,
-        )
-        for position in positions
-    ]
+    if len(leaderboard.columns_names) > 0:
+        results = [
+            data.LeaderboardUnformattedPosition(
+                column_1=position.address,
+                column_2=position.rank,
+                column_3=position.score,
+                column_4=position.points_data,
+            )
+            for position in positions
+        ]
+
+    else:
+        results = [
+            data.LeaderboardPosition(
+                address=position.address,
+                score=position.score,
+                rank=position.rank,
+                points_data=position.points_data,
+            )
+            for position in positions
+        ]
 
     return results
 
 
 @app.get(
-    "/rank", response_model=List[data.LeaderboardPosition], tags=["Public Endpoints"]
+    "/rank",
+    response_model=Union[
+        List[data.LeaderboardPosition], List[data.LeaderboardUnformattedPosition]
+    ],
+    tags=["Public Endpoints"],
 )
 async def rank(
     leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
@@ -577,14 +614,14 @@ async def rank(
     limit: Optional[int] = Query(None),
     offset: Optional[int] = Query(None),
     db_session: Session = Depends(db.yield_db_session),
-) -> List[data.LeaderboardPosition]:
+) -> Union[List[data.LeaderboardPosition], List[data.LeaderboardUnformattedPosition]]:
     """
     Returns the leaderboard scores for the given rank.
     """
 
     ### Check if leaderboard exists
     try:
-        actions.get_leaderboard_by_id(db_session, leaderboard_id)
+        leaderboard = actions.get_leaderboard_by_id(db_session, leaderboard_id)
     except NoResultFound as e:
         raise EngineHTTPException(
             status_code=404,
@@ -597,15 +634,27 @@ async def rank(
     leaderboard_rank = actions.get_rank(
         db_session, leaderboard_id, rank, limit=limit, offset=offset
     )
-    results = [
-        data.LeaderboardPosition(
-            address=rank_position.address,
-            score=rank_position.score,
-            rank=rank_position.rank,
-            points_data=rank_position.points_data,
-        )
-        for rank_position in leaderboard_rank
-    ]
+
+    if len(leaderboard.columns_names) > 0:
+        results = [
+            data.LeaderboardUnformattedPosition(
+                column_1=position.address,
+                column_2=position.rank,
+                column_3=position.score,
+                column_4=position.points_data,
+            )
+            for position in leaderboard_rank
+        ]
+    else:
+        results = [
+            data.LeaderboardPosition(
+                address=position.address,
+                score=position.score,
+                rank=position.rank,
+                points_data=position.points_data,
+            )
+            for position in leaderboard_rank
+        ]
     return results
 
 
