@@ -1935,3 +1935,25 @@ def get_leaderboard_version_scores(
         query = query.offset(offset)
 
     return query
+
+
+def delete_previous_versions(
+    db_session: Session,
+    leaderboard_id: uuid.UUID,
+    threshold_version_number: int,
+) -> int:
+    """
+    Delete old leaderboard versions
+    """
+
+    versions_to_delete = (
+        db_session.query(LeaderboardVersion)
+        .filter(LeaderboardVersion.leaderboard_id == leaderboard_id)
+        .filter(LeaderboardVersion.version_number < threshold_version_number)
+    )
+
+    num_deleted = versions_to_delete.delete(synchronize_session=False)
+
+    db_session.commit()
+
+    return num_deleted

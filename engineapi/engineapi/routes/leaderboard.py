@@ -675,6 +675,16 @@ async def leaderboard_push_scores(
         logger.error(f"Error while updating leaderboard version: {e}")
         raise EngineHTTPException(status_code=500, detail="Internal server error")
 
+    try:
+        actions.delete_previous_versions(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            threshold_version_number=new_version.version_number,
+        )
+    except Exception as e:
+        logger.error(f"Error while deleting leaderboard versions: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
     result = [
         data.LeaderboardScore(
             leaderboard_id=score["leaderboard_id"],
