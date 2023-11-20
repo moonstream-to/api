@@ -87,7 +87,12 @@ app.add_middleware(
 )
 
 
-@app.get("", response_model=List[data.LeaderboardPosition], tags=["Public Endpoints"])
+@app.get(
+    "",
+    response_model=List[data.LeaderboardPosition],
+    tags=["Public Endpoints"],
+    include_in_schema=False,
+)
 @app.get("/", response_model=List[data.LeaderboardPosition], tags=["Public Endpoints"])
 async def leaderboard(
     leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
@@ -129,7 +134,10 @@ async def leaderboard(
 
 
 @app.post(
-    "", response_model=data.LeaderboardCreatedResponse, tags=["Authorized Endpoints"]
+    "",
+    response_model=data.LeaderboardCreatedResponse,
+    tags=["Authorized Endpoints"],
+    include_in_schema=False,
 )
 @app.post(
     "/", response_model=data.LeaderboardCreatedResponse, tags=["Authorized Endpoints"]
