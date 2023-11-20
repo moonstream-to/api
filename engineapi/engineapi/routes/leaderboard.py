@@ -94,6 +94,7 @@ async def leaderboard(
     limit: int = Query(10),
     offset: int = Query(0),
     db_session: Session = Depends(db.yield_db_session),
+    version: Optional[str] = Query(None, description="Version of the leaderboard."),
 ) -> List[data.LeaderboardPosition]:
     """
     Returns the leaderboard positions.
@@ -112,7 +113,7 @@ async def leaderboard(
         raise EngineHTTPException(status_code=500, detail="Internal server error")
 
     leaderboard_positions = actions.get_leaderboard_positions(
-        db_session, leaderboard_id, limit, offset
+        db_session, leaderboard_id, limit, offset, version
     )
     result = [
         data.LeaderboardPosition(
@@ -604,10 +605,6 @@ async def leaderboard_push_scores(
     scores: List[data.Score] = Body(
         ..., description="Scores to put to the leaderboard."
     ),
-    overwrite: bool = Query(
-        False,
-        description="If enabled, this will delete all current scores and replace them with the new scores provided.",
-    ),
     normalize_addresses: bool = Query(
         True, description="Normalize addresses to checksum."
     ),
@@ -636,12 +633,21 @@ async def leaderboard_push_scores(
         )
 
     try:
+        new_version = actions.create_leaderboard_version(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+        )
+    except Exception as e:
+        logger.error(f"Error while creating leaderboard version: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    try:
         leaderboard_points = actions.add_scores(
             db_session=db_session,
             leaderboard_id=leaderboard_id,
             scores=scores,
-            overwrite=overwrite,
             normalize_addresses=normalize_addresses,
+            version_number=new_version.version_number,
         )
     except actions.DuplicateLeaderboardAddressError as e:
         raise EngineHTTPException(
@@ -657,6 +663,17 @@ async def leaderboard_push_scores(
     except Exception as e:
         logger.error(f"Score update failed with error: {e}")
         raise EngineHTTPException(status_code=500, detail="Score update failed.")
+
+    try:
+        actions.change_publish_leaderboard_version_status(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            version_number=new_version.version_number,
+            published=True,
+        )
+    except Exception as e:
+        logger.error(f"Error while updating leaderboard version: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
 
     result = [
         data.LeaderboardScore(
@@ -881,3 +898,420 @@ async def leaderboard_config_deactivate(
         raise EngineHTTPException(status_code=500, detail="Internal server error")
 
     return True
+
+
+@app.get(
+    "/{leaderboard_id}/versions",
+    response_model=List[data.LeaderboardVersion],
+    tags=["Authorized Endpoints"],
+)
+async def leaderboard_versions_list(
+    request: Request,
+    leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
+    db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = AuthHeader,
+) -> List[data.LeaderboardVersion]:
+    """
+    Get leaderboard versions list.
+    """
+    token = request.state.token
+    try:
+        access = actions.check_leaderboard_resource_permissions(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            token=token,
+        )
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard version not found.",
+        )
+
+    if not access:
+        raise EngineHTTPException(
+            status_code=403, detail="You don't have access to this leaderboard version."
+        )
+
+    try:
+        leaderboard_versions = actions.get_leaderboard_versions(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+        )
+    except Exception as e:
+        logger.error(f"Error while getting leaderboard versions list: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    result = [
+        data.LeaderboardVersion(
+            leaderboard_id=version.leaderboard_id,
+            version=version.version_number,
+            published=version.published,
+            created_at=version.created_at,
+            updated_at=version.updated_at,
+        )
+        for version in leaderboard_versions
+    ]
+
+    return result
+
+
+@app.get(
+    "/{leaderboard_id}/versions/{version}",
+    response_model=data.LeaderboardVersion,
+    tags=["Authorized Endpoints"],
+)
+async def leaderboard_version_handler(
+    request: Request,
+    leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
+    version: int = Path(..., description="Version of the leaderboard."),
+    db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = AuthHeader,
+) -> data.LeaderboardVersion:
+    """
+    Get leaderboard version.
+    """
+    token = request.state.token
+    try:
+        access = actions.check_leaderboard_resource_permissions(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            token=token,
+        )
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard not found.",
+        )
+
+    if not access:
+        raise EngineHTTPException(
+            status_code=403, detail="You don't have access to this leaderboard."
+        )
+
+    try:
+        leaderboard_version = actions.get_leaderboard_version(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            version_number=version,
+        )
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard version not found.",
+        )
+    except Exception as e:
+        logger.error(f"Error while getting leaderboard version: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    return data.LeaderboardVersion(
+        leaderboard_id=leaderboard_version.leaderboard_id,
+        version=leaderboard_version.version_number,
+        published=leaderboard_version.published,
+        created_at=leaderboard_version.created_at,
+        updated_at=leaderboard_version.updated_at,
+    )
+
+
+@app.post(
+    "/{leaderboard_id}/versions",
+    response_model=data.LeaderboardVersion,
+    tags=["Authorized Endpoints"],
+)
+async def create_leaderboard_version(
+    request: Request,
+    leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
+    version: int = Query(..., description="Version of the leaderboard."),
+    db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = AuthHeader,
+) -> data.LeaderboardVersion:
+    """
+    Create leaderboard version.
+    """
+    token = request.state.token
+    try:
+        access = actions.check_leaderboard_resource_permissions(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            token=token,
+        )
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard not found.",
+        )
+
+    if not access:
+        raise EngineHTTPException(
+            status_code=403, detail="You don't have access to this leaderboard."
+        )
+
+    try:
+        leaderboard_version = actions.create_leaderboard_version(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            version=version,
+        )
+    except BugoutResponseException as e:
+        raise EngineHTTPException(status_code=e.status_code, detail=e.detail)
+    except actions.LeaderboardConfigNotFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard config not found.",
+        )
+    except Exception as e:
+        logger.error(f"Error while creating leaderboard version: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    return leaderboard_version
+
+
+@app.put(
+    "/{leaderboard_id}/versions/{version}",
+    response_model=data.LeaderboardVersion,
+    tags=["Authorized Endpoints"],
+)
+async def update_leaderboard_version_handler(
+    request: Request,
+    leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
+    version: int = Path(..., description="Version of the leaderboard."),
+    publish: bool = Query(
+        False,
+        description="If enabled, this will publish the leaderboard version.",
+    ),
+    db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = AuthHeader,
+) -> data.LeaderboardVersion:
+    """
+    Update leaderboard version.
+    """
+    token = request.state.token
+    try:
+        access = actions.check_leaderboard_resource_permissions(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            token=token,
+        )
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard version not found.",
+        )
+
+    if not access:
+        raise EngineHTTPException(
+            status_code=403, detail="You don't have access to this leaderboard version."
+        )
+
+    try:
+        leaderboard_version = actions.change_publish_leaderboard_version_status(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            version_number=version,
+            published=publish,
+        )
+    except Exception as e:
+        logger.error(f"Error while updating leaderboard version: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    return data.LeaderboardVersion(
+        leaderboard_id=leaderboard_version.leaderboard_id,
+        version=leaderboard_version.version_number,
+        published=leaderboard_version.published,
+        created_at=leaderboard_version.created_at,
+        updated_at=leaderboard_version.updated_at,
+    )
+
+
+@app.delete(
+    "/{leaderboard_id}/versions/{version}",
+    response_model=data.LeaderboardVersion,
+    tags=["Authorized Endpoints"],
+)
+async def delete_leaderboard_version_handler(
+    request: Request,
+    leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
+    version: int = Path(..., description="Version of the leaderboard."),
+    db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = AuthHeader,
+) -> data.LeaderboardVersion:
+    """
+    Delete leaderboard version.
+    """
+    token = request.state.token
+    try:
+        access = actions.check_leaderboard_resource_permissions(
+            db_session=db_session, leaderboard_id=leaderboard_id, token=token
+        )
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard version not found.",
+        )
+
+    if not access:
+        raise EngineHTTPException(
+            status_code=403, detail="You don't have access to this leaderboard version."
+        )
+
+    try:
+        leaderboard_version = actions.delete_leaderboard_version(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            version_number=version,
+        )
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard version not found.",
+        )
+    except Exception as e:
+        logger.error(f"Error while deleting leaderboard version: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    return data.LeaderboardVersion(
+        leaderboard_id=leaderboard_version.leaderboard_id,
+        version=leaderboard_version.version_number,
+        published=leaderboard_version.published,
+        created_at=leaderboard_version.created_at,
+        updated_at=leaderboard_version.updated_at,
+    )
+
+
+@app.get(
+    "/{leaderboard_id}/versions/{version}/scores",
+    response_model=List[data.LeaderboardPosition],
+    tags=["Authorized Endpoints"],
+)
+async def leaderboard_version_scores_handler(
+    request: Request,
+    leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
+    version: int = Path(..., description="Version of the leaderboard."),
+    limit: int = Query(10),
+    offset: int = Query(0),
+    db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = AuthHeader,
+) -> List[data.LeaderboardPosition]:
+    """
+    Get leaderboard version scores.
+    """
+    token = request.state.token
+    try:
+        access = actions.check_leaderboard_resource_permissions(
+            db_session=db_session, leaderboard_id=leaderboard_id, token=token
+        )
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard version not found.",
+        )
+
+    if not access:
+        raise EngineHTTPException(
+            status_code=403, detail="You don't have access to this leaderboard version."
+        )
+
+    try:
+        leaderboard_version_scores = actions.get_leaderboard_version_scores(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            version_number=version,
+            limit=limit,
+            offset=offset,
+        )
+    except Exception as e:
+        logger.error(f"Error while getting leaderboard version scores: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    result = [
+        data.LeaderboardPosition(
+            address=score.address,
+            score=score.score,
+            rank=score.rank,
+            points_data=score.points_data,
+        )
+        for score in leaderboard_version_scores
+    ]
+
+    return result
+
+
+@app.put(
+    "/{leaderboard_id}/versions/{version}/scores",
+    response_model=List[data.LeaderboardScore],
+    tags=["Authorized Endpoints"],
+)
+async def leaderboard_version_push_scores_handler(
+    request: Request,
+    leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
+    version: int = Path(..., description="Version of the leaderboard."),
+    scores: List[data.Score] = Body(
+        ..., description="Scores to put to the leaderboard version."
+    ),
+    normalize_addresses: bool = Query(
+        True, description="Normalize addresses to checksum."
+    ),
+    db_session: Session = Depends(db.yield_db_session),
+    Authorization: str = AuthHeader,
+) -> List[data.LeaderboardScore]:
+    """
+    Put the leaderboard version to the database.
+    """
+    token = request.state.token
+    try:
+        access = actions.check_leaderboard_resource_permissions(
+            db_session=db_session, leaderboard_id=leaderboard_id, token=token
+        )
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard version not found.",
+        )
+
+    if not access:
+        raise EngineHTTPException(
+            status_code=403, detail="You don't have access to this leaderboard version."
+        )
+
+    try:
+        leaderboard_version = actions.get_leaderboard_version(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            version_number=version,
+        )
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard version not found.",
+        )
+    except Exception as e:
+        logger.error(f"Error while getting leaderboard version: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    try:
+        leaderboard_points = actions.add_scores(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            scores=scores,
+            normalize_addresses=normalize_addresses,
+            version_number=leaderboard_version.version_number,
+        )
+    except actions.DuplicateLeaderboardAddressError as e:
+        raise EngineHTTPException(
+            status_code=409,
+            detail=f"Duplicates in push to database is disallowed.\n List of duplicates:{e.duplicates}.\n Please handle duplicates manualy.",
+        )
+    except Exception as e:
+        logger.error(f"Score update failed with error: {e}")
+        raise EngineHTTPException(status_code=500, detail="Score update failed.")
+
+    result = [
+        data.LeaderboardScore(
+            leaderboard_id=score["leaderboard_id"],
+            address=score["address"],
+            score=score["score"],
+            points_data=score["points_data"],
+        )
+        for score in leaderboard_points
+    ]
+
+    return result
