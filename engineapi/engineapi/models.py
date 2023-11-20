@@ -387,7 +387,7 @@ class LeaderboardVersion(Base):  # type: ignore
 class LeaderboardScores(Base):  # type: ignore
     __tablename__ = "leaderboard_scores"
     __table_args__ = (
-        UniqueConstraint("leaderboard_id", "address"),
+        UniqueConstraint("leaderboard_id", "address", "leaderboard_version_number"),
         ForeignKeyConstraint(
             ["leaderboard_id", "leaderboard_version_number"],
             [

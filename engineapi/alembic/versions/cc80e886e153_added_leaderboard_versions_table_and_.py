@@ -61,6 +61,14 @@ def upgrade():
         sa.Column("leaderboard_version_number", sa.DECIMAL(), nullable=True),
     )
     op.drop_constraint(
+        "uq_leaderboard_scores_leaderboard_id", "leaderboard_scores", type_="unique"
+    )
+    op.create_unique_constraint(
+        op.f("uq_leaderboard_scores_leaderboard_id"),
+        "leaderboard_scores",
+        ["leaderboard_id", "address", "leaderboard_version_number"],
+    )
+    op.drop_constraint(
         "fk_leaderboard_scores_leaderboard_id_leaderboards",
         "leaderboard_scores",
         type_="foreignkey",
@@ -110,6 +118,16 @@ def downgrade():
         ["leaderboard_id"],
         ["id"],
         ondelete="CASCADE",
+    )
+    op.drop_constraint(
+        op.f("uq_leaderboard_scores_leaderboard_id"),
+        "leaderboard_scores",
+        type_="unique",
+    )
+    op.create_unique_constraint(
+        "uq_leaderboard_scores_leaderboard_id",
+        "leaderboard_scores",
+        ["leaderboard_id", "address"],
     )
     op.drop_column("leaderboard_scores", "leaderboard_version_number")
     op.drop_index(
