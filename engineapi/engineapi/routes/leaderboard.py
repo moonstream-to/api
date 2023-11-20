@@ -1092,9 +1092,9 @@ async def update_leaderboard_version_handler(
     request: Request,
     leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
     version: int = Path(..., description="Version of the leaderboard."),
-    publish: bool = Query(
-        False,
-        description="If enabled, this will publish the leaderboard version.",
+    request_body: data.LeaderboardVersionUpdateRequest = Body(
+        ...,
+        description="JSON object specifying whether to publish or unpublish version.",
     ),
     db_session: Session = Depends(db.yield_db_session),
     Authorization: str = AuthHeader,
@@ -1125,7 +1125,7 @@ async def update_leaderboard_version_handler(
             db_session=db_session,
             leaderboard_id=leaderboard_id,
             version_number=version,
-            published=publish,
+            published=request_body.publish,
         )
     except Exception as e:
         logger.error(f"Error while updating leaderboard version: {e}")
