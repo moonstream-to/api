@@ -452,5 +452,5 @@ class LeaderboardVersion(BaseModel):
     updated_at: datetime
 
 
-class LeaderboardVersionUpdateRequest(BaseModel):
+class LeaderboardVersionRequest(BaseModel):
     publish: bool

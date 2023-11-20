@@ -355,6 +355,7 @@ async def get_leaderboards(
 )
 async def count_addresses(
     leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
+    version: Optional[int] = Query(None, description="Version of the leaderboard."),
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.CountAddressesResponse:
     """
@@ -373,7 +374,7 @@ async def count_addresses(
         logger.error(f"Error while getting leaderboard: {e}")
         raise EngineHTTPException(status_code=500, detail="Internal server error")
 
-    count = actions.get_leaderboard_total_count(db_session, leaderboard_id)
+    count = actions.get_leaderboard_total_count(db_session, leaderboard_id, version)
 
     return data.CountAddressesResponse(count=count)
 
@@ -384,12 +385,13 @@ async def count_addresses(
 async def leadeboard_info(
     leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
     db_session: Session = Depends(db.yield_db_session),
+    version: Optional[int] = Query(None, description="Version of the leaderboard."),
 ) -> data.LeaderboardInfoResponse:
     """
     Returns leaderboard info.
     """
     try:
-        leaderboard = actions.get_leaderboard_info(db_session, leaderboard_id)
+        leaderboard = actions.get_leaderboard_info(db_session, leaderboard_id, version)
     except NoResultFound as e:
         raise EngineHTTPException(
             status_code=404,
@@ -443,6 +445,7 @@ async def get_scores_changes(
 async def quartiles(
     leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
     db_session: Session = Depends(db.yield_db_session),
+    version: Optional[int] = Query(None, description="Version of the leaderboard."),
 ) -> data.QuartilesResponse:
     """
     Returns the quartiles of the leaderboard.
@@ -460,7 +463,7 @@ async def quartiles(
         raise EngineHTTPException(status_code=500, detail="Internal server error")
 
     try:
-        q1, q2, q3 = actions.get_qurtiles(db_session, leaderboard_id)
+        q1, q2, q3 = actions.get_qurtiles(db_session, leaderboard_id, version)
 
     except actions.LeaderboardIsEmpty:
         raise EngineHTTPException(status_code=204, detail="Leaderboard is empty.")
@@ -489,6 +492,7 @@ async def position(
     normalize_addresses: bool = Query(
         True, description="Normalize addresses to checksum."
     ),
+    version: Optional[int] = Query(None, description="Version of the leaderboard."),
     db_session: Session = Depends(db.yield_db_session),
 ) -> List[data.LeaderboardPosition]:
     """
@@ -512,7 +516,13 @@ async def position(
         address = Web3.toChecksumAddress(address)
 
     positions = actions.get_position(
-        db_session, leaderboard_id, address, window_size, limit, offset
+        db_session,
+        leaderboard_id,
+        address,
+        window_size,
+        limit,
+        offset,
+        version,
     )
 
     results = [
@@ -536,6 +546,7 @@ async def rank(
     rank: int = Query(1, description="Rank to get."),
     limit: Optional[int] = Query(None),
     offset: Optional[int] = Query(None),
+    version: Optional[int] = Query(None, description="Version of the leaderboard."),
     db_session: Session = Depends(db.yield_db_session),
 ) -> List[data.LeaderboardPosition]:
     """
@@ -555,7 +566,12 @@ async def rank(
         raise EngineHTTPException(status_code=500, detail="Internal server error")
 
     leaderboard_rank = actions.get_rank(
-        db_session, leaderboard_id, rank, limit=limit, offset=offset
+        db_session,
+        leaderboard_id,
+        rank,
+        limit=limit,
+        offset=offset,
+        version_number=version,
     )
     results = [
         data.LeaderboardPosition(
@@ -572,6 +588,7 @@ async def rank(
 @app.get("/ranks", response_model=List[data.RanksResponse], tags=["Public Endpoints"])
 async def ranks(
     leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
+    version: Optional[int] = Query(None, description="Version of the leaderboard."),
     db_session: Session = Depends(db.yield_db_session),
 ) -> List[data.RanksResponse]:
     """
@@ -590,7 +607,7 @@ async def ranks(
         logger.error(f"Error while getting leaderboard: {e}")
         raise EngineHTTPException(status_code=500, detail="Internal server error")
 
-    ranks = actions.get_ranks(db_session, leaderboard_id)
+    ranks = actions.get_ranks(db_session, leaderboard_id, version)
     results = [
         data.RanksResponse(
             score=rank.score,
@@ -1038,8 +1055,11 @@ async def leaderboard_version_handler(
 async def create_leaderboard_version(
     request: Request,
     leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
-    version: int = Query(..., description="Version of the leaderboard."),
     db_session: Session = Depends(db.yield_db_session),
+    request_body: data.LeaderboardVersionRequest = Body(
+        ...,
+        description="JSON object specifying whether to publish or unpublish version.",
+    ),
     Authorization: str = AuthHeader,
 ) -> data.LeaderboardVersion:
     """
@@ -1064,23 +1084,22 @@ async def create_leaderboard_version(
         )
 
     try:
-        leaderboard_version = actions.create_leaderboard_version(
+        new_version = actions.create_leaderboard_version(
             db_session=db_session,
             leaderboard_id=leaderboard_id,
-            version=version,
-        )
-    except BugoutResponseException as e:
-        raise EngineHTTPException(status_code=e.status_code, detail=e.detail)
-    except actions.LeaderboardConfigNotFound as e:
-        raise EngineHTTPException(
-            status_code=404,
-            detail="Leaderboard config not found.",
+            publish=request_body.publish,
         )
     except Exception as e:
         logger.error(f"Error while creating leaderboard version: {e}")
         raise EngineHTTPException(status_code=500, detail="Internal server error")
 
-    return leaderboard_version
+    return data.LeaderboardVersion(
+        leaderboard_id=new_version.leaderboard_id,
+        version=new_version.version_number,
+        published=new_version.published,
+        created_at=new_version.created_at,
+        updated_at=new_version.updated_at,
+    )
 
 
 @app.put(
@@ -1092,7 +1111,7 @@ async def update_leaderboard_version_handler(
     request: Request,
     leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
     version: int = Path(..., description="Version of the leaderboard."),
-    request_body: data.LeaderboardVersionUpdateRequest = Body(
+    request_body: data.LeaderboardVersionRequest = Body(
         ...,
         description="JSON object specifying whether to publish or unpublish version.",
     ),

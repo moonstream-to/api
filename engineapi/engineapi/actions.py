@@ -11,7 +11,7 @@ from hexbytes import HexBytes
 import requests  # type: ignore
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
-from sqlalchemy import func, text, or_, Subquery
+from sqlalchemy import func, text, or_, and_, Subquery
 from sqlalchemy.engine import Row
 from web3 import Web3
 from web3.types import ChecksumAddress
@@ -970,7 +970,7 @@ def leaderboard_version_filter(
     version_number: Optional[int] = None,
 ) -> Union[Subquery, int]:
     # Subquery to get the latest version number for the given leaderboard
-    if not version_number:
+    if version_number is None:
         latest_version = (
             db_session.query(func.max(LeaderboardVersion.version_number)).filter(
                 LeaderboardVersion.leaderboard_id == leaderboard_id,
@@ -983,15 +983,37 @@ def leaderboard_version_filter(
     return latest_version
 
 
-def get_leaderboard_total_count(db_session: Session, leaderboard_id) -> int:
+def get_leaderboard_total_count(
+    db_session: Session, leaderboard_id, version_number: Optional[int] = None
+) -> int:
     """
-    Get the total number of claimants in the leaderboard
+    Get the total number of position in the leaderboard
     """
-    return (
-        db_session.query(LeaderboardScores)
-        .filter(LeaderboardScores.leaderboard_id == leaderboard_id)
-        .count()
+
+    latest_version = leaderboard_version_filter(
+        db_session=db_session,
+        leaderboard_id=leaderboard_id,
+        version_number=version_number,
     )
+
+    total_count = (
+        db_session.query(func.count(LeaderboardScores.id))
+        .join(
+            LeaderboardVersion,
+            and_(
+                LeaderboardVersion.leaderboard_id == LeaderboardScores.leaderboard_id,
+                LeaderboardVersion.version_number
+                == LeaderboardScores.leaderboard_version_number,
+            ),
+        )
+        .filter(
+            LeaderboardVersion.published == True,
+            LeaderboardVersion.version_number == latest_version,
+        )
+        .filter(LeaderboardScores.leaderboard_id == leaderboard_id)
+    ).scalar()
+
+    return total_count
 
 
 def get_leaderboard_info(
@@ -1006,6 +1028,7 @@ def get_leaderboard_info(
         leaderboard_id=leaderboard_id,
         version_number=version_number,
     )
+
     leaderboard = (
         db_session.query(
             Leaderboard.id,
@@ -1021,7 +1044,11 @@ def get_leaderboard_info(
         )
         .join(
             LeaderboardVersion,
-            LeaderboardVersion.leaderboard_id == Leaderboard.id,
+            and_(
+                LeaderboardVersion.leaderboard_id == LeaderboardScores.leaderboard_id,
+                LeaderboardVersion.version_number
+                == LeaderboardScores.leaderboard_version_number,
+            ),
             isouter=True,
         )
         .filter(
@@ -1030,8 +1057,7 @@ def get_leaderboard_info(
         )
         .filter(Leaderboard.id == leaderboard_id)
         .group_by(Leaderboard.id, Leaderboard.title, Leaderboard.description)
-        .one()
-    )
+    ).one()
 
     return leaderboard
 
@@ -1146,7 +1172,11 @@ def get_position(
         )
         .join(
             LeaderboardVersion,
-            LeaderboardVersion.leaderboard_id == LeaderboardScores.leaderboard_id,
+            and_(
+                LeaderboardVersion.leaderboard_id == LeaderboardScores.leaderboard_id,
+                LeaderboardVersion.version_number
+                == LeaderboardScores.leaderboard_version_number,
+            ),
         )
         .filter(
             LeaderboardVersion.published == True,
@@ -1222,7 +1252,11 @@ def get_leaderboard_positions(
         )
         .join(
             LeaderboardVersion,
-            LeaderboardVersion.leaderboard_id == LeaderboardScores.leaderboard_id,
+            and_(
+                LeaderboardVersion.leaderboard_id == LeaderboardScores.leaderboard_id,
+                LeaderboardVersion.version_number
+                == LeaderboardScores.leaderboard_version_number,
+            ),
         )
         .filter(LeaderboardScores.leaderboard_id == leaderboard_id)
         .filter(LeaderboardVersion.published == True)
@@ -1260,7 +1294,11 @@ def get_qurtiles(
         )
         .join(
             LeaderboardVersion,
-            LeaderboardVersion.leaderboard_id == LeaderboardScores.leaderboard_id,
+            and_(
+                LeaderboardVersion.leaderboard_id == LeaderboardScores.leaderboard_id,
+                LeaderboardVersion.version_number
+                == LeaderboardScores.leaderboard_version_number,
+            ),
         )
         .filter(
             LeaderboardVersion.published == True,
@@ -1314,7 +1352,11 @@ def get_ranks(
         )
         .join(
             LeaderboardVersion,
-            LeaderboardVersion.leaderboard_id == LeaderboardScores.leaderboard_id,
+            and_(
+                LeaderboardVersion.leaderboard_id == LeaderboardScores.leaderboard_id,
+                LeaderboardVersion.version_number
+                == LeaderboardScores.leaderboard_version_number,
+            ),
         )
         .filter(
             LeaderboardVersion.published == True,
@@ -1361,7 +1403,11 @@ def get_rank(
         )
         .join(
             LeaderboardVersion,
-            LeaderboardVersion.leaderboard_id == LeaderboardScores.leaderboard_id,
+            and_(
+                LeaderboardVersion.leaderboard_id == LeaderboardScores.leaderboard_id,
+                LeaderboardVersion.version_number
+                == LeaderboardScores.leaderboard_version_number,
+            ),
         )
         .filter(
             LeaderboardVersion.published == True,
@@ -1546,7 +1592,11 @@ def add_scores(
     insert_statement = insert(LeaderboardScores).values(leaderboard_scores)
 
     result_stmt = insert_statement.on_conflict_do_update(
-        index_elements=[LeaderboardScores.address, LeaderboardScores.leaderboard_id],
+        index_elements=[
+            LeaderboardScores.address,
+            LeaderboardScores.leaderboard_id,
+            LeaderboardScores.leaderboard_version_number,
+        ],
         set_=dict(
             score=insert_statement.excluded.score,
             points_data=insert_statement.excluded.points_data,
