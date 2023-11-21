@@ -1284,9 +1284,8 @@ def create_leaderboard(
     title: str,
     description: Optional[str],
     token: Optional[Union[uuid.UUID, str]] = None,
-    public: bool = False,
     wallet_connect: bool = False,
-    blockchain_ids: Optional[List[int]] = None,
+    blockchain_ids: List[int] = [],
     columns_names: Optional[Dict[str, str]] = {},
 ) -> Leaderboard:
     """
@@ -1299,10 +1298,12 @@ def create_leaderboard(
     if not token:
         token = uuid.UUID(MOONSTREAM_ADMIN_ACCESS_TOKEN)
     try:
+        # deduplicate and sort
+        blockchain_ids = sorted(list(set(blockchain_ids)))
+
         leaderboard = Leaderboard(
             title=title,
             description=description,
-            public=public,
             wallet_connect=wallet_connect,
             blockchain_ids=blockchain_ids,
             columns_names=columns_names,
@@ -1365,7 +1366,6 @@ def update_leaderboard(
     leaderboard_id: uuid.UUID,
     title: Optional[str],
     description: Optional[str],
-    public: Optional[bool],
     wallet_connect: Optional[bool],
     blockchain_ids: Optional[List[int]],
     columns_names: Optional[Dict[str, str]],
@@ -1382,12 +1382,13 @@ def update_leaderboard(
         leaderboard.title = title
     if description is not None:
         leaderboard.description = description
-    if public is not None:
-        leaderboard.public = public
     if wallet_connect is not None:
         leaderboard.wallet_connect = wallet_connect
     if blockchain_ids is not None:
+        # deduplicate and sort
+        blockchain_ids = sorted(list(set(blockchain_ids)))
         leaderboard.blockchain_ids = blockchain_ids
+
     if columns_names is not None:
         columns_names = get_default_columns_names(columns_names)
         leaderboard.columns_names = columns_names
@@ -1401,7 +1402,7 @@ def get_leaderboard_by_id(db_session: Session, leaderboard_id) -> Leaderboard:
     """
     Get the leaderboard by id
     """
-    return db_session.query(Leaderboard).filter(Leaderboard.id == leaderboard_id).filter(Leaderboard.public == True).one()  # type: ignore
+    return db_session.query(Leaderboard).filter(Leaderboard.id == leaderboard_id).one()  # type: ignore
 
 
 def get_leaderboard_by_title(db_session: Session, title) -> Leaderboard:

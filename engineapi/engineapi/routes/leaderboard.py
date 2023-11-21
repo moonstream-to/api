@@ -175,7 +175,6 @@ async def create_leaderboard(
             title=leaderboard.title,
             description=leaderboard.description,
             token=token,
-            public=leaderboard.public,
             wallet_connect=leaderboard.wallet_connect,
             blockchain_ids=leaderboard.blockchain_ids,
             columns_names=leaderboard.columns_names,
@@ -198,7 +197,6 @@ async def create_leaderboard(
         title=created_leaderboard.title,  # type: ignore
         description=created_leaderboard.description,  # type: ignore
         resource_id=created_leaderboard.resource_id,  # type: ignore
-        public=created_leaderboard.public,  # type: ignore
         wallet_connect=created_leaderboard.wallet_connect,  # type: ignore
         blockchain_ids=created_leaderboard.blockchain_ids,  # type: ignore
         columns_names=created_leaderboard.columns_names,  # type: ignore
@@ -247,7 +245,6 @@ async def update_leaderboard(
             leaderboard_id=leaderboard_id,
             title=leaderboard.title,
             description=leaderboard.description,
-            public=leaderboard.public,
             wallet_connect=leaderboard.wallet_connect,
             blockchain_ids=leaderboard.blockchain_ids,
             columns_names=leaderboard.columns_names,
@@ -268,7 +265,6 @@ async def update_leaderboard(
         title=updated_leaderboard.title,  # type: ignore
         description=updated_leaderboard.description,  # type: ignore
         resource_id=updated_leaderboard.resource_id,  # type: ignore
-        public=updated_leaderboard.public,  # type: ignore
         wallet_connect=updated_leaderboard.wallet_connect,  # type: ignore
         blockchain_ids=updated_leaderboard.blockchain_ids,  # type: ignore
         columns_names=updated_leaderboard.columns_names,  # type: ignore
@@ -332,7 +328,6 @@ async def delete_leaderboard(
         title=deleted_leaderboard.title,  # type: ignore
         description=deleted_leaderboard.description,  # type: ignore
         resource_id=deleted_leaderboard.resource_id,  # type: ignore
-        public=deleted_leaderboard.public,  # type: ignore
         wallet_connect=deleted_leaderboard.wallet_connect,  # type: ignore
         blockchain_ids=deleted_leaderboard.blockchain_ids,  # type: ignore
         columns_names=deleted_leaderboard.columns_names,  # type: ignore
@@ -374,7 +369,6 @@ async def get_leaderboards(
             title=leaderboard.title,  # type: ignore
             description=leaderboard.description,  # type: ignore
             resource_id=leaderboard.resource_id,  # type: ignore
-            public=leaderboard.public,  # type: ignore
             wallet_connect=leaderboard.wallet_connect,  # type: ignore
             blockchain_ids=leaderboard.blockchain_ids,  # type: ignore
             columns_names=leaderboard.columns_names,  # type: ignore

@@ -335,7 +335,6 @@ class CallRequest(Base):
 
 class Leaderboard(Base):  # type: ignore
     __tablename__ = "leaderboards"
-    # __table_args__ = (UniqueConstraint("dropper_contract_id", "address"),)
 
     id = Column(
         UUID(as_uuid=True),
@@ -350,7 +349,6 @@ class Leaderboard(Base):  # type: ignore
     blockchain_ids = Column(ARRAY(Integer), nullable=False, default=[])
 
     wallet_connect = Column(Boolean, default=False, nullable=False)
-    public = Column(Boolean, default=False, nullable=False)
     columns_names = Column(JSONB, nullable=False, default={})
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False

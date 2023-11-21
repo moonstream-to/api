@@ -380,10 +380,9 @@ class Leaderboard(BaseModel):
     title: str
     description: Optional[str] = None
     resource_id: Optional[UUID] = None
-    public: Optional[bool] = False
-    wallet_connect: Optional[bool] = False
-    blockchain_ids: Optional[List[int]] = None
-    columns_names: Optional[Dict[str, str]] = None
+    wallet_connect: bool = False
+    blockchain_ids: List[int] = Field(default_factory=list)
+    columns_names: Dict[str, str] = Field(default_factory=dict)
     created_at: datetime
     updated_at: datetime
 
@@ -399,10 +398,9 @@ class LeaderboardInfoResponse(BaseModel):
 class LeaderboardCreateRequest(BaseModel):
     title: str
     description: Optional[str] = None
-    public: Optional[bool] = False
-    wallet_connect: Optional[bool] = False
-    blockchain_ids: Optional[List[int]] = None
-    columns_names: Optional[Dict[str, str]] = None
+    wallet_connect: bool = False
+    blockchain_ids: List[int] = Field(default_factory=list)
+    columns_names: Dict[str, str] = Field(default_factory=dict)
 
 
 class LeaderboardCreatedResponse(BaseModel):
@@ -410,10 +408,9 @@ class LeaderboardCreatedResponse(BaseModel):
     title: str
     description: Optional[str] = None
     resource_id: Optional[UUID] = None
-    public: Optional[bool] = False
-    wallet_connect: Optional[bool] = False
-    blockchain_ids: Optional[List[int]] = None
-    columns_names: Optional[Dict[str, str]] = None
+    wallet_connect: bool = False
+    blockchain_ids: List[int] = Field(default_factory=list)
+    columns_names: Dict[str, str] = Field(default_factory=dict)
     created_at: datetime
     updated_at: datetime
 
@@ -426,10 +423,9 @@ class LeaderboardUpdatedResponse(BaseModel):
     title: str
     description: Optional[str] = None
     resource_id: Optional[UUID] = None
-    public: Optional[bool] = False
-    wallet_connect: Optional[bool] = False
-    blockchain_ids: Optional[List[int]] = None
-    columns_names: Optional[Dict[str, str]] = None
+    wallet_connect: bool = False
+    blockchain_ids: List[int] = Field(default_factory=list)
+    columns_names: Dict[str, str] = Field(default_factory=dict)
     created_at: datetime
     updated_at: datetime
 
@@ -440,10 +436,9 @@ class LeaderboardUpdatedResponse(BaseModel):
 class LeaderboardUpdateRequest(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
-    public: Optional[bool] = False
-    wallet_connect: Optional[bool] = False
-    blockchain_ids: Optional[List[int]] = None
-    columns_names: Optional[Dict[str, str]] = None
+    wallet_connect: bool = False
+    blockchain_ids: List[int] = Field(default_factory=list)
+    columns_names: Dict[str, str] = Field(default_factory=dict)
 
 
 class LeaderboardDeletedResponse(BaseModel):
@@ -451,10 +446,9 @@ class LeaderboardDeletedResponse(BaseModel):
     title: str
     description: Optional[str] = None
     resource_id: Optional[UUID] = None
-    public: Optional[bool] = False
-    wallet_connect: Optional[bool] = False
-    blockchain_ids: Optional[List[int]] = None
-    columns_names: Optional[Dict[str, str]] = None
+    wallet_connect: bool = False
+    blockchain_ids: List[int] = Field(default_factory=list)
+    columns_names: Dict[str, str] = Field(default_factory=dict)
     created_at: datetime
     updated_at: datetime
 
