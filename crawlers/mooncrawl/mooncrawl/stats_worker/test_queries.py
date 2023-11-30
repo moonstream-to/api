@@ -60,6 +60,6 @@ class TestQueries(unittest.TestCase):
 
         with self.assertRaises(queries.QueryNotValid):
             queries.query_validation("OR(1=1)#")
-        
+
         with self.assertRaises(queries.QueryNotValid):
             queries.query_validation("0/**/or/**/1")
