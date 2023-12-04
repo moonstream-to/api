@@ -539,13 +539,6 @@ This CLI is configured to work with the following API URLs:
     )
 
     generate_billing_parser.add_argument(
-        "--user-token",
-        required=False,
-        type=str,
-        help="User token for which to generate billing (currently works)",
-    )
-
-    generate_billing_parser.add_argument(
         "--user-id",
         required=False,
         type=str,

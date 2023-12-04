@@ -133,3 +133,17 @@ BUGOUT_RESOURCE_TYPE_DASHBOARD = "dashboards"
 ### Moonstream queries
 
 MOONSTREAM_QUERY_TEMPLATE_CONTEXT_TYPE = "moonstream_query_template"
+
+
+MOONSTREAM_PUBLIC_QUERIES_TOKEN = os.environ.get("MOONSTREAM_PUBLIC_QUERIES_TOKEN", "")
+if MOONSTREAM_PUBLIC_QUERIES_TOKEN == "":
+    raise ValueError("MOONSTREAM_PUBLIC_QUERIES_TOKEN environment variable must be set")
+
+
+MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID = os.environ.get(
+    "MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID", ""
+)
+if MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID == "":
+    raise ValueError(
+        "MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID environment variable must be set"
+    )
