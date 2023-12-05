@@ -18,7 +18,13 @@ from .crawler import (
     _retry_connect_web3,
     update_entries_status_and_progress,
 )
-from .db import add_events_to_session, add_function_calls_to_session, commit_session
+from .db import (
+    add_events_to_session,
+    add_function_calls_to_session,
+    commit_session,
+    write_to_db,
+    delete_unverified_duplicates,
+)
 from .event_crawler import _crawl_events, _autoscale_crawl_events
 from .function_call_crawler import _crawl_functions
 
@@ -76,7 +82,7 @@ def historical_crawler(
 
     logger.info(f"Starting historical event crawler start_block={start_block}")
 
-    blocks_cache: Dict[int, int] = {}
+    blocks_cache: Dict[int, Optional[int]] = {}
     failed_count = 0
 
     original_start_block = start_block
@@ -162,6 +168,16 @@ def historical_crawler(
                         events=event_crawl_jobs,
                         progess_map=progess_map,
                     )
+
+            write_to_db(
+                web3,
+                blockchain_type,
+                db_session,
+            )
+
+            delete_unverified_duplicates(
+                db_session=db_session, blockchain_type=blockchain_type
+            )
 
             # Commiting to db
             commit_session(db_session)

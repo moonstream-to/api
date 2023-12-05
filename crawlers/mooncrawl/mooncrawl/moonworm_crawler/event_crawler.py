@@ -1,14 +1,23 @@
 import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
+import time
 
-from moonstreamdb.blockchain import AvailableBlockchainType, get_block_model
+from moonstreamdb.blockchain import (
+    AvailableBlockchainType,
+    get_block_model,
+    get_label_model,
+)
 from moonworm.crawler.log_scanner import _fetch_events_chunk, _crawl_events as moonworm_autoscale_crawl_events  # type: ignore
 from sqlalchemy.orm.session import Session
-from sqlalchemy.sql.expression import and_
+from sqlalchemy.sql.expression import and_, func
+from sqlalchemy import text
 from web3 import Web3
 
+from ..settings import CRAWLER_LABEL
 from .crawler import EventCrawlJob
+from .db import get_block_model, get_label_model
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -43,8 +52,11 @@ def get_block_timestamp(
     web3: Web3,
     blockchain_type: AvailableBlockchainType,
     block_number: int,
-    blocks_cache: Dict[int, int],
+    blocks_cache: Dict[int, Optional[int]],
+    from_block: int,
+    to_block: int,
     max_blocks_batch: int = 30,
+    label_name: str = CRAWLER_LABEL,
 ) -> int:
     """
     Get the timestamp of a block.
@@ -62,38 +74,103 @@ def get_block_timestamp(
     """
     assert max_blocks_batch > 0
 
-    if block_number in blocks_cache:
-        return blocks_cache[block_number]
+    if block_number in blocks_cache and blocks_cache[block_number] is not None:
+        return blocks_cache[block_number]  # type: ignore
 
     block_model = get_block_model(blockchain_type)
+    label_model = get_label_model(blockchain_type)
 
-    blocks = (
-        db_session.query(block_model.block_number, block_model.timestamp)
-        .filter(
-            and_(
-                block_model.block_number >= block_number - max_blocks_batch - 1,
-                block_model.block_number <= block_number + max_blocks_batch + 1,
+    # from_block and to_block can be in reverse order
+
+    if from_block > to_block:
+        from_block, to_block = to_block, from_block
+
+    if block_number not in blocks_cache:
+        from_block_filter = from_block - max_blocks_batch - 1
+        to_block_filter = to_block + max_blocks_batch + 1
+
+        blocks_range = db_session.query(
+            func.generate_series(from_block_filter, to_block_filter).label(
+                "block_number"
             )
+        ).cte("blocks_range")
+
+        blocks_table_cache = (
+            db_session.query(block_model.block_number, block_model.timestamp)
+            .filter(
+                and_(
+                    block_model.block_number >= from_block_filter,
+                    block_model.block_number <= to_block_filter,
+                )
+            )
+            .cte("blocks_table_cache")
         )
-        .order_by(block_model.block_number.asc())
-        .all()
-    )
+
+        label_table_cache = (
+            db_session.query(label_model.block_number, label_model.block_timestamp)
+            .filter(
+                and_(
+                    label_model.block_number >= from_block_filter,
+                    label_model.block_number <= to_block_filter,
+                    label_model.label == label_name,
+                )
+            )
+            .distinct(label_model.block_number)
+            .cte("label_table_cache")
+        )
+
+        full_blocks_cache = (
+            db_session.query(
+                blocks_range.c.block_number,
+                func.coalesce(
+                    blocks_table_cache.c.timestamp, label_table_cache.c.block_timestamp
+                ).label("block_timestamp"),
+            )
+            .outerjoin(
+                blocks_table_cache,
+                blocks_range.c.block_number == blocks_table_cache.c.block_number,
+            )
+            .outerjoin(
+                label_table_cache,
+                blocks_range.c.block_number == label_table_cache.c.block_number,
+            )
+            .cte("blocks_cache")
+        )
+
+        blocks = db_session.query(
+            func.json_object_agg(
+                full_blocks_cache.c.block_number, full_blocks_cache.c.block_timestamp
+            )
+        ).one()[0]
+
+        ### transform all keys to int to avoid casting after
+
+        if blocks is not None:
+            blocks = {
+                int(block_number): timestamp
+                for block_number, timestamp in blocks.items()
+            }
+
+            blocks_cache.update(blocks)
 
     target_block_timestamp: Optional[int] = None
-    if blocks and blocks[0].block_number == block_number:
-        target_block_timestamp = blocks[0].timestamp
 
-    if target_block_timestamp is None:
-        target_block_timestamp = _get_block_timestamp_from_web3(web3, block_number)
-
-    if len(blocks_cache) > (max_blocks_batch * 3 + 2):
-        blocks_cache.clear()
+    if blocks_cache[block_number] is None:
+        target_block_timestamp = _get_block_timestamp_from_web3(
+            web3, block_number
+        )  # can be improved by using batch call
 
     blocks_cache[block_number] = target_block_timestamp
-    for block in blocks:
-        blocks_cache[block.block_number] = block.timestamp
 
-    return target_block_timestamp
+    if len(blocks_cache) > (max_blocks_batch * 3 + 2):
+        # clear cache lower than from_block
+        blocks_cache = {
+            block_number: timestamp
+            for block_number, timestamp in blocks_cache.items()
+            if block_number >= from_block
+        }
+
+    return target_block_timestamp  # type: ignore
 
 
 def _crawl_events(
@@ -103,7 +180,7 @@ def _crawl_events(
     jobs: List[EventCrawlJob],
     from_block: int,
     to_block: int,
-    blocks_cache: Dict[int, int] = {},
+    blocks_cache: Dict[int, Optional[int]] = {},
     db_block_query_batch=10,
 ) -> List[Event]:
     all_events = []
@@ -125,6 +202,8 @@ def _crawl_events(
                 blockchain_type,
                 raw_event["blockNumber"],
                 blocks_cache,
+                from_block,
+                to_block,
                 db_block_query_batch,
             )
             event = Event(
@@ -148,7 +227,7 @@ def _autoscale_crawl_events(
     jobs: List[EventCrawlJob],
     from_block: int,
     to_block: int,
-    blocks_cache: Dict[int, int] = {},
+    blocks_cache: Dict[int, Optional[int]] = {},
     batch_size: int = 1000,
     db_block_query_batch=10,
 ) -> Tuple[List[Event], int]:
@@ -166,6 +245,7 @@ def _autoscale_crawl_events(
             contract_address=job.contracts[0],
             max_blocks_batch=3000,
         )
+
         for raw_event in raw_events:
             raw_event["blockTimestamp"] = get_block_timestamp(
                 db_session,
@@ -173,6 +253,8 @@ def _autoscale_crawl_events(
                 blockchain_type,
                 raw_event["blockNumber"],
                 blocks_cache,
+                from_block,
+                to_block,
                 db_block_query_batch,
             )
             event = Event(
