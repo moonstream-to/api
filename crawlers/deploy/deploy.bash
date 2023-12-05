@@ -22,12 +22,10 @@ PYTHON="${PYTHON_ENV_DIR}/bin/python"
 PIP="${PYTHON_ENV_DIR}/bin/pip"
 SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/moonstream-secrets}"
 PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
-PARAMETERS_ENV_MONITORING_PATH="${SECRETS_DIR}/monitoring.env"
 SCRIPT_DIR="$(realpath $(dirname $0))"
 
 # Service files
 MOONCRAWL_SERVICE_FILE="mooncrawl.service"
-MONITORING_CRAWLERS_SERVICE_FILE="monitoring-crawlers.service"
 LEADERBOARDS_WORKER_SERVICE_FILE="leaderboards-worker.service"
 LEADERBOARDS_WORKER_TIMER_FILE="leaderboards-worker.timer"
 
@@ -159,38 +157,6 @@ echo
 echo
 echo -e "${PREFIX_INFO} Add instance local IP to parameters"
 echo "AWS_LOCAL_IPV4=$(ec2metadata --local-ipv4)" >> "${PARAMETERS_ENV_PATH}"
-
-echo
-echo
-echo -e "${PREFIX_INFO} Copy monitoring binary from AWS S3"
-aws s3 cp s3://bugout-binaries/prod/monitoring/monitoring "/home/ubuntu/monitoring"
-chmod +x "/home/ubuntu/monitoring"
-chown ubuntu:ubuntu "/home/ubuntu/monitoring"
-
-echo
-echo
-echo -e "${PREFIX_INFO} Retrieving monitoring deployment parameters"
-AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" /home/ubuntu/go/bin/checkenv show aws_ssm+crawlers:true,monitoring:true > "${PARAMETERS_ENV_MONITORING_PATH}"
-chmod 0640 "${PARAMETERS_ENV_MONITORING_PATH}"
-
-echo
-echo
-echo -e "${PREFIX_INFO} Add instance local IP to monitoring parameters"
-echo "AWS_LOCAL_IPV4=$(ec2metadata --local-ipv4)" >> "${PARAMETERS_ENV_MONITORING_PATH}"
-
-echo
-echo
-echo -e "${PREFIX_INFO} Add AWS default region to monitring parameters"
-echo "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}" >> "${PARAMETERS_ENV_MONITORING_PATH}"
-
-echo
-echo
-echo -e "${PREFIX_INFO} Prepare monitoring configuration"
-if [ ! -d "/home/ubuntu/.monitoring" ]; then
-  mkdir -p /home/ubuntu/.monitoring
-  echo -e "${PREFIX_WARN} Created monitoring configuration directory"
-fi
-cp "${SCRIPT_DIR}/monitoring-crawlers-config.json" /home/ubuntu/.monitoring/monitoring-crawlers-config.json
 
 echo
 echo
@@ -638,11 +604,3 @@ cp "${SCRIPT_DIR}/${LEADERBOARDS_WORKER_SERVICE_FILE}" "/home/ubuntu/.config/sys
 cp "${SCRIPT_DIR}/${LEADERBOARDS_WORKER_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${LEADERBOARDS_WORKER_TIMER_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${LEADERBOARDS_WORKER_TIMER_FILE}"
-
-echo
-echo
-echo -e "${PREFIX_INFO} Replacing existing systemd crawlers monitoring service definition with ${MONITORING_CRAWLERS_SERVICE_FILE}"
-chmod 644 "${SCRIPT_DIR}/${MONITORING_CRAWLERS_SERVICE_FILE}"
-cp "${SCRIPT_DIR}/${MONITORING_CRAWLERS_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${MONITORING_CRAWLERS_SERVICE_FILE}"
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart "${MONITORING_CRAWLERS_SERVICE_FILE}"
