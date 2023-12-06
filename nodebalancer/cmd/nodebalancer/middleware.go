@@ -390,6 +390,7 @@ func jsonrpcRequestParser(body []byte) ([]JSONRPCRequest, error) {
 	var jsonrpcRequest []JSONRPCRequest
 
 	firstByte := bytes.TrimLeft(body, " \t\r\n")
+
 	switch {
 	case len(firstByte) > 0 && firstByte[0] == '[':
 		err := json.Unmarshal(body, &jsonrpcRequest)
@@ -405,6 +406,17 @@ func jsonrpcRequestParser(body []byte) ([]JSONRPCRequest, error) {
 		jsonrpcRequest = []JSONRPCRequest{singleJsonrpcRequest}
 	default:
 		return nil, fmt.Errorf("incorrect first byte in JSON RPC request")
+	}
+
+	for _, req := range jsonrpcRequest {
+		switch v := req.ID.(type) {
+		case float64:
+			req.ID = uint64(v)
+		case string:
+		case nil:
+		default:
+			return nil, fmt.Errorf("unexpected type for id: %T", v)
+		}
 	}
 
 	return jsonrpcRequest, nil

@@ -1,0 +1,7 @@
+{
+    "notification_pagerduty": true,
+    "notification_telegram": true,
+    "notification_sendgrid": true,
+    "notification_humbug": true,
+    "silent": []
+}
