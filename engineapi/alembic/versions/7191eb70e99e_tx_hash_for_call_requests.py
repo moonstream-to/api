@@ -1,7 +1,7 @@
 """Tx hash for call requests
 
 Revision ID: 7191eb70e99e
-Revises: 4f05d212ea49
+Revises: 6d07739cb13e
 Create Date: 2023-10-04 11:23:12.516797
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '7191eb70e99e'
-down_revision = '4f05d212ea49'
+down_revision = '6d07739cb13e'
 branch_labels = None
 depends_on = None
 

@@ -8,7 +8,8 @@ from bugout.data import BugoutResource, BugoutResources, BugoutUser
 from bugout.exceptions import BugoutResponseException
 from eip712.messages import EIP712Message, _hash_eip191_message
 from eth_account.messages import encode_defunct
-from fastapi import Header, HTTPException, Request, Response
+from fastapi import Depends, Header, HTTPException, Request, Response
+from fastapi.security import OAuth2PasswordBearer
 from hexbytes import HexBytes
 from pydantic import AnyHttpUrl, parse_obj_as
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -38,6 +39,8 @@ from .settings import (
 from .settings import bugout_client as bc
 
 logger = logging.getLogger(__name__)
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 class InvalidAuthHeaderFormat(Exception):
@@ -82,7 +85,44 @@ def bugout_auth(token: str) -> BugoutUser:
     return user
 
 
-async def user_for_auth_header(
+def brood_auth(token: UUID) -> BugoutUser:
+    try:
+        user: BugoutUser = bugout_auth(token=token)
+    except BugoutUnverifiedAuth:
+        logger.info(f"Attempted access by unverified Brood account: {user.id}")
+        raise EngineHTTPException(
+            status_code=403,
+            detail="Only verified accounts can have access",
+        )
+    except BugoutAuthWrongApp:
+        raise EngineHTTPException(
+            status_code=403,
+            detail="User does not belong to this application",
+        )
+    except BugoutResponseException as e:
+        raise EngineHTTPException(
+            status_code=e.status_code,
+            detail=e.detail,
+        )
+    except Exception as e:
+        logger.error(f"Error processing Brood response: {str(e)}")
+        raise EngineHTTPException(
+            status_code=500,
+            detail="Internal server error",
+        )
+
+    return user
+
+
+async def request_user_auth(
+    token: UUID = Depends(oauth2_scheme),
+) -> BugoutUser:
+    user = brood_auth(token=token)
+
+    return user
+
+
+async def request_none_or_user_auth(
     authorization: str = Header(None),
 ) -> Optional[BugoutUser]:
     """
@@ -90,9 +130,9 @@ async def user_for_auth_header(
     """
     user: Optional[BugoutUser] = None
     if authorization is not None:
-        user_token: str = ""
+        token: str = ""
         try:
-            _, user_token = parse_auth_header(auth_header=authorization)
+            _, token = parse_auth_header(auth_header=authorization)
         except InvalidAuthHeaderFormat:
             raise EngineHTTPException(
                 status_code=403, detail="Wrong authorization header"
@@ -101,24 +141,8 @@ async def user_for_auth_header(
             logger.error(f"Error parsing auth header: {str(e)}")
             raise EngineHTTPException(status_code=500, detail="Internal server error")
 
-        if user_token != "":
-            try:
-                user: BugoutUser = bugout_auth(token=user_token)
-            except BugoutUnverifiedAuth:
-                logger.info(f"Attempted access by unverified Brood account: {user.id}")
-                raise EngineHTTPException(
-                    status_code=403,
-                    detail="Only verified accounts can have access",
-                )
-            except BugoutAuthWrongApp:
-                raise EngineHTTPException(
-                    status_code=403, detail="User does not belong to this application"
-                )
-            except BugoutResponseException as e:
-                raise HTTPException(status_code=e.status_code, detail=e.detail)
-            except Exception as e:
-                logger.error(f"Error processing Brood response: {str(e)}")
-                raise HTTPException(status_code=500, detail="Internal server error")
+        if token != "":
+            user = brood_auth(token=token)
 
     return user
 
