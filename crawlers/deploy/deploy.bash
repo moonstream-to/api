@@ -29,12 +29,10 @@ MOONCRAWL_SERVICE_FILE="mooncrawl.service"
 LEADERBOARDS_WORKER_SERVICE_FILE="leaderboards-worker.service"
 LEADERBOARDS_WORKER_TIMER_FILE="leaderboards-worker.timer"
 
-
 # Ethereum service files
 ETHEREUM_SYNCHRONIZE_SERVICE_FILE="ethereum-synchronize.service"
 ETHEREUM_TRENDING_SERVICE_FILE="ethereum-trending.service"
 ETHEREUM_TRENDING_TIMER_FILE="ethereum-trending.timer"
-ETHEREUM_TXPOOL_SERVICE_FILE="ethereum-txpool.service"
 ETHEREUM_MISSING_SERVICE_FILE="ethereum-missing.service"
 ETHEREUM_MISSING_TIMER_FILE="ethereum-missing.timer"
 ETHEREUM_MOONWORM_CRAWLER_SERVICE_FILE="ethereum-moonworm-crawler.service"
@@ -51,7 +49,6 @@ POLYGON_MISSING_SERVICE_FILE="polygon-missing.service"
 POLYGON_MISSING_TIMER_FILE="polygon-missing.timer"
 POLYGON_STATISTICS_SERVICE_FILE="polygon-statistics.service"
 POLYGON_STATISTICS_TIMER_FILE="polygon-statistics.timer"
-POLYGON_TXPOOL_SERVICE_FILE="polygon-txpool.service"
 POLYGON_MOONWORM_CRAWLER_SERVICE_FILE="polygon-moonworm-crawler.service"
 POLYGON_STATE_SERVICE_FILE="polygon-state.service"
 POLYGON_STATE_TIMER_FILE="polygon-state.timer"
@@ -133,14 +130,6 @@ set -eu
 
 echo
 echo
-echo -e "${PREFIX_INFO} Building executable Ethereum transaction pool crawler script with Go"
-EXEC_DIR=$(pwd)
-cd "${APP_CRAWLERS_DIR}/txpool"
-HOME=/home/ubuntu /usr/local/go/bin/go build -o "${APP_CRAWLERS_DIR}/txpool/txpool" "${APP_CRAWLERS_DIR}/txpool/main.go"
-cd "${EXEC_DIR}"
-
-echo
-echo
 echo -e "${PREFIX_INFO} Upgrading Python pip and setuptools"
 "${PIP}" install --upgrade pip setuptools
 
@@ -156,8 +145,11 @@ HOME=/home/ubuntu /usr/local/go/bin/go install github.com/bugout-dev/checkenv@la
 
 echo
 echo
-echo -e "${PREFIX_INFO} Retrieving addition deployment parameters"
-mkdir -p "${SECRETS_DIR}"
+echo -e "${PREFIX_INFO} Retrieving deployment parameters"
+if [ ! -d "${SECRETS_DIR}" ]; then
+  mkdir -p "${SECRETS_DIR}"
+  echo -e "${PREFIX_WARN} Created new secrets directory"
+fi
 AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" /home/ubuntu/go/bin/checkenv show aws_ssm+moonstream:true > "${PARAMETERS_ENV_PATH}"
 chmod 0640 "${PARAMETERS_ENV_PATH}"
 
@@ -165,6 +157,13 @@ echo
 echo
 echo -e "${PREFIX_INFO} Add instance local IP to parameters"
 echo "AWS_LOCAL_IPV4=$(ec2metadata --local-ipv4)" >> "${PARAMETERS_ENV_PATH}"
+
+echo
+echo
+if [ ! -d "/home/ubuntu/.config/systemd/user/" ]; then
+  mkdir -p /home/ubuntu/.config/systemd/user/
+  echo -e "${PREFIX_WARN} Created user systemd directory"
+fi
 
 echo
 echo
@@ -190,14 +189,6 @@ cp "${SCRIPT_DIR}/${ETHEREUM_TRENDING_SERVICE_FILE}" "/home/ubuntu/.config/syste
 cp "${SCRIPT_DIR}/${ETHEREUM_TRENDING_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ETHEREUM_TRENDING_TIMER_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ETHEREUM_TRENDING_TIMER_FILE}"
-
-# echo
-# echo
-# echo -e "${PREFIX_INFO} Replacing existing Ethereum transaction pool crawler service definition with ${ETHEREUM_TXPOOL_SERVICE_FILE}"
-# chmod 644 "${SCRIPT_DIR}/${ETHEREUM_TXPOOL_SERVICE_FILE}"
-# cp "${SCRIPT_DIR}/${ETHEREUM_TXPOOL_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ETHEREUM_TXPOOL_SERVICE_FILE}"
-# XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
-# XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ETHEREUM_TXPOOL_SERVICE_FILE}"
 
 echo
 echo
@@ -269,14 +260,6 @@ cp "${SCRIPT_DIR}/${POLYGON_STATISTICS_SERVICE_FILE}" "/home/ubuntu/.config/syst
 cp "${SCRIPT_DIR}/${POLYGON_STATISTICS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${POLYGON_STATISTICS_TIMER_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${POLYGON_STATISTICS_TIMER_FILE}"
-
-# echo
-# echo
-# echo -e "${PREFIX_INFO} Replacing existing Polygon transaction pool crawler service definition with ${POLYGON_TXPOOL_SERVICE_FILE}"
-# chmod 644 "${SCRIPT_DIR}/${POLYGON_TXPOOL_SERVICE_FILE}"
-# cp "${SCRIPT_DIR}/${POLYGON_TXPOOL_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${POLYGON_TXPOOL_SERVICE_FILE}"
-# XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
-# XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${POLYGON_TXPOOL_SERVICE_FILE}"
 
 echo
 echo

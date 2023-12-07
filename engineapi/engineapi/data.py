@@ -308,7 +308,7 @@ class CallRequestResponse(BaseModel):
     parameters: Dict[str, Any]
     tx_hash: Optional[str] = None
     expires_at: Optional[datetime] = None
-    live_at: datetime
+    live_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
 
@@ -445,3 +445,15 @@ class LeaderboardConfigUpdate(BaseModel):
     query_name: Optional[str] = None
     params: Dict[str, int]
     normalize_addresses: Optional[bool] = None
+
+
+class LeaderboardVersion(BaseModel):
+    leaderboard_id: UUID
+    version: int
+    published: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+class LeaderboardVersionRequest(BaseModel):
+    publish: bool

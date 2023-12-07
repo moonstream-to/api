@@ -13,6 +13,7 @@ from sqlalchemy import (
     MetaData,
     String,
     UniqueConstraint,
+    ForeignKeyConstraint,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.compiler import compiles
@@ -316,7 +317,7 @@ class CallRequest(Base):
     tx_hash = Column(VARCHAR(256), unique=True, nullable=True)
 
     expires_at = Column(DateTime(timezone=True), nullable=True, index=True)
-    live_at = Column(DateTime(timezone=True), server_default=utcnow(), nullable=False)
+    live_at = Column(DateTime(timezone=True), nullable=True)
 
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
@@ -359,9 +360,45 @@ class Leaderboard(Base):  # type: ignore
     )
 
 
+class LeaderboardVersion(Base):  # type: ignore
+    __tablename__ = "leaderboard_versions"
+    __table_args__ = (UniqueConstraint("leaderboard_id", "version_number"),)
+
+    leaderboard_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("leaderboards.id", ondelete="CASCADE"),
+        primary_key=True,
+        nullable=False,
+    )
+    version_number = Column(DECIMAL, primary_key=True, nullable=False)
+    published = Column(Boolean, default=False, nullable=False)
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=utcnow(),
+        nullable=False,
+        index=True,
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=utcnow(),
+        onupdate=utcnow(),
+        nullable=False,
+    )
+
+
 class LeaderboardScores(Base):  # type: ignore
     __tablename__ = "leaderboard_scores"
-    __table_args__ = (UniqueConstraint("leaderboard_id", "address"),)
+    __table_args__ = (
+        UniqueConstraint("leaderboard_id", "address", "leaderboard_version_number"),
+        ForeignKeyConstraint(
+            ["leaderboard_id", "leaderboard_version_number"],
+            [
+                "leaderboard_versions.leaderboard_id",
+                "leaderboard_versions.version_number",
+            ],
+            ondelete="CASCADE",
+        ),
+    )
 
     id = Column(
         UUID(as_uuid=True),
@@ -372,7 +409,10 @@ class LeaderboardScores(Base):  # type: ignore
     )
     leaderboard_id = Column(
         UUID(as_uuid=True),
-        ForeignKey("leaderboards.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    leaderboard_version_number = Column(
+        DECIMAL,
         nullable=False,
     )
     address = Column(VARCHAR(256), nullable=False, index=True)

@@ -97,6 +97,7 @@ def handle_leaderboards(args: argparse.Namespace) -> None:
                 MOONSTREAM_API_URL,
                 args.max_retries,
                 args.interval,
+                args.query_api_retries,
             )
         except Exception as e:
             logger.error(f"Could not get results for query {query_name}: error: {e}")
@@ -185,13 +186,19 @@ def main():
     leaderboard_generator_parser.add_argument(
         "--max-retries",
         type=int,
-        default=100,
+        default=12,
         help="Number of times to retry requests for Moonstream Query results",
+    )
+    leaderboard_generator_parser.add_argument(
+        "--query-api-retries",
+        type=int,
+        default=3,
+        help="Number of times to retry updating Moonstream Query data",
     )
     leaderboard_generator_parser.add_argument(
         "--interval",
         type=float,
-        default=30.0,
+        default=10.0,
         help="Number of seconds to wait between attempts to get results from Moonstream Query API",
     )
     leaderboard_generator_parser.add_argument(

@@ -11,7 +11,7 @@ from hexbytes import HexBytes
 import requests  # type: ignore
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
-from sqlalchemy import func, text, or_
+from sqlalchemy import func, text, or_, and_, Subquery
 from sqlalchemy.engine import Row
 from web3 import Web3
 from web3.types import ChecksumAddress
@@ -24,6 +24,7 @@ from .models import (
     DropperClaim,
     Leaderboard,
     LeaderboardScores,
+    LeaderboardVersion,
 )
 from . import signatures
 from .settings import (
@@ -88,6 +89,10 @@ class LeaderboardConfigAlreadyActive(Exception):
 
 
 class LeaderboardConfigAlreadyInactive(Exception):
+    pass
+
+
+class LeaderboardVersionNotFound(Exception):
     pass
 
 
@@ -959,23 +964,70 @@ def refetch_drop_signatures(
     return claimant_objects
 
 
-def get_leaderboard_total_count(db_session: Session, leaderboard_id) -> int:
+def leaderboard_version_filter(
+    db_session: Session,
+    leaderboard_id: uuid.UUID,
+    version_number: Optional[int] = None,
+) -> Union[Subquery, int]:
+    # Subquery to get the latest version number for the given leaderboard
+    if version_number is None:
+        latest_version = (
+            db_session.query(func.max(LeaderboardVersion.version_number)).filter(
+                LeaderboardVersion.leaderboard_id == leaderboard_id,
+                LeaderboardVersion.published == True,
+            )
+        ).scalar_subquery()
+    else:
+        latest_version = version_number
+
+    return latest_version
+
+
+def get_leaderboard_total_count(
+    db_session: Session, leaderboard_id, version_number: Optional[int] = None
+) -> int:
     """
-    Get the total number of claimants in the leaderboard
+    Get the total number of position in the leaderboard
     """
-    return (
-        db_session.query(LeaderboardScores)
-        .filter(LeaderboardScores.leaderboard_id == leaderboard_id)
-        .count()
+
+    latest_version = leaderboard_version_filter(
+        db_session=db_session,
+        leaderboard_id=leaderboard_id,
+        version_number=version_number,
     )
+
+    total_count = (
+        db_session.query(func.count(LeaderboardScores.id))
+        .join(
+            LeaderboardVersion,
+            and_(
+                LeaderboardVersion.leaderboard_id == LeaderboardScores.leaderboard_id,
+                LeaderboardVersion.version_number
+                == LeaderboardScores.leaderboard_version_number,
+            ),
+        )
+        .filter(
+            LeaderboardVersion.published == True,
+            LeaderboardVersion.version_number == latest_version,
+        )
+        .filter(LeaderboardScores.leaderboard_id == leaderboard_id)
+    ).scalar()
+
+    return total_count
 
 
 def get_leaderboard_info(
-    db_session: Session, leaderboard_id: uuid.UUID
+    db_session: Session, leaderboard_id: uuid.UUID, version_number: Optional[int] = None
 ) -> Row[Tuple[uuid.UUID, str, str, int, Optional[datetime]]]:
     """
     Get the leaderboard from the database with users count
     """
+
+    latest_version = leaderboard_version_filter(
+        db_session=db_session,
+        leaderboard_id=leaderboard_id,
+        version_number=version_number,
+    )
 
     leaderboard = (
         db_session.query(
@@ -990,10 +1042,22 @@ def get_leaderboard_info(
             LeaderboardScores.leaderboard_id == Leaderboard.id,
             isouter=True,
         )
+        .join(
+            LeaderboardVersion,
+            and_(
+                LeaderboardVersion.leaderboard_id == LeaderboardScores.leaderboard_id,
+                LeaderboardVersion.version_number
+                == LeaderboardScores.leaderboard_version_number,
+            ),
+            isouter=True,
+        )
+        .filter(
+            LeaderboardVersion.published == True,
+            LeaderboardVersion.version_number == latest_version,
+        )
         .filter(Leaderboard.id == leaderboard_id)
         .group_by(Leaderboard.id, Leaderboard.title, Leaderboard.description)
-        .one()
-    )
+    ).one()
 
     return leaderboard
 
@@ -1078,19 +1142,48 @@ def get_leaderboards(
 
 
 def get_position(
-    db_session: Session, leaderboard_id, address, window_size, limit: int, offset: int
+    db_session: Session,
+    leaderboard_id,
+    address,
+    window_size,
+    limit: int,
+    offset: int,
+    version_number: Optional[int] = None,
 ) -> List[Row[Tuple[str, int, int, int, Any]]]:
     """
-
     Return position by address with window size
     """
-    query = db_session.query(
-        LeaderboardScores.address,
-        LeaderboardScores.score,
-        LeaderboardScores.points_data.label("points_data"),
-        func.rank().over(order_by=LeaderboardScores.score.desc()).label("rank"),
-        func.row_number().over(order_by=LeaderboardScores.score.desc()).label("number"),
-    ).filter(LeaderboardScores.leaderboard_id == leaderboard_id)
+
+    latest_version = leaderboard_version_filter(
+        db_session=db_session,
+        leaderboard_id=leaderboard_id,
+        version_number=version_number,
+    )
+
+    query = (
+        db_session.query(
+            LeaderboardScores.address,
+            LeaderboardScores.score,
+            LeaderboardScores.points_data.label("points_data"),
+            func.rank().over(order_by=LeaderboardScores.score.desc()).label("rank"),
+            func.row_number()
+            .over(order_by=LeaderboardScores.score.desc())
+            .label("number"),
+        )
+        .join(
+            LeaderboardVersion,
+            and_(
+                LeaderboardVersion.leaderboard_id == LeaderboardScores.leaderboard_id,
+                LeaderboardVersion.version_number
+                == LeaderboardScores.leaderboard_version_number,
+            ),
+        )
+        .filter(
+            LeaderboardVersion.published == True,
+            LeaderboardVersion.version_number == latest_version,
+        )
+        .filter(LeaderboardScores.leaderboard_id == leaderboard_id)
+    )
 
     ranked_leaderboard = query.cte(name="ranked_leaderboard")
 
@@ -1130,11 +1223,25 @@ def get_position(
 
 
 def get_leaderboard_positions(
-    db_session: Session, leaderboard_id, limit: int, offset: int
+    db_session: Session,
+    leaderboard_id,
+    limit: int,
+    offset: int,
+    version_number: Optional[int] = None,
 ) -> List[Row[Tuple[uuid.UUID, str, int, str, int]]]:
     """
     Get the leaderboard positions
     """
+
+    # get public leaderboard scores with max version
+
+    latest_version = leaderboard_version_filter(
+        db_session=db_session,
+        leaderboard_id=leaderboard_id,
+        version_number=version_number,
+    )
+
+    # Main query
     query = (
         db_session.query(
             LeaderboardScores.id,
@@ -1143,8 +1250,17 @@ def get_leaderboard_positions(
             LeaderboardScores.points_data,
             func.rank().over(order_by=LeaderboardScores.score.desc()).label("rank"),
         )
+        .join(
+            LeaderboardVersion,
+            and_(
+                LeaderboardVersion.leaderboard_id == LeaderboardScores.leaderboard_id,
+                LeaderboardVersion.version_number
+                == LeaderboardScores.leaderboard_version_number,
+            ),
+        )
         .filter(LeaderboardScores.leaderboard_id == leaderboard_id)
-        .order_by(text("rank asc, id asc"))
+        .filter(LeaderboardVersion.published == True)
+        .filter(LeaderboardVersion.version_number == latest_version)
     )
 
     if limit:
@@ -1157,18 +1273,39 @@ def get_leaderboard_positions(
 
 
 def get_qurtiles(
-    db_session: Session, leaderboard_id
+    db_session: Session, leaderboard_id, version_number: Optional[int] = None
 ) -> Tuple[Row[Tuple[str, float, int]], ...]:
     """
     Get the leaderboard qurtiles
     https://docs.sqlalchemy.org/en/14/core/functions.html#sqlalchemy.sql.functions.percentile_disc
     """
 
-    query = db_session.query(
-        LeaderboardScores.address,
-        LeaderboardScores.score,
-        func.rank().over(order_by=LeaderboardScores.score.desc()).label("rank"),
-    ).filter(LeaderboardScores.leaderboard_id == leaderboard_id)
+    latest_version = leaderboard_version_filter(
+        db_session=db_session,
+        leaderboard_id=leaderboard_id,
+        version_number=version_number,
+    )
+
+    query = (
+        db_session.query(
+            LeaderboardScores.address,
+            LeaderboardScores.score,
+            func.rank().over(order_by=LeaderboardScores.score.desc()).label("rank"),
+        )
+        .join(
+            LeaderboardVersion,
+            and_(
+                LeaderboardVersion.leaderboard_id == LeaderboardScores.leaderboard_id,
+                LeaderboardVersion.version_number
+                == LeaderboardScores.leaderboard_version_number,
+            ),
+        )
+        .filter(
+            LeaderboardVersion.published == True,
+            LeaderboardVersion.version_number == latest_version,
+        )
+        .filter(LeaderboardScores.leaderboard_id == leaderboard_id)
+    )
 
     ranked_leaderboard = query.cte(name="ranked_leaderboard")
 
@@ -1192,17 +1329,41 @@ def get_qurtiles(
     return q1, q2, q3
 
 
-def get_ranks(db_session: Session, leaderboard_id) -> List[Row[Tuple[int, int, int]]]:
+def get_ranks(
+    db_session: Session, leaderboard_id, version_number: Optional[int] = None
+) -> List[Row[Tuple[int, int, int]]]:
     """
     Get the leaderboard rank buckets(rank, size, score)
     """
-    query = db_session.query(
-        LeaderboardScores.id,
-        LeaderboardScores.address,
-        LeaderboardScores.score,
-        LeaderboardScores.points_data,
-        func.rank().over(order_by=LeaderboardScores.score.desc()).label("rank"),
-    ).filter(LeaderboardScores.leaderboard_id == leaderboard_id)
+
+    latest_version = leaderboard_version_filter(
+        db_session=db_session,
+        leaderboard_id=leaderboard_id,
+        version_number=version_number,
+    )
+
+    query = (
+        db_session.query(
+            LeaderboardScores.id,
+            LeaderboardScores.address,
+            LeaderboardScores.score,
+            LeaderboardScores.points_data,
+            func.rank().over(order_by=LeaderboardScores.score.desc()).label("rank"),
+        )
+        .join(
+            LeaderboardVersion,
+            and_(
+                LeaderboardVersion.leaderboard_id == LeaderboardScores.leaderboard_id,
+                LeaderboardVersion.version_number
+                == LeaderboardScores.leaderboard_version_number,
+            ),
+        )
+        .filter(
+            LeaderboardVersion.published == True,
+            LeaderboardVersion.version_number == latest_version,
+        )
+        .filter(LeaderboardScores.leaderboard_id == leaderboard_id)
+    )
 
     ranked_leaderboard = query.cte(name="ranked_leaderboard")
 
@@ -1220,10 +1381,18 @@ def get_rank(
     rank: int,
     limit: Optional[int] = None,
     offset: Optional[int] = None,
+    version_number: Optional[int] = None,
 ) -> List[Row[Tuple[uuid.UUID, str, int, str, int]]]:
     """
     Get bucket in leaderboard by rank
     """
+
+    latest_version = leaderboard_version_filter(
+        db_session=db_session,
+        leaderboard_id=leaderboard_id,
+        version_number=version_number,
+    )
+
     query = (
         db_session.query(
             LeaderboardScores.id,
@@ -1231,6 +1400,18 @@ def get_rank(
             LeaderboardScores.score,
             LeaderboardScores.points_data,
             func.rank().over(order_by=LeaderboardScores.score.desc()).label("rank"),
+        )
+        .join(
+            LeaderboardVersion,
+            and_(
+                LeaderboardVersion.leaderboard_id == LeaderboardScores.leaderboard_id,
+                LeaderboardVersion.version_number
+                == LeaderboardScores.leaderboard_version_number,
+            ),
+        )
+        .filter(
+            LeaderboardVersion.published == True,
+            LeaderboardVersion.version_number == latest_version,
         )
         .filter(LeaderboardScores.leaderboard_id == leaderboard_id)
         .order_by(text("rank asc, id asc"))
@@ -1377,7 +1558,7 @@ def add_scores(
     db_session: Session,
     leaderboard_id: uuid.UUID,
     scores: List[Score],
-    overwrite: bool = False,
+    version_number: int,
     normalize_addresses: bool = True,
 ):
     """
@@ -1397,16 +1578,6 @@ def add_scores(
 
         raise DuplicateLeaderboardAddressError("Dublicated addresses", duplicates)
 
-    if overwrite:
-        db_session.query(LeaderboardScores).filter(
-            LeaderboardScores.leaderboard_id == leaderboard_id
-        ).delete()
-        try:
-            db_session.commit()
-        except:
-            db_session.rollback()
-            raise LeaderboardDeleteScoresError("Error deleting leaderboard scores")
-
     for score in scores:
         leaderboard_scores.append(
             {
@@ -1414,13 +1585,18 @@ def add_scores(
                 "address": normalizer_fn(score.address),
                 "score": score.score,
                 "points_data": score.points_data,
+                "leaderboard_version_number": version_number,
             }
         )
 
     insert_statement = insert(LeaderboardScores).values(leaderboard_scores)
 
     result_stmt = insert_statement.on_conflict_do_update(
-        index_elements=[LeaderboardScores.address, LeaderboardScores.leaderboard_id],
+        index_elements=[
+            LeaderboardScores.address,
+            LeaderboardScores.leaderboard_id,
+            LeaderboardScores.leaderboard_version_number,
+        ],
         set_=dict(
             score=insert_statement.excluded.score,
             points_data=insert_statement.excluded.points_data,
@@ -1436,7 +1612,7 @@ def add_scores(
     return leaderboard_scores
 
 
-# leadrboard access actions
+# leaderboard access actions
 
 
 def create_leaderboard_resource(
@@ -1675,3 +1851,159 @@ def check_leaderboard_resource_permissions(
         return True
 
     return False
+
+
+def get_leaderboard_version(
+    db_session: Session, leaderboard_id: uuid.UUID, version_number: int
+) -> LeaderboardVersion:
+    """
+    Get the leaderboard version by id
+    """
+    return (
+        db_session.query(LeaderboardVersion)
+        .filter(LeaderboardVersion.leaderboard_id == leaderboard_id)
+        .filter(LeaderboardVersion.version_number == version_number)
+        .one()
+    )
+
+
+def create_leaderboard_version(
+    db_session: Session,
+    leaderboard_id: uuid.UUID,
+    version_number: Optional[int] = None,
+    publish: bool = False,
+) -> LeaderboardVersion:
+    """
+    Create a leaderboard version
+    """
+
+    if version_number is None:
+        latest_version_result = (
+            db_session.query(func.max(LeaderboardVersion.version_number))
+            .filter(LeaderboardVersion.leaderboard_id == leaderboard_id)
+            .one()
+        )
+
+        latest_version = latest_version_result[0]
+
+        if latest_version is None:
+            version_number = 0
+        else:
+            version_number = latest_version + 1
+
+    leaderboard_version = LeaderboardVersion(
+        leaderboard_id=leaderboard_id,
+        version_number=version_number,
+        published=publish,
+    )
+
+    db_session.add(leaderboard_version)
+    db_session.commit()
+
+    return leaderboard_version
+
+
+def change_publish_leaderboard_version_status(
+    db_session: Session, leaderboard_id: uuid.UUID, version_number: int, published: bool
+) -> LeaderboardVersion:
+    """
+    Publish a leaderboard version
+    """
+    leaderboard_version = (
+        db_session.query(LeaderboardVersion)
+        .filter(LeaderboardVersion.leaderboard_id == leaderboard_id)
+        .filter(LeaderboardVersion.version_number == version_number)
+        .one()
+    )
+
+    leaderboard_version.published = published
+
+    db_session.commit()
+
+    return leaderboard_version
+
+
+def get_leaderboard_versions(
+    db_session: Session, leaderboard_id: uuid.UUID
+) -> List[LeaderboardVersion]:
+    """
+    Get all leaderboard versions
+    """
+    return (
+        db_session.query(LeaderboardVersion)
+        .filter(LeaderboardVersion.leaderboard_id == leaderboard_id)
+        .all()
+    )
+
+
+def delete_leaderboard_version(
+    db_session: Session, leaderboard_id: uuid.UUID, version_number: int
+) -> LeaderboardVersion:
+    """
+    Delete a leaderboard version
+    """
+    leaderboard_version = (
+        db_session.query(LeaderboardVersion)
+        .filter(LeaderboardVersion.leaderboard_id == leaderboard_id)
+        .filter(LeaderboardVersion.version_number == version_number)
+        .one()
+    )
+
+    db_session.delete(leaderboard_version)
+    db_session.commit()
+
+    return leaderboard_version
+
+
+def get_leaderboard_version_scores(
+    db_session: Session,
+    leaderboard_id: uuid.UUID,
+    version_number: int,
+    limit: int,
+    offset: int,
+) -> List[LeaderboardScores]:
+    """
+    Get the leaderboard scores by version number
+    """
+
+    query = (
+        db_session.query(
+            LeaderboardScores.id,
+            LeaderboardScores.address.label("address"),
+            LeaderboardScores.score.label("score"),
+            LeaderboardScores.points_data.label("points_data"),
+            func.rank().over(order_by=LeaderboardScores.score.desc()).label("rank"),
+        )
+        .filter(LeaderboardScores.leaderboard_id == leaderboard_id)
+        .filter(LeaderboardScores.leaderboard_version_number == version_number)
+    )
+
+    if limit:
+        query = query.limit(limit)
+
+    if offset:
+        query = query.offset(offset)
+
+    return query
+
+
+def delete_previous_versions(
+    db_session: Session,
+    leaderboard_id: uuid.UUID,
+    threshold_version_number: int,
+) -> int:
+    """
+    Delete old leaderboard versions
+    """
+
+    versions_to_delete = (
+        db_session.query(LeaderboardVersion)
+        .filter(LeaderboardVersion.leaderboard_id == leaderboard_id)
+        .filter(LeaderboardVersion.version_number < threshold_version_number)
+    )
+
+    num_deleted = versions_to_delete.delete(synchronize_session=False)
+
+    db_session.commit()
+
+    return num_deleted
