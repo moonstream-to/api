@@ -307,7 +307,7 @@ class CallRequestResponse(BaseModel):
     request_id: str
     parameters: Dict[str, Any]
     expires_at: Optional[datetime] = None
-    live_at: datetime
+    live_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
 

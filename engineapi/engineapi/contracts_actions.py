@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
-from sqlalchemy import func, text
+from sqlalchemy import func, or_, text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine import Row
 from sqlalchemy.exc import IntegrityError, NoResultFound
@@ -413,7 +413,7 @@ def create_request_calls(
             request_id=specification.request_id,
             parameters=specification.parameters,
             expires_at=expires_at,
-            live_at=datetime.fromtimestamp(live_at),
+            live_at=datetime.fromtimestamp(live_at) if live_at is not None else None,
         )
 
         db_session.add(request)
@@ -484,7 +484,10 @@ def list_call_requests(
     metatx_requester_id: Optional[uuid.UUID] = None,
 ) -> List[Row[Tuple[CallRequest, RegisteredContract, CallRequestType]]]:
     """
-    List call requests for the given moonstream_user_id
+    List call requests.
+
+    Argument moonstream_user_id took from authorization workflow. And if it is specified
+    then user has access to call_requests before live_at param.
     """
     if caller is None:
         raise ValueError("caller must be specified")
@@ -525,11 +528,11 @@ def list_call_requests(
         )
         if not show_before_live_at:
             query = query.filter(
-                CallRequest.live_at < func.now(),
+                or_(CallRequest.live_at < func.now(), CallRequest.live_at == None)
             )
     else:
         query = query.filter(
-            CallRequest.live_at < func.now(),
+            or_(CallRequest.live_at < func.now(), CallRequest.live_at == None)
         )
 
     if offset is not None:

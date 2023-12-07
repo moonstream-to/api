@@ -316,7 +316,7 @@ class CallRequest(Base):
     parameters = Column(JSONB, nullable=False)
 
     expires_at = Column(DateTime(timezone=True), nullable=True, index=True)
-    live_at = Column(DateTime(timezone=True), server_default=utcnow(), nullable=False)
+    live_at = Column(DateTime(timezone=True), nullable=True)
 
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
