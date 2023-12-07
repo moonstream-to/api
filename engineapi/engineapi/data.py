@@ -329,6 +329,10 @@ class CallRequestResponse(BaseModel):
         return Web3.toChecksumAddress(v)
 
 
+class CompleteCallRequestsAPIRequest(BaseModel):
+    tx_hash: str
+
+
 class QuartilesResponse(BaseModel):
     percentile_25: Dict[str, Any]
     percentile_50: Dict[str, Any]

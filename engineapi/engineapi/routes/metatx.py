@@ -18,7 +18,7 @@ from .. import contracts_actions, data, db
 from ..middleware import (
     BugoutCORSMiddleware,
     EngineHTTPException,
-    metatx_sign_header,
+    metatx_verify_header,
     request_none_or_user_auth,
     request_user_auth,
 )
@@ -423,9 +423,9 @@ async def delete_requests(
 
 @app.post("/requests/{request_id}/complete", tags=["requests"])
 async def complete_call_request_route(
-    tx_hash: str = Form(...),
+    complete_request: data.CompleteCallRequestsAPIRequest = Body(...),
     request_id: UUID = Path(...),
-    message=Depends(metatx_sign_header),
+    message=Depends(metatx_verify_header),
     db_session: Session = Depends(db.yield_db_session),
 ):
     """
@@ -434,7 +434,7 @@ async def complete_call_request_route(
     try:
         request = contracts_actions.complete_call_request(
             db_session=db_session,
-            tx_hash=tx_hash,
+            tx_hash=complete_request.tx_hash,
             call_request_id=request_id,
             caller=message["caller"],
         )

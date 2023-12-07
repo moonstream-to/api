@@ -147,7 +147,7 @@ async def request_none_or_user_auth(
     return user
 
 
-async def metatx_sign_header(
+async def metatx_verify_header(
     authorization: str = Header(None),
 ) -> Optional[Dict[str, Any]]:
     message: Optional[Dict[str, Any]] = None
