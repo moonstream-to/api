@@ -7,12 +7,14 @@ import uuid
 import requests  # type: ignore
 from bugout.data import BugoutSearchResult
 
-from .utils import get_results_for_moonstream_query
+from .utils import get_results_for_moonstream_query, leaderboard_push_batch
 from ..settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID,
     MOONSTREAM_API_URL,
     MOONSTREAM_ENGINE_URL,
+    MOONSTREAM_LEADERBOARD_GENERATOR_BATCH_SIZE,
+    MOONSTREAM_LEADERBOARD_GENERATOR_PUSH_TIMEOUT_SECONDS,
 )
 
 from ..settings import bugout_client as bc
@@ -35,10 +37,15 @@ def handle_leaderboards(args: argparse.Namespace) -> None:
 
     ### get leaderboard journal
 
+    leaderboard_push_batch_size = args.leaderboard_push_batch_size
+
+    leaderboard_push_timeout_seconds = args.leaderboard_push_timeout_seconds
+
     query = "#leaderboard #status:active"
 
-    if args.leaderboard_id:  # way to run only one leaderboard
-        query += f" #leaderboard_id:{args.leaderboard_id}"
+    if args.leaderboard_id:  # way to run only one leaderboard without status:active
+        query = f"#leaderboard #leaderboard_id:{args.leaderboard_id}"
+
     try:
         leaderboards = bc.search(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -116,26 +123,33 @@ def handle_leaderboards(args: argparse.Namespace) -> None:
             "Content-Type": "application/json",
         }
 
-        try:
-            leaderboard_api_response = requests.put(
-                leaderboard_push_api_url,
-                json=query_results["data"],
-                headers=leaderboard_api_headers,
-                timeout=10,
+        if len(query_results["data"]) > leaderboard_push_batch_size:
+            logger.info(
+                f"Pushing {len(query_results['data'])} scores to leaderboard {leaderboard_id} in batches of {leaderboard_push_batch_size}"
             )
-        except Exception as e:
-            logger.error(
-                f"Could not push results to leaderboard API: {e} for leaderboard {leaderboard_id}"
+            leaderboard_push_batch(
+                leaderboard_id,
+                leaderboard_data,
+                query_results["data"],
+                leaderboard_api_headers,
+                leaderboard_push_batch_size,
+                timeout=leaderboard_push_timeout_seconds,
             )
-            continue
 
-        try:
-            leaderboard_api_response.raise_for_status()
-        except requests.exceptions.HTTPError as http_error:
-            logger.error(
-                f"Could not push results to leaderboard API: {http_error.response.text} with status code {http_error.response.status_code}"
-            )
-            continue
+        else:
+            try:
+                leaderboard_api_response = requests.put(
+                    leaderboard_push_api_url,
+                    json=query_results["data"],
+                    headers=leaderboard_api_headers,
+                    timeout=leaderboard_push_timeout_seconds,
+                )
+                leaderboard_api_response.raise_for_status()
+            except requests.exceptions.HTTPError as http_error:
+                logger.error(
+                    f"Could not push results to leaderboard API: {http_error.response.text} with status code {http_error.response.status_code}"
+                )
+                continue
 
         ### get leaderboard from leaderboard API
 
@@ -212,6 +226,18 @@ def main():
         type=str,
         required=True,
         help="Moonstream Access Token to use for Moonstream Query API requests",
+    )
+    leaderboard_generator_parser.add_argument(
+        "--leaderboard-push-batch-size",
+        type=int,
+        default=MOONSTREAM_LEADERBOARD_GENERATOR_BATCH_SIZE,
+        help="Number of scores to push to leaderboard API at once",
+    )
+    leaderboard_generator_parser.add_argument(
+        "--leaderboard-push-timeout-seconds",
+        type=int,
+        default=MOONSTREAM_LEADERBOARD_GENERATOR_PUSH_TIMEOUT_SECONDS,
+        help="Timeout for leaderboard API requests",
     )
 
     leaderboard_generator_parser.set_defaults(func=handle_leaderboards)

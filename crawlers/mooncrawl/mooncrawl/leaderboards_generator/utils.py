@@ -3,12 +3,17 @@ import json
 import logging
 import os
 import time
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 
 
 import requests  # type: ignore
 
-from ..settings import MOONSTREAM_API_URL
+from ..settings import (
+    MOONSTREAM_API_URL,
+    MOONSTREAM_ENGINE_URL,
+    MOONSTREAM_LEADERBOARD_GENERATOR_BATCH_SIZE,
+    MOONSTREAM_LEADERBOARD_GENERATOR_PUSH_TIMEOUT_SECONDS,
+)
 
 
 logging.basicConfig()
@@ -101,3 +106,120 @@ def get_results_for_moonstream_query(
                 keep_going = num_retries <= max_retries
 
     return result
+
+
+def get_data_from_url(url):
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise Exception(f"Failed to get data: HTTP {response.status_code}")
+
+
+def chunk_data(data, chunk_size=100000):
+    for i in range(0, len(data), chunk_size):
+        yield data[i : i + chunk_size]
+
+
+def send_data_to_endpoint(chunks, endpoint_url, headers, timeout=10):
+    for index, chunk in enumerate(chunks):
+        try:
+            logger.info(f"Pushing chunk {index} to leaderboard API")
+            response = requests.put(
+                endpoint_url, headers=headers, json=chunk, timeout=timeout
+            )
+
+            response.raise_for_status()
+        except requests.exceptions.HTTPError as http_error:
+            logger.error(
+                f"Could not push results to leaderboard API: {http_error.response.text} with status code {http_error.response.status_code}"
+            )
+            continue
+
+
+def leaderboard_push_batch(
+    leaderboard_id: str,
+    leaderboard_config: Dict[str, Any],
+    data: List[Dict[str, Any]],
+    headers: Dict[str, str],
+    batch_size: int = MOONSTREAM_LEADERBOARD_GENERATOR_BATCH_SIZE,
+    timeout: int = 10,
+) -> None:
+    """
+    Push leaderboard data to the leaderboard API in batches.
+    """
+
+    ## first step create leaderboard version
+
+    leaderboard_version_api_url = (
+        f"{MOONSTREAM_ENGINE_URL}/leaderboard/{leaderboard_id}/versions"
+    )
+
+    json_data = {
+        "publish": False,
+    }
+
+    leaderboard_api_response = requests.post(
+        leaderboard_version_api_url, json=json_data, headers=headers, timeout=5
+    )
+
+    try:
+        leaderboard_api_response.raise_for_status()
+    except requests.exceptions.HTTPError as http_error:
+        logger.error(
+            f"Could not create leaderboard version: {http_error.response.text} with status code {http_error.response.status_code}"
+        )
+        return
+
+    leaderboard_version_id = leaderboard_api_response.json()["version"]
+
+    ## second step push data to leaderboard version
+
+    leaderboard_version_push_api_url = f"{MOONSTREAM_ENGINE_URL}/leaderboard/{leaderboard_id}/versions/{leaderboard_version_id}/scores?normalize_addresses={leaderboard_config['normalize_addresses']}&overwrite=false"
+
+    chunks = chunk_data(data, chunk_size=batch_size)
+
+    send_data_to_endpoint(
+        chunks, leaderboard_version_push_api_url, headers, timeout=timeout
+    )
+
+    ## third step publish leaderboard version
+
+    leaderboard_version_publish_api_url = f"{MOONSTREAM_ENGINE_URL}/leaderboard/{leaderboard_id}/versions/{leaderboard_version_id}"
+
+    json_data = {
+        "publish": True,
+    }
+
+    try:
+        leaderboard_api_response = requests.put(
+            leaderboard_version_publish_api_url,
+            json=json_data,
+            headers=headers,
+            timeout=5,
+        )
+
+        leaderboard_api_response.raise_for_status()
+    except requests.exceptions.HTTPError as http_error:
+        logger.error(
+            f"Could not publish leaderboard version: {http_error.response.text} with status code {http_error.response.status_code}"
+        )
+        return
+
+    ## delete leaderboard version -1
+
+    try:
+        leaderboard_version_delete_api_url = f"{MOONSTREAM_ENGINE_URL}/leaderboard/{leaderboard_id}/versions/{leaderboard_version_id - 1}"
+
+        leaderboard_api_response = requests.delete(
+            leaderboard_version_delete_api_url,
+            headers=headers,
+            timeout=5,
+        )
+
+        leaderboard_api_response.raise_for_status()
+    except requests.exceptions.HTTPError as http_error:
+        logger.error(
+            f"Could not delete leaderboard version: {http_error.response.text} with status code {http_error.response.status_code}"
+        )
+        return
