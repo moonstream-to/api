@@ -115,6 +115,10 @@ ZKSYNC_ERA_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE="zksync-era-historical-cra
 ZKSYNC_ERA_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE="zksync-era-historical-crawl-transactions.timer"
 ZKSYNC_ERA_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE="zksync-era-historical-crawl-events.service"
 ZKSYNC_ERA_HISTORICAL_CRAWL_EVENTS_TIMER_FILE="zksync-era-historical-crawl-events.timer"
+ZKSYNC_ERA_STATE_SERVICE_FILE="zksync-era-state.service"
+ZKSYNC_ERA_STATE_TIMER_FILE="zksync-era-state.timer"
+ZKSYNC_ERA_STATE_CLEAN_SERVICE_FILE="zksync-era-state-clean.service"
+ZKSYNC_ERA_STATE_CLEAN_TIMER_FILE="zksync-era-state-clean.timer"
 
 # ZkSync Era testnet
 ZKSYNC_ERA_TESTNET_SYNCHRONIZE_SERVICE="zksync-era-testnet-synchronize.service"
@@ -550,6 +554,23 @@ cp "${SCRIPT_DIR}/${ZKSYNC_ERA_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}" "/home/ubunt
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ZKSYNC_ERA_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
 
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing ZkSync Era state service and timer with: ${ZKSYNC_ERA_STATE_SERVICE_FILE}, ${ZKSYNC_ERA_STATE_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_SERVICE_FILE}" "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ZKSYNC_ERA_STATE_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ZKSYNC_ERA_STATE_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000"  systemctl --user restart --no-block "${ZKSYNC_ERA_STATE_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing ZkSync Era state clean service and timer with: ${ZKSYNC_ERA_STATE_CLEAN_SERVICE_FILE}, ${ZKSYNC_ERA_STATE_CLEAN_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_CLEAN_SERVICE_FILE}" "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_CLEAN_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_CLEAN_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ZKSYNC_ERA_STATE_CLEAN_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_CLEAN_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ZKSYNC_ERA_STATE_CLEAN_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000"  systemctl --user restart --no-block "${ZKSYNC_ERA_STATE_CLEAN_TIMER_FILE}"
 
 # ZkSync Era testnet
 echo
