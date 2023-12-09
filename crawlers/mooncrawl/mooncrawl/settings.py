@@ -241,6 +241,7 @@ multicall_contracts: Dict[AvailableBlockchainType, str] = {
     AvailableBlockchainType.POLYGON: "0xc8E51042792d7405184DfCa245F2d27B94D013b6",
     AvailableBlockchainType.MUMBAI: "0xe9939e7Ea7D7fb619Ac57f648Da7B1D425832631",
     AvailableBlockchainType.ETHEREUM: "0x5BA1e12693Dc8F9c48aAD8770482f4739bEeD696",
+    AvailableBlockchainType.ZKSYNC_ERA: "0xF9cda624FBC7e059355ce98a31693d299FACd963",
 }
 
 
