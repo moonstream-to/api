@@ -285,7 +285,7 @@ async def list_requests_route(
     limit: int = Query(100),
     offset: Optional[int] = Query(None),
     show_expired: bool = Query(False),
-    show_before_live_at: bool = Query(False),
+    live_after: Optional[int] = Query(None),
     user: Optional[BugoutUser] = Depends(request_none_or_user_auth),
     db_session: Session = Depends(db.yield_db_read_only_session),
 ) -> List[data.CallRequestResponse]:
@@ -303,7 +303,7 @@ async def list_requests_route(
             limit=limit,
             offset=offset,
             show_expired=show_expired,
-            show_before_live_at=show_before_live_at,
+            live_after=live_after,
             metatx_requester_id=user.id if user is not None else None,
         )
     except ValueError as e:

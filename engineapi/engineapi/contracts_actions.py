@@ -481,7 +481,7 @@ def list_call_requests(
     limit: int = 10,
     offset: Optional[int] = None,
     show_expired: bool = False,
-    show_before_live_at: bool = False,
+    live_after: Optional[int] = None,
     metatx_requester_id: Optional[uuid.UUID] = None,
 ) -> List[Row[Tuple[CallRequest, RegisteredContract, CallRequestType]]]:
     """
@@ -527,14 +527,16 @@ def list_call_requests(
         query = query.filter(
             CallRequest.metatx_requester_id == metatx_requester_id,
         )
-        if not show_before_live_at:
-            query = query.filter(
-                or_(CallRequest.live_at < func.now(), CallRequest.live_at == None)
-            )
     else:
         query = query.filter(
             or_(CallRequest.live_at < func.now(), CallRequest.live_at == None)
         )
+
+    if live_after is not None:
+        assert live_after == int(live_after)
+        if live_after <= 0:
+            raise ValueError("live_after must be positive")
+        query = query.filter(CallRequest.live_at >= datetime.fromtimestamp(live_after))
 
     if offset is not None:
         query = query.offset(offset)
