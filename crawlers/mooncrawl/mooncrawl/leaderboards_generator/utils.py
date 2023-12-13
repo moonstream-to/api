@@ -116,11 +116,6 @@ def get_data_from_url(url):
         raise Exception(f"Failed to get data: HTTP {response.status_code}")
 
 
-def chunk_data(data, chunk_size=100000):
-    for i in range(0, len(data), chunk_size):
-        yield data[i : i + chunk_size]
-
-
 def send_data_to_endpoint(chunks, endpoint_url, headers, timeout=10):
     for index, chunk in enumerate(chunks):
         try:
@@ -134,7 +129,7 @@ def send_data_to_endpoint(chunks, endpoint_url, headers, timeout=10):
             logger.error(
                 f"Could not push results to leaderboard API: {http_error.response.text} with status code {http_error.response.status_code}"
             )
-            continue
+            raise http_error
 
 
 def leaderboard_push_batch(
@@ -160,7 +155,7 @@ def leaderboard_push_batch(
     }
 
     leaderboard_api_response = requests.post(
-        leaderboard_version_api_url, json=json_data, headers=headers, timeout=5
+        leaderboard_version_api_url, json=json_data, headers=headers, timeout=10
     )
 
     try:
@@ -177,7 +172,7 @@ def leaderboard_push_batch(
 
     leaderboard_version_push_api_url = f"{MOONSTREAM_ENGINE_URL}/leaderboard/{leaderboard_id}/versions/{leaderboard_version_id}/scores?normalize_addresses={leaderboard_config['normalize_addresses']}&overwrite=false"
 
-    chunks = chunk_data(data, chunk_size=batch_size)
+    chunks = [data[x : x + batch_size] for x in range(0, len(data), batch_size)]
 
     send_data_to_endpoint(
         chunks, leaderboard_version_push_api_url, headers, timeout=timeout
@@ -196,7 +191,7 @@ def leaderboard_push_batch(
             leaderboard_version_publish_api_url,
             json=json_data,
             headers=headers,
-            timeout=5,
+            timeout=10,
         )
 
         leaderboard_api_response.raise_for_status()
@@ -214,7 +209,7 @@ def leaderboard_push_batch(
         leaderboard_api_response = requests.delete(
             leaderboard_version_delete_api_url,
             headers=headers,
-            timeout=5,
+            timeout=timeout,
         )
 
         leaderboard_api_response.raise_for_status()
