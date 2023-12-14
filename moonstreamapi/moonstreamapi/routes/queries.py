@@ -32,6 +32,7 @@ from ..settings import (
     MOONSTREAM_APPLICATION_ID,
     MOONSTREAM_CRAWLERS_SERVER_PORT,
     MOONSTREAM_CRAWLERS_SERVER_URL,
+    MOONSTREAM_INTERNAL_REQUEST_TIMEOUT_SECONDS,
     MOONSTREAM_QUERIES_JOURNAL_ID,
     MOONSTREAM_QUERY_TEMPLATE_CONTEXT_TYPE,
     MOONSTREAM_S3_QUERIES_BUCKET,
@@ -473,7 +474,7 @@ async def update_query_data_handler(
                     if request_update.blockchain
                     else None,
                 },
-                timeout=5,
+                timeout=MOONSTREAM_INTERNAL_REQUEST_TIMEOUT_SECONDS,
             )
         except Exception as e:
             logger.error(f"Error interaction with crawlers: {str(e)}")
