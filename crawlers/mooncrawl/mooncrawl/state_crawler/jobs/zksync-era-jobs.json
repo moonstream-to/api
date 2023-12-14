@@ -71,5 +71,20 @@
         "address": "0xDFAaB828f5F515E104BaaBa4d8D554DA9096f0e4",
         "stateMutability": "view",
         "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [],
+        "name": "totalSupply",
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function",
+        "address": "0xDFAaB828f5F515E104BaaBa4d8D554DA9096f0e4"
     }
 ]
