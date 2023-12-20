@@ -82,7 +82,6 @@ MUMBAI_HISTORICAL_CRAWL_EVENTS_TIMER_FILE="mumbai-historical-crawl-events.timer"
 XDAI_SYNCHRONIZE_SERVICE="xdai-synchronize.service"
 XDAI_MISSING_SERVICE_FILE="xdai-missing.service"
 XDAI_MISSING_TIMER_FILE="xdai-missing.timer"
-
 XDAI_MOONWORM_CRAWLER_SERVICE_FILE="xdai-moonworm-crawler.service"
 XDai_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE="xdai-historical-crawl-transactions.service"
 XDai_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE="xdai-historical-crawl-transactions.timer"
