@@ -1029,7 +1029,7 @@ def get_leaderboard_info(
         version_number=version_number,
     )
 
-    query = (
+    leaderboard = (
         db_session.query(
             Leaderboard.id,
             Leaderboard.title,
@@ -1052,19 +1052,12 @@ def get_leaderboard_info(
             isouter=True,
         )
         .filter(
-            or_(
-                LeaderboardVersion.published == None,
-                and_(
-                    LeaderboardVersion.published == True,
-                    LeaderboardVersion.version_number == latest_version,
-                ),
-            )
+            LeaderboardVersion.published == True,
+            LeaderboardVersion.version_number == latest_version,
         )
         .filter(Leaderboard.id == leaderboard_id)
         .group_by(Leaderboard.id, Leaderboard.title, Leaderboard.description)
-    )
-
-    leaderboard = query.one()
+    ).one()
 
     return leaderboard
 
