@@ -39,6 +39,15 @@ def parse_boolean_arg(raw_arg: Optional[str]) -> Optional[bool]:
     return False
 
 
+def get_moonworm_tasks_report(args: argparse.Namespace) -> str:
+    repot = moonworm_tasks.get_moonworm_tasks_state(
+        blockchain=args.blockchain,
+    )
+
+    with open("moonworm_tasks_report.json", "w") as f:
+        json.dump(repot, f, indent=4)
+
+
 def migration_run(step_map, command, step, step_order):
     if step is None:
         # run all steps
@@ -477,6 +486,58 @@ This CLI is configured to work with the following API URLs:
     )
 
     parser_moonworm_tasks_add.set_defaults(func=moonworm_tasks_add_subscription_handler)
+
+    parser_moonworm_tasks_report = subcommands_moonworm_tasks.add_parser(
+        "report", description="Return report of moonworm tasks."
+    )
+
+    parser_moonworm_tasks_report.add_argument(
+        "-b",
+        "--blockchain",
+        type=str,
+        help="Blockchain for report.",
+    )
+
+    parser_moonworm_tasks_report.set_defaults(func=get_moonworm_tasks_report)
+
+    parser_moonworm_tasks_manage = subcommands_moonworm_tasks.add_parser(
+        "manage", description="Manage moonworm tasks."
+    )
+
+    parser_moonworm_tasks_manage.add_argument(
+        "-a",
+        "--action",
+        type=str,
+        choices=["view", "delete", "restart", "mark_as_finished"],
+        default="view",
+        help="Action to perform on the tasks (view, delete, restart, mark_as_finished).",
+    )
+
+    # Add argument for specifying the blockchain
+    parser_moonworm_tasks_manage.add_argument(
+        "-b", "--blockchain", type=str, required=True, help="Blockchain for the tasks."
+    )
+
+    # Add argument for specifying the addresses
+    parser_moonworm_tasks_manage.add_argument(
+        "-ad",
+        "--addresses",
+        nargs="+",
+        required=True,
+        help="List of addresses associated with the tasks.",
+    )
+
+    # Add argument for specifying the task type
+    parser_moonworm_tasks_manage.add_argument(
+        "-t",
+        "--task-type",
+        type=str,
+        help="Type of the tasks (event or function).",
+    )
+
+    parser_moonworm_tasks_manage.set_defaults(
+        func=moonworm_tasks.moonworm_tasks_manage_handler
+    )
 
     queries_parser = subcommands.add_parser(
         "queries", description="Manage Moonstream queries"
