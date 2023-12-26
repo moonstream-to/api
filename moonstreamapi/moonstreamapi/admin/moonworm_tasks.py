@@ -6,7 +6,7 @@ from typing import List, Optional, Literal
 import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
-
+from web3 import Web3  # type: ignore
 
 from ..actions import get_all_entries_from_search, apply_moonworm_tasks
 from ..settings import MOONSTREAM_ADMIN_ACCESS_TOKEN, MOONSTREAM_MOONWORM_TASKS_JOURNAL
@@ -156,6 +156,16 @@ def moonworm_tasks_manage_handler(args):
     print(
         f"Managing moonworm tasks with action: {args.action}, blockchain: {args.blockchain}, addresses: {args.addresses}, task type: {args.task_type}"
     )
+
+    addresses = []
+
+    if args.addresses:
+        for address in args.addresses:
+            if Web3.isAddress(address):
+                addresses.append(Web3.toChecksumAddress(address))
+            else:
+                logger.error(f"Address {address} is not valid")
+
     return manage_moonworm_tasks(
         journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -191,7 +201,9 @@ def get_moonworm_tasks_by_filters(
     search_query = f"#subscription_type:{blockchain_to_subscription_type[blockchain]} #moonworm_task_pickedup:True"
 
     if addresses:
-        search_query += " " + " ".join([f"#address:{address}" for address in addresses])
+        search_query += " " + " ".join(
+            [f"?#address:{address}" for address in addresses]
+        )
 
     if task_type:
         search_query += f" #type:{task_type}"
