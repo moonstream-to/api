@@ -1222,6 +1222,43 @@ def get_position(
     return query.all()
 
 
+def get_leaderboard_score(
+    db_session: Session,
+    leaderboard_id,
+    address,
+    version_number: Optional[int] = None,
+) -> Optional[LeaderboardScores]:
+    """
+    Return address score
+    """
+
+    latest_version = leaderboard_version_filter(
+        db_session=db_session,
+        leaderboard_id=leaderboard_id,
+        version_number=version_number,
+    )
+
+    query = (
+        db_session.query(LeaderboardScores)
+        .join(
+            LeaderboardVersion,
+            and_(
+                LeaderboardVersion.leaderboard_id == LeaderboardScores.leaderboard_id,
+                LeaderboardVersion.version_number
+                == LeaderboardScores.leaderboard_version_number,
+            ),
+        )
+        .filter(
+            LeaderboardVersion.published == True,
+            LeaderboardVersion.version_number == latest_version,
+        )
+        .filter(LeaderboardScores.leaderboard_id == leaderboard_id)
+        .filter(LeaderboardScores.address == address)
+    )
+
+    return query.one_or_none()
+
+
 def get_leaderboard_positions(
     db_session: Session,
     leaderboard_id,

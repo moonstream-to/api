@@ -60,6 +60,7 @@ leaderboard_whitelist = {
     "/leaderboard/": "GET",
     "/leaderboard/rank": "GET",
     "/leaderboard/ranks": "GET",
+    "/leaderboard/scores": "GET",
     "/scores/changes": "GET",
     "/leaderboard/docs": "GET",
     "/leaderboard/openapi.json": "GET",
@@ -617,6 +618,57 @@ async def ranks(
         for rank in ranks
     ]
     return results
+
+
+@app.get(
+    "/scores",
+    response_model=data.LeaderboardScore,
+    tags=["Public Endpoints"],
+)
+async def leaderboard_score(
+    address: str = Query(..., description="Address to get position for."),
+    leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
+    version: Optional[int] = Query(None, description="Version of the leaderboard."),
+    normalize_addresses: bool = Query(
+        True, description="Normalize addresses to checksum."
+    ),
+    db_session: Session = Depends(db.yield_db_session),
+) -> data.LeaderboardScore:
+    """
+    Returns the leaderboard posotion for the given address.
+    """
+
+    ### Check if leaderboard exists
+    try:
+        actions.get_leaderboard_by_id(db_session, leaderboard_id)
+    except NoResultFound as e:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Leaderboard not found.",
+        )
+    except Exception as e:
+        logger.error(f"Error while getting leaderboard: {e}")
+        raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+    if normalize_addresses:
+        address = Web3.toChecksumAddress(address)
+
+    score = actions.get_leaderboard_score(
+        db_session,
+        leaderboard_id,
+        address,
+        version,
+    )
+
+    if score is None:
+        raise EngineHTTPException(status_code=204, detail="Score not found.")
+
+    return data.LeaderboardScore(
+        leaderboard_id=score.leaderboard_id,
+        address=score.address,
+        score=score.score,
+        points_data=score.points_data,
+    )
 
 
 @app.put(
