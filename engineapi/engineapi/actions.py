@@ -1029,7 +1029,7 @@ def get_leaderboard_info(
         version_number=version_number,
     )
 
-    leaderboard = (
+    query = (
         db_session.query(
             Leaderboard.id,
             Leaderboard.title,
@@ -1038,26 +1038,33 @@ def get_leaderboard_info(
             func.max(LeaderboardScores.updated_at).label("last_update"),
         )
         .join(
-            LeaderboardScores,
-            LeaderboardScores.leaderboard_id == Leaderboard.id,
+            LeaderboardVersion,
+            and_(
+                LeaderboardVersion.leaderboard_id == Leaderboard.id,
+                LeaderboardVersion.published == True,
+            ),
             isouter=True,
         )
         .join(
-            LeaderboardVersion,
+            LeaderboardScores,
             and_(
-                LeaderboardVersion.leaderboard_id == LeaderboardScores.leaderboard_id,
-                LeaderboardVersion.version_number
-                == LeaderboardScores.leaderboard_version_number,
+                LeaderboardScores.leaderboard_id == Leaderboard.id,
+                LeaderboardScores.leaderboard_version_number
+                == LeaderboardVersion.version_number,
             ),
             isouter=True,
         )
         .filter(
-            LeaderboardVersion.published == True,
-            LeaderboardVersion.version_number == latest_version,
+            or_(
+                LeaderboardVersion.published == None,
+                LeaderboardVersion.version_number == latest_version,
+            )
         )
         .filter(Leaderboard.id == leaderboard_id)
         .group_by(Leaderboard.id, Leaderboard.title, Leaderboard.description)
-    ).one()
+    )
+
+    leaderboard = query.one()
 
     return leaderboard
 
