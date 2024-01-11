@@ -39,7 +39,7 @@ chown ubuntu:ubuntu "/home/ubuntu/monitoring"
 echo
 echo
 echo -e "${PREFIX_INFO} Retrieving monitoring deployment parameters"
-AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" /home/ubuntu/go/bin/checkenv show aws_ssm+crawlers:true,monitoring:true > "${PARAMETERS_ENV_MONITORING_PATH}"
+AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" /home/ubuntu/go/bin/checkenv show aws_ssm+service:true,monitoring:true > "${PARAMETERS_ENV_MONITORING_PATH}"
 chmod 0640 "${PARAMETERS_ENV_MONITORING_PATH}"
 
 echo
@@ -49,7 +49,7 @@ echo "AWS_LOCAL_IPV4=$(ec2metadata --local-ipv4)" >> "${PARAMETERS_ENV_MONITORIN
 
 echo
 echo
-echo -e "${PREFIX_INFO} Add AWS default region to monitring parameters"
+echo -e "${PREFIX_INFO} Add AWS default region to monitoring parameters"
 echo "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}" >> "${PARAMETERS_ENV_MONITORING_PATH}"
 
 echo
