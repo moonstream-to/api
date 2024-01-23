@@ -241,7 +241,7 @@ func (bpool *BlockchainPool) HealthCheck() {
 			}
 
 			var blockNumber uint64
-			if b.Blockchain == "starknet" {
+			if b.Blockchain == "starknet" || b.Blockchain == "starknet-goerli" {
 				blockNumber = statusResponse.Result.BlockNumber
 			} else {
 				blockNumberHex := strings.Replace(statusResponse.Result.Number, "0x", "", -1)
