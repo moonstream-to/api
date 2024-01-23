@@ -38,7 +38,7 @@ var (
 
 	NB_CONNECTION_RETRIES          = 2
 	NB_CONNECTION_RETRIES_INTERVAL = time.Millisecond * 10
-	NB_HEALTH_CHECK_INTERVAL       = time.Millisecond * 5000
+	NB_HEALTH_CHECK_INTERVAL       = os.Getenv("NB_HEALTH_CHECK_INTERVAL")
 	NB_HEALTH_CHECK_CALL_TIMEOUT   = time.Second * 2
 
 	NB_CACHE_CLEANING_INTERVAL          = time.Second * 10
