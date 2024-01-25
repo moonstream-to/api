@@ -25,6 +25,7 @@ from ..actions import (
     get_query_by_name,
     name_normalization,
     query_parameter_hash,
+    create_resource_for_user,
 )
 from ..middleware import MoonstreamHTTPException
 from ..settings import (
@@ -130,24 +131,16 @@ async def create_query_handler(
     except Exception as e:
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
-    try:
-        # create resource query_name_resolver
-        bc.create_resource(
-            token=token,
-            application_id=MOONSTREAM_APPLICATION_ID,
-            resource_data={
-                "type": data.BUGOUT_RESOURCE_QUERY_RESOLVER,
-                "user_id": str(user.id),
-                "user": str(user.username),
-                "name": query_name,
-                "entry_id": str(entry.id),
-            },
-        )
-    except BugoutResponseException as e:
-        logger.error(f"Error creating name resolving resource: {str(e)}")
-        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
-    except Exception as e:
-        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+    create_resource_for_user(
+        user_id=user.id,
+        resource_data={
+            "type": data.BUGOUT_RESOURCE_QUERY_RESOLVER,
+            "user_id": str(user.id),
+            "user": str(user.username),
+            "name": query_name,
+            "entry_id": str(entry.id),
+        },
+    )
 
     try:
         bc.update_tags(
@@ -355,7 +348,7 @@ async def update_query_handler(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             journal_id=MOONSTREAM_QUERIES_JOURNAL_ID,
             entry_id=query_id,
-            title=query_name,
+            title=f"Query:{query_name}",
             content=request_update.query,
             tags=["preapprove"],
         )
@@ -620,7 +613,9 @@ async def remove_query_handler(
         raise MoonstreamHTTPException(status_code=404, detail="Query does not exists")
 
     try:
-        bc.delete_resource(token=token, resource_id=query_ids[query_name][0])
+        bc.delete_resource(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN, resource_id=query_ids[query_name][0]
+        )
     except BugoutResponseException as e:
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:

@@ -15,6 +15,9 @@ from bugout.data import (
     BugoutResources,
     BugoutSearchResult,
     BugoutSearchResults,
+    BugoutResourceHolder,
+    HolderType,
+    ResourcePermissions,
 )
 from bugout.exceptions import BugoutResponseException
 from bugout.journal import SearchOrder
@@ -952,3 +955,55 @@ def check_if_smart_contract(
         is_contract = True
 
     return blockchain_type, address, is_contract
+
+
+def create_resource_for_user(
+    user_id: uuid.UUID,
+    resource_data: Dict[str, Any],
+) -> BugoutResource:
+    """
+    Create resource for user
+    """
+    try:
+        resource = bc.create_resource(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            application_id=MOONSTREAM_APPLICATION_ID,
+            resource_data=resource_data,
+        )
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        logger.error(f"Error creating resource: {str(e)}")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    try:
+        bc.add_resource_holder_permissions(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            resource_id=resource.id,
+            holder_permissions=BugoutResourceHolder(
+                holder_type=HolderType.user,
+                holder_id=user_id,
+                permission_list=[
+                    ResourcePermissions.ADMIN,
+                    ResourcePermissions.READ,
+                    ResourcePermissions.UPDATE,
+                    ResourcePermissions.DELETE,
+                ],
+            ),
+        )
+    except BugoutResponseException as e:
+        logger.error(
+            f"Error adding resource holder permissions to resource resource {str(resource.id)}  {str(e)}"
+        )
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        bc.delete_resource(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            resource_id=resource.id,
+        )
+        logger.error(
+            f"Error adding resource holder permissions to resource {str(resource.id)}  {str(e)}"
+        )
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    return resource
