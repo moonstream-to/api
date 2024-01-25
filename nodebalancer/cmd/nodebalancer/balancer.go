@@ -198,7 +198,7 @@ func (bpool *BlockchainPool) HealthCheck() {
 	for _, b := range bpool.Blockchains {
 		var timeout time.Duration
 		getLatestBlockReq := `{"jsonrpc":"2.0","method":"eth_getBlockByNumber","params":["latest", false],"id":1}`
-		if b.Blockchain == "starknet" {
+		if b.Blockchain == "starknet" || b.Blockchain == "starknet-goerli" {
 			getLatestBlockReq = `{"jsonrpc":"2.0","method":"starknet_getBlockWithTxHashes","params":["latest"],"id":"0"}`
 			timeout = NB_HEALTH_CHECK_CALL_TIMEOUT * 2
 		}
@@ -241,7 +241,7 @@ func (bpool *BlockchainPool) HealthCheck() {
 			}
 
 			var blockNumber uint64
-			if b.Blockchain == "starknet" {
+			if b.Blockchain == "starknet" || b.Blockchain == "starknet-goerli" {
 				blockNumber = statusResponse.Result.BlockNumber
 			} else {
 				blockNumberHex := strings.Replace(statusResponse.Result.Number, "0x", "", -1)

@@ -90,7 +90,7 @@
                     "query_url": "twilight_tactics_players",
                     "blockchain": "mumbai",
                     "params": {
-                        "season_id": "1"
+                        "address": "0x665B8Db5b9E3b396e2Ccb0Bd768dc74fC47Ec20D"
                     },
                     "keys": [
                         "player"

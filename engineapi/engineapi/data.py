@@ -470,3 +470,15 @@ class LeaderboardConfigUpdate(BaseModel):
     query_name: Optional[str] = None
     params: Dict[str, int]
     normalize_addresses: Optional[bool] = None
+
+
+class LeaderboardVersion(BaseModel):
+    leaderboard_id: UUID
+    version: int
+    published: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+class LeaderboardVersionRequest(BaseModel):
+    publish: bool
