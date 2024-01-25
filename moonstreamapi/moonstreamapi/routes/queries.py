@@ -30,7 +30,6 @@ from ..actions import (
 from ..middleware import MoonstreamHTTPException
 from ..settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
-    MOONSTREAM_APPLICATION_ID,
     MOONSTREAM_CRAWLERS_SERVER_PORT,
     MOONSTREAM_CRAWLERS_SERVER_URL,
     MOONSTREAM_INTERNAL_REQUEST_TIMEOUT_SECONDS,

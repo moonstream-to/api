@@ -5,7 +5,13 @@ from typing import List, Any, Optional, Dict, Union, Tuple, cast
 import uuid
 import logging
 
-from bugout.data import BugoutResource, BugoutSearchResult
+from bugout.data import (
+    BugoutResource,
+    BugoutSearchResult,
+    ResourcePermissions,
+    HolderType,
+    BugoutResourceHolder,
+)
 from eth_typing import Address
 from hexbytes import HexBytes
 import requests  # type: ignore
@@ -93,6 +99,10 @@ class LeaderboardConfigAlreadyInactive(Exception):
 
 
 class LeaderboardVersionNotFound(Exception):
+    pass
+
+
+class LeaderboardAssignResourceError(Exception):
     pass
 
 
@@ -1486,26 +1496,25 @@ def create_leaderboard(
     Create a leaderboard
     """
 
-    if not token:
-        token = uuid.UUID(MOONSTREAM_ADMIN_ACCESS_TOKEN)
     try:
         leaderboard = Leaderboard(title=title, description=description)
         db_session.add(leaderboard)
         db_session.commit()
 
+        user = None
+        if token is not None:
+            user = bc.get_user(token=token)
+
         resource = create_leaderboard_resource(
             leaderboard_id=str(leaderboard.id),
-            token=token,
+            user_id=str(user.id) if user is not None else None,
         )
-
         leaderboard.resource_id = resource.id
-
         db_session.commit()
     except Exception as e:
         db_session.rollback()
         logger.error(f"Error creating leaderboard: {e}")
         raise LeaderboardCreateError(f"Error creating leaderboard: {e}")
-
     return leaderboard
 
 
@@ -1659,37 +1668,61 @@ def add_scores(
 # leaderboard access actions
 
 
-def create_leaderboard_resource(
-    leaderboard_id: str, token: Union[Optional[uuid.UUID], str] = None
-) -> BugoutResource:
+def create_leaderboard_resource(leaderboard_id: str, user_id: Optional[str] = None):
     resource_data: Dict[str, Any] = {
         "type": LEADERBOARD_RESOURCE_TYPE,
         "leaderboard_id": leaderboard_id,
     }
 
-    if token is None:
-        token = MOONSTREAM_ADMIN_ACCESS_TOKEN
     try:
         resource = bc.create_resource(
-            token=token,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             application_id=MOONSTREAM_APPLICATION_ID,
             resource_data=resource_data,
             timeout=10,
         )
     except Exception as e:
         raise LeaderboardCreateError(f"Error creating leaderboard resource: {e}")
+
+    if user_id is not None:
+        try:
+            bc.add_resource_holder_permissions(
+                token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                resource_id=resource.id,
+                holder_permissions=BugoutResourceHolder(
+                    holder_type=HolderType.user,
+                    holder_id=user_id,
+                    permission_list=[
+                        ResourcePermissions.ADMIN,
+                        ResourcePermissions.READ,
+                        ResourcePermissions.UPDATE,
+                        ResourcePermissions.DELETE,
+                    ],
+                ),
+            )
+        except Exception as e:
+            raise LeaderboardCreateError(
+                f"Error adding resource holder permissions: {e}"
+            )
+
     return resource
 
 
 def assign_resource(
     db_session: Session,
     leaderboard_id: uuid.UUID,
-    user_token: Union[uuid.UUID, str],
+    user_token: Optional[Union[uuid.UUID, str]] = None,
     resource_id: Optional[uuid.UUID] = None,
 ):
     """
     Assign a resource handler to a leaderboard
     """
+
+    ### get user_name from token
+
+    user = None
+    if user_token is not None:
+        user = bc.get_user(token=user_token)
 
     leaderboard = (
         db_session.query(Leaderboard).filter(Leaderboard.id == leaderboard_id).one()  # type: ignore
@@ -1698,11 +1731,8 @@ def assign_resource(
     if resource_id is not None:
         leaderboard.resource_id = resource_id
     else:
-        # Create resource via admin token
-
         resource = create_leaderboard_resource(
-            leaderboard_id=str(leaderboard_id),
-            token=user_token,
+            leaderboard_id=str(leaderboard_id), user_id=user.id
         )
 
         leaderboard.resource_id = resource.id

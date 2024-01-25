@@ -714,11 +714,7 @@ def generate_journal_for_user(
     }
 
     try:
-        bc.create_resource(
-            token=token,
-            application_id=MOONSTREAM_APPLICATION_ID,
-            resource_data=resource_data,
-        )
+        create_resource_for_user(user_id=user_id, resource_data=resource_data)
     except BugoutResponseException as e:
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
