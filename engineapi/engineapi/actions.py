@@ -1692,7 +1692,7 @@ def create_leaderboard_resource(leaderboard_id: str, user_id: Optional[str] = No
                 holder_permissions=BugoutResourceHolder(
                     holder_type=HolderType.user,
                     holder_id=user_id,
-                    permission_list=[
+                    permissions=[
                         ResourcePermissions.ADMIN,
                         ResourcePermissions.READ,
                         ResourcePermissions.UPDATE,

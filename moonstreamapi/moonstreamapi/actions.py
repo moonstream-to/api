@@ -850,6 +850,8 @@ def get_list_of_support_interfaces(
     Returns list of interfaces supported by given address
     """
 
+    result = {}
+
     try:
         _, _, is_contract = check_if_smart_contract(
             blockchain_type=blockchain_type, address=address, user_token=user_token
@@ -864,8 +866,6 @@ def get_list_of_support_interfaces(
             address=Web3.toChecksumAddress(address),
             abi=supportsInterface_abi,
         )
-
-        result = {}
 
         if blockchain_type in multicall_contracts:
             calls = []
@@ -979,7 +979,7 @@ def create_resource_for_user(
             holder_permissions=BugoutResourceHolder(
                 holder_type=HolderType.user,
                 holder_id=user_id,
-                permission_list=[
+                permissions=[
                     ResourcePermissions.ADMIN,
                     ResourcePermissions.READ,
                     ResourcePermissions.UPDATE,
