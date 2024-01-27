@@ -1,7 +1,7 @@
 """leaderboard metadata
 
 Revision ID: 71e888082a6d
-Revises: 040f2dfde5a5
+Revises: cc80e886e153
 Create Date: 2023-11-15 13:21:16.108399
 
 """
@@ -11,7 +11,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = "71e888082a6d"
-down_revision = "040f2dfde5a5"
+down_revision = "cc80e886e153"
 branch_labels = None
 depends_on = None
 
@@ -36,10 +36,7 @@ def upgrade():
     op.add_column(
         "leaderboards",
         sa.Column(
-            "columns_names",
-            postgresql.JSONB(astext_type=sa.Text()),
-            nullable=True,
-            server_default="{}",
+            "columns_names", postgresql.JSONB(astext_type=sa.Text()), nullable=True
         ),
     )
     # ### end Alembic commands ###

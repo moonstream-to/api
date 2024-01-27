@@ -1573,7 +1573,6 @@ def update_leaderboard(
     wallet_connect: Optional[bool],
     blockchain_ids: Optional[List[int]],
     columns_names: Optional[ColumnsNames],
-    delete_names,
 ) -> Leaderboard:
     """
     Update a leaderboard

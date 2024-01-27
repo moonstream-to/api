@@ -370,7 +370,7 @@ class ColumnsNames(BaseModel):
     address: Optional[str] = None
     score: Optional[str] = None
     points_data: Optional[str] = None
-    points_data_fields: Dict[str, str] = Field(default_factory=dict)
+    points_data_fields: Optional[Dict[str, str]] = None
 
 
 class Leaderboard(BaseModel):
@@ -380,7 +380,7 @@ class Leaderboard(BaseModel):
     resource_id: Optional[UUID] = None
     wallet_connect: bool = False
     blockchain_ids: List[int] = Field(default_factory=list)
-    columns_names: ColumnsNames = Field(default_factory=ColumnsNames)
+    columns_names: Optional[ColumnsNames] = None
     created_at: datetime
     updated_at: datetime
 
