@@ -965,6 +965,7 @@ def create_resource_for_user(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             application_id=MOONSTREAM_APPLICATION_ID,
             resource_data=resource_data,
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
         )
     except BugoutResponseException as e:
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
@@ -986,6 +987,7 @@ def create_resource_for_user(
                     ResourcePermissions.DELETE,
                 ],
             ),
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
         )
     except BugoutResponseException as e:
         logger.error(
