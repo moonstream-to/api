@@ -108,27 +108,6 @@ BATCH_SIGNATURE_PAGE_SIZE = 500
 logger = logging.getLogger(__name__)
 
 
-def get_default_columns_names(columns_names: Optional[Dict[str, str]] = {}):
-    default_columns_names = {}
-
-    # Retrieve ordered list of field names from LeaderboardPosition
-    ordered_fields = list(LeaderboardPosition.__annotations__.keys())
-
-    # Mapping these to the corresponding columns in LeaderboardUnformattedPosition
-    for index, field_name in enumerate(ordered_fields, start=1):
-        # Construct the column name like "column_1", "column_2", etc.
-        column_name = f"column_{index}"
-
-        # If custom column name is provided in columns_names, use it
-        if columns_names and field_name in columns_names:
-            default_columns_names[column_name] = columns_names[field_name]
-        else:
-            # Otherwise, use the default field name in title case
-            default_columns_names[column_name] = field_name.replace("_", " ").title()
-
-    return default_columns_names
-
-
 def create_dropper_contract(
     db_session: Session,
     blockchain: Optional[str],
