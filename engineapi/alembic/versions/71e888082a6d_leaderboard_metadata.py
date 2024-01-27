@@ -38,7 +38,7 @@ def upgrade():
         sa.Column(
             "columns_names",
             postgresql.JSONB(astext_type=sa.Text()),
-            nullable=False,
+            nullable=True,
             server_default="{}",
         ),
     )

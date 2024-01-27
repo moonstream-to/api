@@ -22,7 +22,7 @@ from .data import (
     LeaderboardConfigUpdate,
     LeaderboardConfig,
     LeaderboardPosition,
-    LeaderboardUnformattedPosition,
+    ColumnsNames,
 )
 from .contracts import Dropper_interface, ERC20_interface, Terminus_interface
 from .models import (
@@ -1296,7 +1296,7 @@ def get_leaderboard_score(
 
 def get_leaderboard_positions(
     db_session: Session,
-    leaderboard_id,
+    leaderboard_id: uuid.UUID,
     limit: int,
     offset: int,
     version_number: Optional[int] = None,
@@ -1511,14 +1511,14 @@ def create_leaderboard(
     token: Optional[Union[uuid.UUID, str]] = None,
     wallet_connect: bool = False,
     blockchain_ids: List[int] = [],
-    columns_names: Optional[Dict[str, str]] = {},
+    columns_names: ColumnsNames = None,
 ) -> Leaderboard:
     """
     Create a leaderboard
     """
 
-    if len(columns_names) > 0:
-        columns_names = get_default_columns_names(columns_names)
+    if columns_names is not None:
+        columns_names = columns_names.dict()
 
     if not token:
         token = uuid.UUID(MOONSTREAM_ADMIN_ACCESS_TOKEN)
@@ -1593,7 +1593,8 @@ def update_leaderboard(
     description: Optional[str],
     wallet_connect: Optional[bool],
     blockchain_ids: Optional[List[int]],
-    columns_names: Optional[Dict[str, str]],
+    columns_names: Optional[ColumnsNames],
+    delete_names,
 ) -> Leaderboard:
     """
     Update a leaderboard
@@ -1615,8 +1616,15 @@ def update_leaderboard(
         leaderboard.blockchain_ids = blockchain_ids
 
     if columns_names is not None:
-        columns_names = get_default_columns_names(columns_names)
-        leaderboard.columns_names = columns_names
+        if leaderboard.columns_names is not None:
+            current_columns_names = ColumnsNames(**leaderboard.columns_names)
+
+            for key, value in columns_names.dict(exclude_none=True).items():
+                setattr(current_columns_names, key, value)
+        else:
+            current_columns_names = columns_names
+
+        leaderboard.columns_names = current_columns_names.dict()
 
     db_session.commit()
 

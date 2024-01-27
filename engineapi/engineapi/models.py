@@ -350,7 +350,7 @@ class Leaderboard(Base):  # type: ignore
     blockchain_ids = Column(ARRAY(Integer), nullable=False, default=[])
 
     wallet_connect = Column(Boolean, default=False, nullable=False)
-    columns_names = Column(JSONB, nullable=False, default={})
+    columns_names = Column(JSONB, nullable=True, default={})
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )

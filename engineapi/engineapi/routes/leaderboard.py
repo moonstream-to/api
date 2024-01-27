@@ -90,16 +90,12 @@ app.add_middleware(
 
 @app.get(
     "",
-    response_model=Union[
-        List[data.LeaderboardPosition], List[data.LeaderboardUnformattedPosition]
-    ],
+    response_model=List[data.LeaderboardPosition],
     tags=["Public Endpoints"],
 )
 @app.get(
     "/",
-    response_model=Union[
-        List[data.LeaderboardPosition], List[data.LeaderboardUnformattedPosition]
-    ],
+    response_model=List[data.LeaderboardPosition],
     tags=["Public Endpoints"],
 )
 async def leaderboard(
@@ -126,29 +122,18 @@ async def leaderboard(
         raise EngineHTTPException(status_code=500, detail="Internal server error")
 
     leaderboard_positions = actions.get_leaderboard_positions(
-        db_session, leaderboard_id, limit, offset, version
+        db_session, leaderboard.id, limit, offset, version
     )
-    if len(leaderboard.columns_names) > 0:
-        result = [
-            data.LeaderboardUnformattedPosition(
-                column_1=position[1],
-                column_2=position[2],
-                column_3=position[4],
-                column_4=position[3],
-            )
-            for position in leaderboard_positions
-        ]
 
-    else:
-        result = [
-            data.LeaderboardPosition(
-                address=position.address,
-                score=position.score,
-                rank=position.rank,
-                points_data=position.points_data,
-            )
-            for position in leaderboard_positions
-        ]
+    result = [
+        data.LeaderboardPosition(
+            address=position.address,
+            score=position.score,
+            rank=position.rank,
+            points_data=position.points_data,
+        )
+        for position in leaderboard_positions
+    ]
 
     return result
 
@@ -198,15 +183,15 @@ async def create_leaderboard(
     # Add resource to the leaderboard
 
     return data.LeaderboardCreatedResponse(
-        id=created_leaderboard.id,  # type: ignore
-        title=created_leaderboard.title,  # type: ignore
-        description=created_leaderboard.description,  # type: ignore
-        resource_id=created_leaderboard.resource_id,  # type: ignore
-        wallet_connect=created_leaderboard.wallet_connect,  # type: ignore
-        blockchain_ids=created_leaderboard.blockchain_ids,  # type: ignore
-        columns_names=created_leaderboard.columns_names,  # type: ignore
-        created_at=created_leaderboard.created_at,  # type: ignore
-        updated_at=created_leaderboard.updated_at,  # type: ignore
+        id=created_leaderboard.id,
+        title=created_leaderboard.title,
+        description=created_leaderboard.description,
+        resource_id=created_leaderboard.resource_id,
+        wallet_connect=created_leaderboard.wallet_connect,
+        blockchain_ids=created_leaderboard.blockchain_ids,
+        columns_names=created_leaderboard.columns_names,
+        created_at=created_leaderboard.created_at,
+        updated_at=created_leaderboard.updated_at,
     )
 
 
@@ -266,15 +251,15 @@ async def update_leaderboard(
         raise EngineHTTPException(status_code=500, detail="Internal server error")
 
     return data.LeaderboardUpdatedResponse(
-        id=updated_leaderboard.id,  # type: ignore
-        title=updated_leaderboard.title,  # type: ignore
-        description=updated_leaderboard.description,  # type: ignore
-        resource_id=updated_leaderboard.resource_id,  # type: ignore
-        wallet_connect=updated_leaderboard.wallet_connect,  # type: ignore
-        blockchain_ids=updated_leaderboard.blockchain_ids,  # type: ignore
-        columns_names=updated_leaderboard.columns_names,  # type: ignore
-        created_at=updated_leaderboard.created_at,  # type: ignore
-        updated_at=updated_leaderboard.updated_at,  # type: ignore
+        id=updated_leaderboard.id,
+        title=updated_leaderboard.title,
+        description=updated_leaderboard.description,
+        resource_id=updated_leaderboard.resource_id,
+        wallet_connect=updated_leaderboard.wallet_connect,
+        blockchain_ids=updated_leaderboard.blockchain_ids,
+        columns_names=updated_leaderboard.columns_names,
+        created_at=updated_leaderboard.created_at,
+        updated_at=updated_leaderboard.updated_at,
     )
 
 
@@ -329,15 +314,15 @@ async def delete_leaderboard(
         raise EngineHTTPException(status_code=500, detail="Internal server error")
 
     return data.LeaderboardDeletedResponse(
-        id=deleted_leaderboard.id,  # type: ignore
-        title=deleted_leaderboard.title,  # type: ignore
-        description=deleted_leaderboard.description,  # type: ignore
-        resource_id=deleted_leaderboard.resource_id,  # type: ignore
-        wallet_connect=deleted_leaderboard.wallet_connect,  # type: ignore
-        blockchain_ids=deleted_leaderboard.blockchain_ids,  # type: ignore
-        columns_names=deleted_leaderboard.columns_names,  # type: ignore
-        created_at=deleted_leaderboard.created_at,  # type: ignore
-        updated_at=deleted_leaderboard.updated_at,  # type: ignore
+        id=deleted_leaderboard.id,
+        title=deleted_leaderboard.title,
+        description=deleted_leaderboard.description,
+        resource_id=deleted_leaderboard.resource_id,
+        wallet_connect=deleted_leaderboard.wallet_connect,
+        blockchain_ids=deleted_leaderboard.blockchain_ids,
+        columns_names=deleted_leaderboard.columns_names,
+        created_at=deleted_leaderboard.created_at,
+        updated_at=deleted_leaderboard.updated_at,
     )
 
 
@@ -370,15 +355,15 @@ async def get_leaderboards(
 
     results = [
         data.Leaderboard(
-            id=leaderboard.id,  # type: ignore
-            title=leaderboard.title,  # type: ignore
-            description=leaderboard.description,  # type: ignore
-            resource_id=leaderboard.resource_id,  # type: ignore
-            wallet_connect=leaderboard.wallet_connect,  # type: ignore
-            blockchain_ids=leaderboard.blockchain_ids,  # type: ignore
-            columns_names=leaderboard.columns_names,  # type: ignore
-            created_at=leaderboard.created_at,  # type: ignore
-            updated_at=leaderboard.updated_at,  # type: ignore
+            id=leaderboard.id,
+            title=leaderboard.title,
+            description=leaderboard.description,
+            resource_id=leaderboard.resource_id,
+            wallet_connect=leaderboard.wallet_connect,
+            blockchain_ids=leaderboard.blockchain_ids,
+            columns_names=leaderboard.columns_names,
+            created_at=leaderboard.created_at,
+            updated_at=leaderboard.updated_at,
         )
         for leaderboard in leaderboards
     ]
@@ -539,9 +524,7 @@ async def quartiles(
 
 @app.get(
     "/position",
-    response_model=Union[
-        List[data.LeaderboardPosition], List[data.LeaderboardUnformattedPosition]
-    ],
+    response_model=List[data.LeaderboardPosition],
     tags=["Public Endpoints"],
 )
 async def position(
@@ -555,7 +538,7 @@ async def position(
     ),
     version: Optional[int] = Query(None, description="Version of the leaderboard."),
     db_session: Session = Depends(db.yield_db_session),
-) -> Union[List[data.LeaderboardPosition], List[data.LeaderboardUnformattedPosition]]:
+) -> List[data.LeaderboardPosition]:
     """
     Returns the leaderboard posotion for the given address.
     With given window size.
@@ -586,36 +569,22 @@ async def position(
         version,
     )
 
-    if len(leaderboard.columns_names) > 0:
-        results = [
-            data.LeaderboardUnformattedPosition(
-                column_1=position.address,
-                column_2=position.rank,
-                column_3=position.score,
-                column_4=position.points_data,
-            )
-            for position in positions
-        ]
-
-    else:
-        results = [
-            data.LeaderboardPosition(
-                address=position.address,
-                score=position.score,
-                rank=position.rank,
-                points_data=position.points_data,
-            )
-            for position in positions
-        ]
+    results = [
+        data.LeaderboardPosition(
+            address=position.address,
+            score=position.score,
+            rank=position.rank,
+            points_data=position.points_data,
+        )
+        for position in positions
+    ]
 
     return results
 
 
 @app.get(
     "/rank",
-    response_model=Union[
-        List[data.LeaderboardPosition], List[data.LeaderboardUnformattedPosition]
-    ],
+    response_model=List[data.LeaderboardPosition],
     tags=["Public Endpoints"],
 )
 async def rank(
@@ -625,7 +594,7 @@ async def rank(
     offset: Optional[int] = Query(None),
     version: Optional[int] = Query(None, description="Version of the leaderboard."),
     db_session: Session = Depends(db.yield_db_session),
-) -> Union[List[data.LeaderboardPosition], List[data.LeaderboardUnformattedPosition]]:
+) -> List[data.LeaderboardPosition]:
     """
     Returns the leaderboard scores for the given rank.
     """
@@ -651,26 +620,15 @@ async def rank(
         version_number=version,
     )
 
-    if len(leaderboard.columns_names) > 0:
-        results = [
-            data.LeaderboardUnformattedPosition(
-                column_1=position.address,
-                column_2=position.rank,
-                column_3=position.score,
-                column_4=position.points_data,
-            )
-            for position in leaderboard_rank
-        ]
-    else:
-        results = [
-            data.LeaderboardPosition(
-                address=position.address,
-                score=position.score,
-                rank=position.rank,
-                points_data=position.points_data,
-            )
-            for position in leaderboard_rank
-        ]
+    results = [
+        data.LeaderboardPosition(
+            address=position.address,
+            score=position.score,
+            rank=position.rank,
+            points_data=position.points_data,
+        )
+        for position in leaderboard_rank
+    ]
     return results
 
 
