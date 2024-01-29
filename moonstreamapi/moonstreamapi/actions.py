@@ -504,7 +504,7 @@ def get_all_entries_from_search(
                 limit=limit,
                 offset=offset,
             )
-        results.extend(existing_methods.results)  # type: ignore
+            results.extend(existing_methods.results)  # type: ignore
 
     return results
 
@@ -573,6 +573,7 @@ def apply_moonworm_tasks(
                             f"moonworm_task_pickedup:False",  # True if task picked up by moonworm-crawler(default each 120 sec)
                             f"historical_crawl_status:pending",  # pending, in_progress, done
                             f"progress:0",  # 0-100 %
+                            f"version:2.0",
                         ],
                     }
                 )
