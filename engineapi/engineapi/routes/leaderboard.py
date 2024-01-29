@@ -494,30 +494,11 @@ async def quartiles(
         logger.error(f"Error while getting quartiles: {e}")
         raise EngineHTTPException(status_code=500, detail="Internal server error")
 
-    if len(leaderboard.columns_names) > 0:
-        result = data.QuartilesResponse(
-            percentile_25={
-                "column_1": q1.address,
-                "column_2": q1.rank,
-                "column_3": q1.score,
-            },
-            percentile_50={
-                "column_1": q2.address,
-                "column_2": q2.rank,
-                "column_3": q2.score,
-            },
-            percentile_75={
-                "column_1": q3.address,
-                "column_2": q3.rank,
-                "column_3": q3.score,
-            },
-        )
-    else:
-        result = data.QuartilesResponse(
-            percentile_25={"address": q1.address, "rank": q1.rank, "score": q1.score},
-            percentile_50={"address": q2.address, "rank": q2.rank, "score": q2.score},
-            percentile_75={"address": q3.address, "rank": q3.rank, "score": q3.score},
-        )
+    result = data.QuartilesResponse(
+        percentile_25={"address": q1.address, "rank": q1.rank, "score": q1.score},
+        percentile_50={"address": q2.address, "rank": q2.rank, "score": q2.score},
+        percentile_75={"address": q3.address, "rank": q3.rank, "score": q3.score},
+    )
 
     return result
 
