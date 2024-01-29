@@ -1732,7 +1732,8 @@ def assign_resource(
         leaderboard.resource_id = resource_id
     else:
         resource = create_leaderboard_resource(
-            leaderboard_id=str(leaderboard_id), user_id=user.id
+            leaderboard_id=str(leaderboard_id),
+            user_id=user.id if user is not None else None,
         )
 
         leaderboard.resource_id = resource.id
