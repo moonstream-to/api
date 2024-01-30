@@ -22,7 +22,14 @@ from sqlalchemy.engine import Row
 from web3 import Web3
 from web3.types import ChecksumAddress
 
-from .data import Score, LeaderboardScore, LeaderboardConfigUpdate, LeaderboardConfig
+from .data import (
+    Score,
+    LeaderboardScore,
+    LeaderboardConfigUpdate,
+    LeaderboardConfig,
+    LeaderboardPosition,
+    ColumnsNames,
+)
 from .contracts import Dropper_interface, ERC20_interface, Terminus_interface
 from .models import (
     DropperClaimant,
@@ -1278,7 +1285,7 @@ def get_leaderboard_score(
 
 def get_leaderboard_positions(
     db_session: Session,
-    leaderboard_id,
+    leaderboard_id: uuid.UUID,
     limit: int,
     offset: int,
     version_number: Optional[int] = None,
@@ -1491,13 +1498,30 @@ def create_leaderboard(
     title: str,
     description: Optional[str],
     token: Optional[Union[uuid.UUID, str]] = None,
+    wallet_connect: bool = False,
+    blockchain_ids: List[int] = [],
+    columns_names: ColumnsNames = None,
 ) -> Leaderboard:
     """
     Create a leaderboard
     """
 
+    if columns_names is not None:
+        columns_names = columns_names.dict()
+
+    if not token:
+        token = uuid.UUID(MOONSTREAM_ADMIN_ACCESS_TOKEN)
     try:
-        leaderboard = Leaderboard(title=title, description=description)
+        # deduplicate and sort
+        blockchain_ids = sorted(list(set(blockchain_ids)))
+
+        leaderboard = Leaderboard(
+            title=title,
+            description=description,
+            wallet_connect=wallet_connect,
+            blockchain_ids=blockchain_ids,
+            columns_names=columns_names,
+        )
         db_session.add(leaderboard)
         db_session.commit()
 
@@ -1557,6 +1581,9 @@ def update_leaderboard(
     leaderboard_id: uuid.UUID,
     title: Optional[str],
     description: Optional[str],
+    wallet_connect: Optional[bool],
+    blockchain_ids: Optional[List[int]],
+    columns_names: Optional[ColumnsNames],
 ) -> Leaderboard:
     """
     Update a leaderboard
@@ -1570,6 +1597,23 @@ def update_leaderboard(
         leaderboard.title = title
     if description is not None:
         leaderboard.description = description
+    if wallet_connect is not None:
+        leaderboard.wallet_connect = wallet_connect
+    if blockchain_ids is not None:
+        # deduplicate and sort
+        blockchain_ids = sorted(list(set(blockchain_ids)))
+        leaderboard.blockchain_ids = blockchain_ids
+
+    if columns_names is not None:
+        if leaderboard.columns_names is not None:
+            current_columns_names = ColumnsNames(**leaderboard.columns_names)
+
+            for key, value in columns_names.dict(exclude_none=True).items():
+                setattr(current_columns_names, key, value)
+        else:
+            current_columns_names = columns_names
+
+        leaderboard.columns_names = current_columns_names.dict()
 
     db_session.commit()
 

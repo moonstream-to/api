@@ -2,7 +2,7 @@
 Leaderboard API.
 """
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Any, Union
 from uuid import UUID
 
 from bugout.exceptions import BugoutResponseException
@@ -92,9 +92,12 @@ app.add_middleware(
     "",
     response_model=List[data.LeaderboardPosition],
     tags=["Public Endpoints"],
-    include_in_schema=False,
 )
-@app.get("/", response_model=List[data.LeaderboardPosition], tags=["Public Endpoints"])
+@app.get(
+    "/",
+    response_model=List[data.LeaderboardPosition],
+    tags=["Public Endpoints"],
+)
 async def leaderboard(
     leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
     limit: int = Query(10),
@@ -108,7 +111,7 @@ async def leaderboard(
 
     ### Check if leaderboard exists
     try:
-        actions.get_leaderboard_by_id(db_session, leaderboard_id)
+        leaderboard = actions.get_leaderboard_by_id(db_session, leaderboard_id)
     except NoResultFound as e:
         raise EngineHTTPException(
             status_code=404,
@@ -119,8 +122,9 @@ async def leaderboard(
         raise EngineHTTPException(status_code=500, detail="Internal server error")
 
     leaderboard_positions = actions.get_leaderboard_positions(
-        db_session, leaderboard_id, limit, offset, version
+        db_session, leaderboard.id, limit, offset, version
     )
+
     result = [
         data.LeaderboardPosition(
             address=position.address,
@@ -150,7 +154,6 @@ async def create_leaderboard(
     Authorization: str = AuthHeader,
 ) -> data.LeaderboardCreatedResponse:
     """
-
     Create leaderboard.
     """
 
@@ -162,6 +165,9 @@ async def create_leaderboard(
             title=leaderboard.title,
             description=leaderboard.description,
             token=token,
+            wallet_connect=leaderboard.wallet_connect,
+            blockchain_ids=leaderboard.blockchain_ids,
+            columns_names=leaderboard.columns_names,
         )
     except actions.LeaderboardCreateError as e:
         logger.error(f"Error while creating leaderboard: {e}")
@@ -177,12 +183,15 @@ async def create_leaderboard(
     # Add resource to the leaderboard
 
     return data.LeaderboardCreatedResponse(
-        id=created_leaderboard.id,  # type: ignore
-        title=created_leaderboard.title,  # type: ignore
-        description=created_leaderboard.description,  # type: ignore
-        resource_id=created_leaderboard.resource_id,  # type: ignore
-        created_at=created_leaderboard.created_at,  # type: ignore
-        updated_at=created_leaderboard.updated_at,  # type: ignore
+        id=created_leaderboard.id,
+        title=created_leaderboard.title,
+        description=created_leaderboard.description,
+        resource_id=created_leaderboard.resource_id,
+        wallet_connect=created_leaderboard.wallet_connect,
+        blockchain_ids=created_leaderboard.blockchain_ids,
+        columns_names=created_leaderboard.columns_names,
+        created_at=created_leaderboard.created_at,
+        updated_at=created_leaderboard.updated_at,
     )
 
 
@@ -226,6 +235,9 @@ async def update_leaderboard(
             leaderboard_id=leaderboard_id,
             title=leaderboard.title,
             description=leaderboard.description,
+            wallet_connect=leaderboard.wallet_connect,
+            blockchain_ids=leaderboard.blockchain_ids,
+            columns_names=leaderboard.columns_names,
         )
     except actions.LeaderboardUpdateError as e:
         logger.error(f"Error while updating leaderboard: {e}")
@@ -239,12 +251,15 @@ async def update_leaderboard(
         raise EngineHTTPException(status_code=500, detail="Internal server error")
 
     return data.LeaderboardUpdatedResponse(
-        id=updated_leaderboard.id,  # type: ignore
-        title=updated_leaderboard.title,  # type: ignore
-        description=updated_leaderboard.description,  # type: ignore
-        resource_id=updated_leaderboard.resource_id,  # type: ignore
-        created_at=updated_leaderboard.created_at,  # type: ignore
-        updated_at=updated_leaderboard.updated_at,  # type: ignore
+        id=updated_leaderboard.id,
+        title=updated_leaderboard.title,
+        description=updated_leaderboard.description,
+        resource_id=updated_leaderboard.resource_id,
+        wallet_connect=updated_leaderboard.wallet_connect,
+        blockchain_ids=updated_leaderboard.blockchain_ids,
+        columns_names=updated_leaderboard.columns_names,
+        created_at=updated_leaderboard.created_at,
+        updated_at=updated_leaderboard.updated_at,
     )
 
 
@@ -299,11 +314,15 @@ async def delete_leaderboard(
         raise EngineHTTPException(status_code=500, detail="Internal server error")
 
     return data.LeaderboardDeletedResponse(
-        id=deleted_leaderboard.id,  # type: ignore
-        title=deleted_leaderboard.title,  # type: ignore
-        description=deleted_leaderboard.description,  # type: ignore
-        created_at=deleted_leaderboard.created_at,  # type: ignore
-        updated_at=deleted_leaderboard.updated_at,  # type: ignore
+        id=deleted_leaderboard.id,
+        title=deleted_leaderboard.title,
+        description=deleted_leaderboard.description,
+        resource_id=deleted_leaderboard.resource_id,
+        wallet_connect=deleted_leaderboard.wallet_connect,
+        blockchain_ids=deleted_leaderboard.blockchain_ids,
+        columns_names=deleted_leaderboard.columns_names,
+        created_at=deleted_leaderboard.created_at,
+        updated_at=deleted_leaderboard.updated_at,
     )
 
 
@@ -336,12 +355,15 @@ async def get_leaderboards(
 
     results = [
         data.Leaderboard(
-            id=leaderboard.id,  # type: ignore
-            title=leaderboard.title,  # type: ignore
-            description=leaderboard.description,  # type: ignore
-            resource_id=leaderboard.resource_id,  # type: ignore
-            created_at=leaderboard.created_at,  # type: ignore
-            updated_at=leaderboard.updated_at,  # type: ignore
+            id=leaderboard.id,
+            title=leaderboard.title,
+            description=leaderboard.description,
+            resource_id=leaderboard.resource_id,
+            wallet_connect=leaderboard.wallet_connect,
+            blockchain_ids=leaderboard.blockchain_ids,
+            columns_names=leaderboard.columns_names,
+            created_at=leaderboard.created_at,
+            updated_at=leaderboard.updated_at,
         )
         for leaderboard in leaderboards
     ]
@@ -453,7 +475,7 @@ async def quartiles(
     """
     ### Check if leaderboard exists
     try:
-        actions.get_leaderboard_by_id(db_session, leaderboard_id)
+        leaderboard = actions.get_leaderboard_by_id(db_session, leaderboard_id)
     except NoResultFound as e:
         raise EngineHTTPException(
             status_code=404,
@@ -472,11 +494,32 @@ async def quartiles(
         logger.error(f"Error while getting quartiles: {e}")
         raise EngineHTTPException(status_code=500, detail="Internal server error")
 
-    return data.QuartilesResponse(
-        percentile_25={"address": q1[0], "score": q1[1], "rank": q1[2]},
-        percentile_50={"address": q2[0], "score": q2[1], "rank": q2[2]},
-        percentile_75={"address": q3[0], "score": q3[1], "rank": q3[2]},
-    )
+    if len(leaderboard.columns_names) > 0:
+        result = data.QuartilesResponse(
+            percentile_25={
+                "column_1": q1.address,
+                "column_2": q1.rank,
+                "column_3": q1.score,
+            },
+            percentile_50={
+                "column_1": q2.address,
+                "column_2": q2.rank,
+                "column_3": q2.score,
+            },
+            percentile_75={
+                "column_1": q3.address,
+                "column_2": q3.rank,
+                "column_3": q3.score,
+            },
+        )
+    else:
+        result = data.QuartilesResponse(
+            percentile_25={"address": q1.address, "rank": q1.rank, "score": q1.score},
+            percentile_50={"address": q2.address, "rank": q2.rank, "score": q2.score},
+            percentile_75={"address": q3.address, "rank": q3.rank, "score": q3.score},
+        )
+
+    return result
 
 
 @app.get(
@@ -503,7 +546,7 @@ async def position(
 
     ### Check if leaderboard exists
     try:
-        actions.get_leaderboard_by_id(db_session, leaderboard_id)
+        leaderboard = actions.get_leaderboard_by_id(db_session, leaderboard_id)
     except NoResultFound as e:
         raise EngineHTTPException(
             status_code=404,
@@ -540,7 +583,9 @@ async def position(
 
 
 @app.get(
-    "/rank", response_model=List[data.LeaderboardPosition], tags=["Public Endpoints"]
+    "/rank",
+    response_model=List[data.LeaderboardPosition],
+    tags=["Public Endpoints"],
 )
 async def rank(
     leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
@@ -556,7 +601,7 @@ async def rank(
 
     ### Check if leaderboard exists
     try:
-        actions.get_leaderboard_by_id(db_session, leaderboard_id)
+        leaderboard = actions.get_leaderboard_by_id(db_session, leaderboard_id)
     except NoResultFound as e:
         raise EngineHTTPException(
             status_code=404,
@@ -574,14 +619,15 @@ async def rank(
         offset=offset,
         version_number=version,
     )
+
     results = [
         data.LeaderboardPosition(
-            address=rank_position.address,
-            score=rank_position.score,
-            rank=rank_position.rank,
-            points_data=rank_position.points_data,
+            address=position.address,
+            score=position.score,
+            rank=position.rank,
+            points_data=position.points_data,
         )
-        for rank_position in leaderboard_rank
+        for position in leaderboard_rank
     ]
     return results
 

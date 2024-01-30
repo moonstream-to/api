@@ -365,11 +365,22 @@ class LeaderboardScore(BaseModel):
     points_data: Dict[str, Any]
 
 
+class ColumnsNames(BaseModel):
+    rank: Optional[str] = None
+    address: Optional[str] = None
+    score: Optional[str] = None
+    points_data: Optional[str] = None
+    points_data_fields: Optional[Dict[str, str]] = None
+
+
 class Leaderboard(BaseModel):
     id: UUID
     title: str
     description: Optional[str] = None
     resource_id: Optional[UUID] = None
+    wallet_connect: bool = False
+    blockchain_ids: List[int] = Field(default_factory=list)
+    columns_names: Optional[ColumnsNames] = None
     created_at: datetime
     updated_at: datetime
 
@@ -385,6 +396,9 @@ class LeaderboardInfoResponse(BaseModel):
 class LeaderboardCreateRequest(BaseModel):
     title: str
     description: Optional[str] = None
+    wallet_connect: bool = False
+    blockchain_ids: List[int] = Field(default_factory=list)
+    columns_names: Optional[ColumnsNames] = None
 
 
 class LeaderboardCreatedResponse(BaseModel):
@@ -392,6 +406,9 @@ class LeaderboardCreatedResponse(BaseModel):
     title: str
     description: Optional[str] = None
     resource_id: Optional[UUID] = None
+    wallet_connect: bool = False
+    blockchain_ids: List[int] = Field(default_factory=list)
+    columns_names: Optional[ColumnsNames] = None
     created_at: datetime
     updated_at: datetime
 
@@ -404,6 +421,9 @@ class LeaderboardUpdatedResponse(BaseModel):
     title: str
     description: Optional[str] = None
     resource_id: Optional[UUID] = None
+    wallet_connect: bool = False
+    blockchain_ids: List[int] = Field(default_factory=list)
+    columns_names: Optional[ColumnsNames] = None
     created_at: datetime
     updated_at: datetime
 
@@ -414,6 +434,9 @@ class LeaderboardUpdatedResponse(BaseModel):
 class LeaderboardUpdateRequest(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
+    wallet_connect: bool = False
+    blockchain_ids: List[int] = Field(default_factory=list)
+    columns_names: Optional[ColumnsNames] = None
 
 
 class LeaderboardDeletedResponse(BaseModel):
@@ -421,6 +444,9 @@ class LeaderboardDeletedResponse(BaseModel):
     title: str
     description: Optional[str] = None
     resource_id: Optional[UUID] = None
+    wallet_connect: bool = False
+    blockchain_ids: List[int] = Field(default_factory=list)
+    columns_names: Optional[ColumnsNames] = None
     created_at: datetime
     updated_at: datetime
 
