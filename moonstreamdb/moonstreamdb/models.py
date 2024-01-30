@@ -149,6 +149,7 @@ class EthereumLabel(Base):  # type: ignore
         index=True,
     )
     label_data = Column(JSONB, nullable=True)
+    block_hash = Column(VARCHAR(256), index=True)
     block_timestamp = Column(BigInteger, index=True)
     log_index = Column(Integer, nullable=True)
     created_at = Column(
@@ -270,6 +271,7 @@ class PolygonLabel(Base):  # type: ignore
         index=True,
     )
     label_data = Column(JSONB, nullable=True)
+    block_hash = Column(VARCHAR(256), index=True)
     block_timestamp = Column(BigInteger, index=True)
     log_index = Column(Integer, nullable=True)
     created_at = Column(
@@ -376,6 +378,7 @@ class MumbaiLabel(Base):  # type: ignore
         index=True,
     )
     label_data = Column(JSONB, nullable=True)
+    block_hash = Column(VARCHAR(256), index=True)
     block_timestamp = Column(BigInteger, index=True)
     log_index = Column(Integer, nullable=True)
     created_at = Column(
@@ -486,6 +489,7 @@ class XDaiLabel(Base):  # type: ignore
         index=True,
     )
     label_data = Column(JSONB, nullable=True)
+    block_hash = Column(VARCHAR(256), index=True)
     block_timestamp = Column(BigInteger, index=True)
     log_index = Column(Integer, nullable=True)
     created_at = Column(
@@ -607,6 +611,7 @@ class WyrmLabel(Base):  # type: ignore
         index=True,
     )
     label_data = Column(JSONB, nullable=True)
+    block_hash = Column(VARCHAR(256), index=True)
     block_timestamp = Column(BigInteger, index=True)
     log_index = Column(Integer, nullable=True)
     created_at = Column(
@@ -738,6 +743,7 @@ class ZkSyncEraLabel(Base):  # type: ignore
         index=True,
     )
     label_data = Column(JSONB, nullable=True)
+    block_hash = Column(VARCHAR(256), index=True)
     block_timestamp = Column(BigInteger, index=True)
     log_index = Column(Integer, nullable=True)
     created_at = Column(
@@ -869,6 +875,7 @@ class ZkSyncEraTestnetLabel(Base):  # type: ignore
         index=True,
     )
     label_data = Column(JSONB, nullable=True)
+    block_hash = Column(VARCHAR(256), index=True)
     block_timestamp = Column(BigInteger, index=True)
     log_index = Column(Integer, nullable=True)
     created_at = Column(
