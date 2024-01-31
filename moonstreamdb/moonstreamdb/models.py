@@ -817,6 +817,7 @@ class ArbitrumNovaBlock(Base):  # type: ignore
     miner = Column(VARCHAR(256))
     nonce = Column(VARCHAR(256))
     parent_hash = Column(VARCHAR(256))
+    receipt_root = Column(VARCHAR(256))
     uncles = Column(VARCHAR(256))
     size = Column(Integer)
     state_root = Column(VARCHAR(256))

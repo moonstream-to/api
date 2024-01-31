@@ -30,6 +30,7 @@ def upgrade():
     sa.Column('miner', sa.VARCHAR(length=256), nullable=True),
     sa.Column('nonce', sa.VARCHAR(length=256), nullable=True),
     sa.Column('parent_hash', sa.VARCHAR(length=256), nullable=True),
+    sa.Column('receipt_root', sa.VARCHAR(length=256), nullable=True),
     sa.Column('uncles', sa.VARCHAR(length=256), nullable=True),
     sa.Column('size', sa.Integer(), nullable=True),
     sa.Column('state_root', sa.VARCHAR(length=256), nullable=True),
