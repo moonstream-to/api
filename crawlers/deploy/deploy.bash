@@ -122,6 +122,12 @@ ZKSYNC_ERA_TESTNET_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE="zksync-era-testnet-
 ZKSYNC_ERA_TESTNET_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE="zksync-era-testnet-historical-crawl-events.service"
 ZKSYNC_ERA_TESTNET_HISTORICAL_CRAWL_EVENTS_TIMER_FILE="zksync-era-testnet-historical-crawl-events.timer"
 
+# Arbitrum Nova
+ARBITRUM_NOVA_MISSING_SERVICE_FILE="arbitrum-nova-missing.service"
+ARBITRUM_NOVA_MISSING_TIMER_FILE="arbitrum-nova-missing.timer"
+ARBITRUM_NOVA_MOONWORM_CRAWLER_SERVICE_FILE="arbitrum-nova-moonworm-crawler.service"
+ARBITRUM_NOVA_SYNCHRONIZE_SERVICE="arbitrum-nova-synchronize.service"
+
 set -eu
 
 echo
@@ -584,3 +590,29 @@ cp "${SCRIPT_DIR}/${LEADERBOARDS_WORKER_SERVICE_FILE}" "/home/ubuntu/.config/sys
 cp "${SCRIPT_DIR}/${LEADERBOARDS_WORKER_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${LEADERBOARDS_WORKER_TIMER_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${LEADERBOARDS_WORKER_TIMER_FILE}"
+
+# Arbitrum Nova
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Arbitrum Nova block with transactions syncronizer service definition with ${ARBITRUM_NOVA_SYNCHRONIZE_SERVICE}"
+chmod 644 "${SCRIPT_DIR}/${ARBITRUM_NOVA_SYNCHRONIZE_SERVICE}"
+cp "${SCRIPT_DIR}/${ARBITRUM_NOVA_SYNCHRONIZE_SERVICE}" "/home/ubuntu/.config/systemd/user/${ARBITRUM_NOVA_SYNCHRONIZE_SERVICE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ARBITRUM_NOVA_SYNCHRONIZE_SERVICE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Arbitrum Nova missing service and timer with: ${ARBITRUM_NOVA_MISSING_SERVICE_FILE}, ${ARBITRUM_NOVA_MISSING_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ARBITRUM_NOVA_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${ARBITRUM_NOVA_MISSING_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ARBITRUM_NOVA_MISSING_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ARBITRUM_NOVA_MISSING_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ARBITRUM_NOVA_MISSING_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ARBITRUM_NOVA_MISSING_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ARBITRUM_NOVA_MISSING_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Arbitrum Nova moonworm crawler service definition with ${ARBITRUM_NOVA_MOONWORM_CRAWLER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ARBITRUM_NOVA_MOONWORM_CRAWLER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ARBITRUM_NOVA_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ARBITRUM_NOVA_MOONWORM_CRAWLER_SERVICE_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ARBITRUM_NOVA_MOONWORM_CRAWLER_SERVICE_FILE}"
