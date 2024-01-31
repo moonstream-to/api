@@ -5,24 +5,24 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, cast, Union, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
 from uuid import UUID
 
-from bugout.data import BugoutSearchResult, BugoutJournalEntries
+from bugout.data import BugoutJournalEntries, BugoutSearchResult
 from eth_typing.evm import ChecksumAddress
 from moonstreamdb.blockchain import AvailableBlockchainType
-from web3.main import Web3
 from moonworm.deployment import find_deployment_block  # type: ignore
+from web3.main import Web3
 
 from ..blockchain import connect
 from ..reporter import reporter
 from ..settings import (
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
+    HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES,
+    HISTORICAL_CRAWLER_STATUSES,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_MOONWORM_TASKS_JOURNAL,
     bugout_client,
-    HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES,
-    HISTORICAL_CRAWLER_STATUSES,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -37,6 +37,7 @@ class SubscriptionTypes(Enum):
     WYRM_BLOCKCHAIN = "wyrm_smartcontract"
     ZKSYNC_ERA_TESTNET_BLOCKCHAIN = "zksync_era_testnet_smartcontract"
     ZKSYNC_ERA_BLOCKCHAIN = "zksync_era_smartcontract"
+    ARBITRUM_NOVA_BLOCKCHAIN = "arbitrum_nova_smartcontract"
 
 
 def abi_input_signature(input_abi: Dict[str, Any]) -> str:
@@ -145,6 +146,8 @@ def blockchain_type_to_subscription_type(
         return SubscriptionTypes.ZKSYNC_ERA_TESTNET_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
         return SubscriptionTypes.ZKSYNC_ERA_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
+        return SubscriptionTypes.ARBITRUM_NOVA_BLOCKCHAIN
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 

@@ -8,7 +8,7 @@ import logging
 import time
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, cast, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union, cast
 from uuid import UUID
 
 import boto3  # type: ignore
@@ -23,8 +23,9 @@ from moonstreamdb.blockchain import (
     get_label_model,
     get_transaction_model,
 )
-from sqlalchemy import and_, distinct, extract, func, text
+from sqlalchemy import and_
 from sqlalchemy import cast as sqlalchemy_cast
+from sqlalchemy import distinct, extract, func, text
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.operators import in_op
 from web3 import Web3
@@ -54,6 +55,7 @@ subscription_id_by_blockchain = {
     "wyrm": "wyrm_smartcontract",
     "zksync_era_testnet": "zksync_era_testnet_smartcontract",
     "zksync_era": "zksync_era_smartcontract",
+    "arbitrum_nova": "arbitrum_nova_smartcontract",
 }
 
 blockchain_by_subscription_id = {
@@ -63,6 +65,7 @@ blockchain_by_subscription_id = {
     "xdai_blockchain": "xdai",
     "wyrm_blockchain": "wyrm",
     "zksync_era_testnet_blockchain": "zksync_era_testnet",
+    "arbitrum_nova_blockchain": "arbitrum_nova",
     "ethereum_smartcontract": "ethereum",
     "polygon_smartcontract": "polygon",
     "mumbai_smartcontract": "mumbai",
@@ -70,6 +73,7 @@ blockchain_by_subscription_id = {
     "wyrm_smartcontract": "wyrm",
     "zksync_era_testnet_smartcontract": "zksync_era_testnet",
     "zksync_era_smartcontract": "zksync_era",
+    "arbitrum_nova_smartcontract": "arbitrum_nova",
 }
 
 
