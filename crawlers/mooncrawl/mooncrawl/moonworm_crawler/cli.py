@@ -1,12 +1,13 @@
 import argparse
 import logging
-from typing import Optional
+from typing import Optional, Literal
 from uuid import UUID
 
 from moonstreamdb.blockchain import AvailableBlockchainType
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
+from .db import deduplicate_records
 from ..db import yield_db_session_ctx
 from ..settings import (
     MOONSTREAM_MOONWORM_TASKS_JOURNAL,
@@ -341,6 +342,21 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
         )
 
 
+def handle_deduplicate(args: argparse.Namespace) -> None:
+    """
+    Deduplicate database records
+    """
+
+    with yield_db_session_ctx() as db_session:
+        deduplicate_records(
+            db_session,
+            args.blockchain_type,
+            args.table,
+            args.label,
+            args.type,
+        )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.set_defaults(func=lambda _: parser.print_help())
@@ -535,6 +551,49 @@ def main() -> None:
         help="Use tasks journal wich will fill all required fields for historical crawl",
     )
     historical_crawl_parser.set_defaults(func=handle_historical_crawl)
+
+    database_cli = subparsers.add_parser("database", help="Database operations")
+    database_cli.add_argument(
+        "--blockchain-type",
+        "-b",
+        type=str,
+        help=f"Available blockchain types: {[member.value for member in AvailableBlockchainType]}",
+    )
+
+    database_cli.set_defaults(func=lambda _: database_cli.print_help())
+
+    database_cli_subparsers = database_cli.add_subparsers()
+
+    deduplicate_parser = database_cli_subparsers.add_parser(
+        "deduplicate",
+        help="Deduplicate database records",
+    )
+
+    deduplicate_parser.add_argument(
+        "--table",
+        "-t",
+        type=str,
+        choices=["blocks", "labels", "transactions"],
+        required=True,
+        help="Table type to deduplicate",
+    )
+
+    deduplicate_parser.add_argument(
+        "--label",
+        "-l",
+        type=str,
+        required=False,
+        help="Label to deduplicate",
+    )
+
+    deduplicate_parser.add_argument(
+        "--type",
+        "-y",
+        type=str,
+        choices=["event", "function"],
+        required=True,
+        help="Type to deduplicate",
+    )
 
     args = parser.parse_args()
     args.func(args)
