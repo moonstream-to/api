@@ -1,7 +1,7 @@
 """Live at for metatx
 
 Revision ID: 6d07739cb13e
-Revises: cc80e886e153
+Revises: 71e888082a6d
 Create Date: 2023-12-06 14:33:04.814144
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '6d07739cb13e'
-down_revision = 'cc80e886e153'
+down_revision = '71e888082a6d'
 branch_labels = None
 depends_on = None
 
