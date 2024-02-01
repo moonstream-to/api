@@ -12,6 +12,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -28,7 +29,11 @@ var (
 
 // initHealthCheck runs a routine for check status of the nodes every 5 seconds
 func initHealthCheck(debug bool) {
-	t := time.NewTicker(NB_HEALTH_CHECK_INTERVAL)
+	healthCheckInterval, convErr := strconv.Atoi(NB_HEALTH_CHECK_INTERVAL)
+	if convErr != nil {
+		healthCheckInterval = 5
+	}
+	t := time.NewTicker(time.Second * time.Duration(healthCheckInterval))
 	for {
 		select {
 		case <-t.C:

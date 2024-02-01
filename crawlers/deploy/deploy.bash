@@ -47,8 +47,6 @@ ETHEREUM_HISTORICAL_CRAWL_EVENTS_TIMER_FILE="ethereum-historical-crawl-events.ti
 POLYGON_SYNCHRONIZE_SERVICE="polygon-synchronize.service"
 POLYGON_MISSING_SERVICE_FILE="polygon-missing.service"
 POLYGON_MISSING_TIMER_FILE="polygon-missing.timer"
-POLYGON_STATISTICS_SERVICE_FILE="polygon-statistics.service"
-POLYGON_STATISTICS_TIMER_FILE="polygon-statistics.timer"
 POLYGON_MOONWORM_CRAWLER_SERVICE_FILE="polygon-moonworm-crawler.service"
 POLYGON_STATE_SERVICE_FILE="polygon-state.service"
 POLYGON_STATE_TIMER_FILE="polygon-state.timer"
@@ -56,8 +54,6 @@ POLYGON_STATE_CLEAN_SERVICE_FILE="polygon-state-clean.service"
 POLYGON_STATE_CLEAN_TIMER_FILE="polygon-state-clean.timer"
 POLYGON_METADATA_SERVICE_FILE="polygon-metadata.service"
 POLYGON_METADATA_TIMER_FILE="polygon-metadata.timer"
-POLYGON_CU_REPORTS_TOKENONOMICS_SERVICE_FILE="polygon-cu-reports-tokenonomics.service"
-POLYGON_CU_REPORTS_TOKENONOMICS_TIMER_FILE="polygon-cu-reports-tokenonomics.timer"
 POLYGON_CU_NFT_DASHBOARD_SERVICE_FILE="polygon-cu-nft-dashboard.service"
 POLYGON_CU_NFT_DASHBOARD_TIMER_FILE="polygon-cu-nft-dashboard.timer"
 POLYGON_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE="polygon-historical-crawl-transactions.service"
@@ -86,8 +82,6 @@ MUMBAI_HISTORICAL_CRAWL_EVENTS_TIMER_FILE="mumbai-historical-crawl-events.timer"
 XDAI_SYNCHRONIZE_SERVICE="xdai-synchronize.service"
 XDAI_MISSING_SERVICE_FILE="xdai-missing.service"
 XDAI_MISSING_TIMER_FILE="xdai-missing.timer"
-XDAI_STATISTICS_SERVICE_FILE="xdai-statistics.service"
-XDAI_STATISTICS_TIMER_FILE="xdai-statistics.timer"
 XDAI_MOONWORM_CRAWLER_SERVICE_FILE="xdai-moonworm-crawler.service"
 XDai_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE="xdai-historical-crawl-transactions.service"
 XDai_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE="xdai-historical-crawl-transactions.timer"
@@ -98,8 +92,6 @@ XDai_HISTORICAL_CRAWL_EVENTS_TIMER_FILE="xdai-historical-crawl-events.timer"
 WYRM_SYNCHRONIZE_SERVICE="wyrm-synchronize.service"
 WYRM_MISSING_SERVICE_FILE="wyrm-missing.service"
 WYRM_MISSING_TIMER_FILE="wyrm-missing.timer"
-WYRM_STATISTICS_SERVICE_FILE="wyrm-statistics.service"
-WYRM_STATISTICS_TIMER_FILE="wyrm-statistics.timer"
 WYRM_MOONWORM_CRAWLER_SERVICE_FILE="wyrm-moonworm-crawler.service"
 WYRM_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE="wyrm-historical-crawl-transactions.service"
 WYRM_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE="wyrm-historical-crawl-transactions.timer"
@@ -115,6 +107,10 @@ ZKSYNC_ERA_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE="zksync-era-historical-cra
 ZKSYNC_ERA_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE="zksync-era-historical-crawl-transactions.timer"
 ZKSYNC_ERA_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE="zksync-era-historical-crawl-events.service"
 ZKSYNC_ERA_HISTORICAL_CRAWL_EVENTS_TIMER_FILE="zksync-era-historical-crawl-events.timer"
+ZKSYNC_ERA_STATE_SERVICE_FILE="zksync-era-state.service"
+ZKSYNC_ERA_STATE_TIMER_FILE="zksync-era-state.timer"
+ZKSYNC_ERA_STATE_CLEAN_SERVICE_FILE="zksync-era-state-clean.service"
+ZKSYNC_ERA_STATE_CLEAN_TIMER_FILE="zksync-era-state-clean.timer"
 
 # ZkSync Era testnet
 ZKSYNC_ERA_TESTNET_SYNCHRONIZE_SERVICE="zksync-era-testnet-synchronize.service"
@@ -252,14 +248,6 @@ cp "${SCRIPT_DIR}/${POLYGON_MISSING_TIMER_FILE}" "/home/ubuntu/.config/systemd/u
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${POLYGON_MISSING_TIMER_FILE}"
 
-echo
-echo
-echo -e "${PREFIX_INFO} Replacing existing Polygon statistics dashbord service and timer with: ${POLYGON_STATISTICS_SERVICE_FILE}, ${POLYGON_STATISTICS_TIMER_FILE}"
-chmod 644 "${SCRIPT_DIR}/${POLYGON_STATISTICS_SERVICE_FILE}" "${SCRIPT_DIR}/${POLYGON_STATISTICS_TIMER_FILE}"
-cp "${SCRIPT_DIR}/${POLYGON_STATISTICS_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${POLYGON_STATISTICS_SERVICE_FILE}"
-cp "${SCRIPT_DIR}/${POLYGON_STATISTICS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${POLYGON_STATISTICS_TIMER_FILE}"
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${POLYGON_STATISTICS_TIMER_FILE}"
 
 echo
 echo
@@ -296,14 +284,6 @@ cp "${SCRIPT_DIR}/${POLYGON_METADATA_TIMER_FILE}" "/home/ubuntu/.config/systemd/
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${POLYGON_METADATA_TIMER_FILE}"
 
-echo
-echo
-echo -e "${PREFIX_INFO} Replacing existing Polygon CU reports tokenonomics service and timer with: ${POLYGON_CU_REPORTS_TOKENONOMICS_SERVICE_FILE}, ${POLYGON_CU_REPORTS_TOKENONOMICS_TIMER_FILE}"
-chmod 644 "${SCRIPT_DIR}/${POLYGON_CU_REPORTS_TOKENONOMICS_SERVICE_FILE}" "${SCRIPT_DIR}/${POLYGON_CU_REPORTS_TOKENONOMICS_TIMER_FILE}"
-cp "${SCRIPT_DIR}/${POLYGON_CU_REPORTS_TOKENONOMICS_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${POLYGON_CU_REPORTS_TOKENONOMICS_SERVICE_FILE}"
-cp "${SCRIPT_DIR}/${POLYGON_CU_REPORTS_TOKENONOMICS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${POLYGON_CU_REPORTS_TOKENONOMICS_TIMER_FILE}"
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${POLYGON_CU_REPORTS_TOKENONOMICS_TIMER_FILE}"
 
 echo
 echo
@@ -419,14 +399,6 @@ cp "${SCRIPT_DIR}/${XDAI_MISSING_TIMER_FILE}" "/home/ubuntu/.config/systemd/user
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${XDAI_MISSING_TIMER_FILE}"
 
-echo
-echo
-echo -e "${PREFIX_INFO} Replacing existing XDai statistics dashbord service and timer with: ${XDAI_STATISTICS_SERVICE_FILE}, ${XDAI_STATISTICS_TIMER_FILE}"
-chmod 644 "${SCRIPT_DIR}/${XDAI_STATISTICS_SERVICE_FILE}" "${SCRIPT_DIR}/${XDAI_STATISTICS_TIMER_FILE}"
-cp "${SCRIPT_DIR}/${XDAI_STATISTICS_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${XDAI_STATISTICS_SERVICE_FILE}"
-cp "${SCRIPT_DIR}/${XDAI_STATISTICS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${XDAI_STATISTICS_TIMER_FILE}"
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${XDAI_STATISTICS_TIMER_FILE}"
 
 echo
 echo
@@ -470,15 +442,6 @@ cp "${SCRIPT_DIR}/${WYRM_MISSING_SERVICE_FILE}" "/home/ubuntu/.config/systemd/us
 cp "${SCRIPT_DIR}/${WYRM_MISSING_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${WYRM_MISSING_TIMER_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${WYRM_MISSING_TIMER_FILE}"
-
-echo
-echo
-echo -e "${PREFIX_INFO} Replacing existing Wyrm statistics dashbord service and timer with: ${WYRM_STATISTICS_SERVICE_FILE}, ${WYRM_STATISTICS_TIMER_FILE}"
-chmod 644 "${SCRIPT_DIR}/${WYRM_STATISTICS_SERVICE_FILE}" "${SCRIPT_DIR}/${WYRM_STATISTICS_TIMER_FILE}"
-cp "${SCRIPT_DIR}/${WYRM_STATISTICS_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${WYRM_STATISTICS_SERVICE_FILE}"
-cp "${SCRIPT_DIR}/${WYRM_STATISTICS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${WYRM_STATISTICS_TIMER_FILE}"
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${WYRM_STATISTICS_TIMER_FILE}"
 
 echo
 echo
@@ -550,6 +513,23 @@ cp "${SCRIPT_DIR}/${ZKSYNC_ERA_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}" "/home/ubunt
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ZKSYNC_ERA_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
 
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing ZkSync Era state service and timer with: ${ZKSYNC_ERA_STATE_SERVICE_FILE}, ${ZKSYNC_ERA_STATE_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_SERVICE_FILE}" "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ZKSYNC_ERA_STATE_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ZKSYNC_ERA_STATE_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000"  systemctl --user restart --no-block "${ZKSYNC_ERA_STATE_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing ZkSync Era state clean service and timer with: ${ZKSYNC_ERA_STATE_CLEAN_SERVICE_FILE}, ${ZKSYNC_ERA_STATE_CLEAN_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_CLEAN_SERVICE_FILE}" "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_CLEAN_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_CLEAN_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ZKSYNC_ERA_STATE_CLEAN_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_CLEAN_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ZKSYNC_ERA_STATE_CLEAN_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000"  systemctl --user restart --no-block "${ZKSYNC_ERA_STATE_CLEAN_TIMER_FILE}"
 
 # ZkSync Era testnet
 echo

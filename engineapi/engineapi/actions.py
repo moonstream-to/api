@@ -5,7 +5,13 @@ from typing import List, Any, Optional, Dict, Union, Tuple, cast
 import uuid
 import logging
 
-from bugout.data import BugoutResource, BugoutSearchResult
+from bugout.data import (
+    BugoutResource,
+    BugoutSearchResult,
+    ResourcePermissions,
+    HolderType,
+    BugoutResourceHolder,
+)
 from eth_typing import Address
 from hexbytes import HexBytes
 import requests  # type: ignore
@@ -16,7 +22,14 @@ from sqlalchemy.engine import Row
 from web3 import Web3
 from web3.types import ChecksumAddress
 
-from .data import Score, LeaderboardScore, LeaderboardConfigUpdate, LeaderboardConfig
+from .data import (
+    Score,
+    LeaderboardScore,
+    LeaderboardConfigUpdate,
+    LeaderboardConfig,
+    LeaderboardPosition,
+    ColumnsNames,
+)
 from .contracts import Dropper_interface, ERC20_interface, Terminus_interface
 from .models import (
     DropperClaimant,
@@ -93,6 +106,10 @@ class LeaderboardConfigAlreadyInactive(Exception):
 
 
 class LeaderboardVersionNotFound(Exception):
+    pass
+
+
+class LeaderboardAssignResourceError(Exception):
     pass
 
 
@@ -1029,7 +1046,7 @@ def get_leaderboard_info(
         version_number=version_number,
     )
 
-    leaderboard = (
+    query = (
         db_session.query(
             Leaderboard.id,
             Leaderboard.title,
@@ -1038,26 +1055,33 @@ def get_leaderboard_info(
             func.max(LeaderboardScores.updated_at).label("last_update"),
         )
         .join(
-            LeaderboardScores,
-            LeaderboardScores.leaderboard_id == Leaderboard.id,
+            LeaderboardVersion,
+            and_(
+                LeaderboardVersion.leaderboard_id == Leaderboard.id,
+                LeaderboardVersion.published == True,
+            ),
             isouter=True,
         )
         .join(
-            LeaderboardVersion,
+            LeaderboardScores,
             and_(
-                LeaderboardVersion.leaderboard_id == LeaderboardScores.leaderboard_id,
-                LeaderboardVersion.version_number
-                == LeaderboardScores.leaderboard_version_number,
+                LeaderboardScores.leaderboard_id == Leaderboard.id,
+                LeaderboardScores.leaderboard_version_number
+                == LeaderboardVersion.version_number,
             ),
             isouter=True,
         )
         .filter(
-            LeaderboardVersion.published == True,
-            LeaderboardVersion.version_number == latest_version,
+            or_(
+                LeaderboardVersion.published == None,
+                LeaderboardVersion.version_number == latest_version,
+            )
         )
         .filter(Leaderboard.id == leaderboard_id)
         .group_by(Leaderboard.id, Leaderboard.title, Leaderboard.description)
-    ).one()
+    )
+
+    leaderboard = query.one()
 
     return leaderboard
 
@@ -1222,9 +1246,46 @@ def get_position(
     return query.all()
 
 
-def get_leaderboard_positions(
+def get_leaderboard_score(
     db_session: Session,
     leaderboard_id,
+    address,
+    version_number: Optional[int] = None,
+) -> Optional[LeaderboardScores]:
+    """
+    Return address score
+    """
+
+    latest_version = leaderboard_version_filter(
+        db_session=db_session,
+        leaderboard_id=leaderboard_id,
+        version_number=version_number,
+    )
+
+    query = (
+        db_session.query(LeaderboardScores)
+        .join(
+            LeaderboardVersion,
+            and_(
+                LeaderboardVersion.leaderboard_id == LeaderboardScores.leaderboard_id,
+                LeaderboardVersion.version_number
+                == LeaderboardScores.leaderboard_version_number,
+            ),
+        )
+        .filter(
+            LeaderboardVersion.published == True,
+            LeaderboardVersion.version_number == latest_version,
+        )
+        .filter(LeaderboardScores.leaderboard_id == leaderboard_id)
+        .filter(LeaderboardScores.address == address)
+    )
+
+    return query.one_or_none()
+
+
+def get_leaderboard_positions(
+    db_session: Session,
+    leaderboard_id: uuid.UUID,
     limit: int,
     offset: int,
     version_number: Optional[int] = None,
@@ -1437,31 +1498,47 @@ def create_leaderboard(
     title: str,
     description: Optional[str],
     token: Optional[Union[uuid.UUID, str]] = None,
+    wallet_connect: bool = False,
+    blockchain_ids: List[int] = [],
+    columns_names: ColumnsNames = None,
 ) -> Leaderboard:
     """
     Create a leaderboard
     """
 
+    if columns_names is not None:
+        columns_names = columns_names.dict()
+
     if not token:
         token = uuid.UUID(MOONSTREAM_ADMIN_ACCESS_TOKEN)
     try:
-        leaderboard = Leaderboard(title=title, description=description)
+        # deduplicate and sort
+        blockchain_ids = sorted(list(set(blockchain_ids)))
+
+        leaderboard = Leaderboard(
+            title=title,
+            description=description,
+            wallet_connect=wallet_connect,
+            blockchain_ids=blockchain_ids,
+            columns_names=columns_names,
+        )
         db_session.add(leaderboard)
         db_session.commit()
 
+        user = None
+        if token is not None:
+            user = bc.get_user(token=token)
+
         resource = create_leaderboard_resource(
             leaderboard_id=str(leaderboard.id),
-            token=token,
+            user_id=str(user.id) if user is not None else None,
         )
-
         leaderboard.resource_id = resource.id
-
         db_session.commit()
     except Exception as e:
         db_session.rollback()
         logger.error(f"Error creating leaderboard: {e}")
         raise LeaderboardCreateError(f"Error creating leaderboard: {e}")
-
     return leaderboard
 
 
@@ -1504,6 +1581,9 @@ def update_leaderboard(
     leaderboard_id: uuid.UUID,
     title: Optional[str],
     description: Optional[str],
+    wallet_connect: Optional[bool],
+    blockchain_ids: Optional[List[int]],
+    columns_names: Optional[ColumnsNames],
 ) -> Leaderboard:
     """
     Update a leaderboard
@@ -1517,6 +1597,23 @@ def update_leaderboard(
         leaderboard.title = title
     if description is not None:
         leaderboard.description = description
+    if wallet_connect is not None:
+        leaderboard.wallet_connect = wallet_connect
+    if blockchain_ids is not None:
+        # deduplicate and sort
+        blockchain_ids = sorted(list(set(blockchain_ids)))
+        leaderboard.blockchain_ids = blockchain_ids
+
+    if columns_names is not None:
+        if leaderboard.columns_names is not None:
+            current_columns_names = ColumnsNames(**leaderboard.columns_names)
+
+            for key, value in columns_names.dict(exclude_none=True).items():
+                setattr(current_columns_names, key, value)
+        else:
+            current_columns_names = columns_names
+
+        leaderboard.columns_names = current_columns_names.dict()
 
     db_session.commit()
 
@@ -1615,37 +1712,61 @@ def add_scores(
 # leaderboard access actions
 
 
-def create_leaderboard_resource(
-    leaderboard_id: str, token: Union[Optional[uuid.UUID], str] = None
-) -> BugoutResource:
+def create_leaderboard_resource(leaderboard_id: str, user_id: Optional[str] = None):
     resource_data: Dict[str, Any] = {
         "type": LEADERBOARD_RESOURCE_TYPE,
         "leaderboard_id": leaderboard_id,
     }
 
-    if token is None:
-        token = MOONSTREAM_ADMIN_ACCESS_TOKEN
     try:
         resource = bc.create_resource(
-            token=token,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             application_id=MOONSTREAM_APPLICATION_ID,
             resource_data=resource_data,
             timeout=10,
         )
     except Exception as e:
         raise LeaderboardCreateError(f"Error creating leaderboard resource: {e}")
+
+    if user_id is not None:
+        try:
+            bc.add_resource_holder_permissions(
+                token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                resource_id=resource.id,
+                holder_permissions=BugoutResourceHolder(
+                    holder_type=HolderType.user,
+                    holder_id=user_id,
+                    permissions=[
+                        ResourcePermissions.ADMIN,
+                        ResourcePermissions.READ,
+                        ResourcePermissions.UPDATE,
+                        ResourcePermissions.DELETE,
+                    ],
+                ),
+            )
+        except Exception as e:
+            raise LeaderboardCreateError(
+                f"Error adding resource holder permissions: {e}"
+            )
+
     return resource
 
 
 def assign_resource(
     db_session: Session,
     leaderboard_id: uuid.UUID,
-    user_token: Union[uuid.UUID, str],
+    user_token: Optional[Union[uuid.UUID, str]] = None,
     resource_id: Optional[uuid.UUID] = None,
 ):
     """
     Assign a resource handler to a leaderboard
     """
+
+    ### get user_name from token
+
+    user = None
+    if user_token is not None:
+        user = bc.get_user(token=user_token)
 
     leaderboard = (
         db_session.query(Leaderboard).filter(Leaderboard.id == leaderboard_id).one()  # type: ignore
@@ -1654,11 +1775,9 @@ def assign_resource(
     if resource_id is not None:
         leaderboard.resource_id = resource_id
     else:
-        # Create resource via admin token
-
         resource = create_leaderboard_resource(
             leaderboard_id=str(leaderboard_id),
-            token=user_token,
+            user_id=user.id if user is not None else None,
         )
 
         leaderboard.resource_id = resource.id

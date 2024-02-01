@@ -1,6 +1,7 @@
 import uuid
 
 from sqlalchemy import (
+    ARRAY,
     DECIMAL,
     VARCHAR,
     BigInteger,
@@ -337,7 +338,6 @@ class CallRequest(Base):
 
 class Leaderboard(Base):  # type: ignore
     __tablename__ = "leaderboards"
-    # __table_args__ = (UniqueConstraint("dropper_contract_id", "address"),)
 
     id = Column(
         UUID(as_uuid=True),
@@ -349,6 +349,10 @@ class Leaderboard(Base):  # type: ignore
     title = Column(VARCHAR(128), nullable=False)
     description = Column(String, nullable=True)
     resource_id = Column(UUID(as_uuid=True), nullable=True, index=True)
+    blockchain_ids = Column(ARRAY(Integer), nullable=False, default=[])
+
+    wallet_connect = Column(Boolean, default=False, nullable=False)
+    columns_names = Column(JSONB, nullable=True)
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )
