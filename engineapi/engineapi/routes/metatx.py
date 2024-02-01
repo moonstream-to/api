@@ -9,12 +9,18 @@ import logging
 from typing import Dict, List, Optional
 from uuid import UUID
 
+from bugout.data import BugoutUser
 from fastapi import Body, Depends, FastAPI, Path, Query, Request
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
 from .. import contracts_actions, data, db
-from ..middleware import BroodAuthMiddleware, BugoutCORSMiddleware, EngineHTTPException
+from ..middleware import (
+    BroodAuthMiddleware,
+    BugoutCORSMiddleware,
+    EngineHTTPException,
+    user_for_auth_header,
+)
 from ..settings import DOCS_TARGET_PATH
 from ..version import VERSION
 
@@ -40,7 +46,7 @@ whitelist_paths = {
     "/metatx/blockchains": "GET",
     "/metatx/contracts/types": "GET",
     "/metatx/requests/types": "GET",
-    "/metatx/requests": "GET",
+    "/metatx/requests": "GET",  # Controls by custom authentication check
 }
 
 app = FastAPI(
@@ -278,14 +284,20 @@ async def call_request_types_route(
     return call_request_types
 
 
-@app.get("/requests", tags=["requests"], response_model=List[data.CallRequestResponse])
+@app.get(
+    "/requests",
+    tags=["requests"],
+    response_model=List[data.CallRequestResponse],
+)
 async def list_requests_route(
     contract_id: Optional[UUID] = Query(None),
     contract_address: Optional[str] = Query(None),
     caller: str = Query(...),
     limit: int = Query(100),
     offset: Optional[int] = Query(None),
-    show_expired: Optional[bool] = Query(False),
+    show_expired: bool = Query(False),
+    show_before_live_at: bool = Query(False),
+    user: Optional[BugoutUser] = Depends(user_for_auth_header),
     db_session: Session = Depends(db.yield_db_read_only_session),
 ) -> List[data.CallRequestResponse]:
     """
@@ -302,6 +314,8 @@ async def list_requests_route(
             limit=limit,
             offset=offset,
             show_expired=show_expired,
+            show_before_live_at=show_before_live_at,
+            metatx_requester_id=user.id if user is not None else None,
         )
     except ValueError as e:
         logger.error(repr(e))
@@ -326,7 +340,7 @@ async def get_request(
     At least one of `contract_id` or `contract_address` must be provided as query parameters.
     """
     try:
-        request = contracts_actions.get_call_requests(
+        request = contracts_actions.get_call_request(
             db_session=db_session,
             request_id=request_id,
         )
@@ -354,13 +368,14 @@ async def create_requests(
     At least one of `contract_id` or `contract_address` must be provided in the request body.
     """
     try:
-        num_requests = contracts_actions.request_calls(
+        num_requests = contracts_actions.create_request_calls(
             db_session=db_session,
             metatx_requester_id=request.state.user.id,
             registered_contract_id=data.contract_id,
             contract_address=data.contract_address,
             call_specs=data.specifications,
             ttl_days=data.ttl_days,
+            live_at=data.live_at,
         )
     except contracts_actions.InvalidAddressFormat as err:
         raise EngineHTTPException(

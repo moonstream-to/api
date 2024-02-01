@@ -6,8 +6,9 @@ from uuid import UUID
 
 from bugout.data import BugoutResource, BugoutResources, BugoutUser
 from bugout.exceptions import BugoutResponseException
-from fastapi import HTTPException, Request, Response
+from fastapi import Header, HTTPException, Request, Response
 from pydantic import AnyHttpUrl, parse_obj_as
+from starlette.datastructures import Headers
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import Response
@@ -26,12 +27,95 @@ from .settings import (
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
     BUGOUT_RESOURCE_TYPE_APPLICATION_CONFIG,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
-    MOONSTREAM_APPLICATION_ID,
     MOONSTREAM_ADMIN_ID,
+    MOONSTREAM_APPLICATION_ID,
 )
 from .settings import bugout_client as bc
 
 logger = logging.getLogger(__name__)
+
+
+class InvalidAuthHeaderFormat(Exception):
+    """
+    Raised when authorization header not pass validation.
+    """
+
+
+class BugoutUnverifiedAuth(Exception):
+    """
+    Raised when attempted access by unverified Brood account.
+    """
+
+
+class BugoutAuthWrongApp(Exception):
+    """
+    Raised when user does not belong to this application.
+    """
+
+
+def parse_auth_header(auth_header: str) -> Tuple[str, str]:
+    """
+    Returns: auth_format and user_token passed in authorization header.
+    """
+    auth_list = auth_header.split()
+    if len(auth_list) != 2:
+        raise InvalidAuthHeaderFormat("Wrong authorization header")
+
+    return auth_list[0], auth_list[1]
+
+
+def bugout_auth(token: str) -> BugoutUser:
+    """
+    Extended bugout.get_user with additional checks.
+    """
+    user: BugoutUser = bc.get_user(token)
+    if not user.verified:
+        raise BugoutUnverifiedAuth("Only verified accounts can have access")
+    if str(user.application_id) != str(MOONSTREAM_APPLICATION_ID):
+        raise BugoutAuthWrongApp("User does not belong to this application")
+
+    return user
+
+
+async def user_for_auth_header(
+    authorization: str = Header(None),
+) -> Optional[BugoutUser]:
+    """
+    Fetch Bugout user if authorization token provided.
+    """
+    user: Optional[BugoutUser] = None
+    if authorization is not None:
+        user_token: str = ""
+        try:
+            _, user_token = parse_auth_header(auth_header=authorization)
+        except InvalidAuthHeaderFormat:
+            raise EngineHTTPException(
+                status_code=403, detail="Wrong authorization header"
+            )
+        except Exception as e:
+            logger.error(f"Error processing Brood response: {str(e)}")
+            raise EngineHTTPException(status_code=500, detail="Internal server error")
+
+        if user_token != "":
+            try:
+                user: BugoutUser = bugout_auth(token=user_token)
+            except BugoutUnverifiedAuth:
+                logger.info(f"Attempted access by unverified Brood account: {user.id}")
+                raise EngineHTTPException(
+                    status_code=403,
+                    detail="Only verified accounts can have access",
+                )
+            except BugoutAuthWrongApp:
+                raise EngineHTTPException(
+                    status_code=403, detail="User does not belong to this application"
+                )
+            except BugoutResponseException as e:
+                raise HTTPException(status_code=e.status_code, detail=e.detail)
+            except Exception as e:
+                logger.error(f"Error processing Brood response: {str(e)}")
+                raise HTTPException(status_code=500, detail="Internal server error")
+
+    return user
 
 
 class BroodAuthMiddleware(BaseHTTPMiddleware):
@@ -59,30 +143,33 @@ class BroodAuthMiddleware(BaseHTTPMiddleware):
         if path in self.whitelist.keys() and self.whitelist[path] == method:
             return await call_next(request)
 
-        authorization_header = request.headers.get("authorization")
-        if authorization_header is None:
+        authorization = request.headers.get("authorization")
+        if authorization is None:
             return Response(
-                status_code=403, content="No authorization header passed with request"
+                status_code=403,
+                content="No authorization header passed with request",
             )
-        user_token_list = authorization_header.split()
-        if len(user_token_list) != 2:
-            return Response(status_code=403, content="Wrong authorization header")
-        user_token: str = user_token_list[-1]
 
         try:
-            user: BugoutUser = bc.get_user(user_token)
-            if not user.verified:
-                logger.info(
-                    f"Attempted journal access by unverified Brood account: {user.id}"
-                )
-                return Response(
-                    status_code=403,
-                    content="Only verified accounts can access journals",
-                )
-            if str(user.application_id) != str(MOONSTREAM_APPLICATION_ID):
-                return Response(
-                    status_code=403, content="User does not belong to this application"
-                )
+            _, user_token = parse_auth_header(auth_header=authorization)
+        except InvalidAuthHeaderFormat:
+            return Response(status_code=403, content="Wrong authorization header")
+        except Exception as e:
+            logger.error(f"Error processing Brood response: {str(e)}")
+            return Response(status_code=500, content="Internal server error")
+
+        try:
+            user: BugoutUser = bugout_auth(token=user_token)
+        except BugoutUnverifiedAuth:
+            logger.info(f"Attempted access by unverified Brood account: {user.id}")
+            return Response(
+                status_code=403,
+                content="Only verified accounts can have access",
+            )
+        except BugoutAuthWrongApp:
+            return Response(
+                status_code=403, content="User does not belong to this application"
+            )
         except BugoutResponseException as e:
             return Response(status_code=e.status_code, content=e.detail)
         except Exception as e:
