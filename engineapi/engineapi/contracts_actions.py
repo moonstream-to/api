@@ -100,6 +100,7 @@ def parse_call_request_response(
         method=obj[0].method,
         request_id=str(obj[0].request_id),
         parameters=obj[0].parameters,
+        tx_hash=obj[0].tx_hash,
         expires_at=obj[0].expires_at,
         live_at=obj[0].live_at,
         created_at=obj[0].created_at,
@@ -480,7 +481,7 @@ def list_call_requests(
     limit: int = 10,
     offset: Optional[int] = None,
     show_expired: bool = False,
-    show_before_live_at: bool = False,
+    live_after: Optional[int] = None,
     metatx_requester_id: Optional[uuid.UUID] = None,
 ) -> List[Row[Tuple[CallRequest, RegisteredContract, CallRequestType]]]:
     """
@@ -526,14 +527,16 @@ def list_call_requests(
         query = query.filter(
             CallRequest.metatx_requester_id == metatx_requester_id,
         )
-        if not show_before_live_at:
-            query = query.filter(
-                or_(CallRequest.live_at < func.now(), CallRequest.live_at == None)
-            )
     else:
         query = query.filter(
             or_(CallRequest.live_at < func.now(), CallRequest.live_at == None)
         )
+
+    if live_after is not None:
+        assert live_after == int(live_after)
+        if live_after <= 0:
+            raise ValueError("live_after must be positive")
+        query = query.filter(CallRequest.live_at >= datetime.fromtimestamp(live_after))
 
     if offset is not None:
         query = query.offset(offset)
@@ -577,6 +580,46 @@ def delete_requests(
         raise Exception("Failed to delete call requests")
 
     return requests_to_delete_num
+
+
+def complete_call_request(
+    db_session: Session,
+    tx_hash: str,
+    call_request_id: uuid.UUID,
+    caller: str,
+) -> CallRequest:
+    results = (
+        db_session.query(CallRequest, RegisteredContract)
+        .join(
+            RegisteredContract,
+            CallRequest.registered_contract_id == RegisteredContract.id,
+        )
+        .filter(CallRequest.id == call_request_id)
+        .filter(CallRequest.caller == caller)
+        .all()
+    )
+
+    if len(results) == 0:
+        raise CallRequestNotFound("Call request with given ID not found")
+    elif len(results) != 1:
+        raise Exception(
+            f"Incorrect number of results found for request_id {call_request_id}"
+        )
+    call_request, registered_contract = results[0]
+
+    call_request.tx_hash = tx_hash
+
+    try:
+        db_session.add(call_request)
+        db_session.commit()
+    except Exception as err:
+        logger.error(
+            f"complete_call_request -- error updating in database: {repr(err)}"
+        )
+        db_session.rollback()
+        raise
+
+    return (call_request, registered_contract)
 
 
 def handle_register(args: argparse.Namespace) -> None:

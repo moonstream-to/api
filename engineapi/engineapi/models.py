@@ -315,6 +315,7 @@ class CallRequest(Base):
     method = Column(String, nullable=False, index=True)
     request_id = Column(DECIMAL, nullable=False, index=True)
     parameters = Column(JSONB, nullable=False)
+    tx_hash = Column(VARCHAR(256), unique=True, nullable=True)
 
     expires_at = Column(DateTime(timezone=True), nullable=True, index=True)
     live_at = Column(DateTime(timezone=True), nullable=True)

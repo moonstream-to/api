@@ -306,6 +306,7 @@ class CallRequestResponse(BaseModel):
     method: str
     request_id: str
     parameters: Dict[str, Any]
+    tx_hash: Optional[str] = None
     expires_at: Optional[datetime] = None
     live_at: Optional[datetime] = None
     created_at: datetime
@@ -326,6 +327,10 @@ class CallRequestResponse(BaseModel):
     @validator("contract_address", "caller")
     def validate_web3_adresses(cls, v):
         return Web3.toChecksumAddress(v)
+
+
+class CompleteCallRequestsAPIRequest(BaseModel):
+    tx_hash: str
 
 
 class QuartilesResponse(BaseModel):
