@@ -67,6 +67,8 @@ def historical_crawler(
         network = Network.zksync_era
     elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
         network = Network.arbitrum_nova
+    elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
+        network = Network.arbitrum_sepolia
     else:
         raise Exception("Unsupported blockchain type provided")
 

@@ -22,6 +22,7 @@ from .data import DateRange
 from .db import yield_db_session, yield_db_session_ctx
 from .settings import (
     MOONSTREAM_ARBITRUM_NOVA_WEB3_PROVIDER_URI,
+    MOONSTREAM_ARBITRUM_SEPOLIA_WEB3_PROVIDER_URI,
     MOONSTREAM_CRAWL_WORKERS,
     MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI,
     MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI,
@@ -79,6 +80,8 @@ def connect(
             web3_uri = MOONSTREAM_ZKSYNC_ERA_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
             web3_uri = MOONSTREAM_ARBITRUM_NOVA_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
+            web3_uri = MOONSTREAM_ARBITRUM_SEPOLIA_WEB3_PROVIDER_URI
         else:
             raise Exception("Wrong blockchain type provided for web3 URI")
 
@@ -120,9 +123,11 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
     block_obj = block_model(
         block_number=block.number,
         difficulty=block.difficulty,
-        extra_data=None
-        if block.get("extraData", None) is None
-        else block.get("extraData").hex(),
+        extra_data=(
+            None
+            if block.get("extraData", None) is None
+            else block.get("extraData").hex()
+        ),
         gas_limit=block.gasLimit,
         gas_used=block.gasUsed,
         base_fee_per_gas=block.get("baseFeePerGas", None),
@@ -158,6 +163,13 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
             else None
         )
     if blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
+        block_obj.sha3_uncles = block.get("sha3Uncles", "")
+        block_obj.l1_block_number = hex_to_int(block.get("l1BlockNumber"))
+        block_obj.send_count = hex_to_int(block.get("sendCount"))
+        block_obj.send_root = block.get("sendRoot", "")
+        block_obj.mix_hash = block.get("mixHash", "")
+
+    if blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
         block_obj.sha3_uncles = block.get("sha3Uncles", "")
         block_obj.l1_block_number = hex_to_int(block.get("l1BlockNumber"))
         block_obj.send_count = hex_to_int(block.get("sendCount"))
@@ -207,6 +219,9 @@ def add_block_transactions(
                 else None
             )
         if blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
+            tx_obj.y_parity = hex_to_int(tx.get("yParity"))
+
+        if blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
             tx_obj.y_parity = hex_to_int(tx.get("yParity"))
 
         db_session.add(tx_obj)
