@@ -15,6 +15,9 @@ from bugout.data import (
     BugoutResources,
     BugoutSearchResult,
     BugoutSearchResults,
+    BugoutResourceHolder,
+    HolderType,
+    ResourcePermissions,
 )
 from bugout.exceptions import BugoutResponseException
 from bugout.journal import SearchOrder
@@ -470,7 +473,7 @@ def upload_abi_to_s3(
 
 
 def get_all_entries_from_search(
-    journal_id: str, search_query: str, limit: int, token: str
+    journal_id: str, search_query: str, limit: int, token: str, content: bool = False
 ) -> List[BugoutSearchResult]:
     """
     Get all required entries from journal using search interface
@@ -483,7 +486,7 @@ def get_all_entries_from_search(
         token=token,
         journal_id=journal_id,
         query=search_query,
-        content=False,
+        content=content,
         timeout=10.0,
         limit=limit,
         offset=offset,
@@ -496,7 +499,7 @@ def get_all_entries_from_search(
                 token=token,
                 journal_id=journal_id,
                 query=search_query,
-                content=False,
+                content=content,
                 timeout=10.0,
                 limit=limit,
                 offset=offset,
@@ -526,47 +529,45 @@ def apply_moonworm_tasks(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
         )
 
-        # create historical crawl task in journal
-
         # will use create_entries_pack for creating entries in journal
 
         existing_tags = [entry.tags for entry in entries]
 
-        existing_hashes = [
-            tag.split(":")[-1]
-            for tag in chain(*existing_tags)
-            if "abi_method_hash" in tag
+        existing_selectors = [
+            tag.split(":")[-1] for tag in chain(*existing_tags) if "abi_selector" in tag
         ]
 
-        abi_hashes_dict = {
-            hashlib.md5(json.dumps(method).encode("utf-8")).hexdigest(): method
+        abi_selectors_dict = {
+            Web3.keccak(
+                text=method["name"]
+                + "("
+                + ",".join(map(lambda x: x["type"], method["inputs"]))
+                + ")"
+            )[:4].hex(): method
             for method in abi
             if (method["type"] in ("event", "function"))
             and (method.get("stateMutability", "") != "view")
         }
 
-        for hash in abi_hashes_dict:
-            if hash not in existing_hashes:
-                abi_selector = Web3.keccak(
-                    text=abi_hashes_dict[hash]["name"]
-                    + "("
-                    + ",".join(
-                        map(lambda x: x["type"], abi_hashes_dict[hash]["inputs"])
-                    )
-                    + ")"
-                )[:4].hex()
+        for abi_selector in abi_selectors_dict:
+            if abi_selector not in existing_selectors:
+                hash = hashlib.md5(
+                    json.dumps(abi_selectors_dict[abi_selector]).encode("utf-8")
+                ).hexdigest()
 
                 moonworm_abi_tasks_entries_pack.append(
                     {
                         "title": address,
-                        "content": json.dumps(abi_hashes_dict[hash], indent=4),
+                        "content": json.dumps(
+                            abi_selectors_dict[abi_selector], indent=4
+                        ),
                         "tags": [
                             f"address:{address}",
-                            f"type:{abi_hashes_dict[hash]['type']}",
+                            f"type:{abi_selectors_dict[abi_selector]['type']}",
                             f"abi_method_hash:{hash}",
                             f"abi_selector:{abi_selector}",
                             f"subscription_type:{subscription_type}",
-                            f"abi_name:{abi_hashes_dict[hash]['name']}",
+                            f"abi_name:{abi_selectors_dict[abi_selector]['name']}",
                             f"status:active",
                             f"task_type:moonworm",
                             f"moonworm_task_pickedup:False",  # True if task picked up by moonworm-crawler(default each 120 sec)
@@ -711,11 +712,7 @@ def generate_journal_for_user(
     }
 
     try:
-        bc.create_resource(
-            token=token,
-            application_id=MOONSTREAM_APPLICATION_ID,
-            resource_data=resource_data,
-        )
+        create_resource_for_user(user_id=user_id, resource_data=resource_data)
     except BugoutResponseException as e:
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
@@ -851,6 +848,8 @@ def get_list_of_support_interfaces(
     Returns list of interfaces supported by given address
     """
 
+    result = {}
+
     try:
         _, _, is_contract = check_if_smart_contract(
             blockchain_type=blockchain_type, address=address, user_token=user_token
@@ -865,8 +864,6 @@ def get_list_of_support_interfaces(
             address=Web3.toChecksumAddress(address),
             abi=supportsInterface_abi,
         )
-
-        result = {}
 
         if blockchain_type in multicall_contracts:
             calls = []
@@ -952,3 +949,57 @@ def check_if_smart_contract(
         is_contract = True
 
     return blockchain_type, address, is_contract
+
+
+def create_resource_for_user(
+    user_id: uuid.UUID,
+    resource_data: Dict[str, Any],
+) -> BugoutResource:
+    """
+    Create resource for user
+    """
+    try:
+        resource = bc.create_resource(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            application_id=MOONSTREAM_APPLICATION_ID,
+            resource_data=resource_data,
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+        )
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        logger.error(f"Error creating resource: {str(e)}")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    try:
+        bc.add_resource_holder_permissions(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            resource_id=resource.id,
+            holder_permissions=BugoutResourceHolder(
+                holder_type=HolderType.user,
+                holder_id=user_id,
+                permissions=[
+                    ResourcePermissions.ADMIN,
+                    ResourcePermissions.READ,
+                    ResourcePermissions.UPDATE,
+                    ResourcePermissions.DELETE,
+                ],
+            ),
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+        )
+    except BugoutResponseException as e:
+        logger.error(
+            f"Error adding resource holder permissions to resource resource {str(resource.id)}  {str(e)}"
+        )
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        bc.delete_resource(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            resource_id=resource.id,
+        )
+        logger.error(
+            f"Error adding resource holder permissions to resource {str(resource.id)}  {str(e)}"
+        )
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    return resource

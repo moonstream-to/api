@@ -284,6 +284,7 @@ class CreateCallRequestsAPIRequest(BaseModel):
     contract_address: Optional[str] = None
     specifications: List[CallSpecification] = Field(default_factory=list)
     ttl_days: Optional[int] = None
+    live_at: Optional[int] = None
 
     # Solution found thanks to https://github.com/pydantic/pydantic/issues/506
     @root_validator
@@ -305,7 +306,9 @@ class CallRequestResponse(BaseModel):
     method: str
     request_id: str
     parameters: Dict[str, Any]
+    tx_hash: Optional[str] = None
     expires_at: Optional[datetime] = None
+    live_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
 
@@ -324,6 +327,10 @@ class CallRequestResponse(BaseModel):
     @validator("contract_address", "caller")
     def validate_web3_adresses(cls, v):
         return Web3.toChecksumAddress(v)
+
+
+class CompleteCallRequestsAPIRequest(BaseModel):
+    tx_hash: str
 
 
 class QuartilesResponse(BaseModel):
@@ -365,11 +372,22 @@ class LeaderboardScore(BaseModel):
     points_data: Dict[str, Any]
 
 
+class ColumnsNames(BaseModel):
+    rank: Optional[str] = None
+    address: Optional[str] = None
+    score: Optional[str] = None
+    points_data: Optional[str] = None
+    points_data_fields: Optional[Dict[str, str]] = None
+
+
 class Leaderboard(BaseModel):
     id: UUID
     title: str
     description: Optional[str] = None
     resource_id: Optional[UUID] = None
+    wallet_connect: bool = False
+    blockchain_ids: List[int] = Field(default_factory=list)
+    columns_names: Optional[ColumnsNames] = None
     created_at: datetime
     updated_at: datetime
 
@@ -385,6 +403,9 @@ class LeaderboardInfoResponse(BaseModel):
 class LeaderboardCreateRequest(BaseModel):
     title: str
     description: Optional[str] = None
+    wallet_connect: bool = False
+    blockchain_ids: List[int] = Field(default_factory=list)
+    columns_names: Optional[ColumnsNames] = None
 
 
 class LeaderboardCreatedResponse(BaseModel):
@@ -392,6 +413,9 @@ class LeaderboardCreatedResponse(BaseModel):
     title: str
     description: Optional[str] = None
     resource_id: Optional[UUID] = None
+    wallet_connect: bool = False
+    blockchain_ids: List[int] = Field(default_factory=list)
+    columns_names: Optional[ColumnsNames] = None
     created_at: datetime
     updated_at: datetime
 
@@ -404,6 +428,9 @@ class LeaderboardUpdatedResponse(BaseModel):
     title: str
     description: Optional[str] = None
     resource_id: Optional[UUID] = None
+    wallet_connect: bool = False
+    blockchain_ids: List[int] = Field(default_factory=list)
+    columns_names: Optional[ColumnsNames] = None
     created_at: datetime
     updated_at: datetime
 
@@ -414,6 +441,9 @@ class LeaderboardUpdatedResponse(BaseModel):
 class LeaderboardUpdateRequest(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
+    wallet_connect: bool = False
+    blockchain_ids: List[int] = Field(default_factory=list)
+    columns_names: Optional[ColumnsNames] = None
 
 
 class LeaderboardDeletedResponse(BaseModel):
@@ -421,6 +451,9 @@ class LeaderboardDeletedResponse(BaseModel):
     title: str
     description: Optional[str] = None
     resource_id: Optional[UUID] = None
+    wallet_connect: bool = False
+    blockchain_ids: List[int] = Field(default_factory=list)
+    columns_names: Optional[ColumnsNames] = None
     created_at: datetime
     updated_at: datetime
 
