@@ -368,19 +368,31 @@ func panicMiddleware(next http.Handler) http.Handler {
 // CORS middleware
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodOptions {
-			for _, allowedOrigin := range strings.Split(MOONSTREAM_CORS_ALLOWED_ORIGINS, ",") {
-				if r.Header.Get("Origin") == allowedOrigin {
-					w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
-					w.Header().Set("Access-Control-Allow-Methods", "GET,POST")
-					// Credentials are cookies, authorization headers, or TLS client certificates
-					w.Header().Set("Access-Control-Allow-Credentials", "true")
-					w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
-				}
+		var allowedOrigin string
+		if CORS_WHITELIST_MAP["*"] {
+			allowedOrigin = "*"
+		} else {
+			origin := r.Header.Get("Origin")
+			if _, ok := CORS_WHITELIST_MAP[origin]; ok {
+				allowedOrigin = origin
 			}
-			w.WriteHeader(http.StatusNoContent)
+		}
+
+		fmt.Println(allowedOrigin, CORS_WHITELIST_MAP)
+
+		if allowedOrigin != "" {
+			w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
+			w.Header().Set("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+			// Credentials are cookies, authorization headers, or TLS client certificates
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+			w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
+		}
+
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
 			return
 		}
+
 		next.ServeHTTP(w, r)
 	})
 }
