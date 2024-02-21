@@ -1,6 +1,7 @@
 """
 Utilities for managing subscription type resources for a Moonstream application.
 """
+
 import argparse
 import json
 from typing import Dict, List, Optional
@@ -90,6 +91,39 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         choices=["input:address", "tag:erc721"],
         description="Contracts events and tx_calls of contract of zkSync Era testnet blockchain.",
         icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/zksync-era-testnet-token-logo.png",
+        stripe_product_id=None,
+        stripe_price_id=None,
+        active=True,
+    ),
+    "arbitrum_nova_smartcontract": SubscriptionTypeResourceData(
+        id="arbitrum_nova_smartcontract",
+        name="Arbitrum Nova smartcontract",
+        blockchain="arbitrum_nova",
+        choices=["input:address", "tag:erc721"],
+        description="Contracts events and tx_calls of contract of Arbitrum Nova blockchain.",
+        icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/arbitrum-nova-token-logo.png",
+        stripe_product_id=None,
+        stripe_price_id=None,
+        active=True,
+    ),
+    "arbitrum_sepolia_smartcontract": SubscriptionTypeResourceData(
+        id="arbitrum_sepolia_smartcontract",
+        name="Arbitrum Sepolia smartcontract",
+        blockchain="arbitrum_sepolia",
+        choices=["input:address", "tag:erc721"],
+        description="Contracts events and tx_calls of contract of Arbitrum Sepolia blockchain.",
+        icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/arbitrum-sepolia-token-logo.png",
+        stripe_product_id=None,
+        stripe_price_id=None,
+        active=True,
+    ),
+    "xai_smartcontract": SubscriptionTypeResourceData(
+        id="xai_smartcontract",
+        name="Xai smartcontract",
+        blockchain="xai",
+        choices=["input:address", "tag:erc721"],
+        description="Contracts events and tx_calls of contract of Xai blockchain.",
+        icon_url="https://s3.amazonaws.com/static.simiotics.com/moonstream/assets/xai-token-logo.png",
         stripe_product_id=None,
         stripe_price_id=None,
         active=True,
