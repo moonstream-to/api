@@ -378,8 +378,6 @@ func corsMiddleware(next http.Handler) http.Handler {
 			}
 		}
 
-		fmt.Println(allowedOrigin, CORS_WHITELIST_MAP)
-
 		if allowedOrigin != "" {
 			w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
 			w.Header().Set("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
