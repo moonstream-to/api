@@ -27,6 +27,9 @@ from .models import (
     ArbitrumNovaBlock,
     ArbitrumNovaTransaction,
     ArbitrumNovaLabel,
+    ArbitrumSepoliaBlock,
+    ArbitrumSepoliaTransaction,
+    ArbitrumSepoliaLabel,
 )
 
 
@@ -39,6 +42,7 @@ class Network(Enum):
     zksync_era_testnet = "zksync_era_testnet"
     zksync_era = "zksync_era"
     arbitrum_nova = "arbitrum_nova"
+    arbitrum_sepolia = "arbitrum_sepolia"
 
 
 tx_raw_types = Union[
@@ -50,6 +54,7 @@ tx_raw_types = Union[
     ZkSyncEraTestnetTransaction,
     ZkSyncEraTransaction,
     ArbitrumNovaTransaction,
+    ArbitrumSepoliaTransaction,
 ]
 
 MODELS: Dict[Network, Dict[str, Base]] = {
@@ -92,5 +97,10 @@ MODELS: Dict[Network, Dict[str, Base]] = {
         "blocks": ArbitrumNovaBlock,
         "labels": ArbitrumNovaLabel,
         "transactions": ArbitrumNovaTransaction,
+    },
+    Network.arbitrum_sepolia: {
+        "blocks": ArbitrumSepoliaBlock,
+        "labels": ArbitrumSepoliaLabel,
+        "transactions": ArbitrumSepoliaTransaction,
     },
 }

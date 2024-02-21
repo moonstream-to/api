@@ -1,6 +1,7 @@
 """
 Generates dashboard.
 """
+
 import argparse
 import hashlib
 import json
@@ -56,6 +57,7 @@ subscription_id_by_blockchain = {
     "zksync_era_testnet": "zksync_era_testnet_smartcontract",
     "zksync_era": "zksync_era_smartcontract",
     "arbitrum_nova": "arbitrum_nova_smartcontract",
+    "arbitrum_sepolia": "arbitrum_sepolia_smartcontract",
 }
 
 blockchain_by_subscription_id = {
@@ -66,6 +68,7 @@ blockchain_by_subscription_id = {
     "wyrm_blockchain": "wyrm",
     "zksync_era_testnet_blockchain": "zksync_era_testnet",
     "arbitrum_nova_blockchain": "arbitrum_nova",
+    "arbitrum_sepolia_blockchain": "arbitrum_sepolia",
     "ethereum_smartcontract": "ethereum",
     "polygon_smartcontract": "polygon",
     "mumbai_smartcontract": "mumbai",
@@ -74,6 +77,7 @@ blockchain_by_subscription_id = {
     "zksync_era_testnet_smartcontract": "zksync_era_testnet",
     "zksync_era_smartcontract": "zksync_era",
     "arbitrum_nova_smartcontract": "arbitrum_nova",
+    "arbitrum_sepolia_smartcontract": "arbitrum_sepolia",
 }
 
 
@@ -931,9 +935,9 @@ def stats_generate_handler(args: argparse.Namespace):
 
                                 s3_subscription_data_object: Dict[str, Any] = {}
 
-                                s3_subscription_data_object[
-                                    "blocks_state"
-                                ] = s3_data_object_for_contract["blocks_state"]
+                                s3_subscription_data_object["blocks_state"] = (
+                                    s3_data_object_for_contract["blocks_state"]
+                                )
 
                                 if dashboard_id in merged_external_calls:
                                     for (
@@ -952,9 +956,9 @@ def stats_generate_handler(args: argparse.Namespace):
                                                 }
                                             )
 
-                                s3_subscription_data_object[
-                                    "web3_metric"
-                                ] = extention_data
+                                s3_subscription_data_object["web3_metric"] = (
+                                    extention_data
+                                )
 
                                 # list of user defined events
 
@@ -966,9 +970,9 @@ def stats_generate_handler(args: argparse.Namespace):
 
                                 for event in events_list:
                                     if event in events_data:
-                                        s3_subscription_data_object["events"][
-                                            event
-                                        ] = events_data[event]
+                                        s3_subscription_data_object["events"][event] = (
+                                            events_data[event]
+                                        )
 
                                 # list of user defined functions
 

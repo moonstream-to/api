@@ -38,6 +38,7 @@ class SubscriptionTypes(Enum):
     ZKSYNC_ERA_TESTNET_BLOCKCHAIN = "zksync_era_testnet_smartcontract"
     ZKSYNC_ERA_BLOCKCHAIN = "zksync_era_smartcontract"
     ARBITRUM_NOVA_BLOCKCHAIN = "arbitrum_nova_smartcontract"
+    ARBITRUM_SEPOLIA_BLOCKCHAIN = "arbitrum_sepolia_smartcontract"
 
 
 def abi_input_signature(input_abi: Dict[str, Any]) -> str:
@@ -148,6 +149,8 @@ def blockchain_type_to_subscription_type(
         return SubscriptionTypes.ZKSYNC_ERA_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
         return SubscriptionTypes.ARBITRUM_NOVA_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
+        return SubscriptionTypes.ARBITRUM_SEPOLIA_BLOCKCHAIN
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 
@@ -554,9 +557,9 @@ def update_job_tags(
             for contract_address, entries_ids in event.address_entries.items():
                 for entry_id in entries_ids.keys():
                     if entry_id in entry_tags_by_id:
-                        event.address_entries[contract_address][
-                            entry_id
-                        ] = entry_tags_by_id[entry_id]
+                        event.address_entries[contract_address][entry_id] = (
+                            entry_tags_by_id[entry_id]
+                        )
 
         if isinstance(event, FunctionCallCrawlJob):
             for entry_id in event.entries_tags.keys():
