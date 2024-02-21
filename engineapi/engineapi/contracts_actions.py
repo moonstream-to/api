@@ -2,10 +2,10 @@ import argparse
 import json
 import logging
 import uuid
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
-from sqlalchemy import func, text
+from sqlalchemy import func, or_, text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine import Row
 from sqlalchemy.exc import IntegrityError, NoResultFound
@@ -100,7 +100,9 @@ def parse_call_request_response(
         method=obj[0].method,
         request_id=str(obj[0].request_id),
         parameters=obj[0].parameters,
+        tx_hash=obj[0].tx_hash,
         expires_at=obj[0].expires_at,
+        live_at=obj[0].live_at,
         created_at=obj[0].created_at,
         updated_at=obj[0].updated_at,
     )
@@ -326,13 +328,14 @@ def delete_registered_contract(
     return (registered_contract, blockchain)
 
 
-def request_calls(
+def create_request_calls(
     db_session: Session,
     metatx_requester_id: uuid.UUID,
     registered_contract_id: Optional[uuid.UUID],
     contract_address: Optional[str],
     call_specs: List[data.CallSpecification],
     ttl_days: Optional[int] = None,
+    live_at: Optional[int] = None,
 ) -> int:
     """
     Batch creates call requests for the given registered contract.
@@ -349,6 +352,11 @@ def request_calls(
         assert ttl_days == int(ttl_days), "ttl_days must be an integer"
         if ttl_days <= 0:
             raise ValueError("ttl_days must be positive")
+
+    if live_at is not None:
+        assert live_at == int(live_at)
+        if live_at <= 0:
+            raise ValueError("live_at must be positive")
 
     # Check that the moonstream_user_id matches a RegisteredContract with the given id or address
     query = db_session.query(RegisteredContract).filter(
@@ -406,6 +414,7 @@ def request_calls(
             request_id=specification.request_id,
             parameters=specification.parameters,
             expires_at=expires_at,
+            live_at=datetime.fromtimestamp(live_at) if live_at is not None else None,
         )
 
         db_session.add(request)
@@ -422,7 +431,7 @@ def request_calls(
     return len(call_specs)
 
 
-def get_call_requests(
+def get_call_request(
     db_session: Session,
     request_id: uuid.UUID,
 ) -> Tuple[CallRequest, RegisteredContract]:
@@ -472,9 +481,14 @@ def list_call_requests(
     limit: int = 10,
     offset: Optional[int] = None,
     show_expired: bool = False,
+    live_after: Optional[int] = None,
+    metatx_requester_id: Optional[uuid.UUID] = None,
 ) -> List[Row[Tuple[CallRequest, RegisteredContract, CallRequestType]]]:
     """
-    List call requests for the given moonstream_user_id
+    List call requests.
+
+    Argument moonstream_user_id took from authorization workflow. And if it is specified
+    then user has access to call_requests before live_at param.
     """
     if caller is None:
         raise ValueError("caller must be specified")
@@ -506,6 +520,23 @@ def list_call_requests(
         query = query.filter(
             CallRequest.expires_at > func.now(),
         )
+
+    # If user id not specified, do not show call_requests before live_at.
+    # Otherwise check show_before_live_at argument from query parameter
+    if metatx_requester_id is not None:
+        query = query.filter(
+            CallRequest.metatx_requester_id == metatx_requester_id,
+        )
+    else:
+        query = query.filter(
+            or_(CallRequest.live_at < func.now(), CallRequest.live_at == None)
+        )
+
+    if live_after is not None:
+        assert live_after == int(live_after)
+        if live_after <= 0:
+            raise ValueError("live_after must be positive")
+        query = query.filter(CallRequest.live_at >= datetime.fromtimestamp(live_after))
 
     if offset is not None:
         query = query.offset(offset)
@@ -549,6 +580,46 @@ def delete_requests(
         raise Exception("Failed to delete call requests")
 
     return requests_to_delete_num
+
+
+def complete_call_request(
+    db_session: Session,
+    tx_hash: str,
+    call_request_id: uuid.UUID,
+    caller: str,
+) -> CallRequest:
+    results = (
+        db_session.query(CallRequest, RegisteredContract)
+        .join(
+            RegisteredContract,
+            CallRequest.registered_contract_id == RegisteredContract.id,
+        )
+        .filter(CallRequest.id == call_request_id)
+        .filter(CallRequest.caller == caller)
+        .all()
+    )
+
+    if len(results) == 0:
+        raise CallRequestNotFound("Call request with given ID not found")
+    elif len(results) != 1:
+        raise Exception(
+            f"Incorrect number of results found for request_id {call_request_id}"
+        )
+    call_request, registered_contract = results[0]
+
+    call_request.tx_hash = tx_hash
+
+    try:
+        db_session.add(call_request)
+        db_session.commit()
+    except Exception as err:
+        logger.error(
+            f"complete_call_request -- error updating in database: {repr(err)}"
+        )
+        db_session.rollback()
+        raise
+
+    return (call_request, registered_contract)
 
 
 def handle_register(args: argparse.Namespace) -> None:
@@ -633,7 +704,7 @@ def handle_request_calls(args: argparse.Namespace) -> None:
 
     try:
         with db.yield_db_session_ctx() as db_session:
-            request_calls(
+            create_request_calls(
                 db_session=db_session,
                 moonstream_user_id=args.moonstream_user_id,
                 registered_contract_id=args.registered_contract_id,
