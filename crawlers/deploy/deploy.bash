@@ -682,4 +682,4 @@ echo -e "${PREFIX_INFO} Replacing existing Xai moonworm crawler service definiti
 chmod 644 "${SCRIPT_DIR}/${XAI_MOONWORM_CRAWLER_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${XAI_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_MOONWORM_CRAWLER_SERVICE_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ARBI
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${XAI_MOONWORM_CRAWLER_SERVICE_FILE}"
