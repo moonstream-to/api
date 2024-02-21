@@ -63,7 +63,6 @@ def connect(
                 "Content-Type": "application/json",
             }
         }
-
     if web3_uri is None:
         if blockchain_type == AvailableBlockchainType.ETHEREUM:
             web3_uri = MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI
@@ -83,7 +82,7 @@ def connect(
             web3_uri = MOONSTREAM_ARBITRUM_NOVA_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
             web3_uri = MOONSTREAM_ARBITRUM_SEPOLIA_WEB3_PROVIDER_URI
-        elif web3_uri == AvailableBlockchainType.XAI:
+        elif blockchain_type == AvailableBlockchainType.XAI:
             web3_uri = MOONSTREAM_XAI_WEB3_PROVIDER_URI
         else:
             raise Exception("Wrong blockchain type provided for web3 URI")
