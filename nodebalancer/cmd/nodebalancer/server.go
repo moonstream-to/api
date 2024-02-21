@@ -31,7 +31,7 @@ var (
 func initHealthCheck(debug bool) {
 	healthCheckInterval, convErr := strconv.Atoi(NB_HEALTH_CHECK_INTERVAL)
 	if convErr != nil {
-		healthCheckInterval = 5
+		healthCheckInterval = 30
 	}
 	t := time.NewTicker(time.Second * time.Duration(healthCheckInterval))
 	for {
