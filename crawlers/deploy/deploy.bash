@@ -134,6 +134,12 @@ ARBITRUM_SEPOLIA_MISSING_TIMER_FILE="arbitrum-sepolia-missing.timer"
 ARBITRUM_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE="arbitrum-sepolia-moonworm-crawler.service"
 ARBITRUM_SEPOLIA_SYNCHRONIZE_SERVICE="arbitrum-sepolia-synchronize.service"
 
+# Xai
+XAI_MISSING_SERVICE_FILE="xai-missing.service"
+XAI_MISSING_TIMER_FILE="xai-missing.timer"
+XAI_MOONWORM_CRAWLER_SERVICE_FILE="xai-moonworm-crawler.service"
+XAI_SYNCHRONIZE_SERVICE="xai-synchronize.service"
+
 set -eu
 
 echo
@@ -650,3 +656,30 @@ cp "${SCRIPT_DIR}/${ARBITRUM_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubun
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ARBITRUM_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
 
+
+
+# Xai
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Xai block with transactions syncronizer service definition with ${XAI_SYNCHRONIZE_SERVICE}"
+chmod 644 "${SCRIPT_DIR}/${XAI_SYNCHRONIZE_SERVICE}"
+cp "${SCRIPT_DIR}/${XAI_SYNCHRONIZE_SERVICE}" "/home/ubuntu/.config/systemd/user/${XAI_SYNCHRONIZE_SERVICE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${XAI_SYNCHRONIZE_SERVICE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Xai missing service and timer with: ${XAI_MISSING_SERVICE_FILE}, ${XAI_MISSING_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${XAI_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${XAI_MISSING_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${XAI_MISSING_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_MISSING_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${XAI_MISSING_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_MISSING_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${XAI_MISSING_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Xai moonworm crawler service definition with ${XAI_MOONWORM_CRAWLER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${XAI_MOONWORM_CRAWLER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${XAI_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_MOONWORM_CRAWLER_SERVICE_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ARBI

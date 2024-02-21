@@ -52,6 +52,9 @@ from moonstreamdb.models import (
     ArbitrumSepoliaBlock,
     ArbitrumSepoliaTransaction,
     ArbitrumSepoliaLabel,
+    XaiBlock,
+    XaiLabel,
+    XaiTransaction,
 )
 
 
@@ -84,6 +87,9 @@ def include_symbol(tablename, schema):
         ArbitrumSepoliaBlock.__tablename__,
         ArbitrumSepoliaTransaction.__tablename__,
         ArbitrumSepoliaLabel.__tablename__,
+        XaiBlock.__tablename__,
+        XaiLabel.__tablename__,
+        XaiTransaction.__tablename__,
     }
 
 
