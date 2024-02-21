@@ -1,5 +1,5 @@
 import logging
-from concurrent.futures import Future, ProcessPoolExecutor, ThreadPoolExecutor, wait
+from concurrent.futures import Future, ThreadPoolExecutor, wait
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 from uuid import UUID
 
@@ -21,6 +21,7 @@ from web3.types import BlockData
 from .data import DateRange
 from .db import yield_db_session, yield_db_session_ctx
 from .settings import (
+    MOONSTREAM_ARBITRUM_NOVA_WEB3_PROVIDER_URI,
     MOONSTREAM_CRAWL_WORKERS,
     MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI,
     MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI,
@@ -76,6 +77,8 @@ def connect(
             web3_uri = MOONSTREAM_ZKSYNC_ERA_TESTNET_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
             web3_uri = MOONSTREAM_ZKSYNC_ERA_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
+            web3_uri = MOONSTREAM_ARBITRUM_NOVA_WEB3_PROVIDER_URI
         else:
             raise Exception("Wrong blockchain type provided for web3 URI")
 
@@ -92,6 +95,15 @@ def connect(
         web3_client.middleware_onion.inject(geth_poa_middleware, layer=0)
 
     return web3_client
+
+
+def hex_to_int(hex_str: Optional[str] = None) -> Optional[int]:
+    if hex_str is None:
+        return None
+    elif hex_str.startswith("0x"):
+        return int(hex_str, 16)
+    else:
+        return int(hex_str)
 
 
 def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) -> None:
@@ -145,6 +157,12 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
             if block.get("l1BatchTimestamp") is not None
             else None
         )
+    if blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
+        block_obj.sha3_uncles = block.get("sha3Uncles", "")
+        block_obj.l1_block_number = hex_to_int(block.get("l1BlockNumber"))
+        block_obj.send_count = hex_to_int(block.get("sendCount"))
+        block_obj.send_root = block.get("sendRoot", "")
+        block_obj.mix_hash = block.get("mixHash", "")
 
     db_session.add(block_obj)
 
@@ -188,6 +206,8 @@ def add_block_transactions(
                 if tx.get("l1BatchTxIndex") is not None
                 else None
             )
+        if blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
+            tx_obj.y_parity = hex_to_int(tx.get("yParity"))
 
         db_session.add(tx_obj)
 

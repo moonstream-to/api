@@ -46,6 +46,9 @@ from moonstreamdb.models import (
     ZkSyncEraTestnetBlock,
     ZkSyncEraTestnetLabel,
     ZkSyncEraTestnetTransaction,
+    ArbitrumNovaBlock,
+    ArbitrumNovaTransaction,
+    ArbitrumNovaLabel,
 )
 
 
@@ -72,6 +75,9 @@ def include_symbol(tablename, schema):
         ZkSyncEraTestnetBlock.__tablename__,
         ZkSyncEraTestnetLabel.__tablename__,
         ZkSyncEraTestnetTransaction.__tablename__,
+        ArbitrumNovaBlock.__tablename__,
+        ArbitrumNovaTransaction.__tablename__,
+        ArbitrumNovaLabel.__tablename__,
     }
 
 

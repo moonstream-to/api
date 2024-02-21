@@ -5,10 +5,10 @@ from uuid import UUID
 
 from eth_typing.evm import ChecksumAddress
 from moonstreamdb.blockchain import AvailableBlockchainType
+from moonstreamdb.networks import Network  # type: ignore
 from moonworm.crawler.moonstream_ethereum_state_provider import (  # type: ignore
     MoonstreamEthereumStateProvider,
 )
-from moonstreamdb.networks import Network  # type: ignore
 from sqlalchemy.orm.session import Session
 from web3 import Web3
 
@@ -19,7 +19,7 @@ from .crawler import (
     update_entries_status_and_progress,
 )
 from .db import add_events_to_session, add_function_calls_to_session, commit_session
-from .event_crawler import _crawl_events, _autoscale_crawl_events
+from .event_crawler import _autoscale_crawl_events, _crawl_events
 from .function_call_crawler import _crawl_functions
 
 logging.basicConfig(level=logging.INFO)
@@ -65,6 +65,8 @@ def historical_crawler(
         network = Network.zksync_era_testnet
     elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
         network = Network.zksync_era
+    elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
+        network = Network.arbitrum_nova
     else:
         raise Exception("Unsupported blockchain type provided")
 

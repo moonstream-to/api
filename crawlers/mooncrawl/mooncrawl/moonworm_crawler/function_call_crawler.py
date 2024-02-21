@@ -2,6 +2,7 @@ import logging
 from typing import List
 
 from moonstreamdb.blockchain import AvailableBlockchainType
+from moonstreamdb.networks import Network  # type: ignore
 from moonworm.crawler.function_call_crawler import (  # type: ignore
     ContractFunctionCall,
     FunctionCallCrawler,
@@ -9,7 +10,6 @@ from moonworm.crawler.function_call_crawler import (  # type: ignore
 from moonworm.crawler.moonstream_ethereum_state_provider import (  # type: ignore
     MoonstreamEthereumStateProvider,
 )
-from moonstreamdb.networks import Network  # type: ignore
 from moonworm.watch import MockState  # type: ignore
 from sqlalchemy.orm import Session
 from web3 import Web3
@@ -72,6 +72,8 @@ def function_call_crawler(
         network = Network.zksync_era_testnet
     elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
         network = Network.zksync_era
+    elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
+        network = Network.arbitrum_nova
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 

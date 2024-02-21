@@ -6,13 +6,17 @@ from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
 from moonstreamdb.blockchain import AvailableBlockchainType
+from moonstreamdb.networks import Network
 from moonworm.crawler.moonstream_ethereum_state_provider import (  # type: ignore
     MoonstreamEthereumStateProvider,
 )
-from moonstreamdb.networks import Network
 from sqlalchemy.orm.session import Session
 from web3 import Web3
 
+from ..settings import (
+    HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES,
+    HISTORICAL_CRAWLER_STATUSES,
+)
 from .crawler import (
     EventCrawlJob,
     FunctionCallCrawlJob,
@@ -29,10 +33,6 @@ from .crawler import (
 from .db import add_events_to_session, add_function_calls_to_session, commit_session
 from .event_crawler import _crawl_events
 from .function_call_crawler import _crawl_functions
-from ..settings import (
-    HISTORICAL_CRAWLER_STATUSES,
-    HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES,
-)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -134,6 +134,8 @@ def continuous_crawler(
         network = Network.zksync_era_testnet
     elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
         network = Network.zksync_era
+    elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
+        network = Network.arbitrum_nova
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 
