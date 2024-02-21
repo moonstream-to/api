@@ -58,6 +58,7 @@ subscription_id_by_blockchain = {
     "zksync_era": "zksync_era_smartcontract",
     "arbitrum_nova": "arbitrum_nova_smartcontract",
     "arbitrum_sepolia": "arbitrum_sepolia_smartcontract",
+    "xai": "xai_smartcontract",
 }
 
 blockchain_by_subscription_id = {
@@ -69,6 +70,7 @@ blockchain_by_subscription_id = {
     "zksync_era_testnet_blockchain": "zksync_era_testnet",
     "arbitrum_nova_blockchain": "arbitrum_nova",
     "arbitrum_sepolia_blockchain": "arbitrum_sepolia",
+    "xai_blockchain": "xai",
     "ethereum_smartcontract": "ethereum",
     "polygon_smartcontract": "polygon",
     "mumbai_smartcontract": "mumbai",
@@ -78,6 +80,7 @@ blockchain_by_subscription_id = {
     "zksync_era_smartcontract": "zksync_era",
     "arbitrum_nova_smartcontract": "arbitrum_nova",
     "arbitrum_sepolia_smartcontract": "arbitrum_sepolia",
+    "xai_smartcontract": "xai",
 }
 
 

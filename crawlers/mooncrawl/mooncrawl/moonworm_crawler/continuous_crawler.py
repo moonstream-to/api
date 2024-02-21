@@ -138,7 +138,8 @@ def continuous_crawler(
         network = Network.arbitrum_nova
     elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
         network = Network.arbitrum_sepolia
-
+    elif blockchain_type == AvailableBlockchainType.XAI:
+        network = Network.xai
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 

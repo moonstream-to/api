@@ -28,6 +28,7 @@ from .settings import (
     MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI,
     MOONSTREAM_POLYGON_WEB3_PROVIDER_URI,
     MOONSTREAM_WYRM_WEB3_PROVIDER_URI,
+    MOONSTREAM_XAI_WEB3_PROVIDER_URI,
     MOONSTREAM_XDAI_WEB3_PROVIDER_URI,
     MOONSTREAM_ZKSYNC_ERA_TESTNET_WEB3_PROVIDER_URI,
     MOONSTREAM_ZKSYNC_ERA_WEB3_PROVIDER_URI,
@@ -82,6 +83,8 @@ def connect(
             web3_uri = MOONSTREAM_ARBITRUM_NOVA_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
             web3_uri = MOONSTREAM_ARBITRUM_SEPOLIA_WEB3_PROVIDER_URI
+        elif web3_uri == AvailableBlockchainType.XAI:
+            web3_uri = MOONSTREAM_XAI_WEB3_PROVIDER_URI
         else:
             raise Exception("Wrong blockchain type provided for web3 URI")
 
@@ -176,6 +179,13 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
         block_obj.send_root = block.get("sendRoot", "")
         block_obj.mix_hash = block.get("mixHash", "")
 
+    if blockchain_type == AvailableBlockchainType.XAI:
+        block_obj.sha3_uncles = block.get("sha3Uncles", "")
+        block_obj.l1_block_number = hex_to_int(block.get("l1BlockNumber"))
+        block_obj.send_count = hex_to_int(block.get("sendCount"))
+        block_obj.send_root = block.get("sendRoot", "")
+        block_obj.mix_hash = block.get("mixHash", "")
+
     db_session.add(block_obj)
 
 
@@ -222,6 +232,9 @@ def add_block_transactions(
             tx_obj.y_parity = hex_to_int(tx.get("yParity"))
 
         if blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
+            tx_obj.y_parity = hex_to_int(tx.get("yParity"))
+
+        if blockchain_type == AvailableBlockchainType.XAI:
             tx_obj.y_parity = hex_to_int(tx.get("yParity"))
 
         db_session.add(tx_obj)
