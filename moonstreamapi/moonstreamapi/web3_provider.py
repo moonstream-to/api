@@ -21,6 +21,9 @@ from .settings import (
     MOONSTREAM_WYRM_WEB3_PROVIDER_URI,
     MOONSTREAM_ZKSYNC_ERA_TESTNET_WEB3_PROVIDER_URI,
     MOONSTREAM_ZKSYNC_ERA_WEB3_PROVIDER_URI,
+    MOONSTREAM_ARBITRUM_NOVA_WEB3_PROVIDER_URI,
+    MOONSTREAM_ARBITRUM_SEPOLIA_WEB3_PROVIDER_URI,
+    MOONSTREAM_XAI_WEB3_PROVIDER_URI,
     multicall_contracts,
     multicall_contract_abi,
 )
@@ -75,6 +78,12 @@ def connect(
             web3_uri = MOONSTREAM_ZKSYNC_ERA_TESTNET_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
             web3_uri = MOONSTREAM_ZKSYNC_ERA_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
+            web3_uri = MOONSTREAM_ARBITRUM_NOVA_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
+            web3_uri = MOONSTREAM_ARBITRUM_SEPOLIA_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.XAI:
+            web3_uri = MOONSTREAM_XAI_WEB3_PROVIDER_URI
         else:
             raise Exception("Wrong blockchain type provided for web3 URI")
 
