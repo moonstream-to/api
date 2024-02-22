@@ -489,3 +489,25 @@ ZkSyncEraTransactions = TransactionsProvider(
     description="Provider for resiving transactions from ZkSync Era tables.",
     streamboaundary_range_limit=2 * 60 * 60,
 )
+
+
+ArbitrumNovaTransactions = TransactionsProvider(
+    event_type="arbitrum_nova_blockchain",
+    blockchain=AvailableBlockchainType("arbitrum_nova"),
+    description="Provider for resiving transactions from Arbitrum Nova tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
+ArbitrumSepoliaTransactions = TransactionsProvider(
+    event_type="arbitrum_sepolia_blockchain",
+    blockchain=AvailableBlockchainType("arbitrum_sepolia"),
+    description="Provider for resiving transactions from Arbitrum Sepolia tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
+XaiTransactions = TransactionsProvider(
+    event_type="xai_blockchain",
+    blockchain=AvailableBlockchainType("xai"),
+    description="Provider for resiving transactions from Xai tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)

@@ -1,6 +1,7 @@
 """
 The Moonstream subscriptions HTTP API
 """
+
 import hashlib
 import json
 import logging
@@ -374,9 +375,11 @@ async def get_subscriptions_handler(
                 address=subscription.address,
                 color=color,
                 label=label,
-                abi="True"
-                if subscription.secondary_fields.get("abi", None)
-                else "False",  ### TODO(ANDREY): remove this hack when frontend is updated
+                abi=(
+                    "True"
+                    if subscription.secondary_fields.get("abi", None)
+                    else "False"
+                ),  ### TODO(ANDREY): remove this hack when frontend is updated
                 description=subscription.secondary_fields.get("description"),
                 tags=normalized_entity_tags,
                 subscription_type_id=subscription_type_id,
@@ -520,13 +523,17 @@ async def update_subscriptions_handler(
             token=token,
             journal_id=journal_id,
             entity_id=subscription_id,
-            title=subscription_entity.title
-            if subscription_entity.title is not None
-            else "",
+            title=(
+                subscription_entity.title
+                if subscription_entity.title is not None
+                else ""
+            ),
             address=address,
-            blockchain=subscription_entity.blockchain
-            if subscription_entity.blockchain is not None
-            else "",
+            blockchain=(
+                subscription_entity.blockchain
+                if subscription_entity.blockchain is not None
+                else ""
+            ),
             required_fields=update_required_fields,
             secondary_fields=update_secondary_fields,
         )
@@ -707,7 +714,7 @@ async def address_info(request: Request, address: str = Query(...)):
     user_token = request.state.token
 
     try:
-        Web3.toChecksumAddress(address)
+        address = Web3.toChecksumAddress(address)
     except ValueError as e:
         raise MoonstreamHTTPException(
             status_code=400,
