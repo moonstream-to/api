@@ -98,7 +98,7 @@ def points_data_dependency(request: Request):
         for key, value in query_params.items()
         if key.startswith("points_data.")
     }
-    # Optionally, transform the keys or structure as needed
+
     return points_data_params
 
 
