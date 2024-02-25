@@ -3,7 +3,7 @@ Description=Execute Ethereum metadata crawler each 10m
 
 [Timer]
 OnBootSec=20s
-OnUnitActiveSec=60m
+OnUnitActiveSec=30m
 
 [Install]
 WantedBy=timers.target
