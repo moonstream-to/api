@@ -36,6 +36,12 @@ ETHEREUM_TRENDING_TIMER_FILE="ethereum-trending.timer"
 ETHEREUM_MISSING_SERVICE_FILE="ethereum-missing.service"
 ETHEREUM_MISSING_TIMER_FILE="ethereum-missing.timer"
 ETHEREUM_MOONWORM_CRAWLER_SERVICE_FILE="ethereum-moonworm-crawler.service"
+ETHEREUM_STATE_SERVICE_FILE="ethereum-state.service"
+ETHEREUM_STATE_TIMER_FILE="ethereum-state.timer"
+ETHEREUM_STATE_CLEAN_SERVICE_FILE="ethereum-state-clean.service"
+ETHEREUM_STATE_CLEAN_TIMER_FILE="ethereum-state-clean.timer"
+ETHEREUM_METADATA_SERVICE_FILE="ethereum-metadata.service"
+ETHEREUM_METADATA_TIMER_FILE="ethereum-metadata.timer"
 ETHEREUM_ORANGE_DAO_REPORTS_TOKENONOMICS_SERVICE_FILE="ethereum-orange-dao-reports-tokenonomics.service"
 ETHEREUM_ORANGE_DAO_TOKENONOMICS_TIMER_FILE="ethereum-orange-dao-reports-tokenonomics.timer"
 ETHEREUM_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE="ethereum-historical-crawl-transactions.service"
@@ -220,6 +226,33 @@ chmod 644 "${SCRIPT_DIR}/${ETHEREUM_MOONWORM_CRAWLER_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${ETHEREUM_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ETHEREUM_MOONWORM_CRAWLER_SERVICE_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ETHEREUM_MOONWORM_CRAWLER_SERVICE_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Ethereum state service and timer with: ${ETHEREUM_STATE_SERVICE_FILE}, ${ETHEREUM_STATE_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ETHEREUM_STATE_SERVICE_FILE}" "${SCRIPT_DIR}/${ETHEREUM_STATE_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_STATE_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ETHEREUM_STATE_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_STATE_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ETHEREUM_STATE_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ETHEREUM_STATE_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Ethereum state clean service and timer with: ${ETHEREUM_STATE_CLEAN_SERVICE_FILE}, ${ETHEREUM_STATE_CLEAN_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ETHEREUM_STATE_CLEAN_SERVICE_FILE}" "${SCRIPT_DIR}/${ETHEREUM_STATE_CLEAN_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_STATE_CLEAN_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ETHEREUM_STATE_CLEAN_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_STATE_CLEAN_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ETHEREUM_STATE_CLEAN_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ETHEREUM_STATE_CLEAN_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Ethereum metadata service and timer with: ${ETHEREUM_METADATA_SERVICE_FILE}, ${ETHEREUM_METADATA_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ETHEREUM_METADATA_SERVICE_FILE}" "${SCRIPT_DIR}/${ETHEREUM_METADATA_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_METADATA_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ETHEREUM_METADATA_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_METADATA_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ETHEREUM_METADATA_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ETHEREUM_METADATA_TIMER_FILE}"
 
 echo
 echo
