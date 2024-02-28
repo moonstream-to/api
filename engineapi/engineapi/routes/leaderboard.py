@@ -1,6 +1,7 @@
 """
 Leaderboard API.
 """
+
 import logging
 from typing import Any, Dict, List, Optional, Any, Union
 from uuid import UUID
@@ -88,6 +89,19 @@ app.add_middleware(
 )
 
 
+def points_data_dependency(request: Request):
+    # Extract all query parameters as a dictionary
+    query_params = dict(request.query_params)
+    # Filter parameters that start with 'points_data.'
+    points_data_params = {
+        key[len("points_data.") :]: value
+        for key, value in query_params.items()
+        if key.startswith("points_data.")
+    }
+
+    return points_data_params
+
+
 @app.get(
     "",
     response_model=List[data.LeaderboardPosition],
@@ -104,6 +118,7 @@ async def leaderboard(
     offset: int = Query(0),
     db_session: Session = Depends(db.yield_db_session),
     version: Optional[str] = Query(None, description="Version of the leaderboard."),
+    points_data: Dict[str, str] = Depends(points_data_dependency),
 ) -> List[data.LeaderboardPosition]:
     """
     Returns the leaderboard positions.
@@ -122,7 +137,7 @@ async def leaderboard(
         raise EngineHTTPException(status_code=500, detail="Internal server error")
 
     leaderboard_positions = actions.get_leaderboard_positions(
-        db_session, leaderboard.id, limit, offset, version
+        db_session, leaderboard.id, limit, offset, points_data, version
     )
 
     result = [

@@ -1288,6 +1288,7 @@ def get_leaderboard_positions(
     leaderboard_id: uuid.UUID,
     limit: int,
     offset: int,
+    poitns_data: Dict[str, str],
     version_number: Optional[int] = None,
 ) -> List[Row[Tuple[uuid.UUID, str, int, str, int]]]:
     """
@@ -1323,6 +1324,17 @@ def get_leaderboard_positions(
         .filter(LeaderboardVersion.published == True)
         .filter(LeaderboardVersion.version_number == latest_version)
     )
+
+    if len(poitns_data) > 0:
+
+        query = query.filter(
+            or_(
+                *[
+                    LeaderboardScores.points_data[point_key].astext == point_value
+                    for point_key, point_value in poitns_data.items()
+                ]
+            )
+        )
 
     if limit:
         query = query.limit(limit)
