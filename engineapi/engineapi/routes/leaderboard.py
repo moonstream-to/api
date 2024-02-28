@@ -137,7 +137,7 @@ async def leaderboard(
         raise EngineHTTPException(status_code=500, detail="Internal server error")
 
     leaderboard_positions = actions.get_leaderboard_positions(
-        db_session, leaderboard.id, limit, offset, version, points_data
+        db_session, leaderboard.id, limit, offset, points_data, version
     )
 
     result = [
