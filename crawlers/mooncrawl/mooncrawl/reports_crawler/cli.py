@@ -487,6 +487,7 @@ def generate_report_nft_dashboard_handler(args: argparse.Namespace):
             "cu_nft_dashboard_data",
             "cu_land_nft_dashboard_data",
             "cu_seaport_feed_polygon",
+            "cu_breeding_feed",
         ]:
             continue
 
@@ -496,6 +497,7 @@ def generate_report_nft_dashboard_handler(args: argparse.Namespace):
             token=args.moonstream_token,
             query_name=query.name,
             params=params,
+            time_await=4,
         )
 
         logger.info(f"Data recived. Uploading report for {query.name} as json")
