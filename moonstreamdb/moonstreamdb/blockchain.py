@@ -49,7 +49,7 @@ class AvailableBlockchainType(Enum):
     ARBITRUM_NOVA = "arbitrum_nova"
     ARBITRUM_SEPOLIA = "arbitrum_sepolia"
     XAI = "xai"
-    XAI_SEPOLIA = "xai_testnet"
+    XAI_SEPOLIA = "xai_sepolia"
 
 
 def get_block_model(
