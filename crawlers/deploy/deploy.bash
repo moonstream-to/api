@@ -146,6 +146,12 @@ XAI_MISSING_TIMER_FILE="xai-missing.timer"
 XAI_MOONWORM_CRAWLER_SERVICE_FILE="xai-moonworm-crawler.service"
 XAI_SYNCHRONIZE_SERVICE="xai-synchronize.service"
 
+# Xai testnet
+XAI_TESTNET_MISSING_SERVICE_FILE="xai-testnet-missing.service"
+XAI_TESTNET_MISSING_TIMER_FILE="xai-testnet-missing.timer"
+XAI_TESTNET_MOONWORM_CRAWLER_SERVICE_FILE="xai-testnet-moonworm-crawler.service"
+XAI_TESTNET_SYNCHRONIZE_SERVICE="xai-testnet-synchronize.service"
+
 set -eu
 
 echo
@@ -716,3 +722,30 @@ chmod 644 "${SCRIPT_DIR}/${XAI_MOONWORM_CRAWLER_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${XAI_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_MOONWORM_CRAWLER_SERVICE_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${XAI_MOONWORM_CRAWLER_SERVICE_FILE}"
+
+
+# Xai testnet
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Xai testnet block with transactions syncronizer service definition with ${XAI_TESTNET_SYNCHRONIZE_SERVICE}"
+chmod 644 "${SCRIPT_DIR}/${XAI_TESTNET_SYNCHRONIZE_SERVICE}"
+cp "${SCRIPT_DIR}/${XAI_TESTNET_SYNCHRONIZE_SERVICE}" "/home/ubuntu/.config/systemd/user/${XAI_TESTNET_SYNCHRONIZE_SERVICE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${XAI_TESTNET_SYNCHRONIZE_SERVICE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Xai testnet missing service and timer with: ${XAI_TESTNET_MISSING_SERVICE_FILE}, ${XAI_TESTNET_MISSING_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${XAI_TESTNET_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${XAI_TESTNET_MISSING_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${XAI_TESTNET_MISSING_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_TESTNET_MISSING_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${XAI_TESTNET_MISSING_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_TESTNET_MISSING_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${XAI_TESTNET_MISSING_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Xai testnet moonworm crawler service definition with ${XAI_TESTNET_MOONWORM_CRAWLER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${XAI_TESTNET_MOONWORM_CRAWLER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${XAI_TESTNET_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_TESTNET_MOONWORM_CRAWLER_SERVICE_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${XAI_TESTNET_MOONWORM_CRAWLER_SERVICE_FILE}"

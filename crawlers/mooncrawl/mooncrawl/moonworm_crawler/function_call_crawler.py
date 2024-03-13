@@ -78,6 +78,8 @@ def function_call_crawler(
         network = Network.arbitrum_sepolia
     elif blockchain_type == AvailableBlockchainType.XAI:
         network = Network.xai
+    elif blockchain_type == AvailableBlockchainType.XAI_TESTNET:
+        network = Network.xai_testnet
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 

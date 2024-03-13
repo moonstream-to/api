@@ -32,6 +32,9 @@ from .models import (
     XaiBlock,
     XaiLabel,
     XaiTransaction,
+    XaiTestnetBlock,
+    XaiTestnetLabel,
+    XaiTestnetTransaction,
 )
 
 
@@ -46,6 +49,7 @@ class AvailableBlockchainType(Enum):
     ARBITRUM_NOVA = "arbitrum_nova"
     ARBITRUM_SEPOLIA = "arbitrum_sepolia"
     XAI = "xai"
+    XAI_TESTNET = "xai_testnet"
 
 
 def get_block_model(
@@ -62,10 +66,11 @@ def get_block_model(
         ArbitrumNovaBlock,
         ArbitrumSepoliaBlock,
         XaiBlock,
+        XaiTestnetBlock,
     ]
 ]:
     """
-    Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm, ZkSyncEra, ZkSyncEraTestnet, ArbitrumNovaBlock, ArbitrumSepoliaBlock, XaiBlock
+    Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm, ZkSyncEra, ZkSyncEraTestnet, ArbitrumNovaBlock, ArbitrumSepoliaBlock, XaiBlock, XaiTestnetBlock
     set proper blocks model.
     """
     block_model: Type[
@@ -80,6 +85,7 @@ def get_block_model(
             ArbitrumNovaBlock,
             ArbitrumSepoliaBlock,
             XaiBlock,
+            XaiTestnetBlock,
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -102,6 +108,8 @@ def get_block_model(
         block_model = ArbitrumSepoliaBlock
     elif blockchain_type == AvailableBlockchainType.XAI:
         block_model = XaiBlock
+    elif blockchain_type == AvailableBlockchainType.XAI_TESTNET:
+        block_model = XaiTestnetBlock
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -122,10 +130,11 @@ def get_label_model(
         ArbitrumNovaLabel,
         ArbitrumSepoliaLabel,
         XaiLabel,
+        XaiTestnetLabel,
     ]
 ]:
     """
-    Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm, ZkSyncEra, ZkSyncEraTestnet, ArbitrumNovaLabel, ArbitrumSepoliaLabel, XaiLabel
+    Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm, ZkSyncEra, ZkSyncEraTestnet, ArbitrumNovaLabel, ArbitrumSepoliaLabel, XaiLabel, XaiTestnetLabel
     set proper block label model.
     """
     label_model: Type[
@@ -140,6 +149,7 @@ def get_label_model(
             ArbitrumNovaLabel,
             ArbitrumSepoliaLabel,
             XaiLabel,
+            XaiTestnetLabel,
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -162,6 +172,8 @@ def get_label_model(
         label_model = ArbitrumSepoliaLabel
     elif blockchain_type == AvailableBlockchainType.XAI:
         label_model = XaiLabel
+    elif blockchain_type == AvailableBlockchainType.XAI_TESTNET:
+        label_model = XaiTestnetLabel
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -182,10 +194,11 @@ def get_transaction_model(
         ArbitrumNovaTransaction,
         ArbitrumSepoliaTransaction,
         XaiTransaction,
+        XaiTestnetTransaction,
     ]
 ]:
     """
-    Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm, ZkSyncEra, ZkSyncEraTestnet, ArbitrumNovaTransaction, ArbitrumSepoliaTransaction, XaiTransaction
+    Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm, ZkSyncEra, ZkSyncEraTestnet, ArbitrumNovaTransaction, ArbitrumSepoliaTransaction, XaiTransaction, XaiTestnetTransaction
     set proper block transactions model.
     """
     transaction_model: Type[
@@ -200,6 +213,7 @@ def get_transaction_model(
             ArbitrumNovaTransaction,
             ArbitrumSepoliaTransaction,
             XaiTransaction,
+            XaiTestnetTransaction,
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -222,6 +236,8 @@ def get_transaction_model(
         transaction_model = ArbitrumSepoliaTransaction
     elif blockchain_type == AvailableBlockchainType.XAI:
         transaction_model = XaiTransaction
+    elif blockchain_type == AvailableBlockchainType.XAI_TESTNET:
+        transaction_model = XaiTestnetTransaction
     else:
         raise Exception("Unsupported blockchain type provided")
 

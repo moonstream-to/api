@@ -33,6 +33,9 @@ from .models import (
     XaiBlock,
     XaiLabel,
     XaiTransaction,
+    XaiTestnetBlock,
+    XaiTestnetLabel,
+    XaiTestnetTransaction,
 )
 
 
@@ -47,6 +50,7 @@ class Network(Enum):
     arbitrum_nova = "arbitrum_nova"
     arbitrum_sepolia = "arbitrum_sepolia"
     xai = "xai"
+    xai_testnet = "xai_testnet"
 
 
 tx_raw_types = Union[
@@ -60,6 +64,7 @@ tx_raw_types = Union[
     ArbitrumNovaTransaction,
     ArbitrumSepoliaTransaction,
     XaiTransaction,
+    XaiTestnetTransaction,
 ]
 
 MODELS: Dict[Network, Dict[str, Base]] = {
@@ -112,5 +117,10 @@ MODELS: Dict[Network, Dict[str, Base]] = {
         "blocks": XaiBlock,
         "labels": XaiLabel,
         "transactions": XaiTransaction,
+    },
+    Network.xai_testnet: {
+        "blocks": XaiTestnetBlock,
+        "labels": XaiTestnetLabel,
+        "transactions": XaiTestnetTransaction,
     },
 }

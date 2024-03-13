@@ -55,6 +55,9 @@ from moonstreamdb.models import (
     XaiBlock,
     XaiLabel,
     XaiTransaction,
+    XaiTestnetBlock,
+    XaiTestnetLabel,
+    XaiTestnetTransaction,
 )
 
 
@@ -90,6 +93,9 @@ def include_symbol(tablename, schema):
         XaiBlock.__tablename__,
         XaiLabel.__tablename__,
         XaiTransaction.__tablename__,
+        XaiTestnetBlock.__tablename__,
+        XaiTestnetLabel.__tablename__,
+        XaiTestnetTransaction.__tablename__,
     }
 
 
