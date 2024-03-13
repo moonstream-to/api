@@ -1,5 +1,5 @@
 [Unit]
-Description=Xai testnet block with transactions synchronizer
+Description=Xai sepolia block with transactions synchronizer
 StartLimitIntervalSec=300
 StartLimitBurst=3
 After=network.target
@@ -9,9 +9,9 @@ Restart=on-failure
 RestartSec=15s
 WorkingDirectory=/home/ubuntu/moonstream/crawlers/mooncrawl
 EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
-ExecStart=/home/ubuntu/moonstream-env/bin/python -m mooncrawl.crawler --access-id "${NB_CONTROLLER_ACCESS_ID}" blocks synchronize --blockchain xai_testnet -c 10 -j 2
+ExecStart=/home/ubuntu/moonstream-env/bin/python -m mooncrawl.crawler --access-id "${NB_CONTROLLER_ACCESS_ID}" blocks synchronize --blockchain xai_sepolia -c 10 -j 2
 CPUWeight=90
-SyslogIdentifier=xai-testnet-synchronize
+SyslogIdentifier=xai-sepolia-synchronize
 
 [Install]
 WantedBy=multi-user.target

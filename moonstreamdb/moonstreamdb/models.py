@@ -1101,8 +1101,8 @@ class XaiLabel(Base):  # type: ignore
     )
 
 
-class XaiTestnetBlock(Base):  # type: ignore
-    __tablename__ = "xai_testnet_blocks"
+class XaiSepoliaBlock(Base):  # type: ignore
+    __tablename__ = "xai_sepolia_blocks"
 
     block_number = Column(
         BigInteger, primary_key=True, unique=True, nullable=False, index=True
@@ -1136,15 +1136,15 @@ class XaiTestnetBlock(Base):  # type: ignore
     mix_hash = Column(VARCHAR(256), nullable=True)
 
 
-class XaiTestnetTransaction(Base):  # type: ignore
-    __tablename__ = "xai_testnet_transactions"
+class XaiSepoliaTransaction(Base):  # type: ignore
+    __tablename__ = "xai_sepolia_transactions"
 
     hash = Column(
         VARCHAR(256), primary_key=True, unique=True, nullable=False, index=True
     )
     block_number = Column(
         BigInteger,
-        ForeignKey("xai_testnet_blocks.block_number", ondelete="CASCADE"),
+        ForeignKey("xai_sepolia_blocks.block_number", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -1167,8 +1167,8 @@ class XaiTestnetTransaction(Base):  # type: ignore
     y_parity = Column(BigInteger, nullable=True)
 
 
-class XaiTestnetLabel(Base):  # type: ignore
-    __tablename__ = "xai_testnet_labels"
+class XaiSepoliaLabel(Base):  # type: ignore
+    __tablename__ = "xai_sepolia_labels"
 
     id = Column(
         UUID(as_uuid=True),
