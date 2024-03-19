@@ -9,7 +9,7 @@ Restart=on-failure
 RestartSec=15s
 WorkingDirectory=/home/ubuntu/
 EnvironmentFile=/home/ubuntu/moonstream-secrets/monitoring.env
-ExecStart=/home/ubuntu/monitoring -plugin systemd -host "${AWS_LOCAL_IPV4}" -port 7171 -healthcheck -server -threshold 3 -config /home/ubuntu/.monitoring/monitoring-crawlers-config.json -service ethereum-moonworm-crawler.service -service mumbai-moonworm-crawler.service -service polygon-moonworm-crawler.service -service zksync-era-moonworm-crawler.service -service zksync-era-testnet-moonworm-crawler.service -service arbitrum-nova-moonworm-crawler.service -service arbitrum-sepolia-moonworm-crawler.service -service xai-moonworm-crawler.service -service xdai-moonworm-crawler.service -service wyrm-moonworm-crawler.service
+ExecStart=/home/ubuntu/monitoring -plugin systemd -host "${AWS_LOCAL_IPV4}" -port 7171 -healthcheck -server -threshold 3 -config /home/ubuntu/.monitoring/monitoring-crawlers-config.json -service ethereum-moonworm-crawler.service -service mumbai-moonworm-crawler.service -service polygon-moonworm-crawler.service -service zksync-era-moonworm-crawler.service -service zksync-era-testnet-moonworm-crawler.service -service arbitrum-nova-moonworm-crawler.service -service arbitrum-sepolia-moonworm-crawler.service -service xai-moonworm-crawler.service -service xdai-moonworm-crawler.service
 CPUWeight=90
 SyslogIdentifier=monitoring-crawlers
 
