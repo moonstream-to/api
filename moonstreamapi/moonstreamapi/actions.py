@@ -949,8 +949,14 @@ def check_if_smart_contract(
     web3_client = connect(blockchain_type, user_token=user_token)
 
     is_contract = False
+    try:
+        code = web3_client.eth.getCode(address)
+    except Exception as e:
+        logger.warning(
+            f"Error while getting code of address: {e} in blockchain: {blockchain_type}"
+        )
+        code = b""
 
-    code = web3_client.eth.getCode(address)
     if code != b"":
         is_contract = True
 
