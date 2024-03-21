@@ -15,7 +15,6 @@ Example of label_data column record:
     }
 """
 
-import os
 import uuid
 
 from sqlalchemy import (

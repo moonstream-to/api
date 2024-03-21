@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-from moonstreamdb_v3.version import VERSION
+from moonstreamdbv3.version import VERSION
 
 long_description = ""
 with open("README.md") as ifp:
@@ -30,7 +30,7 @@ setup(
     ],
     python_requires=">=3.8",
     packages=find_packages(),
-    package_data={"moonstreamdb_v3": ["py.typed"]},
+    package_data={"moonstreamdbv3": ["py.typed"]},
     zip_safe=False,
     install_requires=["alembic", "psycopg2-binary", "sqlalchemy>=2.0.4"],
     extras_require={
