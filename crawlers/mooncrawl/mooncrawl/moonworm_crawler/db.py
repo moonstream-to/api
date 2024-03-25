@@ -176,7 +176,7 @@ def add_events_to_session(
         )
         .filter(
             label_model.label == label_name,
-            label_model.log_index != None,
+            label_model.log_index.isnot(None),
             exists().where(
                 label_model.transaction_hash == hashes_cte.c.transaction_hash
             ),
