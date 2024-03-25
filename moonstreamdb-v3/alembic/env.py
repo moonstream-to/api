@@ -18,7 +18,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from moonstreamdb_v3.models import Base as MoonstreamBase
+from moonstreamdbv3.models import Base as MoonstreamBase
 
 target_metadata = MoonstreamBase.metadata
 
@@ -26,7 +26,7 @@ target_metadata = MoonstreamBase.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
-from moonstreamdb_v3.models import (
+from moonstreamdbv3.models import (
     EthereumLabel,
     SepoliaLabel,
     PolygonLabel,
