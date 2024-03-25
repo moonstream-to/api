@@ -101,6 +101,7 @@ def continuous_crawler(
     heartbeat_interval: float = 60,
     new_jobs_refetch_interval: float = 120,
     access_id: Optional[UUID] = None,
+    max_insert_batch: int = 10000,
 ):
     crawler_type = "continuous"
     assert (
@@ -204,7 +205,16 @@ def continuous_crawler(
                     f"Crawled {len(all_events)} events from {start_block} to {end_block}."
                 )
 
-                add_events_to_session(db_session, all_events, blockchain_type)
+                if len(all_events) > max_insert_batch:
+
+                    for i in range(0, len(all_events), max_insert_batch):
+                        add_events_to_session(
+                            db_session,
+                            all_events[i : i + max_insert_batch],
+                            blockchain_type,
+                        )
+                else:
+                    add_events_to_session(db_session, all_events, blockchain_type)
 
                 logger.info(
                     f"Crawling function calls from {start_block} to {end_block}"
@@ -220,9 +230,18 @@ def continuous_crawler(
                     f"Crawled {len(all_function_calls)} function calls from {start_block} to {end_block}."
                 )
 
-                add_function_calls_to_session(
-                    db_session, all_function_calls, blockchain_type
-                )
+                if len(all_function_calls) > max_insert_batch:
+
+                    for i in range(0, len(all_function_calls), max_insert_batch):
+                        add_function_calls_to_session(
+                            db_session,
+                            all_function_calls[i : i + max_insert_batch],
+                            blockchain_type,
+                        )
+                else:
+                    add_function_calls_to_session(
+                        db_session, all_function_calls, blockchain_type
+                    )
 
                 current_time = datetime.utcnow()
 
@@ -246,11 +265,11 @@ def continuous_crawler(
 
                     jobs_refetchet_time = current_time
 
+                commit_session(db_session)
+
                 if current_time - last_heartbeat_time > timedelta(
                     seconds=heartbeat_interval
                 ):
-                    # Commiting to db
-                    commit_session(db_session)
                     # Update heartbeat
                     heartbeat_template["last_block"] = end_block
                     heartbeat_template["current_time"] = _date_to_str(current_time)
