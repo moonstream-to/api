@@ -1,7 +1,7 @@
 """Xai Sepolia blockchain support
 
 Revision ID: 26000a6bff7d
-Revises: a99b97acc39e
+Revises: a95cbab56a0b
 Create Date: 2024-03-14 01:05:00.964103
 
 """
@@ -12,7 +12,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = "26000a6bff7d"
-down_revision = "a99b97acc39e"
+down_revision = "a95cbab56a0b"
 branch_labels = None
 depends_on = None
 
