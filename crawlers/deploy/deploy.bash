@@ -107,6 +107,7 @@ ZKSYNC_ERA_STATE_CLEAN_TIMER_FILE="zksync-era-state-clean.timer"
 ZKSYNC_ERA_SEPOLIA_SYNCHRONIZE_SERVICE="zksync-era-sepolia-synchronize.service"
 ZKSYNC_ERA_SEPOLIA_MISSING_SERVICE_FILE="zksync-era-sepolia-missing.service"
 ZKSYNC_ERA_SEPOLIA_MISSING_TIMER_FILE="zksync-era-sepolia-missing.timer"
+ZKSYNC_ERA_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE="zksync-era-sepolia-moonworm-crawler.service"
 
 # ZkSync Era testnet
 ZKSYNC_ERA_TESTNET_SYNCHRONIZE_SERVICE="zksync-era-testnet-synchronize.service"
@@ -577,7 +578,7 @@ XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${LEADERBO
 # ZkSync Era Sepolia
 echo
 echo
-echo -e "${PREFIX_INFO} Replacing existing ZkSync Era block with transactions syncronizer service definition with ${ZKSYNC_ERA_SEPOLIA_SYNCHRONIZE_SERVICE}"
+echo -e "${PREFIX_INFO} Replacing existing ZkSync Era Sepolia block with transactions syncronizer service definition with ${ZKSYNC_ERA_SEPOLIA_SYNCHRONIZE_SERVICE}"
 chmod 644 "${SCRIPT_DIR}/${ZKSYNC_ERA_SEPOLIA_SYNCHRONIZE_SERVICE}"
 cp "${SCRIPT_DIR}/${ZKSYNC_ERA_SEPOLIA_SYNCHRONIZE_SERVICE}" "/home/ubuntu/.config/systemd/user/${ZKSYNC_ERA_SEPOLIA_SYNCHRONIZE_SERVICE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
@@ -585,12 +586,20 @@ XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ZKSYNC_E
 
 echo
 echo
-echo -e "${PREFIX_INFO} Replacing existing ZkSync Era missing service and timer with: ${ZKSYNC_ERA_SEPOLIA_MISSING_SERVICE_FILE}, ${ZKSYNC_ERA_SEPOLIA_MISSING_TIMER_FILE}"
+echo -e "${PREFIX_INFO} Replacing existing ZkSync Era Sepolia missing service and timer with: ${ZKSYNC_ERA_SEPOLIA_MISSING_SERVICE_FILE}, ${ZKSYNC_ERA_SEPOLIA_MISSING_TIMER_FILE}"
 chmod 644 "${SCRIPT_DIR}/${ZKSYNC_ERA_SEPOLIA_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${ZKSYNC_ERA_SEPOLIA_MISSING_TIMER_FILE}"
 cp "${SCRIPT_DIR}/${ZKSYNC_ERA_SEPOLIA_MISSING_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ZKSYNC_ERA_SEPOLIA_MISSING_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${ZKSYNC_ERA_SEPOLIA_MISSING_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ZKSYNC_ERA_SEPOLIA_MISSING_TIMER_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ZKSYNC_ERA_SEPOLIA_MISSING_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing ZkSync Era Sepolia moonworm crawler service definition with ${ZKSYNC_ERA_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ZKSYNC_ERA_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ZKSYNC_ERA_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ZKSYNC_ERA_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ZKSYNC_ERA_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
 
 # Arbitrum Nova
 echo
