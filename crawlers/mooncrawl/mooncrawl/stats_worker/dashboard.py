@@ -40,7 +40,6 @@ from ..settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
-    NB_CONTROLLER_ACCESS_ID,
 )
 from ..settings import bugout_client as bc
 
@@ -367,7 +366,7 @@ def generate_list_of_names(
 def process_external_merged(
     external_calls: Dict[str, Dict[str, Any]],
     blockchain: AvailableBlockchainType,
-    access_id: Optional[UUID] = None,
+    web3_uri: Optional[str] = None,
 ):
     """
     Process external calls
@@ -412,7 +411,7 @@ def process_external_merged(
             logger.error(f"Error processing external call: {e}")
 
     if external_calls_normalized:
-        web3_client = connect(blockchain, access_id=access_id)
+        web3_client = connect(blockchain, web3_uri=web3_uri)
 
     for extcall in external_calls_normalized:
         try:
@@ -433,7 +432,7 @@ def process_external_merged(
 def process_external(
     abi_external_calls: List[Dict[str, Any]],
     blockchain: AvailableBlockchainType,
-    access_id: Optional[UUID] = None,
+    web3_uri: Optional[str] = None,
 ):
     """
     Request all required external data
@@ -479,7 +478,7 @@ def process_external(
             logger.error(f"Error processing external call: {e}")
 
     if external_calls:
-        web3_client = connect(blockchain, access_id=access_id)
+        web3_client = connect(blockchain, web3_uri=web3_uri)
 
     for extcall in external_calls:
         try:
@@ -530,7 +529,7 @@ def generate_web3_metrics(
     address: str,
     crawler_label: str,
     abi_json: Any,
-    access_id: Optional[UUID] = None,
+    web3_uri: Optional[str] = None,
 ) -> List[Any]:
     """
     Generate stats for cards components
@@ -543,7 +542,7 @@ def generate_web3_metrics(
     extention_data = process_external(
         abi_external_calls=abi_external_calls,
         blockchain=blockchain_type,
-        access_id=access_id,
+        web3_uri=web3_uri,
     )
 
     extention_data.append(
@@ -873,7 +872,7 @@ def stats_generate_handler(args: argparse.Namespace):
         external_calls_results = process_external_merged(
             external_calls=merged_external_calls["merged"],
             blockchain=blockchain_type,
-            access_id=args.access_id,
+            web3_uri=args.web3_uri,
         )
 
         for address in address_dashboard_id_subscription_id_tree.keys():
@@ -1039,7 +1038,7 @@ def stats_generate_api_task(
     timescales: List[str],
     dashboard: BugoutResource,
     subscription_by_id: Dict[str, BugoutJournalEntity],
-    access_id: Optional[UUID] = None,
+    web3_uri: Optional[str] = None,
 ):
     """
     Start crawler with generate.
@@ -1115,7 +1114,7 @@ def stats_generate_api_task(
                     address=address,  # type: ignore
                     crawler_label=crawler_label,
                     abi_json=abi_json,
-                    access_id=access_id,
+                    web3_uri=web3_uri,
                 )
 
                 # Generate blocks state information
@@ -1192,10 +1191,8 @@ def main() -> None:
     parser.set_defaults(func=lambda _: parser.print_help())
 
     parser.add_argument(
-        "--access-id",
-        default=NB_CONTROLLER_ACCESS_ID,
-        type=UUID,
-        help="User access ID",
+        "--web3-uri",
+        help="Node JSON RPC uri",
     )
 
     subcommands = parser.add_subparsers(

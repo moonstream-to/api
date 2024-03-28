@@ -3,7 +3,10 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
 from moonstreamdb.blockchain import AvailableBlockchainType, get_block_model
-from moonworm.crawler.log_scanner import _fetch_events_chunk, _crawl_events as moonworm_autoscale_crawl_events  # type: ignore
+from moonworm.crawler.log_scanner import (
+    _crawl_events as moonworm_autoscale_crawl_events,  # type: ignore
+)
+from moonworm.crawler.log_scanner import _fetch_events_chunk
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import and_
 from web3 import Web3

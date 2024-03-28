@@ -3,22 +3,20 @@ import csv
 import datetime
 import json
 import logging
-from io import StringIO
-from moonstream.client import Moonstream  # type: ignore
-import requests  # type: ignore
 import time
+from io import StringIO
+from typing import Any, Dict, Union
 from uuid import UUID
 
-from typing import Any, Dict, Union
+import requests  # type: ignore
+from moonstream.client import Moonstream  # type: ignore
 
-
-from .queries import tokenomics_queries, cu_bank_queries, tokenomics_orange_dao_queries
 from ..actions import recive_S3_data_from_query
 from ..settings import (
     MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
     MOONSTREAM_S3_PUBLIC_DATA_BUCKET_PREFIX,
 )
-
+from .queries import cu_bank_queries, tokenomics_orange_dao_queries, tokenomics_queries
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

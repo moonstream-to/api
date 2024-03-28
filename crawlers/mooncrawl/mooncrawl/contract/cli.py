@@ -10,7 +10,6 @@ from web3 import Web3
 
 from ..blockchain import connect
 from ..db import yield_db_session_ctx
-from ..settings import NB_CONTROLLER_ACCESS_ID
 from .deployment_crawler import ContractDeploymentCrawler, MoonstreamDataStore
 
 logging.basicConfig(level=logging.INFO)
@@ -118,7 +117,7 @@ def run_crawler_desc(
 
 def handle_parser(args: argparse.Namespace):
     with yield_db_session_ctx() as session:
-        w3 = connect(AvailableBlockchainType.ETHEREUM, access_id=args.access_id)
+        w3 = connect(AvailableBlockchainType.ETHEREUM, web3_uri=args.web3_uri)
         if args.order == "asc":
             run_crawler_asc(
                 w3=w3,
@@ -156,10 +155,8 @@ def generate_parser():
     parser = argparse.ArgumentParser(description="Moonstream Deployment Crawler")
 
     parser.add_argument(
-        "--access-id",
-        default=NB_CONTROLLER_ACCESS_ID,
-        type=UUID,
-        help="User access ID",
+        "--web3-uri",
+        help="Node JSON RPC uri",
     )
 
     parser.add_argument(

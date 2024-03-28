@@ -1,12 +1,12 @@
-import logging
 import json
+import logging
 from typing import Dict, List, Optional
 
 from moonstreamdb.blockchain import AvailableBlockchainType, get_label_model
 from moonstreamdb.models import Base
 from moonworm.crawler.function_call_crawler import ContractFunctionCall  # type: ignore
+from sqlalchemy import Integer, String, column, exists, func, select, text, values
 from sqlalchemy.orm import Session
-from sqlalchemy import func, text, select, values, column, Integer, String, exists
 
 from ..settings import CRAWLER_LABEL
 from .event_crawler import Event

@@ -10,23 +10,19 @@ from pprint import pprint
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from moonstreamdb.blockchain import AvailableBlockchainType
 from moonstream.client import Moonstream  # type: ignore
+from moonstreamdb.blockchain import AvailableBlockchainType
 from web3.middleware import geth_poa_middleware
 
 from mooncrawl.moonworm_crawler.crawler import _retry_connect_web3
 
 from ..actions import recive_S3_data_from_query
+from ..blockchain import connect
 from ..db import PrePing_SessionLocal
-from ..settings import (
-    INFURA_PROJECT_ID,
-    NB_CONTROLLER_ACCESS_ID,
-    infura_networks,
-    multicall_contracts,
-)
+from ..settings import INFURA_PROJECT_ID, infura_networks, multicall_contracts
 from .db import clean_labels, commit_session, view_call_to_label
 from .Multicall2_interface import Contract as Multicall2
-from .web3_util import FunctionSignature, connect
+from .web3_util import FunctionSignature
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -306,8 +302,8 @@ def parse_jobs(
     web3_provider_uri: Optional[str],
     block_number: Optional[int],
     batch_size: int,
-    access_id: UUID,
     moonstream_token: str,
+    web3_uri: Optional[str] = None,
 ):
     """
     Parse jobs from list and generate web3 interfaces for each contract.
@@ -321,13 +317,12 @@ def parse_jobs(
     if web3_provider_uri is not None:
         try:
             logger.info(
-                f"Connecting to blockchain                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    : {blockchain_type} with custom provider!"
+                f"Connecting to blockchain: {blockchain_type} with custom provider!"
             )
 
-            web3_client = connect(web3_provider_uri)
-
-            if blockchain_type != AvailableBlockchainType.ETHEREUM:
-                web3_client.middleware_onion.inject(geth_poa_middleware, layer=0)
+            web3_client = connect(
+                blockchain_type=blockchain_type, web3_uri=web3_provider_uri
+            )
         except Exception as e:
             logger.error(
                 f"Web3 connection to custom provider {web3_provider_uri} failed error: {e}"
@@ -336,7 +331,7 @@ def parse_jobs(
     else:
         logger.info(f"Connecting to blockchain: {blockchain_type} with Node balancer.")
         web3_client = _retry_connect_web3(
-            blockchain_type=blockchain_type, access_id=access_id
+            blockchain_type=blockchain_type, web3_uri=web3_uri
         )
 
     logger.info(f"Crawler started connected to blockchain: {blockchain_type}")
@@ -519,7 +514,7 @@ def handle_crawl(args: argparse.Namespace) -> None:
 
     blockchain_type = AvailableBlockchainType(args.blockchain)
 
-    custom_web3_provider = args.custom_web3_provider
+    custom_web3_provider = args.web3_uri
 
     if args.infura and INFURA_PROJECT_ID is not None:
         if blockchain_type not in infura_networks:
@@ -535,8 +530,8 @@ def handle_crawl(args: argparse.Namespace) -> None:
         custom_web3_provider,
         args.block_number,
         args.batch_size,
-        args.access_id,
         args.moonstream_token,
+        args.web3_uri,
     )
 
 
@@ -563,7 +558,7 @@ def clean_labels_handler(args: argparse.Namespace) -> None:
     blockchain_type = AvailableBlockchainType(args.blockchain)
 
     web3_client = _retry_connect_web3(
-        blockchain_type=blockchain_type, access_id=args.access_id
+        blockchain_type=blockchain_type, web3_uri=args.web3_uri
     )
 
     logger.info(f"Label cleaner connected to blockchain: {blockchain_type}")
@@ -583,10 +578,8 @@ def main() -> None:
     parser.set_defaults(func=lambda _: parser.print_help())
 
     parser.add_argument(
-        "--access-id",
-        default=NB_CONTROLLER_ACCESS_ID,
-        type=UUID,
-        help="User access ID",
+        "--web3-uri",
+        help="Node JSON RPC uri",
     )
 
     subparsers = parser.add_subparsers()
@@ -613,12 +606,6 @@ def main() -> None:
         "--infura",
         action="store_true",
         help="Use infura as web3 provider",
-    )
-    view_state_crawler_parser.add_argument(
-        "--custom-web3-provider",
-        "-w3",
-        type=str,
-        help="Type of blovkchain wich writng in database",
     )
     view_state_crawler_parser.add_argument(
         "--block-number", "-N", type=str, help="Block number."

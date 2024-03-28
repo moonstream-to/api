@@ -36,7 +36,7 @@ def historical_crawler(
     end_block: int,
     max_blocks_batch: int = 100,
     min_sleep_time: float = 0.1,
-    access_id: Optional[UUID] = None,
+    web3_uri: Optional[str] = None,
     addresses_deployment_blocks: Optional[Dict[ChecksumAddress, int]] = None,
     max_insert_batch: int = 10000,
 ):
@@ -46,7 +46,7 @@ def historical_crawler(
     assert end_block > 0, "end_block must be greater than 0"
 
     if web3 is None:
-        web3 = _retry_connect_web3(blockchain_type, access_id=access_id)
+        web3 = _retry_connect_web3(blockchain_type, web3_uri=web3_uri)
 
     assert (
         web3.eth.block_number >= start_block
@@ -205,7 +205,7 @@ def historical_crawler(
                 logger.error("Too many failures, exiting")
                 raise e
             try:
-                web3 = _retry_connect_web3(blockchain_type, access_id=access_id)
+                web3 = _retry_connect_web3(blockchain_type, web3_uri=web3_uri)
             except Exception as err:
                 logger.error(f"Failed to reconnect: {err}")
                 logger.exception(err)
