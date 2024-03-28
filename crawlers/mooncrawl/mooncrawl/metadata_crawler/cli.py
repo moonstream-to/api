@@ -9,10 +9,7 @@ from urllib.error import HTTPError
 
 from moonstreamdb.blockchain import AvailableBlockchainType
 
-from ..db import (
-    yield_db_preping_session_ctx,
-    yield_db_read_only_preping_session_ctx,
-)
+from ..db import yield_db_preping_session_ctx, yield_db_read_only_preping_session_ctx
 from .db import (
     clean_labels_from_db,
     get_current_metadata_for_address,

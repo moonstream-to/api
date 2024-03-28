@@ -3,8 +3,7 @@ import json
 import logging
 import os
 import time
-from typing import Any, Dict, Optional, List
-
+from typing import Any, Dict, List, Optional
 
 import requests  # type: ignore
 
@@ -14,7 +13,6 @@ from ..settings import (
     MOONSTREAM_LEADERBOARD_GENERATOR_BATCH_SIZE,
     MOONSTREAM_LEADERBOARD_GENERATOR_PUSH_TIMEOUT_SECONDS,
 )
-
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)

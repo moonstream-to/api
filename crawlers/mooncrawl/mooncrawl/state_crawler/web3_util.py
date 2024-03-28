@@ -2,17 +2,17 @@ import getpass
 import os
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
+from eth_abi import decode_single, encode_single
 from eth_account.account import Account  # type: ignore
-from eth_abi import encode_single, decode_single
 from eth_typing.evm import ChecksumAddress
 from eth_utils import function_signature_to_4byte_selector
 from hexbytes.main import HexBytes
 from web3 import Web3
+from web3._utils.abi import normalize_event_input_types
 from web3.contract import ContractFunction
 from web3.providers.ipc import IPCProvider
 from web3.providers.rpc import HTTPProvider
 from web3.types import ABI, Nonce, TxParams, TxReceipt, Wei
-from web3._utils.abi import normalize_event_input_types
 
 
 class ContractConstructor:
@@ -163,28 +163,6 @@ def read_keys_from_env() -> Tuple[ChecksumAddress, str]:
         raise ValueError(
             "Failed to initiate account from MOONWORM_ETHEREUM_ADDRESS_PRIVATE_KEY"
         )
-
-
-def connect(web3_uri: str) -> Web3:
-    web3_provider: Union[IPCProvider, HTTPProvider] = Web3.IPCProvider()
-    if web3_uri.startswith("http://") or web3_uri.startswith("https://"):
-        web3_provider = Web3.HTTPProvider(web3_uri)
-    else:
-        web3_provider = Web3.IPCProvider(web3_uri)
-    web3_client = Web3(web3_provider)
-    return web3_client
-
-
-def read_web3_provider_from_env() -> Web3:
-    provider_path = os.environ.get("MOONWORM_WEB3_PROVIDER_URI")
-    if provider_path is None:
-        raise ValueError("MOONWORM_WEB3_PROVIDER_URI env variable is not set")
-    return connect(provider_path)
-
-
-def read_web3_provider_from_cli() -> Web3:
-    provider_path = input("Enter web3 uri path: ")
-    return connect(provider_path)
 
 
 def cast_to_python_type(evm_type: str) -> Callable:

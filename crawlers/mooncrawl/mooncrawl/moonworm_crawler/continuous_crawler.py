@@ -100,7 +100,7 @@ def continuous_crawler(
     min_sleep_time: float = 0.1,
     heartbeat_interval: float = 60,
     new_jobs_refetch_interval: float = 120,
-    access_id: Optional[UUID] = None,
+    web3_uri: Optional[str] = None,
     max_insert_batch: int = 10000,
 ):
     crawler_type = "continuous"
@@ -119,7 +119,7 @@ def continuous_crawler(
 
     jobs_refetchet_time = crawl_start_time
     if web3 is None:
-        web3 = _retry_connect_web3(blockchain_type, access_id=access_id)
+        web3 = _retry_connect_web3(blockchain_type, web3_uri=web3_uri)
 
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
         network = Network.ethereum
@@ -304,7 +304,7 @@ def continuous_crawler(
                     logger.error("Too many failures, exiting")
                     raise e
                 try:
-                    web3 = _retry_connect_web3(blockchain_type, access_id=access_id)
+                    web3 = _retry_connect_web3(blockchain_type, web3_uri=web3_uri)
                 except Exception as err:
                     logger.error(f"Failed to reconnect: {err}")
                     logger.exception(err)
