@@ -1,5 +1,5 @@
 [Unit]
-Description=Runs events historical crawler on ZkSync Era testnet
+Description=Runs transactions historical crawler on ZkSync Era Sepolia
 
 [Timer]
 OnBootSec=60s
