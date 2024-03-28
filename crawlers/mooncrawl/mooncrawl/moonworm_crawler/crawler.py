@@ -37,10 +37,13 @@ class SubscriptionTypes(Enum):
     WYRM_BLOCKCHAIN = "wyrm_smartcontract"
     ZKSYNC_ERA_TESTNET_BLOCKCHAIN = "zksync_era_testnet_smartcontract"
     ZKSYNC_ERA_BLOCKCHAIN = "zksync_era_smartcontract"
+    ZKSYNC_ERA_SEPOLIA_BLOCKCHAIN = "zksync_era_sepolia_smartcontract"
     ARBITRUM_NOVA_BLOCKCHAIN = "arbitrum_nova_smartcontract"
     ARBITRUM_SEPOLIA_BLOCKCHAIN = "arbitrum_sepolia_smartcontract"
     XAI_BLOCKCHAIN = "xai_smartcontract"
     XAI_SEPOLIA_BLOCKCHAIN = "xai_sepolia_smartcontract"
+    AVALANCHE_BLOCKCHAIN = "avalanche_smartcontract"
+    AVALANCHE_FUJI_BLOCKCHAIN = "avalanche_fuji_smartcontract"
 
 
 def abi_input_signature(input_abi: Dict[str, Any]) -> str:
@@ -149,6 +152,8 @@ def blockchain_type_to_subscription_type(
         return SubscriptionTypes.ZKSYNC_ERA_TESTNET_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
         return SubscriptionTypes.ZKSYNC_ERA_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_SEPOLIA:
+        return SubscriptionTypes.ZKSYNC_ERA_SEPOLIA_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
         return SubscriptionTypes.ARBITRUM_NOVA_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
@@ -157,6 +162,10 @@ def blockchain_type_to_subscription_type(
         return SubscriptionTypes.XAI_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.XAI_SEPOLIA:
         return SubscriptionTypes.XAI_SEPOLIA_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.AVALANCHE:
+        return SubscriptionTypes.AVALANCHE_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.AVALANCHE_FUJI:
+        return SubscriptionTypes.AVALANCHE_FUJI_BLOCKCHAIN
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 
