@@ -175,7 +175,10 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
         block_obj.send_root = block.get("sendRoot", "")
         block_obj.mix_hash = block.get("mixHash", "")
 
-    if blockchain_type == AvailableBlockchainType.XAI or blockchain_type == AvailableBlockchainType.XAI_SEPOLIA:
+    if (
+        blockchain_type == AvailableBlockchainType.XAI
+        or blockchain_type == AvailableBlockchainType.XAI_SEPOLIA
+    ):
         block_obj.sha3_uncles = block.get("sha3Uncles", "")
         block_obj.l1_block_number = hex_to_int(block.get("l1BlockNumber"))
         block_obj.send_count = hex_to_int(block.get("sendCount"))

@@ -55,10 +55,13 @@ subscription_id_by_blockchain = {
     "wyrm": "wyrm_smartcontract",
     "zksync_era_testnet": "zksync_era_testnet_smartcontract",
     "zksync_era": "zksync_era_smartcontract",
+    "zksync_era_sepolia": "zksync_era_sepolia_smartcontract",
     "arbitrum_nova": "arbitrum_nova_smartcontract",
     "arbitrum_sepolia": "arbitrum_sepolia_smartcontract",
     "xai": "xai_smartcontract",
     "xai_sepolia": "xai_sepolia_smartcontract",
+    "avalanche": "avalanche_smartcontract",
+    "avalanche_fuji": "avalanche_fuji_smartcontract",
 }
 
 blockchain_by_subscription_id = {
@@ -68,10 +71,14 @@ blockchain_by_subscription_id = {
     "xdai_blockchain": "xdai",
     "wyrm_blockchain": "wyrm",
     "zksync_era_testnet_blockchain": "zksync_era_testnet",
+    "zksync_era_blockchain": "zksync_era",
+    "zksync_era_sepolia_blockchain": "zksync_era_sepolia",
     "arbitrum_nova_blockchain": "arbitrum_nova",
     "arbitrum_sepolia_blockchain": "arbitrum_sepolia",
     "xai_blockchain": "xai",
     "xai_sepolia_blockchain": "xai_sepolia",
+    "avalanche_blockchain": "avalanche",
+    "avalanche_fuji_blockchain": "avalanche_fuji",
     "ethereum_smartcontract": "ethereum",
     "polygon_smartcontract": "polygon",
     "mumbai_smartcontract": "mumbai",
@@ -79,10 +86,13 @@ blockchain_by_subscription_id = {
     "wyrm_smartcontract": "wyrm",
     "zksync_era_testnet_smartcontract": "zksync_era_testnet",
     "zksync_era_smartcontract": "zksync_era",
+    "zksync_era_sepolia_smartcontract": "zksync_era_sepolia",
     "arbitrum_nova_smartcontract": "arbitrum_nova",
     "arbitrum_sepolia_smartcontract": "arbitrum_sepolia",
     "xai_smartcontract": "xai",
     "xai_sepolia_smartcontract": "xai_sepolia",
+    "avalanche_smartcontract": "avalanche",
+    "avalanche_fuji_smartcontract": "avalanche_fuji",
 }
 
 
