@@ -30,6 +30,7 @@ from .settings import (
     MOONSTREAM_NODE_MUMBAI_A_EXTERNAL_URI,
     MOONSTREAM_NODE_POLYGON_A_EXTERNAL_URI,
     MOONSTREAM_NODE_XAI_A_EXTERNAL_URI,
+    MOONSTREAM_NODE_XAI_SEPOLIA_A_EXTERNAL_URI,
     MOONSTREAM_NODE_XDAI_A_EXTERNAL_URI,
     MOONSTREAM_NODE_ZKSYNC_ERA_A_EXTERNAL_URI,
     MOONSTREAM_NODE_ZKSYNC_ERA_SEPOLIA_A_EXTERNAL_URI,
@@ -78,6 +79,8 @@ def connect(
             web3_uri = MOONSTREAM_NODE_ARBITRUM_SEPOLIA_A_EXTERNAL_URI
         elif blockchain_type == AvailableBlockchainType.XAI:
             web3_uri = MOONSTREAM_NODE_XAI_A_EXTERNAL_URI
+        elif blockchain_type == AvailableBlockchainType.XAI_SEPOLIA:
+            web3_uri = MOONSTREAM_NODE_XAI_SEPOLIA_A_EXTERNAL_URI
         elif blockchain_type == AvailableBlockchainType.AVALANCHE:
             web3_uri = MOONSTREAM_NODE_AVALANCHE_A_EXTERNAL_URI
         elif blockchain_type == AvailableBlockchainType.AVALANCHE_FUJI:
@@ -172,7 +175,10 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
         block_obj.send_root = block.get("sendRoot", "")
         block_obj.mix_hash = block.get("mixHash", "")
 
-    if blockchain_type == AvailableBlockchainType.XAI:
+    if (
+        blockchain_type == AvailableBlockchainType.XAI
+        or blockchain_type == AvailableBlockchainType.XAI_SEPOLIA
+    ):
         block_obj.sha3_uncles = block.get("sha3Uncles", "")
         block_obj.l1_block_number = hex_to_int(block.get("l1BlockNumber"))
         block_obj.send_count = hex_to_int(block.get("sendCount"))
@@ -235,6 +241,7 @@ def add_block_transactions(
             blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA
             or blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA
             or blockchain_type == AvailableBlockchainType.XAI
+            or blockchain_type == AvailableBlockchainType.XAI_SEPOLIA
         ):
             tx_obj.y_parity = hex_to_int(tx.get("yParity"))
 

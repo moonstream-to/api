@@ -135,12 +135,20 @@ def continuous_crawler(
         network = Network.zksync_era_testnet
     elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
         network = Network.zksync_era
+    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_SEPOLIA:
+        network = Network.zksync_era_sepolia
     elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
         network = Network.arbitrum_nova
     elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
         network = Network.arbitrum_sepolia
     elif blockchain_type == AvailableBlockchainType.XAI:
         network = Network.xai
+    elif blockchain_type == AvailableBlockchainType.XAI_SEPOLIA:
+        network = Network.xai_sepolia
+    elif blockchain_type == AvailableBlockchainType.AVALANCHE:
+        network = Network.avalanche
+    elif blockchain_type == AvailableBlockchainType.AVALANCHE_FUJI:
+        network = Network.avalanche_fuji
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 

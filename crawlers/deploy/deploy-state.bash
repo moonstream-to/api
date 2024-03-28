@@ -1,0 +1,193 @@
+#!/usr/bin/env bash
+
+# Deployment script - intended to run on Moonstream crawlers server
+
+# Colors
+C_RESET='\033[0m'
+C_RED='\033[1;31m'
+C_GREEN='\033[1;32m'
+C_YELLOW='\033[1;33m'
+
+# Logs
+PREFIX_INFO="${C_GREEN}[INFO]${C_RESET} [$(date +%d-%m\ %T)]"
+PREFIX_WARN="${C_YELLOW}[WARN]${C_RESET} [$(date +%d-%m\ %T)]"
+PREFIX_CRIT="${C_RED}[CRIT]${C_RESET} [$(date +%d-%m\ %T)]"
+
+# Main
+AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
+APP_DIR="${APP_DIR:-/home/ubuntu/moonstream}"
+APP_CRAWLERS_DIR="${APP_DIR}/crawlers"
+PYTHON_ENV_DIR="${PYTHON_ENV_DIR:-/home/ubuntu/moonstream-env}"
+PYTHON="${PYTHON_ENV_DIR}/bin/python"
+PIP="${PYTHON_ENV_DIR}/bin/pip"
+SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/moonstream-secrets}"
+PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
+SCRIPT_DIR="$(realpath $(dirname $0))"
+
+# Ethereum service files
+ETHEREUM_STATE_SERVICE_FILE="ethereum-state.service"
+ETHEREUM_STATE_TIMER_FILE="ethereum-state.timer"
+ETHEREUM_STATE_CLEAN_SERVICE_FILE="ethereum-state-clean.service"
+ETHEREUM_STATE_CLEAN_TIMER_FILE="ethereum-state-clean.timer"
+ETHEREUM_METADATA_SERVICE_FILE="ethereum-metadata.service"
+ETHEREUM_METADATA_TIMER_FILE="ethereum-metadata.timer"
+
+# Polygon service files
+POLYGON_STATE_SERVICE_FILE="polygon-state.service"
+POLYGON_STATE_TIMER_FILE="polygon-state.timer"
+POLYGON_STATE_CLEAN_SERVICE_FILE="polygon-state-clean.service"
+POLYGON_STATE_CLEAN_TIMER_FILE="polygon-state-clean.timer"
+POLYGON_METADATA_SERVICE_FILE="polygon-metadata.service"
+POLYGON_METADATA_TIMER_FILE="polygon-metadata.timer"
+
+# Mumbai service files
+MUMBAI_STATE_SERVICE_FILE="mumbai-state.service"
+MUMBAI_STATE_TIMER_FILE="mumbai-state.timer"
+MUMBAI_STATE_CLEAN_SERVICE_FILE="mumbai-state-clean.service"
+MUMBAI_STATE_CLEAN_TIMER_FILE="mumbai-state-clean.timer"
+MUMBAI_METADATA_SERVICE_FILE="mumbai-metadata.service"
+MUMBAI_METADATA_TIMER_FILE="mumbai-metadata.timer"
+
+# ZkSync Era
+ZKSYNC_ERA_STATE_SERVICE_FILE="zksync-era-state.service"
+ZKSYNC_ERA_STATE_TIMER_FILE="zksync-era-state.timer"
+ZKSYNC_ERA_STATE_CLEAN_SERVICE_FILE="zksync-era-state-clean.service"
+ZKSYNC_ERA_STATE_CLEAN_TIMER_FILE="zksync-era-state-clean.timer"
+
+set -eu
+
+echo
+echo
+echo -e "${PREFIX_INFO} Upgrading Python pip and setuptools"
+"${PIP}" install --upgrade pip setuptools
+
+echo
+echo
+echo -e "${PREFIX_INFO} Installing Python dependencies"
+"${PIP}" install -e "${APP_CRAWLERS_DIR}/mooncrawl/"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Install checkenv"
+HOME=/home/ubuntu /usr/local/go/bin/go install github.com/bugout-dev/checkenv@latest
+
+echo
+echo
+echo -e "${PREFIX_INFO} Retrieving deployment parameters"
+if [ ! -d "${SECRETS_DIR}" ]; then
+  mkdir -p "${SECRETS_DIR}"
+  echo -e "${PREFIX_WARN} Created new secrets directory"
+fi
+AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" /home/ubuntu/go/bin/checkenv show aws_ssm+moonstream:true > "${PARAMETERS_ENV_PATH}"
+chmod 0640 "${PARAMETERS_ENV_PATH}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Add instance local IP to parameters"
+echo "AWS_LOCAL_IPV4=$(ec2metadata --local-ipv4)" >> "${PARAMETERS_ENV_PATH}"
+
+echo
+echo
+if [ ! -d "/home/ubuntu/.config/systemd/user/" ]; then
+  mkdir -p /home/ubuntu/.config/systemd/user/
+  echo -e "${PREFIX_WARN} Created user systemd directory"
+fi
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Ethereum state service and timer with: ${ETHEREUM_STATE_SERVICE_FILE}, ${ETHEREUM_STATE_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ETHEREUM_STATE_SERVICE_FILE}" "${SCRIPT_DIR}/${ETHEREUM_STATE_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_STATE_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ETHEREUM_STATE_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_STATE_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ETHEREUM_STATE_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ETHEREUM_STATE_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Ethereum state clean service and timer with: ${ETHEREUM_STATE_CLEAN_SERVICE_FILE}, ${ETHEREUM_STATE_CLEAN_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ETHEREUM_STATE_CLEAN_SERVICE_FILE}" "${SCRIPT_DIR}/${ETHEREUM_STATE_CLEAN_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_STATE_CLEAN_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ETHEREUM_STATE_CLEAN_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_STATE_CLEAN_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ETHEREUM_STATE_CLEAN_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ETHEREUM_STATE_CLEAN_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Ethereum metadata service and timer with: ${ETHEREUM_METADATA_SERVICE_FILE}, ${ETHEREUM_METADATA_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ETHEREUM_METADATA_SERVICE_FILE}" "${SCRIPT_DIR}/${ETHEREUM_METADATA_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_METADATA_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ETHEREUM_METADATA_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ETHEREUM_METADATA_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ETHEREUM_METADATA_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ETHEREUM_METADATA_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Polygon state service and timer with: ${POLYGON_STATE_SERVICE_FILE}, ${POLYGON_STATE_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${POLYGON_STATE_SERVICE_FILE}" "${SCRIPT_DIR}/${POLYGON_STATE_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${POLYGON_STATE_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${POLYGON_STATE_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${POLYGON_STATE_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${POLYGON_STATE_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${POLYGON_STATE_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Polygon state clean service and timer with: ${POLYGON_STATE_CLEAN_SERVICE_FILE}, ${POLYGON_STATE_CLEAN_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${POLYGON_STATE_CLEAN_SERVICE_FILE}" "${SCRIPT_DIR}/${POLYGON_STATE_CLEAN_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${POLYGON_STATE_CLEAN_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${POLYGON_STATE_CLEAN_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${POLYGON_STATE_CLEAN_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${POLYGON_STATE_CLEAN_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${POLYGON_STATE_CLEAN_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Polygon metadata service and timer with: ${POLYGON_METADATA_SERVICE_FILE}, ${POLYGON_METADATA_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${POLYGON_METADATA_SERVICE_FILE}" "${SCRIPT_DIR}/${POLYGON_METADATA_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${POLYGON_METADATA_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${POLYGON_METADATA_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${POLYGON_METADATA_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${POLYGON_METADATA_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${POLYGON_METADATA_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing MUMBAI state service and timer with: ${MUMBAI_STATE_SERVICE_FILE}, ${MUMBAI_STATE_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${MUMBAI_STATE_SERVICE_FILE}" "${SCRIPT_DIR}/${MUMBAI_STATE_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${MUMBAI_STATE_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${MUMBAI_STATE_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${MUMBAI_STATE_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${MUMBAI_STATE_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MUMBAI_STATE_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing MUMBAI metadata service and timer with: ${MUMBAI_METADATA_SERVICE_FILE}, ${MUMBAI_METADATA_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${MUMBAI_METADATA_SERVICE_FILE}" "${SCRIPT_DIR}/${MUMBAI_METADATA_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${MUMBAI_METADATA_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${MUMBAI_METADATA_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${MUMBAI_METADATA_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${MUMBAI_METADATA_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MUMBAI_METADATA_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing MUMBAI state clean service and timer with: ${MUMBAI_STATE_CLEAN_SERVICE_FILE}, ${MUMBAI_STATE_CLEAN_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${MUMBAI_STATE_CLEAN_SERVICE_FILE}" "${SCRIPT_DIR}/${MUMBAI_STATE_CLEAN_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${MUMBAI_STATE_CLEAN_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${MUMBAI_STATE_CLEAN_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${MUMBAI_STATE_CLEAN_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${MUMBAI_STATE_CLEAN_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MUMBAI_STATE_CLEAN_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing ZkSync Era state service and timer with: ${ZKSYNC_ERA_STATE_SERVICE_FILE}, ${ZKSYNC_ERA_STATE_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_SERVICE_FILE}" "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ZKSYNC_ERA_STATE_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ZKSYNC_ERA_STATE_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000"  systemctl --user restart --no-block "${ZKSYNC_ERA_STATE_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing ZkSync Era state clean service and timer with: ${ZKSYNC_ERA_STATE_CLEAN_SERVICE_FILE}, ${ZKSYNC_ERA_STATE_CLEAN_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_CLEAN_SERVICE_FILE}" "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_CLEAN_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_CLEAN_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ZKSYNC_ERA_STATE_CLEAN_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_CLEAN_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ZKSYNC_ERA_STATE_CLEAN_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000"  systemctl --user restart --no-block "${ZKSYNC_ERA_STATE_CLEAN_TIMER_FILE}"

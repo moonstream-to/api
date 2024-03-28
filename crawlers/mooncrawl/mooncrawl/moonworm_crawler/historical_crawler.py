@@ -72,6 +72,8 @@ def historical_crawler(
         network = Network.arbitrum_sepolia
     elif blockchain_type == AvailableBlockchainType.XAI:
         network = Network.xai
+    elif blockchain_type == AvailableBlockchainType.XAI_SEPOLIA:
+        network = Network.xai_sepolia
     else:
         raise Exception("Unsupported blockchain type provided")
 

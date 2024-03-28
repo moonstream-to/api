@@ -29,6 +29,9 @@ from .models import (
     WyrmTransaction,
     XaiBlock,
     XaiLabel,
+    XaiSepoliaBlock,
+    XaiSepoliaLabel,
+    XaiSepoliaTransaction,
     XaiTransaction,
     XDaiBlock,
     XDaiLabel,
@@ -57,6 +60,7 @@ class Network(Enum):
     arbitrum_nova = "arbitrum_nova"
     arbitrum_sepolia = "arbitrum_sepolia"
     xai = "xai"
+    xai_sepolia = "xai_sepolia"
     avalanche = "avalanche"
     avalanche_fuji = "avalanche_fuji"
 
@@ -73,6 +77,7 @@ tx_raw_types = Union[
     ArbitrumNovaTransaction,
     ArbitrumSepoliaTransaction,
     XaiTransaction,
+    XaiSepoliaTransaction,
     AvalancheTransaction,
     AvalancheFujiTransaction,
 ]
@@ -132,6 +137,11 @@ MODELS: Dict[Network, Dict[str, Base]] = {
         "blocks": XaiBlock,
         "labels": XaiLabel,
         "transactions": XaiTransaction,
+    },
+    Network.xai_sepolia: {
+        "blocks": XaiSepoliaBlock,
+        "labels": XaiSepoliaLabel,
+        "transactions": XaiSepoliaTransaction,
     },
     Network.avalanche: {
         "blocks": AvalancheBlock,

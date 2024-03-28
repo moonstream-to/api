@@ -28,6 +28,9 @@ from .models import (
     WyrmTransaction,
     XaiBlock,
     XaiLabel,
+    XaiSepoliaBlock,
+    XaiSepoliaLabel,
+    XaiSepoliaTransaction,
     XaiTransaction,
     XDaiBlock,
     XDaiLabel,
@@ -56,6 +59,7 @@ class AvailableBlockchainType(Enum):
     ARBITRUM_NOVA = "arbitrum_nova"
     ARBITRUM_SEPOLIA = "arbitrum_sepolia"
     XAI = "xai"
+    XAI_SEPOLIA = "xai_sepolia"
     AVALANCHE = "avalanche"
     AVALANCHE_FUJI = "avalanche_fuji"
 
@@ -75,12 +79,13 @@ def get_block_model(
         ArbitrumNovaBlock,
         ArbitrumSepoliaBlock,
         XaiBlock,
+        XaiSepoliaBlock,
         AvalancheBlock,
         AvalancheFujiBlock,
     ]
 ]:
     """
-    Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm, ZkSyncEra, ZkSyncEraTestnet, ArbitrumNovaBlock, ArbitrumSepoliaBlock, XaiBlock
+    Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm, ZkSyncEra, ZkSyncEraTestnet, ArbitrumNova, ArbitrumSepolia, Xai, XaiSepolia
     set proper blocks model.
     """
     block_model: Type[
@@ -96,6 +101,7 @@ def get_block_model(
             ArbitrumNovaBlock,
             ArbitrumSepoliaBlock,
             XaiBlock,
+            XaiSepoliaBlock,
             AvalancheBlock,
             AvalancheFujiBlock,
         ]
@@ -122,6 +128,8 @@ def get_block_model(
         block_model = ArbitrumSepoliaBlock
     elif blockchain_type == AvailableBlockchainType.XAI:
         block_model = XaiBlock
+    elif blockchain_type == AvailableBlockchainType.XAI_SEPOLIA:
+        block_model = XaiSepoliaBlock
     elif blockchain_type == AvailableBlockchainType.AVALANCHE:
         block_model = AvalancheBlock
     elif blockchain_type == AvailableBlockchainType.AVALANCHE_FUJI:
@@ -147,12 +155,13 @@ def get_label_model(
         ArbitrumNovaLabel,
         ArbitrumSepoliaLabel,
         XaiLabel,
+        XaiSepoliaLabel,
         AvalancheLabel,
         AvalancheFujiLabel,
     ]
 ]:
     """
-    Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm, ZkSyncEra, ZkSyncEraTestnet, ArbitrumNovaLabel, ArbitrumSepoliaLabel, XaiLabel
+    Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm, ZkSyncEra, ZkSyncEraTestnet, ArbitrumNova, ArbitrumSepolia, Xai, XaiSepolia
     set proper block label model.
     """
     label_model: Type[
@@ -168,6 +177,7 @@ def get_label_model(
             ArbitrumNovaLabel,
             ArbitrumSepoliaLabel,
             XaiLabel,
+            XaiSepoliaLabel,
             AvalancheLabel,
             AvalancheFujiLabel,
         ]
@@ -194,11 +204,12 @@ def get_label_model(
         label_model = ArbitrumSepoliaLabel
     elif blockchain_type == AvailableBlockchainType.XAI:
         label_model = XaiLabel
+    elif blockchain_type == AvailableBlockchainType.XAI_SEPOLIA:
+        label_model = XaiSepoliaLabel
     elif blockchain_type == AvailableBlockchainType.AVALANCHE:
         label_model = AvalancheLabel
     elif blockchain_type == AvailableBlockchainType.AVALANCHE_FUJI:
         label_model = AvalancheFujiLabel
-
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -220,12 +231,13 @@ def get_transaction_model(
         ArbitrumNovaTransaction,
         ArbitrumSepoliaTransaction,
         XaiTransaction,
+        XaiSepoliaTransaction,
         AvalancheTransaction,
         AvalancheFujiTransaction,
     ]
 ]:
     """
-    Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm, ZkSyncEra, ZkSyncEraTestnet, ArbitrumNovaTransaction, ArbitrumSepoliaTransaction, XaiTransaction
+    Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm, ZkSyncEra, ZkSyncEraTestnet, ArbitrumNova, ArbitrumSepolia, Xai, XaiSepolia
     set proper block transactions model.
     """
     transaction_model: Type[
@@ -241,6 +253,7 @@ def get_transaction_model(
             ArbitrumNovaTransaction,
             ArbitrumSepoliaTransaction,
             XaiTransaction,
+            XaiSepoliaTransaction,
             AvalancheTransaction,
             AvalancheFujiTransaction,
         ]
@@ -267,6 +280,8 @@ def get_transaction_model(
         transaction_model = ArbitrumSepoliaTransaction
     elif blockchain_type == AvailableBlockchainType.XAI:
         transaction_model = XaiTransaction
+    elif blockchain_type == AvailableBlockchainType.XAI_SEPOLIA:
+        transaction_model = XaiSepoliaTransaction
     elif blockchain_type == AvailableBlockchainType.AVALANCHE:
         transaction_model = AvalancheTransaction
     elif blockchain_type == AvailableBlockchainType.AVALANCHE_FUJI:
