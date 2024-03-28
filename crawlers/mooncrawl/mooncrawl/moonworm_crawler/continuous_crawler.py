@@ -100,7 +100,8 @@ def continuous_crawler(
     min_sleep_time: float = 0.1,
     heartbeat_interval: float = 60,
     new_jobs_refetch_interval: float = 120,
-    access_id: Optional[UUID] = None,
+    web3_uri: Optional[str] = None,
+    max_insert_batch: int = 10000,
 ):
     crawler_type = "continuous"
     assert (
@@ -118,7 +119,7 @@ def continuous_crawler(
 
     jobs_refetchet_time = crawl_start_time
     if web3 is None:
-        web3 = _retry_connect_web3(blockchain_type, access_id=access_id)
+        web3 = _retry_connect_web3(blockchain_type, web3_uri=web3_uri)
 
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
         network = Network.ethereum
@@ -134,6 +135,8 @@ def continuous_crawler(
         network = Network.zksync_era_testnet
     elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
         network = Network.zksync_era
+    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_SEPOLIA:
+        network = Network.zksync_era_sepolia
     elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
         network = Network.arbitrum_nova
     elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
@@ -142,6 +145,10 @@ def continuous_crawler(
         network = Network.xai
     elif blockchain_type == AvailableBlockchainType.XAI_SEPOLIA:
         network = Network.xai_sepolia
+    elif blockchain_type == AvailableBlockchainType.AVALANCHE:
+        network = Network.avalanche
+    elif blockchain_type == AvailableBlockchainType.AVALANCHE_FUJI:
+        network = Network.avalanche_fuji
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 
@@ -206,7 +213,16 @@ def continuous_crawler(
                     f"Crawled {len(all_events)} events from {start_block} to {end_block}."
                 )
 
-                add_events_to_session(db_session, all_events, blockchain_type)
+                if len(all_events) > max_insert_batch:
+
+                    for i in range(0, len(all_events), max_insert_batch):
+                        add_events_to_session(
+                            db_session,
+                            all_events[i : i + max_insert_batch],
+                            blockchain_type,
+                        )
+                else:
+                    add_events_to_session(db_session, all_events, blockchain_type)
 
                 logger.info(
                     f"Crawling function calls from {start_block} to {end_block}"
@@ -222,9 +238,18 @@ def continuous_crawler(
                     f"Crawled {len(all_function_calls)} function calls from {start_block} to {end_block}."
                 )
 
-                add_function_calls_to_session(
-                    db_session, all_function_calls, blockchain_type
-                )
+                if len(all_function_calls) > max_insert_batch:
+
+                    for i in range(0, len(all_function_calls), max_insert_batch):
+                        add_function_calls_to_session(
+                            db_session,
+                            all_function_calls[i : i + max_insert_batch],
+                            blockchain_type,
+                        )
+                else:
+                    add_function_calls_to_session(
+                        db_session, all_function_calls, blockchain_type
+                    )
 
                 current_time = datetime.utcnow()
 
@@ -248,11 +273,11 @@ def continuous_crawler(
 
                     jobs_refetchet_time = current_time
 
+                commit_session(db_session)
+
                 if current_time - last_heartbeat_time > timedelta(
                     seconds=heartbeat_interval
                 ):
-                    # Commiting to db
-                    commit_session(db_session)
                     # Update heartbeat
                     heartbeat_template["last_block"] = end_block
                     heartbeat_template["current_time"] = _date_to_str(current_time)
@@ -287,7 +312,7 @@ def continuous_crawler(
                     logger.error("Too many failures, exiting")
                     raise e
                 try:
-                    web3 = _retry_connect_web3(blockchain_type, access_id=access_id)
+                    web3 = _retry_connect_web3(blockchain_type, web3_uri=web3_uri)
                 except Exception as err:
                     logger.error(f"Failed to reconnect: {err}")
                     logger.exception(err)

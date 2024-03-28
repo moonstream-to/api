@@ -1,24 +1,22 @@
 import argparse
 import json
 import logging
-from typing import cast, List
 import uuid
+from typing import List, cast
 
 import requests  # type: ignore
 from bugout.data import BugoutSearchResult
 
-from .utils import get_results_for_moonstream_query, leaderboard_push_batch
 from ..settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
-    MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID,
     MOONSTREAM_API_URL,
     MOONSTREAM_ENGINE_URL,
     MOONSTREAM_LEADERBOARD_GENERATOR_BATCH_SIZE,
+    MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID,
     MOONSTREAM_LEADERBOARD_GENERATOR_PUSH_TIMEOUT_SECONDS,
 )
-
 from ..settings import bugout_client as bc
-
+from .utils import get_results_for_moonstream_query, leaderboard_push_batch
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

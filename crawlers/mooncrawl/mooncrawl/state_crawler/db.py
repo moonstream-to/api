@@ -1,6 +1,6 @@
-import logging
 import json
-from typing import Dict, Any
+import logging
+from typing import Any, Dict
 
 from moonstreamdb.blockchain import AvailableBlockchainType, get_label_model
 from sqlalchemy.orm import Session

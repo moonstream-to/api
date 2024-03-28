@@ -36,8 +36,9 @@ def historical_crawler(
     end_block: int,
     max_blocks_batch: int = 100,
     min_sleep_time: float = 0.1,
-    access_id: Optional[UUID] = None,
+    web3_uri: Optional[str] = None,
     addresses_deployment_blocks: Optional[Dict[ChecksumAddress, int]] = None,
+    max_insert_batch: int = 10000,
 ):
     assert max_blocks_batch > 0, "max_blocks_batch must be greater than 0"
     assert min_sleep_time > 0, "min_sleep_time must be greater than 0"
@@ -45,7 +46,7 @@ def historical_crawler(
     assert end_block > 0, "end_block must be greater than 0"
 
     if web3 is None:
-        web3 = _retry_connect_web3(blockchain_type, access_id=access_id)
+        web3 = _retry_connect_web3(blockchain_type, web3_uri=web3_uri)
 
     assert (
         web3.eth.block_number >= start_block
@@ -129,7 +130,18 @@ def historical_crawler(
                 f"Crawled {len(all_events)} events from {start_block} to {batch_end_block}."
             )
 
-            add_events_to_session(db_session, all_events, blockchain_type)
+            if len(all_events) > max_insert_batch:
+
+                for i in range(0, len(all_events), max_insert_batch):
+                    add_events_to_session(
+                        db_session,
+                        all_events[i : i + max_insert_batch],
+                        blockchain_type,
+                    )
+
+            else:
+
+                add_events_to_session(db_session, all_events, blockchain_type)
 
             if function_call_crawl_jobs:
                 logger.info(
@@ -146,9 +158,19 @@ def historical_crawler(
                     f"Crawled {len(all_function_calls)} function calls from {start_block} to {batch_end_block}."
                 )
 
-                add_function_calls_to_session(
-                    db_session, all_function_calls, blockchain_type
-                )
+                if len(all_function_calls) > max_insert_batch:
+
+                    for i in range(0, len(all_function_calls), max_insert_batch):
+                        add_function_calls_to_session(
+                            db_session,
+                            all_function_calls[i : i + max_insert_batch],
+                            blockchain_type,
+                        )
+                else:
+
+                    add_function_calls_to_session(
+                        db_session, all_function_calls, blockchain_type
+                    )
 
             if addresses_deployment_blocks:
                 for address, deployment_block in addresses_deployment_blocks.items():
@@ -185,7 +207,7 @@ def historical_crawler(
                 logger.error("Too many failures, exiting")
                 raise e
             try:
-                web3 = _retry_connect_web3(blockchain_type, access_id=access_id)
+                web3 = _retry_connect_web3(blockchain_type, web3_uri=web3_uri)
             except Exception as err:
                 logger.error(f"Failed to reconnect: {err}")
                 logger.exception(err)

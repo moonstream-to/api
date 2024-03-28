@@ -1,13 +1,13 @@
-import logging
 import json
-from typing import Dict, Any, Optional, List
+import logging
+from typing import Any, Dict, List, Optional
 
 from moonstreamdb.blockchain import AvailableBlockchainType, get_label_model
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
 
 from ..data import TokenURIs
-from ..settings import VIEW_STATE_CRAWLER_LABEL, METADATA_CRAWLER_LABEL, CRAWLER_LABEL
+from ..settings import CRAWLER_LABEL, METADATA_CRAWLER_LABEL, VIEW_STATE_CRAWLER_LABEL
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

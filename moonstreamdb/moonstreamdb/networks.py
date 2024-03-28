@@ -2,6 +2,18 @@ from enum import Enum
 from typing import Dict, Union
 
 from .models import (
+    ArbitrumNovaBlock,
+    ArbitrumNovaLabel,
+    ArbitrumNovaTransaction,
+    ArbitrumSepoliaBlock,
+    ArbitrumSepoliaLabel,
+    ArbitrumSepoliaTransaction,
+    AvalancheBlock,
+    AvalancheFujiBlock,
+    AvalancheFujiLabel,
+    AvalancheFujiTransaction,
+    AvalancheLabel,
+    AvalancheTransaction,
     Base,
     EthereumBlock,
     EthereumLabel,
@@ -15,27 +27,24 @@ from .models import (
     WyrmBlock,
     WyrmLabel,
     WyrmTransaction,
-    XDaiBlock,
-    XDaiLabel,
-    XDaiTransaction,
-    ZkSyncEraTestnetBlock,
-    ZkSyncEraTestnetLabel,
-    ZkSyncEraTestnetTransaction,
-    ZkSyncEraBlock,
-    ZkSyncEraLabel,
-    ZkSyncEraTransaction,
-    ArbitrumNovaBlock,
-    ArbitrumNovaTransaction,
-    ArbitrumNovaLabel,
-    ArbitrumSepoliaBlock,
-    ArbitrumSepoliaTransaction,
-    ArbitrumSepoliaLabel,
     XaiBlock,
     XaiLabel,
-    XaiTransaction,
     XaiSepoliaBlock,
     XaiSepoliaLabel,
     XaiSepoliaTransaction,
+    XaiTransaction,
+    XDaiBlock,
+    XDaiLabel,
+    XDaiTransaction,
+    ZkSyncEraBlock,
+    ZkSyncEraLabel,
+    ZkSyncEraSepoliaBlock,
+    ZkSyncEraSepoliaLabel,
+    ZkSyncEraSepoliaTransaction,
+    ZkSyncEraTestnetBlock,
+    ZkSyncEraTestnetLabel,
+    ZkSyncEraTestnetTransaction,
+    ZkSyncEraTransaction,
 )
 
 
@@ -47,10 +56,13 @@ class Network(Enum):
     wyrm = "wyrm"
     zksync_era_testnet = "zksync_era_testnet"
     zksync_era = "zksync_era"
+    zksync_era_sepolia = "zksync_era_sepolia"
     arbitrum_nova = "arbitrum_nova"
     arbitrum_sepolia = "arbitrum_sepolia"
     xai = "xai"
     xai_sepolia = "xai_sepolia"
+    avalanche = "avalanche"
+    avalanche_fuji = "avalanche_fuji"
 
 
 tx_raw_types = Union[
@@ -61,10 +73,13 @@ tx_raw_types = Union[
     XDaiTransaction,
     ZkSyncEraTestnetTransaction,
     ZkSyncEraTransaction,
+    ZkSyncEraSepoliaTransaction,
     ArbitrumNovaTransaction,
     ArbitrumSepoliaTransaction,
     XaiTransaction,
     XaiSepoliaTransaction,
+    AvalancheTransaction,
+    AvalancheFujiTransaction,
 ]
 
 MODELS: Dict[Network, Dict[str, Base]] = {
@@ -99,6 +114,11 @@ MODELS: Dict[Network, Dict[str, Base]] = {
         "transactions": ZkSyncEraTestnetTransaction,
     },
     Network.zksync_era: {
+        "blocks": ZkSyncEraSepoliaBlock,
+        "labels": ZkSyncEraSepoliaLabel,
+        "transactions": ZkSyncEraSepoliaTransaction,
+    },
+    Network.zksync_era_sepolia: {
         "blocks": ZkSyncEraBlock,
         "labels": ZkSyncEraLabel,
         "transactions": ZkSyncEraTransaction,
@@ -122,5 +142,15 @@ MODELS: Dict[Network, Dict[str, Base]] = {
         "blocks": XaiSepoliaBlock,
         "labels": XaiSepoliaLabel,
         "transactions": XaiSepoliaTransaction,
+    },
+    Network.avalanche: {
+        "blocks": AvalancheBlock,
+        "labels": AvalancheLabel,
+        "transactions": AvalancheTransaction,
+    },
+    Network.avalanche_fuji: {
+        "blocks": AvalancheFujiBlock,
+        "labels": AvalancheFujiLabel,
+        "transactions": AvalancheFujiTransaction,
     },
 }

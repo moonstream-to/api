@@ -1,5 +1,5 @@
 [Unit]
-Description=Wyrm block with transactions synchronizer
+Description=ZkSync Era block with transactions synchronizer
 StartLimitIntervalSec=300
 StartLimitBurst=3
 After=network.target
@@ -9,9 +9,9 @@ Restart=on-failure
 RestartSec=15s
 WorkingDirectory=/home/ubuntu/moonstream/crawlers/mooncrawl
 EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
-ExecStart=/home/ubuntu/moonstream-env/bin/python -m mooncrawl.crawler --access-id "${NB_CONTROLLER_ACCESS_ID}" blocks synchronize --blockchain wyrm -c 0 -j 1
+ExecStart=/home/ubuntu/moonstream-env/bin/python -m mooncrawl.crawler blocks synchronize --blockchain zksync_era_sepolia -c 20 -j 2
 CPUWeight=90
-SyslogIdentifier=wyrm-synchronize
+SyslogIdentifier=zksync-era-sepolia-synchronize
 
 [Install]
 WantedBy=multi-user.target
