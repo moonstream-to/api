@@ -127,6 +127,12 @@ class EthereumLabel(EvmBasedLabel):  # type: ignore
             "block_number",
             unique=False,
         ),
+        Index(
+            "ix_ethereum_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
+            unique=False,
+        ),
     )
 
 
@@ -138,6 +144,12 @@ class SepoliaLabel(EvmBasedLabel):  # type: ignore
             "ix_sepolia_labels_addr_block_num",
             "address",
             "block_number",
+            unique=False,
+        ),
+        Index(
+            "ix_sepolia_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
             unique=False,
         ),
     )
@@ -153,6 +165,12 @@ class PolygonLabel(EvmBasedLabel):  # type: ignore
             "block_number",
             unique=False,
         ),
+        Index(
+            "ix_polygon_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
+            unique=False,
+        ),
     )
 
 
@@ -164,6 +182,12 @@ class MumbaiLabel(EvmBasedLabel):  # type: ignore
             "ix_mumbai_labels_addr_block_num",
             "address",
             "block_number",
+            unique=False,
+        ),
+        Index(
+            "ix_mumbai_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
             unique=False,
         ),
     )
@@ -179,6 +203,12 @@ class XDaiLabel(EvmBasedLabel):  # type: ignore
             "block_number",
             unique=False,
         ),
+        Index(
+            "ix_xdai_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
+            unique=False,
+        ),
     )
 
 
@@ -190,6 +220,12 @@ class WyrmLabel(EvmBasedLabel):  # type: ignore
             "ix_wyrm_labels_addr_block_num",
             "address",
             "block_number",
+            unique=False,
+        ),
+        Index(
+            "ix_wyrm_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
             unique=False,
         ),
     )
@@ -205,17 +241,29 @@ class ZkSyncEraLabel(EvmBasedLabel):  # type: ignore
             "block_number",
             unique=False,
         ),
+        Index(
+            "ix_zksync_era_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
+            unique=False,
+        ),
     )
 
 
-class ZkSyncEraTestnetLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "zksync_era_testnet_labels"
+class ZkSyncEraSepoliaLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "zksync_era_sepolia_labels"
 
     __table_args__ = (
         Index(
-            "ix_zksync_era_testnet_labels_addr_block_num",
+            "ix_zksync_era_sepolia_labels_addr_block_num",
             "address",
             "block_number",
+            unique=False,
+        ),
+        Index(
+            "ix_zksync_era_sepolia_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
             unique=False,
         ),
     )
@@ -231,6 +279,12 @@ class BaseLabel(EvmBasedLabel):  # type: ignore
             "block_number",
             unique=False,
         ),
+        Index(
+            "ix_base_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
+            unique=False,
+        ),
     )
 
 
@@ -242,6 +296,12 @@ class ArbitrumNovaLabel(EvmBasedLabel):  # type: ignore
             "ix_arbitrum_nova_labels_addr_block_num",
             "address",
             "block_number",
+            unique=False,
+        ),
+        Index(
+            "ix_arbitrum_nova_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
             unique=False,
         ),
     )
@@ -257,6 +317,12 @@ class ArbitrumSepoliaLabel(EvmBasedLabel):  # type: ignore
             "block_number",
             unique=False,
         ),
+        Index(
+            "ix_arbitrum_sepolia_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
+            unique=False,
+        ),
     )
 
 
@@ -270,6 +336,12 @@ class XaiLabel(EvmBasedLabel):  # type: ignore
             "block_number",
             unique=False,
         ),
+        Index(
+            "ix_xai_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
+            unique=False,
+        ),
     )
 
 
@@ -281,6 +353,50 @@ class XaiSepoliaLabel(EvmBasedLabel):  # type: ignore
             "ix_xai_sepolia_labels_addr_block_num",
             "address",
             "block_number",
+            unique=False,
+        ),
+        Index(
+            "ix_xai_sepolia_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
+            unique=False,
+        ),
+    )
+
+
+class StarknetLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "starknet_labels"
+
+    __table_args__ = (
+        Index(
+            "ix_starknet_labels_addr_block_num",
+            "address",
+            "block_number",
+            unique=False,
+        ),
+        Index(
+            "ix_starknet_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
+            unique=False,
+        ),
+    )
+
+
+class StarknetSepoliaLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "starknet_sepolia_labels"
+
+    __table_args__ = (
+        Index(
+            "ix_starknet_sepolia_labels_addr_block_num",
+            "address",
+            "block_number",
+            unique=False,
+        ),
+        Index(
+            "ix_starknet_sepolia_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
             unique=False,
         ),
     )
