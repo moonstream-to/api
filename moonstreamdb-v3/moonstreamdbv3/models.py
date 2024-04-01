@@ -212,25 +212,6 @@ class XDaiLabel(EvmBasedLabel):  # type: ignore
     )
 
 
-class WyrmLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "wyrm_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_wyrm_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_wyrm_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-    )
-
-
 class ZkSyncEraLabel(EvmBasedLabel):  # type: ignore
     __tablename__ = "zksync_era_labels"
 
@@ -357,6 +338,44 @@ class XaiSepoliaLabel(EvmBasedLabel):  # type: ignore
         ),
         Index(
             "ix_xai_sepolia_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
+            unique=False,
+        ),
+    )
+
+
+class AvalancheLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "avalanche_labels"
+
+    __table_args__ = (
+        Index(
+            "ix_avalanche_labels_addr_block_num",
+            "address",
+            "block_number",
+            unique=False,
+        ),
+        Index(
+            "ix_avalanche_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
+            unique=False,
+        ),
+    )
+
+
+class AvalancheFujiLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "avalanche_fuji_labels"
+
+    __table_args__ = (
+        Index(
+            "ix_avalanche_fuji_labels_addr_block_num",
+            "address",
+            "block_number",
+            unique=False,
+        ),
+        Index(
+            "ix_avalanche_fuji_labels_addr_block_ts",
             "address",
             "block_timestamp",
             unique=False,

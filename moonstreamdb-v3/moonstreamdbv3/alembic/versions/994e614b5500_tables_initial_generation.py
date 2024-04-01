@@ -209,33 +209,6 @@ def upgrade() -> None:
     op.create_index(op.f('ix_sepolia_labels_label_type'), 'sepolia_labels', ['label_type'], unique=False)
     op.create_index(op.f('ix_sepolia_labels_origin_address'), 'sepolia_labels', ['origin_address'], unique=False)
     op.create_index(op.f('ix_sepolia_labels_transaction_hash'), 'sepolia_labels', ['transaction_hash'], unique=False)
-    op.create_table('wyrm_labels',
-    sa.Column('id', sa.UUID(), nullable=False),
-    sa.Column('label', sa.VARCHAR(length=256), nullable=False),
-    sa.Column('transaction_hash', sa.VARCHAR(length=128), nullable=False),
-    sa.Column('log_index', sa.Integer(), nullable=True),
-    sa.Column('block_number', sa.BigInteger(), nullable=False),
-    sa.Column('block_hash', sa.VARCHAR(length=256), nullable=False),
-    sa.Column('block_timestamp', sa.BigInteger(), nullable=False),
-    sa.Column('caller_address', sa.VARCHAR(length=64), nullable=True),
-    sa.Column('origin_address', sa.VARCHAR(length=64), nullable=True),
-    sa.Column('address', sa.VARCHAR(length=64), nullable=True),
-    sa.Column('label_name', sa.Text(), nullable=True),
-    sa.Column('label_type', sa.VARCHAR(length=64), nullable=True),
-    sa.Column('label_data', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text("TIMEZONE('utc', statement_timestamp())"), nullable=False),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_wyrm_labels')),
-    sa.UniqueConstraint('id', name=op.f('uq_wyrm_labels_id'))
-    )
-    op.create_index('ix_wyrm_labels_addr_block_num', 'wyrm_labels', ['address', 'block_number'], unique=False)
-    op.create_index(op.f('ix_wyrm_labels_address'), 'wyrm_labels', ['address'], unique=False)
-    op.create_index(op.f('ix_wyrm_labels_block_number'), 'wyrm_labels', ['block_number'], unique=False)
-    op.create_index(op.f('ix_wyrm_labels_caller_address'), 'wyrm_labels', ['caller_address'], unique=False)
-    op.create_index(op.f('ix_wyrm_labels_label'), 'wyrm_labels', ['label'], unique=False)
-    op.create_index(op.f('ix_wyrm_labels_label_name'), 'wyrm_labels', ['label_name'], unique=False)
-    op.create_index(op.f('ix_wyrm_labels_label_type'), 'wyrm_labels', ['label_type'], unique=False)
-    op.create_index(op.f('ix_wyrm_labels_origin_address'), 'wyrm_labels', ['origin_address'], unique=False)
-    op.create_index(op.f('ix_wyrm_labels_transaction_hash'), 'wyrm_labels', ['transaction_hash'], unique=False)
     op.create_table('xai_labels',
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('label', sa.VARCHAR(length=256), nullable=False),
@@ -344,7 +317,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_zksync_era_labels_label_type'), 'zksync_era_labels', ['label_type'], unique=False)
     op.create_index(op.f('ix_zksync_era_labels_origin_address'), 'zksync_era_labels', ['origin_address'], unique=False)
     op.create_index(op.f('ix_zksync_era_labels_transaction_hash'), 'zksync_era_labels', ['transaction_hash'], unique=False)
-    op.create_table('zksync_era_testnet_labels',
+    op.create_table('zksync_era_sepolia_labels',
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('label', sa.VARCHAR(length=256), nullable=False),
     sa.Column('transaction_hash', sa.VARCHAR(length=128), nullable=False),
@@ -359,33 +332,141 @@ def upgrade() -> None:
     sa.Column('label_type', sa.VARCHAR(length=64), nullable=True),
     sa.Column('label_data', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text("TIMEZONE('utc', statement_timestamp())"), nullable=False),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_zksync_era_testnet_labels')),
-    sa.UniqueConstraint('id', name=op.f('uq_zksync_era_testnet_labels_id'))
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_zksync_era_sepolia_labels')),
+    sa.UniqueConstraint('id', name=op.f('uq_zksync_era_sepolia_labels_id'))
     )
-    op.create_index('ix_zksync_era_testnet_labels_addr_block_num', 'zksync_era_testnet_labels', ['address', 'block_number'], unique=False)
-    op.create_index(op.f('ix_zksync_era_testnet_labels_address'), 'zksync_era_testnet_labels', ['address'], unique=False)
-    op.create_index(op.f('ix_zksync_era_testnet_labels_block_number'), 'zksync_era_testnet_labels', ['block_number'], unique=False)
-    op.create_index(op.f('ix_zksync_era_testnet_labels_caller_address'), 'zksync_era_testnet_labels', ['caller_address'], unique=False)
-    op.create_index(op.f('ix_zksync_era_testnet_labels_label'), 'zksync_era_testnet_labels', ['label'], unique=False)
-    op.create_index(op.f('ix_zksync_era_testnet_labels_label_name'), 'zksync_era_testnet_labels', ['label_name'], unique=False)
-    op.create_index(op.f('ix_zksync_era_testnet_labels_label_type'), 'zksync_era_testnet_labels', ['label_type'], unique=False)
-    op.create_index(op.f('ix_zksync_era_testnet_labels_origin_address'), 'zksync_era_testnet_labels', ['origin_address'], unique=False)
-    op.create_index(op.f('ix_zksync_era_testnet_labels_transaction_hash'), 'zksync_era_testnet_labels', ['transaction_hash'], unique=False)
+    op.create_index('ix_zksync_era_sepolia_labels_addr_block_num', 'zksync_era_sepolia_labels', ['address', 'block_number'], unique=False)
+    op.create_index(op.f('ix_zksync_era_sepolia_labels_address'), 'zksync_era_sepolia_labels', ['address'], unique=False)
+    op.create_index(op.f('ix_zksync_era_sepolia_labels_block_number'), 'zksync_era_sepolia_labels', ['block_number'], unique=False)
+    op.create_index(op.f('ix_zksync_era_sepolia_labels_caller_address'), 'zksync_era_sepolia_labels', ['caller_address'], unique=False)
+    op.create_index(op.f('ix_zksync_era_sepolia_labels_label'), 'zksync_era_sepolia_labels', ['label'], unique=False)
+    op.create_index(op.f('ix_zksync_era_sepolia_labels_label_name'), 'zksync_era_sepolia_labels', ['label_name'], unique=False)
+    op.create_index(op.f('ix_zksync_era_sepolia_labels_label_type'), 'zksync_era_sepolia_labels', ['label_type'], unique=False)
+    op.create_index(op.f('ix_zksync_era_sepolia_labels_origin_address'), 'zksync_era_sepolia_labels', ['origin_address'], unique=False)
+    op.create_index(op.f('ix_zksync_era_sepolia_labels_transaction_hash'), 'zksync_era_sepolia_labels', ['transaction_hash'], unique=False)
+    op.create_table('avalanche_labels',
+    sa.Column('id', sa.UUID(), nullable=False),
+    sa.Column('label', sa.VARCHAR(length=256), nullable=False),
+    sa.Column('transaction_hash', sa.VARCHAR(length=128), nullable=False),
+    sa.Column('log_index', sa.Integer(), nullable=True),
+    sa.Column('block_number', sa.BigInteger(), nullable=False),
+    sa.Column('block_hash', sa.VARCHAR(length=256), nullable=False),
+    sa.Column('block_timestamp', sa.BigInteger(), nullable=False),
+    sa.Column('caller_address', sa.VARCHAR(length=64), nullable=True),
+    sa.Column('origin_address', sa.VARCHAR(length=64), nullable=True),
+    sa.Column('address', sa.VARCHAR(length=64), nullable=True),
+    sa.Column('label_name', sa.Text(), nullable=True),
+    sa.Column('label_type', sa.VARCHAR(length=64), nullable=True),
+    sa.Column('label_data', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text("TIMEZONE('utc', statement_timestamp())"), nullable=False),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_avalanche_labels')),
+    sa.UniqueConstraint('id', name=op.f('uq_avalanche_labels_id'))
+    )
+    op.create_index('ix_avalanche_labels_addr_block_num', 'avalanche_labels', ['address', 'block_number'], unique=False)
+    op.create_index(op.f('ix_avalanche_labels_address'), 'avalanche_labels', ['address'], unique=False)
+    op.create_index(op.f('ix_avalanche_labels_block_number'), 'avalanche_labels', ['block_number'], unique=False)
+    op.create_index(op.f('ix_avalanche_labels_caller_address'), 'avalanche_labels', ['caller_address'], unique=False)
+    op.create_index(op.f('ix_avalanche_labels_label'), 'avalanche_labels', ['label'], unique=False)
+    op.create_index(op.f('ix_avalanche_labels_label_name'), 'avalanche_labels', ['label_name'], unique=False)
+    op.create_index(op.f('ix_avalanche_labels_label_type'), 'avalanche_labels', ['label_type'], unique=False)
+    op.create_index(op.f('ix_avalanche_labels_origin_address'), 'avalanche_labels', ['origin_address'], unique=False)
+    op.create_index(op.f('ix_avalanche_labels_transaction_hash'), 'avalanche_labels', ['transaction_hash'], unique=False)
+    op.create_table('avalanche_fuji_labels',
+    sa.Column('id', sa.UUID(), nullable=False),
+    sa.Column('label', sa.VARCHAR(length=256), nullable=False),
+    sa.Column('transaction_hash', sa.VARCHAR(length=128), nullable=False),
+    sa.Column('log_index', sa.Integer(), nullable=True),
+    sa.Column('block_number', sa.BigInteger(), nullable=False),
+    sa.Column('block_hash', sa.VARCHAR(length=256), nullable=False),
+    sa.Column('block_timestamp', sa.BigInteger(), nullable=False),
+    sa.Column('caller_address', sa.VARCHAR(length=64), nullable=True),
+    sa.Column('origin_address', sa.VARCHAR(length=64), nullable=True),
+    sa.Column('address', sa.VARCHAR(length=64), nullable=True),
+    sa.Column('label_name', sa.Text(), nullable=True),
+    sa.Column('label_type', sa.VARCHAR(length=64), nullable=True),
+    sa.Column('label_data', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text("TIMEZONE('utc', statement_timestamp())"), nullable=False),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_avalanche_fuji_labels')),
+    sa.UniqueConstraint('id', name=op.f('uq_avalanche_fuji_labels_id'))
+    )
+    op.create_index('ix_avalanche_fuji_labels_addr_block_num', 'avalanche_fuji_labels', ['address', 'block_number'], unique=False)
+    op.create_index(op.f('ix_avalanche_fuji_labels_address'), 'avalanche_fuji_labels', ['address'], unique=False)
+    op.create_index(op.f('ix_avalanche_fuji_labels_block_number'), 'avalanche_fuji_labels', ['block_number'], unique=False)
+    op.create_index(op.f('ix_avalanche_fuji_labels_caller_address'), 'avalanche_fuji_labels', ['caller_address'], unique=False)
+    op.create_index(op.f('ix_avalanche_fuji_labels_label'), 'avalanche_fuji_labels', ['label'], unique=False)
+    op.create_index(op.f('ix_avalanche_fuji_labels_label_name'), 'avalanche_fuji_labels', ['label_name'], unique=False)
+    op.create_index(op.f('ix_avalanche_fuji_labels_label_type'), 'avalanche_fuji_labels', ['label_type'], unique=False)
+    op.create_index(op.f('ix_avalanche_fuji_labels_origin_address'), 'avalanche_fuji_labels', ['origin_address'], unique=False)
+    op.create_index(op.f('ix_avalanche_fuji_labels_transaction_hash'), 'avalanche_fuji_labels', ['transaction_hash'], unique=False)
+    op.create_table('starknet_labels',
+    sa.Column('id', sa.UUID(), nullable=False),
+    sa.Column('label', sa.VARCHAR(length=256), nullable=False),
+    sa.Column('transaction_hash', sa.VARCHAR(length=128), nullable=False),
+    sa.Column('log_index', sa.Integer(), nullable=True),
+    sa.Column('block_number', sa.BigInteger(), nullable=False),
+    sa.Column('block_hash', sa.VARCHAR(length=256), nullable=False),
+    sa.Column('block_timestamp', sa.BigInteger(), nullable=False),
+    sa.Column('caller_address', sa.VARCHAR(length=64), nullable=True),
+    sa.Column('origin_address', sa.VARCHAR(length=64), nullable=True),
+    sa.Column('address', sa.VARCHAR(length=64), nullable=True),
+    sa.Column('label_name', sa.Text(), nullable=True),
+    sa.Column('label_type', sa.VARCHAR(length=64), nullable=True),
+    sa.Column('label_data', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text("TIMEZONE('utc', statement_timestamp())"), nullable=False),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_starknet_labels')),
+    sa.UniqueConstraint('id', name=op.f('uq_starknet_labels_id'))
+    )
+    op.create_index('ix_starknet_labels_addr_block_num', 'starknet_labels', ['address', 'block_number'], unique=False)
+    op.create_index(op.f('ix_starknet_labels_address'), 'starknet_labels', ['address'], unique=False)
+    op.create_index(op.f('ix_starknet_labels_block_number'), 'starknet_labels', ['block_number'], unique=False)
+    op.create_index(op.f('ix_starknet_labels_caller_address'), 'starknet_labels', ['caller_address'], unique=False)
+    op.create_index(op.f('ix_starknet_labels_label'), 'starknet_labels', ['label'], unique=False)
+    op.create_index(op.f('ix_starknet_labels_label_name'), 'starknet_labels', ['label_name'], unique=False)
+    op.create_index(op.f('ix_starknet_labels_label_type'), 'starknet_labels', ['label_type'], unique=False)
+    op.create_index(op.f('ix_starknet_labels_origin_address'), 'starknet_labels', ['origin_address'], unique=False)
+    op.create_index(op.f('ix_starknet_labels_transaction_hash'), 'starknet_labels', ['transaction_hash'], unique=False)
+    op.create_table('starknet_sepolia_labels',
+    sa.Column('id', sa.UUID(), nullable=False),
+    sa.Column('label', sa.VARCHAR(length=256), nullable=False),
+    sa.Column('transaction_hash', sa.VARCHAR(length=128), nullable=False),
+    sa.Column('log_index', sa.Integer(), nullable=True),
+    sa.Column('block_number', sa.BigInteger(), nullable=False),
+    sa.Column('block_hash', sa.VARCHAR(length=256), nullable=False),
+    sa.Column('block_timestamp', sa.BigInteger(), nullable=False),
+    sa.Column('caller_address', sa.VARCHAR(length=64), nullable=True),
+    sa.Column('origin_address', sa.VARCHAR(length=64), nullable=True),
+    sa.Column('address', sa.VARCHAR(length=64), nullable=True),
+    sa.Column('label_name', sa.Text(), nullable=True),
+    sa.Column('label_type', sa.VARCHAR(length=64), nullable=True),
+    sa.Column('label_data', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text("TIMEZONE('utc', statement_timestamp())"), nullable=False),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_starknet_sepolia_labels')),
+    sa.UniqueConstraint('id', name=op.f('uq_starknet_sepolia_labels_id'))
+    )
+    op.create_index('ix_starknet_sepolia_labels_addr_block_num', 'starknet_sepolia_labels', ['address', 'block_number'], unique=False)
+    op.create_index(op.f('ix_starknet_sepolia_labels_address'), 'starknet_sepolia_labels', ['address'], unique=False)
+    op.create_index(op.f('ix_starknet_sepolia_labels_block_number'), 'starknet_sepolia_labels', ['block_number'], unique=False)
+    op.create_index(op.f('ix_starknet_sepolia_labels_caller_address'), 'starknet_sepolia_labels', ['caller_address'], unique=False)
+    op.create_index(op.f('ix_starknet_sepolia_labels_label'), 'starknet_sepolia_labels', ['label'], unique=False)
+    op.create_index(op.f('ix_starknet_sepolia_labels_label_name'), 'starknet_sepolia_labels', ['label_name'], unique=False)
+    op.create_index(op.f('ix_starknet_sepolia_labels_label_type'), 'starknet_sepolia_labels', ['label_type'], unique=False)
+    op.create_index(op.f('ix_starknet_sepolia_labels_origin_address'), 'starknet_sepolia_labels', ['origin_address'], unique=False)
+    op.create_index(op.f('ix_starknet_sepolia_labels_transaction_hash'), 'starknet_sepolia_labels', ['transaction_hash'], unique=False)
     # ### end Alembic commands ###
 
 
 def downgrade() -> None:
     # ### commands auto generated by Alembic - please adjust! ###
-    op.drop_index(op.f('ix_zksync_era_testnet_labels_transaction_hash'), table_name='zksync_era_testnet_labels')
-    op.drop_index(op.f('ix_zksync_era_testnet_labels_origin_address'), table_name='zksync_era_testnet_labels')
-    op.drop_index(op.f('ix_zksync_era_testnet_labels_label_type'), table_name='zksync_era_testnet_labels')
-    op.drop_index(op.f('ix_zksync_era_testnet_labels_label_name'), table_name='zksync_era_testnet_labels')
-    op.drop_index(op.f('ix_zksync_era_testnet_labels_label'), table_name='zksync_era_testnet_labels')
-    op.drop_index(op.f('ix_zksync_era_testnet_labels_caller_address'), table_name='zksync_era_testnet_labels')
-    op.drop_index(op.f('ix_zksync_era_testnet_labels_block_number'), table_name='zksync_era_testnet_labels')
-    op.drop_index(op.f('ix_zksync_era_testnet_labels_address'), table_name='zksync_era_testnet_labels')
-    op.drop_index('ix_zksync_era_testnet_labels_addr_block_num', table_name='zksync_era_testnet_labels')
-    op.drop_table('zksync_era_testnet_labels')
+    op.drop_index(op.f('ix_zksync_era_sepolia_labels_transaction_hash'), table_name='zksync_era_sepolia_labels')
+    op.drop_index(op.f('ix_zksync_era_sepolia_labels_origin_address'), table_name='zksync_era_sepolia_labels')
+    op.drop_index(op.f('ix_zksync_era_sepolia_labels_label_type'), table_name='zksync_era_sepolia_labels')
+    op.drop_index(op.f('ix_zksync_era_sepolia_labels_label_name'), table_name='zksync_era_sepolia_labels')
+    op.drop_index(op.f('ix_zksync_era_sepolia_labels_label'), table_name='zksync_era_sepolia_labels')
+    op.drop_index(op.f('ix_zksync_era_sepolia_labels_caller_address'), table_name='zksync_era_sepolia_labels')
+    op.drop_index(op.f('ix_zksync_era_sepolia_labels_block_number'), table_name='zksync_era_sepolia_labels')
+    op.drop_index(op.f('ix_zksync_era_sepolia_labels_address'), table_name='zksync_era_sepolia_labels')
+    op.drop_index('ix_zksync_era_sepolia_labels_addr_block_num', table_name='zksync_era_sepolia_labels')
+    op.drop_table('zksync_era_sepolia_labels')
     op.drop_index(op.f('ix_zksync_era_labels_transaction_hash'), table_name='zksync_era_labels')
     op.drop_index(op.f('ix_zksync_era_labels_origin_address'), table_name='zksync_era_labels')
     op.drop_index(op.f('ix_zksync_era_labels_label_type'), table_name='zksync_era_labels')
@@ -426,16 +507,6 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_xai_labels_address'), table_name='xai_labels')
     op.drop_index('ix_xai_labels_addr_block_num', table_name='xai_labels')
     op.drop_table('xai_labels')
-    op.drop_index(op.f('ix_wyrm_labels_transaction_hash'), table_name='wyrm_labels')
-    op.drop_index(op.f('ix_wyrm_labels_origin_address'), table_name='wyrm_labels')
-    op.drop_index(op.f('ix_wyrm_labels_label_type'), table_name='wyrm_labels')
-    op.drop_index(op.f('ix_wyrm_labels_label_name'), table_name='wyrm_labels')
-    op.drop_index(op.f('ix_wyrm_labels_label'), table_name='wyrm_labels')
-    op.drop_index(op.f('ix_wyrm_labels_caller_address'), table_name='wyrm_labels')
-    op.drop_index(op.f('ix_wyrm_labels_block_number'), table_name='wyrm_labels')
-    op.drop_index(op.f('ix_wyrm_labels_address'), table_name='wyrm_labels')
-    op.drop_index('ix_wyrm_labels_addr_block_num', table_name='wyrm_labels')
-    op.drop_table('wyrm_labels')
     op.drop_index(op.f('ix_sepolia_labels_transaction_hash'), table_name='sepolia_labels')
     op.drop_index(op.f('ix_sepolia_labels_origin_address'), table_name='sepolia_labels')
     op.drop_index(op.f('ix_sepolia_labels_label_type'), table_name='sepolia_labels')
@@ -506,4 +577,44 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_arbitrum_nova_labels_address'), table_name='arbitrum_nova_labels')
     op.drop_index('ix_arbitrum_nova_labels_addr_block_num', table_name='arbitrum_nova_labels')
     op.drop_table('arbitrum_nova_labels')
+    op.drop_index(op.f('ix_avalanche_labels_transaction_hash'), table_name='avalanche_labels')
+    op.drop_index(op.f('ix_avalanche_labels_origin_address'), table_name='avalanche_labels')
+    op.drop_index(op.f('ix_avalanche_labels_label_type'), table_name='avalanche_labels')
+    op.drop_index(op.f('ix_avalanche_labels_label_name'), table_name='avalanche_labels')
+    op.drop_index(op.f('ix_avalanche_labels_label'), table_name='avalanche_labels')
+    op.drop_index(op.f('ix_avalanche_labels_caller_address'), table_name='avalanche_labels')
+    op.drop_index(op.f('ix_avalanche_labels_block_number'), table_name='avalanche_labels')
+    op.drop_index(op.f('ix_avalanche_labels_address'), table_name='avalanche_labels')
+    op.drop_index('ix_avalanche_labels_addr_block_num', table_name='avalanche_labels')
+    op.drop_table('avalanche_labels')
+    op.drop_index(op.f('ix_avalanche_fuji_labels_transaction_hash'), table_name='avalanche_fuji_labels')
+    op.drop_index(op.f('ix_avalanche_fuji_labels_origin_address'), table_name='avalanche_fuji_labels')
+    op.drop_index(op.f('ix_avalanche_fuji_labels_label_type'), table_name='avalanche_fuji_labels')
+    op.drop_index(op.f('ix_avalanche_fuji_labels_label_name'), table_name='avalanche_fuji_labels')
+    op.drop_index(op.f('ix_avalanche_fuji_labels_label'), table_name='avalanche_fuji_labels')
+    op.drop_index(op.f('ix_avalanche_fuji_labels_caller_address'), table_name='avalanche_fuji_labels')
+    op.drop_index(op.f('ix_avalanche_fuji_labels_block_number'), table_name='avalanche_fuji_labels')
+    op.drop_index(op.f('ix_avalanche_fuji_labels_address'), table_name='avalanche_fuji_labels')
+    op.drop_index('ix_avalanche_fuji_labels_addr_block_num', table_name='avalanche_fuji_labels')
+    op.drop_table('avalanche_fuji_labels')
+    op.drop_index(op.f('ix_starknet_labels_transaction_hash'), table_name='starknet_labels')
+    op.drop_index(op.f('ix_starknet_labels_origin_address'), table_name='starknet_labels')
+    op.drop_index(op.f('ix_starknet_labels_label_type'), table_name='starknet_labels')
+    op.drop_index(op.f('ix_starknet_labels_label_name'), table_name='starknet_labels')
+    op.drop_index(op.f('ix_starknet_labels_label'), table_name='starknet_labels')
+    op.drop_index(op.f('ix_starknet_labels_caller_address'), table_name='starknet_labels')
+    op.drop_index(op.f('ix_starknet_labels_block_number'), table_name='starknet_labels')
+    op.drop_index(op.f('ix_starknet_labels_address'), table_name='starknet_labels')
+    op.drop_index('ix_starknet_labels_addr_block_num', table_name='starknet_labels')
+    op.drop_table('starknet_labels')
+    op.drop_index(op.f('ix_starknet_sepolia_labels_transaction_hash'), table_name='starknet_sepolia_labels')
+    op.drop_index(op.f('ix_starknet_sepolia_labels_origin_address'), table_name='starknet_sepolia_labels')
+    op.drop_index(op.f('ix_starknet_sepolia_labels_label_type'), table_name='starknet_sepolia_labels')
+    op.drop_index(op.f('ix_starknet_sepolia_labels_label_name'), table_name='starknet_sepolia_labels')
+    op.drop_index(op.f('ix_starknet_sepolia_labels_label'), table_name='starknet_sepolia_labels')
+    op.drop_index(op.f('ix_starknet_sepolia_labels_caller_address'), table_name='starknet_sepolia_labels')
+    op.drop_index(op.f('ix_starknet_sepolia_labels_block_number'), table_name='starknet_sepolia_labels')
+    op.drop_index(op.f('ix_starknet_sepolia_labels_address'), table_name='starknet_sepolia_labels')
+    op.drop_index('ix_starknet_sepolia_labels_addr_block_num', table_name='starknet_sepolia_labels')
+    op.drop_table('starknet_sepolia_labels')
     # ### end Alembic commands ###

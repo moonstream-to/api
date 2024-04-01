@@ -32,13 +32,17 @@ from moonstreamdbv3.models import (
     PolygonLabel,
     MumbaiLabel,
     XDaiLabel,
-    WyrmLabel,
     ZkSyncEraLabel,
-    ZkSyncEraTestnetLabel,
+    ZkSyncEraSepoliaLabel,
     BaseLabel,
     ArbitrumNovaLabel,
     ArbitrumSepoliaLabel,
+    XaiLabel,
     XaiSepoliaLabel,
+    AvalancheLabel,
+    AvalancheFujiLabel,
+    StarknetLabel,
+    StarknetSepoliaLabel,
 )
 
 
@@ -49,13 +53,17 @@ def include_symbol(tablename, schema):
         PolygonLabel.__tablename__,
         MumbaiLabel.__tablename__,
         XDaiLabel.__tablename__,
-        WyrmLabel.__tablename__,
         ZkSyncEraLabel.__tablename__,
-        ZkSyncEraTestnetLabel.__tablename__,
+        ZkSyncEraSepoliaLabel.__tablename__,
         BaseLabel.__tablename__,
         ArbitrumNovaLabel.__tablename__,
         ArbitrumSepoliaLabel.__tablename__,
+        XaiLabel.__tablename__,
         XaiSepoliaLabel.__tablename__,
+        AvalancheLabel.__tablename__,
+        AvalancheFujiLabel.__tablename__,
+        StarknetLabel.__tablename__,
+        StarknetSepoliaLabel.__tablename__,
     }
 
 
