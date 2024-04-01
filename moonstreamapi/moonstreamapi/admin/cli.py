@@ -1,6 +1,7 @@
 """
 Moonstream CLI
 """
+
 import argparse
 import json
 import logging
@@ -20,7 +21,7 @@ from ..settings import (
 )
 from ..web3_provider import yield_web3_provider
 
-from . import subscription_types, subscriptions, moonworm_tasks, queries
+from . import subscription_types, subscriptions, moonworm_tasks, queries, usage
 from .migrations import (
     checksum_address,
     update_dashboard_subscription_key,
@@ -255,6 +256,25 @@ def moonworm_tasks_list_handler(args: argparse.Namespace) -> None:
 
 def moonworm_tasks_add_subscription_handler(args: argparse.Namespace) -> None:
     moonworm_tasks.add_subscription(args.id)
+
+
+def generate_usage_handler(args: argparse.Namespace) -> None:
+    usage_info = usage.collect_usage_information(
+        month=args.month,
+        user_id=args.user_id,
+        contracts=args.contracts,
+    )
+
+    if args.output is not None:
+        # create path if not exists
+
+        if not os.path.exists(os.path.dirname(args.output)):
+            os.makedirs(os.path.dirname(args.output))
+
+        with open(args.output, "w") as output_file:
+            output_file.write(json.dumps(usage_info, indent=4))
+    else:
+        logger.info(json.dumps(usage_info, indent=4))
 
 
 def main() -> None:
@@ -532,6 +552,48 @@ This CLI is configured to work with the following API URLs:
         "-n", "--name", required=True, help="Name for the new query"
     )
     create_query_parser.set_defaults(func=queries.create_query_template)
+
+    usage_parser = subcommands.add_parser(
+        "usage", description="Manage Moonstream usage"
+    )
+
+    usage_parser.set_defaults(func=lambda _: usage_parser.print_help())
+
+    usage_subcommands = usage_parser.add_subparsers(description="Usage commands")
+
+    generate_usage_parser = usage_subcommands.add_parser(
+        "generate", description="Generate usage"
+    )
+
+    generate_usage_parser.add_argument(
+        "--month",
+        required=True,
+        type=str,
+        help="Month for which to generate usage in YYYY-MM format (e.g. 2021-10)",
+    )
+
+    generate_usage_parser.add_argument(
+        "--user-id",
+        required=False,
+        type=str,
+        help="User token for which to generate usage (not implemented yet - use user-token instead)",
+    )
+    generate_usage_parser.add_argument(
+        "--contracts",
+        required=False,
+        type=json.loads,
+        help="Contracts for which to generate usage Json format( { 'blockchain': ['contract_address',...] })",
+    )
+
+    generate_usage_parser.add_argument(
+        "--output",
+        required=False,
+        type=str,
+        help="Output file for usage",
+    )
+
+    generate_usage_parser.set_defaults(func=generate_usage_handler)
+
     args = parser.parse_args()
     args.func(args)
 
