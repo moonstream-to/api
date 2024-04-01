@@ -12,7 +12,7 @@ from ..settings import bugout_client as bc
 from ..settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
-    MOONSTREAM_PUBLIC_QUERIES_TOKEN,
+    MOONSTREAM_PUBLIC_QUERIES_DATA_ACCESS_TOKEN,
     MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID,
 )
 from ..data import BUGOUT_RESOURCE_QUERY_RESOLVER
@@ -291,7 +291,7 @@ def collect_usage_information(
             )
             contracts_events = recive_S3_data_from_query(
                 client=client,
-                token=MOONSTREAM_PUBLIC_QUERIES_TOKEN,  # type: ignore
+                token=MOONSTREAM_PUBLIC_QUERIES_DATA_ACCESS_TOKEN,  # type: ignore
                 query_name="template_contract_events_per_month",
                 params={},
                 time_await=2,
