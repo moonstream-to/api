@@ -1,6 +1,7 @@
 """
 Moonstream CLI
 """
+
 import argparse
 import json
 import logging
@@ -20,7 +21,7 @@ from ..settings import (
 )
 from ..web3_provider import yield_web3_provider
 
-from . import subscription_types, subscriptions, moonworm_tasks, queries, billing
+from . import subscription_types, subscriptions, moonworm_tasks, queries, usage
 from .migrations import (
     checksum_address,
     update_dashboard_subscription_key,
@@ -257,8 +258,8 @@ def moonworm_tasks_add_subscription_handler(args: argparse.Namespace) -> None:
     moonworm_tasks.add_subscription(args.id)
 
 
-def generate_billing_handler(args: argparse.Namespace) -> None:
-    billing_info = billing.collect_billing_information(
+def generate_usage_handler(args: argparse.Namespace) -> None:
+    usage_info = usage.collect_usage_information(
         month=args.month,
         user_id=args.user_id,
         contracts=args.contracts,
@@ -271,9 +272,9 @@ def generate_billing_handler(args: argparse.Namespace) -> None:
             os.makedirs(os.path.dirname(args.output))
 
         with open(args.output, "w") as output_file:
-            output_file.write(json.dumps(billing_info, indent=4))
+            output_file.write(json.dumps(usage_info, indent=4))
     else:
-        logger.info(json.dumps(billing_info, indent=4))
+        logger.info(json.dumps(usage_info, indent=4))
 
 
 def main() -> None:
@@ -552,46 +553,46 @@ This CLI is configured to work with the following API URLs:
     )
     create_query_parser.set_defaults(func=queries.create_query_template)
 
-    billing_parser = subcommands.add_parser(
-        "usage", description="Manage Moonstream billing"
+    usage_parser = subcommands.add_parser(
+        "usage", description="Manage Moonstream usage"
     )
 
-    billing_parser.set_defaults(func=lambda _: billing_parser.print_help())
+    usage_parser.set_defaults(func=lambda _: usage_parser.print_help())
 
-    billing_subcommands = billing_parser.add_subparsers(description="Billing commands")
+    usage_subcommands = usage_parser.add_subparsers(description="Usage commands")
 
-    generate_billing_parser = billing_subcommands.add_parser(
-        "generate", description="Generate billing"
+    generate_usage_parser = usage_subcommands.add_parser(
+        "generate", description="Generate usage"
     )
 
-    generate_billing_parser.add_argument(
+    generate_usage_parser.add_argument(
         "--month",
         required=True,
         type=str,
-        help="Month for which to generate billing in YYYY-MM format (e.g. 2021-10)",
+        help="Month for which to generate usage in YYYY-MM format (e.g. 2021-10)",
     )
 
-    generate_billing_parser.add_argument(
+    generate_usage_parser.add_argument(
         "--user-id",
         required=False,
         type=str,
-        help="User token for which to generate billing (not implemented yet - use user-token instead)",
+        help="User token for which to generate usage (not implemented yet - use user-token instead)",
     )
-    generate_billing_parser.add_argument(
+    generate_usage_parser.add_argument(
         "--contracts",
         required=False,
         type=json.loads,
-        help="Contracts for which to generate billing Json format( { 'blockchain': ['contract_address',...] })",
+        help="Contracts for which to generate usage Json format( { 'blockchain': ['contract_address',...] })",
     )
 
-    generate_billing_parser.add_argument(
+    generate_usage_parser.add_argument(
         "--output",
         required=False,
         type=str,
-        help="Output file for billing",
+        help="Output file for usage",
     )
 
-    generate_billing_parser.set_defaults(func=generate_billing_handler)
+    generate_usage_parser.set_defaults(func=generate_usage_handler)
 
     args = parser.parse_args()
     args.func(args)

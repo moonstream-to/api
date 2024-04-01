@@ -139,7 +139,7 @@ def generate_leaderboard_owners(
     return leaderboard_owners
 
 
-def collect_billing_information(
+def collect_usage_information(
     month: str,
     user_id: Optional[str] = None,
     contracts: Optional[Dict[str, List[str]]] = None,
