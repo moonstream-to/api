@@ -102,14 +102,6 @@ MOONSTREAM_NODE_XDAI_A_EXTERNAL_URI = os.environ.get(
 if MOONSTREAM_NODE_XDAI_A_EXTERNAL_URI == "":
     raise Exception("MOONSTREAM_NODE_XDAI_A_EXTERNAL_URI env variable is not set")
 
-MOONSTREAM_NODE_ZKSYNC_ERA_TESTNET_A_EXTERNAL_URI = os.environ.get(
-    "MOONSTREAM_NODE_ZKSYNC_ERA_TESTNET_A_EXTERNAL_URI", ""
-)
-if MOONSTREAM_NODE_ZKSYNC_ERA_TESTNET_A_EXTERNAL_URI == "":
-    raise Exception(
-        "MOONSTREAM_NODE_ZKSYNC_ERA_TESTNET_A_EXTERNAL_URI env variable is not set"
-    )
-
 MOONSTREAM_NODE_ZKSYNC_ERA_A_EXTERNAL_URI = os.environ.get(
     "MOONSTREAM_NODE_ZKSYNC_ERA_A_EXTERNAL_URI", ""
 )
@@ -257,14 +249,6 @@ NB_ACCESS_ID_HEADER = os.environ.get("NB_ACCESS_ID_HEADER", "x-node-balancer-acc
 NB_DATA_SOURCE_HEADER = os.environ.get(
     "NB_DATA_SOURCE_HEADER", "x-node-balancer-data-source"
 )
-
-NB_CONTROLLER_ACCESS_ID: Optional[UUID] = None
-NB_CONTROLLER_ACCESS_ID_RAW = os.environ.get("NB_CONTROLLER_ACCESS_ID", "")
-try:
-    NB_CONTROLLER_ACCESS_ID = UUID(NB_CONTROLLER_ACCESS_ID_RAW)
-except:
-    pass
-
 
 # HTTPProvider for web3 client
 
