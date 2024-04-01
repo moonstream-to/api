@@ -50,11 +50,14 @@ def _refetch_new_jobs(
     """
     Refetches new jobs from bugout journal, merges, and returns new jobs.
     """
-
-    max_created_at_event_job = max(job.created_at for job in old_event_jobs)
-    max_created_at_function_call_job = max(
-        job.created_at for job in old_function_call_jobs
-    )
+    max_created_at_event_job: Optional[int] = None
+    max_created_at_function_call_job: Optional[int] = None
+    if len(old_event_jobs) != 0:
+        max_created_at_event_job = max(job.created_at for job in old_event_jobs)
+    if len(old_function_call_jobs) != 0:
+        max_created_at_function_call_job = max(
+            job.created_at for job in old_function_call_jobs
+        )
 
     logger.info("Looking for new event crawl jobs.")
     old_event_jobs_length = len(old_event_jobs)

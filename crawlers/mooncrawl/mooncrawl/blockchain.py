@@ -34,7 +34,6 @@ from .settings import (
     MOONSTREAM_NODE_XDAI_A_EXTERNAL_URI,
     MOONSTREAM_NODE_ZKSYNC_ERA_A_EXTERNAL_URI,
     MOONSTREAM_NODE_ZKSYNC_ERA_SEPOLIA_A_EXTERNAL_URI,
-    MOONSTREAM_NODE_ZKSYNC_ERA_TESTNET_A_EXTERNAL_URI,
     WEB3_CLIENT_REQUEST_TIMEOUT_SECONDS,
 )
 
@@ -67,8 +66,6 @@ def connect(
             web3_uri = MOONSTREAM_NODE_MUMBAI_A_EXTERNAL_URI
         elif blockchain_type == AvailableBlockchainType.XDAI:
             web3_uri = MOONSTREAM_NODE_XDAI_A_EXTERNAL_URI
-        elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET:
-            web3_uri = MOONSTREAM_NODE_ZKSYNC_ERA_TESTNET_A_EXTERNAL_URI
         elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
             web3_uri = MOONSTREAM_NODE_ZKSYNC_ERA_A_EXTERNAL_URI
         elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_SEPOLIA:
@@ -151,6 +148,7 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
         block_obj.author = block.author
     if (
         blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET
+        or blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_SEPOLIA
         or blockchain_type == AvailableBlockchainType.ZKSYNC_ERA
     ):
         block_obj.mix_hash = block.get("mixHash", "")
@@ -225,6 +223,7 @@ def add_block_transactions(
         )
         if (
             blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET
+            or blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_SEPOLIA
             or blockchain_type == AvailableBlockchainType.ZKSYNC_ERA
         ):
             tx_obj.l1_batch_number = (
