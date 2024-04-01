@@ -1406,7 +1406,7 @@ class AvalancheBlock(Base):  # type: ignore
     )
 
     mix_hash = Column(VARCHAR(256), nullable=True)
-    block_extra_data = Column(VARCHAR(256), nullable=True)
+    block_extra_data = Column(Text, nullable=True)
     block_gas_cost = Column(VARCHAR(256), nullable=True)
     ext_data_gas_used = Column(VARCHAR(256), nullable=True)
     ext_data_hash = Column(VARCHAR(256), nullable=True)
