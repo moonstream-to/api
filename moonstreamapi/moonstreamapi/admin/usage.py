@@ -5,6 +5,7 @@ import logging
 import time
 import uuid
 import requests  # type: ignore
+import os
 
 from ..actions import get_all_entries_from_search
 from ..settings import bugout_client as bc
@@ -113,7 +114,6 @@ def generate_leaderboard_owners(
             timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
         )
 
-        print(holders.holders)
         try:
             owner = [
                 holder.id
@@ -169,7 +169,9 @@ def collect_usage_information(
         timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
     )
 
-    print(subscription_resources.resources)
+    logger.info(
+        "Found users collection resources: %s", len(subscription_resources.resources)
+    )
 
     if len(subscription_resources.resources) == 0:
         subscription_amount = 0
@@ -190,6 +192,8 @@ def collect_usage_information(
 
         subscription_amount = subscription_collection.total_results
 
+    logger.info("Found users subscriptions: %s", subscription_amount)
+
     ### Get user's queries resources
 
     query_resources = bc.list_resources(
@@ -200,7 +204,7 @@ def collect_usage_information(
 
     query_amount = len(query_resources.resources)
 
-    # MOONSTREAM_ADMIN_ACCESS_TOKEN = "ad7a7364-c535-4c9f-9d2d-20d7b6ade18d"
+    logger.info("Found users queries: %s", query_amount)
 
     ### Get user's leaderboards resources
     leaderboard_resources = bc.list_resources(
@@ -209,15 +213,13 @@ def collect_usage_information(
         timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
     )
 
+    logger.info("Geneating leaderboards owners map")
+
     leaderboards = generate_leaderboard_owners(
         leaderboards=leaderboard_resources.resources
     )
 
     # Get user leaderboards
-
-    ### contracts events
-
-    contract_data = {}
 
     leaderboard_configs = get_all_entries_from_search(
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -242,33 +244,13 @@ def collect_usage_information(
             "update_activated": True if "status:active" in tags else False,
         }
 
-    if contracts is not None:
-        client = Moonstream()
-
-        ### run query
-
-        for blockchain, addresses in contracts.items():
-            contracts_events = recive_S3_data_from_query(
-                client=client,
-                token=MOONSTREAM_PUBLIC_QUERIES_TOKEN,  # type: ignore
-                query_name="template_contract_events_per_month",
-                params={},
-                time_await=2,
-                max_retries=30,
-                custom_body={
-                    "blockchain": blockchain,
-                    "params": {
-                        "block_month": month,
-                        "addresses": [
-                            Web3.toChecksumAddress(addresses) for addresses in addresses
-                        ],
-                    },
-                },
-            )["data"]
-
-            contract_data[blockchain] = contracts_events
+    user_leaderboards = []
 
     for leaderboard in leaderboards:
+
+        if leaderboard["owner"] != user_id:
+            continue
+
         if leaderboard["leaderboard_id"] in leaderboard_configs_mapper:
             leaderboard["query_name"] = leaderboard_configs_mapper[
                 leaderboard["leaderboard_id"]
@@ -289,7 +271,43 @@ def collect_usage_information(
             logger.error(e)
             leaderboard["users_count"] = 0
             leaderboard["last_updated_at"] = None
-            continue
+
+        user_leaderboards.append(leaderboard)
+
+    logger.info("Found users leaderboards: %s", len(user_leaderboards))
+
+    ### contracts events
+
+    contract_data = {}
+
+    if contracts is not None:
+        client = Moonstream()
+
+        ### run query
+
+        for blockchain, addresses in contracts.items():
+            logger.info(
+                f"Collecting contracts events for {blockchain} for addresses: {addresses}"
+            )
+            contracts_events = recive_S3_data_from_query(
+                client=client,
+                token=MOONSTREAM_PUBLIC_QUERIES_TOKEN,  # type: ignore
+                query_name="template_contract_events_per_month",
+                params={},
+                time_await=2,
+                max_retries=30,
+                custom_body={
+                    "blockchain": blockchain,
+                    "params": {
+                        "block_month": month,
+                        "addresses": [
+                            Web3.toChecksumAddress(addresses) for addresses in addresses
+                        ],
+                    },
+                },
+            )["data"]
+
+            contract_data[blockchain] = contracts_events
 
     return {
         "subscriptions": subscription_amount,
