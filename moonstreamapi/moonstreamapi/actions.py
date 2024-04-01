@@ -1,26 +1,29 @@
-from collections import OrderedDict
 import hashlib
 import json
-from itertools import chain
 import logging
-from typing import List, Optional, Dict, Any, Union
-from enum import Enum
 import uuid
+from collections import OrderedDict
+from enum import Enum
+from itertools import chain
+from typing import Any, Dict, List, Optional, Union
 
 import boto3  # type: ignore
-
 from bugout.data import (
-    BugoutSearchResults,
-    BugoutSearchResult,
+    BugoutJournal,
+    BugoutJournals,
     BugoutResource,
     BugoutResources,
+    BugoutSearchResult,
+    BugoutSearchResults,
+    BugoutResourceHolder,
+    HolderType,
+    ResourcePermissions,
 )
-from bugout.journal import SearchOrder
 from bugout.exceptions import BugoutResponseException
-from entity.data import EntityCollectionsResponse, EntityCollectionResponse  # type: ignore
-from entity.exceptions import EntityUnexpectedResponse  # type: ignore
+from bugout.journal import SearchOrder
 from ens.utils import is_valid_ens_name  # type: ignore
 from eth_utils.address import is_address  # type: ignore
+from moonstreamdb.blockchain import AvailableBlockchainType
 from moonstreamdb.models import EthereumLabel
 from slugify import slugify  # type: ignore
 from sqlalchemy import text
@@ -31,18 +34,20 @@ from web3._utils.validation import validate_abi
 from . import data
 from .middleware import MoonstreamHTTPException
 from .reporter import reporter
+from .selectors_storage import selectors
 from .settings import (
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
     ETHERSCAN_SMARTCONTRACTS_BUCKET,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_APPLICATION_ID,
     MOONSTREAM_DATA_JOURNAL_ID,
+    MOONSTREAM_MOONWORM_TASKS_JOURNAL,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
-    MOONSTREAM_MOONWORM_TASKS_JOURNAL,
-    MOONSTREAM_ADMIN_ACCESS_TOKEN,
 )
-from .settings import bugout_client as bc, entity_client as ec
+from .settings import bugout_client as bc
+from .settings import multicall_contracts, supportsInterface_abi
+from .web3_provider import FunctionSignature, connect, multicall
 
 logger = logging.getLogger(__name__)
 
@@ -53,11 +58,21 @@ blockchain_by_subscription_id = {
     "mumbai_blockchain": "mumbai",
     "xdai_blockchain": "xdai",
     "wyrm_blockchain": "wyrm",
+    "arbitrum_nova_blockchain": "arbitrum_nova",
+    "arbitrum_sepolia_blockchain": "arbitrum_sepolia",
+    "xai_blockchain": "xai",
+    "zksync_era_testnet_blockchain": "zksync_era_testnet",
+    "zksync_era_blockchain": "zksync_era",
     "ethereum_smartcontract": "ethereum",
     "polygon_smartcontract": "polygon",
     "mumbai_smartcontract": "mumbai",
     "xdai_smartcontract": "xdai",
     "wyrm_smartcontract": "wyrm",
+    "zksync_era_testnet_smartcontract": "zksync_era_testnet",
+    "zksync_era_smartcontract": "zksync_era",
+    "arbitrum_nova_smartcontract": "arbitrum_nova",
+    "arbitrum_sepolia_smartcontract": "arbitrum_sepolia",
+    "xai_smartcontract": "xai",
 }
 
 
@@ -79,9 +94,15 @@ class ResourceQueryFetchException(Exception):
     """
 
 
-class EntityCollectionNotFoundException(Exception):
+class EntityJournalNotFoundException(Exception):
     """
-    Raised when entity collection is not found
+    Raised when journal (collection prev.) with entities not found.
+    """
+
+
+class AddressNotSmartContractException(Exception):
+    """
+    Raised when address not are smart contract
     """
 
 
@@ -467,24 +488,20 @@ def get_all_entries_from_search(
 
     results: List[BugoutSearchResult] = []
 
-    try:
-        existing_metods = bc.search(
-            token=token,
-            journal_id=journal_id,
-            query=search_query,
-            content=content,
-            timeout=10.0,
-            limit=limit,
-            offset=offset,
-        )
-        results.extend(existing_metods.results)
+    existing_methods = bc.search(
+        token=token,
+        journal_id=journal_id,
+        query=search_query,
+        content=content,
+        timeout=10.0,
+        limit=limit,
+        offset=offset,
+    )
+    results.extend(existing_methods.results)  # type: ignore
 
-    except Exception as e:
-        reporter.error_report(e)
-
-    if len(results) != existing_metods.total_results:
-        for offset in range(limit, existing_metods.total_results, limit):
-            existing_metods = bc.search(
+    if len(results) != existing_methods.total_results:
+        for offset in range(limit, existing_methods.total_results, limit):
+            existing_methods = bc.search(
                 token=token,
                 journal_id=journal_id,
                 query=search_query,
@@ -493,7 +510,7 @@ def get_all_entries_from_search(
                 limit=limit,
                 offset=offset,
             )
-        results.extend(existing_metods.results)
+        results.extend(existing_methods.results)  # type: ignore
 
     return results
 
@@ -518,47 +535,45 @@ def apply_moonworm_tasks(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
         )
 
-        # create historical crawl task in journal
-
         # will use create_entries_pack for creating entries in journal
 
         existing_tags = [entry.tags for entry in entries]
 
-        existing_hashes = [
-            tag.split(":")[-1]
-            for tag in chain(*existing_tags)
-            if "abi_method_hash" in tag
+        existing_selectors = [
+            tag.split(":")[-1] for tag in chain(*existing_tags) if "abi_selector" in tag
         ]
 
-        abi_hashes_dict = {
-            hashlib.md5(json.dumps(method).encode("utf-8")).hexdigest(): method
+        abi_selectors_dict = {
+            Web3.keccak(
+                text=method["name"]
+                + "("
+                + ",".join(map(lambda x: x["type"], method["inputs"]))
+                + ")"
+            )[:4].hex(): method
             for method in abi
             if (method["type"] in ("event", "function"))
             and (method.get("stateMutability", "") != "view")
         }
 
-        for hash in abi_hashes_dict:
-            if hash not in existing_hashes:
-                abi_selector = Web3.keccak(
-                    text=abi_hashes_dict[hash]["name"]
-                    + "("
-                    + ",".join(
-                        map(lambda x: x["type"], abi_hashes_dict[hash]["inputs"])
-                    )
-                    + ")"
-                )[:4].hex()
+        for abi_selector in abi_selectors_dict:
+            if abi_selector not in existing_selectors:
+                hash = hashlib.md5(
+                    json.dumps(abi_selectors_dict[abi_selector]).encode("utf-8")
+                ).hexdigest()
 
                 moonworm_abi_tasks_entries_pack.append(
                     {
                         "title": address,
-                        "content": json.dumps(abi_hashes_dict[hash], indent=4),
+                        "content": json.dumps(
+                            abi_selectors_dict[abi_selector], indent=4
+                        ),
                         "tags": [
                             f"address:{address}",
-                            f"type:{abi_hashes_dict[hash]['type']}",
+                            f"type:{abi_selectors_dict[abi_selector]['type']}",
                             f"abi_method_hash:{hash}",
                             f"abi_selector:{abi_selector}",
                             f"subscription_type:{subscription_type}",
-                            f"abi_name:{abi_hashes_dict[hash]['name']}",
+                            f"abi_name:{abi_selectors_dict[abi_selector]['name']}",
                             f"status:active",
                             f"task_type:moonworm",
                             f"moonworm_task_pickedup:False",  # True if task picked up by moonworm-crawler(default each 120 sec)
@@ -630,14 +645,14 @@ def get_query_by_name(query_name: str, token: uuid.UUID) -> str:
     return query_id
 
 
-def get_entity_subscription_collection_id(
+def get_entity_subscription_journal_id(
     resource_type: str,
     token: Union[uuid.UUID, str],
     user_id: uuid.UUID,
     create_if_not_exist: bool = False,
-) -> Optional[str]:
+) -> str:
     """
-    Get collection_id from brood resources. If collection not exist and create_if_not_exist is True
+    Get collection_id (journal_id) from brood resources. If journal not exist and create_if_not_exist is True
     """
 
     params = {
@@ -650,80 +665,73 @@ def get_entity_subscription_collection_id(
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
         logger.error(
-            f"Error listing subscriptions for user ({user_id}) with token ({token}), error: {str(e)}"
+            f"Error listing subscriptions for user ({user_id}), error: {str(e)}"
         )
         reporter.error_report(e)
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     if len(resources.resources) == 0:
         if not create_if_not_exist:
-            raise EntityCollectionNotFoundException(
-                "Subscription collection not found."
-            )
-        collection_id = generate_collection_for_user(resource_type, token, user_id)
+            raise EntityJournalNotFoundException("Subscription journal not found.")
+        journal_id = generate_journal_for_user(resource_type, token, user_id)
 
-        return collection_id
+        return journal_id
 
     else:
         resource = resources.resources[0]
     return resource.resource_data["collection_id"]
 
 
-def generate_collection_for_user(
+def generate_journal_for_user(
     resource_type: str,
     token: Union[uuid.UUID, str],
     user_id: uuid.UUID,
 ) -> str:
     try:
-        # try get collection
+        # Try get journal
 
-        collections: EntityCollectionsResponse = ec.list_collections(token=token)
+        journals: BugoutJournals = bc.list_journals(token=token)
 
-        available_collections: Dict[str, str] = {
-            collection.name: collection.collection_id
-            for collection in collections.collections
+        available_journals: Dict[str, str] = {
+            journal.name: str(journal.id) for journal in journals.journals
         }
 
-        subscription_collection_name = f"subscriptions_{user_id}"
+        subscription_journal_name = f"subscriptions_{user_id}"
 
-        if subscription_collection_name not in available_collections:
-            collection: EntityCollectionResponse = ec.add_collection(
-                token=token, name=subscription_collection_name
+        if subscription_journal_name not in available_journals:
+            journal: BugoutJournal = bc.create_journal(
+                token=token, name=subscription_journal_name
             )
-            collection_id = collection.collection_id
+            journal_id = str(journal.id)
         else:
-            collection_id = available_collections[subscription_collection_name]
-    except EntityUnexpectedResponse as e:
-        logger.error(f"Error create collection, error: {str(e)}")
+            journal_id = available_journals[subscription_journal_name]
+    except Exception as e:
+        logger.error(f"Error create journal, error: {str(e)}")
         raise MoonstreamHTTPException(
-            status_code=500, detail="Can't create collection for subscriptions"
+            status_code=500, detail="Can't create journal for subscriptions"
         )
 
     resource_data = {
         "type": resource_type,
         "user_id": str(user_id),
-        "collection_id": str(collection_id),
+        "collection_id": journal_id,
     }
 
     try:
-        bc.create_resource(
-            token=token,
-            application_id=MOONSTREAM_APPLICATION_ID,
-            resource_data=resource_data,
-        )
+        create_resource_for_user(user_id=user_id, resource_data=resource_data)
     except BugoutResponseException as e:
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
         logger.error(f"Error creating subscription resource: {str(e)}")
         logger.error(
-            f"Required create resource data: {resource_data}, and grand access to journal: {collection_id}, for user: {user_id}"
+            f"Required create resource data: {resource_data}, and grand access to journal: {journal_id}, for user: {user_id}"
         )
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     try:
         bc.update_journal_scopes(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-            journal_id=collection_id,
+            journal_id=journal_id,
             holder_type="user",
             holder_id=user_id,
             permission_list=[
@@ -735,16 +743,16 @@ def generate_collection_for_user(
             ],
         )
         logger.info(
-            f"Grand access to journal: {collection_id}, for user: {user_id} successfully"
+            f"Grand access to journal: {journal_id}, for user: {user_id} successfully"
         )
     except Exception as e:
         logger.error(f"Error updating journal scopes: {str(e)}")
         logger.error(
-            f"Required grand access to journal: {collection_id}, for user: {user_id}"
+            f"Required grand access to journal: {journal_id}, for user: {user_id}"
         )
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
-    return collection_id
+    return journal_id
 
 
 def generate_s3_access_links(
@@ -780,16 +788,230 @@ def query_parameter_hash(params: Dict[str, Any]) -> str:
     return hash
 
 
-def get_moonworm_jobs(
-    address: str,
-    subscription_type_id: str,
-    entries_limit: int = 100,
-):
+def parse_abi_to_name_tags(user_abi: List[Dict[str, Any]]):
+    return [
+        f"abi_name:{method['name']}"
+        for method in user_abi
+        if method["type"] in ("event", "function")
+    ]
+
+
+def filter_tasks(entries, tag_filters):
+    return [entry for entry in entries if any(tag in tag_filters for tag in entry.tags)]
+
+
+def fetch_and_filter_tasks(
+    journal_id, address, subscription_type_id, token, user_abi, limit=100
+) -> List[BugoutSearchResult]:
+    """
+    Fetch tasks from journal and filter them by user abi
+    """
     entries = get_all_entries_from_search(
-        journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+        journal_id=journal_id,
         search_query=f"tag:address:{address} tag:subscription_type:{subscription_type_id}",
-        limit=entries_limit,  # load per request
-        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        limit=limit,
+        token=token,
     )
 
-    return entries
+    user_loaded_abi_tags = parse_abi_to_name_tags(json.loads(user_abi))
+
+    moonworm_tasks = filter_tasks(entries, user_loaded_abi_tags)
+
+    return moonworm_tasks
+
+
+def get_moonworm_tasks(
+    subscription_type_id: str,
+    address: str,
+    user_abi: List[Dict[str, Any]],
+) -> List[BugoutSearchResult]:
+    """
+    Get moonworm tasks from journal and filter them by user abi
+    """
+
+    try:
+        moonworm_tasks = fetch_and_filter_tasks(
+            journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+            address=address,
+            subscription_type_id=subscription_type_id,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            user_abi=user_abi,
+        )
+    except Exception as e:
+        logger.error(f"Error get moonworm tasks: {str(e)}")
+        MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    return moonworm_tasks
+
+
+def get_list_of_support_interfaces(
+    blockchain_type: AvailableBlockchainType,
+    address: str,
+    user_token: uuid.UUID,
+    multicall_method: str = "tryAggregate",
+):
+    """
+    Returns list of interfaces supported by given address
+    """
+
+    result = {}
+
+    try:
+        _, _, is_contract = check_if_smart_contract(
+            blockchain_type=blockchain_type, address=address, user_token=user_token
+        )
+
+        if not is_contract:
+            raise AddressNotSmartContractException(f"Address not are smart contract")
+
+        web3_client = connect(blockchain_type, user_token=user_token)
+
+        contract = web3_client.eth.contract(
+            address=Web3.toChecksumAddress(address),
+            abi=supportsInterface_abi,
+        )
+
+        if blockchain_type in multicall_contracts:
+            calls = []
+
+            list_of_interfaces = list(selectors.keys())
+
+            list_of_interfaces.sort()
+
+            for interface in list_of_interfaces:
+                calls.append(
+                    (
+                        contract.address,
+                        FunctionSignature(
+                            contract.get_function_by_name("supportsInterface")
+                        )
+                        .encode_data([bytes.fromhex(interface)])
+                        .hex(),
+                    )
+                )
+
+            try:
+                multicall_result = multicall(
+                    web3_client=web3_client,
+                    blockchain_type=blockchain_type,
+                    calls=calls,
+                    method=multicall_method,
+                )
+            except Exception as e:
+                logger.error(f"Error while getting list of support interfaces: {e}")
+
+            for i, selector in enumerate(list_of_interfaces):
+                if multicall_result[i][0]:
+                    supported = FunctionSignature(
+                        contract.get_function_by_name("supportsInterface")
+                    ).decode_data(multicall_result[i][1])
+
+                    if supported[0]:
+                        result[selectors[selector]["name"]] = {  # type: ignore
+                            "selector": selector,
+                            "abi": selectors[selector]["abi"],  # type: ignore
+                        }
+
+        else:
+            general_interfaces = ["IERC165", "IERC721", "IERC1155", "IERC20"]
+
+            basic_selectors = {
+                interface["name"]: selector
+                for selector, interface in selectors.items()
+                if interface["name"] in general_interfaces
+            }
+
+            for interface_name, selector in basic_selectors.items():
+                selector_result = contract.functions.supportsInterface(
+                    bytes.fromhex(selector)
+                ).call()  # returns bool
+
+                if selector_result:
+                    result[interface_name] = {
+                        "selector": basic_selectors[interface_name],
+                        "abi": selectors[basic_selectors[interface_name]]["abi"],
+                    }
+    except Exception as err:
+        logger.error(f"Error while getting list of support interfaces: {err}")
+        MoonstreamHTTPException(status_code=500, internal_error=err)
+
+    return result
+
+
+def check_if_smart_contract(
+    blockchain_type: AvailableBlockchainType,
+    address: str,
+    user_token: uuid.UUID,
+):
+    """
+    Checks if address is a smart contract on blockchain
+    """
+    web3_client = connect(blockchain_type, user_token=user_token)
+
+    is_contract = False
+    try:
+        code = web3_client.eth.getCode(address)
+    except Exception as e:
+        logger.warning(
+            f"Error while getting code of address: {e} in blockchain: {blockchain_type}"
+        )
+        code = b""
+
+    if code != b"":
+        is_contract = True
+
+    return blockchain_type, address, is_contract
+
+
+def create_resource_for_user(
+    user_id: uuid.UUID,
+    resource_data: Dict[str, Any],
+) -> BugoutResource:
+    """
+    Create resource for user
+    """
+    try:
+        resource = bc.create_resource(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            application_id=MOONSTREAM_APPLICATION_ID,
+            resource_data=resource_data,
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+        )
+    except BugoutResponseException as e:
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        logger.error(f"Error creating resource: {str(e)}")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    try:
+        bc.add_resource_holder_permissions(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            resource_id=resource.id,
+            holder_permissions=BugoutResourceHolder(
+                holder_type=HolderType.user,
+                holder_id=user_id,
+                permissions=[
+                    ResourcePermissions.ADMIN,
+                    ResourcePermissions.READ,
+                    ResourcePermissions.UPDATE,
+                    ResourcePermissions.DELETE,
+                ],
+            ),
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+        )
+    except BugoutResponseException as e:
+        logger.error(
+            f"Error adding resource holder permissions to resource resource {str(resource.id)}  {str(e)}"
+        )
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        bc.delete_resource(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            resource_id=resource.id,
+        )
+        logger.error(
+            f"Error adding resource holder permissions to resource {str(resource.id)}  {str(e)}"
+        )
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    return resource

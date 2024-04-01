@@ -1,5 +1,5 @@
 import logging
-from concurrent.futures import Future, ProcessPoolExecutor, ThreadPoolExecutor, wait
+from concurrent.futures import Future, ThreadPoolExecutor, wait
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 from uuid import UUID
 
@@ -22,13 +22,19 @@ from .data import DateRange
 from .db import yield_db_session, yield_db_session_ctx
 from .settings import (
     MOONSTREAM_CRAWL_WORKERS,
-    MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI,
-    MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI,
-    MOONSTREAM_POLYGON_WEB3_PROVIDER_URI,
-    MOONSTREAM_WYRM_WEB3_PROVIDER_URI,
-    MOONSTREAM_XDAI_WEB3_PROVIDER_URI,
-    NB_ACCESS_ID_HEADER,
-    NB_DATA_SOURCE_HEADER,
+    MOONSTREAM_NODE_ARBITRUM_NOVA_A_EXTERNAL_URI,
+    MOONSTREAM_NODE_ARBITRUM_SEPOLIA_A_EXTERNAL_URI,
+    MOONSTREAM_NODE_AVALANCHE_A_EXTERNAL_URI,
+    MOONSTREAM_NODE_AVALANCHE_FUJI_A_EXTERNAL_URI,
+    MOONSTREAM_NODE_ETHEREUM_A_EXTERNAL_URI,
+    MOONSTREAM_NODE_MUMBAI_A_EXTERNAL_URI,
+    MOONSTREAM_NODE_POLYGON_A_EXTERNAL_URI,
+    MOONSTREAM_NODE_XAI_A_EXTERNAL_URI,
+    MOONSTREAM_NODE_XAI_SEPOLIA_A_EXTERNAL_URI,
+    MOONSTREAM_NODE_XDAI_A_EXTERNAL_URI,
+    MOONSTREAM_NODE_ZKSYNC_ERA_A_EXTERNAL_URI,
+    MOONSTREAM_NODE_ZKSYNC_ERA_SEPOLIA_A_EXTERNAL_URI,
+    MOONSTREAM_NODE_ZKSYNC_ERA_TESTNET_A_EXTERNAL_URI,
     WEB3_CLIENT_REQUEST_TIMEOUT_SECONDS,
 )
 
@@ -43,33 +49,42 @@ class BlockCrawlError(Exception):
 
 
 def connect(
-    blockchain_type: AvailableBlockchainType,
+    blockchain_type: Optional[AvailableBlockchainType] = None,
     web3_uri: Optional[str] = None,
-    access_id: Optional[UUID] = None,
 ) -> Web3:
+    if blockchain_type is None and web3_uri is None:
+        raise Exception("Both blockchain_type and web3_uri could not be None")
+
     web3_provider: Union[IPCProvider, HTTPProvider] = Web3.IPCProvider()
 
-    request_kwargs: Any = None
-    if access_id is not None:
-        request_kwargs = {
-            "headers": {
-                NB_ACCESS_ID_HEADER: str(access_id),
-                NB_DATA_SOURCE_HEADER: "blockchain",
-                "Content-Type": "application/json",
-            }
-        }
-
+    request_kwargs: Dict[str, Any] = {"headers": {"Content-Type": "application/json"}}
     if web3_uri is None:
         if blockchain_type == AvailableBlockchainType.ETHEREUM:
-            web3_uri = MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI
+            web3_uri = MOONSTREAM_NODE_ETHEREUM_A_EXTERNAL_URI
         elif blockchain_type == AvailableBlockchainType.POLYGON:
-            web3_uri = MOONSTREAM_POLYGON_WEB3_PROVIDER_URI
+            web3_uri = MOONSTREAM_NODE_POLYGON_A_EXTERNAL_URI
         elif blockchain_type == AvailableBlockchainType.MUMBAI:
-            web3_uri = MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI
+            web3_uri = MOONSTREAM_NODE_MUMBAI_A_EXTERNAL_URI
         elif blockchain_type == AvailableBlockchainType.XDAI:
-            web3_uri = MOONSTREAM_XDAI_WEB3_PROVIDER_URI
-        elif blockchain_type == AvailableBlockchainType.WYRM:
-            web3_uri = MOONSTREAM_WYRM_WEB3_PROVIDER_URI
+            web3_uri = MOONSTREAM_NODE_XDAI_A_EXTERNAL_URI
+        elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET:
+            web3_uri = MOONSTREAM_NODE_ZKSYNC_ERA_TESTNET_A_EXTERNAL_URI
+        elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
+            web3_uri = MOONSTREAM_NODE_ZKSYNC_ERA_A_EXTERNAL_URI
+        elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_SEPOLIA:
+            web3_uri = MOONSTREAM_NODE_ZKSYNC_ERA_SEPOLIA_A_EXTERNAL_URI
+        elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
+            web3_uri = MOONSTREAM_NODE_ARBITRUM_NOVA_A_EXTERNAL_URI
+        elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
+            web3_uri = MOONSTREAM_NODE_ARBITRUM_SEPOLIA_A_EXTERNAL_URI
+        elif blockchain_type == AvailableBlockchainType.XAI:
+            web3_uri = MOONSTREAM_NODE_XAI_A_EXTERNAL_URI
+        elif blockchain_type == AvailableBlockchainType.XAI_SEPOLIA:
+            web3_uri = MOONSTREAM_NODE_XAI_SEPOLIA_A_EXTERNAL_URI
+        elif blockchain_type == AvailableBlockchainType.AVALANCHE:
+            web3_uri = MOONSTREAM_NODE_AVALANCHE_A_EXTERNAL_URI
+        elif blockchain_type == AvailableBlockchainType.AVALANCHE_FUJI:
+            web3_uri = MOONSTREAM_NODE_AVALANCHE_FUJI_A_EXTERNAL_URI
         else:
             raise Exception("Wrong blockchain type provided for web3 URI")
 
@@ -88,6 +103,15 @@ def connect(
     return web3_client
 
 
+def hex_to_int(hex_str: Optional[str] = None) -> Optional[int]:
+    if hex_str is None:
+        return None
+    elif hex_str.startswith("0x"):
+        return int(hex_str, 16)
+    else:
+        return int(hex_str)
+
+
 def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) -> None:
     """
     Add block if doesn't presented in database.
@@ -102,9 +126,11 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
     block_obj = block_model(
         block_number=block.number,
         difficulty=block.difficulty,
-        extra_data=None
-        if block.get("extraData", None) is None
-        else block.get("extraData").hex(),
+        extra_data=(
+            None
+            if block.get("extraData", None) is None
+            else block.get("extraData").hex()
+        ),
         gas_limit=block.gasLimit,
         gas_used=block.gasUsed,
         base_fee_per_gas=block.get("baseFeePerGas", None),
@@ -123,6 +149,51 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
     )
     if blockchain_type == AvailableBlockchainType.XDAI:
         block_obj.author = block.author
+    if (
+        blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET
+        or blockchain_type == AvailableBlockchainType.ZKSYNC_ERA
+    ):
+        block_obj.mix_hash = block.get("mixHash", "")
+        block_obj.sha3_uncles = block.get("sha3Uncles", "")
+        block_obj.l1_batch_number = (
+            int(block.get("l1BatchNumber"), 0)
+            if block.get("l1BatchNumber") is not None
+            else None
+        )
+        block_obj.l1_batch_timestamp = (
+            int(block.get("l1BatchTimestamp"), 0)
+            if block.get("l1BatchTimestamp") is not None
+            else None
+        )
+    if (
+        blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA
+        or blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA
+    ):
+        block_obj.sha3_uncles = block.get("sha3Uncles", "")
+        block_obj.l1_block_number = hex_to_int(block.get("l1BlockNumber"))
+        block_obj.send_count = hex_to_int(block.get("sendCount"))
+        block_obj.send_root = block.get("sendRoot", "")
+        block_obj.mix_hash = block.get("mixHash", "")
+
+    if (
+        blockchain_type == AvailableBlockchainType.XAI
+        or blockchain_type == AvailableBlockchainType.XAI_SEPOLIA
+    ):
+        block_obj.sha3_uncles = block.get("sha3Uncles", "")
+        block_obj.l1_block_number = hex_to_int(block.get("l1BlockNumber"))
+        block_obj.send_count = hex_to_int(block.get("sendCount"))
+        block_obj.send_root = block.get("sendRoot", "")
+        block_obj.mix_hash = block.get("mixHash", "")
+
+    if (
+        blockchain_type == AvailableBlockchainType.AVALANCHE
+        or blockchain_type == AvailableBlockchainType.AVALANCHE_FUJI
+    ):
+        block_obj.mix_hash = block.get("mixHash", "")
+        block_obj.block_extra_data = block.get("blockExtraData")
+        block_obj.block_gas_cost = block.get("blockGasCost")
+        block_obj.ext_data_gas_used = block.get("extDataGasUsed", "")
+        block_obj.ext_data_hash = block.get("extDataHash", "")
 
     db_session.add(block_obj)
 
@@ -152,6 +223,27 @@ def add_block_transactions(
             transaction_type=int(tx["type"], 0) if tx.get("type") is not None else None,
             value=tx.value,
         )
+        if (
+            blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET
+            or blockchain_type == AvailableBlockchainType.ZKSYNC_ERA
+        ):
+            tx_obj.l1_batch_number = (
+                int(tx.get("l1BatchNumber"), 0)
+                if tx.get("l1BatchNumber") is not None
+                else None
+            )
+            tx_obj.l1_batch_tx_index = (
+                int(tx.get("l1BatchTxIndex"), 0)
+                if tx.get("l1BatchTxIndex") is not None
+                else None
+            )
+        if (
+            blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA
+            or blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA
+            or blockchain_type == AvailableBlockchainType.XAI
+            or blockchain_type == AvailableBlockchainType.XAI_SEPOLIA
+        ):
+            tx_obj.y_parity = hex_to_int(tx.get("yParity"))
 
         db_session.add(tx_obj)
 
@@ -159,7 +251,7 @@ def add_block_transactions(
 def get_latest_blocks(
     blockchain_type: AvailableBlockchainType,
     confirmations: int = 0,
-    access_id: Optional[UUID] = None,
+    web3_uri: Optional[str] = None,
 ) -> Tuple[Optional[int], int]:
     """
     Retrieve the latest block from the connected node (connection is created by the connect(AvailableBlockchainType) method).
@@ -167,7 +259,7 @@ def get_latest_blocks(
     If confirmations > 0, and the latest block on the node has block number N, this returns the block
     with block_number (N - confirmations)
     """
-    web3_client = connect(blockchain_type, access_id=access_id)
+    web3_client = connect(blockchain_type, web3_uri=web3_uri)
     latest_block_number: int = web3_client.eth.block_number
     if confirmations > 0:
         latest_block_number -= confirmations
@@ -190,12 +282,12 @@ def crawl_blocks(
     blockchain_type: AvailableBlockchainType,
     blocks_numbers: List[int],
     with_transactions: bool = False,
-    access_id: Optional[UUID] = None,
+    web3_uri: Optional[str] = None,
 ) -> None:
     """
     Open database and geth sessions and fetch block data from blockchain.
     """
-    web3_client = connect(blockchain_type, access_id=access_id)
+    web3_client = connect(blockchain_type, web3_uri=web3_uri)
     with yield_db_session_ctx() as db_session:
         pbar = tqdm(total=len(blocks_numbers))
         for block_number in blocks_numbers:
@@ -236,7 +328,7 @@ def check_missing_blocks(
     blockchain_type: AvailableBlockchainType,
     blocks_numbers: List[int],
     notransactions=False,
-    access_id: Optional[UUID] = None,
+    web3_uri: Optional[str] = None,
 ) -> List[int]:
     """
     Query block from postgres. If block does not presented in database,
@@ -275,7 +367,7 @@ def check_missing_blocks(
                 [block[0], block[1]] for block in blocks_exist_raw_query.all()
             ]
 
-            web3_client = connect(blockchain_type, access_id=access_id)
+            web3_client = connect(blockchain_type, web3_uri=web3_uri)
 
             blocks_exist_len = len(blocks_exist)
             pbar = tqdm(total=blocks_exist_len)
@@ -317,7 +409,7 @@ def crawl_blocks_executor(
     block_numbers_list: List[int],
     with_transactions: bool = False,
     num_processes: int = MOONSTREAM_CRAWL_WORKERS,
-    access_id: Optional[UUID] = None,
+    web3_uri: Optional[str] = None,
 ) -> None:
     """
     Execute crawler in processes.
@@ -346,7 +438,7 @@ def crawl_blocks_executor(
     if num_processes == 1:
         logger.warning("Executing block crawler in lazy mod")
         return crawl_blocks(
-            blockchain_type, block_numbers_list, with_transactions, access_id=access_id
+            blockchain_type, block_numbers_list, with_transactions, web3_uri=web3_uri
         )
     else:
         with ThreadPoolExecutor(max_workers=MOONSTREAM_CRAWL_WORKERS) as executor:
@@ -358,7 +450,7 @@ def crawl_blocks_executor(
                     blockchain_type,
                     block_chunk,
                     with_transactions,
-                    access_id,
+                    web3_uri,
                 )
                 result.add_done_callback(record_error)
                 results.append(result)

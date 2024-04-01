@@ -3,9 +3,7 @@ from typing import Dict, Optional
 from uuid import UUID
 
 from bugout.app import Bugout
-from entity.client import Entity  # type: ignore
 from moonstreamdb.blockchain import AvailableBlockchainType
-
 
 # Bugout
 BUGOUT_BROOD_URL = os.environ.get("BUGOUT_BROOD_URL", "https://auth.bugout.dev")
@@ -14,14 +12,10 @@ BUGOUT_SPIRE_URL = os.environ.get("BUGOUT_SPIRE_URL", "https://spire.bugout.dev"
 bugout_client = Bugout(brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIRE_URL)
 
 
-# Entity
-
-
-MOONSTREAM_ENTITY_URL = os.environ.get("MOONSTREAM_ENTITY_URL", "")
-if MOONSTREAM_ENTITY_URL == "":
-    raise ValueError("MOONSTREAM_ENTITY_URL environment variable must be set")
-
-entity_client = Entity(MOONSTREAM_ENTITY_URL)
+MOONSTREAM_API_URL = os.environ.get("MOONSTREAM_API_URL", "https://api.moonstream.to")
+MOONSTREAM_ENGINE_URL = os.environ.get(
+    "MOONSTREAM_ENGINE_URL", "https://engineapi.moonstream.to"
+)
 
 
 BUGOUT_REQUEST_TIMEOUT_SECONDS_RAW = os.environ.get(
@@ -84,35 +78,95 @@ except:
     )
 
 # Geth connection address
-MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI = os.environ.get(
-    "MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI", ""
+MOONSTREAM_NODE_ETHEREUM_A_EXTERNAL_URI = os.environ.get(
+    "MOONSTREAM_NODE_ETHEREUM_A_EXTERNAL_URI", ""
 )
-if MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI == "":
-    raise Exception("MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI env variable is not set")
+if MOONSTREAM_NODE_ETHEREUM_A_EXTERNAL_URI == "":
+    raise Exception("MOONSTREAM_NODE_ETHEREUM_A_EXTERNAL_URI env variable is not set")
 
-MOONSTREAM_POLYGON_WEB3_PROVIDER_URI = os.environ.get(
-    "MOONSTREAM_POLYGON_WEB3_PROVIDER_URI", ""
+MOONSTREAM_NODE_POLYGON_A_EXTERNAL_URI = os.environ.get(
+    "MOONSTREAM_NODE_POLYGON_A_EXTERNAL_URI", ""
 )
-if MOONSTREAM_POLYGON_WEB3_PROVIDER_URI == "":
-    raise Exception("MOONSTREAM_POLYGON_WEB3_PROVIDER_URI env variable is not set")
+if MOONSTREAM_NODE_POLYGON_A_EXTERNAL_URI == "":
+    raise Exception("MOONSTREAM_NODE_POLYGON_A_EXTERNAL_URI env variable is not set")
 
-MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI = os.environ.get(
-    "MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI", ""
+MOONSTREAM_NODE_MUMBAI_A_EXTERNAL_URI = os.environ.get(
+    "MOONSTREAM_NODE_MUMBAI_A_EXTERNAL_URI", ""
 )
-if MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI == "":
-    raise Exception("MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI env variable is not set")
+if MOONSTREAM_NODE_MUMBAI_A_EXTERNAL_URI == "":
+    raise Exception("MOONSTREAM_NODE_MUMBAI_A_EXTERNAL_URI env variable is not set")
 
-MOONSTREAM_XDAI_WEB3_PROVIDER_URI = os.environ.get(
-    "MOONSTREAM_XDAI_WEB3_PROVIDER_URI", ""
+MOONSTREAM_NODE_XDAI_A_EXTERNAL_URI = os.environ.get(
+    "MOONSTREAM_NODE_XDAI_A_EXTERNAL_URI", ""
 )
-if MOONSTREAM_XDAI_WEB3_PROVIDER_URI == "":
-    raise Exception("MOONSTREAM_XDAI_WEB3_PROVIDER_URI env variable is not set")
+if MOONSTREAM_NODE_XDAI_A_EXTERNAL_URI == "":
+    raise Exception("MOONSTREAM_NODE_XDAI_A_EXTERNAL_URI env variable is not set")
 
-MOONSTREAM_WYRM_WEB3_PROVIDER_URI = os.environ.get(
-    "MOONSTREAM_WYRM_WEB3_PROVIDER_URI", ""
+MOONSTREAM_NODE_ZKSYNC_ERA_TESTNET_A_EXTERNAL_URI = os.environ.get(
+    "MOONSTREAM_NODE_ZKSYNC_ERA_TESTNET_A_EXTERNAL_URI", ""
 )
-if MOONSTREAM_WYRM_WEB3_PROVIDER_URI == "":
-    raise Exception("MOONSTREAM_WYRM_WEB3_PROVIDER_URI env variable is not set")
+if MOONSTREAM_NODE_ZKSYNC_ERA_TESTNET_A_EXTERNAL_URI == "":
+    raise Exception(
+        "MOONSTREAM_NODE_ZKSYNC_ERA_TESTNET_A_EXTERNAL_URI env variable is not set"
+    )
+
+MOONSTREAM_NODE_ZKSYNC_ERA_A_EXTERNAL_URI = os.environ.get(
+    "MOONSTREAM_NODE_ZKSYNC_ERA_A_EXTERNAL_URI", ""
+)
+if MOONSTREAM_NODE_ZKSYNC_ERA_A_EXTERNAL_URI == "":
+    raise Exception("MOONSTREAM_NODE_ZKSYNC_ERA_A_EXTERNAL_URI env variable is not set")
+
+MOONSTREAM_NODE_ZKSYNC_ERA_SEPOLIA_A_EXTERNAL_URI = os.environ.get(
+    "MOONSTREAM_NODE_ZKSYNC_ERA_SEPOLIA_A_EXTERNAL_URI", ""
+)
+if MOONSTREAM_NODE_ZKSYNC_ERA_SEPOLIA_A_EXTERNAL_URI == "":
+    raise Exception(
+        "MOONSTREAM_NODE_ZKSYNC_ERA_SEPOLIA_A_EXTERNAL_URI env variable is not set"
+    )
+
+MOONSTREAM_NODE_ARBITRUM_NOVA_A_EXTERNAL_URI = os.environ.get(
+    "MOONSTREAM_NODE_ARBITRUM_NOVA_A_EXTERNAL_URI", ""
+)
+if MOONSTREAM_NODE_ARBITRUM_NOVA_A_EXTERNAL_URI == "":
+    raise Exception(
+        "MOONSTREAM_NODE_ARBITRUM_NOVA_A_EXTERNAL_URI env variable is not set"
+    )
+
+MOONSTREAM_NODE_ARBITRUM_SEPOLIA_A_EXTERNAL_URI = os.environ.get(
+    "MOONSTREAM_NODE_ARBITRUM_SEPOLIA_A_EXTERNAL_URI", ""
+)
+if MOONSTREAM_NODE_ARBITRUM_SEPOLIA_A_EXTERNAL_URI == "":
+    raise Exception(
+        "MOONSTREAM_NODE_ARBITRUM_SEPOLIA_A_EXTERNAL_URI env variable is not set"
+    )
+
+MOONSTREAM_NODE_XAI_A_EXTERNAL_URI = os.environ.get(
+    "MOONSTREAM_NODE_XAI_A_EXTERNAL_URI", ""
+)
+if MOONSTREAM_NODE_XAI_A_EXTERNAL_URI == "":
+    raise Exception("MOONSTREAM_NODE_XAI_A_EXTERNAL_URI env variable is not set")
+
+MOONSTREAM_NODE_XAI_SEPOLIA_A_EXTERNAL_URI = os.environ.get(
+    "MOONSTREAM_NODE_XAI_SEPOLIA_A_EXTERNAL_URI", ""
+)
+if MOONSTREAM_NODE_XAI_SEPOLIA_A_EXTERNAL_URI == "":
+    raise Exception(
+        "MOONSTREAM_NODE_XAI_SEPOLIA_A_EXTERNAL_URI env variable is not set"
+    )
+
+MOONSTREAM_NODE_AVALANCHE_A_EXTERNAL_URI = os.environ.get(
+    "MOONSTREAM_NODE_AVALANCHE_A_EXTERNAL_URI", ""
+)
+if MOONSTREAM_NODE_AVALANCHE_A_EXTERNAL_URI == "":
+    raise Exception("MOONSTREAM_NODE_AVALANCHE_A_EXTERNAL_URI env variable is not set")
+
+MOONSTREAM_NODE_AVALANCHE_FUJI_A_EXTERNAL_URI = os.environ.get(
+    "MOONSTREAM_NODE_AVALANCHE_FUJI_A_EXTERNAL_URI", ""
+)
+if MOONSTREAM_NODE_AVALANCHE_FUJI_A_EXTERNAL_URI == "":
+    raise Exception(
+        "MOONSTREAM_NODE_AVALANCHE_FUJI_A_EXTERNAL_URI env variable is not set"
+    )
 
 MOONSTREAM_CRAWL_WORKERS = 4
 MOONSTREAM_CRAWL_WORKERS_RAW = os.environ.get("MOONSTREAM_CRAWL_WORKERS")
@@ -233,6 +287,7 @@ multicall_contracts: Dict[AvailableBlockchainType, str] = {
     AvailableBlockchainType.POLYGON: "0xc8E51042792d7405184DfCa245F2d27B94D013b6",
     AvailableBlockchainType.MUMBAI: "0xe9939e7Ea7D7fb619Ac57f648Da7B1D425832631",
     AvailableBlockchainType.ETHEREUM: "0x5BA1e12693Dc8F9c48aAD8770482f4739bEeD696",
+    AvailableBlockchainType.ZKSYNC_ERA: "0xF9cda624FBC7e059355ce98a31693d299FACd963",
 }
 
 
@@ -302,3 +357,18 @@ HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES = {
     "historical_crawl_status": "historical_crawl_status",
     "progress_status": "progress",
 }
+
+
+# Leaderboard generator
+
+MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID = os.environ.get(
+    "MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID", ""
+)
+if MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID == "":
+    raise ValueError(
+        "MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID environment variable must be set"
+    )
+
+
+MOONSTREAM_LEADERBOARD_GENERATOR_BATCH_SIZE = 12000
+MOONSTREAM_LEADERBOARD_GENERATOR_PUSH_TIMEOUT_SECONDS = 60

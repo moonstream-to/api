@@ -1,13 +1,13 @@
-import logging
 import json
-from typing import Dict, Any, Optional, List
+import logging
+from typing import Any, Dict, List, Optional
 
 from moonstreamdb.blockchain import AvailableBlockchainType, get_label_model
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
 
 from ..data import TokenURIs
-from ..settings import VIEW_STATE_CRAWLER_LABEL, METADATA_CRAWLER_LABEL, CRAWLER_LABEL
+from ..settings import CRAWLER_LABEL, METADATA_CRAWLER_LABEL, VIEW_STATE_CRAWLER_LABEL
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -73,34 +73,37 @@ def get_uris_of_tokens(
     metadata_for_parsing = db_session.execute(
         text(
             """ SELECT
-            DISTINCT ON(label_data -> 'inputs'-> 0 ) label_data -> 'inputs'-> 0 as token_id,
+            DISTINCT ON(label_data -> 'inputs'-> 0, address ) label_data -> 'inputs'-> 0 as token_id, address as address,
             label_data -> 'result' as token_uri,
             block_number as block_number,
-            block_timestamp as block_timestamp,
-            address as address
-
+            block_timestamp as block_timestamp
         FROM
             {}
         WHERE
             label = :label
-            AND label_data ->> 'name' = :name
+            AND label_data ->> 'name' in :names
         ORDER BY
             label_data -> 'inputs'-> 0 ASC,
+            address ASC,
             block_number :: INT DESC;
     """.format(
                 table
             )
         ),
-        {"table": table, "label": VIEW_STATE_CRAWLER_LABEL, "name": "tokenURI"},
+        {
+            "table": table,
+            "label": VIEW_STATE_CRAWLER_LABEL,
+            "names": ("tokenURI", "uri"),
+        },
     )
 
     results = [
         TokenURIs(
             token_id=data[0],
-            token_uri=data[1][0],
-            block_number=data[2],
-            block_timestamp=data[3],
-            address=data[4],
+            address=data[1],
+            token_uri=data[2][0],
+            block_number=data[3],
+            block_timestamp=data[4],
         )
         for data in metadata_for_parsing
         if data[1] is not None and len(data[1]) > 0
@@ -129,6 +132,7 @@ def get_current_metadata_for_address(
         WHERE
             address = :address
             AND label = :label
+            AND label_data ->>'metadata' != 'null'
         ORDER BY
             label_data ->> 'token_id' ASC,
             block_number :: INT DESC;

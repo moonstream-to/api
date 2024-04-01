@@ -7,15 +7,14 @@ from uuid import UUID
 
 from web3 import Web3
 from fastapi import Body, FastAPI, Request, Depends, Query
-from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 
 from .. import actions
 from .. import data
 from .. import db
-from ..middleware import EngineHTTPException, EngineAuthMiddleware
-from ..settings import DOCS_TARGET_PATH, ORIGINS
+from ..middleware import EngineHTTPException, EngineAuthMiddleware, BugoutCORSMiddleware
+from ..settings import DOCS_TARGET_PATH
 from ..version import VERSION
 
 
@@ -46,8 +45,7 @@ app = FastAPI(
 app.add_middleware(EngineAuthMiddleware, whitelist=whitelist_paths)
 
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ORIGINS,
+    BugoutCORSMiddleware,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -104,7 +102,22 @@ async def get_drop_list_handler(
         logger.error(f"Can't get drops. Failed with error: {e}")
         raise EngineHTTPException(status_code=500, detail="Can't get claims")
 
-    return data.DropListResponse(drops=[result for result in results])
+    return data.DropListResponse(
+        drops=[
+            data.DropsResponseItem(
+                id=result.id,
+                title=result.title,
+                description=result.description,
+                terminus_address=result.terminus_address,
+                terminus_pool_id=result.terminus_pool_id,
+                claim_block_deadline=result.claim_block_deadline,
+                drop_number=result.drop_number,
+                active=result.active,
+                dropper_contract_address=result.dropper_contract_address,
+            )
+            for result in results
+        ]
+    )
 
 
 @app.post("/drops", response_model=data.DropCreatedResponse)
@@ -113,7 +126,6 @@ async def create_drop(
     register_request: data.DropRegisterRequest = Body(...),
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.DropCreatedResponse:
-
     """
     Create a drop for a given dropper contract.
     """
@@ -173,7 +185,6 @@ async def activate_drop(
     dropper_claim_id: UUID,
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.DropUpdatedResponse:
-
     """
     Activate a given drop by drop id.
     """
@@ -220,7 +231,6 @@ async def deactivate_drop(
     dropper_claim_id: UUID,
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.DropUpdatedResponse:
-
     """
     Activate a given drop by drop id.
     """
@@ -265,7 +275,6 @@ async def update_drop(
     update_request: data.DropUpdateRequest = Body(...),
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.DropUpdatedResponse:
-
     """
     Update a given drop by drop id.
     """
@@ -320,7 +329,7 @@ async def get_claimants(
     limit: int = 10,
     offset: int = 0,
     db_session: Session = Depends(db.yield_db_session),
-) -> data.DropListResponse:
+) -> data.ClaimantsResponse:
     """
     Get list of claimants for a given dropper contract.
     """
@@ -352,7 +361,17 @@ async def get_claimants(
         logger.info(f"Can't add claimants for claim {dropper_claim_id} with error: {e}")
         raise EngineHTTPException(status_code=500, detail=f"Error adding claimants")
 
-    return data.ClaimantsResponse(claimants=list(results))
+    return data.ClaimantsResponse(
+        claimants=[
+            data.Claimant(
+                address=result.address,
+                amount=result.amount,
+                raw_amount=result.raw_amount,
+                added_by=result.added_by,
+            )
+            for result in results
+        ]
+    )
 
 
 @app.post(
@@ -407,7 +426,6 @@ async def delete_claimants(
     claimants_list: data.BatchRemoveClaimantsRequest = Body(...),
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.RemoveClaimantsResponse:
-
     """
     Remove addresses to particular claim
     """
@@ -447,7 +465,6 @@ async def get_claimant_in_drop(
     address: str,
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.Claimant:
-
     """
     Return claimant from drop
     """

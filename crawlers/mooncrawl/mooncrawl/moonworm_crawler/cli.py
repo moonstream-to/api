@@ -9,21 +9,20 @@ from web3.middleware import geth_poa_middleware
 
 from ..db import yield_db_session_ctx
 from ..settings import (
-    MOONSTREAM_MOONWORM_TASKS_JOURNAL,
-    NB_CONTROLLER_ACCESS_ID,
-    HISTORICAL_CRAWLER_STATUSES,
     HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES,
+    HISTORICAL_CRAWLER_STATUSES,
+    MOONSTREAM_MOONWORM_TASKS_JOURNAL,
 )
 from .continuous_crawler import _retry_connect_web3, continuous_crawler
 from .crawler import (
     SubscriptionTypes,
     blockchain_type_to_subscription_type,
+    find_all_deployed_blocks,
     get_crawl_job_entries,
     make_event_crawl_jobs,
     make_function_call_crawl_jobs,
-    find_all_deployed_blocks,
-    update_job_state_with_filters,
     moonworm_crawler_update_job_as_pickedup,
+    update_job_state_with_filters,
 )
 from .db import get_first_labeled_block_number, get_last_labeled_block_number
 from .historical_crawler import historical_crawler
@@ -71,7 +70,7 @@ def handle_crawl(args: argparse.Namespace) -> None:
             logger.info(
                 "No web3 provider URL provided, using default (blockchan.py: connect())"
             )
-            web3 = _retry_connect_web3(blockchain_type, access_id=args.access_id)
+            web3 = _retry_connect_web3(blockchain_type, web3_uri=args.web3_uri)
         else:
             logger.info(f"Using web3 provider URL: {args.web3}")
             web3 = Web3(
@@ -133,7 +132,7 @@ def handle_crawl(args: argparse.Namespace) -> None:
             args.min_sleep_time,
             args.heartbeat_interval,
             args.new_jobs_refetch_interval,
-            access_id=args.access_id,
+            web3_uri=args.web3_uri,
         )
 
 
@@ -189,7 +188,11 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
     )
 
     if addresses_filter:
-        filtered_function_call_jobs = [job for job in all_function_call_jobs]
+        filtered_function_call_jobs = [
+            job
+            for job in all_function_call_jobs
+            if job.contract_address in addresses_filter
+        ]
     else:
         filtered_function_call_jobs = all_function_call_jobs
 
@@ -246,7 +249,7 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
             logger.info(
                 "No web3 provider URL provided, using default (blockchan.py: connect())"
             )
-            web3 = _retry_connect_web3(blockchain_type, access_id=args.access_id)
+            web3 = _retry_connect_web3(blockchain_type, web3_uri=args.web3_uri)
         else:
             logger.info(f"Using web3 provider URL: {args.web3}")
             web3 = Web3(
@@ -266,6 +269,8 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
         addresses_deployment_blocks = None
 
         end_block = args.end
+
+        start_block = args.start
 
         # get set of addresses from event jobs and function call jobs
         if args.find_deployed_blocks:
@@ -330,7 +335,7 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
             end_block,
             args.max_blocks_batch,
             args.min_sleep_time,
-            access_id=args.access_id,
+            web3_uri=args.web3_uri,
             addresses_deployment_blocks=addresses_deployment_blocks,
         )
 
@@ -340,10 +345,8 @@ def main() -> None:
     parser.set_defaults(func=lambda _: parser.print_help())
 
     parser.add_argument(
-        "--access-id",
-        default=NB_CONTROLLER_ACCESS_ID,
-        type=UUID,
-        help="User access ID",
+        "--web3-uri",
+        help="Node JSON RPC uri",
     )
 
     subparsers = parser.add_subparsers()

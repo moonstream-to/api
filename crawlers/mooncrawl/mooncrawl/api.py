@@ -1,6 +1,7 @@
 """
 The Mooncrawl HTTP API
 """
+
 import logging
 import time
 from cgi import test
@@ -9,41 +10,37 @@ from typing import Any, Dict, List
 from uuid import UUID
 
 import boto3  # type: ignore
-from bugout.data import BugoutResource
-from entity.data import EntityResponse  # type: ignore
+from bugout.data import BugoutJournalEntity, BugoutResource
 from fastapi import BackgroundTasks, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from moonstreamdb.blockchain import (
     AvailableBlockchainType,
-    get_label_model,
     get_block_model,
+    get_label_model,
     get_transaction_model,
 )
-
 from sqlalchemy import text
 
-from .actions import (
-    generate_s3_access_links,
-    query_parameter_hash,
-    get_entity_subscription_collection_id,
-    EntityCollectionNotFoundException,
-)
 from . import data
+from .actions import (
+    EntityCollectionNotFoundException,
+    generate_s3_access_links,
+    get_entity_subscription_collection_id,
+    query_parameter_hash,
+)
 from .middleware import MoonstreamHTTPException
 from .settings import (
-    BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
     BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
-    MOONSTREAM_ADMIN_ACCESS_TOKEN,
     DOCS_TARGET_PATH,
+    LINKS_EXPIRATION_TIME,
+    MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_S3_QUERIES_BUCKET,
     MOONSTREAM_S3_QUERIES_BUCKET_PREFIX,
-    MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
-    NB_CONTROLLER_ACCESS_ID,
-    ORIGINS,
-    LINKS_EXPIRATION_TIME,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
+    MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
+    ORIGINS,
 )
-from .settings import bugout_client as bc, entity_client as ec
+from .settings import bugout_client as bc
 from .stats_worker import dashboard, queries
 from .version import MOONCRAWL_VERSION
 
@@ -115,12 +112,11 @@ async def status_handler(
     )
 
     try:
-        collection_id = get_entity_subscription_collection_id(
+        journal_id = get_entity_subscription_collection_id(
             resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
             user_id=UUID(stats_update.user_id),
         )
-
     except EntityCollectionNotFoundException as e:
         raise MoonstreamHTTPException(
             status_code=404,
@@ -136,20 +132,19 @@ async def status_handler(
 
     s3_client = boto3.client("s3")
 
-    subscription_by_id: Dict[str, EntityResponse] = {}
+    subscription_by_id: Dict[str, BugoutJournalEntity] = {}
 
     for dashboard_subscription_filters in dashboard_resource.resource_data[
         "subscription_settings"
     ]:
         # get subscription by id
-
-        subscription: EntityResponse = ec.get_entity(
+        subscription: BugoutJournalEntity = bc.get_entity(
             token=stats_update.token,
-            collection_id=collection_id,
+            journal_id=journal_id,
             entity_id=dashboard_subscription_filters["subscription_id"],
         )
 
-        subscription_by_id[str(subscription.entity_id)] = subscription
+        subscription_by_id[str(subscription.id)] = subscription
 
     try:
         background_tasks.add_task(
@@ -157,7 +152,6 @@ async def status_handler(
             timescales=stats_update.timescales,
             dashboard=dashboard_resource,
             subscription_by_id=subscription_by_id,
-            access_id=NB_CONTROLLER_ACCESS_ID,
         )
 
     except Exception as e:
@@ -177,12 +171,12 @@ async def status_handler(
             dashboard_subscription_filters["subscription_id"]
         ]
 
-        for reqired_field in subscription.required_fields:
+        for reqired_field in subscription.required_fields:  # type: ignore
             if "subscription_type_id" in reqired_field:
                 subscriprions_type = reqired_field["subscription_type_id"]
 
         for timescale in stats_update.timescales:
-            presigned_urls_response[subscription_entity.entity_id] = {}
+            presigned_urls_response[subscription_entity.id] = {}
 
             try:
                 result_key = f"{MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX}/{dashboard.blockchain_by_subscription_id[subscriprions_type]}/contracts_data/{subscription_entity.address}/{stats_update.dashboard_id}/v1/{timescale}.json"
@@ -201,7 +195,7 @@ async def status_handler(
                     HttpMethod="GET",
                 )
 
-                presigned_urls_response[subscription_entity.entity_id][timescale] = {
+                presigned_urls_response[subscription_entity.id][timescale] = {
                     "url": stats_presigned_url,
                     "headers": {
                         "If-Modified-Since": (

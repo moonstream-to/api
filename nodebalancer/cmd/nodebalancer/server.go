@@ -12,6 +12,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -28,7 +29,11 @@ var (
 
 // initHealthCheck runs a routine for check status of the nodes every 5 seconds
 func initHealthCheck(debug bool) {
-	t := time.NewTicker(NB_HEALTH_CHECK_INTERVAL)
+	healthCheckInterval, convErr := strconv.Atoi(NB_HEALTH_CHECK_INTERVAL)
+	if convErr != nil {
+		healthCheckInterval = 30
+	}
+	t := time.NewTicker(time.Second * time.Duration(healthCheckInterval))
 	for {
 		select {
 		case <-t.C:
@@ -201,6 +206,11 @@ func Server() {
 			r.URL.RawQuery = ""
 			r.Header.Del(strings.Title(NB_ACCESS_ID_HEADER))
 			r.Header.Del(strings.Title(NB_DATA_SOURCE_HEADER))
+
+			r.URL.Scheme = endpoint.Scheme
+			r.URL.Host = endpoint.Host
+			r.URL.Path = endpoint.Path
+
 			// Change r.Host from nodebalancer's to end host so TLS check will be passed
 			r.Host = r.URL.Host
 		}

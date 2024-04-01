@@ -21,6 +21,11 @@ ethereum_event_type = "ethereum_blockchain"
 polygon_event_type = "polygon_blockchain"
 mumbai_event_type = "mumbai_blockchain"
 xdai_event_type = "xdai_blockchain"
+zksync_era_testnet_event_type = "zksync_era_testnet_blockchain"
+zksync_era_event_type = "zksync_era_blockchain"
+arbitrum_nova_event_type = "arbitrum_nova_blockchain"
+arbitrum_sepolia_event_type = "arbitrum_sepolia_blockchain"
+xai_event_type = "xai_blockchain"
 allowed_tags = ["tag:erc721"]
 
 description = f"""Event provider for transactions from the Ethereum blockchain.
@@ -411,5 +416,40 @@ XDaiMoonwormProvider = MoonwormProvider(
     event_type="xdai_smartcontract",
     blockchain=AvailableBlockchainType("xdai"),
     description="Provider for reviving transactions from XDai tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
+ZkSyncEraTestnetMoonwormProvider = MoonwormProvider(
+    event_type="zksync_era_testnet_smartcontract",
+    blockchain=AvailableBlockchainType("zksync_era_testnet"),
+    description="Provider for reviving transactions from zkSync Era testnet tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
+ZkSyncEraMoonwormProvider = MoonwormProvider(
+    event_type="zksync_era_smartcontract",
+    blockchain=AvailableBlockchainType("zksync_era"),
+    description="Provider for reviving transactions from zkSync Era tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
+ArbitrumNovaMoonwormProvider = MoonwormProvider(
+    event_type="arbitrum_nova_smartcontract",
+    blockchain=AvailableBlockchainType("arbitrum_nova"),
+    description="Provider for reviving transactions from Arbitrum Nova tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
+ArbitrumSepoliaMoonwormProvider = MoonwormProvider(
+    event_type="arbitrum_sepolia_smartcontract",
+    blockchain=AvailableBlockchainType("arbitrum_sepolia"),
+    description="Provider for reviving transactions from Arbitrum Sepolia tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
+XaiMoonwormProvider = MoonwormProvider(
+    event_type="xai_smartcontract",
+    blockchain=AvailableBlockchainType("xai"),
+    description="Provider for reviving transactions from Xai tables.",
     streamboaundary_range_limit=2 * 60 * 60,
 )

@@ -35,10 +35,11 @@ var (
 	NB_CONTROLLER_TOKEN             = os.Getenv("NB_CONTROLLER_TOKEN")
 	NB_CONTROLLER_ACCESS_ID         = os.Getenv("NB_CONTROLLER_ACCESS_ID")
 	MOONSTREAM_CORS_ALLOWED_ORIGINS = os.Getenv("MOONSTREAM_CORS_ALLOWED_ORIGINS")
+	CORS_WHITELIST_MAP              = make(map[string]bool)
 
 	NB_CONNECTION_RETRIES          = 2
 	NB_CONNECTION_RETRIES_INTERVAL = time.Millisecond * 10
-	NB_HEALTH_CHECK_INTERVAL       = time.Millisecond * 5000
+	NB_HEALTH_CHECK_INTERVAL       = os.Getenv("NB_HEALTH_CHECK_INTERVAL")
 	NB_HEALTH_CHECK_CALL_TIMEOUT   = time.Second * 2
 
 	NB_CACHE_CLEANING_INTERVAL          = time.Second * 10
@@ -85,6 +86,9 @@ func CheckEnvVarSet() {
 	if err != nil {
 		NB_CONTROLLER_ACCESS_ID = uuid.New().String()
 		log.Printf("Access ID for internal usage in NB_CONTROLLER_ACCESS_ID environment variable is not valid uuid, generated random one: %v", NB_CONTROLLER_ACCESS_ID)
+	}
+	for _, o := range strings.Split(MOONSTREAM_CORS_ALLOWED_ORIGINS, ",") {
+		CORS_WHITELIST_MAP[o] = true
 	}
 }
 

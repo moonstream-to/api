@@ -1,14 +1,14 @@
 """
 Pydantic schemas for the Moonstream HTTP API
 """
+import json
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union, Literal
+from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
-from xmlrpc.client import Boolean
 
-from pydantic import BaseModel, Field,  validator
-from sqlalchemy import false
+from fastapi import Form
+from pydantic import BaseModel, Field, validator
 
 USER_ONBOARDING_STATE = "onboarding_state"
 
@@ -44,20 +44,15 @@ class SubscriptionTypesListResponse(BaseModel):
 class SubscriptionResourceData(BaseModel):
     id: str
     address: Optional[str]
-    abi: Optional[str]
+    abi: Optional[Union[str, bool]]
     color: Optional[str]
     label: Optional[str]
+    description: Optional[str] = None
+    tags: List[str] = Field(default_factory=list)
     user_id: str
     subscription_type_id: Optional[str]
     created_at: Optional[datetime]
     updated_at: Optional[datetime]
-
-
-class CreateSubscriptionRequest(BaseModel):
-    address: str
-    color: str
-    label: str
-    subscription_type_id: str
 
 
 class PingResponse(BaseModel):
@@ -239,8 +234,42 @@ class OnboardingState(BaseModel):
     steps: Dict[str, int]
 
 
-class SubdcriptionsAbiResponse(BaseModel):
+class SubscriptionsAbiResponse(BaseModel):
     abi: str
+
+
+class UpdateSubscriptionRequest(BaseModel):
+    color: Optional[str] = Form(None)
+    label: Optional[str] = Form(None)
+    abi: Optional[str] = Form(None)
+    description: Optional[str] = Form(None)
+    tags: Optional[List[Dict[str, str]]] = Form(None)
+
+    @validator("tags", pre=True, always=True)
+    def transform_to_dict(cls, v):
+        if isinstance(v, str):
+            return json.loads(v)
+        elif isinstance(v, list):
+            return v
+        return []
+
+
+class CreateSubscriptionRequest(BaseModel):
+    address: str = Form(...)
+    subscription_type_id: str = Form(...)
+    color: str = Form(...)
+    label: str = Form(...)
+    abi: Optional[str] = Form(None)
+    description: Optional[str] = Form(None)
+    tags: Optional[List[Dict[str, str]]] = Form(None)
+
+    @validator("tags", pre=True, always=True)
+    def transform_to_dict(cls, v):
+        if isinstance(v, str):
+            return json.loads(v)
+        elif isinstance(v, list):
+            return v
+        return []
 
 
 class DashboardMeta(BaseModel):
@@ -297,8 +326,16 @@ class QueryInfoResponse(BaseModel):
     parameters: Dict[str, Any] = Field(default_factory=dict)
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-            
+
 
 class SuggestedQueriesResponse(BaseModel):
     interfaces: Dict[str, Any] = Field(default_factory=dict)
     queries: List[Any] = Field(default_factory=list)
+
+
+class ContractInfoResponse(BaseModel):
+    contract_info: Dict[str, Any] = Field(default_factory=dict)
+
+
+class ContractInterfacesResponse(BaseModel):
+    interfaces: Dict[str, Any] = Field(default_factory=dict)

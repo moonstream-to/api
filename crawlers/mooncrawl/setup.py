@@ -34,12 +34,11 @@ setup(
     zip_safe=False,
     install_requires=[
         "boto3",
-        "bugout>=0.2.8",
+        "bugout>=0.2.13",
         "chardet",
         "fastapi",
-        "moonstreamdb>=0.3.3",
+        "moonstreamdb>=0.3.10",
         "moonstream>=0.1.1",
-        "moonstream-entity>=0.0.5",
         "moonworm[moonstream]>=0.6.2",
         "humbug",
         "pydantic==1.9.2",
@@ -67,6 +66,7 @@ setup(
             "state-crawler=mooncrawl.state_crawler.cli:main",
             "metadata-crawler=mooncrawl.metadata_crawler.cli:main",
             "custom-crawler=mooncrawl.reports_crawler.cli:main",
+            "leaderboards-generator=mooncrawl.leaderboards_generator.cli:main",
         ]
     },
 )

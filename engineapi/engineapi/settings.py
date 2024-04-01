@@ -1,9 +1,15 @@
+import logging
 import os
 import warnings
+from time import sleep
+from typing import Optional, Set
 
-from web3 import Web3, HTTPProvider
-from web3.middleware import geth_poa_middleware
 from bugout.app import Bugout
+from bugout.data import BugoutUser
+from web3 import HTTPProvider, Web3
+from web3.middleware import geth_poa_middleware
+
+logger = logging.getLogger(__name__)
 
 # Bugout
 BUGOUT_BROOD_URL = os.environ.get("BUGOUT_BROOD_URL", "https://auth.bugout.dev")
@@ -21,7 +27,17 @@ if RAW_ORIGINS is None:
     raise ValueError(
         "ENGINE_CORS_ALLOWED_ORIGINS environment variable must be set (comma-separated list of CORS allowed origins)"
     )
-ORIGINS = RAW_ORIGINS.split(",")
+RAW_ORIGINS_LST = RAW_ORIGINS.split(",")
+ALLOW_ORIGINS: Set[str] = set()
+for o_raw in RAW_ORIGINS_LST:
+    ALLOW_ORIGINS.add(o_raw.strip())
+
+
+BUGOUT_RESOURCE_TYPE_APPLICATION_CONFIG = "application-config"
+BUGOUT_REQUEST_TIMEOUT_SECONDS = 5
+
+ENGINE_REDIS_URL = os.environ.get("ENGINE_REDIS_URL")
+ENGINE_REDIS_PASSWORD = os.environ.get("ENGINE_REDIS_PASSWORD")
 
 # Open API documentation path
 DOCS_TARGET_PATH = os.environ.get("DOCS_TARGET_PATH", "docs")
@@ -178,3 +194,15 @@ LEADERBOARD_RESOURCE_TYPE = "leaderboard"
 MOONSTREAM_ADMIN_ACCESS_TOKEN = os.environ.get("MOONSTREAM_ADMIN_ACCESS_TOKEN", "")
 if MOONSTREAM_ADMIN_ACCESS_TOKEN == "":
     raise ValueError("MOONSTREAM_ADMIN_ACCESS_TOKEN environment variable must be set")
+
+MOONSTREAM_ADMIN_ID = os.environ.get("MOONSTREAM_ADMIN_ID", "")
+if MOONSTREAM_ADMIN_ID == "":
+    raise ValueError("MOONSTREAM_ADMIN_ID environment variable must be set")
+
+MOONSTREAM_LEADERBOARD_CONFIGURATION_JOURNAL_ID = os.environ.get(
+    "MOONSTREAM_LEADERBOARD_CONFIGURATION_JOURNAL_ID", ""
+)
+if MOONSTREAM_LEADERBOARD_CONFIGURATION_JOURNAL_ID == "":
+    raise ValueError(
+        "MOONSTREAM_LEADERBOARD_CONFIGURATION_JOURNAL_ID environment variable must be set"
+    )

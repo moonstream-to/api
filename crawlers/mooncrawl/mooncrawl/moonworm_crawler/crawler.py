@@ -5,24 +5,24 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, cast, Union, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
 from uuid import UUID
 
-from bugout.data import BugoutSearchResult, BugoutJournalEntries
+from bugout.data import BugoutJournalEntries, BugoutSearchResult
 from eth_typing.evm import ChecksumAddress
 from moonstreamdb.blockchain import AvailableBlockchainType
-from web3.main import Web3
 from moonworm.deployment import find_deployment_block  # type: ignore
+from web3.main import Web3
 
 from ..blockchain import connect
 from ..reporter import reporter
 from ..settings import (
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
+    HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES,
+    HISTORICAL_CRAWLER_STATUSES,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_MOONWORM_TASKS_JOURNAL,
     bugout_client,
-    HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES,
-    HISTORICAL_CRAWLER_STATUSES,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -35,6 +35,15 @@ class SubscriptionTypes(Enum):
     MUMBAI_BLOCKCHAIN = "mumbai_smartcontract"
     XDAI_BLOCKCHAIN = "xdai_smartcontract"
     WYRM_BLOCKCHAIN = "wyrm_smartcontract"
+    ZKSYNC_ERA_TESTNET_BLOCKCHAIN = "zksync_era_testnet_smartcontract"
+    ZKSYNC_ERA_BLOCKCHAIN = "zksync_era_smartcontract"
+    ZKSYNC_ERA_SEPOLIA_BLOCKCHAIN = "zksync_era_sepolia_smartcontract"
+    ARBITRUM_NOVA_BLOCKCHAIN = "arbitrum_nova_smartcontract"
+    ARBITRUM_SEPOLIA_BLOCKCHAIN = "arbitrum_sepolia_smartcontract"
+    XAI_BLOCKCHAIN = "xai_smartcontract"
+    XAI_SEPOLIA_BLOCKCHAIN = "xai_sepolia_smartcontract"
+    AVALANCHE_BLOCKCHAIN = "avalanche_smartcontract"
+    AVALANCHE_FUJI_BLOCKCHAIN = "avalanche_fuji_smartcontract"
 
 
 def abi_input_signature(input_abi: Dict[str, Any]) -> str:
@@ -102,7 +111,7 @@ def _retry_connect_web3(
     blockchain_type: AvailableBlockchainType,
     retry_count: int = 10,
     sleep_time: float = 5,
-    access_id: Optional[UUID] = None,
+    web3_uri: Optional[str] = None,
 ) -> Web3:
     """
     Retry connecting to the blockchain.
@@ -110,7 +119,7 @@ def _retry_connect_web3(
     while retry_count > 0:
         retry_count -= 1
         try:
-            web3 = connect(blockchain_type, access_id=access_id)
+            web3 = connect(blockchain_type, web3_uri=web3_uri)
             web3.eth.block_number
             logger.info(f"Connected to {blockchain_type}")
             return web3
@@ -139,6 +148,24 @@ def blockchain_type_to_subscription_type(
         return SubscriptionTypes.XDAI_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.WYRM:
         return SubscriptionTypes.WYRM_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET:
+        return SubscriptionTypes.ZKSYNC_ERA_TESTNET_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
+        return SubscriptionTypes.ZKSYNC_ERA_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_SEPOLIA:
+        return SubscriptionTypes.ZKSYNC_ERA_SEPOLIA_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
+        return SubscriptionTypes.ARBITRUM_NOVA_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
+        return SubscriptionTypes.ARBITRUM_SEPOLIA_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.XAI:
+        return SubscriptionTypes.XAI_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.XAI_SEPOLIA:
+        return SubscriptionTypes.XAI_SEPOLIA_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.AVALANCHE:
+        return SubscriptionTypes.AVALANCHE_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.AVALANCHE_FUJI:
+        return SubscriptionTypes.AVALANCHE_FUJI_BLOCKCHAIN
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 
@@ -192,7 +219,7 @@ def get_crawl_job_entries(
         query += f" created_at:>={created_at_filter}"
 
     current_offset = 0
-    entries = []
+    entries: List[BugoutSearchResult] = []
     while True:
         search_result = bugout_client.search(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -202,10 +229,11 @@ def get_crawl_job_entries(
             limit=limit,
             timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
         )
-        entries.extend(search_result.results)
+        search_results = cast(List[BugoutSearchResult], search_result.results)
+        entries.extend(search_results)
 
         # if len(entries) >= search_result.total_results:
-        if len(search_result.results) == 0:
+        if len(search_results) == 0:
             break
         current_offset += limit
     return entries
@@ -399,8 +427,9 @@ def _get_heartbeat_entry_id(
         limit=1,
         timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
     )
-    if entries.results:
-        return entries.results[0].entry_url.split("/")[-1]
+    search_results = cast(List[BugoutSearchResult], entries.results)
+    if search_results:
+        return search_results[0].entry_url.split("/")[-1]
     else:
         logger.info(f"No {crawler_type} heartbeat entry found, creating one")
         entry = bugout_client.create_entry(
@@ -543,9 +572,9 @@ def update_job_tags(
             for contract_address, entries_ids in event.address_entries.items():
                 for entry_id in entries_ids.keys():
                     if entry_id in entry_tags_by_id:
-                        event.address_entries[contract_address][
-                            entry_id
-                        ] = entry_tags_by_id[entry_id]
+                        event.address_entries[contract_address][entry_id] = (
+                            entry_tags_by_id[entry_id]
+                        )
 
         if isinstance(event, FunctionCallCrawlJob):
             for entry_id in event.entries_tags.keys():

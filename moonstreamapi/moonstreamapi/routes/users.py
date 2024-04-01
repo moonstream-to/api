@@ -10,7 +10,7 @@ from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Body, Form, Request
 
 from .. import data
-from ..actions import create_onboarding_resource, generate_collection_for_user
+from ..actions import create_onboarding_resource
 from ..middleware import MoonstreamHTTPException
 from ..settings import BUGOUT_REQUEST_TIMEOUT_SECONDS, MOONSTREAM_APPLICATION_ID
 from ..settings import bugout_client as bc
@@ -48,7 +48,9 @@ async def get_user_handler(request: Request) -> BugoutUser:
 @router.post("/password/reset_initiate", tags=["users"], response_model=Dict[str, Any])
 async def restore_password_handler(email: str = Form(...)) -> Dict[str, Any]:
     try:
-        response = bc.restore_password(email=email)
+        response = bc.restore_password(
+            email=email, application_id=MOONSTREAM_APPLICATION_ID
+        )
     except BugoutResponseException as e:
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:

@@ -3,7 +3,10 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
 from moonstreamdb.blockchain import AvailableBlockchainType, get_block_model
-from moonworm.crawler.log_scanner import _fetch_events_chunk, _crawl_events as moonworm_autoscale_crawl_events  # type: ignore
+from moonworm.crawler.log_scanner import (
+    _crawl_events as moonworm_autoscale_crawl_events,  # type: ignore
+)
+from moonworm.crawler.log_scanner import _fetch_events_chunk
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import and_
 from web3 import Web3
@@ -158,12 +161,13 @@ def _autoscale_crawl_events(
     all_events = []
     for job in jobs:
         raw_events, batch_size = moonworm_autoscale_crawl_events(
-            web3,
-            job.event_abi,
-            from_block,
-            to_block,
-            batch_size,
-            job.contracts[0],
+            web3=web3,
+            event_abi=job.event_abi,
+            from_block=from_block,
+            to_block=to_block,
+            batch_size=batch_size,
+            contract_address=job.contracts[0],
+            max_blocks_batch=3000,
         )
         for raw_event in raw_events:
             raw_event["blockTimestamp"] = get_block_timestamp(

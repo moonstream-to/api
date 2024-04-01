@@ -6,13 +6,17 @@ from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
 from moonstreamdb.blockchain import AvailableBlockchainType
+from moonstreamdb.networks import Network
 from moonworm.crawler.moonstream_ethereum_state_provider import (  # type: ignore
     MoonstreamEthereumStateProvider,
 )
-from moonworm.crawler.networks import Network  # type: ignore
 from sqlalchemy.orm.session import Session
 from web3 import Web3
 
+from ..settings import (
+    HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES,
+    HISTORICAL_CRAWLER_STATUSES,
+)
 from .crawler import (
     EventCrawlJob,
     FunctionCallCrawlJob,
@@ -29,10 +33,6 @@ from .crawler import (
 from .db import add_events_to_session, add_function_calls_to_session, commit_session
 from .event_crawler import _crawl_events
 from .function_call_crawler import _crawl_functions
-from ..settings import (
-    HISTORICAL_CRAWLER_STATUSES,
-    HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES,
-)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -100,7 +100,8 @@ def continuous_crawler(
     min_sleep_time: float = 0.1,
     heartbeat_interval: float = 60,
     new_jobs_refetch_interval: float = 120,
-    access_id: Optional[UUID] = None,
+    web3_uri: Optional[str] = None,
+    max_insert_batch: int = 10000,
 ):
     crawler_type = "continuous"
     assert (
@@ -118,7 +119,7 @@ def continuous_crawler(
 
     jobs_refetchet_time = crawl_start_time
     if web3 is None:
-        web3 = _retry_connect_web3(blockchain_type, access_id=access_id)
+        web3 = _retry_connect_web3(blockchain_type, web3_uri=web3_uri)
 
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
         network = Network.ethereum
@@ -130,6 +131,24 @@ def continuous_crawler(
         network = Network.xdai
     elif blockchain_type == AvailableBlockchainType.WYRM:
         network = Network.wyrm
+    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET:
+        network = Network.zksync_era_testnet
+    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
+        network = Network.zksync_era
+    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_SEPOLIA:
+        network = Network.zksync_era_sepolia
+    elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
+        network = Network.arbitrum_nova
+    elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
+        network = Network.arbitrum_sepolia
+    elif blockchain_type == AvailableBlockchainType.XAI:
+        network = Network.xai
+    elif blockchain_type == AvailableBlockchainType.XAI_SEPOLIA:
+        network = Network.xai_sepolia
+    elif blockchain_type == AvailableBlockchainType.AVALANCHE:
+        network = Network.avalanche
+    elif blockchain_type == AvailableBlockchainType.AVALANCHE_FUJI:
+        network = Network.avalanche_fuji
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 
@@ -194,7 +213,16 @@ def continuous_crawler(
                     f"Crawled {len(all_events)} events from {start_block} to {end_block}."
                 )
 
-                add_events_to_session(db_session, all_events, blockchain_type)
+                if len(all_events) > max_insert_batch:
+
+                    for i in range(0, len(all_events), max_insert_batch):
+                        add_events_to_session(
+                            db_session,
+                            all_events[i : i + max_insert_batch],
+                            blockchain_type,
+                        )
+                else:
+                    add_events_to_session(db_session, all_events, blockchain_type)
 
                 logger.info(
                     f"Crawling function calls from {start_block} to {end_block}"
@@ -210,9 +238,18 @@ def continuous_crawler(
                     f"Crawled {len(all_function_calls)} function calls from {start_block} to {end_block}."
                 )
 
-                add_function_calls_to_session(
-                    db_session, all_function_calls, blockchain_type
-                )
+                if len(all_function_calls) > max_insert_batch:
+
+                    for i in range(0, len(all_function_calls), max_insert_batch):
+                        add_function_calls_to_session(
+                            db_session,
+                            all_function_calls[i : i + max_insert_batch],
+                            blockchain_type,
+                        )
+                else:
+                    add_function_calls_to_session(
+                        db_session, all_function_calls, blockchain_type
+                    )
 
                 current_time = datetime.utcnow()
 
@@ -236,11 +273,11 @@ def continuous_crawler(
 
                     jobs_refetchet_time = current_time
 
+                commit_session(db_session)
+
                 if current_time - last_heartbeat_time > timedelta(
                     seconds=heartbeat_interval
                 ):
-                    # Commiting to db
-                    commit_session(db_session)
                     # Update heartbeat
                     heartbeat_template["last_block"] = end_block
                     heartbeat_template["current_time"] = _date_to_str(current_time)
@@ -253,9 +290,9 @@ def continuous_crawler(
                     heartbeat_template["current_function_call_jobs_length"] = len(
                         function_call_crawl_jobs
                     )
-                    heartbeat_template[
-                        "function_call metrics"
-                    ] = ethereum_state_provider.metrics
+                    heartbeat_template["function_call metrics"] = (
+                        ethereum_state_provider.metrics
+                    )
                     heartbeat(
                         crawler_type=crawler_type,
                         blockchain_type=blockchain_type,
@@ -275,7 +312,7 @@ def continuous_crawler(
                     logger.error("Too many failures, exiting")
                     raise e
                 try:
-                    web3 = _retry_connect_web3(blockchain_type, access_id=access_id)
+                    web3 = _retry_connect_web3(blockchain_type, web3_uri=web3_uri)
                 except Exception as err:
                     logger.error(f"Failed to reconnect: {err}")
                     logger.exception(err)
@@ -297,9 +334,9 @@ def continuous_crawler(
                 )
             ),
         )
-        heartbeat_template[
-            "die_reason"
-        ] = f"{e.__class__.__name__}: {e}\n error_summary: {error_summary}\n error_traceback: {error_traceback}"
+        heartbeat_template["die_reason"] = (
+            f"{e.__class__.__name__}: {e}\n error_summary: {error_summary}\n error_traceback: {error_traceback}"
+        )
         heartbeat_template["last_block"] = end_block
         heartbeat(
             crawler_type=crawler_type,

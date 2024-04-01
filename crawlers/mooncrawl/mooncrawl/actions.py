@@ -1,19 +1,24 @@
-from collections import OrderedDict
 import hashlib
 import json
 import logging
-from typing import Any, Dict, Optional, Union
+import time
 import uuid
-
-from bugout.data import (
-    BugoutResources,
-)
-from bugout.exceptions import BugoutResponseException
-from .middleware import MoonstreamHTTPException
-from .settings import bugout_client as bc
-
+from collections import OrderedDict
+from datetime import datetime
+from typing import Any, Dict, Optional, Union
 
 import boto3  # type: ignore
+import requests  # type: ignore
+from bugout.data import BugoutResources
+from bugout.exceptions import BugoutResponseException
+from moonstream.client import (  # type: ignore
+    ENDPOINT_QUERIES,
+    Moonstream,
+    MoonstreamQueryResultUrl,
+)
+
+from .middleware import MoonstreamHTTPException
+from .settings import bugout_client as bc
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -77,7 +82,7 @@ def get_entity_subscription_collection_id(
     resource_type: str,
     token: Union[uuid.UUID, str],
     user_id: uuid.UUID,
-) -> Optional[str]:
+) -> str:
     """
     Get collection_id from brood resources. If collection not exist and create_if_not_exist is True
     """
@@ -101,3 +106,67 @@ def get_entity_subscription_collection_id(
     else:
         resource = resources.resources[0]
     return resource.resource_data["collection_id"]
+
+
+def recive_S3_data_from_query(
+    client: Moonstream,
+    token: Union[str, uuid.UUID],
+    query_name: str,
+    params: Dict[str, Any] = {},
+    time_await: int = 2,
+    max_retries: int = 30,
+    custom_body: Optional[Dict[str, Any]] = None,
+) -> Any:
+    """
+    Await the query to be update data on S3 with if_modified_since and return new the data.
+    """
+
+    keep_going = True
+
+    repeat = 0
+
+    if_modified_since_datetime = datetime.utcnow()
+    if_modified_since = if_modified_since_datetime.strftime("%a, %d %b %Y %H:%M:%S GMT")
+
+    time.sleep(2)
+    if custom_body:
+        headers = {
+            "Authorization": f"Bearer {token}",
+        }
+        json = custom_body
+
+        response = requests.post(
+            url=f"{client.api.endpoints[ENDPOINT_QUERIES]}/{query_name}/update_data",
+            headers=headers,
+            json=json,
+            timeout=5,
+        )
+        data_url = MoonstreamQueryResultUrl(url=response.json()["url"])
+    else:
+        data_url = client.exec_query(
+            token=token,
+            name=query_name,
+            params=params,
+        )  # S3 presign_url
+
+    while keep_going:
+        time.sleep(time_await)
+        try:
+            data_response = requests.get(
+                data_url.url,
+                headers={"If-Modified-Since": if_modified_since},
+                timeout=5,
+            )
+        except Exception as e:
+            logger.error(e)
+            continue
+
+        if data_response.status_code == 200:
+            break
+
+        repeat += 1
+
+        if repeat > max_retries:
+            logger.info("Too many retries")
+            break
+    return data_response.json()

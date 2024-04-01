@@ -14,7 +14,7 @@ PREFIX_WARN="${C_YELLOW}[WARN]${C_RESET} [$(date +%d-%m\ %T)]"
 PREFIX_CRIT="${C_RED}[CRIT]${C_RESET} [$(date +%d-%m\ %T)]"
 
 # Main
-APP_DIR="${APP_DIR:-/home/ubuntu/moonstream}"
+APP_DIR="${APP_DIR:-/home/ubuntu/api}"
 AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
 PYTHON_ENV_DIR="${PYTHON_ENV_DIR:-/home/ubuntu/moonstream-env}"
 PYTHON="${PYTHON_ENV_DIR}/bin/python"
@@ -36,7 +36,7 @@ echo -e "${PREFIX_INFO} Upgrading Python pip and setuptools"
 echo
 echo
 echo -e "${PREFIX_INFO} Installing Python dependencies"
-"${PIP}" install -e "${APP_DIR}/moonstreamapi/"
+"${PIP}" install --exists-action i -r "${APP_DIR}/moonstreamapi/requirements.txt"
 
 echo
 echo

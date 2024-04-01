@@ -62,4 +62,4 @@ class TestQueries(unittest.TestCase):
             queries.query_validation("OR(1=1)#")
 
         with self.assertRaises(queries.QueryNotValid):
-            queries.query_validation("/etc/hosts")
+            queries.query_validation("0/**/or/**/1")

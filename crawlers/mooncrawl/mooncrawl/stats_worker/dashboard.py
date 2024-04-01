@@ -1,26 +1,32 @@
 """
 Generates dashboard.
 """
+
 import argparse
 import hashlib
 import json
 import logging
 import time
-import traceback
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union, cast
 from uuid import UUID
 
 import boto3  # type: ignore
-from bugout.data import BugoutResource, BugoutResources
-from entity.data import EntityResponse, EntityCollectionResponse  # type: ignore
+from bugout.data import (
+    BugoutJournalEntity,
+    BugoutResource,
+    BugoutResources,
+    BugoutSearchResultAsEntity,
+)
 from moonstreamdb.blockchain import (
     AvailableBlockchainType,
     get_label_model,
     get_transaction_model,
 )
-from sqlalchemy import and_, cast, distinct, extract, func, text
+from sqlalchemy import and_
+from sqlalchemy import cast as sqlalchemy_cast
+from sqlalchemy import distinct, extract, func, text
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.operators import in_op
 from web3 import Web3
@@ -29,14 +35,13 @@ from ..blockchain import connect
 from ..db import yield_db_read_only_session_ctx
 from ..reporter import reporter
 from ..settings import (
+    BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
     CRAWLER_LABEL,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
-    MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
-    NB_CONTROLLER_ACCESS_ID,
     MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,
-    BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
+    MOONSTREAM_S3_SMARTCONTRACTS_ABI_PREFIX,
 )
-from ..settings import bugout_client as bc, entity_client as ec
+from ..settings import bugout_client as bc
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -48,6 +53,15 @@ subscription_id_by_blockchain = {
     "mumbai": "mumbai_smartcontract",
     "xdai": "xdai_smartcontract",
     "wyrm": "wyrm_smartcontract",
+    "zksync_era_testnet": "zksync_era_testnet_smartcontract",
+    "zksync_era": "zksync_era_smartcontract",
+    "zksync_era_sepolia": "zksync_era_sepolia_smartcontract",
+    "arbitrum_nova": "arbitrum_nova_smartcontract",
+    "arbitrum_sepolia": "arbitrum_sepolia_smartcontract",
+    "xai": "xai_smartcontract",
+    "xai_sepolia": "xai_sepolia_smartcontract",
+    "avalanche": "avalanche_smartcontract",
+    "avalanche_fuji": "avalanche_fuji_smartcontract",
 }
 
 blockchain_by_subscription_id = {
@@ -56,11 +70,29 @@ blockchain_by_subscription_id = {
     "mumbai_blockchain": "mumbai",
     "xdai_blockchain": "xdai",
     "wyrm_blockchain": "wyrm",
+    "zksync_era_testnet_blockchain": "zksync_era_testnet",
+    "zksync_era_blockchain": "zksync_era",
+    "zksync_era_sepolia_blockchain": "zksync_era_sepolia",
+    "arbitrum_nova_blockchain": "arbitrum_nova",
+    "arbitrum_sepolia_blockchain": "arbitrum_sepolia",
+    "xai_blockchain": "xai",
+    "xai_sepolia_blockchain": "xai_sepolia",
+    "avalanche_blockchain": "avalanche",
+    "avalanche_fuji_blockchain": "avalanche_fuji",
     "ethereum_smartcontract": "ethereum",
     "polygon_smartcontract": "polygon",
     "mumbai_smartcontract": "mumbai",
     "xdai_smartcontract": "xdai",
     "wyrm_smartcontract": "wyrm",
+    "zksync_era_testnet_smartcontract": "zksync_era_testnet",
+    "zksync_era_smartcontract": "zksync_era",
+    "zksync_era_sepolia_smartcontract": "zksync_era_sepolia",
+    "arbitrum_nova_smartcontract": "arbitrum_nova",
+    "arbitrum_sepolia_smartcontract": "arbitrum_sepolia",
+    "xai_smartcontract": "xai",
+    "xai_sepolia_smartcontract": "xai_sepolia",
+    "avalanche_smartcontract": "avalanche",
+    "avalanche_fuji_smartcontract": "avalanche_fuji",
 }
 
 
@@ -151,14 +183,16 @@ def generate_data(
         .filter(label_model.address == address)
         .filter(label_model.label == crawler_label)
         .filter(label_model.label_data["type"].astext == metric_type)
-        .filter(in_op(label_model.label_data["name"].astext, functions))
+        .filter(in_op(label_model.label_data["name"].astext, functions))  # type: ignore
         .filter(
             label_model.block_timestamp
-            >= cast(extract("epoch", start), label_model.block_timestamp.type)
+            >= sqlalchemy_cast(
+                extract("epoch", start), label_model.block_timestamp.type
+            )
         )
         .filter(
             label_model.block_timestamp
-            < cast(
+            < sqlalchemy_cast(
                 extract("epoch", (start + timescales_delta[timescale]["timedelta"])),
                 label_model.block_timestamp.type,
             )
@@ -214,8 +248,8 @@ def generate_data(
         .join(
             with_empty_times_series_with_tags,
             and_(
-                with_empty_times_series_with_tags.c.label
-                == with_timetrashold_data.c.label,
+                with_empty_times_series_with_tags.c.label  # type: ignore
+                == with_timetrashold_data.c.label,  # type: ignore
                 with_empty_times_series_with_tags.c.timeseries_points
                 == with_timetrashold_data.c.timeseries_points,
             ),
@@ -345,7 +379,7 @@ def generate_list_of_names(
 def process_external_merged(
     external_calls: Dict[str, Dict[str, Any]],
     blockchain: AvailableBlockchainType,
-    access_id: Optional[UUID] = None,
+    web3_uri: Optional[str] = None,
 ):
     """
     Process external calls
@@ -390,11 +424,11 @@ def process_external_merged(
             logger.error(f"Error processing external call: {e}")
 
     if external_calls_normalized:
-        web3_client = connect(blockchain, access_id=access_id)
+        web3_client = connect(blockchain, web3_uri=web3_uri)
 
     for extcall in external_calls_normalized:
         try:
-            contract = web3_client.eth.contract(
+            contract = web3_client.eth.contract(  # type: ignore
                 address=extcall["address"], abi=extcall["abi"]
             )
             response = contract.functions[extcall["name"]](
@@ -411,7 +445,7 @@ def process_external_merged(
 def process_external(
     abi_external_calls: List[Dict[str, Any]],
     blockchain: AvailableBlockchainType,
-    access_id: Optional[UUID] = None,
+    web3_uri: Optional[str] = None,
 ):
     """
     Request all required external data
@@ -457,11 +491,11 @@ def process_external(
             logger.error(f"Error processing external call: {e}")
 
     if external_calls:
-        web3_client = connect(blockchain, access_id=access_id)
+        web3_client = connect(blockchain, web3_uri=web3_uri)
 
     for extcall in external_calls:
         try:
-            contract = web3_client.eth.contract(
+            contract = web3_client.eth.contract(  # type: ignore
                 address=extcall["address"], abi=extcall["abi"]
             )
             response = contract.functions[extcall["name"]](
@@ -508,7 +542,7 @@ def generate_web3_metrics(
     address: str,
     crawler_label: str,
     abi_json: Any,
-    access_id: Optional[UUID] = None,
+    web3_uri: Optional[str] = None,
 ) -> List[Any]:
     """
     Generate stats for cards components
@@ -521,7 +555,7 @@ def generate_web3_metrics(
     extention_data = process_external(
         abi_external_calls=abi_external_calls,
         blockchain=blockchain_type,
-        access_id=access_id,
+        web3_uri=web3_uri,
     )
 
     extention_data.append(
@@ -649,25 +683,26 @@ def stats_generate_handler(args: argparse.Namespace):
 
         address_dashboard_id_subscription_id_tree: Dict[str, Any] = {}
 
-        for user_id, collection_id in user_collection_by_id.items():
+        for user_id, journal_id in user_collection_by_id.items():
             # request all subscriptions for user
 
-            user_subscriptions: EntityCollectionResponse = ec.search_entities(
+            user_subscriptions = bc.search(
                 token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-                collection_id=collection_id,
-                required_field=[
-                    "subscription_type_id:{}".format(
-                        subscription_id_by_blockchain[args.blockchain]
-                    )
-                ],
+                journal_id=journal_id,
+                query=f"tag:subscription_type_id:{subscription_id_by_blockchain[args.blockchain]}",
+                representation="entity",
             )
 
+            user_subscriptions_results = cast(
+                List[BugoutSearchResultAsEntity], user_subscriptions.results
+            )
             logger.info(
-                f"Amount of user subscriptions: {len(user_subscriptions.entities)}"
+                f"Amount of user subscriptions: {len(user_subscriptions_results)}"
             )
 
-            for subscription in user_subscriptions.entities:
-                subscription_id = str(subscription.entity_id)
+            for subscription in user_subscriptions_results:
+                entity_url_list = subscription.entity_url.split("/")
+                subscription_id = entity_url_list[len(entity_url_list) - 1]
 
                 if subscription_id not in dashboards_by_subscription:
                     logger.info(
@@ -697,25 +732,29 @@ def stats_generate_handler(args: argparse.Namespace):
                             address = subscription.address
 
                             if address not in address_dashboard_id_subscription_id_tree:
-                                address_dashboard_id_subscription_id_tree[address] = {}
+                                address_dashboard_id_subscription_id_tree[address] = {}  # type: ignore
 
                             if (
                                 str(dashboard.id)
                                 not in address_dashboard_id_subscription_id_tree
                             ):
-                                address_dashboard_id_subscription_id_tree[address][
+                                address_dashboard_id_subscription_id_tree[address][  # type: ignore
                                     str(dashboard.id)
                                 ] = []
 
                             if (
                                 subscription_id
-                                not in address_dashboard_id_subscription_id_tree[
-                                    address
-                                ][str(dashboard.id)]
-                            ):
-                                address_dashboard_id_subscription_id_tree[address][
+                                not in address_dashboard_id_subscription_id_tree[  # type: ignore
+                                    address  # type: ignore
+                                ][
                                     str(dashboard.id)
-                                ].append(subscription_id)
+                                ]
+                            ):  # type: ignore
+                                address_dashboard_id_subscription_id_tree[address][  # type: ignore
+                                    str(dashboard.id)
+                                ].append(
+                                    subscription_id
+                                )
 
                             abi = None
                             if "abi" in subscription.secondary_fields:
@@ -749,23 +788,23 @@ def stats_generate_handler(args: argparse.Namespace):
                                 )
 
                             if address not in merged_events:
-                                merged_events[address] = {}
-                                merged_events[address]["merged"] = set()
+                                merged_events[address] = {}  # type: ignore
+                                merged_events[address]["merged"] = set()  # type: ignore
 
                             if address not in merged_functions:
-                                merged_functions[address] = {}
-                                merged_functions[address]["merged"] = set()
+                                merged_functions[address] = {}  # type: ignore
+                                merged_functions[address]["merged"] = set()  # type: ignore
 
-                            if str(dashboard.id) not in merged_events[address]:
-                                merged_events[address][str(dashboard.id)] = {}
+                            if str(dashboard.id) not in merged_events[address]:  # type: ignore
+                                merged_events[address][str(dashboard.id)] = {}  # type: ignore
 
-                            if str(dashboard.id) not in merged_functions[address]:
-                                merged_functions[address][str(dashboard.id)] = {}
+                            if str(dashboard.id) not in merged_functions[address]:  # type: ignore
+                                merged_functions[address][str(dashboard.id)] = {}  # type: ignore
 
-                            merged_events[address][str(dashboard.id)][
+                            merged_events[address][str(dashboard.id)][  # type: ignore
                                 subscription_id
                             ] = events
-                            merged_functions[address][str(dashboard.id)][
+                            merged_functions[address][str(dashboard.id)][  # type: ignore
                                 subscription_id
                             ] = methods
 
@@ -832,10 +871,10 @@ def stats_generate_handler(args: argparse.Namespace):
                             # Fill merged events and functions calls for all subscriptions
 
                             for event in events:
-                                merged_events[address]["merged"].add(event)
+                                merged_events[address]["merged"].add(event)  # type: ignore
 
                             for method in methods:
-                                merged_functions[address]["merged"].add(method)
+                                merged_functions[address]["merged"].add(method)  # type: ignore
 
                         except Exception as e:
                             logger.error(f"Error while merging subscriptions: {e}")
@@ -846,7 +885,7 @@ def stats_generate_handler(args: argparse.Namespace):
         external_calls_results = process_external_merged(
             external_calls=merged_external_calls["merged"],
             blockchain=blockchain_type,
-            access_id=args.access_id,
+            web3_uri=args.web3_uri,
         )
 
         for address in address_dashboard_id_subscription_id_tree.keys():
@@ -911,9 +950,9 @@ def stats_generate_handler(args: argparse.Namespace):
 
                                 s3_subscription_data_object: Dict[str, Any] = {}
 
-                                s3_subscription_data_object[
-                                    "blocks_state"
-                                ] = s3_data_object_for_contract["blocks_state"]
+                                s3_subscription_data_object["blocks_state"] = (
+                                    s3_data_object_for_contract["blocks_state"]
+                                )
 
                                 if dashboard_id in merged_external_calls:
                                     for (
@@ -932,9 +971,9 @@ def stats_generate_handler(args: argparse.Namespace):
                                                 }
                                             )
 
-                                s3_subscription_data_object[
-                                    "web3_metric"
-                                ] = extention_data
+                                s3_subscription_data_object["web3_metric"] = (
+                                    extention_data
+                                )
 
                                 # list of user defined events
 
@@ -946,9 +985,9 @@ def stats_generate_handler(args: argparse.Namespace):
 
                                 for event in events_list:
                                     if event in events_data:
-                                        s3_subscription_data_object["events"][
-                                            event
-                                        ] = events_data[event]
+                                        s3_subscription_data_object["events"][event] = (
+                                            events_data[event]
+                                        )
 
                                 # list of user defined functions
 
@@ -984,7 +1023,7 @@ def stats_generate_handler(args: argparse.Namespace):
                                         "statistics",
                                         f"blockchain:{args.blockchain}"
                                         f"subscriptions:{subscription_id}",
-                                        f"dashboard:{dashboard}",
+                                        f"dashboard:{dashboard}",  # type: ignore
                                     ],
                                 )
                                 logger.error(err)
@@ -1011,8 +1050,8 @@ def stats_generate_handler(args: argparse.Namespace):
 def stats_generate_api_task(
     timescales: List[str],
     dashboard: BugoutResource,
-    subscription_by_id: Dict[str, EntityResponse],
-    access_id: Optional[UUID] = None,
+    subscription_by_id: Dict[str, BugoutJournalEntity],
+    web3_uri: Optional[str] = None,
 ):
     """
     Start crawler with generate.
@@ -1028,7 +1067,7 @@ def stats_generate_api_task(
                 subscription_id = dashboard_subscription_filters["subscription_id"]
 
                 subscription_type_id = None
-                for required_field in subscription_by_id[
+                for required_field in subscription_by_id[  # type: ignore
                     subscription_id
                 ].required_fields:
                     if "subscription_type_id" in required_field:
@@ -1053,8 +1092,8 @@ def stats_generate_api_task(
                 crawler_label = CRAWLER_LABEL
 
                 abi = None
-                if "abi" in subscription_by_id[subscription_id].secondary_fields:
-                    abi = subscription_by_id[subscription_id].secondary_fields["abi"]
+                if "abi" in subscription_by_id[subscription_id].secondary_fields:  # type: ignore
+                    abi = subscription_by_id[subscription_id].secondary_fields["abi"]  # type: ignore
 
                 # Read required events, functions and web3_call form ABI
                 if abi is None:
@@ -1085,10 +1124,10 @@ def stats_generate_api_task(
                     db_session=db_session,
                     events=events,
                     blockchain_type=blockchain_type,
-                    address=address,
+                    address=address,  # type: ignore
                     crawler_label=crawler_label,
                     abi_json=abi_json,
-                    access_id=access_id,
+                    web3_uri=web3_uri,
                 )
 
                 # Generate blocks state information
@@ -1115,7 +1154,7 @@ def stats_generate_api_task(
                     functions_calls_data = generate_data(
                         db_session=db_session,
                         blockchain_type=blockchain_type,
-                        address=address,
+                        address=address,  # type: ignore
                         timescale=timescale,
                         functions=methods,
                         start=start_date,
@@ -1128,7 +1167,7 @@ def stats_generate_api_task(
                     events_data = generate_data(
                         db_session=db_session,
                         blockchain_type=blockchain_type,
-                        address=address,
+                        address=address,  # type: ignore
                         timescale=timescale,
                         functions=events,
                         start=start_date,
@@ -1142,7 +1181,7 @@ def stats_generate_api_task(
                     push_statistics(
                         statistics_data=s3_data_object,
                         subscription_type_id=subscription_type_id,
-                        address=address,
+                        address=address,  # type: ignore
                         timescale=timescale,
                         bucket=MOONSTREAM_S3_SMARTCONTRACTS_ABI_BUCKET,  # type: ignore
                         dashboard_id=dashboard.id,
@@ -1153,7 +1192,7 @@ def stats_generate_api_task(
                     [
                         "dashboard",
                         "statistics",
-                        f"subscriptions:{subscription_id}",
+                        f"subscriptions:{subscription_id}",  # type: ignore
                         f"dashboard:{str(dashboard.id)}",
                     ],
                 )
@@ -1165,10 +1204,8 @@ def main() -> None:
     parser.set_defaults(func=lambda _: parser.print_help())
 
     parser.add_argument(
-        "--access-id",
-        default=NB_CONTROLLER_ACCESS_ID,
-        type=UUID,
-        help="User access ID",
+        "--web3-uri",
+        help="Node JSON RPC uri",
     )
 
     subcommands = parser.add_subparsers(

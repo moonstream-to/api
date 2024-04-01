@@ -10,7 +10,6 @@ from web3.middleware import geth_poa_middleware
 
 from ..blockchain import connect
 from ..db import yield_db_session_ctx
-from ..settings import NB_CONTROLLER_ACCESS_ID
 from .base import crawl, get_checkpoint, populate_with_events
 
 logging.basicConfig(level=logging.INFO)
@@ -39,7 +38,7 @@ def handle_nft_crawler(args: argparse.Namespace) -> None:
             logger.info(
                 "No web3 provider URL provided, using default (blockchan.py: connect())"
             )
-            web3 = connect(blockchain_type, access_id=args.access_id)
+            web3 = connect(blockchain_type, web3_uri=args.web3_uri)
         else:
             logger.info(f"Using web3 provider URL: {args.web3}")
             web3 = Web3(
@@ -91,7 +90,7 @@ def populate_with_erc20_transfers(args: argparse.Namespace) -> None:
             logger.info(
                 "No web3 provider URL provided, using default (blockchan.py: connect())"
             )
-            web3 = connect(blockchain_type, access_id=args.access_id)
+            web3 = connect(blockchain_type, web3_uri=args.web3_uri)
         else:
             logger.info(f"Using web3 provider URL: {args.web3}")
             web3 = Web3(
@@ -137,7 +136,7 @@ def handle_crawl(args: argparse.Namespace) -> None:
             logger.info(
                 "No web3 provider URL provided, using default (blockchan.py: connect())"
             )
-            web3 = connect(blockchain_type, access_id=args.access_id)
+            web3 = connect(blockchain_type, web3_uri=args.web3_uri)
         else:
             logger.info(f"Using web3 provider URL: {args.web3}")
             web3 = Web3(
@@ -172,10 +171,8 @@ def main():
     subparsers = parser.add_subparsers()
 
     parser.add_argument(
-        "--access-id",
-        default=NB_CONTROLLER_ACCESS_ID,
-        type=UUID,
-        help="User access ID",
+        "--web3-uri",
+        help="Node JSON RPC uri",
     )
 
     crawl_parser = subparsers.add_parser("crawl", help="Crawl with abi")

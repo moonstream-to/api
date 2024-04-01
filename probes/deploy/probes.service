@@ -1,0 +1,16 @@
+[Unit]
+Description=Run probes service
+After=network.target
+StartLimitIntervalSec=300
+StartLimitBurst=3
+
+[Service]
+WorkingDirectory=/home/ubuntu/api/probes
+EnvironmentFile=/home/ubuntu/probes-secrets/app.env
+ExecStart=/home/ubuntu/api/probes/probes service --config /home/ubuntu/.probes/engine-clean-call-requests.json
+Restart=on-failure
+RestartSec=15s
+SyslogIdentifier=probes
+
+[Install]
+WantedBy=multi-user.target

@@ -2,6 +2,18 @@ from enum import Enum
 from typing import Dict, Union
 
 from .models import (
+    ArbitrumNovaBlock,
+    ArbitrumNovaLabel,
+    ArbitrumNovaTransaction,
+    ArbitrumSepoliaBlock,
+    ArbitrumSepoliaLabel,
+    ArbitrumSepoliaTransaction,
+    AvalancheBlock,
+    AvalancheFujiBlock,
+    AvalancheFujiLabel,
+    AvalancheFujiTransaction,
+    AvalancheLabel,
+    AvalancheTransaction,
     Base,
     EthereumBlock,
     EthereumLabel,
@@ -15,9 +27,24 @@ from .models import (
     WyrmBlock,
     WyrmLabel,
     WyrmTransaction,
+    XaiBlock,
+    XaiLabel,
+    XaiSepoliaBlock,
+    XaiSepoliaLabel,
+    XaiSepoliaTransaction,
+    XaiTransaction,
     XDaiBlock,
     XDaiLabel,
     XDaiTransaction,
+    ZkSyncEraBlock,
+    ZkSyncEraLabel,
+    ZkSyncEraSepoliaBlock,
+    ZkSyncEraSepoliaLabel,
+    ZkSyncEraSepoliaTransaction,
+    ZkSyncEraTestnetBlock,
+    ZkSyncEraTestnetLabel,
+    ZkSyncEraTestnetTransaction,
+    ZkSyncEraTransaction,
 )
 
 
@@ -27,6 +54,15 @@ class Network(Enum):
     mumbai = "mumbai"
     xdai = "xdai"
     wyrm = "wyrm"
+    zksync_era_testnet = "zksync_era_testnet"
+    zksync_era = "zksync_era"
+    zksync_era_sepolia = "zksync_era_sepolia"
+    arbitrum_nova = "arbitrum_nova"
+    arbitrum_sepolia = "arbitrum_sepolia"
+    xai = "xai"
+    xai_sepolia = "xai_sepolia"
+    avalanche = "avalanche"
+    avalanche_fuji = "avalanche_fuji"
 
 
 tx_raw_types = Union[
@@ -35,6 +71,15 @@ tx_raw_types = Union[
     PolygonTransaction,
     WyrmTransaction,
     XDaiTransaction,
+    ZkSyncEraTestnetTransaction,
+    ZkSyncEraTransaction,
+    ZkSyncEraSepoliaTransaction,
+    ArbitrumNovaTransaction,
+    ArbitrumSepoliaTransaction,
+    XaiTransaction,
+    XaiSepoliaTransaction,
+    AvalancheTransaction,
+    AvalancheFujiTransaction,
 ]
 
 MODELS: Dict[Network, Dict[str, Base]] = {
@@ -62,5 +107,50 @@ MODELS: Dict[Network, Dict[str, Base]] = {
         "blocks": WyrmBlock,
         "labels": WyrmLabel,
         "transactions": WyrmTransaction,
+    },
+    Network.zksync_era_testnet: {
+        "blocks": ZkSyncEraTestnetBlock,
+        "labels": ZkSyncEraTestnetLabel,
+        "transactions": ZkSyncEraTestnetTransaction,
+    },
+    Network.zksync_era: {
+        "blocks": ZkSyncEraSepoliaBlock,
+        "labels": ZkSyncEraSepoliaLabel,
+        "transactions": ZkSyncEraSepoliaTransaction,
+    },
+    Network.zksync_era_sepolia: {
+        "blocks": ZkSyncEraBlock,
+        "labels": ZkSyncEraLabel,
+        "transactions": ZkSyncEraTransaction,
+    },
+    Network.arbitrum_nova: {
+        "blocks": ArbitrumNovaBlock,
+        "labels": ArbitrumNovaLabel,
+        "transactions": ArbitrumNovaTransaction,
+    },
+    Network.arbitrum_sepolia: {
+        "blocks": ArbitrumSepoliaBlock,
+        "labels": ArbitrumSepoliaLabel,
+        "transactions": ArbitrumSepoliaTransaction,
+    },
+    Network.xai: {
+        "blocks": XaiBlock,
+        "labels": XaiLabel,
+        "transactions": XaiTransaction,
+    },
+    Network.xai_sepolia: {
+        "blocks": XaiSepoliaBlock,
+        "labels": XaiSepoliaLabel,
+        "transactions": XaiSepoliaTransaction,
+    },
+    Network.avalanche: {
+        "blocks": AvalancheBlock,
+        "labels": AvalancheLabel,
+        "transactions": AvalancheTransaction,
+    },
+    Network.avalanche_fuji: {
+        "blocks": AvalancheFujiBlock,
+        "labels": AvalancheFujiLabel,
+        "transactions": AvalancheFujiTransaction,
     },
 }

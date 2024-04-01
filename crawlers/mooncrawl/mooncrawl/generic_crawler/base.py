@@ -11,11 +11,7 @@ from moonstreamdb.blockchain import (
     get_label_model,
     get_transaction_model,
 )
-from moonstreamdb.models import (
-    Base,
-    EthereumTransaction,
-    PolygonTransaction,
-)
+from moonstreamdb.models import Base, EthereumTransaction, PolygonTransaction
 from moonworm.crawler.function_call_crawler import (  # type: ignore
     ContractFunctionCall,
     utfy_dict,
@@ -26,10 +22,7 @@ from tqdm import tqdm
 from web3 import Web3
 from web3._utils.events import get_event_data
 
-from ..moonworm_crawler.db import (
-    add_events_to_session,
-    commit_session,
-)
+from ..moonworm_crawler.db import add_events_to_session, commit_session
 from ..moonworm_crawler.event_crawler import Event, get_block_timestamp
 
 logging.basicConfig(level=logging.INFO)

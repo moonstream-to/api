@@ -305,9 +305,13 @@ func fetchClientAccessFromResources(accessID, authorizationToken string, tsNow i
 func extractAccessID(r *http.Request) string {
 	var accessID string
 
-	accessIDHeaders := r.Header[strings.Title(NB_ACCESS_ID_HEADER)]
-	for _, h := range accessIDHeaders {
-		accessID = h
+	urlPathSlice := strings.Split(r.URL.Path, "/")
+	if len(urlPathSlice) == 5 {
+		potentialUuid := urlPathSlice[4]
+		_, uuidParseErr := uuid.Parse(potentialUuid)
+		if uuidParseErr == nil {
+			accessID = potentialUuid
+		}
 	}
 
 	queries := r.URL.Query()
@@ -315,6 +319,11 @@ func extractAccessID(r *http.Request) string {
 		if k == "access_id" {
 			accessID = v[0]
 		}
+	}
+
+	accessIDHeaders := r.Header[strings.Title(NB_ACCESS_ID_HEADER)]
+	for _, h := range accessIDHeaders {
+		accessID = h
 	}
 
 	return accessID
@@ -359,19 +368,29 @@ func panicMiddleware(next http.Handler) http.Handler {
 // CORS middleware
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodOptions {
-			for _, allowedOrigin := range strings.Split(MOONSTREAM_CORS_ALLOWED_ORIGINS, ",") {
-				if r.Header.Get("Origin") == allowedOrigin {
-					w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
-					w.Header().Set("Access-Control-Allow-Methods", "GET,POST")
-					// Credentials are cookies, authorization headers, or TLS client certificates
-					w.Header().Set("Access-Control-Allow-Credentials", "true")
-					w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
-				}
+		var allowedOrigin string
+		if CORS_WHITELIST_MAP["*"] {
+			allowedOrigin = "*"
+		} else {
+			origin := r.Header.Get("Origin")
+			if _, ok := CORS_WHITELIST_MAP[origin]; ok {
+				allowedOrigin = origin
 			}
-			w.WriteHeader(http.StatusNoContent)
+		}
+
+		if allowedOrigin != "" {
+			w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
+			w.Header().Set("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+			// Credentials are cookies, authorization headers, or TLS client certificates
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+			w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
+		}
+
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
 			return
 		}
+
 		next.ServeHTTP(w, r)
 	})
 }
@@ -381,6 +400,7 @@ func jsonrpcRequestParser(body []byte) ([]JSONRPCRequest, error) {
 	var jsonrpcRequest []JSONRPCRequest
 
 	firstByte := bytes.TrimLeft(body, " \t\r\n")
+
 	switch {
 	case len(firstByte) > 0 && firstByte[0] == '[':
 		err := json.Unmarshal(body, &jsonrpcRequest)
@@ -396,6 +416,17 @@ func jsonrpcRequestParser(body []byte) ([]JSONRPCRequest, error) {
 		jsonrpcRequest = []JSONRPCRequest{singleJsonrpcRequest}
 	default:
 		return nil, fmt.Errorf("incorrect first byte in JSON RPC request")
+	}
+
+	for _, req := range jsonrpcRequest {
+		switch v := req.ID.(type) {
+		case float64:
+			req.ID = uint64(v)
+		case string:
+		case nil:
+		default:
+			return nil, fmt.Errorf("unexpected type for id: %T", v)
+		}
 	}
 
 	return jsonrpcRequest, nil

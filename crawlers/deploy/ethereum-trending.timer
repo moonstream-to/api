@@ -1,9 +1,0 @@
-[Unit]
-Description=Load trending Ethereum addresses to the database every 5 minutes
-
-[Timer]
-OnBootSec=60s
-OnUnitActiveSec=5m
-
-[Install]
-WantedBy=timers.target

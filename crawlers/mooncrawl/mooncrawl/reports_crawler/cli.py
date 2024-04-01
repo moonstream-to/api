@@ -1,24 +1,22 @@
 import argparse
 import csv
 import datetime
-import logging
-from io import StringIO
-from moonstream.client import Moonstream  # type: ignore
-import time
-import requests  # type: ignore
 import json
-
+import logging
+import time
+from io import StringIO
 from typing import Any, Dict, Union
-
 from uuid import UUID
 
-from .queries import tokenomics_queries, cu_bank_queries, tokenomics_orange_dao_queries
+import requests  # type: ignore
+from moonstream.client import Moonstream  # type: ignore
 
+from ..actions import recive_S3_data_from_query
 from ..settings import (
     MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
     MOONSTREAM_S3_PUBLIC_DATA_BUCKET_PREFIX,
 )
-
+from .queries import cu_bank_queries, tokenomics_orange_dao_queries, tokenomics_queries
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -32,56 +30,6 @@ addresess_erc20_721 = {
 }
 
 addresess_erc1155 = ["0x99A558BDBdE247C2B2716f0D4cFb0E246DFB697D"]
-
-
-def recive_S3_data_from_query(
-    client: Moonstream,
-    token: Union[str, UUID],
-    query_name: str,
-    params: Dict[str, Any],
-    time_await: int = 2,
-    max_retries: int = 30,
-) -> Any:
-    """
-    Await the query to be update data on S3 with if_modified_since and return new the data.
-    """
-
-    keep_going = True
-
-    repeat = 0
-
-    if_modified_since_datetime = datetime.datetime.utcnow()
-    if_modified_since = if_modified_since_datetime.strftime("%a, %d %b %Y %H:%M:%S GMT")
-
-    time.sleep(2)
-
-    data_url = client.exec_query(
-        token=token,
-        name=query_name,
-        params=params,
-    )  # S3 presign_url
-
-    while keep_going:
-        time.sleep(time_await)
-        try:
-            data_response = requests.get(
-                data_url.url,
-                headers={"If-Modified-Since": if_modified_since},
-                timeout=5,
-            )
-        except Exception as e:
-            logger.error(e)
-            continue
-
-        if data_response.status_code == 200:
-            break
-
-        repeat += 1
-
-        if repeat > max_retries:
-            logger.info("Too many retries")
-            break
-    return data_response.json()
 
 
 def generate_report(
@@ -533,7 +481,12 @@ def generate_report_nft_dashboard_handler(args: argparse.Namespace):
     ).queries:
         params = {}  # type: ignore
 
-        if query.name not in ["cu_nft_dashboard_data", "cu_land_nft_dashboard_data"]:
+        if query.name not in [
+            "cu_nft_dashboard_data",
+            "cu_land_nft_dashboard_data",
+            "cu_seaport_feed_polygon",
+            "cu_breeding_feed",
+        ]:
             continue
 
         logger.info(f"Generating report for {query.name}")
@@ -542,6 +495,7 @@ def generate_report_nft_dashboard_handler(args: argparse.Namespace):
             token=args.moonstream_token,
             query_name=query.name,
             params=params,
+            time_await=4,
         )
 
         logger.info(f"Data recived. Uploading report for {query.name} as json")

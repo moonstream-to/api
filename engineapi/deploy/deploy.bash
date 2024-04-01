@@ -23,8 +23,10 @@ SCRIPT_DIR="$(realpath $(dirname $0))"
 SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/engineapi-secrets}"
 PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
 
-# API server service file
+# Engine API service files
 ENGINE_SERVICE_FILE="engine.service"
+ENGINE_ORIGINS_SYNC_SERVICE_FILE="engine-origins-sync.service"
+ENGINE_ORIGINS_SYNC_TIMER_FILE="engine-origins-sync.timer"
 
 set -eu
 
@@ -70,3 +72,12 @@ chmod 644 "${SCRIPT_DIR}/${ENGINE_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${ENGINE_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ENGINE_SERVICE_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ENGINE_SERVICE_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing CORS origins synchronize service and timer with: ${ENGINE_ORIGINS_SYNC_SERVICE_FILE}, ${ENGINE_ORIGINS_SYNC_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ENGINE_ORIGINS_SYNC_SERVICE_FILE}" "${SCRIPT_DIR}/${ENGINE_ORIGINS_SYNC_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ENGINE_ORIGINS_SYNC_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ENGINE_ORIGINS_SYNC_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ENGINE_ORIGINS_SYNC_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ENGINE_ORIGINS_SYNC_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ENGINE_ORIGINS_SYNC_TIMER_FILE}"

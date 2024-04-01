@@ -82,7 +82,7 @@ Stream of event packs will be generating from recent timestamp to older and inne
 
 **From timestamp to timestamp, from bottom to top**
 
-When `start_time` is less then `end_time`.
+When `start_time` is less than `end_time`.
 
 ```python
 for events in mc.create_stream(

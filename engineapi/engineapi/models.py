@@ -1,6 +1,8 @@
 import uuid
 
 from sqlalchemy import (
+    ARRAY,
+    DECIMAL,
     VARCHAR,
     BigInteger,
     Boolean,
@@ -8,13 +10,16 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Index,
+    Integer,
     MetaData,
     String,
     UniqueConstraint,
+    ForeignKeyConstraint,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import and_, expression
 
 """
@@ -155,14 +160,78 @@ class DropperClaimant(Base):  # type: ignore
     )
 
 
+class CallRequestType(Base):  # type: ignore
+    """
+    CallRequestType contains versions of call requests like:
+    raw or dropper-v0.2.0.
+    """
+
+    __tablename__ = "call_request_types"
+
+    name = Column(
+        VARCHAR(128),
+        primary_key=True,
+        unique=True,
+    )
+    description = Column(String, nullable=True)
+
+
+class MetatxRequester(Base):  # type: ignore
+    """
+    MetatxRequester represents id of user from bugout authorization.
+    """
+
+    __tablename__ = "metatx_requesters"
+
+    id = Column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        unique=True,
+    )
+
+    created_at = Column(
+        DateTime(timezone=True), server_default=utcnow(), nullable=False
+    )
+
+    registered_contracts = relationship(
+        "RegisteredContract",
+        back_populates="metatx_requester",
+        cascade="all, delete, delete-orphan",
+    )
+    call_requests = relationship(
+        "CallRequest",
+        back_populates="metatx_requester",
+        cascade="all, delete, delete-orphan",
+    )
+
+
+class Blockchain(Base):  # type: ignore
+    __tablename__ = "blockchains"
+
+    id = Column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        unique=True,
+    )
+    name = Column(VARCHAR(128), nullable=False, index=True, unique=True)
+    chain_id = Column(Integer, nullable=False, index=True, unique=False)
+    testnet = Column(Boolean, default=False, nullable=False)
+
+    registered_contracts = relationship(
+        "RegisteredContract",
+        back_populates="blockchain",
+        cascade="all, delete, delete-orphan",
+    )
+
+
 class RegisteredContract(Base):  # type: ignore
     __tablename__ = "registered_contracts"
     __table_args__ = (
         UniqueConstraint(
-            "blockchain",
-            "moonstream_user_id",
+            "blockchain_id",
+            "metatx_requester_id",
             "address",
-            "contract_type",
         ),
     )
 
@@ -172,14 +241,21 @@ class RegisteredContract(Base):  # type: ignore
         default=uuid.uuid4,
         unique=True,
     )
-    blockchain = Column(VARCHAR(128), nullable=False, index=True)
+    metatx_requester_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("metatx_requesters.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    blockchain_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("blockchains.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
     address = Column(VARCHAR(256), nullable=False, index=True)
-    contract_type = Column(VARCHAR(128), nullable=False, index=True)
     title = Column(VARCHAR(128), nullable=False)
     description = Column(String, nullable=True)
     image_uri = Column(String, nullable=True)
-    # User ID of the Moonstream user who registered this contract.
-    moonstream_user_id = Column(UUID(as_uuid=True), nullable=False, index=True)
 
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
@@ -191,9 +267,26 @@ class RegisteredContract(Base):  # type: ignore
         nullable=False,
     )
 
+    call_requests = relationship(
+        "CallRequest",
+        back_populates="registered_contract",
+        cascade="all, delete, delete-orphan",
+    )
+
+    metatx_requester = relationship(
+        "MetatxRequester", back_populates="registered_contracts"
+    )
+    blockchain = relationship("Blockchain", back_populates="registered_contracts")
+
 
 class CallRequest(Base):
     __tablename__ = "call_requests"
+    __table_args__ = (
+        UniqueConstraint(
+            "registered_contract_id",
+            "request_id",
+        ),
+    )
 
     id = Column(
         UUID(as_uuid=True),
@@ -202,24 +295,30 @@ class CallRequest(Base):
         unique=True,
         nullable=False,
     )
-
     registered_contract_id = Column(
         UUID(as_uuid=True),
         ForeignKey("registered_contracts.id", ondelete="CASCADE"),
         nullable=False,
     )
+    call_request_type_name = Column(
+        VARCHAR(128),
+        ForeignKey("call_request_types.name", ondelete="CASCADE"),
+        nullable=False,
+    )
+    metatx_requester_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("metatx_requesters.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
     caller = Column(VARCHAR(256), nullable=False, index=True)
-    # User ID of the Moonstream user who requested this call.
-    # For now, this duplicates the moonstream_user_id in the registered_contracts table. Nevertheless,
-    # we keep this column here for auditing purposes. In the future, we will add a group_id column to
-    # the registered_contracts table, and this column will be used to track the user from that group
-    # who made each call request.
-    moonstream_user_id = Column(UUID(as_uuid=True), nullable=False, index=True)
     method = Column(String, nullable=False, index=True)
-    # TODO(zomglings): Should we conditional indices on parameters depending on the contract type?
+    request_id = Column(DECIMAL, nullable=False, index=True)
     parameters = Column(JSONB, nullable=False)
+    tx_hash = Column(VARCHAR(256), unique=True, nullable=True)
 
     expires_at = Column(DateTime(timezone=True), nullable=True, index=True)
+    live_at = Column(DateTime(timezone=True), nullable=True)
 
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
@@ -231,10 +330,14 @@ class CallRequest(Base):
         nullable=False,
     )
 
+    registered_contract = relationship(
+        "RegisteredContract", back_populates="call_requests"
+    )
+    metatx_requester = relationship("MetatxRequester", back_populates="call_requests")
+
 
 class Leaderboard(Base):  # type: ignore
     __tablename__ = "leaderboards"
-    # __table_args__ = (UniqueConstraint("dropper_contract_id", "address"),)
 
     id = Column(
         UUID(as_uuid=True),
@@ -246,6 +349,10 @@ class Leaderboard(Base):  # type: ignore
     title = Column(VARCHAR(128), nullable=False)
     description = Column(String, nullable=True)
     resource_id = Column(UUID(as_uuid=True), nullable=True, index=True)
+    blockchain_ids = Column(ARRAY(Integer), nullable=False, default=[])
+
+    wallet_connect = Column(Boolean, default=False, nullable=False)
+    columns_names = Column(JSONB, nullable=True)
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )
@@ -257,9 +364,45 @@ class Leaderboard(Base):  # type: ignore
     )
 
 
+class LeaderboardVersion(Base):  # type: ignore
+    __tablename__ = "leaderboard_versions"
+    __table_args__ = (UniqueConstraint("leaderboard_id", "version_number"),)
+
+    leaderboard_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("leaderboards.id", ondelete="CASCADE"),
+        primary_key=True,
+        nullable=False,
+    )
+    version_number = Column(DECIMAL, primary_key=True, nullable=False)
+    published = Column(Boolean, default=False, nullable=False)
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=utcnow(),
+        nullable=False,
+        index=True,
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=utcnow(),
+        onupdate=utcnow(),
+        nullable=False,
+    )
+
+
 class LeaderboardScores(Base):  # type: ignore
     __tablename__ = "leaderboard_scores"
-    __table_args__ = (UniqueConstraint("leaderboard_id", "address"),)
+    __table_args__ = (
+        UniqueConstraint("leaderboard_id", "address", "leaderboard_version_number"),
+        ForeignKeyConstraint(
+            ["leaderboard_id", "leaderboard_version_number"],
+            [
+                "leaderboard_versions.leaderboard_id",
+                "leaderboard_versions.version_number",
+            ],
+            ondelete="CASCADE",
+        ),
+    )
 
     id = Column(
         UUID(as_uuid=True),
@@ -270,7 +413,10 @@ class LeaderboardScores(Base):  # type: ignore
     )
     leaderboard_id = Column(
         UUID(as_uuid=True),
-        ForeignKey("leaderboards.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    leaderboard_version_number = Column(
+        DECIMAL,
         nullable=False,
     )
     address = Column(VARCHAR(256), nullable=False, index=True)

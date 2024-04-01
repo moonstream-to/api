@@ -1,9 +1,10 @@
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
 from uuid import UUID
 
-from pydantic import BaseModel, Field, root_validator, validator
+from bugout.data import BugoutResource
+from pydantic import AnyHttpUrl, BaseModel, Field, root_validator, validator
 from web3 import Web3
 
 
@@ -21,6 +22,17 @@ class NowResponse(BaseModel):
     """
 
     epoch_time: float
+
+
+class CORSOrigins(BaseModel):
+    origins_set: Set[str] = Field(default_factory=set)
+    resources: List[BugoutResource] = Field(default_factory=list)
+
+
+class IsCORSResponse(BaseModel):
+    origin: Optional[str] = None
+    updated_at: Optional[datetime] = None
+    created_at: Optional[datetime] = None
 
 
 class SignerListResponse(BaseModel):
@@ -79,6 +91,7 @@ class Claimant(BaseModel):
     address: str
     amount: int
     raw_amount: Optional[str] = None
+    added_by: Optional[str] = None
 
 
 class BatchAddClaimantsRequest(BaseModel):
@@ -143,8 +156,20 @@ class DropBatchResponseItem(BaseModel):
     blockchain: str
 
 
+class DropsResponseItem(BaseModel):
+    id: UUID
+    title: str
+    description: str
+    terminus_address: Optional[str] = None
+    terminus_pool_id: Optional[int] = None
+    claim_block_deadline: Optional[int] = None
+    drop_number: Optional[int] = None
+    active: bool = True
+    dropper_contract_address: str
+
+
 class DropListResponse(BaseModel):
-    drops: List[Any] = Field(default_factory=list)
+    drops: List[DropsResponseItem] = Field(default_factory=list)
 
 
 class DropClaimant(BaseModel):
@@ -178,15 +203,35 @@ class DropUpdatedResponse(BaseModel):
     active: bool = True
 
 
-class ContractType(Enum):
-    raw = "raw"
-    dropper = "dropper-v0.2.0"
+class CallRequestTypeResponse(BaseModel):
+    name: str
+    description: str
+
+    class Config:
+        orm_mode = True
+
+
+class CallRequestTypesResponse(BaseModel):
+    call_request_types: List[CallRequestTypeResponse] = Field(default_factory=list)
+
+
+class BlockchainResponse(BaseModel):
+    id: UUID
+    name: str
+    chain_id: int
+    testnet: bool
+
+    class Config:
+        orm_mode = True
+
+
+class BlockchainsResponse(BaseModel):
+    blockchains: List[BlockchainResponse] = Field(default_factory=list)
 
 
 class RegisterContractRequest(BaseModel):
     blockchain: str
     address: str
-    contract_type: ContractType
     title: Optional[str] = None
     description: Optional[str] = None
     image_uri: Optional[str] = None
@@ -199,19 +244,18 @@ class UpdateContractRequest(BaseModel):
     ignore_nulls: bool = True
 
 
-class RegisteredContract(BaseModel):
+class RegisteredContractResponse(BaseModel):
     id: UUID
-    blockchain: str
+    blockchain: Optional[str] = None
     address: str
-    contract_type: str
-    moonstream_user_id: UUID
+    metatx_requester_id: UUID
     title: Optional[str] = None
     description: Optional[str] = None
     image_uri: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
-    @validator("id", "moonstream_user_id")
+    @validator("id", "metatx_requester_id")
     def validate_uuids(cls, v):
         return str(v)
 
@@ -226,6 +270,8 @@ class RegisteredContract(BaseModel):
 class CallSpecification(BaseModel):
     caller: str
     method: str
+    call_request_type: str = "dropper-v0.2.0"
+    request_id: str
     parameters: Dict[str, Any]
 
     @validator("caller")
@@ -238,6 +284,7 @@ class CreateCallRequestsAPIRequest(BaseModel):
     contract_address: Optional[str] = None
     specifications: List[CallSpecification] = Field(default_factory=list)
     ttl_days: Optional[int] = None
+    live_at: Optional[int] = None
 
     # Solution found thanks to https://github.com/pydantic/pydantic/issues/506
     @root_validator
@@ -249,22 +296,26 @@ class CreateCallRequestsAPIRequest(BaseModel):
         return values
 
 
-class CallRequest(BaseModel):
+class CallRequestResponse(BaseModel):
     id: UUID
-    contract_id: UUID = Field(alias="registered_contract_id")
+    contract_id: UUID
     contract_address: Optional[str] = None
-    moonstream_user_id: UUID
+    metatx_requester_id: UUID
+    call_request_type: Optional[str] = None
     caller: str
     method: str
+    request_id: str
     parameters: Dict[str, Any]
-    expires_at: Optional[datetime]
+    tx_hash: Optional[str] = None
+    expires_at: Optional[datetime] = None
+    live_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
 
     class Config:
         orm_mode = True
 
-    @validator("id", "contract_id", "moonstream_user_id")
+    @validator("id", "contract_id", "metatx_requester_id")
     def validate_uuids(cls, v):
         return str(v)
 
@@ -276,6 +327,10 @@ class CallRequest(BaseModel):
     @validator("contract_address", "caller")
     def validate_web3_adresses(cls, v):
         return Web3.toChecksumAddress(v)
+
+
+class CompleteCallRequestsAPIRequest(BaseModel):
+    tx_hash: str
 
 
 class QuartilesResponse(BaseModel):
@@ -300,8 +355,135 @@ class LeaderboardPosition(BaseModel):
     score: int
     points_data: Dict[str, Any]
 
+    class Config:
+        orm_mode = True
+
 
 class RanksResponse(BaseModel):
     rank: int
     score: int
     size: int
+
+
+class LeaderboardScore(BaseModel):
+    leaderboard_id: UUID
+    address: str
+    score: int
+    points_data: Dict[str, Any]
+
+
+class ColumnsNames(BaseModel):
+    rank: Optional[str] = None
+    address: Optional[str] = None
+    score: Optional[str] = None
+    points_data: Optional[str] = None
+    points_data_fields: Optional[Dict[str, str]] = None
+
+
+class Leaderboard(BaseModel):
+    id: UUID
+    title: str
+    description: Optional[str] = None
+    resource_id: Optional[UUID] = None
+    wallet_connect: bool = False
+    blockchain_ids: List[int] = Field(default_factory=list)
+    columns_names: Optional[ColumnsNames] = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class LeaderboardInfoResponse(BaseModel):
+    id: UUID
+    title: str
+    description: Optional[str] = None
+    users_count: int
+    last_updated_at: Optional[datetime] = None
+
+
+class LeaderboardCreateRequest(BaseModel):
+    title: str
+    description: Optional[str] = None
+    wallet_connect: bool = False
+    blockchain_ids: List[int] = Field(default_factory=list)
+    columns_names: Optional[ColumnsNames] = None
+
+
+class LeaderboardCreatedResponse(BaseModel):
+    id: UUID
+    title: str
+    description: Optional[str] = None
+    resource_id: Optional[UUID] = None
+    wallet_connect: bool = False
+    blockchain_ids: List[int] = Field(default_factory=list)
+    columns_names: Optional[ColumnsNames] = None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class LeaderboardUpdatedResponse(BaseModel):
+    id: UUID
+    title: str
+    description: Optional[str] = None
+    resource_id: Optional[UUID] = None
+    wallet_connect: bool = False
+    blockchain_ids: List[int] = Field(default_factory=list)
+    columns_names: Optional[ColumnsNames] = None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class LeaderboardUpdateRequest(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    wallet_connect: bool = False
+    blockchain_ids: List[int] = Field(default_factory=list)
+    columns_names: Optional[ColumnsNames] = None
+
+
+class LeaderboardDeletedResponse(BaseModel):
+    id: UUID
+    title: str
+    description: Optional[str] = None
+    resource_id: Optional[UUID] = None
+    wallet_connect: bool = False
+    blockchain_ids: List[int] = Field(default_factory=list)
+    columns_names: Optional[ColumnsNames] = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class LeaderboardScoresChangesResponse(BaseModel):
+    players_count: int
+    date: datetime
+
+
+class LeaderboardConfig(BaseModel):
+    leaderboard_id: str
+    leaderboard_auto_update_active: bool = False
+    query_name: str
+    params: Dict[str, int]
+    normalize_addresses: bool
+
+
+class LeaderboardConfigUpdate(BaseModel):
+    query_name: Optional[str] = None
+    params: Dict[str, int]
+    normalize_addresses: Optional[bool] = None
+
+
+class LeaderboardVersion(BaseModel):
+    leaderboard_id: UUID
+    version: int
+    published: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+class LeaderboardVersionRequest(BaseModel):
+    publish: bool

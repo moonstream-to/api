@@ -12,7 +12,12 @@ from sqlalchemy.orm import with_expression
 
 from moonstreamdb.db import SessionLocal
 
-from ..settings import BUGOUT_BROOD_URL, BUGOUT_SPIRE_URL, MOONSTREAM_APPLICATION_ID
+from ..settings import (
+    BUGOUT_BROOD_URL,
+    BUGOUT_SPIRE_URL,
+    MOONSTREAM_APPLICATION_ID,
+    MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+)
 from ..web3_provider import yield_web3_provider
 
 from . import subscription_types, subscriptions, moonworm_tasks, queries, billing
@@ -20,6 +25,7 @@ from .migrations import (
     checksum_address,
     update_dashboard_subscription_key,
     generate_entity_subscriptions,
+    add_selectors,
 )
 
 
@@ -87,6 +93,9 @@ steps:
 - id: 20230501
 name: fix_duplicates_keys_in_entity_subscription
 description: Fix entity duplicates keys for all subscriptions introduced in 20230213
+- id: 20230904
+name fill_missing_selectors_in_moonworm_tasks
+description: Get all moonworm jobs from moonworm journal and add selector tag if it not represent
     """
     logger.info(entity_migration_overview)
 
@@ -117,6 +126,30 @@ def migrations_run(args: argparse.Namespace) -> None:
     web3_session = yield_web3_provider()
     db_session = SessionLocal()
     try:
+        if args.id == 20230904:
+            step_order = [
+                "fill_missing_selectors_in_moonworm_tasks",
+                "deduplicate_moonworm_tasks",
+            ]
+            step_map: Dict[str, Dict[str, Any]] = {
+                "upgrade": {
+                    "fill_missing_selectors_in_moonworm_tasks": {
+                        "action": add_selectors.fill_missing_selectors_in_moonworm_tasks,
+                        "description": "Get all moonworm jobs from moonworm journal and add selector tag if it not represent",
+                    },
+                    "deduplicate_moonworm_tasks": {
+                        "action": add_selectors.deduplicate_moonworm_task_by_selector,
+                        "description": "Deduplicate moonworm tasks by selector",
+                    },
+                },
+                "downgrade": {},
+            }
+            if args.command not in ["upgrade", "downgrade"]:
+                logger.info("Wrong command. Please use upgrade or downgrade")
+            step = args.step
+
+            migration_run(step_map, args.command, step, step_order)
+
         if args.id == 20230501:
             # fix entity duplicates keys for all subscriptions introduced in 20230213
 

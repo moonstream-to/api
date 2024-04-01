@@ -1,0 +1,9 @@
+[Unit]
+Description=Synchronize CORS origins for server
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/curl http://127.0.0.1:7191/configs/origins/sync
+CPUWeight=50
+SyslogIdentifier=engine-origins-sync

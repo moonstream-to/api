@@ -2,65 +2,65 @@
 Generate entity subscriptions from existing brood resources subscriptions
 """
 import hashlib
-import logging
 import json
+import logging
 import os
 import traceback
-from typing import List, Optional, Dict, Any, Union, Tuple
 import uuid
-import time
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import boto3  # type: ignore
-from bugout.data import BugoutResources, BugoutResource
-from bugout.exceptions import BugoutResponseException
-from entity.exceptions import EntityUnexpectedResponse  # type: ignore
-from entity.data import EntityCollectionResponse, EntityResponse  # type: ignore
+from bugout.data import (
+    BugoutJournal,
+    BugoutJournalEntity,
+    BugoutResource,
+    BugoutResources,
+)
+from bugout.exceptions import BugoutResponseException, BugoutUnexpectedResponse
 
 from ...settings import (
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
-    MOONSTREAM_ADMIN_ACCESS_TOKEN,
-    BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
-    BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
-    MOONSTREAM_APPLICATION_ID,
     BUGOUT_RESOURCE_TYPE_DASHBOARD,
+    BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
+    BUGOUT_RESOURCE_TYPE_SUBSCRIPTION,
+    MOONSTREAM_ADMIN_ACCESS_TOKEN,
+    MOONSTREAM_APPLICATION_ID,
 )
-from ...settings import bugout_client as bc, entity_client as ec
+from ...settings import bugout_client as bc
 from ..subscription_types import CANONICAL_SUBSCRIPTION_TYPES
 
 logger = logging.getLogger(__name__)
 
 
-### create collection for user
+### Create journal for user
 
 
-def create_collection_for_user(user_id: uuid.UUID) -> str:
+def create_journal_for_user(user_id: uuid.UUID) -> str:
     """
-    Create collection for user if not exist
+    Create journal (collection) for user if not exist
     """
     try:
-        # try get collection
-
-        collection: EntityCollectionResponse = ec.add_collection(
+        # Try to get journal
+        journal: BugoutJournal = bc.create_journal(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN, name=f"subscriptions_{user_id}"
         )
-        collection_id = collection.collection_id
-
-    except EntityUnexpectedResponse as e:
-        logger.error(f"Error create collection, error: {str(e)}")
-    return str(collection_id)
+        journal_id = journal.id
+    except BugoutUnexpectedResponse as e:
+        logger.error(f"Error create journal, error: {str(e)}")
+    return str(journal_id)
 
 
 def add_entity_subscription(
     user_id: uuid.UUID,
     subscription_type_id: str,
-    collection_id: str,
+    journal_id: str,
     address: str,
     color: str,
     label: str,
     content: Dict[str, Any],
-) -> EntityResponse:
+) -> BugoutJournalEntity:
     """
-    Add subscription to collection
+    Add subscription to journal (collection).
     """
 
     if subscription_type_id not in CANONICAL_SUBSCRIPTION_TYPES:
@@ -68,17 +68,18 @@ def add_entity_subscription(
             f"Unknown subscription type ID: {subscription_type_id}. "
             f"Known subscription type IDs: {CANONICAL_SUBSCRIPTION_TYPES.keys()}"
         )
-    elif CANONICAL_SUBSCRIPTION_TYPES[subscription_type_id].blockchain is None:
+    blockchain = CANONICAL_SUBSCRIPTION_TYPES[subscription_type_id].blockchain
+    if blockchain is None:
         raise ValueError(
             f"Subscription type ID {subscription_type_id} is not a blockchain subscription type."
         )
 
-    entity = ec.add_entity(
+    entity = bc.create_entity(
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-        collection_id=collection_id,
+        journal_id=journal_id,
         address=address,
-        blockchain=CANONICAL_SUBSCRIPTION_TYPES[subscription_type_id].blockchain,
-        name=label,
+        blockchain=blockchain,
+        title=label,
         required_fields=[
             {"type": "subscription"},
             {"subscription_type_id": f"{subscription_type_id}"},
@@ -105,34 +106,19 @@ def get_abi_from_s3(s3_path: str, bucket: str):
         logger.error(f"Error get ABI from S3: {str(e)}")
 
 
-def revoke_collection_permissions_from_user(
-    user_id: uuid.UUID, collection_id: str, permissions: List[str]
-):
-    """
-    Remove all permissions from user
-    """
-    bc.delete_journal_scopes(
-        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-        journal_id=collection_id,
-        holder_type="user",
-        holder_id=user_id,
-        permission_list=permissions,
-    )
-
-
-def find_user_collection(
+def find_user_journal(
     user_id: uuid.UUID,
     create_if_not_exists: bool = False,
 ) -> Tuple[Optional[str], Optional[str]]:
     """
-    Find user collection in Brood resources
-    Can create new collection if not exists and create_if_not_exists = True
+    Find user journal (collection) in Brood resources
+    Can create new journal (collection) if not exists and create_if_not_exists = True
     """
     params = {
         "type": BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
         "user_id": str(user_id),
     }
-    logger.info(f"Looking for collection for user {user_id}")
+    logger.info(f"Looking for journal (collection) for user {user_id}")
     try:
         user_entity_resources: BugoutResources = bc.list_resources(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN, params=params
@@ -147,18 +133,16 @@ def find_user_collection(
         )
 
     if len(user_entity_resources.resources) > 0:
-        collection_id = user_entity_resources.resources[0].resource_data[
-            "collection_id"
-        ]
+        journal_id = user_entity_resources.resources[0].resource_data["collection_id"]
         logger.info(
-            f"Collection found for user {user_id}. collection_id: {collection_id}"
+            f"Journal (collection) found for user {user_id}. journal_id: {journal_id}"
         )
-        return collection_id, str(user_entity_resources.resources[0].id)
+        return journal_id, str(user_entity_resources.resources[0].id)
     elif create_if_not_exists:
-        # Create collection new collection for user
-        logger.info(f"Creating new collection")
-        collection = create_collection_for_user(user_id)
-        return collection, None
+        # Create new journal for user
+        logger.info(f"Creating new journal (collection)")
+        journal_id = create_journal_for_user(user_id)
+        return journal_id, None
 
     return None, None
 
@@ -223,33 +207,35 @@ def generate_entity_subscriptions_from_brood_resources() -> None:
 
     logger.info(f"parsed users: {len(users_subscriptions)}")
 
-    ### Create collections and add subscriptions
+    ### Create journals (collections) and add subscriptions
 
     try:
         for user_id, subscriptions in users_subscriptions.items():
             user_id = str(user_id)
 
-            collection_id = None
+            journal_id = None
             resource_id_of_user_collection = None
 
-            ### Collection can already exist in stages.json
+            ### Journal can already exist in stages.json
             if "collection_id" in stages[user_id]:
-                collection_id = stages[user_id]["collection_id"]
+                journal_id = stages[user_id]["collection_id"]
                 if "subscription_resource_id" in stages[user_id]:
                     resource_id_of_user_collection = stages[user_id][
                         "subscription_resource_id"
                     ]
             else:
                 ### look for collection in brood resources
-                collection_id, resource_id_of_user_collection = find_user_collection(
+                journal_id, resource_id_of_user_collection = find_user_journal(
                     user_id, create_if_not_exists=True
                 )
 
-            if collection_id is None:
-                logger.info(f"Collection not found or create for user {user_id}")
+            if journal_id is None:
+                logger.info(
+                    f"Journal (collection) not found or create for user {user_id}"
+                )
                 continue
 
-            stages[user_id]["collection_id"] = collection_id
+            stages[user_id]["collection_id"] = journal_id
 
             # Create user subscription collection resource
 
@@ -262,7 +248,7 @@ def generate_entity_subscriptions_from_brood_resources() -> None:
                     resource_data = {
                         "type": BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
                         "user_id": str(user_id),
-                        "collection_id": str(collection_id),
+                        "collection_id": str(journal_id),
                         "version": "1.0.0",
                     }
 
@@ -318,11 +304,11 @@ def generate_entity_subscriptions_from_brood_resources() -> None:
 
                 # Add subscription to collection
 
-                logger.info(f"Add subscription to collection: {collection_id}")
+                logger.info(f"Add subscription to journal (collection): {journal_id}")
 
                 entity = add_entity_subscription(
                     user_id=user_id,
-                    collection_id=collection_id,
+                    journal_id=journal_id,
                     subscription_type_id=subscription_type_id,
                     address=address,
                     color=color,
@@ -331,7 +317,7 @@ def generate_entity_subscriptions_from_brood_resources() -> None:
                 )
                 stages[user_id]["processed_subscriptions"][
                     str(subscription["subscription_id"])
-                ] = {"entity_id": str(entity.entity_id), "dashboard_ids": []}
+                ] = {"entity_id": str(entity.id), "dashboard_ids": []}
 
             # Add permissions to user
 
@@ -342,7 +328,7 @@ def generate_entity_subscriptions_from_brood_resources() -> None:
                     try:
                         bc.update_journal_scopes(
                             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-                            journal_id=collection_id,
+                            journal_id=journal_id,
                             holder_type="user",
                             holder_id=user_id,
                             permission_list=[
@@ -361,12 +347,12 @@ def generate_entity_subscriptions_from_brood_resources() -> None:
                         continue
             else:
                 logger.warn(
-                    f"User {user_id} == {admin_user_id} permissions not changed. Unexpected behaivior!"
+                    f"User {user_id} == {admin_user_id} permissions not changed. Unexpected behavior!"
                 )
 
     except Exception as e:
         traceback.print_exc()
-        logger.error(f"Failed to proccess user subscriptions: {str(e)}")
+        logger.error(f"Failed to process user subscriptions: {str(e)}")
     finally:
         try:
             with open("stages.json", "w") as f:
@@ -561,18 +547,18 @@ def delete_generated_entity_subscriptions_from_brood_resources():
 
     logger.info(f"parsed users: {len(users_subscriptions)}")
 
-    ### Create collections and add subscriptions
+    ### Create journals and add subscriptions
 
     try:
         for user_id, _ in users_subscriptions.items():
             user_id = str(user_id)
 
-            collection_id = None
+            journal_id = None
             resource_id_of_user_collection = None
 
             ### Collection can already exist in stages.json
             if "collection_id" in stages[user_id]:
-                collection_id = stages[user_id]["collection_id"]
+                journal_id = stages[user_id]["collection_id"]
 
                 if "subscription_resource_id" in stages[user_id]:
                     resource_id_of_user_collection = stages[user_id][
@@ -581,35 +567,37 @@ def delete_generated_entity_subscriptions_from_brood_resources():
 
             else:
                 ### look for collection in brood resources
-                collection_id, resource_id_of_user_collection = find_user_collection(
+                journal_id, resource_id_of_user_collection = find_user_journal(
                     user_id, create_if_not_exists=False
                 )
 
-            if collection_id is None:
+            if journal_id is None:
                 logger.info(f"Collection not found or create for user {user_id}")
                 continue
 
             ### Delete collection
 
             try:
-                ec.delete_collection(
-                    token=MOONSTREAM_ADMIN_ACCESS_TOKEN, collection_id=collection_id
+                bc.delete_journal(
+                    token=MOONSTREAM_ADMIN_ACCESS_TOKEN, journal_id=journal_id
                 )
-                logger.info(f"Collection deleted {collection_id}")
+                logger.info(f"Journal (collection) deleted {journal_id}")
 
             except Exception as e:
-                logger.error(f"Failed to delete collection: {str(e)}")
+                logger.error(f"Failed to delete journal (collection): {str(e)}")
 
             ### Delete collection resource
 
             try:
-                logger.info(f"Collection resource id {resource_id_of_user_collection}")
+                logger.info(
+                    f"Journal (collection) resource id {resource_id_of_user_collection}"
+                )
                 bc.delete_resource(
                     token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
                     resource_id=resource_id_of_user_collection,
                 )
                 logger.info(
-                    f"Collection resource deleted {resource_id_of_user_collection}"
+                    f"Journal (collection) resource deleted {resource_id_of_user_collection}"
                 )
 
                 # clear stages
@@ -617,12 +605,14 @@ def delete_generated_entity_subscriptions_from_brood_resources():
                 stages[user_id] = {}
 
             except Exception as e:
-                logger.error(f"Failed to delete collection resource: {str(e)}")
+                logger.error(
+                    f"Failed to delete journal (collection) resource: {str(e)}"
+                )
                 continue
 
     except Exception as e:
         traceback.print_exc()
-        logger.error(f"Failed to proccess user subscriptions: {str(e)}")
+        logger.error(f"Failed to process user subscriptions: {str(e)}")
 
 
 def restore_dashboard_state():
@@ -659,7 +649,7 @@ def restore_dashboard_state():
 
         dashboards_by_user[user_id].append(dashboard)
 
-    ### Retunr all dashboards to old state
+    ### Return all dashboards to old state
 
     logger.info(f"Amount of users: {len(dashboards_by_user)}")
 
@@ -738,41 +728,41 @@ def fix_duplicates_keys_in_entity_subscription():
         timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
     )
 
-    # get collection ids from that resources
+    # get journal ids from that resources
 
-    collection_id_user_id_mappig = {}
+    collection_id_user_id_mapping = {}
 
     for subscription in subscriptions.resources:
         if "collection_id" in subscription.resource_data:
             if (
                 subscription.resource_data["collection_id"]
-                not in collection_id_user_id_mappig
+                not in collection_id_user_id_mapping
             ):
-                collection_id_user_id_mappig[
+                collection_id_user_id_mapping[
                     subscription.resource_data["collection_id"]
                 ] = subscription.resource_data["user_id"]
             else:
                 raise Exception(
                     f"Duplicate collection_id {subscription.resource_data['collection_id']} in subscriptions"
                 )
-    # go through all collections and fix entities.
+    # go through all journals and fix entities.
     # Will creating one new entity with same data but without "type:subscription" in required_fields
 
-    for collection_id, user_id in collection_id_user_id_mappig.items():
-        # get collection entities
-
-        collection_entities = ec.search_entities(
+    for journal_id, user_id in collection_id_user_id_mapping.items():
+        # get journal entities
+        journal_entities = bc.search(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-            collection_id=collection_id,
+            journal_id=journal_id,
             required_field=[f"type:subscription"],
             limit=1000,
+            representation="entity",
         )
 
         logger.info(
-            f"Amount of entities in user: {user_id} collection {collection_id}: {len(collection_entities.entities)}"
+            f"Amount of entities in user: {user_id} journal (collection) {journal_id}: {len(journal_entities.entities)}"
         )
 
-        for entity in collection_entities.entities:
+        for entity in journal_entities.entities:
             # get entity data
 
             if entity.secondary_fields is None:
@@ -785,12 +775,7 @@ def fix_duplicates_keys_in_entity_subscription():
 
             secondary_fields = secondary_fields["secondary_fields"]
 
-            # get entity id
-
-            entity_id = entity.entity_id
-
             # get entity type
-
             entity_type = None
 
             # extract required fields
@@ -811,45 +796,45 @@ def fix_duplicates_keys_in_entity_subscription():
                 new_required_fields.append(
                     {"type": "copy_of_malformed_entity_20230213"}
                 )
-                new_required_fields.append({"entity_id": str(entity_id)})
+                new_required_fields.append({"entity_id": str(entity.id)})
 
-                new_entity = ec.add_entity(
+                new_entity = bc.create_entity(
                     token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-                    collection_id=collection_id,
+                    journal_id=journal_id,
                     blockchain=entity.blockchain,
                     address=entity.address,
-                    name=entity.name,
+                    title=entity.title,
                     required_fields=new_required_fields,
                     secondary_fields=entity.secondary_fields,
                 )
                 logger.info(
-                    f"Entity {new_entity.entity_id} created successfully for collection {collection_id}"
+                    f"Entity {new_entity.id} created successfully for journal (collection) {journal_id}"
                 )
 
             except Exception as e:
                 logger.error(
-                    f"Failed to create entity {entity_id} for collection {collection_id}: {str(e)}, user_id: {user_id}"
+                    f"Failed to create entity {entity.id} for journal (collection) {journal_id}: {str(e)}, user_id: {user_id}"
                 )
                 continue
 
             # Update old entity without secondary_fields duplicate
 
             try:
-                ec.update_entity(
+                bc.update_entity(
                     token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-                    collection_id=collection_id,
-                    entity_id=entity_id,
+                    journal_id=journal_id,
+                    entity_id=entity.id,
                     blockchain=entity.blockchain,
                     address=entity.address,
-                    name=entity.name,
+                    title=entity.title,
                     required_fields=entity.required_fields,
                     secondary_fields=secondary_fields,
                 )
                 logger.info(
-                    f"Entity {entity_id} updated successfully for collection {collection_id}"
+                    f"Entity {entity.id} updated successfully for journal (collection) {journal_id}"
                 )
 
             except Exception as e:
                 logger.error(
-                    f"Failed to update entity {entity_id} for collection {collection_id}: {str(e)}, user_id: {user_id}"
+                    f"Failed to update entity {entity.id} for journal (collection) {journal_id}: {str(e)}, user_id: {user_id}"
                 )

@@ -1,21 +1,17 @@
 import csv
-from collections import OrderedDict
 import hashlib
 import json
 import logging
 import re
+from collections import OrderedDict
 from io import StringIO
 from typing import Any, Dict
-
 
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
 from sqlalchemy.sql.expression import TextClause
 
 from ..actions import push_data_to_bucket
-from ..reporter import reporter
-
-
 from ..db import RO_pre_ping_query_engine
 from ..reporter import reporter
 from ..settings import MOONSTREAM_S3_QUERIES_BUCKET_PREFIX
@@ -23,7 +19,7 @@ from ..settings import MOONSTREAM_S3_QUERIES_BUCKET_PREFIX
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-QUERY_REGEX = re.compile("[\[\]@#$%^&?;`/]")
+QUERY_REGEX = re.compile(r"[\[\]@#$%^&?;`]|/\*|\*/")
 
 
 class QueryNotValid(Exception):

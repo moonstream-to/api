@@ -1,14 +1,14 @@
 import logging
 import time
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 from uuid import UUID
 
 from eth_typing.evm import ChecksumAddress
 from moonstreamdb.blockchain import AvailableBlockchainType
+from moonstreamdb.networks import Network  # type: ignore
 from moonworm.crawler.moonstream_ethereum_state_provider import (  # type: ignore
     MoonstreamEthereumStateProvider,
 )
-from moonworm.crawler.networks import Network  # type: ignore
 from sqlalchemy.orm.session import Session
 from web3 import Web3
 
@@ -19,7 +19,7 @@ from .crawler import (
     update_entries_status_and_progress,
 )
 from .db import add_events_to_session, add_function_calls_to_session, commit_session
-from .event_crawler import _crawl_events, _autoscale_crawl_events
+from .event_crawler import _autoscale_crawl_events, _crawl_events
 from .function_call_crawler import _crawl_functions
 
 logging.basicConfig(level=logging.INFO)
@@ -36,8 +36,9 @@ def historical_crawler(
     end_block: int,
     max_blocks_batch: int = 100,
     min_sleep_time: float = 0.1,
-    access_id: Optional[UUID] = None,
+    web3_uri: Optional[str] = None,
     addresses_deployment_blocks: Optional[Dict[ChecksumAddress, int]] = None,
+    max_insert_batch: int = 10000,
 ):
     assert max_blocks_batch > 0, "max_blocks_batch must be greater than 0"
     assert min_sleep_time > 0, "min_sleep_time must be greater than 0"
@@ -45,17 +46,37 @@ def historical_crawler(
     assert end_block > 0, "end_block must be greater than 0"
 
     if web3 is None:
-        web3 = _retry_connect_web3(blockchain_type, access_id=access_id)
+        web3 = _retry_connect_web3(blockchain_type, web3_uri=web3_uri)
 
     assert (
         web3.eth.block_number >= start_block
     ), "start_block must be less than current block"
 
-    network = (
-        Network.ethereum
-        if blockchain_type == AvailableBlockchainType.ETHEREUM
-        else Network.polygon
-    )
+    if blockchain_type == AvailableBlockchainType.ETHEREUM:
+        network = Network.ethereum
+    elif blockchain_type == AvailableBlockchainType.POLYGON:
+        network = Network.polygon
+    elif blockchain_type == AvailableBlockchainType.MUMBAI:
+        network = Network.mumbai
+    elif blockchain_type == AvailableBlockchainType.XDAI:
+        network = Network.xdai
+    elif blockchain_type == AvailableBlockchainType.WYRM:
+        network = Network.wyrm
+    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET:
+        network = Network.zksync_era_testnet
+    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
+        network = Network.zksync_era
+    elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
+        network = Network.arbitrum_nova
+    elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
+        network = Network.arbitrum_sepolia
+    elif blockchain_type == AvailableBlockchainType.XAI:
+        network = Network.xai
+    elif blockchain_type == AvailableBlockchainType.XAI_SEPOLIA:
+        network = Network.xai_sepolia
+    else:
+        raise Exception("Unsupported blockchain type provided")
+
     ethereum_state_provider = MoonstreamEthereumStateProvider(
         web3,
         network,
@@ -109,7 +130,18 @@ def historical_crawler(
                 f"Crawled {len(all_events)} events from {start_block} to {batch_end_block}."
             )
 
-            add_events_to_session(db_session, all_events, blockchain_type)
+            if len(all_events) > max_insert_batch:
+
+                for i in range(0, len(all_events), max_insert_batch):
+                    add_events_to_session(
+                        db_session,
+                        all_events[i : i + max_insert_batch],
+                        blockchain_type,
+                    )
+
+            else:
+
+                add_events_to_session(db_session, all_events, blockchain_type)
 
             if function_call_crawl_jobs:
                 logger.info(
@@ -126,9 +158,19 @@ def historical_crawler(
                     f"Crawled {len(all_function_calls)} function calls from {start_block} to {batch_end_block}."
                 )
 
-                add_function_calls_to_session(
-                    db_session, all_function_calls, blockchain_type
-                )
+                if len(all_function_calls) > max_insert_batch:
+
+                    for i in range(0, len(all_function_calls), max_insert_batch):
+                        add_function_calls_to_session(
+                            db_session,
+                            all_function_calls[i : i + max_insert_batch],
+                            blockchain_type,
+                        )
+                else:
+
+                    add_function_calls_to_session(
+                        db_session, all_function_calls, blockchain_type
+                    )
 
             if addresses_deployment_blocks:
                 for address, deployment_block in addresses_deployment_blocks.items():
@@ -165,7 +207,7 @@ def historical_crawler(
                 logger.error("Too many failures, exiting")
                 raise e
             try:
-                web3 = _retry_connect_web3(blockchain_type, access_id=access_id)
+                web3 = _retry_connect_web3(blockchain_type, web3_uri=web3_uri)
             except Exception as err:
                 logger.error(f"Failed to reconnect: {err}")
                 logger.exception(err)
