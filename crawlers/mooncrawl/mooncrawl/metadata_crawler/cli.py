@@ -50,6 +50,12 @@ def crawl_uri(metadata_uri: str) -> Any:
     result = None
     while retry < 3:
         try:
+
+            if metadata_uri.startswith("ipfs://"):
+                metadata_uri = metadata_uri.replace(
+                    "ipfs://", "https://ipfs.io/ipfs/", 1
+                )
+
             response = urllib.request.urlopen(metadata_uri, timeout=10)
 
             if (
