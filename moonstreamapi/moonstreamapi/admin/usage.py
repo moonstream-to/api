@@ -6,7 +6,6 @@ import time
 import uuid
 import requests  # type: ignore
 import textwrap
-import os
 
 from ..actions import get_all_entries_from_search
 from ..settings import bugout_client as bc
@@ -239,7 +238,7 @@ def collect_usage_information(
     """
 
     subscription_resources = bc.list_resources(
-        token=oMOONSTREAM_ADMIN_ACCESS_TOKEN,  # type: ignore
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,  # type: ignore
         params={
             "user_id": user_id,
             "type": "entity_subscription",
