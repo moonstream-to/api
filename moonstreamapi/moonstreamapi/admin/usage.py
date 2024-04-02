@@ -5,6 +5,7 @@ import logging
 import time
 import uuid
 import requests  # type: ignore
+import textwrap
 import os
 
 from ..actions import get_all_entries_from_search
@@ -107,19 +108,25 @@ def generate_leaderboard_owners(
     leaderboard_owners = []
 
     ### Get leaderboard owners cache entry
-    try:
-        entries = get_all_entries_from_search(
-            journal_id=MOONSTREAM_USAGE_REPORTS_JOURNAL_ID,
-            search_query=f"tag:leaderboard_owners tag:cache",
-            limit=100,
-            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-        )
-    except Exception as e:
-        logger.error(f"Error getting leaderboard_owners_cache entry: {e}")
-        entries = []
+    entries = []
+
+    if MOONSTREAM_USAGE_REPORTS_JOURNAL_ID is not None:
+        try:
+            entries = get_all_entries_from_search(
+                journal_id=MOONSTREAM_USAGE_REPORTS_JOURNAL_ID,
+                search_query=f"tag:leaderboard_owners tag:cache",
+                limit=100,
+                token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                content=True,
+            )
+        except Exception as e:
+            logger.error(f"Error getting leaderboard_owners_cache entry: {e}")
 
     if len(entries) > 0:
-        leaderboards_cache = json.loads(entries[0].content)
+        try:
+            leaderboards_cache = json.loads(entries[0].content)
+        except Exception as e:
+            logger.error(f"Error loading leaderboard_owners_cache: {e}")
 
     for leaderboard in leaderboards:
         leaderboard_id = leaderboard.resource_data["leaderboard_id"]
@@ -167,41 +174,45 @@ def generate_leaderboard_owners(
 
     ### update cache
 
-    if len(entries) > 0:
-        try:
-            bc.update_entry_content(
-                token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-                entry_id=entries[0].entry_url.split("/")[-1],
-                content=json.dumps(leaderboards_cache),
-                title=entries[0].title,
-                timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
-            )
-        except Exception as e:
-            logger.error(
-                f"Error updating leaderboard_owners_cache entry: {e} continue..."
-            )
+    if MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID is not None:
 
-    else:
-
-        title = "leaderboard_owners_cache"
-
-        tags = [
-            "leaderboard_owners",
-            "cache",
-        ]
-        try:
-            report_entry = bc.create_entry(
-                token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-                journal_id=MOONSTREAM_USAGE_REPORTS_JOURNAL_ID,
-                title=title,
-                content=json.dumps(leaderboards_cache),
-                tags=tags,
-                timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
-            )
-        except Exception as e:
-            logger.error(
-                f"Error creating leaderboard_owners_cache entry: {e} continue..."
-            )
+        if len(entries) > 0:
+            try:
+                bc.update_entry_content(
+                    token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                    journal_id=MOONSTREAM_USAGE_REPORTS_JOURNAL_ID,
+                    entry_id=entries[0].entry_url.split("/")[-1],
+                    content=textwrap.indent(
+                        json.dumps(leaderboards_cache, indent=4), "    "
+                    ),
+                    title=entries[0].title,
+                    timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+                )
+            except Exception as e:
+                logger.error(
+                    f"Error updating leaderboard_owners_cache entry: {e} continue..."
+                )
+        else:
+            title = "leaderboard_owners_cache"
+            tags = [
+                "leaderboard_owners",
+                "cache",
+            ]
+            try:
+                report_entry = bc.create_entry(
+                    token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                    journal_id=MOONSTREAM_USAGE_REPORTS_JOURNAL_ID,
+                    title=title,
+                    content=textwrap.indent(
+                        json.dumps(leaderboards_cache, indent=4), "    "
+                    ),
+                    tags=tags,
+                    timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+                )
+            except Exception as e:
+                logger.error(
+                    f"Error creating leaderboard_owners_cache entry: {e} continue..."
+                )
 
     return leaderboard_owners
 
@@ -228,7 +239,7 @@ def collect_usage_information(
     """
 
     subscription_resources = bc.list_resources(
-        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,  # type: ignore
+        token=oMOONSTREAM_ADMIN_ACCESS_TOKEN,  # type: ignore
         params={
             "user_id": user_id,
             "type": "entity_subscription",
@@ -310,6 +321,9 @@ def collect_usage_information(
             "query_name": content["query_name"],
             "update_activated": True if "status:active" in tags else False,
         }
+
+    logger.info("Found leaderboards: %s", len(leaderboards))
+    logger.info("Fill leaderboards with users data")
 
     user_leaderboards = []
 
@@ -408,11 +422,23 @@ def push_report_to_bugout_journal(
     if len(entries) > 0:
         entry = entries[0]
 
+        ### ensure additional tags
+
+        tags = entry.tags
+
+        if f"customer:{name}" not in tags:
+            tags.append(f"customer:{name}")
+
+        if "moonstream" not in tags:
+            tags.append("moonstream")
+
         bc.update_entry_content(
             token=token,
+            journal_id=journal_id,
             entry_id=entry.entry_url.split("/")[-1],
-            content=json.dumps(report),
+            content=textwrap.indent(json.dumps(report, indent=4), "    "),
             title=entry.title,
+            tags=tags,
             timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
         )
 
@@ -426,13 +452,15 @@ def push_report_to_bugout_journal(
             f"month:{month}",
             "report",
             f"user_id:{user_id}",
+            "moonstream",
+            f"customer:{name}",
         ]
 
         report_entry = bc.create_entry(
             token=token,
             journal_id=journal_id,
             title=title,
-            content=json.dumps(report),
+            content=textwrap.indent(json.dumps(report, indent=4), "    "),
             tags=tags,
             timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
         )

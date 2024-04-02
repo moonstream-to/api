@@ -286,8 +286,6 @@ def generate_usage_handler(args: argparse.Namespace) -> None:
 
         with open(args.output, "w") as output_file:
             output_file.write(json.dumps(usage_info, indent=4))
-    else:
-        logger.info(json.dumps(usage_info, indent=4))
 
 
 def main() -> None:
