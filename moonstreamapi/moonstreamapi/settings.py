@@ -320,3 +320,8 @@ if MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID == "":
     raise ValueError(
         "MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID environment variable must be set"
     )
+
+
+MOONSTREAM_USAGE_REPORTS_JOURNAL_ID = os.environ.get(
+    "MOONSTREAM_USAGE_REPORTS_JOURNAL_ID", ""
+)

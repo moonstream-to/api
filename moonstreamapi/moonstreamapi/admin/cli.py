@@ -16,8 +16,10 @@ from moonstreamdb.db import SessionLocal
 from ..settings import (
     BUGOUT_BROOD_URL,
     BUGOUT_SPIRE_URL,
+    MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_APPLICATION_ID,
     MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+    MOONSTREAM_USAGE_REPORTS_JOURNAL_ID,
 )
 from ..web3_provider import yield_web3_provider
 
@@ -264,6 +266,17 @@ def generate_usage_handler(args: argparse.Namespace) -> None:
         user_id=args.user_id,
         contracts=args.contracts,
     )
+
+    if MOONSTREAM_USAGE_REPORTS_JOURNAL_ID is not None:
+
+        usage.push_report_to_bugout_journal(
+            name=args.name,
+            user_id=args.user_id,
+            month=args.month,
+            journal_id=MOONSTREAM_USAGE_REPORTS_JOURNAL_ID,
+            report=usage_info,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        )
 
     if args.output is not None:
         # create path if not exists
@@ -578,6 +591,14 @@ This CLI is configured to work with the following API URLs:
         type=str,
         help="User token for which to generate usage (not implemented yet - use user-token instead)",
     )
+
+    generate_usage_parser.add_argument(
+        "--name",
+        type=str,
+        help="Name of the user for which to generate usage",
+        default="",
+    )
+
     generate_usage_parser.add_argument(
         "--contracts",
         required=False,
