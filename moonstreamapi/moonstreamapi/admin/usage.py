@@ -413,7 +413,7 @@ def push_report_to_bugout_journal(
 
     entries = get_all_entries_from_search(
         journal_id=journal_id,
-        search_query=f"tag:month:{month} tag:report user_id:{user_id}",
+        search_query=f"tag:month:{month} tag:report tag:user_id:{user_id}",
         limit=100,
         token=token,
     )
