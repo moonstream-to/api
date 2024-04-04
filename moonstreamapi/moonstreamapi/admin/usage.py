@@ -5,7 +5,7 @@ import logging
 import time
 import uuid
 import requests  # type: ignore
-import os
+import textwrap
 
 from ..actions import get_all_entries_from_search
 from ..settings import bugout_client as bc
@@ -14,6 +14,7 @@ from ..settings import (
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
     MOONSTREAM_PUBLIC_QUERIES_DATA_ACCESS_TOKEN,
     MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID,
+    MOONSTREAM_USAGE_REPORTS_JOURNAL_ID,
 )
 from ..data import BUGOUT_RESOURCE_QUERY_RESOLVER
 
@@ -101,12 +102,38 @@ def generate_leaderboard_owners(
     Get list of all leaderboard and add owners to it.
     """
 
+    leaderboards_cache = {}
+
     leaderboard_owners = []
 
+    ### Get leaderboard owners cache entry
+    entries = []
+
+    if MOONSTREAM_USAGE_REPORTS_JOURNAL_ID is not None:
+        try:
+            entries = get_all_entries_from_search(
+                journal_id=MOONSTREAM_USAGE_REPORTS_JOURNAL_ID,
+                search_query=f"tag:leaderboard_owners tag:cache",
+                limit=100,
+                token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                content=True,
+            )
+        except Exception as e:
+            logger.error(f"Error getting leaderboard_owners_cache entry: {e}")
+
+    if len(entries) > 0:
+        try:
+            leaderboards_cache = json.loads(entries[0].content)
+        except Exception as e:
+            logger.error(f"Error loading leaderboard_owners_cache: {e}")
+
     for leaderboard in leaderboards:
-        # breakpoint()
         leaderboard_id = leaderboard.resource_data["leaderboard_id"]
         resource_id = leaderboard.id
+
+        if leaderboard_id in leaderboards_cache:
+            leaderboard_owners.append(leaderboards_cache[leaderboard_id])
+            continue
 
         holders: BugoutResourceHolders = bc.get_resource_holders(
             token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
@@ -135,6 +162,56 @@ def generate_leaderboard_owners(
                 "updated_at": str(leaderboard.updated_at),
             }
         )
+
+        leaderboards_cache[leaderboard_id] = {
+            "leaderboard_id": leaderboard_id,
+            "owner": str(owner),
+            "resource_id": str(resource_id),
+            "created_at": str(leaderboard.created_at),
+            "updated_at": str(leaderboard.updated_at),
+        }
+
+    ### update cache
+
+    if MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID is not None:
+
+        if len(entries) > 0:
+            try:
+                bc.update_entry_content(
+                    token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                    journal_id=MOONSTREAM_USAGE_REPORTS_JOURNAL_ID,
+                    entry_id=entries[0].entry_url.split("/")[-1],
+                    content=textwrap.indent(
+                        json.dumps(leaderboards_cache, indent=4), "    "
+                    ),
+                    title=entries[0].title,
+                    timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+                )
+            except Exception as e:
+                logger.error(
+                    f"Error updating leaderboard_owners_cache entry: {e} continue..."
+                )
+        else:
+            title = "leaderboard_owners_cache"
+            tags = [
+                "leaderboard_owners",
+                "cache",
+            ]
+            try:
+                report_entry = bc.create_entry(
+                    token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                    journal_id=MOONSTREAM_USAGE_REPORTS_JOURNAL_ID,
+                    title=title,
+                    content=textwrap.indent(
+                        json.dumps(leaderboards_cache, indent=4), "    "
+                    ),
+                    tags=tags,
+                    timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+                )
+            except Exception as e:
+                logger.error(
+                    f"Error creating leaderboard_owners_cache entry: {e} continue..."
+                )
 
     return leaderboard_owners
 
@@ -244,6 +321,9 @@ def collect_usage_information(
             "update_activated": True if "status:active" in tags else False,
         }
 
+    logger.info("Found leaderboards: %s", len(leaderboards))
+    logger.info("Fill leaderboards with users data")
+
     user_leaderboards = []
 
     for leaderboard in leaderboards:
@@ -316,3 +396,72 @@ def collect_usage_information(
         "leaderboards_amount": len(leaderboards),
         "contracts": contract_data,
     }
+
+
+def push_report_to_bugout_journal(
+    name: str,
+    user_id: str,
+    month: str,
+    journal_id: str,
+    report: Dict[str, Any],
+    token: str,
+) -> None:
+    """
+    Push report to bugout journal.
+    """
+    ### search by month if entry already exists
+
+    entries = get_all_entries_from_search(
+        journal_id=journal_id,
+        search_query=f"tag:month:{month} tag:report tag:user_id:{user_id}",
+        limit=100,
+        token=token,
+    )
+
+    if len(entries) > 0:
+        entry = entries[0]
+
+        ### ensure additional tags
+
+        tags = entry.tags
+
+        if f"customer:{name}" not in tags:
+            tags.append(f"customer:{name}")
+
+        if "moonstream" not in tags:
+            tags.append("moonstream")
+
+        bc.update_entry_content(
+            token=token,
+            journal_id=journal_id,
+            entry_id=entry.entry_url.split("/")[-1],
+            content=textwrap.indent(json.dumps(report, indent=4), "    "),
+            title=entry.title,
+            tags=tags,
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+        )
+
+        logger.info("Report entry updated: %s", entry.entry_url)
+
+    else:
+
+        title = f"{name} - {month} - {user_id}"
+
+        tags = [
+            f"month:{month}",
+            "report",
+            f"user_id:{user_id}",
+            "moonstream",
+            f"customer:{name}",
+        ]
+
+        report_entry = bc.create_entry(
+            token=token,
+            journal_id=journal_id,
+            title=title,
+            content=textwrap.indent(json.dumps(report, indent=4), "    "),
+            tags=tags,
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+        )
+
+        logger.info("Report entry created: %s", report_entry.id)
