@@ -1,20 +1,20 @@
 """
 Add selectors to all moonworm tasks.
 """
-import logging
-import json
 
+import json
+import logging
 
 from bugout.exceptions import BugoutResponseException
 from web3 import Web3
 
+from ...actions import get_all_entries_from_search
 from ...settings import (
     BUGOUT_REQUEST_TIMEOUT_SECONDS,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_MOONWORM_TASKS_JOURNAL,
 )
 from ...settings import bugout_client as bc
-from ...actions import get_all_entries_from_search
 
 logger = logging.getLogger(__name__)
 

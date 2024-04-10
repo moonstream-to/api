@@ -1,6 +1,7 @@
 """
 Tests for stream boundary utilities.
 """
+
 import unittest
 
 from . import stream_boundaries

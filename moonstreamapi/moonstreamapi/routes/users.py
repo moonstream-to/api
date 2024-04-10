@@ -1,6 +1,7 @@
 """
 The Moonstream users HTTP API
 """
+
 import logging
 import uuid
 from typing import Any, Dict, Optional

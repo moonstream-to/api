@@ -1,14 +1,14 @@
 """
 The Moonstream subscriptions HTTP API
 """
+
 import logging
 from typing import Any, Dict, List, Optional
 
 from bugout.data import BugoutResource
 from fastapi import APIRouter, Depends, Query, Request
-from sqlalchemy.orm import Session
-
 from moonstreamdb import db
+from sqlalchemy.orm import Session
 
 from .. import data, stream_queries
 from ..middleware import MoonstreamHTTPException

@@ -1,33 +1,37 @@
 import logging
+from typing import Any, Callable, Dict, Optional, Union
 from uuid import UUID
 
-from typing import Any, Optional, Union, Callable, Dict
-from web3 import Web3
-from web3.middleware import geth_poa_middleware
-from eth_abi import encode_single, decode_single
+from eth_abi import decode_single, encode_single
 from eth_utils import function_signature_to_4byte_selector
+from moonstreamdb.blockchain import AvailableBlockchainType
 from web3 import Web3
-from web3.contract import ContractFunction
-from web3.providers.rpc import HTTPProvider
 from web3._utils.abi import normalize_event_input_types
-
+from web3.contract import ContractFunction
+from web3.middleware import geth_poa_middleware
+from web3.providers.rpc import HTTPProvider
 
 from .settings import (
-    MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI,
-    NB_ACCESS_ID_HEADER,
-    MOONSTREAM_POLYGON_WEB3_PROVIDER_URI,
-    MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI,
-    MOONSTREAM_XDAI_WEB3_PROVIDER_URI,
-    MOONSTREAM_WYRM_WEB3_PROVIDER_URI,
-    MOONSTREAM_ZKSYNC_ERA_TESTNET_WEB3_PROVIDER_URI,
-    MOONSTREAM_ZKSYNC_ERA_WEB3_PROVIDER_URI,
     MOONSTREAM_ARBITRUM_NOVA_WEB3_PROVIDER_URI,
     MOONSTREAM_ARBITRUM_SEPOLIA_WEB3_PROVIDER_URI,
+    MOONSTREAM_AVALANCHE_FUJI_WEB3_PROVIDER_URI,
+    MOONSTREAM_AVALANCHE_WEB3_PROVIDER_URI,
+    MOONSTREAM_BLAST_SEPOLIA_WEB3_PROVIDER_URI,
+    MOONSTREAM_BLAST_WEB3_PROVIDER_URI,
+    MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI,
+    MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI,
+    MOONSTREAM_POLYGON_WEB3_PROVIDER_URI,
+    MOONSTREAM_WYRM_WEB3_PROVIDER_URI,
+    MOONSTREAM_XAI_SEPOLIA_WEB3_PROVIDER_URI,
     MOONSTREAM_XAI_WEB3_PROVIDER_URI,
-    multicall_contracts,
+    MOONSTREAM_XDAI_WEB3_PROVIDER_URI,
+    MOONSTREAM_ZKSYNC_ERA_SEPOLIA_WEB3_PROVIDER_URI,
+    MOONSTREAM_ZKSYNC_ERA_TESTNET_WEB3_PROVIDER_URI,
+    MOONSTREAM_ZKSYNC_ERA_WEB3_PROVIDER_URI,
+    NB_ACCESS_ID_HEADER,
     multicall_contract_abi,
+    multicall_contracts,
 )
-from moonstreamdb.blockchain import AvailableBlockchainType
 
 logger = logging.getLogger(__name__)
 
@@ -78,12 +82,24 @@ def connect(
             web3_uri = MOONSTREAM_ZKSYNC_ERA_TESTNET_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
             web3_uri = MOONSTREAM_ZKSYNC_ERA_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_SEPOLIA:
+            web3_uri = MOONSTREAM_ZKSYNC_ERA_SEPOLIA_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
             web3_uri = MOONSTREAM_ARBITRUM_NOVA_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
             web3_uri = MOONSTREAM_ARBITRUM_SEPOLIA_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.XAI:
             web3_uri = MOONSTREAM_XAI_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.XAI_SEPOLIA:
+            web3_uri = MOONSTREAM_XAI_SEPOLIA_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.AVALANCHE:
+            web3_uri = MOONSTREAM_AVALANCHE_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.AVALANCHE_FUJI:
+            web3_uri = MOONSTREAM_AVALANCHE_FUJI_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.BLAST:
+            web3_uri = MOONSTREAM_BLAST_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.BLAST_SEPOLIA:
+            web3_uri = MOONSTREAM_BLAST_SEPOLIA_WEB3_PROVIDER_URI
         else:
             raise Exception("Wrong blockchain type provided for web3 URI")
 

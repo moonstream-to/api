@@ -1,6 +1,7 @@
 """
 Stream queries - data structure, and parser.
 """
+
 import logging
 from dataclasses import dataclass, field
 from typing import List, Tuple, cast

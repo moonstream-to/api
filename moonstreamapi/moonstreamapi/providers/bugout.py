@@ -1,6 +1,7 @@
 """
 Event providers powered by Bugout journals.
 """
+
 import json
 import logging
 from datetime import datetime
@@ -155,7 +156,7 @@ class BugoutEventProvider:
                 timeout=self.timeout,
                 order=SearchOrder.DESCENDING,
             )
-            events.extend([self.entry_event(entry) for entry in search_results.results])    # type: ignore
+            events.extend([self.entry_event(entry) for entry in search_results.results])  # type: ignore
             offset = search_results.next_offset
 
         return stream_boundary, events
@@ -192,7 +193,7 @@ class BugoutEventProvider:
             timeout=self.timeout,
             order=SearchOrder.DESCENDING,
         )
-        return [self.entry_event(entry) for entry in search_results.results] # type: ignore
+        return [self.entry_event(entry) for entry in search_results.results]  # type: ignore
 
     def next_event(
         self,
@@ -233,7 +234,7 @@ class BugoutEventProvider:
         )
         if not search_results.results:
             return None
-        return self.entry_event(search_results.results[0]) # type: ignore
+        return self.entry_event(search_results.results[0])  # type: ignore
 
     def previous_event(
         self,
@@ -274,7 +275,7 @@ class BugoutEventProvider:
         )
         if not search_results.results:
             return None
-        return self.entry_event(search_results.results[0]) # type: ignore
+        return self.entry_event(search_results.results[0])  # type: ignore
 
 
 class EthereumTXPoolProvider(BugoutEventProvider):

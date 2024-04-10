@@ -1,6 +1,7 @@
 """
 The Moonstream queries HTTP API
 """
+
 import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
@@ -14,21 +15,22 @@ from bugout.data import (
     BugoutSearchResult,
 )
 from bugout.exceptions import BugoutResponseException
-from fastapi import APIRouter, Body, Path, Request, Query
+from fastapi import APIRouter, Body, Path, Query, Request
 from moonstreamdb.blockchain import AvailableBlockchainType
 from sqlalchemy import text
 
 from .. import data
 from ..actions import (
     NameNormalizationException,
+    create_resource_for_user,
     generate_s3_access_links,
     get_query_by_name,
     name_normalization,
     query_parameter_hash,
-    create_resource_for_user,
 )
 from ..middleware import MoonstreamHTTPException
 from ..settings import (
+    BUGOUT_REQUEST_TIMEOUT_SECONDS,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_CRAWLERS_SERVER_PORT,
     MOONSTREAM_CRAWLERS_SERVER_URL,
@@ -37,7 +39,6 @@ from ..settings import (
     MOONSTREAM_QUERY_TEMPLATE_CONTEXT_TYPE,
     MOONSTREAM_S3_QUERIES_BUCKET,
     MOONSTREAM_S3_QUERIES_BUCKET_PREFIX,
-    BUGOUT_REQUEST_TIMEOUT_SECONDS,
 )
 from ..settings import bugout_client as bc
 
@@ -462,9 +463,9 @@ async def update_query_data_handler(
                     "query": content,
                     "params": request_update.params,
                     "file_type": file_type,
-                    "blockchain": request_update.blockchain
-                    if request_update.blockchain
-                    else None,
+                    "blockchain": (
+                        request_update.blockchain if request_update.blockchain else None
+                    ),
                 },
                 timeout=MOONSTREAM_INTERNAL_REQUEST_TIMEOUT_SECONDS,
             )

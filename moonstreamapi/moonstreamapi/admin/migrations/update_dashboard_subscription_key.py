@@ -2,6 +2,7 @@
 Convert all addresses in user subscriptions 
 and ethereum_labels column to checksum address.
 """
+
 import logging
 from typing import List
 

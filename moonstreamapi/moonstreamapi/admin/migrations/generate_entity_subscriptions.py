@@ -1,6 +1,7 @@
 """
 Generate entity subscriptions from existing brood resources subscriptions
 """
+
 import hashlib
 import json
 import logging
@@ -691,9 +692,9 @@ def restore_dashboard_state():
                         f"Update dashboard {dashboard.id} with subscription {subscription_id} to old state"
                     )
 
-                    dashboard_metadata[index][
-                        "subscription_id"
-                    ] = user_entity_subscriptions[subscription_id]
+                    dashboard_metadata[index]["subscription_id"] = (
+                        user_entity_subscriptions[subscription_id]
+                    )
 
                 bc.update_resource(
                     token=MOONSTREAM_ADMIN_ACCESS_TOKEN,

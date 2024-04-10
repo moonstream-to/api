@@ -1,6 +1,7 @@
 """
 Utilities for managing subscription resources for a Moonstream application.
 """
+
 import argparse
 import json
 from typing import Dict, List, Optional, Union
