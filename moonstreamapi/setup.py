@@ -15,6 +15,7 @@ setup(
         "boto3",
         "bugout>=0.2.15",
         "fastapi",
+        "moonstream",
         "moonstreamdb>=0.3.12",
         "humbug",
         "pydantic==1.10.2",
