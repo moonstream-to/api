@@ -70,6 +70,12 @@ from moonstreamdb.models import (
     ZkSyncEraTestnetLabel,
     ZkSyncEraTestnetTransaction,
     ZkSyncEraTransaction,
+    BlastBlock,
+    BlastLabel,
+    BlastTransaction,
+    BlastSepoliaBlock,
+    BlastSepoliaLabel,
+    BlastSepoliaTransaction,
 )
 
 
@@ -120,6 +126,12 @@ def include_symbol(tablename, schema):
         AvalancheFujiTransaction.__tablename__,
         AvalancheLabel.__tablename__,
         AvalancheTransaction.__tablename__,
+        BlastBlock.__tablename__,
+        BlastLabel.__tablename__,
+        BlastTransaction.__tablename__,
+        BlastSepoliaBlock.__tablename__,
+        BlastSepoliaLabel.__tablename__,
+        BlastSepoliaTransaction.__tablename__,
     }
 
 
