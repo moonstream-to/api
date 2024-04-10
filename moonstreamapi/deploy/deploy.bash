@@ -47,7 +47,7 @@ echo
 echo
 echo -e "${PREFIX_INFO} Retrieving addition deployment parameters"
 mkdir -p "${SECRETS_DIR}"
-AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" /home/ubuntu/go/bin/checkenv show aws_ssm+moonstream:true > "${PARAMETERS_ENV_PATH}"
+AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" CHECKENV_AWS_FETCH_LOOP_LIMIT=20 /home/ubuntu/go/bin/checkenv show aws_ssm+moonstream:true > "${PARAMETERS_ENV_PATH}"
 
 echo
 echo
