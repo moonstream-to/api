@@ -37,6 +37,8 @@ XAI_MOONWORM_CRAWLER_SERVICE_FILE="xai-moonworm-crawler.service"
 XAI_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE="xai-sepolia-moonworm-crawler.service"
 AVALANCHE_MOONWORM_CRAWLER_SERVICE_FILE="avalanche-moonworm-crawler.service"
 AVALANCHE_FUJI_MOONWORM_CRAWLER_SERVICE_FILE="avalanche-fuji-moonworm-crawler.service"
+BLAST_MOONWORM_CRAWLER_SERVICE_FILE="blast-moonworm-crawler.service"
+BLAST_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE="blast-sepolia-moonworm-crawler.service"
 
 set -eu
 
@@ -172,3 +174,19 @@ chmod 644 "${SCRIPT_DIR}/${AVALANCHE_FUJI_MOONWORM_CRAWLER_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${AVALANCHE_FUJI_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${AVALANCHE_FUJI_MOONWORM_CRAWLER_SERVICE_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${AVALANCHE_FUJI_MOONWORM_CRAWLER_SERVICE_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Blast moonworm crawler service definition with ${BLAST_MOONWORM_CRAWLER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${BLAST_MOONWORM_CRAWLER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${BLAST_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${BLAST_MOONWORM_CRAWLER_SERVICE_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${BLAST_MOONWORM_CRAWLER_SERVICE_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Blast sepolia moonworm crawler service definition with ${BLAST_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${BLAST_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${BLAST_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${BLAST_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${BLAST_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
