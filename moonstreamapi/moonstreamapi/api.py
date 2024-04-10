@@ -1,6 +1,7 @@
 """
 The Moonstream HTTP API
 """
+
 import logging
 import time
 from typing import Dict

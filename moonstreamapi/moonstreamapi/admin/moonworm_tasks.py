@@ -1,12 +1,11 @@
-import logging
 import json
+import logging
 
 import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources
 from bugout.exceptions import BugoutResponseException
 
-
-from ..actions import get_all_entries_from_search, apply_moonworm_tasks
+from ..actions import apply_moonworm_tasks, get_all_entries_from_search
 from ..settings import MOONSTREAM_ADMIN_ACCESS_TOKEN, MOONSTREAM_MOONWORM_TASKS_JOURNAL
 from ..settings import bugout_client as bc
 

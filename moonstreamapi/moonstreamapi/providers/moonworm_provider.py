@@ -23,9 +23,16 @@ mumbai_event_type = "mumbai_blockchain"
 xdai_event_type = "xdai_blockchain"
 zksync_era_testnet_event_type = "zksync_era_testnet_blockchain"
 zksync_era_event_type = "zksync_era_blockchain"
+zksync_era_sepolia_event_type = "zksync_era_sepolia_blockchain"
 arbitrum_nova_event_type = "arbitrum_nova_blockchain"
 arbitrum_sepolia_event_type = "arbitrum_sepolia_blockchain"
 xai_event_type = "xai_blockchain"
+xai_sepolia_event_type = "xai_sepolia_blockchain"
+avalanche_event_type = "avalanche_blockchain"
+avalanche_fuji_sepolia_event_type = "avalanche_fuji_sepolia_blockchain"
+blast_event_type = "blast_blockchain"
+blast_sepolia_event_type = "blast_sepolia_blockchain"
+
 allowed_tags = ["tag:erc721"]
 
 description = f"""Event provider for transactions from the Ethereum blockchain.
@@ -433,6 +440,13 @@ ZkSyncEraMoonwormProvider = MoonwormProvider(
     streamboaundary_range_limit=2 * 60 * 60,
 )
 
+ZkSyncEraSepoliaMoonwormProvider = MoonwormProvider(
+    event_type="zksync_era_sepolia_smartcontract",
+    blockchain=AvailableBlockchainType("zksync_era_sepolia"),
+    description="Provider for reviving transactions from zkSync Era Sepolia tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
 ArbitrumNovaMoonwormProvider = MoonwormProvider(
     event_type="arbitrum_nova_smartcontract",
     blockchain=AvailableBlockchainType("arbitrum_nova"),
@@ -451,5 +465,40 @@ XaiMoonwormProvider = MoonwormProvider(
     event_type="xai_smartcontract",
     blockchain=AvailableBlockchainType("xai"),
     description="Provider for reviving transactions from Xai tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
+XaiSepoliaMoonwormProvider = MoonwormProvider(
+    event_type="xai_sepolia_smartcontract",
+    blockchain=AvailableBlockchainType("xai_sepolia"),
+    description="Provider for reviving transactions from Xai Sepolia tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
+AvalancheMoonwormProvider = MoonwormProvider(
+    event_type="avalanche_smartcontract",
+    blockchain=AvailableBlockchainType("avalanche"),
+    description="Provider for reviving transactions from Avalanche tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
+AvalancheFujiMoonwormProvider = MoonwormProvider(
+    event_type="avalanche_fuji_smartcontract",
+    blockchain=AvailableBlockchainType("avalanche_fuji"),
+    description="Provider for reviving transactions from Avalanche Fuji tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
+BlastMoonwormProvider = MoonwormProvider(
+    event_type="blast_smartcontract",
+    blockchain=AvailableBlockchainType("blast"),
+    description="Provider for reviving transactions from Blast tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
+BlastSepoliaMoonwormProvider = MoonwormProvider(
+    event_type="blast_sepolia_smartcontract",
+    blockchain=AvailableBlockchainType("blast_sepolia"),
+    description="Provider for reviving transactions from Blast Sepolia tables.",
     streamboaundary_range_limit=2 * 60 * 60,
 )

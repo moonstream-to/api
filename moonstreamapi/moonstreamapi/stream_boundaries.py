@@ -1,6 +1,7 @@
 """
 Utilities to work with stream boundaries.
 """
+
 import time
 from typing import Tuple
 

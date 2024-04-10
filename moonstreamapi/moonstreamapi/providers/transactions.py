@@ -490,6 +490,12 @@ ZkSyncEraTransactions = TransactionsProvider(
     streamboaundary_range_limit=2 * 60 * 60,
 )
 
+ZkSyncEraSepoliaTransactions = TransactionsProvider(
+    event_type="zksync_era_sepolia_blockchain",
+    blockchain=AvailableBlockchainType("zksync_era_sepolia"),
+    description="Provider for resiving transactions from ZkSync Era Sepolia tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
 
 ArbitrumNovaTransactions = TransactionsProvider(
     event_type="arbitrum_nova_blockchain",
@@ -509,5 +515,40 @@ XaiTransactions = TransactionsProvider(
     event_type="xai_blockchain",
     blockchain=AvailableBlockchainType("xai"),
     description="Provider for resiving transactions from Xai tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
+XaiSepoliaTransactions = TransactionsProvider(
+    event_type="xai_sepolia_blockchain",
+    blockchain=AvailableBlockchainType("xai_sepolia"),
+    description="Provider for resiving transactions from Xai Sepolia tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
+AvalancheTransactions = TransactionsProvider(
+    event_type="avalanche_blockchain",
+    blockchain=AvailableBlockchainType("avalanche"),
+    description="Provider for resiving transactions from Avalanche tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
+AvalancheFujiTransactions = TransactionsProvider(
+    event_type="avalanche_fuji_blockchain",
+    blockchain=AvailableBlockchainType("avalanche_fuji"),
+    description="Provider for resiving transactions from Avalanche Fuji tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
+BlastTransactions = TransactionsProvider(
+    event_type="blast_blockchain",
+    blockchain=AvailableBlockchainType("blast"),
+    description="Provider for resiving transactions from Blast tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
+BlastSepoliaTransactions = TransactionsProvider(
+    event_type="blast_sepolia_blockchain",
+    blockchain=AvailableBlockchainType("blast_sepolia"),
+    description="Provider for resiving transactions from Blast Sepolia tables.",
     streamboaundary_range_limit=2 * 60 * 60,
 )

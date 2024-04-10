@@ -7,11 +7,10 @@ import json
 import logging
 import os
 from posix import listdir
-from typing import Optional, List, Dict, Any, Union, Callable
-
-from sqlalchemy.orm import with_expression
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from moonstreamdb.db import SessionLocal
+from sqlalchemy.orm import with_expression
 
 from ..settings import (
     BUGOUT_BROOD_URL,
@@ -22,15 +21,13 @@ from ..settings import (
     MOONSTREAM_USAGE_REPORTS_JOURNAL_ID,
 )
 from ..web3_provider import yield_web3_provider
-
-from . import subscription_types, subscriptions, moonworm_tasks, queries, usage
+from . import moonworm_tasks, queries, subscription_types, subscriptions, usage
 from .migrations import (
-    checksum_address,
-    update_dashboard_subscription_key,
-    generate_entity_subscriptions,
     add_selectors,
+    checksum_address,
+    generate_entity_subscriptions,
+    update_dashboard_subscription_key,
 )
-
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

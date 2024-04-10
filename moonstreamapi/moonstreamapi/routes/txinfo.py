@@ -5,13 +5,13 @@ These endpoints enrich raw blockchain transactions (as well as pending transacti
 transactions, etc.) with side information and return objects that are better suited for displaying to
 end users.
 """
+
 import logging
 from typing import Optional
 
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-
 from moonstreamdb.db import yield_db_session
+from sqlalchemy.orm import Session
 
 from .. import actions, data
 from ..abi_decoder import decode_abi

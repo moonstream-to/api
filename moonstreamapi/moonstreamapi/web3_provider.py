@@ -1,33 +1,31 @@
 import logging
+from typing import Any, Callable, Dict, Optional, Union
 from uuid import UUID
 
-from typing import Any, Optional, Union, Callable, Dict
-from web3 import Web3
-from web3.middleware import geth_poa_middleware
-from eth_abi import encode_single, decode_single
+from eth_abi import decode_single, encode_single
 from eth_utils import function_signature_to_4byte_selector
+from moonstreamdb.blockchain import AvailableBlockchainType
 from web3 import Web3
-from web3.contract import ContractFunction
-from web3.providers.rpc import HTTPProvider
 from web3._utils.abi import normalize_event_input_types
-
+from web3.contract import ContractFunction
+from web3.middleware import geth_poa_middleware
+from web3.providers.rpc import HTTPProvider
 
 from .settings import (
-    MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI,
-    NB_ACCESS_ID_HEADER,
-    MOONSTREAM_POLYGON_WEB3_PROVIDER_URI,
-    MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI,
-    MOONSTREAM_XDAI_WEB3_PROVIDER_URI,
-    MOONSTREAM_WYRM_WEB3_PROVIDER_URI,
-    MOONSTREAM_ZKSYNC_ERA_TESTNET_WEB3_PROVIDER_URI,
-    MOONSTREAM_ZKSYNC_ERA_WEB3_PROVIDER_URI,
     MOONSTREAM_ARBITRUM_NOVA_WEB3_PROVIDER_URI,
     MOONSTREAM_ARBITRUM_SEPOLIA_WEB3_PROVIDER_URI,
+    MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI,
+    MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI,
+    MOONSTREAM_POLYGON_WEB3_PROVIDER_URI,
+    MOONSTREAM_WYRM_WEB3_PROVIDER_URI,
     MOONSTREAM_XAI_WEB3_PROVIDER_URI,
-    multicall_contracts,
+    MOONSTREAM_XDAI_WEB3_PROVIDER_URI,
+    MOONSTREAM_ZKSYNC_ERA_TESTNET_WEB3_PROVIDER_URI,
+    MOONSTREAM_ZKSYNC_ERA_WEB3_PROVIDER_URI,
+    NB_ACCESS_ID_HEADER,
     multicall_contract_abi,
+    multicall_contracts,
 )
-from moonstreamdb.blockchain import AvailableBlockchainType
 
 logger = logging.getLogger(__name__)
 

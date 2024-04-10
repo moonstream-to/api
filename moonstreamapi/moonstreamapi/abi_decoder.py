@@ -4,11 +4,10 @@ import sys
 from typing import List, Optional, Type, Union, cast
 
 import pyevmasm
+from moonstreamdb.db import yield_db_session
 from moonstreamdb.models import ESDEventSignature, ESDFunctionSignature
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import text
-
-from moonstreamdb.db import yield_db_session
 
 from .data import ContractABI, EVMEventSignature, EVMFunctionSignature
 

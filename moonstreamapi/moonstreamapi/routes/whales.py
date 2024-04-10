@@ -3,13 +3,13 @@ Moonstream's /whales endpoints.
 
 These endpoints provide public access to whale watch summaries. No authentication required.
 """
+
 import logging
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
-
 from moonstreamdb import db
+from sqlalchemy.orm import Session
 
 from .. import data
 from ..providers.bugout import ethereum_whalewatch_provider
