@@ -62,6 +62,8 @@ subscription_id_by_blockchain = {
     "xai_sepolia": "xai_sepolia_smartcontract",
     "avalanche": "avalanche_smartcontract",
     "avalanche_fuji": "avalanche_fuji_smartcontract",
+    "blast": "blast_smartcontract",
+    "blast_sepolia": "blast_sepolia_smartcontract",
 }
 
 blockchain_by_subscription_id = {
@@ -79,6 +81,8 @@ blockchain_by_subscription_id = {
     "xai_sepolia_blockchain": "xai_sepolia",
     "avalanche_blockchain": "avalanche",
     "avalanche_fuji_blockchain": "avalanche_fuji",
+    "blast_blockchain": "blast",
+    "blast_sepolia_blockchain": "blast_sepolia",
     "ethereum_smartcontract": "ethereum",
     "polygon_smartcontract": "polygon",
     "mumbai_smartcontract": "mumbai",
@@ -93,6 +97,8 @@ blockchain_by_subscription_id = {
     "xai_sepolia_smartcontract": "xai_sepolia",
     "avalanche_smartcontract": "avalanche",
     "avalanche_fuji_smartcontract": "avalanche_fuji",
+    "blast_smartcontract": "blast",
+    "blast_sepolia_smartcontract": "blast_sepolia",
 }
 
 

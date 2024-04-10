@@ -66,6 +66,8 @@ def historical_crawler(
         network = Network.zksync_era_testnet
     elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
         network = Network.zksync_era
+    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_SEPOLIA:
+        network = Network.zksync_era_sepolia
     elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
         network = Network.arbitrum_nova
     elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
@@ -74,6 +76,14 @@ def historical_crawler(
         network = Network.xai
     elif blockchain_type == AvailableBlockchainType.XAI_SEPOLIA:
         network = Network.xai_sepolia
+    elif blockchain_type == AvailableBlockchainType.AVALANCHE:
+        network = Network.avalanche
+    elif blockchain_type == AvailableBlockchainType.AVALANCHE_FUJI:
+        network = Network.avalanche_fuji
+    elif blockchain_type == AvailableBlockchainType.BLAST:
+        network = Network.blast
+    elif blockchain_type == AvailableBlockchainType.BLAST_SEPOLIA:
+        network = Network.blast_sepolia
     else:
         raise Exception("Unsupported blockchain type provided")
 
