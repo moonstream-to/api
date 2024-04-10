@@ -14,6 +14,12 @@ from .models import (
     AvalancheFujiTransaction,
     AvalancheLabel,
     AvalancheTransaction,
+    BlastBlock,
+    BlastLabel,
+    BlastSepoliaBlock,
+    BlastSepoliaLabel,
+    BlastSepoliaTransaction,
+    BlastTransaction,
     EthereumBlock,
     EthereumLabel,
     EthereumTransaction,
@@ -62,6 +68,8 @@ class AvailableBlockchainType(Enum):
     XAI_SEPOLIA = "xai_sepolia"
     AVALANCHE = "avalanche"
     AVALANCHE_FUJI = "avalanche_fuji"
+    BLAST = "blast"
+    BLAST_SEPOLIA = "blast_sepolia"
 
 
 def get_block_model(
@@ -82,6 +90,8 @@ def get_block_model(
         XaiSepoliaBlock,
         AvalancheBlock,
         AvalancheFujiBlock,
+        BlastBlock,
+        BlastSepoliaBlock,
     ]
 ]:
     """
@@ -104,6 +114,8 @@ def get_block_model(
             XaiSepoliaBlock,
             AvalancheBlock,
             AvalancheFujiBlock,
+            BlastBlock,
+            BlastSepoliaBlock,
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -134,6 +146,10 @@ def get_block_model(
         block_model = AvalancheBlock
     elif blockchain_type == AvailableBlockchainType.AVALANCHE_FUJI:
         block_model = AvalancheFujiBlock
+    elif blockchain_type == AvailableBlockchainType.BLAST:
+        block_model = BlastBlock
+    elif blockchain_type == AvailableBlockchainType.BLAST_SEPOLIA:
+        block_model = BlastSepoliaBlock
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -158,6 +174,8 @@ def get_label_model(
         XaiSepoliaLabel,
         AvalancheLabel,
         AvalancheFujiLabel,
+        BlastLabel,
+        BlastSepoliaLabel,
     ]
 ]:
     """
@@ -180,6 +198,8 @@ def get_label_model(
             XaiSepoliaLabel,
             AvalancheLabel,
             AvalancheFujiLabel,
+            BlastLabel,
+            BlastSepoliaLabel,
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -210,6 +230,10 @@ def get_label_model(
         label_model = AvalancheLabel
     elif blockchain_type == AvailableBlockchainType.AVALANCHE_FUJI:
         label_model = AvalancheFujiLabel
+    elif blockchain_type == AvailableBlockchainType.BLAST:
+        label_model = BlastLabel
+    elif blockchain_type == AvailableBlockchainType.BLAST_SEPOLIA:
+        label_model = BlastSepoliaLabel
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -234,6 +258,8 @@ def get_transaction_model(
         XaiSepoliaTransaction,
         AvalancheTransaction,
         AvalancheFujiTransaction,
+        BlastTransaction,
+        BlastSepoliaTransaction,
     ]
 ]:
     """
@@ -256,6 +282,8 @@ def get_transaction_model(
             XaiSepoliaTransaction,
             AvalancheTransaction,
             AvalancheFujiTransaction,
+            BlastTransaction,
+            BlastSepoliaTransaction,
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -286,6 +314,10 @@ def get_transaction_model(
         transaction_model = AvalancheTransaction
     elif blockchain_type == AvailableBlockchainType.AVALANCHE_FUJI:
         transaction_model = AvalancheFujiTransaction
+    elif blockchain_type == AvailableBlockchainType.BLAST:
+        transaction_model = BlastTransaction
+    elif blockchain_type == AvailableBlockchainType.BLAST_SEPOLIA:
+        transaction_model = BlastSepoliaTransaction
     else:
         raise Exception("Unsupported blockchain type provided")
 

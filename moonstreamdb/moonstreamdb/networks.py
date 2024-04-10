@@ -15,6 +15,12 @@ from .models import (
     AvalancheLabel,
     AvalancheTransaction,
     Base,
+    BlastBlock,
+    BlastLabel,
+    BlastSepoliaBlock,
+    BlastSepoliaLabel,
+    BlastSepoliaTransaction,
+    BlastTransaction,
     EthereumBlock,
     EthereumLabel,
     EthereumTransaction,
@@ -63,6 +69,8 @@ class Network(Enum):
     xai_sepolia = "xai_sepolia"
     avalanche = "avalanche"
     avalanche_fuji = "avalanche_fuji"
+    blast = "blast"
+    blast_sepolia = "blast_sepolia"
 
 
 tx_raw_types = Union[
@@ -80,6 +88,8 @@ tx_raw_types = Union[
     XaiSepoliaTransaction,
     AvalancheTransaction,
     AvalancheFujiTransaction,
+    BlastTransaction,
+    BlastSepoliaTransaction,
 ]
 
 MODELS: Dict[Network, Dict[str, Base]] = {
@@ -152,5 +162,15 @@ MODELS: Dict[Network, Dict[str, Base]] = {
         "blocks": AvalancheFujiBlock,
         "labels": AvalancheFujiLabel,
         "transactions": AvalancheFujiTransaction,
+    },
+    Network.blast: {
+        "blocks": BlastBlock,
+        "labels": BlastLabel,
+        "transactions": BlastTransaction,
+    },
+    Network.blast_sepolia: {
+        "blocks": BlastSepoliaBlock,
+        "labels": BlastSepoliaLabel,
+        "transactions": BlastSepoliaTransaction,
     },
 }
