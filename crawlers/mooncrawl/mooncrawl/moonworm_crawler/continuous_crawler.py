@@ -152,6 +152,10 @@ def continuous_crawler(
         network = Network.avalanche
     elif blockchain_type == AvailableBlockchainType.AVALANCHE_FUJI:
         network = Network.avalanche_fuji
+    elif blockchain_type == AvailableBlockchainType.BLAST:
+        network = Network.blast
+    elif blockchain_type == AvailableBlockchainType.BLAST_SEPOLIA:
+        network = Network.blast_sepolia
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 

@@ -26,6 +26,8 @@ from .settings import (
     MOONSTREAM_NODE_ARBITRUM_SEPOLIA_A_EXTERNAL_URI,
     MOONSTREAM_NODE_AVALANCHE_A_EXTERNAL_URI,
     MOONSTREAM_NODE_AVALANCHE_FUJI_A_EXTERNAL_URI,
+    MOONSTREAM_NODE_BLAST_A_EXTERNAL_URI,
+    MOONSTREAM_NODE_BLAST_SEPOLIA_A_EXTERNAL_URI,
     MOONSTREAM_NODE_ETHEREUM_A_EXTERNAL_URI,
     MOONSTREAM_NODE_MUMBAI_A_EXTERNAL_URI,
     MOONSTREAM_NODE_POLYGON_A_EXTERNAL_URI,
@@ -82,6 +84,10 @@ def connect(
             web3_uri = MOONSTREAM_NODE_AVALANCHE_A_EXTERNAL_URI
         elif blockchain_type == AvailableBlockchainType.AVALANCHE_FUJI:
             web3_uri = MOONSTREAM_NODE_AVALANCHE_FUJI_A_EXTERNAL_URI
+        elif blockchain_type == AvailableBlockchainType.BLAST:
+            web3_uri = MOONSTREAM_NODE_BLAST_A_EXTERNAL_URI
+        elif blockchain_type == AvailableBlockchainType.BLAST_SEPOLIA:
+            web3_uri = MOONSTREAM_NODE_BLAST_SEPOLIA_A_EXTERNAL_URI
         else:
             raise Exception("Wrong blockchain type provided for web3 URI")
 
@@ -146,7 +152,7 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
     )
     if blockchain_type == AvailableBlockchainType.XDAI:
         block_obj.author = block.author
-    if (
+    elif (
         blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET
         or blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_SEPOLIA
         or blockchain_type == AvailableBlockchainType.ZKSYNC_ERA
@@ -163,7 +169,7 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
             if block.get("l1BatchTimestamp") is not None
             else None
         )
-    if (
+    elif (
         blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA
         or blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA
     ):
@@ -172,8 +178,7 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
         block_obj.send_count = hex_to_int(block.get("sendCount"))
         block_obj.send_root = block.get("sendRoot", "")
         block_obj.mix_hash = block.get("mixHash", "")
-
-    if (
+    elif (
         blockchain_type == AvailableBlockchainType.XAI
         or blockchain_type == AvailableBlockchainType.XAI_SEPOLIA
     ):
@@ -182,8 +187,7 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
         block_obj.send_count = hex_to_int(block.get("sendCount"))
         block_obj.send_root = block.get("sendRoot", "")
         block_obj.mix_hash = block.get("mixHash", "")
-
-    if (
+    elif (
         blockchain_type == AvailableBlockchainType.AVALANCHE
         or blockchain_type == AvailableBlockchainType.AVALANCHE_FUJI
     ):
@@ -192,6 +196,13 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
         block_obj.block_gas_cost = block.get("blockGasCost")
         block_obj.ext_data_gas_used = block.get("extDataGasUsed", "")
         block_obj.ext_data_hash = block.get("extDataHash", "")
+    elif (
+        blockchain_type == AvailableBlockchainType.BLAST
+        or blockchain_type == AvailableBlockchainType.BLAST_SEPOLIA
+    ):
+        block_obj.sha3_uncles = block.get("sha3Uncles", "")
+        block_obj.mix_hash = block.get("mixHash", "")
+        block_obj.withdrawals_root = block.get("withdrawalsRoot", "")
 
     db_session.add(block_obj)
 

@@ -93,6 +93,16 @@ AVALANCHE_FUJI_SYNCHRONIZE_SERVICE="avalanche-fuji-synchronize.service"
 AVALANCHE_FUJI_MISSING_SERVICE_FILE="avalanche-fuji-missing.service"
 AVALANCHE_FUJI_MISSING_TIMER_FILE="avalanche-fuji-missing.timer"
 
+# Blast
+BLAST_MISSING_SERVICE_FILE="blast-missing.service"
+BLAST_MISSING_TIMER_FILE="blast-missing.timer"
+BLAST_SYNCHRONIZE_SERVICE="blast-synchronize.service"
+
+# Blast sepolia
+BLAST_SEPOLIA_MISSING_SERVICE_FILE="blast-sepolia-missing.service"
+BLAST_SEPOLIA_MISSING_TIMER_FILE="blast-sepolia-missing.timer"
+BLAST_SEPOLIA_SYNCHRONIZE_SERVICE="blast-sepolia-synchronize.service"
+
 set -eu
 
 echo
@@ -370,3 +380,39 @@ cp "${SCRIPT_DIR}/${AVALANCHE_FUJI_MISSING_SERVICE_FILE}" "/home/ubuntu/.config/
 cp "${SCRIPT_DIR}/${AVALANCHE_FUJI_MISSING_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${AVALANCHE_FUJI_MISSING_TIMER_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${AVALANCHE_FUJI_MISSING_TIMER_FILE}"
+
+# Blast
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Blast block with transactions syncronizer service definition with ${BLAST_SYNCHRONIZE_SERVICE}"
+chmod 644 "${SCRIPT_DIR}/${BLAST_SYNCHRONIZE_SERVICE}"
+cp "${SCRIPT_DIR}/${BLAST_SYNCHRONIZE_SERVICE}" "/home/ubuntu/.config/systemd/user/${BLAST_SYNCHRONIZE_SERVICE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${BLAST_SYNCHRONIZE_SERVICE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Blast missing service and timer with: ${BLAST_MISSING_SERVICE_FILE}, ${BLAST_MISSING_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${BLAST_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${BLAST_MISSING_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${BLAST_MISSING_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${BLAST_MISSING_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${BLAST_MISSING_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${BLAST_MISSING_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${BLAST_MISSING_TIMER_FILE}"
+
+# Blast sepolia
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Blast sepolia block with transactions syncronizer service definition with ${BLAST_SEPOLIA_SYNCHRONIZE_SERVICE}"
+chmod 644 "${SCRIPT_DIR}/${BLAST_SEPOLIA_SYNCHRONIZE_SERVICE}"
+cp "${SCRIPT_DIR}/${BLAST_SEPOLIA_SYNCHRONIZE_SERVICE}" "/home/ubuntu/.config/systemd/user/${BLAST_SEPOLIA_SYNCHRONIZE_SERVICE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${BLAST_SEPOLIA_SYNCHRONIZE_SERVICE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Blast sepolia missing service and timer with: ${BLAST_SEPOLIA_MISSING_SERVICE_FILE}, ${BLAST_SEPOLIA_MISSING_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${BLAST_SEPOLIA_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${BLAST_SEPOLIA_MISSING_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${BLAST_SEPOLIA_MISSING_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${BLAST_SEPOLIA_MISSING_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${BLAST_SEPOLIA_MISSING_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${BLAST_SEPOLIA_MISSING_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${BLAST_SEPOLIA_MISSING_TIMER_FILE}"
