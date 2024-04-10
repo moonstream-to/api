@@ -74,7 +74,7 @@ event_providers: Dict[str, Any] = {
     transactions.XaiTransactions.event_type: transactions.XaiTransactions,
     transactions.XaiSepoliaTransactions.event_type: transactions.XaiSepoliaTransactions,
     transactions.AvalancheTransactions.event_type: transactions.AvalancheTransactions,
-    transactions.AvalancheFujiSepoliaTransactions.event_type: transactions.AvalancheFujiSepoliaTransactions,
+    transactions.AvalancheFujiTransactions.event_type: transactions.AvalancheFujiTransactions,
     transactions.BlastTransactions.event_type: transactions.BlastTransactions,
     transactions.BlastSepoliaTransactions.event_type: transactions.BlastSepoliaTransactions,
     bugout.polygon_whalewatch_provider.event_type: bugout.polygon_whalewatch_provider,

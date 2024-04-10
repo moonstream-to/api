@@ -14,12 +14,18 @@ from web3.providers.rpc import HTTPProvider
 from .settings import (
     MOONSTREAM_ARBITRUM_NOVA_WEB3_PROVIDER_URI,
     MOONSTREAM_ARBITRUM_SEPOLIA_WEB3_PROVIDER_URI,
+    MOONSTREAM_AVALANCHE_FUJI_WEB3_PROVIDER_URI,
+    MOONSTREAM_AVALANCHE_WEB3_PROVIDER_URI,
+    MOONSTREAM_BLAST_SEPOLIA_WEB3_PROVIDER_URI,
+    MOONSTREAM_BLAST_WEB3_PROVIDER_URI,
     MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI,
     MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI,
     MOONSTREAM_POLYGON_WEB3_PROVIDER_URI,
     MOONSTREAM_WYRM_WEB3_PROVIDER_URI,
+    MOONSTREAM_XAI_SEPOLIA_WEB3_PROVIDER_URI,
     MOONSTREAM_XAI_WEB3_PROVIDER_URI,
     MOONSTREAM_XDAI_WEB3_PROVIDER_URI,
+    MOONSTREAM_ZKSYNC_ERA_SEPOLIA_WEB3_PROVIDER_URI,
     MOONSTREAM_ZKSYNC_ERA_TESTNET_WEB3_PROVIDER_URI,
     MOONSTREAM_ZKSYNC_ERA_WEB3_PROVIDER_URI,
     NB_ACCESS_ID_HEADER,
@@ -76,12 +82,24 @@ def connect(
             web3_uri = MOONSTREAM_ZKSYNC_ERA_TESTNET_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
             web3_uri = MOONSTREAM_ZKSYNC_ERA_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_SEPOLIA:
+            web3_uri = MOONSTREAM_ZKSYNC_ERA_SEPOLIA_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
             web3_uri = MOONSTREAM_ARBITRUM_NOVA_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
             web3_uri = MOONSTREAM_ARBITRUM_SEPOLIA_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.XAI:
             web3_uri = MOONSTREAM_XAI_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.XAI_SEPOLIA:
+            web3_uri = MOONSTREAM_XAI_SEPOLIA_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.AVALANCHE:
+            web3_uri = MOONSTREAM_AVALANCHE_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.AVALANCHE_FUJI:
+            web3_uri = MOONSTREAM_AVALANCHE_FUJI_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.BLAST:
+            web3_uri = MOONSTREAM_BLAST_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.BLAST_SEPOLIA:
+            web3_uri = MOONSTREAM_BLAST_SEPOLIA_WEB3_PROVIDER_URI
         else:
             raise Exception("Wrong blockchain type provided for web3 URI")
 
