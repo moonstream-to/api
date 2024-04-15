@@ -25,6 +25,9 @@ target_metadata = MoonstreamBase.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 from moonstreamdb.models import (
+    AmoyBlock,
+    AmoyTransaction,
+    AmoyLabel,
     ArbitrumNovaBlock,
     ArbitrumNovaLabel,
     ArbitrumNovaTransaction,
@@ -90,6 +93,9 @@ def include_symbol(tablename, schema):
         MumbaiBlock.__tablename__,
         MumbaiTransaction.__tablename__,
         MumbaiLabel.__tablename__,
+        AmoyBlock.__tablename__,
+        AmoyTransaction.__tablename__,
+        AmoyLabel.__tablename__,
         ESDFunctionSignature.__tablename__,
         ESDEventSignature.__tablename__,
         OpenSeaCrawlingState.__tablename__,
