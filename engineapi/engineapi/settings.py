@@ -100,7 +100,7 @@ blockchain_names = [
     "zksync_era",
     "zksync_era_sepolia",
     "arbitrum_nova",
-    "arbitrum",
+    "arbitrum_sepolia",
     "xai",
     "xai_sepolia",
     "avalanche",
