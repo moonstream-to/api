@@ -28,6 +28,7 @@ SCRIPT_DIR="$(realpath $(dirname $0))"
 ETHEREUM_MOONWORM_CRAWLER_SERVICE_FILE="ethereum-moonworm-crawler.service"
 POLYGON_MOONWORM_CRAWLER_SERVICE_FILE="polygon-moonworm-crawler.service"
 MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE="mumbai-moonworm-crawler.service"
+AMOY_MOONWORM_CRAWLER_SERVICE_FILE="amoy-moonworm-crawler.service"
 XDAI_MOONWORM_CRAWLER_SERVICE_FILE="xdai-moonworm-crawler.service"
 ZKSYNC_ERA_MOONWORM_CRAWLER_SERVICE_FILE="zksync-era-moonworm-crawler.service"
 ZKSYNC_ERA_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE="zksync-era-sepolia-moonworm-crawler.service"
@@ -97,11 +98,11 @@ XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${POLYGON_
 
 echo
 echo
-echo -e "${PREFIX_INFO} Replacing existing Mumbai moonworm crawler service definition with ${MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE}"
-chmod 644 "${SCRIPT_DIR}/${MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE}"
-cp "${SCRIPT_DIR}/${MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE}"
+echo -e "${PREFIX_INFO} Replacing existing Amoy moonworm crawler service definition with ${AMOY_MOONWORM_CRAWLER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${AMOY_MOONWORM_CRAWLER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${AMOY_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${AMOY_MOONWORM_CRAWLER_SERVICE_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${AMOY_MOONWORM_CRAWLER_SERVICE_FILE}"
 
 echo
 echo

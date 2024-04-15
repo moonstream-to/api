@@ -22,6 +22,7 @@ from .data import DateRange
 from .db import yield_db_session, yield_db_session_ctx
 from .settings import (
     MOONSTREAM_CRAWL_WORKERS,
+    MOONSTREAM_NODE_AMOY_A_EXTERNAL_URI,
     MOONSTREAM_NODE_ARBITRUM_NOVA_A_EXTERNAL_URI,
     MOONSTREAM_NODE_ARBITRUM_SEPOLIA_A_EXTERNAL_URI,
     MOONSTREAM_NODE_AVALANCHE_A_EXTERNAL_URI,
@@ -66,6 +67,8 @@ def connect(
             web3_uri = MOONSTREAM_NODE_POLYGON_A_EXTERNAL_URI
         elif blockchain_type == AvailableBlockchainType.MUMBAI:
             web3_uri = MOONSTREAM_NODE_MUMBAI_A_EXTERNAL_URI
+        elif blockchain_type == AvailableBlockchainType.AMOY:
+            web3_uri = MOONSTREAM_NODE_AMOY_A_EXTERNAL_URI
         elif blockchain_type == AvailableBlockchainType.XDAI:
             web3_uri = MOONSTREAM_NODE_XDAI_A_EXTERNAL_URI
         elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:

@@ -2,6 +2,9 @@ from enum import Enum
 from typing import Type, Union
 
 from .models import (
+    AmoyBlock,
+    AmoyLabel,
+    AmoyTransaction,
     ArbitrumNovaBlock,
     ArbitrumNovaLabel,
     ArbitrumNovaTransaction,
@@ -57,6 +60,7 @@ class AvailableBlockchainType(Enum):
     ETHEREUM = "ethereum"
     POLYGON = "polygon"
     MUMBAI = "mumbai"
+    AMOY = "amoy"
     XDAI = "xdai"
     WYRM = "wyrm"
     ZKSYNC_ERA = "zksync_era"
@@ -79,6 +83,7 @@ def get_block_model(
         EthereumBlock,
         PolygonBlock,
         MumbaiBlock,
+        AmoyBlock,
         XDaiBlock,
         WyrmBlock,
         ZkSyncEraTestnetBlock,
@@ -95,14 +100,14 @@ def get_block_model(
     ]
 ]:
     """
-    Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm, ZkSyncEra, ZkSyncEraTestnet, ArbitrumNova, ArbitrumSepolia, Xai, XaiSepolia
-    set proper blocks model.
+    Depends on provided blockchain type set proper blocks model.
     """
     block_model: Type[
         Union[
             EthereumBlock,
             PolygonBlock,
             MumbaiBlock,
+            AmoyBlock,
             XDaiBlock,
             WyrmBlock,
             ZkSyncEraTestnetBlock,
@@ -124,6 +129,8 @@ def get_block_model(
         block_model = PolygonBlock
     elif blockchain_type == AvailableBlockchainType.MUMBAI:
         block_model = MumbaiBlock
+    elif blockchain_type == AvailableBlockchainType.AMOY:
+        block_model = AmoyBlock
     elif blockchain_type == AvailableBlockchainType.XDAI:
         block_model = XDaiBlock
     elif blockchain_type == AvailableBlockchainType.WYRM:
@@ -163,6 +170,7 @@ def get_label_model(
         EthereumLabel,
         PolygonLabel,
         MumbaiLabel,
+        AmoyLabel,
         XDaiLabel,
         WyrmLabel,
         ZkSyncEraTestnetLabel,
@@ -179,14 +187,14 @@ def get_label_model(
     ]
 ]:
     """
-    Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm, ZkSyncEra, ZkSyncEraTestnet, ArbitrumNova, ArbitrumSepolia, Xai, XaiSepolia
-    set proper block label model.
+    Depends on provided blockchain type set proper block label model.
     """
     label_model: Type[
         Union[
             EthereumLabel,
             PolygonLabel,
             MumbaiLabel,
+            AmoyLabel,
             XDaiLabel,
             WyrmLabel,
             ZkSyncEraTestnetLabel,
@@ -208,6 +216,8 @@ def get_label_model(
         label_model = PolygonLabel
     elif blockchain_type == AvailableBlockchainType.MUMBAI:
         label_model = MumbaiLabel
+    elif blockchain_type == AvailableBlockchainType.AMOY:
+        label_model = AmoyLabel
     elif blockchain_type == AvailableBlockchainType.XDAI:
         label_model = XDaiLabel
     elif blockchain_type == AvailableBlockchainType.WYRM:
@@ -247,6 +257,7 @@ def get_transaction_model(
         EthereumTransaction,
         PolygonTransaction,
         MumbaiTransaction,
+        AmoyTransaction,
         XDaiTransaction,
         WyrmTransaction,
         ZkSyncEraTestnetTransaction,
@@ -263,14 +274,14 @@ def get_transaction_model(
     ]
 ]:
     """
-    Depends on provided blockchain type: Ethereum, Polygon, Mumbai, XDai, Wyrm, ZkSyncEra, ZkSyncEraTestnet, ArbitrumNova, ArbitrumSepolia, Xai, XaiSepolia
-    set proper block transactions model.
+    Depends on provided blockchain type set proper block transactions model.
     """
     transaction_model: Type[
         Union[
             EthereumTransaction,
             PolygonTransaction,
             MumbaiTransaction,
+            AmoyTransaction,
             XDaiTransaction,
             WyrmTransaction,
             ZkSyncEraTestnetTransaction,
@@ -292,6 +303,8 @@ def get_transaction_model(
         transaction_model = PolygonTransaction
     elif blockchain_type == AvailableBlockchainType.MUMBAI:
         transaction_model = MumbaiTransaction
+    elif blockchain_type == AvailableBlockchainType.AMOY:
+        transaction_model = AmoyTransaction
     elif blockchain_type == AvailableBlockchainType.XDAI:
         transaction_model = XDaiTransaction
     elif blockchain_type == AvailableBlockchainType.WYRM:

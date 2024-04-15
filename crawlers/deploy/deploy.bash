@@ -81,6 +81,12 @@ MUMBAI_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE="mumbai-historical-crawl-transac
 MUMBAI_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE="mumbai-historical-crawl-events.service"
 MUMBAI_HISTORICAL_CRAWL_EVENTS_TIMER_FILE="mumbai-historical-crawl-events.timer"
 
+# Amoy
+AMOY_MISSING_SERVICE_FILE="amoy-missing.service"
+AMOY_MISSING_TIMER_FILE="amoy-missing.timer"
+AMOY_MOONWORM_CRAWLER_SERVICE_FILE="amoy-moonworm-crawler.service"
+AMOY_SYNCHRONIZE_SERVICE="amoy-synchronize.service"
+
 # XDai service files
 XDAI_SYNCHRONIZE_SERVICE="xdai-synchronize.service"
 XDAI_MISSING_SERVICE_FILE="xdai-missing.service"
@@ -371,76 +377,33 @@ cp "${SCRIPT_DIR}/${POLYGON_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}" "/home/ubuntu/.
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${POLYGON_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
 
+# Amoy
 echo
 echo
-echo -e "${PREFIX_INFO} Replacing existing Mumbai block with transactions syncronizer service definition with ${MUMBAI_SYNCHRONIZE_SERVICE}"
-chmod 644 "${SCRIPT_DIR}/${MUMBAI_SYNCHRONIZE_SERVICE}"
-cp "${SCRIPT_DIR}/${MUMBAI_SYNCHRONIZE_SERVICE}" "/home/ubuntu/.config/systemd/user/${MUMBAI_SYNCHRONIZE_SERVICE}"
+echo -e "${PREFIX_INFO} Replacing existing Amoy block with transactions syncronizer service definition with ${AMOY_SYNCHRONIZE_SERVICE}"
+chmod 644 "${SCRIPT_DIR}/${AMOY_SYNCHRONIZE_SERVICE}"
+cp "${SCRIPT_DIR}/${AMOY_SYNCHRONIZE_SERVICE}" "/home/ubuntu/.config/systemd/user/${AMOY_SYNCHRONIZE_SERVICE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MUMBAI_SYNCHRONIZE_SERVICE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${AMOY_SYNCHRONIZE_SERVICE}"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Replacing existing Mumbai missing service and timer with: ${MUMBAI_MISSING_SERVICE_FILE}, ${MUMBAI_MISSING_TIMER_FILE}"
-chmod 644 "${SCRIPT_DIR}/${MUMBAI_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${MUMBAI_MISSING_TIMER_FILE}"
-cp "${SCRIPT_DIR}/${MUMBAI_MISSING_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${MUMBAI_MISSING_SERVICE_FILE}"
-cp "${SCRIPT_DIR}/${MUMBAI_MISSING_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${MUMBAI_MISSING_TIMER_FILE}"
+echo -e "${PREFIX_INFO} Replacing existing Amoy missing service and timer with: ${AMOY_MISSING_SERVICE_FILE}, ${AMOY_MISSING_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${AMOY_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${AMOY_MISSING_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${AMOY_MISSING_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${AMOY_MISSING_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${AMOY_MISSING_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${AMOY_MISSING_TIMER_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MUMBAI_MISSING_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${AMOY_MISSING_TIMER_FILE}"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Replacing existing Mumbai moonworm crawler service definition with ${MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE}"
-chmod 644 "${SCRIPT_DIR}/${MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE}"
-cp "${SCRIPT_DIR}/${MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE}"
+echo -e "${PREFIX_INFO} Replacing existing Amoy moonworm crawler service definition with ${AMOY_MOONWORM_CRAWLER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${AMOY_MOONWORM_CRAWLER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${AMOY_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${AMOY_MOONWORM_CRAWLER_SERVICE_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${AMOY_MOONWORM_CRAWLER_SERVICE_FILE}"
 
-echo
-echo
-echo -e "${PREFIX_INFO} Replacing existing MUMBAI state service and timer with: ${MUMBAI_STATE_SERVICE_FILE}, ${MUMBAI_STATE_TIMER_FILE}"
-chmod 644 "${SCRIPT_DIR}/${MUMBAI_STATE_SERVICE_FILE}" "${SCRIPT_DIR}/${MUMBAI_STATE_TIMER_FILE}"
-cp "${SCRIPT_DIR}/${MUMBAI_STATE_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${MUMBAI_STATE_SERVICE_FILE}"
-cp "${SCRIPT_DIR}/${MUMBAI_STATE_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${MUMBAI_STATE_TIMER_FILE}"
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MUMBAI_STATE_TIMER_FILE}"
-
-echo
-echo
-echo -e "${PREFIX_INFO} Replacing existing MUMBAI state clean service and timer with: ${MUMBAI_STATE_CLEAN_SERVICE_FILE}, ${MUMBAI_STATE_CLEAN_TIMER_FILE}"
-chmod 644 "${SCRIPT_DIR}/${MUMBAI_STATE_CLEAN_SERVICE_FILE}" "${SCRIPT_DIR}/${MUMBAI_STATE_CLEAN_TIMER_FILE}"
-cp "${SCRIPT_DIR}/${MUMBAI_STATE_CLEAN_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${MUMBAI_STATE_CLEAN_SERVICE_FILE}"
-cp "${SCRIPT_DIR}/${MUMBAI_STATE_CLEAN_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${MUMBAI_STATE_CLEAN_TIMER_FILE}"
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MUMBAI_STATE_CLEAN_TIMER_FILE}"
-
-echo
-echo
-echo -e "${PREFIX_INFO} Replacing existing MUMBAI metadata service and timer with: ${MUMBAI_METADATA_SERVICE_FILE}, ${MUMBAI_METADATA_TIMER_FILE}"
-chmod 644 "${SCRIPT_DIR}/${MUMBAI_METADATA_SERVICE_FILE}" "${SCRIPT_DIR}/${MUMBAI_METADATA_TIMER_FILE}"
-cp "${SCRIPT_DIR}/${MUMBAI_METADATA_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${MUMBAI_METADATA_SERVICE_FILE}"
-cp "${SCRIPT_DIR}/${MUMBAI_METADATA_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${MUMBAI_METADATA_TIMER_FILE}"
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MUMBAI_METADATA_TIMER_FILE}"
-
-echo
-echo
-echo -e "${PREFIX_INFO} Replacing existing MUMBAI historical transactions crawler service and timer with: ${MUMBAI_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}, ${MUMBAI_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
-chmod 644 "${SCRIPT_DIR}/${MUMBAI_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}" "${SCRIPT_DIR}/${MUMBAI_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
-cp "${SCRIPT_DIR}/${MUMBAI_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${MUMBAI_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}"
-cp "${SCRIPT_DIR}/${MUMBAI_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${MUMBAI_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MUMBAI_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
-
-echo
-echo
-echo -e "${PREFIX_INFO} Replacing existing MUMBAI historical events crawler service and timer with: ${MUMBAI_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}, ${MUMBAI_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
-chmod 644 "${SCRIPT_DIR}/${MUMBAI_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}" "${SCRIPT_DIR}/${MUMBAI_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
-cp "${SCRIPT_DIR}/${MUMBAI_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${MUMBAI_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}"
-cp "${SCRIPT_DIR}/${MUMBAI_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${MUMBAI_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
-XDG_RUNTIME_DIR="/run/user/1000"  systemctl --user restart --no-block "${MUMBAI_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
-
+# Xdai
 echo
 echo
 echo -e "${PREFIX_INFO} Replacing existing XDai block with transactions syncronizer service definition with ${XDAI_SYNCHRONIZE_SERVICE}"

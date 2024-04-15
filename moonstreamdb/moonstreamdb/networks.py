@@ -1,7 +1,11 @@
 from enum import Enum
 from typing import Dict, Union
 
+from .blockchain import AvailableBlockchainType
 from .models import (
+    AmoyBlock,
+    AmoyLabel,
+    AmoyTransaction,
     ArbitrumNovaBlock,
     ArbitrumNovaLabel,
     ArbitrumNovaTransaction,
@@ -58,6 +62,7 @@ class Network(Enum):
     ethereum = "ethereum"
     polygon = "polygon"
     mumbai = "mumbai"
+    amoy = "amoy"
     xdai = "xdai"
     wyrm = "wyrm"
     zksync_era_testnet = "zksync_era_testnet"
@@ -76,6 +81,7 @@ class Network(Enum):
 tx_raw_types = Union[
     EthereumTransaction,
     MumbaiTransaction,
+    AmoyTransaction,
     PolygonTransaction,
     WyrmTransaction,
     XDaiTransaction,
@@ -102,6 +108,11 @@ MODELS: Dict[Network, Dict[str, Base]] = {
         "blocks": MumbaiBlock,
         "labels": MumbaiLabel,
         "transactions": MumbaiTransaction,
+    },
+    Network.amoy: {
+        "blocks": AmoyBlock,
+        "labels": AmoyLabel,
+        "transactions": AmoyTransaction,
     },
     Network.polygon: {
         "blocks": PolygonBlock,
@@ -174,3 +185,44 @@ MODELS: Dict[Network, Dict[str, Base]] = {
         "transactions": BlastSepoliaTransaction,
     },
 }
+
+
+def blockchain_type_to_network_type(
+    blockchain_type: AvailableBlockchainType,
+) -> Network:
+    if blockchain_type == AvailableBlockchainType.ETHEREUM:
+        return Network.ethereum
+    elif blockchain_type == AvailableBlockchainType.POLYGON:
+        return Network.polygon
+    elif blockchain_type == AvailableBlockchainType.MUMBAI:
+        return Network.mumbai
+    elif blockchain_type == AvailableBlockchainType.AMOY:
+        return Network.amoy
+    elif blockchain_type == AvailableBlockchainType.XDAI:
+        return Network.xdai
+    elif blockchain_type == AvailableBlockchainType.WYRM:
+        return Network.wyrm
+    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET:
+        return Network.zksync_era_testnet
+    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
+        return Network.zksync_era
+    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_SEPOLIA:
+        return Network.zksync_era_sepolia
+    elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
+        return Network.arbitrum_nova
+    elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
+        return Network.arbitrum_sepolia
+    elif blockchain_type == AvailableBlockchainType.XAI:
+        return Network.xai
+    elif blockchain_type == AvailableBlockchainType.XAI_SEPOLIA:
+        return Network.xai_sepolia
+    elif blockchain_type == AvailableBlockchainType.AVALANCHE:
+        return Network.avalanche
+    elif blockchain_type == AvailableBlockchainType.AVALANCHE_FUJI:
+        return Network.avalanche_fuji
+    elif blockchain_type == AvailableBlockchainType.BLAST:
+        return Network.blast
+    elif blockchain_type == AvailableBlockchainType.BLAST_SEPOLIA:
+        return Network.blast_sepolia
+    else:
+        raise ValueError(f"Unknown blockchain type: {blockchain_type}")

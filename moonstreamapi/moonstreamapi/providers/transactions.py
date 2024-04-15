@@ -469,6 +469,13 @@ MumbaiTransactions = TransactionsProvider(
     streamboaundary_range_limit=2 * 60 * 60,
 )
 
+AmoyTransactions = TransactionsProvider(
+    event_type="amoy_blockchain",
+    blockchain=AvailableBlockchainType("amoy"),
+    description="Provider for resiving transactions from Amoy tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
 XDaiTransactions = TransactionsProvider(
     event_type="xdai_blockchain",
     blockchain=AvailableBlockchainType("xdai"),

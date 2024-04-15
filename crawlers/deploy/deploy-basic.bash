@@ -48,6 +48,11 @@ MUMBAI_SYNCHRONIZE_SERVICE="mumbai-synchronize.service"
 MUMBAI_MISSING_SERVICE_FILE="mumbai-missing.service"
 MUMBAI_MISSING_TIMER_FILE="mumbai-missing.timer"
 
+# Amoy
+AMOY_MISSING_SERVICE_FILE="amoy-missing.service"
+AMOY_MISSING_TIMER_FILE="amoy-missing.timer"
+AMOY_SYNCHRONIZE_SERVICE="amoy-synchronize.service"
+
 # XDai service files
 XDAI_SYNCHRONIZE_SERVICE="xdai-synchronize.service"
 XDAI_MISSING_SERVICE_FILE="xdai-missing.service"
@@ -211,23 +216,25 @@ cp "${SCRIPT_DIR}/${POLYGON_CU_NFT_DASHBOARD_TIMER_FILE}" "/home/ubuntu/.config/
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${POLYGON_CU_NFT_DASHBOARD_TIMER_FILE}"
 
+# Amoy
 echo
 echo
-echo -e "${PREFIX_INFO} Replacing existing Mumbai block with transactions syncronizer service definition with ${MUMBAI_SYNCHRONIZE_SERVICE}"
-chmod 644 "${SCRIPT_DIR}/${MUMBAI_SYNCHRONIZE_SERVICE}"
-cp "${SCRIPT_DIR}/${MUMBAI_SYNCHRONIZE_SERVICE}" "/home/ubuntu/.config/systemd/user/${MUMBAI_SYNCHRONIZE_SERVICE}"
+echo -e "${PREFIX_INFO} Replacing existing Amoy block with transactions syncronizer service definition with ${AMOY_SYNCHRONIZE_SERVICE}"
+chmod 644 "${SCRIPT_DIR}/${AMOY_SYNCHRONIZE_SERVICE}"
+cp "${SCRIPT_DIR}/${AMOY_SYNCHRONIZE_SERVICE}" "/home/ubuntu/.config/systemd/user/${AMOY_SYNCHRONIZE_SERVICE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MUMBAI_SYNCHRONIZE_SERVICE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${AMOY_SYNCHRONIZE_SERVICE}"
 
 echo
 echo
-echo -e "${PREFIX_INFO} Replacing existing Mumbai missing service and timer with: ${MUMBAI_MISSING_SERVICE_FILE}, ${MUMBAI_MISSING_TIMER_FILE}"
-chmod 644 "${SCRIPT_DIR}/${MUMBAI_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${MUMBAI_MISSING_TIMER_FILE}"
-cp "${SCRIPT_DIR}/${MUMBAI_MISSING_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${MUMBAI_MISSING_SERVICE_FILE}"
-cp "${SCRIPT_DIR}/${MUMBAI_MISSING_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${MUMBAI_MISSING_TIMER_FILE}"
+echo -e "${PREFIX_INFO} Replacing existing Amoy missing service and timer with: ${AMOY_MISSING_SERVICE_FILE}, ${AMOY_MISSING_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${AMOY_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${AMOY_MISSING_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${AMOY_MISSING_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${AMOY_MISSING_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${AMOY_MISSING_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${AMOY_MISSING_TIMER_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MUMBAI_MISSING_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${AMOY_MISSING_TIMER_FILE}"
 
+# Xdai
 echo
 echo
 echo -e "${PREFIX_INFO} Replacing existing XDai block with transactions syncronizer service definition with ${XDAI_SYNCHRONIZE_SERVICE}"

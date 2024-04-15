@@ -24,6 +24,10 @@ from moonstreamdb.blockchain import (
     get_label_model,
     get_transaction_model,
 )
+from moonstreamdb.subscriptions import (
+    blockchain_by_subscription_id,
+    subscription_id_by_blockchain,
+)
 from sqlalchemy import and_
 from sqlalchemy import cast as sqlalchemy_cast
 from sqlalchemy import distinct, extract, func, text
@@ -45,61 +49,6 @@ from ..settings import bugout_client as bc
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-subscription_id_by_blockchain = {
-    "ethereum": "ethereum_smartcontract",
-    "polygon": "polygon_smartcontract",
-    "mumbai": "mumbai_smartcontract",
-    "xdai": "xdai_smartcontract",
-    "wyrm": "wyrm_smartcontract",
-    "zksync_era_testnet": "zksync_era_testnet_smartcontract",
-    "zksync_era": "zksync_era_smartcontract",
-    "zksync_era_sepolia": "zksync_era_sepolia_smartcontract",
-    "arbitrum_nova": "arbitrum_nova_smartcontract",
-    "arbitrum_sepolia": "arbitrum_sepolia_smartcontract",
-    "xai": "xai_smartcontract",
-    "xai_sepolia": "xai_sepolia_smartcontract",
-    "avalanche": "avalanche_smartcontract",
-    "avalanche_fuji": "avalanche_fuji_smartcontract",
-    "blast": "blast_smartcontract",
-    "blast_sepolia": "blast_sepolia_smartcontract",
-}
-
-blockchain_by_subscription_id = {
-    "ethereum_blockchain": "ethereum",
-    "polygon_blockchain": "polygon",
-    "mumbai_blockchain": "mumbai",
-    "xdai_blockchain": "xdai",
-    "wyrm_blockchain": "wyrm",
-    "zksync_era_testnet_blockchain": "zksync_era_testnet",
-    "zksync_era_blockchain": "zksync_era",
-    "zksync_era_sepolia_blockchain": "zksync_era_sepolia",
-    "arbitrum_nova_blockchain": "arbitrum_nova",
-    "arbitrum_sepolia_blockchain": "arbitrum_sepolia",
-    "xai_blockchain": "xai",
-    "xai_sepolia_blockchain": "xai_sepolia",
-    "avalanche_blockchain": "avalanche",
-    "avalanche_fuji_blockchain": "avalanche_fuji",
-    "blast_blockchain": "blast",
-    "blast_sepolia_blockchain": "blast_sepolia",
-    "ethereum_smartcontract": "ethereum",
-    "polygon_smartcontract": "polygon",
-    "mumbai_smartcontract": "mumbai",
-    "xdai_smartcontract": "xdai",
-    "wyrm_smartcontract": "wyrm",
-    "zksync_era_testnet_smartcontract": "zksync_era_testnet",
-    "zksync_era_smartcontract": "zksync_era",
-    "zksync_era_sepolia_smartcontract": "zksync_era_sepolia",
-    "arbitrum_nova_smartcontract": "arbitrum_nova",
-    "arbitrum_sepolia_smartcontract": "arbitrum_sepolia",
-    "xai_smartcontract": "xai",
-    "xai_sepolia_smartcontract": "xai_sepolia",
-    "avalanche_smartcontract": "avalanche",
-    "avalanche_fuji_smartcontract": "avalanche_fuji",
-    "blast_smartcontract": "blast",
-    "blast_sepolia_smartcontract": "blast_sepolia",
-}
 
 
 class TimeScale(Enum):
