@@ -87,46 +87,42 @@ MOONSTREAM_AWS_SIGNER_INSTANCE_PORT = 17181
 
 # Blockchain configuration
 
-MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI = os.environ.get(
-    "MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI"
-)
-MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI = os.environ.get(
-    "MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI"
-)
-MOONSTREAM_POLYGON_WEB3_PROVIDER_URI = os.environ.get(
-    "MOONSTREAM_POLYGON_WEB3_PROVIDER_URI"
-)
-MOONSTREAM_XDAI_WEB3_PROVIDER_URI = os.environ.get("MOONSTREAM_XDAI_WEB3_PROVIDER_URI")
-
-# TODO(kompotkot): Leave a comment here explaining templated *_WEB3_PROVIDER_URI when we set
-# NODEBALANCER_ACCESS_ID
-ETHEREUM_PROVIDER_URI = MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI
-MUMBAI_PROVIDER_URI = MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI
-POLYGON_PROVIDER_URI = MOONSTREAM_POLYGON_WEB3_PROVIDER_URI
-XDAI_PROVIDER_URI = MOONSTREAM_XDAI_WEB3_PROVIDER_URI
-
 NODEBALANCER_ACCESS_ID = os.environ.get("ENGINE_NODEBALANCER_ACCESS_ID")
-if NODEBALANCER_ACCESS_ID is not None:
-    NODEBALANCER_URI_TEMPLATE = "{}?access_id={}&data_source=blockchain"
-    ETHEREUM_PROVIDER_URI = NODEBALANCER_URI_TEMPLATE.format(
-        MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI, NODEBALANCER_ACCESS_ID
-    )
-    MUMBAI_PROVIDER_URI = NODEBALANCER_URI_TEMPLATE.format(
-        MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI, NODEBALANCER_ACCESS_ID
-    )
-    POLYGON_PROVIDER_URI = NODEBALANCER_URI_TEMPLATE.format(
-        MOONSTREAM_POLYGON_WEB3_PROVIDER_URI, NODEBALANCER_ACCESS_ID
-    )
-    XDAI_PROVIDER_URI = NODEBALANCER_URI_TEMPLATE.format(
-        MOONSTREAM_XDAI_WEB3_PROVIDER_URI, NODEBALANCER_ACCESS_ID
-    )
 
-BLOCKCHAIN_PROVIDER_URIS = {
-    "ethereum": ETHEREUM_PROVIDER_URI,
-    "mumbai": MUMBAI_PROVIDER_URI,
-    "polygon": POLYGON_PROVIDER_URI,
-    "xdai": XDAI_PROVIDER_URI,
-}
+BLOCKCHAIN_PROVIDER_URIS = {}
+
+blockchain_names = [
+    "ethereum",
+    "polygon",
+    "mumbai",
+    "amoy",
+    "xdai",
+    "zksync_era",
+    "zksync_era_sepolia",
+    "arbitrum_nova",
+    "arbitrum",
+    "xai",
+    "xai_sepolia",
+    "avalanche",
+    "avalanche_fuji",
+    "blast",
+    "blast_sepolia",
+]
+
+for b in blockchain_names:
+    provider_uri = os.environ.get(f"MOONSTREAM_{b.upper()}_WEB3_PROVIDER_URI")
+    if provider_uri is None:
+        continue
+
+    if NODEBALANCER_ACCESS_ID is not None:
+        NODEBALANCER_URI_TEMPLATE = "{}?access_id={}&data_source=blockchain"
+        provider_uri = NODEBALANCER_URI_TEMPLATE.format(
+            provider_uri, NODEBALANCER_ACCESS_ID
+        )
+
+    BLOCKCHAIN_PROVIDER_URIS[b] = provider_uri
+
+    globals()[f"MOONSTREAM_{b.upper()}_WEB3_PROVIDER_URI"] = provider_uri
 
 SUPPORTED_BLOCKCHAINS = ", ".join(BLOCKCHAIN_PROVIDER_URIS)
 UNSUPPORTED_BLOCKCHAIN_ERROR_MESSAGE = f"That blockchain is not supported. The supported blockchains are: {SUPPORTED_BLOCKCHAINS}."
