@@ -20,6 +20,7 @@ logger.setLevel(logging.WARN)
 ethereum_event_type = "ethereum_blockchain"
 polygon_event_type = "polygon_blockchain"
 mumbai_event_type = "mumbai_blockchain"
+amoy_event_type = "amoy_blockchain"
 xdai_event_type = "xdai_blockchain"
 zksync_era_testnet_event_type = "zksync_era_testnet_blockchain"
 zksync_era_event_type = "zksync_era_blockchain"
@@ -416,6 +417,13 @@ MumbaiMoonwormProvider = MoonwormProvider(
     event_type="mumbai_smartcontract",
     blockchain=AvailableBlockchainType("mumbai"),
     description="Provider for reviving transactions from Mumbai tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
+AmoyMoonwormProvider = MoonwormProvider(
+    event_type="amoy_smartcontract",
+    blockchain=AvailableBlockchainType("amoy"),
+    description="Provider for reviving transactions from Amoy tables.",
     streamboaundary_range_limit=2 * 60 * 60,
 )
 

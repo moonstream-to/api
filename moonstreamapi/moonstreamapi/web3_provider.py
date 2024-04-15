@@ -12,6 +12,7 @@ from web3.middleware import geth_poa_middleware
 from web3.providers.rpc import HTTPProvider
 
 from .settings import (
+    MOONSTREAM_AMOY_WEB3_PROVIDER_URI,
     MOONSTREAM_ARBITRUM_NOVA_WEB3_PROVIDER_URI,
     MOONSTREAM_ARBITRUM_SEPOLIA_WEB3_PROVIDER_URI,
     MOONSTREAM_AVALANCHE_FUJI_WEB3_PROVIDER_URI,
@@ -74,6 +75,8 @@ def connect(
             web3_uri = MOONSTREAM_POLYGON_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.MUMBAI:
             web3_uri = MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.AMOY:
+            web3_uri = MOONSTREAM_AMOY_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.XDAI:
             web3_uri = MOONSTREAM_XDAI_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.WYRM:

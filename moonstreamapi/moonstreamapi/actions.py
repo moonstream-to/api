@@ -25,6 +25,7 @@ from ens.utils import is_valid_ens_name  # type: ignore
 from eth_utils.address import is_address  # type: ignore
 from moonstreamdb.blockchain import AvailableBlockchainType
 from moonstreamdb.models import EthereumLabel
+from moonstreamdb.subscriptions import blockchain_by_subscription_id
 from slugify import slugify  # type: ignore
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -50,42 +51,6 @@ from .settings import multicall_contracts, supportsInterface_abi
 from .web3_provider import FunctionSignature, connect, multicall
 
 logger = logging.getLogger(__name__)
-
-
-blockchain_by_subscription_id = {
-    "ethereum_blockchain": "ethereum",
-    "polygon_blockchain": "polygon",
-    "mumbai_blockchain": "mumbai",
-    "xdai_blockchain": "xdai",
-    "wyrm_blockchain": "wyrm",
-    "zksync_era_testnet_blockchain": "zksync_era_testnet",
-    "zksync_era_blockchain": "zksync_era",
-    "zksync_era_sepolia_blockchain": "zksync_era_sepolia",
-    "arbitrum_nova_blockchain": "arbitrum_nova",
-    "arbitrum_sepolia_blockchain": "arbitrum_sepolia",
-    "xai_blockchain": "xai",
-    "xai_sepolia_blockchain": "xai_sepolia",
-    "avalanche_blockchain": "avalanche",
-    "avalanche_fuji_blockchain": "avalanche_fuji",
-    "blast_blockchain": "blast",
-    "blast_sepolia_blockchain": "blast_sepolia",
-    "ethereum_smartcontract": "ethereum",
-    "polygon_smartcontract": "polygon",
-    "mumbai_smartcontract": "mumbai",
-    "xdai_smartcontract": "xdai",
-    "wyrm_smartcontract": "wyrm",
-    "zksync_era_testnet_smartcontract": "zksync_era_testnet",
-    "zksync_era_smartcontract": "zksync_era",
-    "zksync_era_sepolia_smartcontract": "zksync_era_sepolia",
-    "arbitrum_nova_smartcontract": "arbitrum_nova",
-    "arbitrum_sepolia_smartcontract": "arbitrum_sepolia",
-    "xai_smartcontract": "xai",
-    "xai_sepolia_smartcontract": "xai_sepolia",
-    "avalanche_smartcontract": "avalanche",
-    "avalanche_fuji_smartcontract": "avalanche_fuji",
-    "blast_smartcontract": "blast",
-    "blast_sepolia_smartcontract": "blast_sepolia",
-}
 
 
 class StatusAPIException(Exception):
