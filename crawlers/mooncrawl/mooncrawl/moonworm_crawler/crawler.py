@@ -11,6 +11,7 @@ from uuid import UUID
 from bugout.data import BugoutJournalEntries, BugoutSearchResult
 from eth_typing.evm import ChecksumAddress
 from moonstreamdb.blockchain import AvailableBlockchainType
+from moonstreamdb.subscriptions import SubscriptionTypes
 from moonworm.deployment import find_deployment_block  # type: ignore
 from web3.main import Web3
 
@@ -27,25 +28,6 @@ from ..settings import (
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-class SubscriptionTypes(Enum):
-    POLYGON_BLOCKCHAIN = "polygon_smartcontract"
-    ETHEREUM_BLOCKCHAIN = "ethereum_smartcontract"
-    MUMBAI_BLOCKCHAIN = "mumbai_smartcontract"
-    XDAI_BLOCKCHAIN = "xdai_smartcontract"
-    WYRM_BLOCKCHAIN = "wyrm_smartcontract"
-    ZKSYNC_ERA_TESTNET_BLOCKCHAIN = "zksync_era_testnet_smartcontract"
-    ZKSYNC_ERA_BLOCKCHAIN = "zksync_era_smartcontract"
-    ZKSYNC_ERA_SEPOLIA_BLOCKCHAIN = "zksync_era_sepolia_smartcontract"
-    ARBITRUM_NOVA_BLOCKCHAIN = "arbitrum_nova_smartcontract"
-    ARBITRUM_SEPOLIA_BLOCKCHAIN = "arbitrum_sepolia_smartcontract"
-    XAI_BLOCKCHAIN = "xai_smartcontract"
-    XAI_SEPOLIA_BLOCKCHAIN = "xai_sepolia_smartcontract"
-    AVALANCHE_BLOCKCHAIN = "avalanche_smartcontract"
-    AVALANCHE_FUJI_BLOCKCHAIN = "avalanche_fuji_smartcontract"
-    BLAST_BLOCKCHAIN = "blast_smartcontract"
-    BLAST_SEPOLIA_BLOCKCHAIN = "blast_sepolia_smartcontract"
 
 
 def abi_input_signature(input_abi: Dict[str, Any]) -> str:
@@ -135,45 +117,6 @@ def _retry_connect_web3(
     raise Exception(
         f"Failed to connect to {blockchain_type} blockchain after {retry_count} retries: {error}"
     )
-
-
-def blockchain_type_to_subscription_type(
-    blockchain_type: AvailableBlockchainType,
-) -> SubscriptionTypes:
-    if blockchain_type == AvailableBlockchainType.ETHEREUM:
-        return SubscriptionTypes.ETHEREUM_BLOCKCHAIN
-    elif blockchain_type == AvailableBlockchainType.POLYGON:
-        return SubscriptionTypes.POLYGON_BLOCKCHAIN
-    elif blockchain_type == AvailableBlockchainType.MUMBAI:
-        return SubscriptionTypes.MUMBAI_BLOCKCHAIN
-    elif blockchain_type == AvailableBlockchainType.XDAI:
-        return SubscriptionTypes.XDAI_BLOCKCHAIN
-    elif blockchain_type == AvailableBlockchainType.WYRM:
-        return SubscriptionTypes.WYRM_BLOCKCHAIN
-    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET:
-        return SubscriptionTypes.ZKSYNC_ERA_TESTNET_BLOCKCHAIN
-    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
-        return SubscriptionTypes.ZKSYNC_ERA_BLOCKCHAIN
-    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_SEPOLIA:
-        return SubscriptionTypes.ZKSYNC_ERA_SEPOLIA_BLOCKCHAIN
-    elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
-        return SubscriptionTypes.ARBITRUM_NOVA_BLOCKCHAIN
-    elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
-        return SubscriptionTypes.ARBITRUM_SEPOLIA_BLOCKCHAIN
-    elif blockchain_type == AvailableBlockchainType.XAI:
-        return SubscriptionTypes.XAI_BLOCKCHAIN
-    elif blockchain_type == AvailableBlockchainType.XAI_SEPOLIA:
-        return SubscriptionTypes.XAI_SEPOLIA_BLOCKCHAIN
-    elif blockchain_type == AvailableBlockchainType.AVALANCHE:
-        return SubscriptionTypes.AVALANCHE_BLOCKCHAIN
-    elif blockchain_type == AvailableBlockchainType.AVALANCHE_FUJI:
-        return SubscriptionTypes.AVALANCHE_FUJI_BLOCKCHAIN
-    elif blockchain_type == AvailableBlockchainType.BLAST:
-        return SubscriptionTypes.BLAST_BLOCKCHAIN
-    elif blockchain_type == AvailableBlockchainType.BLAST_SEPOLIA:
-        return SubscriptionTypes.BLAST_SEPOLIA_BLOCKCHAIN
-    else:
-        raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 
 
 @dataclass

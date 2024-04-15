@@ -4,6 +4,7 @@ from typing import Optional
 from uuid import UUID
 
 from moonstreamdb.blockchain import AvailableBlockchainType
+from moonstreamdb.subscriptions import blockchain_type_to_subscription_type
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
@@ -15,8 +16,6 @@ from ..settings import (
 )
 from .continuous_crawler import _retry_connect_web3, continuous_crawler
 from .crawler import (
-    SubscriptionTypes,
-    blockchain_type_to_subscription_type,
     find_all_deployed_blocks,
     get_crawl_job_entries,
     make_event_crawl_jobs,

@@ -6,7 +6,8 @@ from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
 from moonstreamdb.blockchain import AvailableBlockchainType
-from moonstreamdb.networks import Network
+from moonstreamdb.networks import blockchain_type_to_network_type
+from moonstreamdb.subscriptions import blockchain_type_to_subscription_type
 from moonworm.crawler.moonstream_ethereum_state_provider import (  # type: ignore
     MoonstreamEthereumStateProvider,
 )
@@ -21,7 +22,6 @@ from .crawler import (
     EventCrawlJob,
     FunctionCallCrawlJob,
     _retry_connect_web3,
-    blockchain_type_to_subscription_type,
     get_crawl_job_entries,
     heartbeat,
     make_event_crawl_jobs,
@@ -124,40 +124,10 @@ def continuous_crawler(
     if web3 is None:
         web3 = _retry_connect_web3(blockchain_type, web3_uri=web3_uri)
 
-    if blockchain_type == AvailableBlockchainType.ETHEREUM:
-        network = Network.ethereum
-    elif blockchain_type == AvailableBlockchainType.POLYGON:
-        network = Network.polygon
-    elif blockchain_type == AvailableBlockchainType.MUMBAI:
-        network = Network.mumbai
-    elif blockchain_type == AvailableBlockchainType.XDAI:
-        network = Network.xdai
-    elif blockchain_type == AvailableBlockchainType.WYRM:
-        network = Network.wyrm
-    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_TESTNET:
-        network = Network.zksync_era_testnet
-    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
-        network = Network.zksync_era
-    elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_SEPOLIA:
-        network = Network.zksync_era_sepolia
-    elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
-        network = Network.arbitrum_nova
-    elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
-        network = Network.arbitrum_sepolia
-    elif blockchain_type == AvailableBlockchainType.XAI:
-        network = Network.xai
-    elif blockchain_type == AvailableBlockchainType.XAI_SEPOLIA:
-        network = Network.xai_sepolia
-    elif blockchain_type == AvailableBlockchainType.AVALANCHE:
-        network = Network.avalanche
-    elif blockchain_type == AvailableBlockchainType.AVALANCHE_FUJI:
-        network = Network.avalanche_fuji
-    elif blockchain_type == AvailableBlockchainType.BLAST:
-        network = Network.blast
-    elif blockchain_type == AvailableBlockchainType.BLAST_SEPOLIA:
-        network = Network.blast_sepolia
-    else:
-        raise ValueError(f"Unknown blockchain type: {blockchain_type}")
+    try:
+        network = blockchain_type_to_network_type(blockchain_type=blockchain_type)
+    except Exception as e:
+        raise Exception(e)
 
     ethereum_state_provider = MoonstreamEthereumStateProvider(
         web3,
