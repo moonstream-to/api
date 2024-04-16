@@ -21,7 +21,7 @@ class SubscriptionTypes(Enum):
     AVALANCHE_FUJI_BLOCKCHAIN = "avalanche_fuji_smartcontract"
     BLAST_BLOCKCHAIN = "blast_smartcontract"
     BLAST_SEPOLIA_BLOCKCHAIN = "blast_sepolia_smartcontract"
-    PROOF_OF_PLAY_APEX_BLOCKCHAIN = "proof_of_play_apex_smartcontract"
+    PROOFOFPLAY_APEX_BLOCKCHAIN = "proofofplay_apex_smartcontract"
 
 
 def blockchain_type_to_subscription_type(
@@ -61,8 +61,8 @@ def blockchain_type_to_subscription_type(
         return SubscriptionTypes.BLAST_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.BLAST_SEPOLIA:
         return SubscriptionTypes.BLAST_SEPOLIA_BLOCKCHAIN
-    elif blockchain_type == AvailableBlockchainType.PROOF_OF_PLAY_APEX:
-        return SubscriptionTypes.PROOF_OF_PLAY_APEX_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.PROOFOFPLAY_APEX:
+        return SubscriptionTypes.PROOFOFPLAY_APEX_BLOCKCHAIN
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 
@@ -85,7 +85,7 @@ subscription_id_by_blockchain = {
     "avalanche_fuji": "avalanche_fuji_smartcontract",
     "blast": "blast_smartcontract",
     "blast_sepolia": "blast_sepolia_smartcontract",
-    "proof_of_play_apex": "proof_of_play_apex_smartcontract",
+    "proofofplay_apex": "proofofplay_apex_smartcontract",
 }
 
 blockchain_by_subscription_id = {
@@ -106,7 +106,7 @@ blockchain_by_subscription_id = {
     "avalanche_fuji_blockchain": "avalanche_fuji",
     "blast_blockchain": "blast",
     "blast_sepolia_blockchain": "blast_sepolia",
-    "proof_of_play_apex_blockchain": "proof_of_play_apex",
+    "proofofplay_apex_blockchain": "proofofplay_apex",
     "ethereum_smartcontract": "ethereum",
     "polygon_smartcontract": "polygon",
     "mumbai_smartcontract": "mumbai",
@@ -124,5 +124,5 @@ blockchain_by_subscription_id = {
     "avalanche_fuji_smartcontract": "avalanche_fuji",
     "blast_smartcontract": "blast",
     "blast_sepolia_smartcontract": "blast_sepolia",
-    "proof_of_play_apex_smartcontract": "proof_of_play_apex",
+    "proofofplay_apex_smartcontract": "proofofplay_apex",
 }

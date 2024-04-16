@@ -79,6 +79,9 @@ from moonstreamdb.models import (
     BlastSepoliaBlock,
     BlastSepoliaLabel,
     BlastSepoliaTransaction,
+    ProofOfPlayApexBlock,
+    ProofOfPlayApexLabel,
+    ProofOfPlayApexTransaction,
 )
 
 
@@ -138,6 +141,9 @@ def include_symbol(tablename, schema):
         BlastSepoliaBlock.__tablename__,
         BlastSepoliaLabel.__tablename__,
         BlastSepoliaTransaction.__tablename__,
+        ProofOfPlayApexBlock.__tablename__,
+        ProofOfPlayApexLabel.__tablename__,
+        ProofOfPlayApexTransaction.__tablename__,
     }
 
 

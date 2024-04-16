@@ -77,7 +77,7 @@ class AvailableBlockchainType(Enum):
     AVALANCHE_FUJI = "avalanche_fuji"
     BLAST = "blast"
     BLAST_SEPOLIA = "blast_sepolia"
-    PROOF_OF_PLAY_APEX = "proof_of_play_apex"
+    PROOFOFPLAY_APEX = "proofofplay_apex"
 
 
 def get_block_model(
@@ -163,7 +163,7 @@ def get_block_model(
         block_model = BlastBlock
     elif blockchain_type == AvailableBlockchainType.BLAST_SEPOLIA:
         block_model = BlastSepoliaBlock
-    elif blockchain_type == AvailableBlockchainType.PROOF_OF_PLAY_APEX:
+    elif blockchain_type == AvailableBlockchainType.PROOFOFPLAY_APEX:
         block_model = ProofOfPlayApexBlock
     else:
         raise Exception("Unsupported blockchain type provided")
@@ -254,7 +254,7 @@ def get_label_model(
         label_model = BlastLabel
     elif blockchain_type == AvailableBlockchainType.BLAST_SEPOLIA:
         label_model = BlastSepoliaLabel
-    elif blockchain_type == AvailableBlockchainType.PROOF_OF_PLAY_APEX:
+    elif blockchain_type == AvailableBlockchainType.PROOFOFPLAY_APEX:
         label_model = ProofOfPlayApexLabel
     else:
         raise Exception("Unsupported blockchain type provided")
@@ -345,7 +345,7 @@ def get_transaction_model(
         transaction_model = BlastTransaction
     elif blockchain_type == AvailableBlockchainType.BLAST_SEPOLIA:
         transaction_model = BlastSepoliaTransaction
-    elif blockchain_type == AvailableBlockchainType.PROOF_OF_PLAY_APEX:
+    elif blockchain_type == AvailableBlockchainType.PROOFOFPLAY_APEX:
         transaction_model = ProofOfPlayApexTransaction
     else:
         raise Exception("Unsupported blockchain type provided")

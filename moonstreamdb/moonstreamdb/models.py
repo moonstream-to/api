@@ -1937,7 +1937,7 @@ class BlastSepoliaLabel(Base):  # type: ignore
 
 
 class ProofOfPlayApexBlock(Base):  # type: ignore
-    __tablename__ = "proof_of_play_apex_blocks"
+    __tablename__ = "proofofplay_apex_blocks"
 
     block_number = Column(
         BigInteger, primary_key=True, unique=True, nullable=False, index=True
@@ -1971,14 +1971,14 @@ class ProofOfPlayApexBlock(Base):  # type: ignore
 
 
 class ProofOfPlayApexTransaction(Base):  # type: ignore
-    __tablename__ = "proof_of_play_apex_transactions"
+    __tablename__ = "proofofplay_apex_transactions"
 
     hash = Column(
         VARCHAR(256), primary_key=True, unique=True, nullable=False, index=True
     )
     block_number = Column(
         BigInteger,
-        ForeignKey("proof_of_play_apex_blocks.block_number", ondelete="CASCADE"),
+        ForeignKey("proofofplay_apex_blocks.block_number", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -2002,17 +2002,17 @@ class ProofOfPlayApexTransaction(Base):  # type: ignore
 
 
 class ProofOfPlayApexLabel(Base):  # type: ignore
-    __tablename__ = "proof_of_play_apex_labels"
+    __tablename__ = "proofofplay_apex_labels"
 
     __table_args__ = (
         Index(
-            "ix_proof_of_play_apex_labels_address_block_number",
+            "ix_proofofplay_apex_labels_address_block_number",
             "address",
             "block_number",
             unique=False,
         ),
         Index(
-            "ix_proof_of_play_apex_labels_address_block_timestamp",
+            "ix_proofofplay_apex_labels_address_block_timestamp",
             "address",
             "block_timestamp",
             unique=False,
