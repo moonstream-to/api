@@ -32,6 +32,7 @@ from .settings import (
     MOONSTREAM_NODE_ETHEREUM_A_EXTERNAL_URI,
     MOONSTREAM_NODE_MUMBAI_A_EXTERNAL_URI,
     MOONSTREAM_NODE_POLYGON_A_EXTERNAL_URI,
+    MOONSTREAM_NODE_PROOFOFPLAY_APEX_A_EXTERNAL_URI,
     MOONSTREAM_NODE_XAI_A_EXTERNAL_URI,
     MOONSTREAM_NODE_XAI_SEPOLIA_A_EXTERNAL_URI,
     MOONSTREAM_NODE_XDAI_A_EXTERNAL_URI,
@@ -91,6 +92,8 @@ def connect(
             web3_uri = MOONSTREAM_NODE_BLAST_A_EXTERNAL_URI
         elif blockchain_type == AvailableBlockchainType.BLAST_SEPOLIA:
             web3_uri = MOONSTREAM_NODE_BLAST_SEPOLIA_A_EXTERNAL_URI
+        elif blockchain_type == AvailableBlockchainType.PROOFOFPLAY_APEX:
+            web3_uri = MOONSTREAM_NODE_PROOFOFPLAY_APEX_A_EXTERNAL_URI
         else:
             raise Exception("Wrong blockchain type provided for web3 URI")
 

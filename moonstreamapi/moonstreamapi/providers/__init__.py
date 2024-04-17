@@ -49,6 +49,7 @@ class ReceivingEventsException(Exception):
 event_providers: Dict[str, Any] = {
     moonworm_provider.EthereumMoonwormProvider.event_type: moonworm_provider.EthereumMoonwormProvider,
     moonworm_provider.PolygonMoonwormProvider.event_type: moonworm_provider.PolygonMoonwormProvider,
+    moonworm_provider.ProofOfPlayApexMoonwormProvider.event_type: moonworm_provider.ProofOfPlayApexMoonwormProvider,
     moonworm_provider.MumbaiMoonwormProvider.event_type: moonworm_provider.MumbaiMoonwormProvider,
     moonworm_provider.AmoyMoonwormProvider.event_type: moonworm_provider.AmoyMoonwormProvider,
     moonworm_provider.XDaiMoonwormProvider.event_type: moonworm_provider.XDaiMoonwormProvider,
@@ -65,6 +66,7 @@ event_providers: Dict[str, Any] = {
     moonworm_provider.BlastSepoliaMoonwormProvider.event_type: moonworm_provider.BlastSepoliaMoonwormProvider,
     transactions.EthereumTransactions.event_type: transactions.EthereumTransactions,
     transactions.PolygonTransactions.event_type: transactions.PolygonTransactions,
+    transactions.ProofOfPlayApexTransactions.event_type: transactions.ProofOfPlayApexTransactions,
     transactions.MumbaiTransactions.event_type: transactions.MumbaiTransactions,
     transactions.AmoyTransactions.event_type: transactions.AmoyTransactions,
     transactions.XDaiTransactions.event_type: transactions.XDaiTransactions,
