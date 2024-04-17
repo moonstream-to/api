@@ -234,7 +234,7 @@ def blockchain_type_to_network_type(
         return Network.blast
     elif blockchain_type == AvailableBlockchainType.BLAST_SEPOLIA:
         return Network.blast_sepolia
-    elif blockchain_type == AvailableBlockchainType.PROOF_OF_PLAY_APEX:
+    elif blockchain_type == AvailableBlockchainType.PROOFOFPLAY_APEX:
         return Network.proofofplay_apex
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
