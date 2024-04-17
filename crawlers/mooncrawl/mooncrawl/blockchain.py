@@ -178,6 +178,7 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
     elif (
         blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA
         or blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA
+        or blockchain_type == AvailableBlockchainType.PROOFOFPLAY_APEX
     ):
         block_obj.sha3_uncles = block.get("sha3Uncles", "")
         block_obj.l1_block_number = hex_to_int(block.get("l1BlockNumber"))
@@ -258,6 +259,7 @@ def add_block_transactions(
             or blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA
             or blockchain_type == AvailableBlockchainType.XAI
             or blockchain_type == AvailableBlockchainType.XAI_SEPOLIA
+            or blockchain_type == AvailableBlockchainType.PROOFOFPLAY_APEX
         ):
             tx_obj.y_parity = hex_to_int(tx.get("yParity"))
 
