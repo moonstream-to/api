@@ -272,6 +272,7 @@ THREAD_TIMEOUT_SECONDS = 10
 multicall_contracts: Dict[AvailableBlockchainType, str] = {
     AvailableBlockchainType.POLYGON: "0xc8E51042792d7405184DfCa245F2d27B94D013b6",
     AvailableBlockchainType.MUMBAI: "0xe9939e7Ea7D7fb619Ac57f648Da7B1D425832631",
+    AvailableBlockchainType.AMOY: "0xcA11bde05977b3631167028862bE2a173976CA11",
     AvailableBlockchainType.ETHEREUM: "0x5BA1e12693Dc8F9c48aAD8770482f4739bEeD696",
     AvailableBlockchainType.ARBITRUM_NOVA: "0xcA11bde05977b3631167028862bE2a173976CA11",
     AvailableBlockchainType.ARBITRUM_SEPOLIA: "0xcA11bde05977b3631167028862bE2a173976CA11",
