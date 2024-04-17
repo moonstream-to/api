@@ -1,9 +1,0 @@
-[Unit]
-Description=Execute Mumbai metadata crawler each 10m
-
-[Timer]
-OnBootSec=20s
-OnUnitActiveSec=60m
-
-[Install]
-WantedBy=timers.target

@@ -559,3 +559,10 @@ BlastSepoliaTransactions = TransactionsProvider(
     description="Provider for resiving transactions from Blast Sepolia tables.",
     streamboaundary_range_limit=2 * 60 * 60,
 )
+
+ProofOfPlayApexTransactions = TransactionsProvider(
+    event_type="proofofplay_apex_blockchain",
+    blockchain=AvailableBlockchainType("proofofplay_apex"),
+    description="Provider for resiving transactions from Proof of Play Apex tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)

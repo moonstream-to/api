@@ -32,6 +32,9 @@ from .models import (
     PolygonBlock,
     PolygonLabel,
     PolygonTransaction,
+    ProofOfPlayApexBlock,
+    ProofOfPlayApexLabel,
+    ProofOfPlayApexTransaction,
     WyrmBlock,
     WyrmLabel,
     WyrmTransaction,
@@ -74,6 +77,7 @@ class AvailableBlockchainType(Enum):
     AVALANCHE_FUJI = "avalanche_fuji"
     BLAST = "blast"
     BLAST_SEPOLIA = "blast_sepolia"
+    PROOFOFPLAY_APEX = "proofofplay_apex"
 
 
 def get_block_model(
@@ -97,6 +101,7 @@ def get_block_model(
         AvalancheFujiBlock,
         BlastBlock,
         BlastSepoliaBlock,
+        ProofOfPlayApexBlock,
     ]
 ]:
     """
@@ -121,6 +126,7 @@ def get_block_model(
             AvalancheFujiBlock,
             BlastBlock,
             BlastSepoliaBlock,
+            ProofOfPlayApexBlock,
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -157,6 +163,8 @@ def get_block_model(
         block_model = BlastBlock
     elif blockchain_type == AvailableBlockchainType.BLAST_SEPOLIA:
         block_model = BlastSepoliaBlock
+    elif blockchain_type == AvailableBlockchainType.PROOFOFPLAY_APEX:
+        block_model = ProofOfPlayApexBlock
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -184,6 +192,7 @@ def get_label_model(
         AvalancheFujiLabel,
         BlastLabel,
         BlastSepoliaLabel,
+        ProofOfPlayApexLabel,
     ]
 ]:
     """
@@ -208,6 +217,7 @@ def get_label_model(
             AvalancheFujiLabel,
             BlastLabel,
             BlastSepoliaLabel,
+            ProofOfPlayApexLabel,
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -244,6 +254,8 @@ def get_label_model(
         label_model = BlastLabel
     elif blockchain_type == AvailableBlockchainType.BLAST_SEPOLIA:
         label_model = BlastSepoliaLabel
+    elif blockchain_type == AvailableBlockchainType.PROOFOFPLAY_APEX:
+        label_model = ProofOfPlayApexLabel
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -271,6 +283,7 @@ def get_transaction_model(
         AvalancheFujiTransaction,
         BlastTransaction,
         BlastSepoliaTransaction,
+        ProofOfPlayApexTransaction,
     ]
 ]:
     """
@@ -295,6 +308,7 @@ def get_transaction_model(
             AvalancheFujiTransaction,
             BlastTransaction,
             BlastSepoliaTransaction,
+            ProofOfPlayApexTransaction,
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -331,6 +345,8 @@ def get_transaction_model(
         transaction_model = BlastTransaction
     elif blockchain_type == AvailableBlockchainType.BLAST_SEPOLIA:
         transaction_model = BlastSepoliaTransaction
+    elif blockchain_type == AvailableBlockchainType.PROOFOFPLAY_APEX:
+        transaction_model = ProofOfPlayApexTransaction
     else:
         raise Exception("Unsupported blockchain type provided")
 

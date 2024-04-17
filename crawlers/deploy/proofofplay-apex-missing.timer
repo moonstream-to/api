@@ -1,5 +1,5 @@
 [Unit]
-Description=Fill missing blocks at Mumbai database
+Description=Fill missing blocks at ProofOfPlay database
 
 [Timer]
 OnBootSec=120s

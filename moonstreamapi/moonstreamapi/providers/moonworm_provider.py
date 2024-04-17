@@ -19,6 +19,7 @@ logger.setLevel(logging.WARN)
 
 ethereum_event_type = "ethereum_blockchain"
 polygon_event_type = "polygon_blockchain"
+proofofplay_apex_event_type = "proofofplay_apex_blockchain"
 mumbai_event_type = "mumbai_blockchain"
 amoy_event_type = "amoy_blockchain"
 xdai_event_type = "xdai_blockchain"
@@ -508,5 +509,12 @@ BlastSepoliaMoonwormProvider = MoonwormProvider(
     event_type="blast_sepolia_smartcontract",
     blockchain=AvailableBlockchainType("blast_sepolia"),
     description="Provider for reviving transactions from Blast Sepolia tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
+ProofOfPlayApexMoonwormProvider = MoonwormProvider(
+    event_type="proofofplay_apex_smartcontract",
+    blockchain=AvailableBlockchainType("proofofplay_apex"),
+    description="Provider for reviving transactions from Proof of Play Apex tables.",
     streamboaundary_range_limit=2 * 60 * 60,
 )

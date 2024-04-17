@@ -1,5 +1,5 @@
 [Unit]
-Description=Runs events historical crawler on mumbai
+Description=Runs transactions historical crawler on proofofplay apex
 
 [Timer]
 OnBootSec=60s

@@ -27,7 +27,6 @@ SCRIPT_DIR="$(realpath $(dirname $0))"
 # Service files
 ETHEREUM_MOONWORM_CRAWLER_SERVICE_FILE="ethereum-moonworm-crawler.service"
 POLYGON_MOONWORM_CRAWLER_SERVICE_FILE="polygon-moonworm-crawler.service"
-MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE="mumbai-moonworm-crawler.service"
 AMOY_MOONWORM_CRAWLER_SERVICE_FILE="amoy-moonworm-crawler.service"
 XDAI_MOONWORM_CRAWLER_SERVICE_FILE="xdai-moonworm-crawler.service"
 ZKSYNC_ERA_MOONWORM_CRAWLER_SERVICE_FILE="zksync-era-moonworm-crawler.service"
@@ -40,6 +39,7 @@ AVALANCHE_MOONWORM_CRAWLER_SERVICE_FILE="avalanche-moonworm-crawler.service"
 AVALANCHE_FUJI_MOONWORM_CRAWLER_SERVICE_FILE="avalanche-fuji-moonworm-crawler.service"
 BLAST_MOONWORM_CRAWLER_SERVICE_FILE="blast-moonworm-crawler.service"
 BLAST_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE="blast-sepolia-moonworm-crawler.service"
+PROOFOFPLAY_APEX_MOONWORM_CRAWLER_SERVICE_FILE="proofofplay-apex-moonworm-crawler.service"
 
 set -eu
 
@@ -191,3 +191,11 @@ chmod 644 "${SCRIPT_DIR}/${BLAST_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${BLAST_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${BLAST_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${BLAST_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Proofofplay Apex moonworm crawler service definition with ${PROOFOFPLAY_APEX_MOONWORM_CRAWLER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_MOONWORM_CRAWLER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${PROOFOFPLAY_APEX_MOONWORM_CRAWLER_SERVICE_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${PROOFOFPLAY_APEX_MOONWORM_CRAWLER_SERVICE_FILE}"

@@ -34,6 +34,9 @@ from .models import (
     PolygonBlock,
     PolygonLabel,
     PolygonTransaction,
+    ProofOfPlayApexBlock,
+    ProofOfPlayApexLabel,
+    ProofOfPlayApexTransaction,
     WyrmBlock,
     WyrmLabel,
     WyrmTransaction,
@@ -76,6 +79,7 @@ class Network(Enum):
     avalanche_fuji = "avalanche_fuji"
     blast = "blast"
     blast_sepolia = "blast_sepolia"
+    proofofplay_apex = "proofofplay_apex"
 
 
 tx_raw_types = Union[
@@ -96,6 +100,7 @@ tx_raw_types = Union[
     AvalancheFujiTransaction,
     BlastTransaction,
     BlastSepoliaTransaction,
+    ProofOfPlayApexTransaction,
 ]
 
 MODELS: Dict[Network, Dict[str, Base]] = {
@@ -184,6 +189,11 @@ MODELS: Dict[Network, Dict[str, Base]] = {
         "labels": BlastSepoliaLabel,
         "transactions": BlastSepoliaTransaction,
     },
+    Network.proofofplay_apex: {
+        "blocks": ProofOfPlayApexBlock,
+        "labels": ProofOfPlayApexLabel,
+        "transactions": ProofOfPlayApexTransaction,
+    },
 }
 
 
@@ -224,5 +234,7 @@ def blockchain_type_to_network_type(
         return Network.blast
     elif blockchain_type == AvailableBlockchainType.BLAST_SEPOLIA:
         return Network.blast_sepolia
+    elif blockchain_type == AvailableBlockchainType.PROOFOFPLAY_APEX:
+        return Network.proofofplay_apex
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")

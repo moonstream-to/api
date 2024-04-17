@@ -32,6 +32,7 @@ from .settings import (
     MOONSTREAM_NODE_ETHEREUM_A_EXTERNAL_URI,
     MOONSTREAM_NODE_MUMBAI_A_EXTERNAL_URI,
     MOONSTREAM_NODE_POLYGON_A_EXTERNAL_URI,
+    MOONSTREAM_NODE_PROOFOFPLAY_APEX_A_EXTERNAL_URI,
     MOONSTREAM_NODE_XAI_A_EXTERNAL_URI,
     MOONSTREAM_NODE_XAI_SEPOLIA_A_EXTERNAL_URI,
     MOONSTREAM_NODE_XDAI_A_EXTERNAL_URI,
@@ -91,6 +92,8 @@ def connect(
             web3_uri = MOONSTREAM_NODE_BLAST_A_EXTERNAL_URI
         elif blockchain_type == AvailableBlockchainType.BLAST_SEPOLIA:
             web3_uri = MOONSTREAM_NODE_BLAST_SEPOLIA_A_EXTERNAL_URI
+        elif blockchain_type == AvailableBlockchainType.PROOFOFPLAY_APEX:
+            web3_uri = MOONSTREAM_NODE_PROOFOFPLAY_APEX_A_EXTERNAL_URI
         else:
             raise Exception("Wrong blockchain type provided for web3 URI")
 
@@ -175,6 +178,7 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
     elif (
         blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA
         or blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA
+        or blockchain_type == AvailableBlockchainType.PROOFOFPLAY_APEX
     ):
         block_obj.sha3_uncles = block.get("sha3Uncles", "")
         block_obj.l1_block_number = hex_to_int(block.get("l1BlockNumber"))
@@ -255,6 +259,7 @@ def add_block_transactions(
             or blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA
             or blockchain_type == AvailableBlockchainType.XAI
             or blockchain_type == AvailableBlockchainType.XAI_SEPOLIA
+            or blockchain_type == AvailableBlockchainType.PROOFOFPLAY_APEX
         ):
             tx_obj.y_parity = hex_to_int(tx.get("yParity"))
 
