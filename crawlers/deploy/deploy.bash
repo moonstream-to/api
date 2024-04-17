@@ -169,6 +169,17 @@ BLAST_SEPOLIA_MISSING_TIMER_FILE="blast-sepolia-missing.timer"
 BLAST_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE="blast-sepolia-moonworm-crawler.service"
 BLAST_SEPOLIA_SYNCHRONIZE_SERVICE="blast-sepolia-synchronize.service"
 
+# ProofofPlay APEX
+PROOFOFPLAY_APEX_MISSING_SERVICE_FILE="proofofplay-apex-missing.service"
+PROOFOFPLAY_APEX_MISSING_TIMER_FILE="proofofplay-apex-missing.timer"
+PROOFOFPLAY_APEX_MOONWORM_CRAWLER_SERVICE_FILE="proofofplay-apex-moonworm-crawler.service"
+PROOFOFPLAY_APEX_SYNCHRONIZE_SERVICE="proofofplay-apex-synchronize.service"
+PROOFOFPLAY_APEX_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE="proofofplay-apex-historical-crawl-transactions.service"
+PROOFOFPLAY_APEX_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE="proofofplay-apex-historical-crawl-transactions.timer"
+PROOFOFPLAY_APEX_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE="proofofplay-apex-historical-crawl-events.service"
+PROOFOFPLAY_APEX_HISTORICAL_CRAWL_EVENTS_TIMER_FILE="proofofplay-apex-historical-crawl-events.timer"
+
+
 set -eu
 
 echo
@@ -772,3 +783,49 @@ chmod 644 "${SCRIPT_DIR}/${BLAST_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${BLAST_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${BLAST_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${BLAST_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
+
+
+# Proofofplay Apex
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Proofofplay Apex block with transactions syncronizer service definition with ${PROOFOFPLAY_APEX_SYNCHRONIZE_SERVICE}"
+chmod 644 "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_SYNCHRONIZE_SERVICE}"
+cp "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_SYNCHRONIZE_SERVICE}" "/home/ubuntu/.config/systemd/user/${PROOFOFPLAY_APEX_SYNCHRONIZE_SERVICE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${PROOFOFPLAY_APEX_SYNCHRONIZE_SERVICE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Proofofplay Apex missing service and timer with: ${PROOFOFPLAY_APEX_MISSING_SERVICE_FILE}, ${PROOFOFPLAY_APEX_MISSING_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_MISSING_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_MISSING_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${PROOFOFPLAY_APEX_MISSING_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_MISSING_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${PROOFOFPLAY_APEX_MISSING_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${PROOFOFPLAY_APEX_MISSING_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Proofofplay Apex moonworm crawler service definition with ${PROOFOFPLAY_APEX_MOONWORM_CRAWLER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_MOONWORM_CRAWLER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${PROOFOFPLAY_APEX_MOONWORM_CRAWLER_SERVICE_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${PROOFOFPLAY_APEX_MOONWORM_CRAWLER_SERVICE_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Proofofplay Apex historical transactions crawler service and timer with: ${PROOFOFPLAY_APEX_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}, ${PROOFOFPLAY_APEX_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}" "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${PROOFOFPLAY_APEX_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${PROOFOFPLAY_APEX_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${PROOFOFPLAY_APEX_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Proofofplay Apex historical events crawler service and timer with: ${PROOFOFPLAY_APEX_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}, ${PROOFOFPLAY_APEX_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}" "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${PROOFOFPLAY_APEX_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${PROOFOFPLAY_APEX_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${PROOFOFPLAY_APEX_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
