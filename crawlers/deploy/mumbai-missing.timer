@@ -1,9 +1,0 @@
-[Unit]
-Description=Fill missing blocks at Mumbai database
-
-[Timer]
-OnBootSec=120s
-OnUnitActiveSec=15m
-
-[Install]
-WantedBy=timers.target

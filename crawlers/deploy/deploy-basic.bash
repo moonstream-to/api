@@ -43,11 +43,6 @@ POLYGON_MISSING_TIMER_FILE="polygon-missing.timer"
 POLYGON_CU_NFT_DASHBOARD_SERVICE_FILE="polygon-cu-nft-dashboard.service"
 POLYGON_CU_NFT_DASHBOARD_TIMER_FILE="polygon-cu-nft-dashboard.timer"
 
-# Mumbai service files
-MUMBAI_SYNCHRONIZE_SERVICE="mumbai-synchronize.service"
-MUMBAI_MISSING_SERVICE_FILE="mumbai-missing.service"
-MUMBAI_MISSING_TIMER_FILE="mumbai-missing.timer"
-
 # Amoy
 AMOY_MISSING_SERVICE_FILE="amoy-missing.service"
 AMOY_MISSING_TIMER_FILE="amoy-missing.timer"
@@ -107,6 +102,11 @@ BLAST_SYNCHRONIZE_SERVICE="blast-synchronize.service"
 BLAST_SEPOLIA_MISSING_SERVICE_FILE="blast-sepolia-missing.service"
 BLAST_SEPOLIA_MISSING_TIMER_FILE="blast-sepolia-missing.timer"
 BLAST_SEPOLIA_SYNCHRONIZE_SERVICE="blast-sepolia-synchronize.service"
+
+# ProofofPlay APEX
+PROOFOFPLAY_APEX_MISSING_SERVICE_FILE="proofofplay-apex-missing.service"
+PROOFOFPLAY_APEX_MISSING_TIMER_FILE="proofofplay-apex-missing.timer"
+PROOFOFPLAY_APEX_SYNCHRONIZE_SERVICE="proofofplay-apex-synchronize.service"
 
 set -eu
 
@@ -423,3 +423,21 @@ cp "${SCRIPT_DIR}/${BLAST_SEPOLIA_MISSING_SERVICE_FILE}" "/home/ubuntu/.config/s
 cp "${SCRIPT_DIR}/${BLAST_SEPOLIA_MISSING_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${BLAST_SEPOLIA_MISSING_TIMER_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${BLAST_SEPOLIA_MISSING_TIMER_FILE}"
+
+# Proofofplay Apex
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Proofofplay Apex block with transactions syncronizer service definition with ${PROOFOFPLAY_APEX_SYNCHRONIZE_SERVICE}"
+chmod 644 "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_SYNCHRONIZE_SERVICE}"
+cp "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_SYNCHRONIZE_SERVICE}" "/home/ubuntu/.config/systemd/user/${PROOFOFPLAY_APEX_SYNCHRONIZE_SERVICE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${PROOFOFPLAY_APEX_SYNCHRONIZE_SERVICE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Proofofplay Apex missing service and timer with: ${PROOFOFPLAY_APEX_MISSING_SERVICE_FILE}, ${PROOFOFPLAY_APEX_MISSING_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_MISSING_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_MISSING_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${PROOFOFPLAY_APEX_MISSING_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_MISSING_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${PROOFOFPLAY_APEX_MISSING_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${PROOFOFPLAY_APEX_MISSING_TIMER_FILE}"

@@ -65,27 +65,15 @@ POLYGON_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE="polygon-historical-crawl-trans
 POLYGON_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE="polygon-historical-crawl-events.service"
 POLYGON_HISTORICAL_CRAWL_EVENTS_TIMER_FILE="polygon-historical-crawl-events.timer"
 
-# Mumbai service files
-MUMBAI_SYNCHRONIZE_SERVICE="mumbai-synchronize.service"
-MUMBAI_MISSING_SERVICE_FILE="mumbai-missing.service"
-MUMBAI_MISSING_TIMER_FILE="mumbai-missing.timer"
-MUMBAI_MOONWORM_CRAWLER_SERVICE_FILE="mumbai-moonworm-crawler.service"
-MUMBAI_STATE_SERVICE_FILE="mumbai-state.service"
-MUMBAI_STATE_TIMER_FILE="mumbai-state.timer"
-MUMBAI_STATE_CLEAN_SERVICE_FILE="mumbai-state-clean.service"
-MUMBAI_STATE_CLEAN_TIMER_FILE="mumbai-state-clean.timer"
-MUMBAI_METADATA_SERVICE_FILE="mumbai-metadata.service"
-MUMBAI_METADATA_TIMER_FILE="mumbai-metadata.timer"
-MUMBAI_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE="mumbai-historical-crawl-transactions.service"
-MUMBAI_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE="mumbai-historical-crawl-transactions.timer"
-MUMBAI_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE="mumbai-historical-crawl-events.service"
-MUMBAI_HISTORICAL_CRAWL_EVENTS_TIMER_FILE="mumbai-historical-crawl-events.timer"
-
 # Amoy
 AMOY_MISSING_SERVICE_FILE="amoy-missing.service"
 AMOY_MISSING_TIMER_FILE="amoy-missing.timer"
 AMOY_MOONWORM_CRAWLER_SERVICE_FILE="amoy-moonworm-crawler.service"
 AMOY_SYNCHRONIZE_SERVICE="amoy-synchronize.service"
+AMOY_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE="amoy-historical-crawl-transactions.service"
+AMOY_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE="amoy-historical-crawl-transactions.timer"
+AMOY_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE="amoy-historical-crawl-events.service"
+AMOY_HISTORICAL_CRAWL_EVENTS_TIMER_FILE="amoy-historical-crawl-events.timer"
 
 # XDai service files
 XDAI_SYNCHRONIZE_SERVICE="xdai-synchronize.service"
@@ -413,6 +401,24 @@ chmod 644 "${SCRIPT_DIR}/${AMOY_MOONWORM_CRAWLER_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${AMOY_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${AMOY_MOONWORM_CRAWLER_SERVICE_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${AMOY_MOONWORM_CRAWLER_SERVICE_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Amoy historical transactions crawler service and timer with: ${AMOY_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}, ${AMOY_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${AMOY_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}" "${SCRIPT_DIR}/${AMOY_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${AMOY_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${AMOY_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${AMOY_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${AMOY_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${AMOY_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Amoy historical events crawler service and timer with: ${AMOY_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}, ${AMOY_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${AMOY_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}" "${SCRIPT_DIR}/${AMOY_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${AMOY_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${AMOY_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${AMOY_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${AMOY_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000"  systemctl --user restart --no-block "${AMOY_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
 
 # Xdai
 echo

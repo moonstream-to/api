@@ -1,8 +1,8 @@
 [Unit]
-Description=Execute Mumbai state crawler each 10m
+Description=Runs events historical crawler on Amoy
 
 [Timer]
-OnBootSec=15s
+OnBootSec=60s
 OnUnitActiveSec=10m
 
 [Install]
