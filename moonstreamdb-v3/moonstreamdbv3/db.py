@@ -7,7 +7,7 @@ import os
 from contextlib import contextmanager
 from typing import Generator, Optional
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, Engine
 from sqlalchemy.orm import Session, sessionmaker
 
 logging.basicConfig(level=logging.INFO)
@@ -21,34 +21,34 @@ try:
     MOONSTREAM_DB_URI_READ_ONLY = os.environ.get("MOONSTREAM_DB_URI_READ_ONLY")
     if MOONSTREAM_DB_URI_READ_ONLY is None:
         raise Warning("MOONSTREAM_DB_URI_READ_ONLY environment variable must be set")
-
-    MOONSTREAM_POOL_SIZE_RAW = os.environ.get("MOONSTREAM_POOL_SIZE")
-    MOONSTREAM_POOL_SIZE = 1
-    try:
-        if MOONSTREAM_POOL_SIZE_RAW is not None:
-            MOONSTREAM_POOL_SIZE = int(MOONSTREAM_POOL_SIZE_RAW)
-    except:
-        raise ValueError(
-            f"Could not parse MOONSTREAM_POOL_SIZE as int: {MOONSTREAM_POOL_SIZE_RAW}"
-        )
-
-    MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS_RAW = os.environ.get(
-        "MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS"
-    )
-    MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS = 30000
-    try:
-        if MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS_RAW is not None:
-            MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS = int(
-                MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS_RAW
-            )
-    except:
-        raise ValueError(
-            f"MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS must be an integer: {MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS_RAW}"
-        )
 except ValueError as e:
     raise ValueError(e)
 except Warning:
     logger.warning("Database variables not set")
+
+MOONSTREAM_POOL_SIZE_RAW = os.environ.get("MOONSTREAM_POOL_SIZE")
+MOONSTREAM_POOL_SIZE = 1
+try:
+    if MOONSTREAM_POOL_SIZE_RAW is not None:
+        MOONSTREAM_POOL_SIZE = int(MOONSTREAM_POOL_SIZE_RAW)
+except:
+    raise ValueError(
+        f"Could not parse MOONSTREAM_POOL_SIZE as int: {MOONSTREAM_POOL_SIZE_RAW}"
+    )
+
+MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS_RAW = os.environ.get(
+    "MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS"
+)
+MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS = 30000
+try:
+    if MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS_RAW is not None:
+        MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS = int(
+            MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS_RAW
+        )
+except:
+    raise ValueError(
+        f"MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS must be an integer: {MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS_RAW}"
+    )
 
 
 def create_moonstream_engine(
@@ -57,7 +57,7 @@ def create_moonstream_engine(
     statement_timeout: int,
     pool_pre_ping: bool = False,
     schema: Optional[str] = None,
-):
+) -> Engine:
     # Pooling: https://docs.sqlalchemy.org/en/14/core/pooling.html#sqlalchemy.pool.QueuePool
     # Statement timeout: https://stackoverflow.com/a/44936982
     options = f"-c statement_timeout={statement_timeout}"
@@ -71,21 +71,27 @@ def create_moonstream_engine(
     )
 
 
-class MoonstreamDBEngine:
-    def __init__(self, schema: Optional[str] = None) -> None:
+class DBEngine:
+    def __init__(self, url: str, schema: Optional[str] = None) -> None:
         self._engine = create_moonstream_engine(
-            url=MOONSTREAM_DB_URI,  # type: ignore
+            url=url,  # type: ignore
             pool_size=MOONSTREAM_POOL_SIZE,
             statement_timeout=MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS,
             schema=schema,
         )
+
+    @property
+    def engine(self) -> Engine:
+        return self._engine
+
+
+class MoonstreamDBEngine(DBEngine):
+    def __init__(self, schema: Optional[str] = None) -> None:
+        super().__init__(url=MOONSTREAM_DB_URI, schema=schema)
+
         self._session_local = sessionmaker(bind=self.engine)
 
         self._yield_db_session_ctx = contextmanager(self.yield_db_session)
-
-    @property
-    def engine(self):
-        return self._engine
 
     @property
     def session_local(self):
@@ -110,29 +116,27 @@ class MoonstreamDBEngine:
             session.close()
 
 
-class MoonstreamDBEngineRO:
+class MoonstreamDBEngineRO(DBEngine):
     def __init__(self, schema: Optional[str] = None) -> None:
-        self._RO_engine = create_moonstream_engine(
-            url=MOONSTREAM_DB_URI_READ_ONLY,  # type: ignore
-            pool_size=MOONSTREAM_POOL_SIZE,
-            statement_timeout=MOONSTREAM_DB_STATEMENT_TIMEOUT_MILLIS,
-            schema=schema,
-        )
-        self._RO_session_local = sessionmaker(bind=self.RO_engine)
-
-        self._RO_yield_db_session_ctx = contextmanager(self.yield_db_read_only_session)
+        super().__init__(url=MOONSTREAM_DB_URI_READ_ONLY, schema=schema)
 
     @property
-    def RO_engine(self):
-        return self._RO_engine
+    def engine(self):
+        raise AttributeError(
+            "RO_engine should be used instead of engine for read-only access."
+        )
+
+    @property
+    def RO_engine(self) -> Engine:
+        return self._engine
 
     @property
     def RO_session_local(self):
-        return self._RO_session_local
+        return self._session_local
 
     @property
     def RO_yield_db_session_ctx(self):
-        return self._RO_yield_db_session_ctx
+        return self._yield_db_session_ctx
 
     def yield_db_read_only_session(self) -> Generator[Session, None, None]:
         """
@@ -140,7 +144,7 @@ class MoonstreamDBEngineRO:
         As per FastAPI docs:
         https://fastapi.tiangolo.com/tutorial/sql-databases/#create-a-dependency
         """
-        session = self._RO_session_local()
+        session = self._session_local()
         try:
             yield session
         finally:
