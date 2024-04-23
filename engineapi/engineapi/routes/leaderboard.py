@@ -116,7 +116,7 @@ async def leaderboard(
     leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
     limit: int = Query(10),
     offset: int = Query(0),
-    db_session: Session = Depends(db.yield_db_session),
+    db_session: Session = Depends(db.yield_db_read_only_session),
     version: Optional[str] = Query(None, description="Version of the leaderboard."),
     points_data: Dict[str, str] = Depends(points_data_dependency),
 ) -> List[data.LeaderboardPosition]:
@@ -348,7 +348,7 @@ async def delete_leaderboard(
 )
 async def get_leaderboards(
     request: Request,
-    db_session: Session = Depends(db.yield_db_session),
+    db_session: Session = Depends(db.yield_db_read_only_session),
     Authorization: str = AuthHeader,
 ) -> List[data.Leaderboard]:
     """
@@ -394,7 +394,7 @@ async def get_leaderboards(
 async def count_addresses(
     leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
     version: Optional[int] = Query(None, description="Version of the leaderboard."),
-    db_session: Session = Depends(db.yield_db_session),
+    db_session: Session = Depends(db.yield_db_read_only_session),
 ) -> data.CountAddressesResponse:
     """
     Returns the number of addresses in the leaderboard.
@@ -422,7 +422,7 @@ async def count_addresses(
 )
 async def leadeboard_info(
     leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
-    db_session: Session = Depends(db.yield_db_session),
+    db_session: Session = Depends(db.yield_db_read_only_session),
     version: Optional[int] = Query(None, description="Version of the leaderboard."),
 ) -> data.LeaderboardInfoResponse:
     """
@@ -455,7 +455,7 @@ async def leadeboard_info(
 )
 async def get_scores_changes(
     leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
-    db_session: Session = Depends(db.yield_db_session),
+    db_session: Session = Depends(db.yield_db_read_only_session),
 ) -> List[data.LeaderboardScoresChangesResponse]:
     """
     Returns the score history for the given address.
@@ -482,7 +482,7 @@ async def get_scores_changes(
 @app.get("/quartiles", response_model=data.QuartilesResponse, tags=["Public Endpoints"])
 async def quartiles(
     leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
-    db_session: Session = Depends(db.yield_db_session),
+    db_session: Session = Depends(db.yield_db_read_only_session),
     version: Optional[int] = Query(None, description="Version of the leaderboard."),
 ) -> data.QuartilesResponse:
     """
@@ -533,7 +533,7 @@ async def position(
         True, description="Normalize addresses to checksum."
     ),
     version: Optional[int] = Query(None, description="Version of the leaderboard."),
-    db_session: Session = Depends(db.yield_db_session),
+    db_session: Session = Depends(db.yield_db_read_only_session),
 ) -> List[data.LeaderboardPosition]:
     """
     Returns the leaderboard posotion for the given address.
@@ -589,7 +589,7 @@ async def rank(
     limit: Optional[int] = Query(None),
     offset: Optional[int] = Query(None),
     version: Optional[int] = Query(None, description="Version of the leaderboard."),
-    db_session: Session = Depends(db.yield_db_session),
+    db_session: Session = Depends(db.yield_db_read_only_session),
 ) -> List[data.LeaderboardPosition]:
     """
     Returns the leaderboard scores for the given rank.
@@ -632,7 +632,7 @@ async def rank(
 async def ranks(
     leaderboard_id: UUID = Query(..., description="Leaderboard ID"),
     version: Optional[int] = Query(None, description="Version of the leaderboard."),
-    db_session: Session = Depends(db.yield_db_session),
+    db_session: Session = Depends(db.yield_db_read_only_session),
 ) -> List[data.RanksResponse]:
     """
     Returns the leaderboard rank buckets overview with score and size of bucket.
@@ -674,7 +674,7 @@ async def leaderboard_score(
     normalize_addresses: bool = Query(
         True, description="Normalize addresses to checksum."
     ),
-    db_session: Session = Depends(db.yield_db_session),
+    db_session: Session = Depends(db.yield_db_read_only_session),
 ) -> data.LeaderboardScore:
     """
     Returns the leaderboard posotion for the given address.
@@ -825,7 +825,7 @@ async def leaderboard_push_scores(
 async def leaderboard_config(
     request: Request,
     leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
-    db_session: Session = Depends(db.yield_db_session),
+    db_session: Session = Depends(db.yield_db_read_only_session),
     Authorization: str = AuthHeader,
 ) -> data.LeaderboardConfig:
     """
@@ -1037,7 +1037,7 @@ async def leaderboard_config_deactivate(
 async def leaderboard_versions_list(
     request: Request,
     leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
-    db_session: Session = Depends(db.yield_db_session),
+    db_session: Session = Depends(db.yield_db_read_only_session),
     Authorization: str = AuthHeader,
 ) -> List[data.LeaderboardVersion]:
     """
@@ -1093,7 +1093,7 @@ async def leaderboard_version_handler(
     request: Request,
     leaderboard_id: UUID = Path(..., description="Leaderboard ID"),
     version: int = Path(..., description="Version of the leaderboard."),
-    db_session: Session = Depends(db.yield_db_session),
+    db_session: Session = Depends(db.yield_db_read_only_session),
     Authorization: str = AuthHeader,
 ) -> data.LeaderboardVersion:
     """
@@ -1319,7 +1319,7 @@ async def leaderboard_version_scores_handler(
     version: int = Path(..., description="Version of the leaderboard."),
     limit: int = Query(10),
     offset: int = Query(0),
-    db_session: Session = Depends(db.yield_db_session),
+    db_session: Session = Depends(db.yield_db_read_only_session),
     Authorization: str = AuthHeader,
 ) -> List[data.LeaderboardPosition]:
     """
