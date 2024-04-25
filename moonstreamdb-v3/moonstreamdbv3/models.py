@@ -193,6 +193,25 @@ class MumbaiLabel(EvmBasedLabel):  # type: ignore
     )
 
 
+class AmoyLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "amoy_labels"
+
+    __table_args__ = (
+        Index(
+            "ix_amoy_labels_addr_block_num",
+            "address",
+            "block_number",
+            unique=False,
+        ),
+        Index(
+            "ix_amoy_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
+            unique=False,
+        ),
+    )
+
+
 class XDaiLabel(EvmBasedLabel):  # type: ignore
     __tablename__ = "xdai_labels"
 
@@ -376,6 +395,63 @@ class AvalancheFujiLabel(EvmBasedLabel):  # type: ignore
         ),
         Index(
             "ix_avalanche_fuji_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
+            unique=False,
+        ),
+    )
+
+
+class BlastLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "blast_labels"
+
+    __table_args__ = (
+        Index(
+            "ix_blast_labels_addr_block_num",
+            "address",
+            "block_number",
+            unique=False,
+        ),
+        Index(
+            "ix_blast_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
+            unique=False,
+        ),
+    )
+
+
+class BlastSepoliaLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "blast_sepolia_labels"
+
+    __table_args__ = (
+        Index(
+            "ix_blast_sepolia_labels_addr_block_num",
+            "address",
+            "block_number",
+            unique=False,
+        ),
+        Index(
+            "ix_blast_sepolia_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
+            unique=False,
+        ),
+    )
+
+
+class ProofOfPlayApexLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "proofofplay_apex_labels"
+
+    __table_args__ = (
+        Index(
+            "ix_proofofplay_apex_labels_addr_block_num",
+            "address",
+            "block_number",
+            unique=False,
+        ),
+        Index(
+            "ix_proofofplay_apex_labels_addr_block_ts",
             "address",
             "block_timestamp",
             unique=False,
