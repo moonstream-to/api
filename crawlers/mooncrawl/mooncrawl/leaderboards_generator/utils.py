@@ -106,6 +106,48 @@ def get_results_for_moonstream_query(
     return result
 
 
+def list_queries(
+    moonstream_access_token: str,
+    api_url: str = MOONSTREAM_API_URL,
+) -> List[Dict[str, Any]]:
+    """
+    Return a list of queries available in account.
+    """
+
+    api_url = api_url.rstrip("/")
+    request_url = f"{api_url}/queries/list"
+    headers = {
+        "Authorization": f"Bearer {moonstream_access_token}",
+        "Content-Type": "application/json",
+    }
+
+    response = requests.get(request_url, headers=headers, timeout=10)
+    response.raise_for_status()
+    return response.json()
+
+
+def get_query_by_name(
+    moonstream_access_token: str,
+    query_name: str,
+    api_url: str = MOONSTREAM_API_URL,
+) -> Dict[str, Any]:
+    """
+    Return a query by name.
+    """
+
+    api_url = api_url.rstrip("/")
+    request_url = f"{api_url}/queries/{query_name}/query"
+    headers = {
+        "Authorization": f"Bearer {moonstream_access_token}",
+        "Content-Type": "application/json",
+    }
+
+    response = requests.get(request_url, headers=headers, timeout=10)
+
+    response.raise_for_status()
+    return response.json()
+
+
 def get_data_from_url(url):
     response = requests.get(url)
     if response.status_code == 200:
