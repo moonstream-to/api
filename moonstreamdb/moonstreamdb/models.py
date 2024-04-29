@@ -15,7 +15,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.sql import expression
+from sqlalchemy.sql import expression, text
 
 """
 Naming conventions doc
@@ -758,6 +758,12 @@ class ZkSyncEraLabel(Base):  # type: ignore
             "address",
             "block_timestamp",
             unique=False,
+        ),
+        Index(
+            "ix_zksync_era_labels_address_label_data_name",
+            "address",
+            text("(label_data ->> 'name')"),
+            postgresql_using="btree",
         ),
     )
 
