@@ -191,7 +191,7 @@ def handle_leaderboards(args: argparse.Namespace) -> None:
 
                 records = [
                     {key: to_json_types(value) for key, value in row._asdict().items()}
-                    for row in db_session.execute(text(query["query"]), params).all()
+                    for row in results.all()
                 ]
 
         leaderboard_push_api_url = f"{MOONSTREAM_ENGINE_URL}/leaderboard/{leaderboard_id}/scores?normalize_addresses={leaderboard_data['normalize_addresses']}&overwrite=true"

@@ -158,8 +158,13 @@ def get_data_from_url(url):
 
 def send_data_to_endpoint(chunks, endpoint_url, headers, timeout=10):
     for index, chunk in enumerate(chunks):
+        retry = 0
         try:
             logger.info(f"Pushing chunk {index} to leaderboard API")
+            # calculate MB size of the chunk
+
+            logger.info(f"Chunk size: {len(json.dumps(chunk))/1024/1024} MB")
+
             response = requests.put(
                 endpoint_url, headers=headers, json=chunk, timeout=timeout
             )
@@ -169,6 +174,22 @@ def send_data_to_endpoint(chunks, endpoint_url, headers, timeout=10):
             logger.error(
                 f"Could not push results to leaderboard API: {http_error.response.text} with status code {http_error.response.status_code}"
             )
+
+            logger.error("Chunk size is too big, reducing the batch size and retrying")
+
+            while retry < 3:
+                try:
+                    response = requests.put(
+                        endpoint_url, headers=headers, json=chunk, timeout=timeout
+                    )
+                    response.raise_for_status()
+                    break
+                except requests.exceptions.HTTPError as http_error:
+                    logger.error(
+                        f"Could not push results to leaderboard API: {http_error.response.text} with status code {http_error.response.status_code}"
+                    )
+                    retry += 1
+
             raise http_error
 
 
@@ -256,5 +277,8 @@ def leaderboard_push_batch(
     except requests.exceptions.HTTPError as http_error:
         logger.error(
             f"Could not delete leaderboard version: {http_error.response.text} with status code {http_error.response.status_code}"
+        )
+        logger.error(
+            f"Leaderboard version {leaderboard_version_delete_api_url} was not deleted"
         )
         return
