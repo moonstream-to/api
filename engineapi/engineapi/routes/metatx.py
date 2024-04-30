@@ -5,8 +5,9 @@ Moonstream users can register contracts on Moonstream Engine. This allows them t
 as part of their chain-adjacent activities (like performing signature-based token distributions on the
 Dropper contract).
 """
+
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set, Tuple
 from uuid import UUID
 
 from bugout.data import BugoutUser
@@ -351,12 +352,30 @@ async def create_requests(
     data: data.CreateCallRequestsAPIRequest = Body(...),
     user: BugoutUser = Depends(request_user_auth),
     db_session: Session = Depends(db.yield_db_session),
+    verify: bool = Query(False),
 ) -> int:
     """
     Allows API user to register call requests from given contract details, TTL, and call specifications.
 
     At least one of `contract_id` or `contract_address` must be provided in the request body.
     """
+    if verify is True:
+        requests: Set[Tuple[str, str]] = {
+            (r.caller, r.request_id) for r in data.specifications
+        }
+        existing_requests = contracts_actions.get_call_request_from_tuple(
+            db_session=db_session,
+            registered_contract_id=data.contract_id,
+            requests=requests,
+        )
+
+        if len(existing_requests) != 0:
+            existing_request_ids = [str(r.request_id) for r in existing_requests]
+            raise EngineHTTPException(
+                status_code=409,
+                detail=f"Call request with request_id's: [{','.join(existing_request_ids)}] already registered",
+            )
+
     try:
         num_requests = contracts_actions.create_request_calls(
             db_session=db_session,

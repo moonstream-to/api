@@ -3,9 +3,9 @@ import json
 import logging
 import uuid
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
-from sqlalchemy import func, or_, text
+from sqlalchemy import func, or_, text, tuple_
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine import Row
 from sqlalchemy.exc import IntegrityError, NoResultFound
@@ -429,6 +429,18 @@ def create_request_calls(
         raise e
 
     return len(call_specs)
+
+
+def get_call_request_from_tuple(
+    db_session: Session, registered_contract_id, requests: Set[Tuple[str, str]]
+) -> List[CallRequest]:
+    existing_requests = (
+        db_session.query(CallRequest)
+        .filter(CallRequest.registered_contract_id == registered_contract_id)
+        .filter(tuple_(CallRequest.caller, CallRequest.request_id).in_(requests))
+        .all()
+    )
+    return existing_requests
 
 
 def get_call_request(
