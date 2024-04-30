@@ -14,6 +14,7 @@ from bugout.data import BugoutUser
 from fastapi import Body, Depends, FastAPI, Form, Path, Query, Request
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
+from web3 import Web3
 
 from .. import contracts_actions, data, db
 from ..middleware import (
@@ -360,14 +361,21 @@ async def create_requests(
     At least one of `contract_id` or `contract_address` must be provided in the request body.
     """
     if verify is True:
-        requests: Set[Tuple[str, str]] = {
-            (r.caller, r.request_id) for r in data.specifications
-        }
-        existing_requests = contracts_actions.get_call_request_from_tuple(
-            db_session=db_session,
-            registered_contract_id=data.contract_id,
-            requests=requests,
-        )
+        try:
+            requests: Set[Tuple[str, str]] = {
+                (Web3.toChecksumAddress(r.caller), r.request_id)
+                for r in data.specifications
+            }
+            existing_requests = contracts_actions.get_call_request_from_tuple(
+                db_session=db_session,
+                metatx_requester_id=user.id,
+                requests=requests,
+                contract_id=data.contract_id,
+                contract_address=data.contract_address,
+            )
+        except Exception as err:
+            logger.error(repr(err))
+            raise EngineHTTPException(status_code=500)
 
         if len(existing_requests) != 0:
             existing_request_ids = [str(r.request_id) for r in existing_requests]

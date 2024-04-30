@@ -432,14 +432,34 @@ def create_request_calls(
 
 
 def get_call_request_from_tuple(
-    db_session: Session, registered_contract_id, requests: Set[Tuple[str, str]]
+    db_session: Session,
+    metatx_requester_id: uuid.UUID,
+    requests: Set[Tuple[str, str]],
+    contract_id: Optional[uuid.UUID] = None,
+    contract_address: Optional[str] = None,
 ) -> List[CallRequest]:
-    existing_requests = (
+    if contract_id is None and contract_address is None:
+        raise ValueError(
+            "At least one of contract_id or contract_address must be specified"
+        )
+    query = (
         db_session.query(CallRequest)
-        .filter(CallRequest.registered_contract_id == registered_contract_id)
+        .join(
+            RegisteredContract,
+            CallRequest.registered_contract_id == RegisteredContract.id,
+        )
+        .filter(RegisteredContract.metatx_requester_id == metatx_requester_id)
         .filter(tuple_(CallRequest.caller, CallRequest.request_id).in_(requests))
-        .all()
     )
+    if contract_id is not None:
+        query = query.filter(RegisteredContract.id == contract_id)
+    if contract_address is not None:
+        query = query.filter(
+            RegisteredContract.address == Web3.toChecksumAddress(contract_address)
+        )
+
+    existing_requests = query.all()
+
     return existing_requests
 
 
