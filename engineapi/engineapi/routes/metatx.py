@@ -389,7 +389,7 @@ async def get_request(
 
 @app.post("/requests", tags=["requests"], response_model=int)
 async def create_requests(
-    data: data.CreateCallRequestsAPIRequest = Body(...),
+    request_data: data.CreateCallRequestsAPIRequest = Body(...),
     user: BugoutUser = Depends(request_user_auth),
     db_session: Session = Depends(db.yield_db_session),
 ) -> int:
