@@ -71,6 +71,12 @@ class CallRequestAlreadyRegistered(Exception):
     """
 
 
+class CallRequestIdDuplicates(Exception):
+    """
+    Raised when same call request IDs passed in one request.
+    """
+
+
 def parse_registered_contract_response(
     obj: Tuple[RegisteredContract, Blockchain]
 ) -> data.RegisteredContractResponse:

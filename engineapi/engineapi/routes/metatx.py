@@ -331,16 +331,28 @@ async def check_requests_route(
     Implemented for pre-check until list of requests to be pushed into database.
     """
     try:
-        incoming_requests: Set[Tuple[str, str]] = {
-            (Web3.toChecksumAddress(r.caller), r.request_id)
-            for r in request_data.specifications
-        }
+        incoming_requests: Set[Tuple[str, str]] = set()
+        incoming_request_ids: List[str] = []
+        for r in request_data.specifications:
+            caller_addr = Web3.toChecksumAddress(r.caller)
+            incoming_requests.add((caller_addr, r.request_id))
+            incoming_request_ids.append(r.request_id)
+
+        if len(incoming_requests) != len(incoming_request_ids):
+            raise contracts_actions.CallRequestIdDuplicates(
+                "There are same call_request_id's in one request"
+            )
+
         existing_requests = contracts_actions.get_call_request_from_tuple(
             db_session=db_session,
             metatx_requester_id=user.id,
             requests=incoming_requests,
             contract_id=request_data.contract_id,
             contract_address=request_data.contract_address,
+        )
+    except contracts_actions.CallRequestIdDuplicates:
+        raise EngineHTTPException(
+            status_code=400, detail="There are same call_request_id's in one request"
         )
     except Exception as err:
         logger.error(repr(err))
