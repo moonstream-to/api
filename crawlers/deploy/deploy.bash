@@ -115,6 +115,16 @@ ARBITRUM_NOVA_MISSING_TIMER_FILE="arbitrum-nova-missing.timer"
 ARBITRUM_NOVA_MOONWORM_CRAWLER_SERVICE_FILE="arbitrum-nova-moonworm-crawler.service"
 ARBITRUM_NOVA_SYNCHRONIZE_SERVICE="arbitrum-nova-synchronize.service"
 
+# Arbitrum one
+ARBITRUM_ONE_SYNCHRONIZE_SERVICE="arbitrum-one-synchronize.service"
+ARBITRUM_ONE_MISSING_SERVICE_FILE="arbitrum-one-missing.service"
+ARBITRUM_ONE_MISSING_TIMER_FILE="arbitrum-one-missing.timer"
+ARBITRUM_ONE_MOONWORM_CRAWLER_SERVICE_FILE="arbitrum-one-moonworm-crawler.service"
+ARBITRUM_ONE_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE="arbitrum-one-historical-crawl-transactions.service"
+ARBITRUM_ONE_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE="arbitrum-one-historical-crawl-transactions.timer"
+ARBITRUM_ONE_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE="arbitrum-one-historical-crawl-events.service"
+ARBITRUM_ONE_HISTORICAL_CRAWL_EVENTS_TIMER_FILE="arbitrum-one-historical-crawl-events.timer"
+
 # Arbitrum Sepolia
 ARBITRUM_SEPOLIA_MISSING_SERVICE_FILE="arbitrum-sepolia-missing.service"
 ARBITRUM_SEPOLIA_MISSING_TIMER_FILE="arbitrum-sepolia-missing.timer"
@@ -605,6 +615,50 @@ chmod 644 "${SCRIPT_DIR}/${ARBITRUM_NOVA_MOONWORM_CRAWLER_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${ARBITRUM_NOVA_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ARBITRUM_NOVA_MOONWORM_CRAWLER_SERVICE_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ARBITRUM_NOVA_MOONWORM_CRAWLER_SERVICE_FILE}"
+
+# Arbitrum one
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Arbitrum one block with transactions syncronizer service definition with ${ARBITRUM_ONE_SYNCHRONIZE_SERVICE}"
+chmod 644 "${SCRIPT_DIR}/${ARBITRUM_ONE_SYNCHRONIZE_SERVICE}"
+cp "${SCRIPT_DIR}/${ARBITRUM_ONE_SYNCHRONIZE_SERVICE}" "/home/ubuntu/.config/systemd/user/${ARBITRUM_ONE_SYNCHRONIZE_SERVICE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ARBITRUM_ONE_SYNCHRONIZE_SERVICE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Arbitrum one missing service and timer with: ${ARBITRUM_ONE_MISSING_SERVICE_FILE}, ${ARBITRUM_ONE_MISSING_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ARBITRUM_ONE_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${ARBITRUM_ONE_MISSING_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ARBITRUM_ONE_MISSING_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ARBITRUM_ONE_MISSING_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ARBITRUM_ONE_MISSING_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ARBITRUM_ONE_MISSING_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ARBITRUM_ONE_MISSING_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Arbitrum One moonworm crawler service definition with ${ARBITRUM_ONE_MOONWORM_CRAWLER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ARBITRUM_ONE_MOONWORM_CRAWLER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ARBITRUM_ONE_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ARBITRUM_ONE_MOONWORM_CRAWLER_SERVICE_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ARBITRUM_ONE_MOONWORM_CRAWLER_SERVICE_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Arbitrum one historical transactions crawler service and timer with: ${ARBITRUM_ONE_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}, ${ARBITRUM_ONE_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ARBITRUM_ONE_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}" "${SCRIPT_DIR}/${ARBITRUM_ONE_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ARBITRUM_ONE_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ARBITRUM_ONE_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ARBITRUM_ONE_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ARBITRUM_ONE_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ARBITRUM_ONE_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Arbitrum one historical events crawler service and timer with: ${ARBITRUM_ONE_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}, ${ARBITRUM_ONE_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ARBITRUM_ONE_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}" "${SCRIPT_DIR}/${ARBITRUM_ONE_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ARBITRUM_ONE_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ARBITRUM_ONE_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ARBITRUM_ONE_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ARBITRUM_ONE_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ARBITRUM_ONE_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
 
 
 # Arbitrum Sepolia
