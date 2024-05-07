@@ -3,9 +3,9 @@ import json
 import logging
 import uuid
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
-from sqlalchemy import func, or_, text
+from sqlalchemy import func, or_, text, tuple_
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine import Row
 from sqlalchemy.exc import IntegrityError, NoResultFound
@@ -68,6 +68,12 @@ class ContractAlreadyRegistered(Exception):
 class CallRequestAlreadyRegistered(Exception):
     """
     Raised when call request with same parameters registered.
+    """
+
+
+class CallRequestIdDuplicates(Exception):
+    """
+    Raised when same call request IDs passed in one request.
     """
 
 
@@ -429,6 +435,38 @@ def create_request_calls(
         raise e
 
     return len(call_specs)
+
+
+def get_call_request_from_tuple(
+    db_session: Session,
+    metatx_requester_id: uuid.UUID,
+    requests: Set[Tuple[str, str]],
+    contract_id: Optional[uuid.UUID] = None,
+    contract_address: Optional[str] = None,
+) -> List[CallRequest]:
+    if contract_id is None and contract_address is None:
+        raise ValueError(
+            "At least one of contract_id or contract_address must be specified"
+        )
+    query = (
+        db_session.query(CallRequest)
+        .join(
+            RegisteredContract,
+            CallRequest.registered_contract_id == RegisteredContract.id,
+        )
+        .filter(RegisteredContract.metatx_requester_id == metatx_requester_id)
+        .filter(tuple_(CallRequest.caller, CallRequest.request_id).in_(requests))
+    )
+    if contract_id is not None:
+        query = query.filter(RegisteredContract.id == contract_id)
+    if contract_address is not None:
+        query = query.filter(
+            RegisteredContract.address == Web3.toChecksumAddress(contract_address)
+        )
+
+    existing_requests = query.all()
+
+    return existing_requests
 
 
 def get_call_request(

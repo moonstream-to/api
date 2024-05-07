@@ -5,14 +5,16 @@ Moonstream users can register contracts on Moonstream Engine. This allows them t
 as part of their chain-adjacent activities (like performing signature-based token distributions on the
 Dropper contract).
 """
+
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set, Tuple
 from uuid import UUID
 
 from bugout.data import BugoutUser
 from fastapi import Body, Depends, FastAPI, Form, Path, Query, Request
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
+from web3 import Web3
 
 from .. import contracts_actions, data, db
 from ..middleware import (
@@ -317,6 +319,57 @@ async def list_requests_route(
 
 
 @app.get(
+    "/requests/check",
+    response_model=data.CallRequestsCheck,
+)
+async def check_requests_route(
+    request_data: data.CreateCallRequestsAPIRequest = Body(...),
+    user: BugoutUser = Depends(request_user_auth),
+    db_session: Session = Depends(db.yield_db_session),
+) -> data.CallRequestsCheck:
+    """
+    Implemented for pre-check until list of requests to be pushed into database.
+    """
+    try:
+        incoming_requests: Set[Tuple[str, str]] = set()
+        incoming_request_ids: List[str] = []
+        for r in request_data.specifications:
+            caller_addr = Web3.toChecksumAddress(r.caller)
+            incoming_requests.add((caller_addr, r.request_id))
+            incoming_request_ids.append(r.request_id)
+
+        if len(incoming_requests) != len(incoming_request_ids):
+            raise contracts_actions.CallRequestIdDuplicates(
+                "There are same call_request_id's in one request"
+            )
+
+        existing_requests = contracts_actions.get_call_request_from_tuple(
+            db_session=db_session,
+            metatx_requester_id=user.id,
+            requests=incoming_requests,
+            contract_id=request_data.contract_id,
+            contract_address=request_data.contract_address,
+        )
+    except contracts_actions.CallRequestIdDuplicates:
+        raise EngineHTTPException(
+            status_code=400, detail="There are same call_request_id's in one request"
+        )
+    except Exception as err:
+        logger.error(repr(err))
+        raise EngineHTTPException(status_code=500)
+
+    existing_requests_set: Set[Tuple[str, str]] = set()
+    if len(existing_requests) != 0:
+        existing_requests_set = {
+            (er.caller, str(er.request_id)) for er in existing_requests
+        }
+
+    return data.CallRequestsCheck(
+        existing_requests=existing_requests_set,
+    )
+
+
+@app.get(
     "/requests/{request_id}", tags=["requests"], response_model=data.CallRequestResponse
 )
 async def get_request(
@@ -348,7 +401,7 @@ async def get_request(
 
 @app.post("/requests", tags=["requests"], response_model=int)
 async def create_requests(
-    data: data.CreateCallRequestsAPIRequest = Body(...),
+    request_data: data.CreateCallRequestsAPIRequest = Body(...),
     user: BugoutUser = Depends(request_user_auth),
     db_session: Session = Depends(db.yield_db_session),
 ) -> int:
@@ -361,11 +414,11 @@ async def create_requests(
         num_requests = contracts_actions.create_request_calls(
             db_session=db_session,
             metatx_requester_id=user.id,
-            registered_contract_id=data.contract_id,
-            contract_address=data.contract_address,
-            call_specs=data.specifications,
-            ttl_days=data.ttl_days,
-            live_at=data.live_at,
+            registered_contract_id=request_data.contract_id,
+            contract_address=request_data.contract_address,
+            call_specs=request_data.specifications,
+            ttl_days=request_data.ttl_days,
+            live_at=request_data.live_at,
         )
     except contracts_actions.InvalidAddressFormat as err:
         raise EngineHTTPException(

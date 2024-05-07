@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Tuple
 from uuid import UUID
 
 from bugout.data import BugoutResource
@@ -327,6 +327,10 @@ class CallRequestResponse(BaseModel):
     @validator("contract_address", "caller")
     def validate_web3_adresses(cls, v):
         return Web3.toChecksumAddress(v)
+
+
+class CallRequestsCheck(BaseModel):
+    existing_requests: Set[Tuple[str, str]] = Field(default_factory=set)
 
 
 class CompleteCallRequestsAPIRequest(BaseModel):
