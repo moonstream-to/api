@@ -99,6 +99,7 @@ blockchain_names = [
     "xdai",
     "zksync_era",
     "zksync_era_sepolia",
+    "arbitrum_one",
     "arbitrum_nova",
     "arbitrum_sepolia",
     "xai",

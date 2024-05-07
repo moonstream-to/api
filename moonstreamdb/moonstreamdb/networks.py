@@ -6,6 +6,9 @@ from .models import (
     AmoyBlock,
     AmoyLabel,
     AmoyTransaction,
+    ArbitrumOneBlock,
+    ArbitrumOneLabel,
+    ArbitrumOneTransaction,
     ArbitrumNovaBlock,
     ArbitrumNovaLabel,
     ArbitrumNovaTransaction,
@@ -71,6 +74,7 @@ class Network(Enum):
     zksync_era_testnet = "zksync_era_testnet"
     zksync_era = "zksync_era"
     zksync_era_sepolia = "zksync_era_sepolia"
+    arbitrum_one = "arbitrum_one"
     arbitrum_nova = "arbitrum_nova"
     arbitrum_sepolia = "arbitrum_sepolia"
     xai = "xai"
@@ -92,6 +96,7 @@ tx_raw_types = Union[
     ZkSyncEraTestnetTransaction,
     ZkSyncEraTransaction,
     ZkSyncEraSepoliaTransaction,
+    ArbitrumOneTransaction,
     ArbitrumNovaTransaction,
     ArbitrumSepoliaTransaction,
     XaiTransaction,
@@ -148,6 +153,11 @@ MODELS: Dict[Network, Dict[str, Base]] = {
         "blocks": ZkSyncEraBlock,
         "labels": ZkSyncEraLabel,
         "transactions": ZkSyncEraTransaction,
+    },
+    Network.arbitrum_one: {
+        "blocks": ArbitrumOneBlock,
+        "labels": ArbitrumOneLabel,
+        "transactions": ArbitrumOneTransaction,
     },
     Network.arbitrum_nova: {
         "blocks": ArbitrumNovaBlock,
@@ -218,6 +228,8 @@ def blockchain_type_to_network_type(
         return Network.zksync_era
     elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_SEPOLIA:
         return Network.zksync_era_sepolia
+    elif blockchain_type == AvailableBlockchainType.ARBITRUM_ONE:
+        return Network.arbitrum_one
     elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
         return Network.arbitrum_nova
     elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:

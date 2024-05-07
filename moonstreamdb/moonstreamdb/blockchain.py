@@ -5,6 +5,9 @@ from .models import (
     AmoyBlock,
     AmoyLabel,
     AmoyTransaction,
+    ArbitrumOneBlock,
+    ArbitrumOneLabel,
+    ArbitrumOneTransaction,
     ArbitrumNovaBlock,
     ArbitrumNovaLabel,
     ArbitrumNovaTransaction,
@@ -69,6 +72,7 @@ class AvailableBlockchainType(Enum):
     ZKSYNC_ERA = "zksync_era"
     ZKSYNC_ERA_TESTNET = "zksync_era_testnet"
     ZKSYNC_ERA_SEPOLIA = "zksync_era_sepolia"
+    ARBITRUM_ONE = "arbitrum_one"
     ARBITRUM_NOVA = "arbitrum_nova"
     ARBITRUM_SEPOLIA = "arbitrum_sepolia"
     XAI = "xai"
@@ -93,6 +97,7 @@ def get_block_model(
         ZkSyncEraTestnetBlock,
         ZkSyncEraBlock,
         ZkSyncEraSepoliaBlock,
+        ArbitrumOneBlock,
         ArbitrumNovaBlock,
         ArbitrumSepoliaBlock,
         XaiBlock,
@@ -118,6 +123,7 @@ def get_block_model(
             ZkSyncEraTestnetBlock,
             ZkSyncEraBlock,
             ZkSyncEraSepoliaBlock,
+            ArbitrumOneBlock,
             ArbitrumNovaBlock,
             ArbitrumSepoliaBlock,
             XaiBlock,
@@ -147,6 +153,8 @@ def get_block_model(
         block_model = ZkSyncEraBlock
     elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_SEPOLIA:
         block_model = ZkSyncEraSepoliaBlock
+    elif blockchain_type == AvailableBlockchainType.ARBITRUM_ONE:
+        block_model = ArbitrumOneBlock
     elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
         block_model = ArbitrumNovaBlock
     elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
@@ -184,6 +192,7 @@ def get_label_model(
         ZkSyncEraTestnetLabel,
         ZkSyncEraLabel,
         ZkSyncEraSepoliaLabel,
+        ArbitrumOneLabel,
         ArbitrumNovaLabel,
         ArbitrumSepoliaLabel,
         XaiLabel,
@@ -209,6 +218,7 @@ def get_label_model(
             ZkSyncEraTestnetLabel,
             ZkSyncEraLabel,
             ZkSyncEraSepoliaLabel,
+            ArbitrumOneLabel,
             ArbitrumNovaLabel,
             ArbitrumSepoliaLabel,
             XaiLabel,
@@ -238,6 +248,8 @@ def get_label_model(
         label_model = ZkSyncEraLabel
     elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_SEPOLIA:
         label_model = ZkSyncEraSepoliaLabel
+    elif blockchain_type == AvailableBlockchainType.ARBITRUM_ONE:
+        label_model = ArbitrumOneLabel
     elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
         label_model = ArbitrumNovaLabel
     elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
@@ -275,6 +287,7 @@ def get_transaction_model(
         ZkSyncEraTestnetTransaction,
         ZkSyncEraTransaction,
         ZkSyncEraSepoliaTransaction,
+        ArbitrumOneTransaction,
         ArbitrumNovaTransaction,
         ArbitrumSepoliaTransaction,
         XaiTransaction,
@@ -300,6 +313,7 @@ def get_transaction_model(
             ZkSyncEraTestnetTransaction,
             ZkSyncEraTransaction,
             ZkSyncEraSepoliaTransaction,
+            ArbitrumOneTransaction,
             ArbitrumNovaTransaction,
             ArbitrumSepoliaTransaction,
             XaiTransaction,
@@ -329,6 +343,8 @@ def get_transaction_model(
         transaction_model = ZkSyncEraTransaction
     elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_SEPOLIA:
         transaction_model = ZkSyncEraSepoliaTransaction
+    elif blockchain_type == AvailableBlockchainType.ARBITRUM_ONE:
+        transaction_model = ArbitrumOneTransaction
     elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
         transaction_model = ArbitrumNovaTransaction
     elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:

@@ -13,6 +13,7 @@ from web3.providers.rpc import HTTPProvider
 
 from .settings import (
     MOONSTREAM_AMOY_WEB3_PROVIDER_URI,
+    MOONSTREAM_ARBITRUM_ONE_WEB3_PROVIDER_URI,
     MOONSTREAM_ARBITRUM_NOVA_WEB3_PROVIDER_URI,
     MOONSTREAM_ARBITRUM_SEPOLIA_WEB3_PROVIDER_URI,
     MOONSTREAM_AVALANCHE_FUJI_WEB3_PROVIDER_URI,
@@ -88,6 +89,8 @@ def connect(
             web3_uri = MOONSTREAM_ZKSYNC_ERA_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_SEPOLIA:
             web3_uri = MOONSTREAM_ZKSYNC_ERA_SEPOLIA_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.ARBITRUM_ONE:
+            web3_uri = MOONSTREAM_ARBITRUM_ONE_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
             web3_uri = MOONSTREAM_ARBITRUM_NOVA_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:

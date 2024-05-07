@@ -26,6 +26,7 @@ xdai_event_type = "xdai_blockchain"
 zksync_era_testnet_event_type = "zksync_era_testnet_blockchain"
 zksync_era_event_type = "zksync_era_blockchain"
 zksync_era_sepolia_event_type = "zksync_era_sepolia_blockchain"
+arbitrum_one_event_type = "arbitrum_one_blockchain"
 arbitrum_nova_event_type = "arbitrum_nova_blockchain"
 arbitrum_sepolia_event_type = "arbitrum_sepolia_blockchain"
 xai_event_type = "xai_blockchain"
@@ -453,6 +454,13 @@ ZkSyncEraSepoliaMoonwormProvider = MoonwormProvider(
     event_type="zksync_era_sepolia_smartcontract",
     blockchain=AvailableBlockchainType("zksync_era_sepolia"),
     description="Provider for reviving transactions from zkSync Era Sepolia tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
+ArbitrumOneMoonwormProvider = MoonwormProvider(
+    event_type="arbitrum_one_smartcontract",
+    blockchain=AvailableBlockchainType("arbitrum_one"),
+    description="Provider for reviving transactions from Arbitrum One tables.",
     streamboaundary_range_limit=2 * 60 * 60,
 )
 

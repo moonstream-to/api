@@ -13,6 +13,7 @@ class SubscriptionTypes(Enum):
     ZKSYNC_ERA_TESTNET_BLOCKCHAIN = "zksync_era_testnet_smartcontract"
     ZKSYNC_ERA_BLOCKCHAIN = "zksync_era_smartcontract"
     ZKSYNC_ERA_SEPOLIA_BLOCKCHAIN = "zksync_era_sepolia_smartcontract"
+    ARBITRUM_ONE_BLOCKCHAIN = "arbitrum_one_smartcontract"
     ARBITRUM_NOVA_BLOCKCHAIN = "arbitrum_nova_smartcontract"
     ARBITRUM_SEPOLIA_BLOCKCHAIN = "arbitrum_sepolia_smartcontract"
     XAI_BLOCKCHAIN = "xai_smartcontract"
@@ -45,6 +46,8 @@ def blockchain_type_to_subscription_type(
         return SubscriptionTypes.ZKSYNC_ERA_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_SEPOLIA:
         return SubscriptionTypes.ZKSYNC_ERA_SEPOLIA_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.ARBITRUM_ONE:
+        return SubscriptionTypes.ARBITRUM_ONE_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
         return SubscriptionTypes.ARBITRUM_NOVA_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
@@ -77,6 +80,7 @@ subscription_id_by_blockchain = {
     "zksync_era_testnet": "zksync_era_testnet_smartcontract",
     "zksync_era": "zksync_era_smartcontract",
     "zksync_era_sepolia": "zksync_era_sepolia_smartcontract",
+    "arbitrum_one": "arbitrum_one_smartcontract",
     "arbitrum_nova": "arbitrum_nova_smartcontract",
     "arbitrum_sepolia": "arbitrum_sepolia_smartcontract",
     "xai": "xai_smartcontract",
@@ -98,6 +102,7 @@ blockchain_by_subscription_id = {
     "zksync_era_testnet_blockchain": "zksync_era_testnet",
     "zksync_era_blockchain": "zksync_era",
     "zksync_era_sepolia_blockchain": "zksync_era_sepolia",
+    "arbitrum_one_blockchain": "arbitrum_one",
     "arbitrum_nova_blockchain": "arbitrum_nova",
     "arbitrum_sepolia_blockchain": "arbitrum_sepolia",
     "xai_blockchain": "xai",
@@ -116,6 +121,7 @@ blockchain_by_subscription_id = {
     "zksync_era_testnet_smartcontract": "zksync_era_testnet",
     "zksync_era_smartcontract": "zksync_era",
     "zksync_era_sepolia_smartcontract": "zksync_era_sepolia",
+    "arbitrum_one_smartcontract": "arbitrum_one",
     "arbitrum_nova_smartcontract": "arbitrum_nova",
     "arbitrum_sepolia_smartcontract": "arbitrum_sepolia",
     "xai_smartcontract": "xai",

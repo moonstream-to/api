@@ -23,6 +23,7 @@ from .db import yield_db_session, yield_db_session_ctx
 from .settings import (
     MOONSTREAM_CRAWL_WORKERS,
     MOONSTREAM_NODE_AMOY_A_EXTERNAL_URI,
+    MOONSTREAM_NODE_ARBITRUM_ONE_A_EXTERNAL_URI,
     MOONSTREAM_NODE_ARBITRUM_NOVA_A_EXTERNAL_URI,
     MOONSTREAM_NODE_ARBITRUM_SEPOLIA_A_EXTERNAL_URI,
     MOONSTREAM_NODE_AVALANCHE_A_EXTERNAL_URI,
@@ -76,6 +77,8 @@ def connect(
             web3_uri = MOONSTREAM_NODE_ZKSYNC_ERA_A_EXTERNAL_URI
         elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_SEPOLIA:
             web3_uri = MOONSTREAM_NODE_ZKSYNC_ERA_SEPOLIA_A_EXTERNAL_URI
+        elif blockchain_type == AvailableBlockchainType.ARBITRUM_ONE:
+            web3_uri = MOONSTREAM_NODE_ARBITRUM_ONE_A_EXTERNAL_URI
         elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
             web3_uri = MOONSTREAM_NODE_ARBITRUM_NOVA_A_EXTERNAL_URI
         elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
@@ -179,6 +182,7 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
         blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA
         or blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA
         or blockchain_type == AvailableBlockchainType.PROOFOFPLAY_APEX
+        or blockchain_type == AvailableBlockchainType.ARBITRUM_ONE
     ):
         block_obj.sha3_uncles = block.get("sha3Uncles", "")
         block_obj.l1_block_number = hex_to_int(block.get("l1BlockNumber"))
@@ -260,6 +264,7 @@ def add_block_transactions(
             or blockchain_type == AvailableBlockchainType.XAI
             or blockchain_type == AvailableBlockchainType.XAI_SEPOLIA
             or blockchain_type == AvailableBlockchainType.PROOFOFPLAY_APEX
+            or blockchain_type == AvailableBlockchainType.ARBITRUM_ONE
         ):
             tx_obj.y_parity = hex_to_int(tx.get("yParity"))
 

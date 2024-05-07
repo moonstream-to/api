@@ -504,6 +504,13 @@ ZkSyncEraSepoliaTransactions = TransactionsProvider(
     streamboaundary_range_limit=2 * 60 * 60,
 )
 
+ArbitrumOneTransactions = TransactionsProvider(
+    event_type="arbitrum_one_blockchain",
+    blockchain=AvailableBlockchainType("arbitrum_one"),
+    description="Provider for resiving transactions from Arbitrum One tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
 ArbitrumNovaTransactions = TransactionsProvider(
     event_type="arbitrum_nova_blockchain",
     blockchain=AvailableBlockchainType("arbitrum_nova"),
