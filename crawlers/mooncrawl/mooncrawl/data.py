@@ -58,3 +58,12 @@ class TokenURIs(BaseModel):
     block_number: str
     block_timestamp: str
     address: str
+
+
+class ViewTasks(BaseModel):
+    type: str
+    stateMutability: str
+    inputs: Any
+    name: str
+    outputs: List[Dict[str, Any]]
+    address: str
