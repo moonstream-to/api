@@ -307,6 +307,25 @@ class ArbitrumNovaLabel(EvmBasedLabel):  # type: ignore
     )
 
 
+class ArbitrumOneLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "arbitrum_one_labels"
+
+    __table_args__ = (
+        Index(
+            "ix_arbitrum_one_labels_addr_block_num",
+            "address",
+            "block_number",
+            unique=False,
+        ),
+        Index(
+            "ix_arbitrum_one_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
+            unique=False,
+        ),
+    )
+
+
 class ArbitrumSepoliaLabel(EvmBasedLabel):  # type: ignore
     __tablename__ = "arbitrum_sepolia_labels"
 
