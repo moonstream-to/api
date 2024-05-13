@@ -55,8 +55,11 @@ def crawl_uri(metadata_uri: str) -> Any:
                 metadata_uri = metadata_uri.replace(
                     "ipfs://", "https://ipfs.io/ipfs/", 1
                 )
+            req = urllib.request.Request(
+                metadata_uri, headers={"User-Agent": "Mozilla/5.0"}
+            )
 
-            response = urllib.request.urlopen(metadata_uri, timeout=10)
+            response = urllib.request.urlopen(req, timeout=10)
 
             if (
                 metadata_uri.startswith("data:application/json")
