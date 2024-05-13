@@ -37,6 +37,7 @@ from moonstreamdbv3.models import (
     ZkSyncEraSepoliaLabel,
     BaseLabel,
     ArbitrumNovaLabel,
+    ArbitrumOneLabel,
     ArbitrumSepoliaLabel,
     XaiLabel,
     XaiSepoliaLabel,
