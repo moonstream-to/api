@@ -17,8 +17,9 @@ fileConfig(config.config_file_name)
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 from moonstreamdb.models import Base as MoonstreamBase
+from moonstreamdb.v3index_models import Base as MoonstreamV3IndexBase
 
-target_metadata = MoonstreamBase.metadata
+target_metadata = [MoonstreamBase.metadata, MoonstreamV3IndexBase.metadata]
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -86,10 +87,21 @@ from moonstreamdb.models import (
     ProofOfPlayApexLabel,
     ProofOfPlayApexTransaction,
 )
+from moonstreamdb.v3index_models import (
+    EthereumBlockIndex,
+    EthereumTransactionIndex,
+    EthereumLogIndex,
+    EthereumReorgs,
+    PolygonBlockIndex,
+    PolygonTransactionIndex,
+    PolygonLogIndex,
+    PolygonReorgs,
+)
 
 
 def include_symbol(tablename, schema):
     return tablename in {
+        # V2 tables
         EthereumBlock.__tablename__,
         EthereumTransaction.__tablename__,
         EthereumLabel.__tablename__,
@@ -150,6 +162,15 @@ def include_symbol(tablename, schema):
         ProofOfPlayApexBlock.__tablename__,
         ProofOfPlayApexLabel.__tablename__,
         ProofOfPlayApexTransaction.__tablename__,
+        # V3 Index tables
+        EthereumBlockIndex.__tablename__,
+        EthereumTransactionIndex.__tablename__,
+        EthereumLogIndex.__tablename__,
+        EthereumReorgs.__tablename__,
+        PolygonBlockIndex.__tablename__,
+        PolygonTransactionIndex.__tablename__,
+        PolygonLogIndex.__tablename__,
+        PolygonReorgs.__tablename__,
     }
 
 
