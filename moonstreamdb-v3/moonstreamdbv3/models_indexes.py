@@ -68,7 +68,7 @@ class EvmBasedTransactions(Base):
     from_address = Column(LargeBinary(length=20), nullable=False, index=True)
     to_address = Column(LargeBinary(length=20), nullable=False, index=True)
     selector = Column(VARCHAR(256), nullable=True, index=True)
-    type = Column(Integer, nullable=False, index=True)
+    type = Column(Integer, nullable=True, index=True)
     row_id = Column(BigInteger, nullable=False, index=False)
     block_hash = Column(VARCHAR(256), nullable=False, index=True)
     index = Column(BigInteger, nullable=False, index=True)
