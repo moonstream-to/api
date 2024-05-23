@@ -28,13 +28,29 @@ target_metadata = MoonstreamBase.metadata
 # ... etc.
 
 from moonstreamdbv3.models_indexes import (
-    EvmBasedBlocks,
+    EthereumBlockIndex,
+    EthereumTransactionIndex,
+    EthereumLogIndex,
+    EthereumReorgs,
+    PolygonBlockIndex,
+    PolygonTransactionIndex,
+    PolygonLogIndex,
+    PolygonReorgs,
 )
+
 
 def include_symbol(tablename, schema):
     return tablename in {
-        EvmBasedBlocks.__tablename__,
+        EthereumBlockIndex.__tablename__,
+        EthereumTransactionIndex.__tablename__,
+        EthereumLogIndex.__tablename__,
+        EthereumReorgs.__tablename__,
+        PolygonBlockIndex.__tablename__,
+        PolygonTransactionIndex.__tablename__,
+        PolygonLogIndex.__tablename__,
+        PolygonReorgs.__tablename__,
     }
+
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
