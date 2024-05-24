@@ -15,7 +15,7 @@ let
             (getEnv "MDP_GIT")
             (fetchGit {
                 url = "git@github.com:moonstream-to/api.git";
-                rev = "d45333dc0ec0f2233c66472ce9346bd2827756ed";
+                rev = "e27476ac5327d5494d2db16bb9bf781f9fc14e41";
             })
         ] ++ scm_repos;
     });
