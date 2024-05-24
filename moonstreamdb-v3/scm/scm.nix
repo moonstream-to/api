@@ -4,7 +4,7 @@ let
         (getEnv "SCM_GIT")
         (fetchGit {
             url = "git@gitlab.com:deltaex/schematic.git";
-            rev = "deccf9c3af9d381ebcf43b4684f2a9fc12ca2df7";
+            rev = "ba5d7b40255e5da9a74e666dd88e309dae40fbd2";
         })
     ];
     scm_repo = head (filter (x: x != "") scm_repos);
@@ -23,7 +23,7 @@ in rec {
     schematic = scm.shell.overrideAttrs ( oldAttrs : {
         shellHook = oldAttrs.shellHook + ''
             [ -n "$ENV" -a "$ENV" != "dev" ]
-            source /home/moonstream/moonstream-db-v3-secrets/pg.env
+            source /home/moonstream/moonstream-db-v3-indexes-secrets/pg.env
         '';
     });
 }
