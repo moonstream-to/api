@@ -1,25 +1,24 @@
 import uuid
 
 from sqlalchemy import (
-    LargeBinary,
     VARCHAR,
     BigInteger,
+    Boolean,
     Column,
     DateTime,
-    Integer,
-    Index,
-    MetaData,
-    Text,
-    Boolean,
-    UniqueConstraint,
     ForeignKey,
+    Index,
+    Integer,
+    LargeBinary,
+    MetaData,
     PrimaryKeyConstraint,
+    Text,
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import expression
-
 
 """
 Naming conventions doc
