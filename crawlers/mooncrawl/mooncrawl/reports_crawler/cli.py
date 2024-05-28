@@ -486,51 +486,60 @@ def generate_report_nft_dashboard_handler(args: argparse.Namespace):
             "cu_land_nft_dashboard_data",
             "cu_seaport_feed_polygon",
             "cu_breeding_feed",
+            "cu_shadowcorns_owners",
+            "cu_shadowcorns_feed",
+            "cu_previous_day_distributed_rewards",
         ]:
             continue
+        try:
+            logger.info(f"Generating report for {query.name}")
+            data = recive_S3_data_from_query(
+                client=client,
+                token=args.moonstream_token,
+                query_name=query.name,
+                params=params,
+                time_await=4,
+            )
 
-        logger.info(f"Generating report for {query.name}")
-        data = recive_S3_data_from_query(
-            client=client,
-            token=args.moonstream_token,
-            query_name=query.name,
-            params=params,
-            time_await=4,
-        )
+            logger.info(f"Data recived. Uploading report for {query.name} as json")
 
-        logger.info(f"Data recived. Uploading report for {query.name} as json")
+            # send as json
+            ext = "json"
 
-        # send as json
-        ext = "json"
+            url = client.upload_query_results(
+                json.dumps(data),
+                key=f"queries/{query.name}/data.{ext}",
+                bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
+            )
 
-        url = client.upload_query_results(
-            json.dumps(data),
-            key=f"queries/{query.name}/data.{ext}",
-            bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
-        )
+            logger.info(f"Report uploaded to {url}")
 
-        logger.info(f"Report uploaded to {url}")
+            logger.info(f"Data recived. Uploading report for {query.name} as csv")
 
-        logger.info(f"Data recived. Uploading report for {query.name} as csv")
+            ext = "csv"
+            csv_buffer = StringIO()
 
-        ext = "csv"
-        csv_buffer = StringIO()
+            dict_csv_writer = csv.DictWriter(
+                csv_buffer, fieldnames=data["data"][0].keys(), delimiter=","
+            )
 
-        dict_csv_writer = csv.DictWriter(
-            csv_buffer, fieldnames=data["data"][0].keys(), delimiter=","
-        )
+            # upload to s3 bucket as csv
+            dict_csv_writer.writeheader()
+            dict_csv_writer.writerows(data["data"])
 
-        # upload to s3 bucket as csv
-        dict_csv_writer.writeheader()
-        dict_csv_writer.writerows(data["data"])
+            url = client.upload_query_results(
+                data=csv_buffer.getvalue().encode("utf-8"),
+                key=f"queries/{query.name}/data.{ext}",
+                bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
+            )
 
-        url = client.upload_query_results(
-            data=csv_buffer.getvalue().encode("utf-8"),
-            key=f"queries/{query.name}/data.{ext}",
-            bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
-        )
-
-        logger.info(f"Report uploaded to {url}")
+            logger.info(f"Report uploaded to {url}")
+            logger.info(
+                f"s3://{MOONSTREAM_S3_PUBLIC_DATA_BUCKET}/queries/{query.name}/data.{ext}"
+            )
+        except Exception as err:
+            logger.error(f"Error while generating report for {query.name}. {err}")
+            continue
 
 
 def run_tokenomics_orange_dao_handler(args: argparse.Namespace):
