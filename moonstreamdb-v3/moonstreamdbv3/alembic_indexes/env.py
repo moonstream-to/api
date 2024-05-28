@@ -36,6 +36,7 @@ from moonstreamdbv3.models_indexes import (
     PolygonTransactionIndex,
     PolygonLogIndex,
     PolygonReorgs,
+    AbiJobs,
 )
 
 
@@ -49,6 +50,7 @@ def include_symbol(tablename, schema):
         PolygonTransactionIndex.__tablename__,
         PolygonLogIndex.__tablename__,
         PolygonReorgs.__tablename__,
+        AbiJobs.__tablename__,
     }
 
 
