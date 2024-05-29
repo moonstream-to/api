@@ -501,6 +501,38 @@ class ArbitrumSepoliaLabel(EvmBasedLabel):  # type: ignore
     )
 
 
+class Game7OrbitArbitrumSepoliaLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "game7_orbit_arbitrum_sepolia_labels"
+
+    __table_args__ = (
+        Index(
+            "ix_g7o_arbitrum_sepolia_labels_addr_block_num",
+            "address",
+            "block_number",
+            unique=False,
+        ),
+        Index(
+            "ix_g7o_arbitrum_sepolia_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
+            unique=False,
+        ),
+        Index(
+            "uk_g7o_arbitrum_sepolia_labels_tx_hash_tx_call",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_g7o_arbitrum_sepolia_labels_tx_hash_log_idx_evt",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer' and label_type='event'"),
+        ),
+    )
+
+
 class XaiLabel(EvmBasedLabel):  # type: ignore
     __tablename__ = "xai_labels"
 
@@ -781,6 +813,70 @@ class StarknetSepoliaLabel(EvmBasedLabel):  # type: ignore
         ),
         Index(
             "uk_starknet_sepolia_labels_tx_hash_log_idx_evt",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer' and label_type='event'"),
+        ),
+    )
+
+
+class MantleLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "mantle_labels"
+
+    __table_args__ = (
+        Index(
+            "ix_mantle_labels_addr_block_num",
+            "address",
+            "block_number",
+            unique=False,
+        ),
+        Index(
+            "ix_mantle_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
+            unique=False,
+        ),
+        Index(
+            "uk_mantle_labels_tx_hash_tx_call",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_mantle_labels_tx_hash_log_idx_evt",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer' and label_type='event'"),
+        ),
+    )
+
+
+class MantleSepoliaLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "mantle_sepolia_labels"
+
+    __table_args__ = (
+        Index(
+            "ix_mantle_sepolia_labels_addr_block_num",
+            "address",
+            "block_number",
+            unique=False,
+        ),
+        Index(
+            "ix_mantle_sepolia_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
+            unique=False,
+        ),
+        Index(
+            "uk_mantle_sepolia_labels_tx_hash_tx_call",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_mantle_sepolia_labels_tx_hash_log_idx_evt",
             "transaction_hash",
             "log_index",
             unique=True,
