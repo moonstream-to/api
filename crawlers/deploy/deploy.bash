@@ -136,12 +136,21 @@ XAI_MISSING_SERVICE_FILE="xai-missing.service"
 XAI_MISSING_TIMER_FILE="xai-missing.timer"
 XAI_MOONWORM_CRAWLER_SERVICE_FILE="xai-moonworm-crawler.service"
 XAI_SYNCHRONIZE_SERVICE="xai-synchronize.service"
+XAI_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE="xai-historical-crawl-events.service"
+XAI_HISTORICAL_CRAWL_EVENTS_TIMER_FILE="xai-historical-crawl-events.timer"
+XAI_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE="xai-historical-crawl-transactions.service"
+XAI_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE="xai-historical-crawl-transactions.timer"
+
 
 # Xai sepolia
 XAI_SEPOLIA_MISSING_SERVICE_FILE="xai-sepolia-missing.service"
 XAI_SEPOLIA_MISSING_TIMER_FILE="xai-sepolia-missing.timer"
 XAI_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE="xai-sepolia-moonworm-crawler.service"
 XAI_SEPOLIA_SYNCHRONIZE_SERVICE="xai-sepolia-synchronize.service"
+XAI_SEPOLIA_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE="xai-sepolia-historical-crawl-events.service"
+XAI_SEPOLIA_HISTORICAL_CRAWL_EVENTS_TIMER_FILE="xai-sepolia-historical-crawl-events.timer"
+XAI_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE="xai-sepolia-historical-crawl-transactions.service"
+XAI_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE="xai-sepolia-historical-crawl-transactions.timer"
 
 # Avalanche
 AVALANCHE_SYNCHRONIZE_SERVICE="avalanche-synchronize.service"
@@ -713,6 +722,25 @@ cp "${SCRIPT_DIR}/${XAI_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/sy
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${XAI_MOONWORM_CRAWLER_SERVICE_FILE}"
 
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Xai historical transactions crawler service and timer with: ${XAI_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}, ${XAI_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${XAI_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}" "${SCRIPT_DIR}/${XAI_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${XAI_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${XAI_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${XAI_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Xai historical events crawler service and timer with: ${XAI_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}, ${XAI_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${XAI_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}" "${SCRIPT_DIR}/${XAI_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${XAI_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${XAI_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000"  systemctl --user restart --no-block "${XAI_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+
+
 
 # Xai sepolia
 echo
@@ -739,6 +767,24 @@ chmod 644 "${SCRIPT_DIR}/${XAI_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${XAI_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${XAI_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Xai sepolia historical transactions crawler service and timer with: ${XAI_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}, ${XAI_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${XAI_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}" "${SCRIPT_DIR}/${XAI_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${XAI_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${XAI_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${XAI_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Xai sepolia historical events crawler service and timer with: ${XAI_SEPOLIA_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}, ${XAI_SEPOLIA_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${XAI_SEPOLIA_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}" "${SCRIPT_DIR}/${XAI_SEPOLIA_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${XAI_SEPOLIA_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_SEPOLIA_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${XAI_SEPOLIA_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_SEPOLIA_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000"  systemctl --user restart --no-block "${XAI_SEPOLIA_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
 
 # Avalanche
 echo
