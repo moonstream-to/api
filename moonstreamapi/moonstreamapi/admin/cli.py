@@ -8,6 +8,7 @@ import logging
 import os
 from posix import listdir
 from typing import Any, Callable, Dict, List, Optional, Union
+import uuid
 
 from moonstreamdb.db import SessionLocal
 from sqlalchemy.orm import with_expression
@@ -33,6 +34,13 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 MIGRATIONS_FOLDER = "./moonstreamapi/admin/migrations"
+
+
+def uuid_type(value):
+    try:
+        return uuid.UUID(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"{value} is not a valid UUID.")
 
 
 def parse_boolean_arg(raw_arg: Optional[str]) -> Optional[bool]:
@@ -283,6 +291,15 @@ def generate_usage_handler(args: argparse.Namespace) -> None:
 
         with open(args.output, "w") as output_file:
             output_file.write(json.dumps(usage_info, indent=4))
+
+
+def moonworm_tasks_v3_migrate(args: argparse.Namespace) -> None:
+    """
+    Read users subsriptions and rewrite them to v3 jobs table
+    """
+    ### Request user resources from brood
+
+    moonworm_tasks.migrate_v3_tasks(user_id=args.user_id, customer_id=args.customer_id)
 
 
 def main() -> None:
@@ -538,6 +555,27 @@ This CLI is configured to work with the following API URLs:
     )
 
     parser_moonworm_tasks_add.set_defaults(func=moonworm_tasks_add_subscription_handler)
+
+    parser_moonworm_tasks_migrate = subcommands_moonworm_tasks.add_parser(
+        "migrate-v3",
+        description="Migrate moonworm tasks to abi_jobs of moonstream index",
+    )
+
+    parser_moonworm_tasks_migrate.add_argument(
+        "--user-id",
+        required=True,
+        type=uuid_type,
+        help="user-id of which we want see subscription.",
+    )
+
+    parser_moonworm_tasks_migrate.add_argument(
+        "--customer-id",
+        required=True,
+        type=uuid_type,
+        help="customer-id of which we want see subscription.",
+    )
+
+    parser_moonworm_tasks_migrate.set_defaults(func=moonworm_tasks_v3_migrate)
 
     queries_parser = subcommands.add_parser(
         "queries", description="Manage Moonstream queries"
