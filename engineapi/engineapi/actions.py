@@ -1072,7 +1072,8 @@ def update_materialized_view(db_session: Session, leaderboard_id: uuid.UUID):
             logger.error(f"Error creating materialized view: {e}")
             raise  # Re-raise exception after logging
     else:
-        db_session.execute(text(f"REFRESH MATERIALIZED VIEW CONCURRENTLY {mv_name}"))
+        db_session.execute(text(f"REFRESH MATERIALIZED VIEW {mv_name}"))
+        db_session.commit()
 
 
 def get_leaderboard_materialized_view(
@@ -2118,7 +2119,10 @@ def create_leaderboard_version(
     db_session.commit()
 
     if publish:
-        update_materialized_view(db_session, leaderboard_id)
+        try:
+            update_materialized_view(db_session, leaderboard_id)
+        except Exception as e:
+            logger.error(f"Error updating materialized view: {e}")
 
     return leaderboard_version
 
@@ -2141,7 +2145,10 @@ def change_publish_leaderboard_version_status(
     db_session.commit()
 
     if published:
-        update_materialized_view(db_session, leaderboard_id)
+        try:
+            update_materialized_view(db_session, leaderboard_id)
+        except Exception as e:
+            logger.error(f"Error updating materialized view: {e}")
 
     return leaderboard_version
 
@@ -2174,6 +2181,11 @@ def delete_leaderboard_version(
 
     db_session.delete(leaderboard_version)
     db_session.commit()
+
+    try:
+        update_materialized_view(db_session, leaderboard_id)
+    except Exception as e:
+        logger.error(f"Error updating materialized view: {e}")
 
     return leaderboard_version
 
