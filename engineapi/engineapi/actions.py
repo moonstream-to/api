@@ -1154,28 +1154,35 @@ def get_leaderboard_total_count(
     Get the total number of position in the leaderboard
     """
 
-    latest_version = leaderboard_version_filter(
-        db_session=db_session,
-        leaderboard_id=leaderboard_id,
-        version_number=version_number,
-    )
+    if version_number is None:
 
-    total_count = (
-        db_session.query(func.count(LeaderboardScores.id))
-        .join(
-            LeaderboardVersion,
-            and_(
-                LeaderboardVersion.leaderboard_id == LeaderboardScores.leaderboard_id,
-                LeaderboardVersion.version_number
-                == LeaderboardScores.leaderboard_version_number,
-            ),
+        query = get_leaderboard_materialized_view(db_session, leaderboard_id)
+
+        total_count = query.count()
+    else:
+        latest_version = leaderboard_version_filter(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            version_number=version_number,
         )
-        .filter(
-            LeaderboardVersion.published == True,
-            LeaderboardVersion.version_number == latest_version,
-        )
-        .filter(LeaderboardScores.leaderboard_id == leaderboard_id)
-    ).scalar()
+
+        total_count = (
+            db_session.query(func.count(LeaderboardScores.id))
+            .join(
+                LeaderboardVersion,
+                and_(
+                    LeaderboardVersion.leaderboard_id
+                    == LeaderboardScores.leaderboard_id,
+                    LeaderboardVersion.version_number
+                    == LeaderboardScores.leaderboard_version_number,
+                ),
+            )
+            .filter(
+                LeaderboardVersion.published == True,
+                LeaderboardVersion.version_number == latest_version,
+            )
+            .filter(LeaderboardScores.leaderboard_id == leaderboard_id)
+        ).scalar()
 
     return total_count
 
