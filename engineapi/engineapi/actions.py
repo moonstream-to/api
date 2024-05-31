@@ -1014,7 +1014,10 @@ def mv_check(db_session: Session, leaderboard_id: uuid.UUID) -> bool:
     );
     """
     )
-    result = db_session.execute(exists_query).scalar().bool()
+    result = db_session.execute(exists_query).scalar()
+
+    if result is None:
+        return False
     return result
 
 
@@ -1029,7 +1032,8 @@ def create_materialized_view(db_session, leaderboard_id):
             leaderboard_scores.address AS address,
             leaderboard_scores.score AS score,
             leaderboard_scores.points_data AS points_data,
-            rank() OVER (ORDER BY leaderboard_scores.score DESC, address) AS rank
+            rank() OVER (ORDER BY leaderboard_scores.score DESC, address) AS rank,
+            row_number() OVER (ORDER BY leaderboard_scores.score DESC, address) AS number
         FROM
             leaderboard_scores
             JOIN leaderboard_versions ON leaderboard_versions.leaderboard_id = leaderboard_scores.leaderboard_id
@@ -1071,7 +1075,9 @@ def update_materialized_view(db_session: Session, leaderboard_id: uuid.UUID):
         db_session.execute(text(f"REFRESH MATERIALIZED VIEW CONCURRENTLY {mv_name}"))
 
 
-def get_leaderboard_materialized_view(db_session: Session, leaderboard_id: uuid.UUID):
+def get_leaderboard_materialized_view(
+    db_session: Session, leaderboard_id: uuid.UUID, with_numerator: bool = False
+) -> Query:
     ### materialized view name
     mv_name = mv_pg_name(leaderboard_id)
 
@@ -1087,12 +1093,20 @@ def get_leaderboard_materialized_view(db_session: Session, leaderboard_id: uuid.
     ### construct the query
     # Directly query the materialized view using text
     # Define the materialized view as a table object
-    leaderboard_table = table(
-        mv_name,
+
+    columns = [
         column("address"),
         column("score"),
         column("points_data"),
         column("rank"),
+    ]
+
+    if with_numerator:
+        columns.append(column("number"))
+
+    leaderboard_table = table(
+        mv_name,
+        *columns,
     )
 
     # Construct the select statement
@@ -1104,6 +1118,7 @@ def generate_ranking_query(
     db_session: Session,
     leaderboard_id: uuid.UUID,
     version_number: Optional[int] = None,
+    with_numerator: bool = False,
 ) -> Query:
     """
     Generate a query to get the ranking of the leaderboard
@@ -1111,7 +1126,9 @@ def generate_ranking_query(
 
     if version_number is None:
 
-        query = get_leaderboard_materialized_view(db_session, leaderboard_id)
+        query = get_leaderboard_materialized_view(
+            db_session, leaderboard_id, with_numerator
+        )
 
     else:
 
@@ -1332,7 +1349,43 @@ def get_position(
     Return position by address with window size
     """
 
-    query = generate_ranking_query(db_session, leaderboard_id, version_number)
+    if version_number is None:
+
+        query = get_leaderboard_materialized_view(db_session, leaderboard_id, True)
+
+    else:
+
+        latest_version = leaderboard_version_filter(
+            db_session=db_session,
+            leaderboard_id=leaderboard_id,
+            version_number=version_number,
+        )
+
+        query = (
+            db_session.query(
+                LeaderboardScores.address,
+                LeaderboardScores.score,
+                LeaderboardScores.points_data.label("points_data"),
+                func.rank().over(order_by=LeaderboardScores.score.desc()).label("rank"),
+                func.row_number()
+                .over(order_by=LeaderboardScores.score.desc())
+                .label("number"),
+            )
+            .join(
+                LeaderboardVersion,
+                and_(
+                    LeaderboardVersion.leaderboard_id
+                    == LeaderboardScores.leaderboard_id,
+                    LeaderboardVersion.version_number
+                    == LeaderboardScores.leaderboard_version_number,
+                ),
+            )
+            .filter(
+                LeaderboardVersion.published == True,
+                LeaderboardVersion.version_number == latest_version,
+            )
+            .filter(LeaderboardScores.leaderboard_id == leaderboard_id)
+        )
 
     ranked_leaderboard = query.cte(name="ranked_leaderboard")
 
