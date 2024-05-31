@@ -14,13 +14,17 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 try:
-    MOONSTREAM_DB_URI = os.environ.get("MOONSTREAM_DB_URI")
+    MOONSTREAM_DB_URI = os.environ.get("MOONSTREAM_DB_V3_INDEXES_URI")
     if MOONSTREAM_DB_URI is None:
-        raise Warning("MOONSTREAM_DB_URI environment variable must be set")
+        raise Warning("MOONSTREAM_DB_V3_INDEXES_URI environment variable must be set")
 
-    MOONSTREAM_DB_URI_READ_ONLY = os.environ.get("MOONSTREAM_DB_URI_READ_ONLY")
+    MOONSTREAM_DB_URI_READ_ONLY = os.environ.get(
+        "MOONSTREAM_DB_V3_INDEXES_URI_READ_ONLY"
+    )
     if MOONSTREAM_DB_URI_READ_ONLY is None:
-        raise Warning("MOONSTREAM_DB_URI_READ_ONLY environment variable must be set")
+        raise Warning(
+            "MOONSTREAM_DB_V3_INDEXES_URI_READ_ONLY environment variable must be set"
+        )
 except ValueError as e:
     raise ValueError(e)
 except Warning:

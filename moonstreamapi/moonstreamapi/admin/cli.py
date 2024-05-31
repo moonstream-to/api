@@ -29,6 +29,7 @@ from .migrations import (
     generate_entity_subscriptions,
     update_dashboard_subscription_key,
 )
+from .databases import databases_v2_to_v3_labels_migration
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -302,6 +303,14 @@ def moonworm_tasks_v3_migrate(args: argparse.Namespace) -> None:
     moonworm_tasks.migrate_v3_tasks(user_id=args.user_id, customer_id=args.customer_id)
 
 
+def databases_v2_to_v3_labels_migration_handler(args: argparse.Namespace) -> None:
+    """
+    Migrate labels in database
+    """
+
+    databases_v2_to_v3_labels_migration(args.user_id, args.blockchain)
+
+
 def main() -> None:
     cli_description = f"""Moonstream Admin CLI
 
@@ -557,7 +566,7 @@ This CLI is configured to work with the following API URLs:
     parser_moonworm_tasks_add.set_defaults(func=moonworm_tasks_add_subscription_handler)
 
     parser_moonworm_tasks_migrate = subcommands_moonworm_tasks.add_parser(
-        "migrate-v3",
+        "migrate-v2-tasks",
         description="Migrate moonworm tasks to abi_jobs of moonstream index",
     )
 
@@ -647,6 +656,44 @@ This CLI is configured to work with the following API URLs:
     )
 
     generate_usage_parser.set_defaults(func=generate_usage_handler)
+
+    ### databases commands
+    databases_parser = subcommands.add_parser(
+        "databases", description="Manage Moonstream databases"
+    )
+
+    databases_parser.set_defaults(func=lambda _: databases_parser.print_help())
+
+    databases_subcommands = databases_parser.add_subparsers(
+        description="Database commands"
+    )
+
+    database_labels_migration_parser = databases_subcommands.add_parser(
+        "v2-to-v3-labels-migration",
+        description="Migrate labels in database",
+    )
+
+    database_labels_migration_parser.add_argument(
+        "--user-id",
+        type=uuid_type,
+        help="User ID for which to migrate labels",
+    )
+
+    database_labels_migration_parser.add_argument(
+        "--customer-id",
+        type=uuid_type,
+        help="Customer ID for which to migrate labels",
+    )
+
+    database_labels_migration_parser.add_argument(
+        "--blockchain",
+        type=str,
+        help="Blockchain for which to migrate labels",
+    )
+
+    database_labels_migration_parser.set_defaults(
+        func=lambda args: print("Not implemented yet")
+    )
 
     args = parser.parse_args()
     args.func(args)
