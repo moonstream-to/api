@@ -39,6 +39,7 @@ from moonstreamdbv3.models import (
     ArbitrumNovaLabel,
     ArbitrumOneLabel,
     ArbitrumSepoliaLabel,
+    Game7OrbitArbitrumSepoliaLabel,
     XaiLabel,
     XaiSepoliaLabel,
     AvalancheLabel,
@@ -48,6 +49,8 @@ from moonstreamdbv3.models import (
     ProofOfPlayApexLabel,
     StarknetLabel,
     StarknetSepoliaLabel,
+    MantleLabel,
+    MantleSepoliaLabel,
 )
 
 
@@ -63,7 +66,9 @@ def include_symbol(tablename, schema):
         ZkSyncEraSepoliaLabel.__tablename__,
         BaseLabel.__tablename__,
         ArbitrumNovaLabel.__tablename__,
+        ArbitrumOneLabel.__tablename__,
         ArbitrumSepoliaLabel.__tablename__,
+        Game7OrbitArbitrumSepoliaLabel.__tablename__,
         XaiLabel.__tablename__,
         XaiSepoliaLabel.__tablename__,
         AvalancheLabel.__tablename__,
@@ -73,6 +78,8 @@ def include_symbol(tablename, schema):
         ProofOfPlayApexLabel.__tablename__,
         StarknetLabel.__tablename__,
         StarknetSepoliaLabel.__tablename__,
+        MantleLabel.__tablename__,
+        MantleSepoliaLabel.__tablename__,
     }
 
 
