@@ -1,13 +1,15 @@
 import json
 import logging
-from typing import List, Dict, Union, Any
+import os
+from typing import List, Dict, Union, Any, Optional
 from uuid import UUID
 
 import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources, BugoutSearchResult
 from bugout.exceptions import BugoutResponseException
-from moonstreamdbv3.db import MoonstreamDBEngine
+from moonstreamdbv3.db import MoonstreamDBIndexesEngine
 from moonstreamdbv3.models_indexes import AbiJobs
+from sqlalchemy.dialects.postgresql import insert
 from web3 import Web3
 
 
@@ -94,7 +96,9 @@ def add_subscription(id: str):
         logging.info("For apply to moonworm tasks subscriptions must have an abi.")
 
 
-def migrate_v3_tasks(user_id: UUID, customer_id: UUID) -> None:
+def migrate_v3_tasks(
+    user_id: UUID, customer_id: UUID, blockchain: Optional[str] = None
+):
     """
     Migrate moonworm tasks
 
@@ -111,19 +115,33 @@ def migrate_v3_tasks(user_id: UUID, customer_id: UUID) -> None:
         timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
     )
 
+    chain_to_subscription_type = {
+        CANONICAL_SUBSCRIPTION_TYPES[key].blockchain: key
+        for key in CANONICAL_SUBSCRIPTION_TYPES.keys()
+    }
+
     logger.info(
         "Found users collection resources: %s", len(subscription_resources.resources)
     )
+
+    db_engine = MoonstreamDBIndexesEngine()
 
     if len(subscription_resources.resources) == 0:
         raise Exception("User has no subscriptions")
 
     collection_id = subscription_resources.resources[0].resource_data["collection_id"]
 
+    query = f"tag:type:subscription"
+
+    if blockchain is not None:
+        query += f" tag:subscription_type_id:{chain_to_subscription_type[blockchain]}"
+
     subscriptions: List[BugoutSearchResult] = get_all_entries_from_search(
         journal_id=collection_id,
         search_query=f"tag:type:subscription",
-        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        token=os.environ.get("SPECIFIC_ACCESS_TOKEN"),
+        limit=100,
+        content=True,
     )
 
     logger.info("Found users subscriptions: %s", len(subscriptions))
@@ -131,38 +149,46 @@ def migrate_v3_tasks(user_id: UUID, customer_id: UUID) -> None:
     if len(subscriptions) == 0:
         raise Exception("User has no subscriptions")
 
-    for subscription in subscriptions:
+    with db_engine.yield_db_session_ctx() as session:
 
-        abi = None
-        address = None
-        subscription_type_id = None
+        user_subscriptions = []
 
-        if subscription.content is None:
-            continue
+        for subscription in subscriptions:
 
-        subscription_data = json.loads(subscription.content)
+            abis = None
+            address = None
+            subscription_type_id = None
 
-        if "abi" in subscription_data:
-            abi = subscription_data["abi"]
+            if subscription.content is None:
+                continue
 
-        for tag in subscription.tags:
-            if tag.startswith("subscription_type_id:"):
-                subscription_type_id = tag.split(":")[1]
-            if tag.startswith("address:"):
-                address = tag.split(":")[1]
+            subscription_data = json.loads(subscription.content)
 
-        if subscription_type_id is None:
-            continue
+            if "abi" in subscription_data:
+                abis_container = subscription_data["abi"]
 
-        ### reformat abi to separate abi tasks
+            for tag in subscription.tags:
+                if tag.startswith("subscription_type_id:"):
+                    subscription_type_id = tag.split(":")[1]
+                if tag.startswith("address:"):
+                    address = tag.split(":")[1]
 
-        if abi is None:
-            continue
+            if subscription_type_id is None:
+                continue
 
-        chain = CANONICAL_SUBSCRIPTION_TYPES[subscription_type_id]["blockchain"]
+            if abis_container is not None:
+                abis = json.loads(abis_container)
 
-        with MoonstreamDBEngine.yield_db_session_ctx() as session:
-            for abi_task in abi:
+            ### reformat abi to separate abi tasks
+
+            if abis is None:
+                continue
+
+            chain = CANONICAL_SUBSCRIPTION_TYPES[subscription_type_id].blockchain
+
+            for abi_task in abis:
+
+                print(abi_task)
 
                 if abi_task["type"] not in ("event", "function"):
                     continue
@@ -176,21 +202,43 @@ def migrate_v3_tasks(user_id: UUID, customer_id: UUID) -> None:
 
                 try:
 
-                    subscription = AbiJobs(
-                        address=address,
-                        user_id=user_id,
-                        customer_id=customer_id,
-                        abi_selector=abi_selector,
-                        chain=chain,
-                        abi_name=abi_task["name"],
-                        status="active",
-                        historical_crawl_status="pending",
-                        progress=0,
-                        moonworm_task_pickedup=False,
-                        abi=abi_task,
-                    )
+                    # subscription = AbiJobs(
+                    #     address=address,
+                    #     user_id=user_id,
+                    #     customer_id=customer_id,
+                    #     abi_selector=abi_selector,
+                    #     chain=chain,
+                    #     abi_name=abi_task["name"],
+                    #     status="active",
+                    #     historical_crawl_status="pending",
+                    #     progress=0,
+                    #     moonworm_task_pickedup=False,
+                    #     abi=abi_task,
+                    # )
 
-                    session.add(subscription)
+                    abi_job = {
+                        "address": address,
+                        "user_id": user_id,
+                        "customer_id": customer_id,
+                        "abi_selector": abi_selector,
+                        "chain": chain,
+                        "abi_name": abi_task["name"],
+                        "status": "active",
+                        "historical_crawl_status": "pending",
+                        "progress": 0,
+                        "moonworm_task_pickedup": False,
+                        "abi": abi_task,
+                    }
+
+                    try:
+                        AbiJobs(**abi_job)
+                    except Exception as e:
+                        logger.error(
+                            f"Error creating subscription for subscription {subscription.id}: {str(e)}"
+                        )
+                        continue
+
+                    user_subscriptions.append(abi_job)
 
                 except Exception as e:
                     logger.error(
@@ -199,6 +247,23 @@ def migrate_v3_tasks(user_id: UUID, customer_id: UUID) -> None:
                     session.rollback()
                     continue
 
-            session.commit()
+        insert_statement = insert(AbiJobs).values(user_subscriptions)
 
-    return None
+        result_stmt = insert_statement.on_conflict_do_nothing(
+            index_elements=[
+                abi_job.c.address,
+                abi_job.c.abi_selector,
+                abi_job.c.chain,
+                abi_job.c.customer_id,
+            ]
+        )
+
+        try:
+            session.execute(result_stmt)
+
+            session.commit()
+        except Exception as e:
+            logger.error(f"Error inserting subscriptions: {str(e)}")
+            session.rollback()
+
+        return None

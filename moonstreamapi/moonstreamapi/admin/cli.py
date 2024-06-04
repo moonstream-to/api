@@ -300,7 +300,9 @@ def moonworm_tasks_v3_migrate(args: argparse.Namespace) -> None:
     """
     ### Request user resources from brood
 
-    moonworm_tasks.migrate_v3_tasks(user_id=args.user_id, customer_id=args.customer_id)
+    moonworm_tasks.migrate_v3_tasks(
+        user_id=args.user_id, customer_id=args.customer_id, blockchain=args.blockchain
+    )
 
 
 def databases_v2_to_v3_labels_migration_handler(args: argparse.Namespace) -> None:
@@ -582,6 +584,13 @@ This CLI is configured to work with the following API URLs:
         required=True,
         type=uuid_type,
         help="customer-id of which we want see subscription.",
+    )
+
+    parser_moonworm_tasks_migrate.add_argument(
+        "--blockchain",
+        required=False,
+        type=str,
+        help="Blockchain of which we want see subscription.",
     )
 
     parser_moonworm_tasks_migrate.set_defaults(func=moonworm_tasks_v3_migrate)
