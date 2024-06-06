@@ -118,6 +118,7 @@ def migrate_v3_tasks(
     chain_to_subscription_type = {
         CANONICAL_SUBSCRIPTION_TYPES[key].blockchain: key
         for key in CANONICAL_SUBSCRIPTION_TYPES.keys()
+        if key.endswith("smartcontract")
     }
 
     logger.info(
@@ -138,7 +139,7 @@ def migrate_v3_tasks(
 
     subscriptions: List[BugoutSearchResult] = get_all_entries_from_search(
         journal_id=collection_id,
-        search_query=f"tag:type:subscription",
+        search_query=query,
         token=os.environ.get("SPECIFIC_ACCESS_TOKEN"),
         limit=100,
         content=True,
@@ -153,7 +154,7 @@ def migrate_v3_tasks(
 
         user_subscriptions = []
 
-        for subscription in subscriptions:
+        for index, subscription in enumerate(subscriptions):
 
             abis = None
             address = None
@@ -177,18 +178,19 @@ def migrate_v3_tasks(
                 continue
 
             if abis_container is not None:
-                abis = json.loads(abis_container)
+                try:
+                    abis = json.loads(abis_container)
+                except Exception as e:
+                    logger.error(
+                        f"Error loading abi for subscription {subscription.id}: {str(e)}"
+                    )
+                    continue
 
             ### reformat abi to separate abi tasks
-
-            if abis is None:
-                continue
 
             chain = CANONICAL_SUBSCRIPTION_TYPES[subscription_type_id].blockchain
 
             for abi_task in abis:
-
-                print(abi_task)
 
                 if abi_task["type"] not in ("event", "function"):
                     continue
@@ -198,7 +200,12 @@ def migrate_v3_tasks(
                     + "("
                     + ",".join(map(lambda x: x["type"], abi_task["inputs"]))
                     + ")"
-                )[:4].hex()
+                )
+
+                if abi_task["type"] == "function":
+                    abi_selector = abi_selector[:4]
+
+                abi_selector = abi_selector.hex()
 
                 try:
 
@@ -217,7 +224,9 @@ def migrate_v3_tasks(
                     # )
 
                     abi_job = {
-                        "address": address,
+                        "address": (
+                            bytes.fromhex(address[2:]) if address is not None else None
+                        ),
                         "user_id": user_id,
                         "customer_id": customer_id,
                         "abi_selector": abi_selector,
@@ -227,7 +236,7 @@ def migrate_v3_tasks(
                         "historical_crawl_status": "pending",
                         "progress": 0,
                         "moonworm_task_pickedup": False,
-                        "abi": abi_task,
+                        "abi": json.dumps(abi_task),
                     }
 
                     try:
@@ -247,23 +256,25 @@ def migrate_v3_tasks(
                     session.rollback()
                     continue
 
-        insert_statement = insert(AbiJobs).values(user_subscriptions)
+            insert_statement = insert(AbiJobs).values(user_subscriptions)
 
-        result_stmt = insert_statement.on_conflict_do_nothing(
-            index_elements=[
-                abi_job.c.address,
-                abi_job.c.abi_selector,
-                abi_job.c.chain,
-                abi_job.c.customer_id,
-            ]
-        )
+            result_stmt = insert_statement.on_conflict_do_nothing(
+                index_elements=[
+                    AbiJobs.chain,
+                    AbiJobs.address,
+                    AbiJobs.abi_selector,
+                    AbiJobs.customer_id,
+                ]
+            )
 
-        try:
-            session.execute(result_stmt)
+            try:
+                session.execute(result_stmt)
 
-            session.commit()
-        except Exception as e:
-            logger.error(f"Error inserting subscriptions: {str(e)}")
-            session.rollback()
+                session.commit()
+            except Exception as e:
+                logger.error(f"Error inserting subscriptions: {str(e)}")
+                session.rollback()
+
+            logger.info(f"Processed {index} subscriptions")
 
         return None
