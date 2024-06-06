@@ -122,7 +122,9 @@ class EthereumLogIndex(EvmBasedLogs):
     __tablename__ = "ethereum_logs"
 
     __table_args__ = (
-        Index("idx_polygon_logs_address_selector", "address", "selector", unique=False),
+        Index(
+            "idx_ethereum_logs_address_selector", "address", "selector", unique=False
+        ),
         Index(
             "idx_ethereum_logs_block_hash_log_index",
             "block_hash",
@@ -220,7 +222,7 @@ class XaiLogIndex(EvmBasedLogs):
     __tablename__ = "xai_logs"
 
     __table_args__ = (
-        Index("idx_polygon_logs_address_selector", "address", "selector", unique=False),
+        Index("idx_xai_logs_address_selector", "address", "selector", unique=False),
         UniqueConstraint(
             "transaction_hash",
             "log_index",
@@ -265,7 +267,9 @@ class XaiSepoliaLogIndex(EvmBasedLogs):
     __tablename__ = "xai_sepolia_logs"
 
     __table_args__ = (
-        Index("idx_polygon_logs_address_selector", "address", "selector", unique=False),
+        Index(
+            "idx_xai_sepolia_logs_address_selector", "address", "selector", unique=False
+        ),
         UniqueConstraint(
             "transaction_hash",
             "log_index",
@@ -312,7 +316,12 @@ class ArbitrumOneLogIndex(EvmBasedLogs):
     __tablename__ = "arbitrum_one_logs"
 
     __table_args__ = (
-        Index("idx_polygon_logs_address_selector", "address", "selector", unique=False),
+        Index(
+            "idx_arbitrum_one_logs_address_selector",
+            "address",
+            "selector",
+            unique=False,
+        ),
         UniqueConstraint(
             "transaction_hash",
             "log_index",
@@ -359,7 +368,12 @@ class ArbitrumSepoliaLogIndex(EvmBasedLogs):
     __tablename__ = "arbitrum_sepolia_logs"
 
     __table_args__ = (
-        Index("idx_polygon_logs_address_selector", "address", "selector", unique=False),
+        Index(
+            "idx_arbitrum_sepolia_logs_address_selector",
+            "address",
+            "selector",
+            unique=False,
+        ),
         UniqueConstraint(
             "transaction_hash",
             "log_index",
@@ -408,7 +422,12 @@ class Game7OrbitArbitrumSepoliaLogIndex(EvmBasedLogs):
     __tablename__ = "game7_orbit_arbitrum_sepolia_logs"
 
     __table_args__ = (
-        Index("idx_polygon_logs_address_selector", "address", "selector", unique=False),
+        Index(
+            "idx_game7_orbit_arbitrum_sepolia_logs_address_selector",
+            "address",
+            "selector",
+            unique=False,
+        ),
         UniqueConstraint(
             "transaction_hash",
             "log_index",
@@ -456,7 +475,7 @@ class MantleLogIndex(EvmBasedLogs):
     __tablename__ = "mantle_logs"
 
     __table_args__ = (
-        Index("idx_polygon_logs_address_selector", "address", "selector", unique=False),
+        Index("idx_mantle_logs_address_selector", "address", "selector", unique=False),
         Index(
             "idx_mantle_logs_block_hash_log_index",
             "block_hash",
@@ -506,7 +525,12 @@ class MantleSepoliaLogIndex(EvmBasedLogs):
     __tablename__ = "mantle_sepolia_logs"
 
     __table_args__ = (
-        Index("idx_polygon_logs_address_selector", "address", "selector", unique=False),
+        Index(
+            "idx_mantle_sepolia_logs_address_selector",
+            "address",
+            "selector",
+            unique=False,
+        ),
         Index(
             "idx_mantle_sepolia_logs_block_hash_log_index",
             "block_hash",
