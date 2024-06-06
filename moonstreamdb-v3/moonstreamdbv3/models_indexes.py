@@ -172,6 +172,7 @@ class PolygonLogIndex(EvmBasedLogs):
     __tablename__ = "polygon_logs"
 
     __table_args__ = (
+        Index("idx_polygon_logs_address_selector", "address", "selector"),
         UniqueConstraint(
             "transaction_hash",
             "log_index",
