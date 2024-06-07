@@ -5,6 +5,7 @@ from uuid import UUID
 
 from moonstreamdb.blockchain import AvailableBlockchainType
 from moonstreamdb.subscriptions import blockchain_type_to_subscription_type
+from moonstreamdbv3.db import MoonstreamDBIndexesEngine
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
@@ -133,6 +134,118 @@ def handle_crawl(args: argparse.Namespace) -> None:
             args.new_jobs_refetch_interval,
             web3_uri=args.web3_uri,
         )
+
+
+# def handle_crawl_v3(args: argparse.Namespace) -> None:
+#     blockchain_type = AvailableBlockchainType(args.blockchain_type)
+#     subscription_type = blockchain_type_to_subscription_type(blockchain_type)
+
+
+#     index_engine = MoonstreamDBIndexesEngine()
+
+#     with index_engine.yield_db_session_ctx() as index_db_session:
+
+#         pass
+
+#     initial_event_jobs = make_event_crawl_jobs(
+#         get_crawl_job_entries(
+#             subscription_type,
+#             "event",
+#             MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+#         )
+#     )
+#     logger.info(f"Initial event crawl jobs count: {len(initial_event_jobs)}")
+
+#     initial_function_call_jobs = make_function_call_crawl_jobs(
+#         get_crawl_job_entries(
+#             subscription_type,
+#             "function",
+#             MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+#         )
+#     )
+#     logger.info(
+#         f"Initial function call crawl jobs count: {len(initial_function_call_jobs)}"
+#     )
+
+#     (
+#         initial_event_jobs,
+#         initial_function_call_jobs,
+#     ) = moonworm_crawler_update_job_as_pickedup(
+#         event_crawl_jobs=initial_event_jobs,
+#         function_call_crawl_jobs=initial_function_call_jobs,
+#     )
+
+#     logger.info(f"Blockchain type: {blockchain_type.value}")
+#     with yield_db_session_ctx() as db_session:
+#         web3: Optional[Web3] = None
+#         if args.web3 is None:
+#             logger.info(
+#                 "No web3 provider URL provided, using default (blockchan.py: connect())"
+#             )
+#             web3 = _retry_connect_web3(blockchain_type, web3_uri=args.web3_uri)
+#         else:
+#             logger.info(f"Using web3 provider URL: {args.web3}")
+#             web3 = Web3(
+#                 Web3.HTTPProvider(
+#                     args.web3,
+#                 )
+#             )
+#             if args.poa:
+#                 logger.info("Using PoA middleware")
+#                 web3.middleware_onion.inject(geth_poa_middleware, layer=0)
+
+#         last_labeled_block = get_last_labeled_block_number(db_session, blockchain_type)
+#         logger.info(f"Last labeled block: {last_labeled_block}")
+
+#         start_block = args.start
+#         if start_block is None:
+#             logger.info("No start block provided")
+#             if last_labeled_block is not None:
+#                 start_block = last_labeled_block - 1
+#                 logger.info(f"Using last labeled block as start: {start_block}")
+#             else:
+#                 logger.info(
+#                     "No last labeled block found, using  start block (web3.eth.blockNumber - 300)"
+#                 )
+#                 start_block = web3.eth.blockNumber - 10000
+#                 logger.info(f"Starting from block: {start_block}")
+#         elif last_labeled_block is not None:
+#             if start_block < last_labeled_block and not args.force:
+#                 logger.info(
+#                     f"Start block is less than last labeled block, using last labeled block: {last_labeled_block}"
+#                 )
+#                 logger.info(
+#                     f"Use --force to override this and start from the start block: {start_block}"
+#                 )
+
+#                 start_block = last_labeled_block
+#             else:
+#                 logger.info(f"Using start block: {start_block}")
+#         else:
+#             logger.info(f"Using start block: {start_block}")
+
+#         confirmations = args.confirmations
+
+#         if not args.no_confirmations:
+#             assert confirmations > 0, "confirmations must be greater than 0"
+#         else:
+#             confirmations = 0
+
+#         continuous_crawler(
+#             db_session,
+#             blockchain_type,
+#             web3,
+#             initial_event_jobs,
+#             initial_function_call_jobs,
+#             start_block,
+#             args.max_blocks_batch,
+#             args.min_blocks_batch,
+#             confirmations,
+#             args.min_sleep_time,
+#             args.heartbeat_interval,
+#             args.new_jobs_refetch_interval,
+#             web3_uri=args.web3_uri,
+#         )
 
 
 def handle_historical_crawl(args: argparse.Namespace) -> None:
@@ -443,6 +556,103 @@ def main() -> None:
     )
 
     crawl_parser.set_defaults(func=handle_crawl)
+
+    crawl_parser_v3 = subparsers.add_parser(
+        "crawl-v3",
+        help="continuous crawling the event/function call jobs from bugout journal",
+    )
+
+    crawl_parser_v3.add_argument(
+        "--start",
+        "-s",
+        type=int,
+        default=None,
+    )
+
+    crawl_parser_v3.add_argument(
+        "--blockchain-type",
+        "-b",
+        type=str,
+        help=f"Available blockchain types: {[member.value for member in AvailableBlockchainType]}",
+    )
+
+    crawl_parser_v3.add_argument(
+        "--web3",
+        type=str,
+        default=None,
+        help="Web3 provider URL",
+    )
+
+    crawl_parser_v3.add_argument(
+        "--poa",
+        action="store_true",
+        default=False,
+        help="Use PoA middleware",
+    )
+
+    crawl_parser_v3.add_argument(
+        "--max-blocks-batch",
+        "-m",
+        type=int,
+        default=80,
+        help="Maximum number of blocks to crawl in a single batch",
+    )
+
+    crawl_parser_v3.add_argument(
+        "--min-blocks-batch",
+        "-n",
+        type=int,
+        default=20,
+        help="Minimum number of blocks to crawl in a single batch",
+    )
+
+    crawl_parser_v3.add_argument(
+        "--confirmations",
+        "-c",
+        type=int,
+        default=175,
+        help="Number of confirmations to wait for",
+    )
+
+    crawl_parser_v3.add_argument(
+        "--no-confirmations",
+        action="store_true",
+        default=False,
+        help="Do not wait for confirmations explicitly set confirmations to 0",
+    )
+
+    crawl_parser_v3.add_argument(
+        "--min-sleep-time",
+        "-t",
+        type=float,
+        default=0.1,
+        help="Minimum time to sleep between crawl step",
+    )
+
+    crawl_parser_v3.add_argument(
+        "--heartbeat-interval",
+        "-i",
+        type=float,
+        default=60,
+        help="Heartbeat interval in seconds",
+    )
+
+    crawl_parser_v3.add_argument(
+        "--new-jobs-refetch-interval",
+        "-r",
+        type=float,
+        default=180,
+        help="Time to wait before refetching new jobs",
+    )
+
+    crawl_parser_v3.add_argument(
+        "--force",
+        action="store_true",
+        default=False,
+        help="Force start from the start block",
+    )
+
+    crawl_parser_v3.set_defaults(func=handle_crawl)
 
     historical_crawl_parser = subparsers.add_parser(
         "historical-crawl", help="Crawl historical data"

@@ -12,6 +12,7 @@ from bugout.data import BugoutJournalEntries, BugoutSearchResult
 from eth_typing.evm import ChecksumAddress
 from moonstreamdb.blockchain import AvailableBlockchainType
 from moonstreamdb.subscriptions import SubscriptionTypes
+from moonstreamdbv3.models_indexes import AbiJobs
 from moonworm.deployment import find_deployment_block  # type: ignore
 from web3.main import Web3
 
@@ -691,3 +692,68 @@ def add_progress_to_tags(
             )
 
     return entries_tags_delete, entries_tags_add
+
+
+# def get_event_crawl_job_records(
+#     db_session: Session, blockchain_type: AvailableBlockchainType
+# ):
+
+#     crawl_job_records = (
+#         db_session.query(AbiJobs).filter(AbiJobs.chain == blockchain_type.value).all()
+#     )
+
+#     existing_crawl_job_records = {}
+
+#     result = []
+
+#     for crawl_job_record in crawl_job_records:
+
+#         str_address = crawl_job_record.address.hex()
+
+#         if crawl_job_record.abi_selector in existing_crawl_job_records:
+#             existing_crawl_job_records[crawl_job_record.abi_selector].contracts.append(
+#                 crawl_job_record.address
+#             )
+
+#         else:
+#             new_crawl_job = EventCrawlJob(
+#                 event_abi_hash=crawl_job_record.abi_selector,
+#                 event_abi=json.loads(crawl_job_record.abi),
+#                 contracts=[str_address],
+#                 address_entries={
+#                     crawl_job_record.address: {
+#                         crawl_job_record.id: crawl_job_record.tags
+#                     }
+#                 },
+#                 created_at=int(crawl_job_record.created_at.timestamp()),
+#             )
+#             existing_crawl_job_records[crawl_job_record.abi_selector] = new_crawl_job
+
+#     ### refomrat this to return list of EventCrawlJob objects
+
+#     for crawl_job in existing_crawl_job_records.values():
+#         result.append(crawl_job)
+
+#     return crawl_job_records
+
+
+# def get_function_call_crawl_job_records(
+#     db_session: Session, blockchain_type: AvailableBlockchainType
+# ):
+
+#     crawl_job_records = (
+#         db_session.query(AbiJobs).filter(AbiJobs.chain == blockchain_type.value).all()
+#     )
+
+#     existing_crawl_job_records = {}
+
+#     result = []
+
+#     """
+#     class FunctionCallCrawlJob:
+#         contract_abi: List[Dict[str, Any]]
+#         contract_address: ChecksumAddress
+#         entries_tags: Dict[UUID, List[str]]
+#         created_at: int
+
+#     """
