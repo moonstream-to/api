@@ -96,6 +96,83 @@ def add_subscription(id: str):
         logging.info("For apply to moonworm tasks subscriptions must have an abi.")
 
 
+def create_v3_task(
+    customer_id: str,
+    user_id: str,
+    abi: Dict[str, Any],
+    address: str,
+    blockchain: str,
+):
+    """
+    Create moonworm task for v3
+    """
+
+    abi_tasks = []
+
+    db_engine = MoonstreamDBIndexesEngine()
+
+    with db_engine.yield_db_session_ctx() as db_session_v3:
+
+        for task in abi:
+
+            abi_selector = Web3.keccak(
+                text=abi["name"]
+                + "("
+                + ",".join(map(lambda x: x["type"], abi["inputs"]))
+                + ")"
+            )
+
+            if abi["type"] == "function":
+                abi_selector = abi_selector[:4]
+
+            abi_selector = abi_selector.hex()
+
+            try:
+
+                abi_tasks.append(
+                    {
+                        "address": bytes.fromhex(address[2:]),
+                        "user_id": user_id,
+                        "customer_id": customer_id,
+                        "abi_selector": abi_selector,
+                        "chain": blockchain,
+                        "abi_name": abi["name"],
+                        "status": "active",
+                        "historical_crawl_status": "pending",
+                        "progress": 0,
+                        "moonworm_task_pickedup": False,
+                        "abi": json.dumps(abi),
+                    }
+                )
+
+            except Exception as e:
+                logger.error(
+                    f"Error creating subscription for subscription for abi {abi['name']}: {str(e)}"
+                )
+                db_session_v3.rollback()
+                raise e
+
+        insert_statement = insert(AbiJobs).values(abi_tasks)
+
+        result_stmt = insert_statement.on_conflict_do_nothing(
+            index_elements=[
+                AbiJobs.chain,
+                AbiJobs.address,
+                AbiJobs.abi_selector,
+                AbiJobs.customer_id,
+            ]
+        )
+
+        try:
+            db_session_v3.execute(result_stmt)
+
+            db_session_v3.commit()
+        except Exception as e:
+            logger.error(f"Error inserting subscriptions: {str(e)}")
+            db_session_v3.rollback()
+    return None
+
+
 def migrate_v3_tasks(
     user_id: UUID, customer_id: UUID, blockchain: Optional[str] = None
 ):
@@ -208,20 +285,6 @@ def migrate_v3_tasks(
                 abi_selector = abi_selector.hex()
 
                 try:
-
-                    # subscription = AbiJobs(
-                    #     address=address,
-                    #     user_id=user_id,
-                    #     customer_id=customer_id,
-                    #     abi_selector=abi_selector,
-                    #     chain=chain,
-                    #     abi_name=abi_task["name"],
-                    #     status="active",
-                    #     historical_crawl_status="pending",
-                    #     progress=0,
-                    #     moonworm_task_pickedup=False,
-                    #     abi=abi_task,
-                    # )
 
                     abi_job = {
                         "address": (

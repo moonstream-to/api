@@ -595,6 +595,50 @@ This CLI is configured to work with the following API URLs:
 
     parser_moonworm_tasks_migrate.set_defaults(func=moonworm_tasks_v3_migrate)
 
+    parser_moonworm_tasks_v3_create = subcommands_moonworm_tasks.add_parser(
+        "create_v3_tasks",
+        description="Create v3 tasks from v2 tasks",
+    )
+
+    parser_moonworm_tasks_v3_create.add_argument(
+        "--user-id",
+        required=True,
+        type=uuid_type,
+        help="user-id of which we want see subscription.",
+    )
+
+    parser_moonworm_tasks_v3_create.add_argument(
+        "--customer-id",
+        required=True,
+        type=uuid_type,
+        help="customer-id of which we want see subscription.",
+    )
+
+    parser_moonworm_tasks_v3_create.add_argument(
+        "--blockchain",
+        required=True,
+        type=str,
+        help="Blockchain of which we want see subscription.",
+    )
+
+    parser_moonworm_tasks_v3_create.add_argument(
+        "--address",
+        required=True,
+        type=str,
+        help="Address of which we want see subscription.",
+    )
+
+    parser_moonworm_tasks_v3_create.add_argument(
+        "--abi",
+        required=True,
+        type=argparse.FileType("r"),
+        help="ABI of which we want see subscription.",
+    )
+
+    parser_moonworm_tasks_v3_create.set_defaults(
+        func=moonworm_tasks.create_v3_task_handler
+    )
+
     queries_parser = subcommands.add_parser(
         "queries", description="Manage Moonstream queries"
     )
