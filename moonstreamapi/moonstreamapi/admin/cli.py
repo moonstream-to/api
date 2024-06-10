@@ -313,6 +313,17 @@ def databases_v2_to_v3_labels_migration_handler(args: argparse.Namespace) -> Non
     databases_v2_to_v3_labels_migration(args.user_id, args.blockchain)
 
 
+def create_v3_task_handler(args: argparse.Namespace) -> None:
+
+    moonworm_tasks.create_v3_task(
+        user_id=args.user_id,
+        customer_id=args.customer_id,
+        blockchain=args.blockchain,
+        address=args.address,
+        abi=args.abi.read(),
+    )
+
+
 def main() -> None:
     cli_description = f"""Moonstream Admin CLI
 
@@ -635,9 +646,7 @@ This CLI is configured to work with the following API URLs:
         help="ABI of which we want see subscription.",
     )
 
-    parser_moonworm_tasks_v3_create.set_defaults(
-        func=moonworm_tasks.create_v3_task_handler
-    )
+    parser_moonworm_tasks_v3_create.set_defaults(func=create_v3_task_handler)
 
     queries_parser = subcommands.add_parser(
         "queries", description="Manage Moonstream queries"
