@@ -123,6 +123,9 @@ class EthereumLogIndex(EvmBasedLogs):
 
     __table_args__ = (
         Index(
+            "idx_ethereum_logs_address_selector", "address", "selector", unique=False
+        ),
+        Index(
             "idx_ethereum_logs_block_hash_log_index",
             "block_hash",
             "log_index",
@@ -172,6 +175,7 @@ class PolygonLogIndex(EvmBasedLogs):
     __tablename__ = "polygon_logs"
 
     __table_args__ = (
+        Index("idx_polygon_logs_address_selector", "address", "selector", unique=False),
         UniqueConstraint(
             "transaction_hash",
             "log_index",
@@ -191,6 +195,367 @@ class PolygonLogIndex(EvmBasedLogs):
 
 class PolygonReorgs(EvmBasedReorgs):
     __tablename__ = "polygon_reorgs"
+
+
+### Xai
+
+
+class XaiBlockIndex(EvmBasedBlocks):
+    __tablename__ = "xai_blocks"
+
+    l1_block_number = Column(BigInteger, nullable=False)
+
+
+class XaiTransactionIndex(EvmBasedTransactions):
+    __tablename__ = "xai_transactions"
+
+    block_number = Column(
+        BigInteger,
+        ForeignKey("xai_blocks.block_number", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+
+class XaiLogIndex(EvmBasedLogs):
+
+    __tablename__ = "xai_logs"
+
+    __table_args__ = (
+        Index("idx_xai_logs_address_selector", "address", "selector", unique=False),
+        UniqueConstraint(
+            "transaction_hash",
+            "log_index",
+            name="uq_xai_log_idx_tx_hash_log_idx",
+        ),
+        PrimaryKeyConstraint("transaction_hash", "log_index", name="pk_xai_log_index"),
+    )
+    transaction_hash = Column(
+        VARCHAR(256),
+        ForeignKey("xai_transactions.hash", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+
+class XaiReorgs(EvmBasedReorgs):
+    __tablename__ = "xai_reorgs"
+
+
+### Xai Sepolia
+
+
+class XaiSepoliaBlockIndex(EvmBasedBlocks):
+    __tablename__ = "xai_sepolia_blocks"
+
+    l1_block_number = Column(BigInteger, nullable=False)
+
+
+class XaiSepoliaTransactionIndex(EvmBasedTransactions):
+    __tablename__ = "xai_sepolia_transactions"
+
+    block_number = Column(
+        BigInteger,
+        ForeignKey("xai_sepolia_blocks.block_number", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+
+class XaiSepoliaLogIndex(EvmBasedLogs):
+
+    __tablename__ = "xai_sepolia_logs"
+
+    __table_args__ = (
+        Index(
+            "idx_xai_sepolia_logs_address_selector", "address", "selector", unique=False
+        ),
+        UniqueConstraint(
+            "transaction_hash",
+            "log_index",
+            name="uq_xai_sepolia_log_idx_tx_hash_log_idx",
+        ),
+        PrimaryKeyConstraint(
+            "transaction_hash", "log_index", name="pk_xai_sepolia_log_index"
+        ),
+    )
+    transaction_hash = Column(
+        VARCHAR(256),
+        ForeignKey("xai_sepolia_transactions.hash", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+
+class XaiSepoliaReorgs(EvmBasedReorgs):
+    __tablename__ = "xai_sepolia_reorgs"
+
+
+### Arbitrum One
+
+
+class ArbitrumOneBlockIndex(EvmBasedBlocks):
+    __tablename__ = "arbitrum_one_blocks"
+
+    l1_block_number = Column(BigInteger, nullable=False)
+
+
+class ArbitrumOneTransactionIndex(EvmBasedTransactions):
+    __tablename__ = "arbitrum_one_transactions"
+
+    block_number = Column(
+        BigInteger,
+        ForeignKey("arbitrum_one_blocks.block_number", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+
+class ArbitrumOneLogIndex(EvmBasedLogs):
+
+    __tablename__ = "arbitrum_one_logs"
+
+    __table_args__ = (
+        Index(
+            "idx_arbitrum_one_logs_address_selector",
+            "address",
+            "selector",
+            unique=False,
+        ),
+        UniqueConstraint(
+            "transaction_hash",
+            "log_index",
+            name="uq_arbitrum_one_log_idx_tx_hash_log_idx",
+        ),
+        PrimaryKeyConstraint(
+            "transaction_hash", "log_index", name="pk_arbitrum_one_log_index"
+        ),
+    )
+    transaction_hash = Column(
+        VARCHAR(256),
+        ForeignKey("arbitrum_one_transactions.hash", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+
+class ArbitrumOneReorgs(EvmBasedReorgs):
+    __tablename__ = "arbitrum_one_reorgs"
+
+
+### Arbitrum Sepolia
+
+
+class ArbitrumSepoliaBlockIndex(EvmBasedBlocks):
+    __tablename__ = "arbitrum_sepolia_blocks"
+
+    l1_block_number = Column(BigInteger, nullable=False)
+
+
+class ArbitrumSepoliaTransactionIndex(EvmBasedTransactions):
+    __tablename__ = "arbitrum_sepolia_transactions"
+
+    block_number = Column(
+        BigInteger,
+        ForeignKey("arbitrum_sepolia_blocks.block_number", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+
+class ArbitrumSepoliaLogIndex(EvmBasedLogs):
+
+    __tablename__ = "arbitrum_sepolia_logs"
+
+    __table_args__ = (
+        Index(
+            "idx_arbitrum_sepolia_logs_address_selector",
+            "address",
+            "selector",
+            unique=False,
+        ),
+        UniqueConstraint(
+            "transaction_hash",
+            "log_index",
+            name="uq_arbitrum_sepolia_log_idx_tx_hash_log_idx",
+        ),
+        PrimaryKeyConstraint(
+            "transaction_hash", "log_index", name="pk_arbitrum_sepolia_log_index"
+        ),
+    )
+    transaction_hash = Column(
+        VARCHAR(256),
+        ForeignKey("arbitrum_sepolia_transactions.hash", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+
+class ArbitrumSepoliaReorgs(EvmBasedReorgs):
+    __tablename__ = "arbitrum_sepolia_reorgs"
+
+
+### Game7 Orbit Arbitrum Sepolia
+
+
+class Game7OrbitArbitrumSepoliaBlockIndex(EvmBasedBlocks):
+    __tablename__ = "game7_orbit_arbitrum_sepolia_blocks"
+
+    l1_block_number = Column(BigInteger, nullable=False)
+
+
+class Game7OrbitArbitrumSepoliaTransactionIndex(EvmBasedTransactions):
+    __tablename__ = "game7_orbit_arbitrum_sepolia_transactions"
+
+    block_number = Column(
+        BigInteger,
+        ForeignKey(
+            "game7_orbit_arbitrum_sepolia_blocks.block_number", ondelete="CASCADE"
+        ),
+        nullable=False,
+        index=True,
+    )
+
+
+class Game7OrbitArbitrumSepoliaLogIndex(EvmBasedLogs):
+
+    __tablename__ = "game7_orbit_arbitrum_sepolia_logs"
+
+    __table_args__ = (
+        Index(
+            "idx_game7_orbit_arbitrum_sepolia_logs_address_selector",
+            "address",
+            "selector",
+            unique=False,
+        ),
+        UniqueConstraint(
+            "transaction_hash",
+            "log_index",
+            name="uq_g7o_arbitrum_sepolia_log_idx_tx_hash_log_idx",
+        ),
+        PrimaryKeyConstraint(
+            "transaction_hash",
+            "log_index",
+            name="pk_game7_orbit_arbitrum_sepolia_log_index",
+        ),
+    )
+    transaction_hash = Column(
+        VARCHAR(256),
+        ForeignKey(
+            "game7_orbit_arbitrum_sepolia_transactions.hash", ondelete="CASCADE"
+        ),
+        nullable=False,
+        index=True,
+    )
+
+
+class Game7OrbitArbitrumSepoliaReorgs(EvmBasedReorgs):
+    __tablename__ = "game7_orbit_arbitrum_sepolia_reorgs"
+
+
+### Mantle
+
+
+class MantleBlockIndex(EvmBasedBlocks):
+    __tablename__ = "mantle_blocks"
+
+
+class MantleTransactionIndex(EvmBasedTransactions):
+    __tablename__ = "mantle_transactions"
+
+    block_number = Column(
+        BigInteger,
+        ForeignKey("mantle_blocks.block_number", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+
+class MantleLogIndex(EvmBasedLogs):
+    __tablename__ = "mantle_logs"
+
+    __table_args__ = (
+        Index("idx_mantle_logs_address_selector", "address", "selector", unique=False),
+        Index(
+            "idx_mantle_logs_block_hash_log_index",
+            "block_hash",
+            "log_index",
+            unique=True,
+        ),
+        UniqueConstraint(
+            "transaction_hash",
+            "log_index",
+            name="uq_mantle_log_index_transaction_hash_log_index",
+        ),
+        PrimaryKeyConstraint(
+            "transaction_hash", "log_index", name="pk_mantle_log_index"
+        ),
+    )
+    transaction_hash = Column(
+        VARCHAR(256),
+        ForeignKey("mantle_transactions.hash", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+
+class MantleReorgs(EvmBasedReorgs):
+    __tablename__ = "mantle_reorgs"
+
+
+### Mantle Sepolia
+
+
+class MantleSepoliaBlockIndex(EvmBasedBlocks):
+    __tablename__ = "mantle_sepolia_blocks"
+
+
+class MantleSepoliaTransactionIndex(EvmBasedTransactions):
+    __tablename__ = "mantle_sepolia_transactions"
+
+    block_number = Column(
+        BigInteger,
+        ForeignKey("mantle_sepolia_blocks.block_number", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+
+class MantleSepoliaLogIndex(EvmBasedLogs):
+    __tablename__ = "mantle_sepolia_logs"
+
+    __table_args__ = (
+        Index(
+            "idx_mantle_sepolia_logs_address_selector",
+            "address",
+            "selector",
+            unique=False,
+        ),
+        Index(
+            "idx_mantle_sepolia_logs_block_hash_log_index",
+            "block_hash",
+            "log_index",
+            unique=True,
+        ),
+        UniqueConstraint(
+            "transaction_hash",
+            "log_index",
+            name="uq_mantle_sepolia_log_index_transaction_hash_log_index",
+        ),
+        PrimaryKeyConstraint(
+            "transaction_hash", "log_index", name="pk_mantle_sepolia_log_index"
+        ),
+    )
+    transaction_hash = Column(
+        VARCHAR(256),
+        ForeignKey("mantle_sepolia_transactions.hash", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+
+class MantleSepoliaReorgs(EvmBasedReorgs):
+    __tablename__ = "mantle_sepolia_reorgs"
 
 
 ### ABI Jobs

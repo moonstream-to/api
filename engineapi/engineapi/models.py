@@ -215,7 +215,7 @@ class Blockchain(Base):  # type: ignore
         unique=True,
     )
     name = Column(VARCHAR(128), nullable=False, index=True, unique=True)
-    chain_id = Column(Integer, nullable=False, index=True, unique=False)
+    chain_id = Column(BigInteger, nullable=False, index=True, unique=False)
     testnet = Column(Boolean, default=False, nullable=False)
 
     registered_contracts = relationship(

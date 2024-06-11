@@ -7,21 +7,29 @@ import os
 from contextlib import contextmanager
 from typing import Generator, Optional
 
-from sqlalchemy import create_engine, Engine
+from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 try:
-    MOONSTREAM_DB_URI = os.environ.get("MOONSTREAM_DB_V3_INDEXES_URI")
-    if MOONSTREAM_DB_URI is None:
+    MOONSTREAM_DB_V3_URI = os.environ.get("MOONSTREAM_DB_V3_URI")
+    if MOONSTREAM_DB_V3_URI is None:
+        raise Warning("MOONSTREAM_DB_V3_URI environment variable must be set")
+
+    MOONSTREAM_DB_V3_URI_READ_ONLY = os.environ.get("MOONSTREAM_DB_V3_URI_READ_ONLY")
+    if MOONSTREAM_DB_V3_URI_READ_ONLY is None:
+        raise Warning("MOONSTREAM_DB_V3_URI_READ_ONLY environment variable must be set")
+
+    MOONSTREAM_DB_V3_INDEXES_URI = os.environ.get("MOONSTREAM_DB_V3_INDEXES_URI")
+    if MOONSTREAM_DB_V3_INDEXES_URI is None:
         raise Warning("MOONSTREAM_DB_V3_INDEXES_URI environment variable must be set")
 
-    MOONSTREAM_DB_URI_READ_ONLY = os.environ.get(
+    MOONSTREAM_DB_V3_INDEXES_URI_READ_ONLY = os.environ.get(
         "MOONSTREAM_DB_V3_INDEXES_URI_READ_ONLY"
     )
-    if MOONSTREAM_DB_URI_READ_ONLY is None:
+    if MOONSTREAM_DB_V3_INDEXES_URI_READ_ONLY is None:
         raise Warning(
             "MOONSTREAM_DB_V3_INDEXES_URI_READ_ONLY environment variable must be set"
         )
@@ -91,7 +99,7 @@ class DBEngine:
 
 class MoonstreamDBEngine(DBEngine):
     def __init__(self, schema: Optional[str] = None) -> None:
-        super().__init__(url=MOONSTREAM_DB_URI, schema=schema)
+        super().__init__(url=MOONSTREAM_DB_V3_URI, schema=schema)
 
         self._session_local = sessionmaker(bind=self.engine)
 
@@ -122,7 +130,73 @@ class MoonstreamDBEngine(DBEngine):
 
 class MoonstreamDBEngineRO(DBEngine):
     def __init__(self, schema: Optional[str] = None) -> None:
-        super().__init__(url=MOONSTREAM_DB_URI_READ_ONLY, schema=schema)
+        super().__init__(url=MOONSTREAM_DB_V3_URI_READ_ONLY, schema=schema)
+
+    @property
+    def engine(self):
+        raise AttributeError(
+            "RO_engine should be used instead of engine for read-only access."
+        )
+
+    @property
+    def RO_engine(self) -> Engine:
+        return self._engine
+
+    @property
+    def RO_session_local(self):
+        return self._session_local
+
+    @property
+    def RO_yield_db_session_ctx(self):
+        return self._yield_db_session_ctx
+
+    def yield_db_read_only_session(self) -> Generator[Session, None, None]:
+        """
+        Yields read-only database connection (created using environment variables).
+        As per FastAPI docs:
+        https://fastapi.tiangolo.com/tutorial/sql-databases/#create-a-dependency
+        """
+        session = self._session_local()
+        try:
+            yield session
+        finally:
+            session.close()
+
+
+class MoonstreamDBIndexesEngine(DBEngine):
+    def __init__(self, schema: Optional[str] = None) -> None:
+        super().__init__(url=MOONSTREAM_DB_V3_INDEXES_URI, schema=schema)
+
+        self._session_local = sessionmaker(bind=self.engine)
+
+        self._yield_db_session_ctx = contextmanager(self.yield_db_session)
+
+    @property
+    def session_local(self):
+        return self._session_local
+
+    @property
+    def yield_db_session_ctx(self):
+        return self._yield_db_session_ctx
+
+    def yield_db_session(
+        self,
+    ) -> Generator[Session, None, None]:
+        """
+        Yields a database connection (created using environment variables).
+        As per FastAPI docs:
+        https://fastapi.tiangolo.com/tutorial/sql-databases/#create-a-dependency
+        """
+        session = self._session_local()
+        try:
+            yield session
+        finally:
+            session.close()
+
+
+class MoonstreamDBIndexesEngineRO(DBEngine):
+    def __init__(self, schema: Optional[str] = None) -> None:
+        super().__init__(url=MOONSTREAM_DB_V3_INDEXES_URI_READ_ONLY, schema=schema)
 
     @property
     def engine(self):
