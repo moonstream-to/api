@@ -2,12 +2,8 @@ import json
 import logging
 from typing import Dict, List, Optional, Union, Any
 
-from moonstreamdb.blockchain import AvailableBlockchainType, get_label_model
 from moonstreamdb.models import Base
-from moonstreamdbv3.blockchain import (
-    AvailableBlockchainType as AvailableBlockchainTypeV3,
-    get_label_model as get_label_model_v3,
-)
+from moonstreamtypes.blockchain import AvailableBlockchainType, get_label_model
 from moonworm.crawler.function_call_crawler import ContractFunctionCall  # type: ignore
 from sqlalchemy import Integer, String, column, exists, func, select, text, values
 from sqlalchemy.orm import Session
@@ -22,17 +18,15 @@ logger = logging.getLogger(__name__)
 
 
 def _event_to_label(
-    blockchain_type: Union[AvailableBlockchainType, AvailableBlockchainTypeV3],
+    blockchain_type: AvailableBlockchainType,
     event: Event,
     label_name=CRAWLER_LABEL,
+    db_version: int = 2,
 ) -> Base:
     """
     Creates a label model.
     """
-    if isinstance(blockchain_type, AvailableBlockchainType):
-        label_model = get_label_model(blockchain_type)
-    else:
-        label_model = get_label_model_v3(blockchain_type)
+    label_model = get_label_model(blockchain_type, version=db_version)
     sanityzed_label_data = json.loads(
         json.dumps(
             {
@@ -77,14 +71,12 @@ def _function_call_to_label(
     function_call: ContractFunctionCall,
     label_name=CRAWLER_LABEL,
     blocks_cache: Dict[int, Any] = {},
+    db_version: int = 2,
 ) -> Base:
     """
     Creates a label model.
     """
-    if isinstance(blockchain_type, AvailableBlockchainType):
-        label_model = get_label_model(blockchain_type)
-    else:
-        label_model = get_label_model_v3(blockchain_type)
+    label_model = get_label_model(blockchain_type, version=db_version)
 
     sanityzed_label_data = json.loads(
         json.dumps(
@@ -117,8 +109,9 @@ def get_last_labeled_block_number(
     db_session: Session,
     blockchain_type: AvailableBlockchainType,
     label_name=CRAWLER_LABEL,
+    db_version: int = 2,
 ) -> Optional[int]:
-    label_model = get_label_model(blockchain_type)
+    label_model = get_label_model(blockchain_type, version=db_version)
     block_number = (
         db_session.query(label_model.block_number)
         .filter(label_model.label == label_name)
@@ -136,8 +129,9 @@ def get_first_labeled_block_number(
     address: str,
     label_name=CRAWLER_LABEL,
     only_events: bool = False,
+    db_version: int = 2,
 ) -> Optional[int]:
-    label_model = get_label_model(blockchain_type)
+    label_model = get_label_model(blockchain_type, version=db_version)
     block_number_query = (
         db_session.query(label_model.block_number)
         .filter(label_model.label == label_name)
@@ -187,6 +181,7 @@ def add_events_to_session(
     blockchain_type: AvailableBlockchainType,
     v3_schema: bool = False,
     label_name=CRAWLER_LABEL,
+    db_version: int = 2,
 ) -> None:
 
     if len(events) == 0:
@@ -194,7 +189,7 @@ def add_events_to_session(
 
     if not v3_schema:
 
-        label_model = get_label_model(blockchain_type)
+        label_model = get_label_model(blockchain_type, version=db_version)
 
         events_hashes_to_save = set([event.transaction_hash for event in events])
 
@@ -240,7 +235,7 @@ def add_events_to_session(
         from sqlalchemy.dialects.postgresql import insert
 
         # Define the table name and columns based on the blockchain type
-        label_model = get_label_model(blockchain_type)
+        label_model = get_label_model(blockchain_type, version=db_version)
         table = label_model.__table__
 
         # Create a list of dictionaries representing new records
@@ -283,12 +278,13 @@ def add_function_calls_to_session(
     function_calls: List[ContractFunctionCall],
     blockchain_type: AvailableBlockchainType,
     label_name=CRAWLER_LABEL,
+    db_version: int = 2,
 ) -> None:
 
     if len(function_calls) == 0:
         return
 
-    label_model = get_label_model(blockchain_type)
+    label_model = get_label_model(blockchain_type, version=db_version)
 
     transactions_hashes_to_save = list(
         set([function_call.transaction_hash for function_call in function_calls])

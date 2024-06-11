@@ -6,12 +6,9 @@ from urllib.parse import urlparse, urlunparse
 
 
 import requests
-from moonstreamdb.blockchain import AvailableBlockchainType
 from moonstreamdb.subscriptions import blockchain_type_to_subscription_type
 from moonstreamdbv3.db import MoonstreamDBEngine, MoonstreamDBIndexesEngine
-from moonstreamdbv3.blockchain import (
-    AvailableBlockchainType as AvailableBlockchainTypeV3,
-)
+from moonstreamtypes.blockchain import AvailableBlockchainType
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
@@ -185,7 +182,7 @@ def ensure_port_in_connection_string(connection_string):
 
 
 def handle_crawl_v3(args: argparse.Namespace) -> None:
-    blockchain_type = AvailableBlockchainTypeV3(args.blockchain_type)
+    blockchain_type = AvailableBlockchainType(args.blockchain_type)
     subscription_type = blockchain_type_to_subscription_type(blockchain_type)
 
     index_engine = MoonstreamDBIndexesEngine()
@@ -497,7 +494,7 @@ def handle_historical_crawl_v3(args: argparse.Namespace) -> None:
     Historical crawl for MoonstreamDB v3
     """
 
-    blockchain_type = AvailableBlockchainTypeV3(args.blockchain_type)
+    blockchain_type = AvailableBlockchainType(args.blockchain_type)
     ##subscription_type = blockchain_type_to_subscription_type(blockchain_type)
 
     addresses_filter = []
@@ -778,7 +775,7 @@ def main() -> None:
         "--blockchain-type",
         "-b",
         type=str,
-        help=f"Available blockchain types: {[member.value for member in AvailableBlockchainTypeV3]}",
+        help=f"Available blockchain types: {[member.value for member in AvailableBlockchainType]}",
     )
 
     crawl_parser_v3.add_argument(
@@ -884,7 +881,7 @@ def main() -> None:
         "--blockchain-type",
         "-b",
         type=str,
-        help=f"Available blockchain types: {[member.value for member in AvailableBlockchainTypeV3]}",
+        help=f"Available blockchain types: {[member.value for member in AvailableBlockchainType]}",
     )
     historical_crawl_parser.add_argument(
         "--web3",
