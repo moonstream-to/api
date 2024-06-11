@@ -1,0 +1,30 @@
+name: Publish Moonstream Python types library
+
+on:
+  push:
+    tags:
+      - "types/python/v*"
+
+defaults:
+  run:
+    working-directory: types/python
+
+jobs:
+  publish:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[distribute]
+      - name: Build and publish
+        env:
+          TWINE_USERNAME: "__token__"
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN_MOONSTREAM }}
+        run: |
+          python setup.py sdist bdist_wheel
+          twine upload dist/*
