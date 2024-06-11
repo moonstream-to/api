@@ -6,6 +6,7 @@ import argparse
 import json
 import logging
 import os
+import uuid
 from posix import listdir
 from typing import Any, Callable, Dict, List, Optional, Union
 
@@ -33,6 +34,13 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 MIGRATIONS_FOLDER = "./moonstreamapi/admin/migrations"
+
+
+def uuid_type(value):
+    try:
+        return uuid.UUID(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"{value} is not a valid UUID.")
 
 
 def parse_boolean_arg(raw_arg: Optional[str]) -> Optional[bool]:
@@ -283,6 +291,28 @@ def generate_usage_handler(args: argparse.Namespace) -> None:
 
         with open(args.output, "w") as output_file:
             output_file.write(json.dumps(usage_info, indent=4))
+
+
+def moonworm_tasks_v3_migrate(args: argparse.Namespace) -> None:
+    """
+    Read users subsriptions and rewrite them to v3 jobs table
+    """
+    ### Request user resources from brood
+
+    moonworm_tasks.migrate_v3_tasks(
+        user_id=args.user_id, customer_id=args.customer_id, blockchain=args.blockchain
+    )
+
+
+def create_v3_task_handler(args: argparse.Namespace) -> None:
+
+    moonworm_tasks.create_v3_task(
+        user_id=args.user_id,
+        customer_id=args.customer_id,
+        blockchain=args.blockchain,
+        address=args.address,
+        abi=json.loads(args.abi.read()),
+    )
 
 
 def main() -> None:
@@ -539,6 +569,76 @@ This CLI is configured to work with the following API URLs:
 
     parser_moonworm_tasks_add.set_defaults(func=moonworm_tasks_add_subscription_handler)
 
+    parser_moonworm_tasks_migrate = subcommands_moonworm_tasks.add_parser(
+        "migrate-v2-tasks",
+        description="Migrate moonworm tasks to abi_jobs of moonstream index",
+    )
+
+    parser_moonworm_tasks_migrate.add_argument(
+        "--user-id",
+        required=True,
+        type=uuid_type,
+        help="user-id of which we want see subscription.",
+    )
+
+    parser_moonworm_tasks_migrate.add_argument(
+        "--customer-id",
+        required=True,
+        type=uuid_type,
+        help="customer-id of which we want see subscription.",
+    )
+
+    parser_moonworm_tasks_migrate.add_argument(
+        "--blockchain",
+        required=False,
+        type=str,
+        help="Blockchain of which we want see subscription.",
+    )
+
+    parser_moonworm_tasks_migrate.set_defaults(func=moonworm_tasks_v3_migrate)
+
+    parser_moonworm_tasks_v3_create = subcommands_moonworm_tasks.add_parser(
+        "create_v3_tasks",
+        description="Create v3 tasks from v2 tasks",
+    )
+
+    parser_moonworm_tasks_v3_create.add_argument(
+        "--user-id",
+        required=True,
+        type=uuid_type,
+        help="user-id of which we want see subscription.",
+    )
+
+    parser_moonworm_tasks_v3_create.add_argument(
+        "--customer-id",
+        required=True,
+        type=uuid_type,
+        help="customer-id of which we want see subscription.",
+    )
+
+    parser_moonworm_tasks_v3_create.add_argument(
+        "--blockchain",
+        required=True,
+        type=str,
+        help="Blockchain of which we want see subscription.",
+    )
+
+    parser_moonworm_tasks_v3_create.add_argument(
+        "--address",
+        required=True,
+        type=str,
+        help="Address of which we want see subscription.",
+    )
+
+    parser_moonworm_tasks_v3_create.add_argument(
+        "--abi",
+        required=True,
+        type=argparse.FileType("r"),
+        help="ABI of which we want see subscription.",
+    )
+
+    parser_moonworm_tasks_v3_create.set_defaults(func=create_v3_task_handler)
+
     queries_parser = subcommands.add_parser(
         "queries", description="Manage Moonstream queries"
     )
@@ -609,6 +709,44 @@ This CLI is configured to work with the following API URLs:
     )
 
     generate_usage_parser.set_defaults(func=generate_usage_handler)
+
+    ### databases commands
+    databases_parser = subcommands.add_parser(
+        "databases", description="Manage Moonstream databases"
+    )
+
+    databases_parser.set_defaults(func=lambda _: databases_parser.print_help())
+
+    databases_subcommands = databases_parser.add_subparsers(
+        description="Database commands"
+    )
+
+    database_labels_migration_parser = databases_subcommands.add_parser(
+        "v2-to-v3-labels-migration",
+        description="Migrate labels in database",
+    )
+
+    database_labels_migration_parser.add_argument(
+        "--user-id",
+        type=uuid_type,
+        help="User ID for which to migrate labels",
+    )
+
+    database_labels_migration_parser.add_argument(
+        "--customer-id",
+        type=uuid_type,
+        help="Customer ID for which to migrate labels",
+    )
+
+    database_labels_migration_parser.add_argument(
+        "--blockchain",
+        type=str,
+        help="Blockchain for which to migrate labels",
+    )
+
+    database_labels_migration_parser.set_defaults(
+        func=lambda args: print("Not implemented yet")
+    )
 
     args = parser.parse_args()
     args.func(args)
