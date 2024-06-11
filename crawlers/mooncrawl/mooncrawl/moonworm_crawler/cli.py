@@ -185,7 +185,7 @@ def ensure_port_in_connection_string(connection_string):
 
 
 def handle_crawl_v3(args: argparse.Namespace) -> None:
-    blockchain_type = AvailableBlockchainType(args.blockchain_type)
+    blockchain_type = AvailableBlockchainTypeV3(args.blockchain_type)
     subscription_type = blockchain_type_to_subscription_type(blockchain_type)
 
     index_engine = MoonstreamDBIndexesEngine()
@@ -857,7 +857,7 @@ def main() -> None:
         help="Force start from the start block",
     )
 
-    crawl_parser_v3.set_defaults(func=handle_crawl)
+    crawl_parser_v3.set_defaults(func=handle_crawl_v3)
 
     historical_crawl_parser = subparsers.add_parser(
         "historical-crawl", help="Crawl historical data"
