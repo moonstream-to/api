@@ -6,9 +6,9 @@ from urllib.parse import urlparse, urlunparse
 
 
 import requests
-from moonstreamdb.subscriptions import blockchain_type_to_subscription_type
 from moonstreamdbv3.db import MoonstreamDBEngine, MoonstreamDBIndexesEngine
 from moonstreamtypes.blockchain import AvailableBlockchainType
+from moonstreamtypes.subscriptions import blockchain_type_to_subscription_type
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
