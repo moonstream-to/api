@@ -2,10 +2,13 @@ import argparse
 import logging
 from typing import Optional
 from uuid import UUID
+from urllib.parse import urlparse, urlunparse
 
+
+import requests
 from moonstreamdb.blockchain import AvailableBlockchainType
 from moonstreamdb.subscriptions import blockchain_type_to_subscription_type
-from moonstreamdbv3.db import MoonstreamDBIndexesEngine
+from moonstreamdbv3.db import MoonstreamDBEngine, MoonstreamDBIndexesEngine
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
@@ -14,6 +17,8 @@ from ..settings import (
     HISTORICAL_CRAWLER_STATUS_TAG_PREFIXES,
     HISTORICAL_CRAWLER_STATUSES,
     MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+    MOONSTREAM_DB_V3_CONTROLLER_API,
+    MOONSTREAM_DB_V3_CONTROLLER_SEER_ACCESS_TOKEN,
 )
 from .continuous_crawler import _retry_connect_web3, continuous_crawler
 from .crawler import (
@@ -23,6 +28,8 @@ from .crawler import (
     make_function_call_crawl_jobs,
     moonworm_crawler_update_job_as_pickedup,
     update_job_state_with_filters,
+    get_event_crawl_job_records,
+    get_function_call_crawl_job_records,
 )
 from .db import get_first_labeled_block_number, get_last_labeled_block_number
 from .historical_crawler import historical_crawler
@@ -136,116 +143,144 @@ def handle_crawl(args: argparse.Namespace) -> None:
         )
 
 
-# def handle_crawl_v3(args: argparse.Namespace) -> None:
-#     blockchain_type = AvailableBlockchainType(args.blockchain_type)
-#     subscription_type = blockchain_type_to_subscription_type(blockchain_type)
+def get_db_connection(uuid):
+    url = (
+        f"{MOONSTREAM_DB_V3_CONTROLLER_API}/customers/{uuid}/instances/1/creds/seer/url"
+    )
+    headers = {
+        "Authorization": f"Bearer {MOONSTREAM_DB_V3_CONTROLLER_SEER_ACCESS_TOKEN}"
+    }
+
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()  # Raises HTTPError for bad requests (4xx or 5xx)
+    except requests.RequestException as e:
+        logging.error(f"Network-related error for UUID {uuid}: {str(e)}")
+        raise ValueError(f"Network-related error for UUID {uuid}: {str(e)}")
+
+    connection_string = response.text.strip('"')
+
+    try:
+        connection_string = ensure_port_in_connection_string(connection_string)
+    except ValueError as e:
+        error_msg = f"Invalid connection string for UUID {uuid}: {str(e)}"
+        logging.error(error_msg)
+        raise ValueError(error_msg)
+
+    return connection_string
 
 
-#     index_engine = MoonstreamDBIndexesEngine()
+def ensure_port_in_connection_string(connection_string):
+    parsed_url = urlparse(connection_string)
+    if parsed_url.port is None:
+        host = f"{parsed_url.hostname}:5432"  # Assuming default port for PostgreSQL
+        parsed_url = parsed_url._replace(netloc=host)
+        connection_string = urlunparse(parsed_url)
+    return connection_string
 
-#     with index_engine.yield_db_session_ctx() as index_db_session:
 
-#         pass
+def handle_crawl_v3(args: argparse.Namespace) -> None:
+    blockchain_type = AvailableBlockchainType(args.blockchain_type)
+    subscription_type = blockchain_type_to_subscription_type(blockchain_type)
 
-#     initial_event_jobs = make_event_crawl_jobs(
-#         get_crawl_job_entries(
-#             subscription_type,
-#             "event",
-#             MOONSTREAM_MOONWORM_TASKS_JOURNAL,
-#         )
-#     )
-#     logger.info(f"Initial event crawl jobs count: {len(initial_event_jobs)}")
+    index_engine = MoonstreamDBIndexesEngine()
 
-#     initial_function_call_jobs = make_function_call_crawl_jobs(
-#         get_crawl_job_entries(
-#             subscription_type,
-#             "function",
-#             MOONSTREAM_MOONWORM_TASKS_JOURNAL,
-#         )
-#     )
-#     logger.info(
-#         f"Initial function call crawl jobs count: {len(initial_function_call_jobs)}"
-#     )
+    with index_engine.yield_db_session_ctx() as index_db_session:
 
-#     (
-#         initial_event_jobs,
-#         initial_function_call_jobs,
-#     ) = moonworm_crawler_update_job_as_pickedup(
-#         event_crawl_jobs=initial_event_jobs,
-#         function_call_crawl_jobs=initial_function_call_jobs,
-#     )
+        initial_event_jobs = get_event_crawl_job_records(
+            index_db_session,
+            blockchain_type,
+            [],
+            {},
+        )
 
-#     logger.info(f"Blockchain type: {blockchain_type.value}")
-#     with yield_db_session_ctx() as db_session:
-#         web3: Optional[Web3] = None
-#         if args.web3 is None:
-#             logger.info(
-#                 "No web3 provider URL provided, using default (blockchan.py: connect())"
-#             )
-#             web3 = _retry_connect_web3(blockchain_type, web3_uri=args.web3_uri)
-#         else:
-#             logger.info(f"Using web3 provider URL: {args.web3}")
-#             web3 = Web3(
-#                 Web3.HTTPProvider(
-#                     args.web3,
-#                 )
-#             )
-#             if args.poa:
-#                 logger.info("Using PoA middleware")
-#                 web3.middleware_onion.inject(geth_poa_middleware, layer=0)
+        logger.info(f"Initial event crawl jobs count: {len(initial_event_jobs)}")
 
-#         last_labeled_block = get_last_labeled_block_number(db_session, blockchain_type)
-#         logger.info(f"Last labeled block: {last_labeled_block}")
+        initial_function_call_jobs = get_function_call_crawl_job_records(
+            index_db_session,
+            blockchain_type,
+            [],
+            {},
+        )
 
-#         start_block = args.start
-#         if start_block is None:
-#             logger.info("No start block provided")
-#             if last_labeled_block is not None:
-#                 start_block = last_labeled_block - 1
-#                 logger.info(f"Using last labeled block as start: {start_block}")
-#             else:
-#                 logger.info(
-#                     "No last labeled block found, using  start block (web3.eth.blockNumber - 300)"
-#                 )
-#                 start_block = web3.eth.blockNumber - 10000
-#                 logger.info(f"Starting from block: {start_block}")
-#         elif last_labeled_block is not None:
-#             if start_block < last_labeled_block and not args.force:
-#                 logger.info(
-#                     f"Start block is less than last labeled block, using last labeled block: {last_labeled_block}"
-#                 )
-#                 logger.info(
-#                     f"Use --force to override this and start from the start block: {start_block}"
-#                 )
+        logger.info(
+            f"Initial function call crawl jobs count: {len(initial_function_call_jobs)}"
+        )
 
-#                 start_block = last_labeled_block
-#             else:
-#                 logger.info(f"Using start block: {start_block}")
-#         else:
-#             logger.info(f"Using start block: {start_block}")
+    logger.info(f"Blockchain type: {blockchain_type.value}")
+    with yield_db_session_ctx() as db_session:
+        web3: Optional[Web3] = None
+        if args.web3 is None:
+            logger.info(
+                "No web3 provider URL provided, using default (blockchan.py: connect())"
+            )
+            web3 = _retry_connect_web3(blockchain_type, web3_uri=args.web3_uri)
+        else:
+            logger.info(f"Using web3 provider URL: {args.web3}")
+            web3 = Web3(
+                Web3.HTTPProvider(
+                    args.web3,
+                )
+            )
+            if args.poa:
+                logger.info("Using PoA middleware")
+                web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-#         confirmations = args.confirmations
+        last_labeled_block = get_last_labeled_block_number(db_session, blockchain_type)
+        logger.info(f"Last labeled block: {last_labeled_block}")
 
-#         if not args.no_confirmations:
-#             assert confirmations > 0, "confirmations must be greater than 0"
-#         else:
-#             confirmations = 0
+        start_block = args.start
+        if start_block is None:
+            logger.info("No start block provided")
+            if last_labeled_block is not None:
+                start_block = last_labeled_block - 1
+                logger.info(f"Using last labeled block as start: {start_block}")
+            else:
+                logger.info(
+                    "No last labeled block found, using  start block (web3.eth.blockNumber - 300)"
+                )
+                start_block = web3.eth.blockNumber - 10000
+                logger.info(f"Starting from block: {start_block}")
+        elif last_labeled_block is not None:
+            if start_block < last_labeled_block and not args.force:
+                logger.info(
+                    f"Start block is less than last labeled block, using last labeled block: {last_labeled_block}"
+                )
+                logger.info(
+                    f"Use --force to override this and start from the start block: {start_block}"
+                )
 
-#         continuous_crawler(
-#             db_session,
-#             blockchain_type,
-#             web3,
-#             initial_event_jobs,
-#             initial_function_call_jobs,
-#             start_block,
-#             args.max_blocks_batch,
-#             args.min_blocks_batch,
-#             confirmations,
-#             args.min_sleep_time,
-#             args.heartbeat_interval,
-#             args.new_jobs_refetch_interval,
-#             web3_uri=args.web3_uri,
-#         )
+                start_block = last_labeled_block
+            else:
+                logger.info(f"Using start block: {start_block}")
+        else:
+            logger.info(f"Using start block: {start_block}")
+
+        confirmations = args.confirmations
+
+        if not args.no_confirmations:
+            assert confirmations > 0, "confirmations must be greater than 0"
+        else:
+            confirmations = 0
+
+        craw_event_jobs = list(initial_event_jobs.values())
+        initial_function_call_jobs = list(initial_function_call_jobs.values())
+
+        continuous_crawler(
+            db_session,
+            blockchain_type,
+            web3,
+            craw_event_jobs,
+            initial_function_call_jobs,
+            start_block,
+            args.max_blocks_batch,
+            args.min_blocks_batch,
+            confirmations,
+            args.min_sleep_time,
+            args.heartbeat_interval,
+            args.new_jobs_refetch_interval,
+            web3_uri=args.web3_uri,
+        )
 
 
 def handle_historical_crawl(args: argparse.Namespace) -> None:
@@ -443,6 +478,170 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
             web3,
             filtered_event_jobs,
             filtered_function_call_jobs,
+            start_block,
+            end_block,
+            args.max_blocks_batch,
+            args.min_sleep_time,
+            web3_uri=args.web3_uri,
+            addresses_deployment_blocks=addresses_deployment_blocks,
+        )
+
+
+def handle_historical_crawl_v3(args: argparse.Namespace) -> None:
+    """
+    Historical crawl for MoonstreamDB v3
+    """
+
+    blockchain_type = AvailableBlockchainType(args.blockchain_type)
+    subscription_type = blockchain_type_to_subscription_type(blockchain_type)
+
+    addresses_filter = []
+    if args.address is not None:
+        ## 40 hexadecimal characters format
+
+        addresses_filter.append(args.address[2:])
+
+    index_engine = MoonstreamDBIndexesEngine()
+
+    with index_engine.yield_db_session_ctx() as index_db_session:
+
+        initial_event_jobs = get_event_crawl_job_records(
+            index_db_session,
+            blockchain_type,
+            addresses_filter,
+            {},
+        )
+
+        logger.info(f"Initial event crawl jobs count: {len(initial_event_jobs)}")
+
+        initial_function_call_jobs = get_function_call_crawl_job_records(
+            index_db_session,
+            blockchain_type,
+            addresses_filter,
+            {},
+        )
+
+        logger.info(
+            f"Initial function call crawl jobs count: {len(initial_function_call_jobs)}"
+        )
+
+    customer_connection = get_db_connection(args.customer_uuid)
+
+    if args.only_events:
+        filtered_function_call_jobs = []
+        logger.info(f"Removing function call crawl jobs since --only-events is set")
+    else:
+        filtered_function_call_jobs = initial_function_call_jobs.values()
+
+    if args.only_functions:
+        filtered_event_jobs = []
+        logger.info(
+            f"Removing event crawl jobs since --only-functions is set. Function call jobs count: {len(filtered_function_call_jobs)}"
+        )
+    else:
+        filtered_event_jobs = initial_event_jobs.values()
+
+    if args.only_events and args.only_functions:
+        raise ValueError(
+            "--only-events and --only-functions cannot be set at the same time"
+        )
+
+    logger.info(
+        f"Initial function call crawl jobs count: {len(filtered_function_call_jobs)}"
+    )
+
+    logger.info(f"Blockchain type: {blockchain_type.value}")
+
+    customer_engine = MoonstreamDBEngine()
+
+    with customer_engine.yield_db_session_ctx() as db_session:
+        web3: Optional[Web3] = None
+        if args.web3 is None:
+            logger.info(
+                "No web3 provider URL provided, using default (blockchan.py: connect())"
+            )
+            web3 = _retry_connect_web3(blockchain_type, web3_uri=args.web3_uri)
+        else:
+            logger.info(f"Using web3 provider URL: {args.web3}")
+            web3 = Web3(
+                Web3.HTTPProvider(
+                    args.web3,
+                )
+            )
+            if args.poa:
+                logger.info("Using PoA middleware")
+                web3.middleware_onion.inject(geth_poa_middleware, layer=0)
+
+        last_labeled_block = get_first_labeled_block_number(
+            db_session, blockchain_type, args.address, only_events=args.only_events
+        )
+        logger.info(f"Last labeled block: {last_labeled_block}")
+
+        addresses_deployment_blocks = None
+
+        end_block = args.end
+
+        start_block = args.start
+
+        # get set of addresses from event jobs and function call jobs
+        if args.find_deployed_blocks:
+            addresses_set = set()
+            for job in filtered_event_jobs:
+                addresses_set.update(job.contracts)
+            for function_job in filtered_function_call_jobs:
+                addresses_set.add(function_job.contract_address)
+
+            if args.start is None:
+                start_block = web3.eth.blockNumber - 1
+
+            addresses_deployment_blocks = find_all_deployed_blocks(
+                web3, list(addresses_set)
+            )
+            if len(addresses_deployment_blocks) == 0:
+                logger.error(
+                    "No addresses found in the blockchain. Please check your addresses and try again"
+                )
+                return
+            end_block = min(addresses_deployment_blocks.values())
+
+        if start_block is None:
+            logger.info("No start block provided")
+            if last_labeled_block is not None:
+                start_block = last_labeled_block
+                logger.info(f"Using last labeled block as start: {start_block}")
+            else:
+                logger.info(
+                    "No last labeled block found, using  start block (web3.eth.blockNumber - 300)"
+                )
+                raise ValueError(
+                    "No start block provided and no last labeled block found"
+                )
+        elif last_labeled_block is not None:
+            if start_block > last_labeled_block and not args.force:
+                logger.info(
+                    f"Start block is less than last labeled block, using last labeled block: {last_labeled_block}"
+                )
+                logger.info(
+                    f"Use --force to override this and start from the start block: {start_block}"
+                )
+
+                start_block = last_labeled_block
+            else:
+                logger.info(f"Using start block: {start_block}")
+        else:
+            logger.info(f"Using start block: {start_block}")
+
+        if start_block < end_block:
+            raise ValueError(
+                f"Start block {start_block} is less than end block {end_block}. This crawler crawls in the reverse direction."
+            )
+
+        historical_crawler(
+            db_session,
+            blockchain_type,
+            web3,
+            filtered_event_jobs,  # type: ignore
+            filtered_function_call_jobs,  # type: ignore
             start_block,
             end_block,
             args.max_blocks_batch,

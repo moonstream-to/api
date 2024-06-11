@@ -39,6 +39,7 @@ def historical_crawler(
     web3_uri: Optional[str] = None,
     addresses_deployment_blocks: Optional[Dict[ChecksumAddress, int]] = None,
     max_insert_batch: int = 10000,
+    v3_schema: bool = False,
 ):
     assert max_blocks_batch > 0, "max_blocks_batch must be greater than 0"
     assert min_sleep_time > 0, "min_sleep_time must be greater than 0"
@@ -117,11 +118,14 @@ def historical_crawler(
                         db_session,
                         all_events[i : i + max_insert_batch],
                         blockchain_type,
+                        v3_schema,
                     )
 
             else:
 
-                add_events_to_session(db_session, all_events, blockchain_type)
+                add_events_to_session(
+                    db_session, all_events, blockchain_type, v3_schema
+                )
 
             if function_call_crawl_jobs:
                 logger.info(

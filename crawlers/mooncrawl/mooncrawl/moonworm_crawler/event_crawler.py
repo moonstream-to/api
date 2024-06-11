@@ -26,6 +26,7 @@ class Event:
     block_timestamp: int
     transaction_hash: str
     log_index: int
+    block_hash: Optional[str] = None
 
 
 def _get_block_timestamp_from_web3(

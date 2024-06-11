@@ -14,6 +14,8 @@ from moonstreamdb.blockchain import AvailableBlockchainType
 from moonstreamdb.subscriptions import SubscriptionTypes
 from moonstreamdbv3.models_indexes import AbiJobs
 from moonworm.deployment import find_deployment_block  # type: ignore
+from sqlalchemy import func
+from sqlalchemy.orm import Session
 from web3.main import Web3
 
 from ..blockchain import connect
@@ -694,66 +696,116 @@ def add_progress_to_tags(
     return entries_tags_delete, entries_tags_add
 
 
-# def get_event_crawl_job_records(
-#     db_session: Session, blockchain_type: AvailableBlockchainType
-# ):
+def get_event_crawl_job_records(
+    db_session: Session,
+    blockchain_type: AvailableBlockchainType,
+    addresses: List[str],
+    existing_crawl_job_records: Dict[str, EventCrawlJob],
+):
+    """
+    Retrieve and update the event crawl job records from the database.
+    """
 
-#     crawl_job_records = (
-#         db_session.query(AbiJobs).filter(AbiJobs.chain == blockchain_type.value).all()
-#     )
+    query = (
+        db_session.query(AbiJobs)
+        .filter(AbiJobs.chain == blockchain_type.value)
+        .filter(func.length(AbiJobs.abi_selector) > 8)
+    )
 
-#     existing_crawl_job_records = {}
+    if len(addresses) != 0:
+        crawl_job_records = query.filter(AbiJobs.address.in_(addresses))
 
-#     result = []
+    crawl_job_records = query.all()
 
-#     for crawl_job_record in crawl_job_records:
+    if len(crawl_job_records) == 0:
+        return existing_crawl_job_records
 
-#         str_address = crawl_job_record.address.hex()
+    for crawl_job_record in crawl_job_records:
 
-#         if crawl_job_record.abi_selector in existing_crawl_job_records:
-#             existing_crawl_job_records[crawl_job_record.abi_selector].contracts.append(
-#                 crawl_job_record.address
-#             )
+        str_address = crawl_job_record.address.hex()
 
-#         else:
-#             new_crawl_job = EventCrawlJob(
-#                 event_abi_hash=crawl_job_record.abi_selector,
-#                 event_abi=json.loads(crawl_job_record.abi),
-#                 contracts=[str_address],
-#                 address_entries={
-#                     crawl_job_record.address: {
-#                         crawl_job_record.id: crawl_job_record.tags
-#                     }
-#                 },
-#                 created_at=int(crawl_job_record.created_at.timestamp()),
-#             )
-#             existing_crawl_job_records[crawl_job_record.abi_selector] = new_crawl_job
+        if crawl_job_record.abi_selector in existing_crawl_job_records:
 
-#     ### refomrat this to return list of EventCrawlJob objects
+            if (
+                str_address
+                not in existing_crawl_job_records[
+                    crawl_job_record.abi_selector
+                ].contracts
+            ):
+                existing_crawl_job_records[
+                    crawl_job_record.abi_selector
+                ].contracts.append(crawl_job_record.address.hex())
 
-#     for crawl_job in existing_crawl_job_records.values():
-#         result.append(crawl_job)
+        else:
+            new_crawl_job = EventCrawlJob(
+                event_abi_hash=str(crawl_job_record.abi_selector),
+                event_abi=json.loads(json.loads(str(crawl_job_record.abi))),
+                contracts=[str_address],
+                address_entries={
+                    crawl_job_record.address.hex(): {
+                        UUID(str(crawl_job_record.id)): [
+                            str(crawl_job_record.status),
+                            str(crawl_job_record.progress),
+                        ]
+                    }
+                },
+                created_at=int(crawl_job_record.created_at.timestamp()),
+            )
+            existing_crawl_job_records[str(crawl_job_record.abi_selector)] = (
+                new_crawl_job
+            )
 
-#     return crawl_job_records
+    return existing_crawl_job_records
 
 
-# def get_function_call_crawl_job_records(
-#     db_session: Session, blockchain_type: AvailableBlockchainType
-# ):
+def get_function_call_crawl_job_records(
+    db_session: Session,
+    blockchain_type: AvailableBlockchainType,
+    addresses: List[str],
+    existing_crawl_job_records: Dict[str, FunctionCallCrawlJob],
+):
+    """
+    Retrieve and update the function call crawl job records from the database.
+    """
 
-#     crawl_job_records = (
-#         db_session.query(AbiJobs).filter(AbiJobs.chain == blockchain_type.value).all()
-#     )
+    # Query AbiJobs where the abi_selector is exactly 8 characters long.
+    query = (
+        db_session.query(AbiJobs)
+        .filter(AbiJobs.chain == blockchain_type.value)
+        .filter(func.length(AbiJobs.abi_selector) == 8)
+    )
 
-#     existing_crawl_job_records = {}
+    if len(addresses) != 0:
+        crawl_job_records = query.filter(AbiJobs.address.in_(addresses))
 
-#     result = []
+    crawl_job_records = query.all()
 
-#     """
-#     class FunctionCallCrawlJob:
-#         contract_abi: List[Dict[str, Any]]
-#         contract_address: ChecksumAddress
-#         entries_tags: Dict[UUID, List[str]]
-#         created_at: int
+    # Iterate over each record fetched from the database
+    for crawl_job_record in crawl_job_records:
+        str_address = crawl_job_record.address.hex()  # Convert address to hex string
 
-#     """
+        if crawl_job_record.abi_selector in existing_crawl_job_records:
+            # If abi_selector already exists in the records, append new address if not already listed
+            current_job = existing_crawl_job_records[crawl_job_record.abi_selector]
+            if str_address not in current_job.contract_address:
+                # Since it should handle a single address, we ensure not to append but update if necessary.
+                current_job.contract_address = str_address
+        else:
+            # Create a new FunctionCallCrawlJob record if the abi_selector is not found in existing records.
+            new_crawl_job = FunctionCallCrawlJob(
+                contract_abi=[json.loads(str(crawl_job_record.abi))],
+                contract_address=str_address,
+                entries_tags={
+                    UUID(str(crawl_job_record.id)): [
+                        str(crawl_job_record.status),
+                        str(crawl_job_record.progress),
+                    ],
+                },
+                created_at=int(crawl_job_record.created_at.timestamp()),
+            )
+
+            existing_crawl_job_records[str(crawl_job_record.abi_selector)] = (
+                new_crawl_job
+            )
+
+    return existing_crawl_job_records
