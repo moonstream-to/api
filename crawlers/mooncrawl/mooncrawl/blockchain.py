@@ -42,7 +42,7 @@ from .settings import (
     MOONSTREAM_NODE_XDAI_A_EXTERNAL_URI,
     MOONSTREAM_NODE_ZKSYNC_ERA_A_EXTERNAL_URI,
     MOONSTREAM_NODE_ZKSYNC_ERA_SEPOLIA_A_EXTERNAL_URI,
-    MOONSTREAM_GAME7_ORBIT_ARBITRUM_SEPOLIA_WEB3_PROVIDER_URI,
+    MOONSTREAM_NODE_GAME7_ORBIT_ARBITRUM_SEPOLIA_A_EXTERNAL_URI,
     WEB3_CLIENT_REQUEST_TIMEOUT_SECONDS,
 )
 
@@ -57,7 +57,7 @@ class BlockCrawlError(Exception):
 
 
 def connect(
-    blockchain_type: Optional[AvailableBlockchainType] = None,
+    blockchain_type: Optional[Union[AvailableBlockchainType, AvailableBlockchainTypeV3]] = None,
     web3_uri: Optional[str] = None,
 ) -> Web3:
     if blockchain_type is None and web3_uri is None:
@@ -143,7 +143,7 @@ def connect(
                 blockchain_type
                 == AvailableBlockchainTypeV3.GAME7_ORBIT_ARBITRUM_SEPOLIA
             ):
-                web3_uri = MOONSTREAM_GAME7_ORBIT_ARBITRUM_SEPOLIA_WEB3_PROVIDER_URI
+                web3_uri = MOONSTREAM_NODE_GAME7_ORBIT_ARBITRUM_SEPOLIA_A_EXTERNAL_URI
             else:
                 raise Exception("Wrong blockchain type provided for web3 URI")
 
