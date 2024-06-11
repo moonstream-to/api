@@ -160,6 +160,8 @@ def get_db_connection(uuid):
     except requests.RequestException as e:
         logging.error(f"Network-related error for UUID {uuid}: {str(e)}")
         raise ValueError(f"Network-related error for UUID {uuid}: {str(e)}")
+    except Exception as e:
+        raise Exception(f"Unhandled exception, error: {str(e)}")
 
     connection_string = response.text.strip('"')
 
@@ -776,7 +778,7 @@ def main() -> None:
         "--blockchain-type",
         "-b",
         type=str,
-        help=f"Available blockchain types: {[member.value for member in AvailableBlockchainType]}",
+        help=f"Available blockchain types: {[member.value for member in AvailableBlockchainTypeV3]}",
     )
 
     crawl_parser_v3.add_argument(
@@ -882,7 +884,7 @@ def main() -> None:
         "--blockchain-type",
         "-b",
         type=str,
-        help=f"Available blockchain types: {[member.value for member in AvailableBlockchainType]}",
+        help=f"Available blockchain types: {[member.value for member in AvailableBlockchainTypeV3]}",
     )
     historical_crawl_parser.add_argument(
         "--web3",
