@@ -29,7 +29,7 @@ from .migrations import (
     generate_entity_subscriptions,
     update_dashboard_subscription_key,
 )
-from .databases import databases_v2_to_v3_labels_migration
+# from .databases import databases_v2_to_v3_labels_migration
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -310,7 +310,7 @@ def databases_v2_to_v3_labels_migration_handler(args: argparse.Namespace) -> Non
     Migrate labels in database
     """
 
-    databases_v2_to_v3_labels_migration(args.user_id, args.blockchain)
+    # databases_v2_to_v3_labels_migration(args.user_id, args.blockchain)
 
 
 def create_v3_task_handler(args: argparse.Namespace) -> None:
@@ -320,7 +320,7 @@ def create_v3_task_handler(args: argparse.Namespace) -> None:
         customer_id=args.customer_id,
         blockchain=args.blockchain,
         address=args.address,
-        abi=args.abi.read(),
+        abi=json.loads(args.abi.read()),
     )
 
 

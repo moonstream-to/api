@@ -106,7 +106,6 @@ def create_v3_task(
     """
     Create moonworm task for v3
     """
-
     abi_tasks = []
 
     db_engine = MoonstreamDBIndexesEngine()
@@ -114,9 +113,8 @@ def create_v3_task(
     with db_engine.yield_db_session_ctx() as db_session_v3:
 
         for task in abi:
-
             abi_selector = Web3.keccak(
-                text=abi["name"]
+                text=task["name"]
                 + "("
                 + ",".join(map(lambda x: x["type"], abi["inputs"]))
                 + ")"
@@ -141,7 +139,7 @@ def create_v3_task(
                         "historical_crawl_status": "pending",
                         "progress": 0,
                         "moonworm_task_pickedup": False,
-                        "abi": json.dumps(abi),
+                        "abi": json.dumps(task),
                     }
                 )
 
