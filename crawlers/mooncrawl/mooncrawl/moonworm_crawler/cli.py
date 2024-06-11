@@ -9,6 +9,9 @@ import requests
 from moonstreamdb.blockchain import AvailableBlockchainType
 from moonstreamdb.subscriptions import blockchain_type_to_subscription_type
 from moonstreamdbv3.db import MoonstreamDBEngine, MoonstreamDBIndexesEngine
+from moonstreamdbv3.blockchain import (
+    AvailableBlockchainType as AvailableBlockchainTypeV3,
+)
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
@@ -492,8 +495,8 @@ def handle_historical_crawl_v3(args: argparse.Namespace) -> None:
     Historical crawl for MoonstreamDB v3
     """
 
-    blockchain_type = AvailableBlockchainType(args.blockchain_type)
-    subscription_type = blockchain_type_to_subscription_type(blockchain_type)
+    blockchain_type = AvailableBlockchainTypeV3(args.blockchain_type)
+    ##subscription_type = blockchain_type_to_subscription_type(blockchain_type)
 
     addresses_filter = []
     if args.address is not None:
@@ -527,6 +530,7 @@ def handle_historical_crawl_v3(args: argparse.Namespace) -> None:
 
     customer_connection = get_db_connection(args.customer_uuid)
 
+    filtered_function_call_jobs = []  # v1
     if args.only_events:
         filtered_function_call_jobs = []
         logger.info(f"Removing function call crawl jobs since --only-events is set")
@@ -940,6 +944,112 @@ def main() -> None:
         help="Use tasks journal wich will fill all required fields for historical crawl",
     )
     historical_crawl_parser.set_defaults(func=handle_historical_crawl)
+
+    historical_crawl_parser_v3 = subparsers.add_parser(
+        "historical-crawl-v3", help="Crawl historical data"
+    )
+
+    historical_crawl_parser_v3.add_argument(
+        "--address",
+        "-a",
+        required=False,
+        type=str,
+    )
+
+    historical_crawl_parser_v3.add_argument(
+        "--start",
+        "-s",
+        type=int,
+        default=None,
+    )
+
+    historical_crawl_parser_v3.add_argument(
+        "--end",
+        "-e",
+        type=int,
+        required=False,
+    )
+
+    historical_crawl_parser_v3.add_argument(
+        "--blockchain-type",
+        "-b",
+        type=str,
+        help=f"Available blockchain types: {[member.value for member in AvailableBlockchainType]}",
+    )
+
+    historical_crawl_parser_v3.add_argument(
+        "--web3",
+        type=str,
+        default=None,
+        help="Web3 provider URL",
+    )
+
+    historical_crawl_parser_v3.add_argument(
+        "--poa",
+        action="store_true",
+        default=False,
+        help="Use PoA middleware",
+    )
+
+    historical_crawl_parser_v3.add_argument(
+        "--max-blocks-batch",
+        "-m",
+        type=int,
+        default=80,
+        help="Maximum number of blocks to crawl in a single batch",
+    )
+
+    historical_crawl_parser_v3.add_argument(
+        "--min-sleep-time",
+        "-t",
+        type=float,
+        default=0.1,
+        help="Minimum time to sleep between crawl step",
+    )
+
+    historical_crawl_parser_v3.add_argument(
+        "--force",
+        action="store_true",
+        default=False,
+        help="Force start from the start block",
+    )
+
+    historical_crawl_parser_v3.add_argument(
+        "--only-events",
+        action="store_true",
+        default=False,
+        help="Only crawl events",
+    )
+
+    historical_crawl_parser_v3.add_argument(
+        "--only-functions",
+        action="store_true",
+        default=False,
+        help="Only crawl function calls",
+    )
+
+    historical_crawl_parser_v3.add_argument(
+        "--find-deployed-blocks",
+        action="store_true",
+        default=False,
+        help="Find all deployed blocks",
+    )
+
+    historical_crawl_parser_v3.add_argument(
+        "--customer-uuid",
+        type=UUID,
+        required=True,
+        help="Customer UUID",
+    )
+
+    historical_crawl_parser_v3.add_argument(
+        "--user-uuid",
+        type=UUID,
+        required=False,
+        help="User UUID",
+    )
+
+    historical_crawl_parser_v3.set_defaults(func=handle_historical_crawl_v3)
 
     args = parser.parse_args()
     args.func(args)

@@ -739,7 +739,7 @@ def get_event_crawl_job_records(
         else:
             new_crawl_job = EventCrawlJob(
                 event_abi_hash=str(crawl_job_record.abi_selector),
-                event_abi=json.loads(json.loads(str(crawl_job_record.abi))),
+                event_abi=json.loads(str(crawl_job_record.abi)),
                 contracts=[str_address],
                 address_entries={
                     crawl_job_record.address.hex(): {
