@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from typing import List, Dict, Union, Any, Optional
+from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 import boto3  # type: ignore
@@ -12,12 +12,11 @@ from moonstreamdbv3.models_indexes import AbiJobs
 from sqlalchemy.dialects.postgresql import insert
 from web3 import Web3
 
-
 from ..actions import apply_moonworm_tasks, get_all_entries_from_search
 from ..settings import (
+    BUGOUT_REQUEST_TIMEOUT_SECONDS,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_MOONWORM_TASKS_JOURNAL,
-    BUGOUT_REQUEST_TIMEOUT_SECONDS,
 )
 from ..settings import bugout_client as bc
 from .subscription_types import CANONICAL_SUBSCRIPTION_TYPES
@@ -113,14 +112,17 @@ def create_v3_task(
     with db_engine.yield_db_session_ctx() as db_session_v3:
 
         for task in abi:
+            if task["type"] != "event" and task["type"] != "function":
+                continue
+
             abi_selector = Web3.keccak(
                 text=task["name"]
                 + "("
-                + ",".join(map(lambda x: x["type"], abi["inputs"]))
+                + ",".join(map(lambda x: x["type"], task["inputs"]))
                 + ")"
             )
 
-            if abi["type"] == "function":
+            if task["type"] == "function":
                 abi_selector = abi_selector[:4]
 
             abi_selector = abi_selector.hex()
@@ -134,7 +136,7 @@ def create_v3_task(
                         "customer_id": customer_id,
                         "abi_selector": abi_selector,
                         "chain": blockchain,
-                        "abi_name": abi["name"],
+                        "abi_name": task["name"],
                         "status": "active",
                         "historical_crawl_status": "pending",
                         "progress": 0,
@@ -145,7 +147,7 @@ def create_v3_task(
 
             except Exception as e:
                 logger.error(
-                    f"Error creating subscription for subscription for abi {abi['name']}: {str(e)}"
+                    f"Error creating subscription for subscription for abi {task['name']}: {str(e)}"
                 )
                 db_session_v3.rollback()
                 raise e
