@@ -111,18 +111,18 @@ def create_v3_task(
 
     with db_engine.yield_db_session_ctx() as db_session_v3:
 
-        for task in abi:
-            if task["type"] != "event" and task["type"] != "function":
+        for abi_task in abi:
+            if abi_task["type"] != "event" and abi_task["type"] != "function":
                 continue
 
             abi_selector = Web3.keccak(
-                text=task["name"]
+                text=abi_task["name"]
                 + "("
-                + ",".join(map(lambda x: x["type"], task["inputs"]))
+                + ",".join(map(lambda x: x["type"], abi_task["inputs"]))
                 + ")"
             )
 
-            if task["type"] == "function":
+            if abi_task["type"] == "function":
                 abi_selector = abi_selector[:4]
 
             abi_selector = abi_selector.hex()
@@ -136,18 +136,18 @@ def create_v3_task(
                         "customer_id": customer_id,
                         "abi_selector": abi_selector,
                         "chain": blockchain,
-                        "abi_name": task["name"],
+                        "abi_name": abi_task["name"],
                         "status": "active",
                         "historical_crawl_status": "pending",
                         "progress": 0,
                         "moonworm_task_pickedup": False,
-                        "abi": json.dumps(task),
+                        "abi": json.dumps(abi_task),
                     }
                 )
 
             except Exception as e:
                 logger.error(
-                    f"Error creating subscription for subscription for abi {task['name']}: {str(e)}"
+                    f"Error creating subscription for subscription for abi {abi_task['name']}: {str(e)}"
                 )
                 db_session_v3.rollback()
                 raise e

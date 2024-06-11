@@ -6,9 +6,9 @@ import argparse
 import json
 import logging
 import os
+import uuid
 from posix import listdir
 from typing import Any, Callable, Dict, List, Optional, Union
-import uuid
 
 from moonstreamdb.db import SessionLocal
 from sqlalchemy.orm import with_expression
@@ -29,7 +29,6 @@ from .migrations import (
     generate_entity_subscriptions,
     update_dashboard_subscription_key,
 )
-# from .databases import databases_v2_to_v3_labels_migration
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -303,14 +302,6 @@ def moonworm_tasks_v3_migrate(args: argparse.Namespace) -> None:
     moonworm_tasks.migrate_v3_tasks(
         user_id=args.user_id, customer_id=args.customer_id, blockchain=args.blockchain
     )
-
-
-def databases_v2_to_v3_labels_migration_handler(args: argparse.Namespace) -> None:
-    """
-    Migrate labels in database
-    """
-
-    # databases_v2_to_v3_labels_migration(args.user_id, args.blockchain)
 
 
 def create_v3_task_handler(args: argparse.Namespace) -> None:
