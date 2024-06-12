@@ -42,7 +42,15 @@ from .settings import (
     MOONSTREAM_NODE_XDAI_A_EXTERNAL_URI,
     MOONSTREAM_NODE_ZKSYNC_ERA_A_EXTERNAL_URI,
     MOONSTREAM_NODE_ZKSYNC_ERA_SEPOLIA_A_EXTERNAL_URI,
+<<<<<<< Updated upstream
     MOONSTREAM_NODE_GAME7_ORBIT_ARBITRUM_SEPOLIA_A_EXTERNAL_URI,
+=======
+    MOONSTREAM_NODE_STARKNET_A_EXTERNAL_URI,
+    MOONSTREAM_NODE_STARKNET_SEPOLIA_A_EXTERNAL_URI,
+    MOONSTREAM_NODE_MANTLE_A_EXTERNAL_URI,
+    MOONSTREAM_NODE_MANTLE_SEPOLIA_A_EXTERNAL_URI,
+    MOONSTREAM_GAME7_ORBIT_ARBITRUM_SEPOLIA_A_EXTERNAL_URI,
+>>>>>>> Stashed changes
     WEB3_CLIENT_REQUEST_TIMEOUT_SECONDS,
 )
 
@@ -56,8 +64,66 @@ class BlockCrawlError(Exception):
     """
 
 
+def get_web3_uri(blockchain_type):
+
+    default_uri_mapping = {
+        AvailableBlockchainType.ETHEREUM: MOONSTREAM_NODE_ETHEREUM_A_EXTERNAL_URI,
+        AvailableBlockchainType.POLYGON: MOONSTREAM_NODE_POLYGON_A_EXTERNAL_URI,
+        AvailableBlockchainType.MUMBAI: MOONSTREAM_NODE_MUMBAI_A_EXTERNAL_URI,
+        AvailableBlockchainType.AMOY: MOONSTREAM_NODE_AMOY_A_EXTERNAL_URI,
+        AvailableBlockchainType.XDAI: MOONSTREAM_NODE_XDAI_A_EXTERNAL_URI,
+        AvailableBlockchainType.ZKSYNC_ERA: MOONSTREAM_NODE_ZKSYNC_ERA_A_EXTERNAL_URI,
+        AvailableBlockchainType.ZKSYNC_ERA_SEPOLIA: MOONSTREAM_NODE_ZKSYNC_ERA_SEPOLIA_A_EXTERNAL_URI,
+        AvailableBlockchainType.ARBITRUM_ONE: MOONSTREAM_NODE_ARBITRUM_ONE_A_EXTERNAL_URI,
+        AvailableBlockchainType.ARBITRUM_NOVA: MOONSTREAM_NODE_ARBITRUM_NOVA_A_EXTERNAL_URI,
+        AvailableBlockchainType.ARBITRUM_SEPOLIA: MOONSTREAM_NODE_ARBITRUM_SEPOLIA_A_EXTERNAL_URI,
+        AvailableBlockchainType.XAI: MOONSTREAM_NODE_XAI_A_EXTERNAL_URI,
+        AvailableBlockchainType.XAI_SEPOLIA: MOONSTREAM_NODE_XAI_SEPOLIA_A_EXTERNAL_URI,
+        AvailableBlockchainType.AVALANCHE: MOONSTREAM_NODE_AVALANCHE_A_EXTERNAL_URI,
+        AvailableBlockchainType.AVALANCHE_FUJI: MOONSTREAM_NODE_AVALANCHE_FUJI_A_EXTERNAL_URI,
+        AvailableBlockchainType.BLAST: MOONSTREAM_NODE_BLAST_A_EXTERNAL_URI,
+        AvailableBlockchainType.BLAST_SEPOLIA: MOONSTREAM_NODE_BLAST_SEPOLIA_A_EXTERNAL_URI,
+        AvailableBlockchainType.PROOFOFPLAY_APEX: MOONSTREAM_NODE_PROOFOFPLAY_APEX_A_EXTERNAL_URI,
+    }
+
+    v3_uri_mapping = {
+        AvailableBlockchainTypeV3.ETHEREUM: MOONSTREAM_NODE_ETHEREUM_A_EXTERNAL_URI,
+        AvailableBlockchainTypeV3.POLYGON: MOONSTREAM_NODE_POLYGON_A_EXTERNAL_URI,
+        AvailableBlockchainTypeV3.MUMBAI: MOONSTREAM_NODE_MUMBAI_A_EXTERNAL_URI,
+        AvailableBlockchainTypeV3.AMOY: MOONSTREAM_NODE_AMOY_A_EXTERNAL_URI,
+        AvailableBlockchainTypeV3.XDAI: MOONSTREAM_NODE_XDAI_A_EXTERNAL_URI,
+        AvailableBlockchainTypeV3.ZKSYNC_ERA: MOONSTREAM_NODE_ZKSYNC_ERA_A_EXTERNAL_URI,
+        AvailableBlockchainTypeV3.ZKSYNC_ERA_SEPOLIA: MOONSTREAM_NODE_ZKSYNC_ERA_SEPOLIA_A_EXTERNAL_URI,
+        AvailableBlockchainTypeV3.ARBITRUM_ONE: MOONSTREAM_NODE_ARBITRUM_ONE_A_EXTERNAL_URI,
+        AvailableBlockchainTypeV3.ARBITRUM_NOVA: MOONSTREAM_NODE_ARBITRUM_NOVA_A_EXTERNAL_URI,
+        AvailableBlockchainTypeV3.ARBITRUM_SEPOLIA: MOONSTREAM_NODE_ARBITRUM_SEPOLIA_A_EXTERNAL_URI,
+        AvailableBlockchainTypeV3.XAI: MOONSTREAM_NODE_XAI_A_EXTERNAL_URI,
+        AvailableBlockchainTypeV3.XAI_SEPOLIA: MOONSTREAM_NODE_XAI_SEPOLIA_A_EXTERNAL_URI,
+        AvailableBlockchainTypeV3.AVALANCHE: MOONSTREAM_NODE_AVALANCHE_A_EXTERNAL_URI,
+        AvailableBlockchainTypeV3.AVALANCHE_FUJI: MOONSTREAM_NODE_AVALANCHE_FUJI_A_EXTERNAL_URI,
+        AvailableBlockchainTypeV3.BLAST: MOONSTREAM_NODE_BLAST_A_EXTERNAL_URI,
+        AvailableBlockchainTypeV3.BLAST_SEPOLIA: MOONSTREAM_NODE_BLAST_SEPOLIA_A_EXTERNAL_URI,
+        AvailableBlockchainTypeV3.PROOFOFPLAY_APEX: MOONSTREAM_NODE_PROOFOFPLAY_APEX_A_EXTERNAL_URI,
+        AvailableBlockchainTypeV3.STARKNET: MOONSTREAM_NODE_STARKNET_A_EXTERNAL_URI,
+        AvailableBlockchainTypeV3.STARKNET_SEPOLIA: MOONSTREAM_NODE_STARKNET_SEPOLIA_A_EXTERNAL_URI,
+        AvailableBlockchainTypeV3.MANTLE: MOONSTREAM_NODE_MANTLE_A_EXTERNAL_URI,
+        AvailableBlockchainTypeV3.MANTLE_SEPOLIA: MOONSTREAM_NODE_MANTLE_SEPOLIA_A_EXTERNAL_URI,
+        AvailableBlockchainTypeV3.GAME7_ORBIT_ARBITRUM_SEPOLIA: MOONSTREAM_GAME7_ORBIT_ARBITRUM_SEPOLIA_A_EXTERNAL_URI,
+    }
+
+    if isinstance(blockchain_type, AvailableBlockchainTypeV3):
+        return v3_uri_mapping.get(blockchain_type)
+    return default_uri_mapping.get(blockchain_type)
+
+
 def connect(
+<<<<<<< Updated upstream
     blockchain_type: Optional[Union[AvailableBlockchainType, AvailableBlockchainTypeV3]] = None,
+=======
+    blockchain_type: Optional[
+        Union[AvailableBlockchainType, AvailableBlockchainTypeV3]
+    ] = None,
+>>>>>>> Stashed changes
     web3_uri: Optional[str] = None,
 ) -> Web3:
     if blockchain_type is None and web3_uri is None:
@@ -67,6 +133,7 @@ def connect(
 
     request_kwargs: Dict[str, Any] = {"headers": {"Content-Type": "application/json"}}
     if web3_uri is None:
+<<<<<<< Updated upstream
         if isinstance(blockchain_type, AvailableBlockchainType):
             if blockchain_type == AvailableBlockchainType.ETHEREUM:
                 web3_uri = MOONSTREAM_NODE_ETHEREUM_A_EXTERNAL_URI
@@ -146,6 +213,9 @@ def connect(
                 web3_uri = MOONSTREAM_NODE_GAME7_ORBIT_ARBITRUM_SEPOLIA_A_EXTERNAL_URI
             else:
                 raise Exception("Wrong blockchain type provided for web3 URI")
+=======
+        web3_uri = get_web3_uri(blockchain_type)
+>>>>>>> Stashed changes
 
     if web3_uri.startswith("http://") or web3_uri.startswith("https://"):
         request_kwargs["timeout"] = WEB3_CLIENT_REQUEST_TIMEOUT_SECONDS

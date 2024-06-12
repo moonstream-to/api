@@ -13,6 +13,9 @@ from eth_typing.evm import ChecksumAddress
 from moonstreamdb.blockchain import AvailableBlockchainType
 from moonstreamdb.subscriptions import SubscriptionTypes
 from moonstreamdbv3.models_indexes import AbiJobs
+from moonstreamdbv3.blockchain import (
+    AvailableBlockchainType as AvailableBlockchainTypeV3,
+)
 from moonworm.deployment import find_deployment_block  # type: ignore
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -95,7 +98,7 @@ def _generate_reporter_callback(
 
 
 def _retry_connect_web3(
-    blockchain_type: AvailableBlockchainType,
+    blockchain_type: Union[AvailableBlockchainType, AvailableBlockchainTypeV3],
     retry_count: int = 10,
     sleep_time: float = 5,
     web3_uri: Optional[str] = None,

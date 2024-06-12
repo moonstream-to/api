@@ -125,12 +125,13 @@ def get_last_labeled_block_number(
 
 def get_first_labeled_block_number(
     db_session: Session,
-    blockchain_type: AvailableBlockchainType,
+    blockchain_type: Union[AvailableBlockchainType, AvailableBlockchainTypeV3],
     address: str,
-    label_name=CRAWLER_LABEL,
+    label_name: str = CRAWLER_LABEL,
     only_events: bool = False,
     db_version: int = 2,
 ) -> Optional[int]:
+<<<<<<< Updated upstream
     label_model = get_label_model(blockchain_type, version=db_version)
     block_number_query = (
         db_session.query(label_model.block_number)
@@ -153,13 +154,34 @@ def get_first_labeled_block_number(
 
     if only_events:
         return event_block_numbers[0][0] if event_block_numbers else None
+=======
+    if isinstance(blockchain_type, AvailableBlockchainType):
+        label_model = get_label_model(blockchain_type)
+>>>>>>> Stashed changes
     else:
-        event_block_number = event_block_numbers[0][0] if event_block_numbers else -1
-        function_call_block_number = (
-            function_call_block_numbers[0][0] if function_call_block_numbers else -1
-        )
-        max_block_number = max(event_block_number, function_call_block_number)
-        return max_block_number if max_block_number != -1 else None
+        label_model = get_label_model_v3(blockchain_type)
+
+    base_query = (
+        db_session.query(label_model.block_number)
+        .filter(label_model.label == label_name, label_model.address == address)
+        .order_by(label_model.block_number)
+    )
+
+    event_blocks = base_query.filter(label_model.log_index != None).first()
+    function_blocks = (
+        None
+        if only_events
+        else base_query.filter(label_model.log_index == None).first()
+    )
+
+    if event_blocks and function_blocks:
+        result = max(event_blocks, function_blocks)
+    elif event_blocks or function_blocks:
+        result = event_blocks if event_blocks else function_blocks
+    else:
+        result = None
+
+    return result[0] if result else None
 
 
 def commit_session(db_session: Session) -> None:
