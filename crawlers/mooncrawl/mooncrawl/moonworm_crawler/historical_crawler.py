@@ -1,13 +1,15 @@
 import logging
 import time
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union, Any
 from uuid import UUID
 
 from eth_typing.evm import ChecksumAddress
-from moonstreamdb.blockchain import AvailableBlockchainType
-from moonstreamdb.networks import blockchain_type_to_network_type  # type: ignore
+
+from moonstreamtypes.blockchain import AvailableBlockchainType
+from moonstreamtypes.networks import blockchain_type_to_network_type
 from moonworm.crawler.moonstream_ethereum_state_provider import (  # type: ignore
     MoonstreamEthereumStateProvider,
+    Network,
 )
 from sqlalchemy.orm.session import Session
 from web3 import Web3
@@ -28,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 def historical_crawler(
     db_session: Session,
-    blockchain_type: AvailableBlockchainType,
+    blockchain_type: AvailableBlockchainType,  # AvailableBlockchainType,
     web3: Optional[Web3],
     event_crawl_jobs: List[EventCrawlJob],
     function_call_crawl_jobs: List[FunctionCallCrawlJob],
@@ -39,7 +41,7 @@ def historical_crawler(
     web3_uri: Optional[str] = None,
     addresses_deployment_blocks: Optional[Dict[ChecksumAddress, int]] = None,
     max_insert_batch: int = 10000,
-    v3_schema: bool = False,
+    version: int = 2,
 ):
     assert max_blocks_batch > 0, "max_blocks_batch must be greater than 0"
     assert min_sleep_time > 0, "min_sleep_time must be greater than 0"
@@ -58,9 +60,13 @@ def historical_crawler(
     except Exception as e:
         raise Exception(e)
 
+    if version != 2:
+        ## Function call crawler is not supported in version 3
+        network = Network("ethereum")
+
     ethereum_state_provider = MoonstreamEthereumStateProvider(
         web3,
-        network,
+        network,  # type: ignore
         db_session,
     )
 
@@ -94,6 +100,7 @@ def historical_crawler(
                     to_block=start_block,
                     blocks_cache=blocks_cache,
                     db_block_query_batch=max_blocks_batch,
+                    version=version,
                 )
 
             else:
@@ -106,6 +113,7 @@ def historical_crawler(
                     to_block=start_block,
                     blocks_cache=blocks_cache,
                     db_block_query_batch=max_blocks_batch,
+                    version=version,
                 )
             logger.info(
                 f"Crawled {len(all_events)} events from {start_block} to {batch_end_block}."
@@ -118,14 +126,12 @@ def historical_crawler(
                         db_session,
                         all_events[i : i + max_insert_batch],
                         blockchain_type,
-                        v3_schema,
+                        version,
                     )
 
             else:
 
-                add_events_to_session(
-                    db_session, all_events, blockchain_type, v3_schema
-                )
+                add_events_to_session(db_session, all_events, blockchain_type, version)
 
             if function_call_crawl_jobs:
                 logger.info(

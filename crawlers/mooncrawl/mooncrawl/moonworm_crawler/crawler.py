@@ -10,12 +10,10 @@ from uuid import UUID
 
 from bugout.data import BugoutJournalEntries, BugoutSearchResult
 from eth_typing.evm import ChecksumAddress
-from moonstreamdb.blockchain import AvailableBlockchainType
+from moonstreamtypes.blockchain import AvailableBlockchainType
 from moonstreamdb.subscriptions import SubscriptionTypes
+from moonstreamtypes.subscriptions import SubscriptionTypes
 from moonstreamdbv3.models_indexes import AbiJobs
-from moonstreamdbv3.blockchain import (
-    AvailableBlockchainType as AvailableBlockchainTypeV3,
-)
 from moonworm.deployment import find_deployment_block  # type: ignore
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -98,7 +96,7 @@ def _generate_reporter_callback(
 
 
 def _retry_connect_web3(
-    blockchain_type: Union[AvailableBlockchainType, AvailableBlockchainTypeV3],
+    blockchain_type: AvailableBlockchainType,
     retry_count: int = 10,
     sleep_time: float = 5,
     web3_uri: Optional[str] = None,
@@ -712,7 +710,7 @@ def get_event_crawl_job_records(
     query = (
         db_session.query(AbiJobs)
         .filter(AbiJobs.chain == blockchain_type.value)
-        .filter(func.length(AbiJobs.abi_selector) > 8)
+        .filter(func.length(AbiJobs.abi_selector) > 10)
     )
 
     if len(addresses) != 0:
@@ -725,25 +723,27 @@ def get_event_crawl_job_records(
 
     for crawl_job_record in crawl_job_records:
 
-        str_address = crawl_job_record.address.hex()
+        str_address = "0x" + crawl_job_record.address.hex()
+
+        checksummed_address = Web3.toChecksumAddress(str_address)
 
         if crawl_job_record.abi_selector in existing_crawl_job_records:
 
             if (
-                str_address
+                checksummed_address
                 not in existing_crawl_job_records[
                     crawl_job_record.abi_selector
                 ].contracts
             ):
                 existing_crawl_job_records[
                     crawl_job_record.abi_selector
-                ].contracts.append(crawl_job_record.address.hex())
+                ].contracts.append(checksummed_address)
 
         else:
             new_crawl_job = EventCrawlJob(
                 event_abi_hash=str(crawl_job_record.abi_selector),
                 event_abi=json.loads(str(crawl_job_record.abi)),
-                contracts=[str_address],
+                contracts=[checksummed_address],
                 address_entries={
                     crawl_job_record.address.hex(): {
                         UUID(str(crawl_job_record.id)): [

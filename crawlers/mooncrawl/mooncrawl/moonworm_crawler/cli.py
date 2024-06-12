@@ -576,7 +576,11 @@ def handle_historical_crawl_v3(args: argparse.Namespace) -> None:
                 web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
         last_labeled_block = get_first_labeled_block_number(
-            db_session, blockchain_type, args.address, only_events=args.only_events
+            db_session,
+            blockchain_type,
+            args.address,
+            only_events=args.only_events,
+            db_version=3,
         )
         logger.info(f"Last labeled block: {last_labeled_block}")
 
@@ -651,6 +655,7 @@ def handle_historical_crawl_v3(args: argparse.Namespace) -> None:
             args.min_sleep_time,
             web3_uri=args.web3_uri,
             addresses_deployment_blocks=addresses_deployment_blocks,
+            version=3,
         )
 
 

@@ -5,9 +5,10 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
-from moonstreamdb.blockchain import AvailableBlockchainType
-from moonstreamdb.networks import blockchain_type_to_network_type
-from moonstreamdb.subscriptions import blockchain_type_to_subscription_type
+
+from moonstreamtypes.blockchain import AvailableBlockchainType
+from moonstreamtypes.subscriptions import blockchain_type_to_subscription_type
+from moonstreamtypes.networks import blockchain_type_to_network_type
 from moonworm.crawler.moonstream_ethereum_state_provider import (  # type: ignore
     MoonstreamEthereumStateProvider,
 )
@@ -131,7 +132,7 @@ def continuous_crawler(
 
     ethereum_state_provider = MoonstreamEthereumStateProvider(
         web3,
-        network,
+        network,  # type: ignore
         db_session,
     )
 

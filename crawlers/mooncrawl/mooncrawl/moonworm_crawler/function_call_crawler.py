@@ -2,6 +2,7 @@ import logging
 from typing import List
 
 from moonstreamdb.blockchain import AvailableBlockchainType
+from moonstreamtypes.blockchain import AvailableBlockchainType
 from moonstreamdb.networks import blockchain_type_to_network_type  # type: ignore
 from moonworm.crawler.function_call_crawler import (  # type: ignore
     ContractFunctionCall,
@@ -57,9 +58,12 @@ def function_call_crawler(
     start_block: int,
     end_block: int,
     batch_size: int,
+    version: int = 2,
 ):
+    if version != 2:
+        raise ValueError("Only version 2 is supported")
     try:
-        network = blockchain_type_to_network_type(blockchain_type=blockchain_type)
+        network = blockchain_type_to_network_type(blockchain_type=blockchain_type)  # type: ignore
     except Exception as e:
         raise Exception(e)
 

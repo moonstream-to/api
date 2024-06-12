@@ -37,7 +37,7 @@ def _event_to_label(
         ).replace(r"\u0000", "")
     )
 
-    if isinstance(blockchain_type, AvailableBlockchainType):
+    if db_version == 2:
         label = label_model(
             label=label_name,
             label_data=sanityzed_label_data,
@@ -54,13 +54,14 @@ def _event_to_label(
 
         label = label_model(
             label=label_name,
+            label_name=event.event_name,
             label_data=sanityzed_label_data,
             address=event.address,
             block_number=event.block_number,
             block_timestamp=event.block_timestamp,
             transaction_hash=event.transaction_hash,
             log_index=event.log_index,
-            block_hash=event.block_hash,
+            block_hash=event.block_hash.hex(),  # type: ignore
         )
 
     return label
@@ -69,9 +70,8 @@ def _event_to_label(
 def _function_call_to_label(
     blockchain_type: AvailableBlockchainType,
     function_call: ContractFunctionCall,
-    label_name=CRAWLER_LABEL,
-    blocks_cache: Dict[int, Any] = {},
     db_version: int = 2,
+    label_name=CRAWLER_LABEL,
 ) -> Base:
     """
     Creates a label model.
@@ -125,41 +125,14 @@ def get_last_labeled_block_number(
 
 def get_first_labeled_block_number(
     db_session: Session,
-    blockchain_type: Union[AvailableBlockchainType, AvailableBlockchainTypeV3],
+    blockchain_type: AvailableBlockchainType,
     address: str,
     label_name: str = CRAWLER_LABEL,
     only_events: bool = False,
     db_version: int = 2,
 ) -> Optional[int]:
-<<<<<<< Updated upstream
+
     label_model = get_label_model(blockchain_type, version=db_version)
-    block_number_query = (
-        db_session.query(label_model.block_number)
-        .filter(label_model.label == label_name)
-        .filter(label_model.address == address)
-    )
-
-    function_call_block_numbers = (
-        block_number_query.filter(label_model.log_index == None)
-        .order_by(label_model.block_number)
-        .limit(50)
-        .all()
-    )
-    event_block_numbers = (
-        block_number_query.filter(label_model.log_index != None)
-        .order_by(label_model.block_number)
-        .limit(50)
-        .all()
-    )
-
-    if only_events:
-        return event_block_numbers[0][0] if event_block_numbers else None
-=======
-    if isinstance(blockchain_type, AvailableBlockchainType):
-        label_model = get_label_model(blockchain_type)
->>>>>>> Stashed changes
-    else:
-        label_model = get_label_model_v3(blockchain_type)
 
     base_query = (
         db_session.query(label_model.block_number)
@@ -201,17 +174,16 @@ def add_events_to_session(
     db_session: Session,
     events: List[Event],
     blockchain_type: AvailableBlockchainType,
-    v3_schema: bool = False,
-    label_name=CRAWLER_LABEL,
     db_version: int = 2,
+    label_name=CRAWLER_LABEL,
 ) -> None:
 
     if len(events) == 0:
         return
 
-    if not v3_schema:
+    label_model = get_label_model(blockchain_type, version=db_version)
 
-        label_model = get_label_model(blockchain_type, version=db_version)
+    if db_version == 2:
 
         events_hashes_to_save = set([event.transaction_hash for event in events])
 
@@ -254,17 +226,17 @@ def add_events_to_session(
         db_session.add_all(labels_to_save)
 
     else:
-        from sqlalchemy.dialects.postgresql import insert
 
         # Define the table name and columns based on the blockchain type
-        label_model = get_label_model(blockchain_type, version=db_version)
         table = label_model.__table__
 
         # Create a list of dictionaries representing new records
         records = []
         for event in events:
 
-            label_event = _event_to_label(blockchain_type, event, label_name)
+            label_event = _event_to_label(
+                blockchain_type, event, label_name, db_version
+            )
 
             record = {
                 "label": label_event.label,
@@ -299,8 +271,8 @@ def add_function_calls_to_session(
     db_session: Session,
     function_calls: List[ContractFunctionCall],
     blockchain_type: AvailableBlockchainType,
-    label_name=CRAWLER_LABEL,
     db_version: int = 2,
+    label_name=CRAWLER_LABEL,
 ) -> None:
 
     if len(function_calls) == 0:
