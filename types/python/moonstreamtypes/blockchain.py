@@ -60,7 +60,6 @@ from moonstreamdb.models import (
     ZkSyncEraTestnetTransaction,
     ZkSyncEraTransaction,
 )
-
 from moonstreamdbv3.models import (
     EthereumLabel as EthereumLabelV3,
     SepoliaLabel as SepoliaLabelV3,
