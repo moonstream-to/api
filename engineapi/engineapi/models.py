@@ -402,6 +402,13 @@ class LeaderboardScores(Base):  # type: ignore
             ],
             ondelete="CASCADE",
         ),
+        Index(
+            "ix_leaderboard_scores_leaderboard_id_version_score",
+            "leaderboard_id",
+            "leaderboard_version_number",
+            "score",
+            unique=False,
+        ),
     )
 
     id = Column(
