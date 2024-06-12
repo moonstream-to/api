@@ -402,6 +402,13 @@ class LeaderboardScores(Base):  # type: ignore
             ],
             ondelete="CASCADE",
         ),
+        Index(
+            "ix_leaderboard_scores_leaderboard_id_version_score",
+            "leaderboard_id",
+            "leaderboard_version_number",
+            "score",
+            unique=False,
+        ),
     )
 
     id = Column(
@@ -420,7 +427,7 @@ class LeaderboardScores(Base):  # type: ignore
         nullable=False,
     )
     address = Column(VARCHAR(256), nullable=False, index=True)
-    score = Column(BigInteger, nullable=False, index=True)
+    score = Column(BigInteger, nullable=False)
     points_data = Column(JSONB, nullable=True)
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
