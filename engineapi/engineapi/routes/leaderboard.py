@@ -779,6 +779,12 @@ async def leaderboard_push_scores(
             status_code=500,
             detail=f"Delete scores failed.",
         )
+    except actions.LeaderboardPushScoreError as e:
+        logger.error(f"Add scores failed with error: {e}")
+        raise EngineHTTPException(
+            status_code=500,
+            detail=f"Add scores failed.",
+        )
     except Exception as e:
         logger.error(f"Score update failed with error: {e}")
         raise EngineHTTPException(status_code=500, detail="Score update failed.")

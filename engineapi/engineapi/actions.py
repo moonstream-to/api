@@ -113,6 +113,10 @@ class LeaderboardAssignResourceError(Exception):
     pass
 
 
+class LeaderboardPushScoreError(Exception):
+    pass
+
+
 BATCH_SIGNATURE_PAGE_SIZE = 500
 
 logger = logging.getLogger(__name__)
@@ -1717,6 +1721,7 @@ def add_scores(
         db_session.commit()
     except:
         db_session.rollback()
+        raise LeaderboardPushScoreError("Error committing scores")
 
     return leaderboard_scores
 
