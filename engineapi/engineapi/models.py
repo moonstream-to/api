@@ -420,7 +420,7 @@ class LeaderboardScores(Base):  # type: ignore
         nullable=False,
     )
     address = Column(VARCHAR(256), nullable=False, index=True)
-    score = Column(BigInteger, nullable=False)
+    score = Column(BigInteger, nullable=False, index=True)
     points_data = Column(JSONB, nullable=True)
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
