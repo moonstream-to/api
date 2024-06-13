@@ -4,6 +4,7 @@ import re
 import time
 from dataclasses import dataclass
 from datetime import datetime
+import binascii
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
 from uuid import UUID
@@ -714,7 +715,9 @@ def get_event_crawl_job_records(
     )
 
     if len(addresses) != 0:
-        crawl_job_records = query.filter(AbiJobs.address.in_(addresses))
+        query = query.filter(
+            AbiJobs.address.in_([binascii.unhexlify(address) for address in addresses])
+        )
 
     crawl_job_records = query.all()
 
@@ -779,7 +782,9 @@ def get_function_call_crawl_job_records(
     )
 
     if len(addresses) != 0:
-        crawl_job_records = query.filter(AbiJobs.address.in_(addresses))
+        query = query.filter(
+            AbiJobs.address.in_([binascii.unhexlify(address) for address in addresses])
+        )
 
     crawl_job_records = query.all()
 
