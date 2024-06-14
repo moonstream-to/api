@@ -120,8 +120,6 @@ def _function_call_to_label(
             origin_address=function_call.caller_address,
         )
 
-        print(label)
-
     return label
 
 
@@ -355,10 +353,10 @@ def add_function_calls_to_session(
                 "transaction_hash": label_function_call.transaction_hash,
                 "log_index": None,
                 "block_number": label_function_call.block_number,
-                "block_hash": None,
+                "block_hash": label_function_call.block_hash,
                 "block_timestamp": label_function_call.block_timestamp,
-                "caller_address": label_function_call.label_data["caller"],
-                "origin_address": None,
+                "caller_address": label_function_call.caller_address,
+                "origin_address": label_function_call.caller_address,
                 "address": label_function_call.address,
                 "label_name": label_function_call.label_name,
                 "label_type": "tx_call",
@@ -370,7 +368,7 @@ def add_function_calls_to_session(
         # Insert records using a single batched query with an ON CONFLICT clause
         statement = insert(table).values(records)
         do_nothing_statement = statement.on_conflict_do_nothing(
-            index_elements=["transaction_hash", "log_index"],
+            index_elements=["transaction_hash"],
             index_where=(table.c.label == "seer") & (table.c.label_type == "tx_call"),
         )
 

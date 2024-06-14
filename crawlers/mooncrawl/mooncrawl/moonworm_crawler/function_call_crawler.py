@@ -43,7 +43,6 @@ def _crawl_functions(
                 "function_call", blockchain_type
             ),
         )
-        print(f"Processing job {function_call_crawler.whitelisted_methods}")
         function_call_crawler.crawl(
             from_block,
             to_block,

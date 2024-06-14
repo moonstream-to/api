@@ -156,11 +156,12 @@ def historical_crawler(
                             db_session,
                             all_function_calls[i : i + max_insert_batch],
                             blockchain_type,
+                            version,
                         )
                 else:
 
                     add_function_calls_to_session(
-                        db_session, all_function_calls, blockchain_type
+                        db_session, all_function_calls, blockchain_type, version
                     )
 
             if addresses_deployment_blocks:
