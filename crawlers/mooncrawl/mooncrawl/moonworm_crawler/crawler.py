@@ -16,7 +16,7 @@ from moonstreamdb.subscriptions import SubscriptionTypes
 from moonstreamtypes.subscriptions import SubscriptionTypes
 from moonstreamdbv3.models_indexes import AbiJobs
 from moonworm.deployment import find_deployment_block  # type: ignore
-from sqlalchemy import func, cast, JSON
+from sqlalchemy import func, cast as sqlcast, JSON
 from sqlalchemy.orm import Session
 from web3.main import Web3
 
@@ -781,8 +781,8 @@ def get_function_call_crawl_job_records(
         .filter(AbiJobs.chain == blockchain_type.value)
         .filter(func.length(AbiJobs.abi_selector) == 10)
         .filter(
-            cast(AbiJobs.abi, JSON).op("->>")("type") == "function",
-            cast(AbiJobs.abi, JSON).op("->>")("stateMutability") != "view",
+            sqlcast(AbiJobs.abi, JSON).op("->>")("type") == "function",
+            sqlcast(AbiJobs.abi, JSON).op("->>")("stateMutability") != "view",
         )
     )
 
