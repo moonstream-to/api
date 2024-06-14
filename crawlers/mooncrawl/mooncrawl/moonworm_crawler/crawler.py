@@ -2,7 +2,7 @@ import json
 import logging
 import re
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 import binascii
 from enum import Enum
@@ -16,7 +16,7 @@ from moonstreamdb.subscriptions import SubscriptionTypes
 from moonstreamtypes.subscriptions import SubscriptionTypes
 from moonstreamdbv3.models_indexes import AbiJobs
 from moonworm.deployment import find_deployment_block  # type: ignore
-from sqlalchemy import func
+from sqlalchemy import func, cast, JSON
 from sqlalchemy.orm import Session
 from web3.main import Web3
 
@@ -139,6 +139,7 @@ class FunctionCallCrawlJob:
     contract_address: ChecksumAddress
     entries_tags: Dict[UUID, List[str]]
     created_at: int
+    existing_selectors: List[str] = field(default_factory=list)
 
 
 def get_crawl_job_entries(
@@ -778,7 +779,11 @@ def get_function_call_crawl_job_records(
     query = (
         db_session.query(AbiJobs)
         .filter(AbiJobs.chain == blockchain_type.value)
-        .filter(func.length(AbiJobs.abi_selector) == 8)
+        .filter(func.length(AbiJobs.abi_selector) == 10)
+        .filter(
+            cast(AbiJobs.abi, JSON).op("->>")("type") == "function",
+            cast(AbiJobs.abi, JSON).op("->>")("stateMutability") != "view",
+        )
     )
 
     if len(addresses) != 0:
@@ -790,30 +795,31 @@ def get_function_call_crawl_job_records(
 
     # Iterate over each record fetched from the database
     for crawl_job_record in crawl_job_records:
-        str_address = crawl_job_record.address.hex()  # Convert address to hex string
+        str_address = "0x" + crawl_job_record.address.hex()
 
-        if crawl_job_record.abi_selector in existing_crawl_job_records:
-            # If abi_selector already exists in the records, append new address if not already listed
-            current_job = existing_crawl_job_records[crawl_job_record.abi_selector]
-            if str_address not in current_job.contract_address:
-                # Since it should handle a single address, we ensure not to append but update if necessary.
-                current_job.contract_address = str_address
-        else:
-            # Create a new FunctionCallCrawlJob record if the abi_selector is not found in existing records.
-            new_crawl_job = FunctionCallCrawlJob(
+        if str_address not in existing_crawl_job_records:
+            existing_crawl_job_records[str_address] = FunctionCallCrawlJob(
                 contract_abi=[json.loads(str(crawl_job_record.abi))],
-                contract_address=str_address,
+                contract_address=Web3.toChecksumAddress(str_address),
                 entries_tags={
                     UUID(str(crawl_job_record.id)): [
                         str(crawl_job_record.status),
                         str(crawl_job_record.progress),
-                    ],
+                    ]
                 },
                 created_at=int(crawl_job_record.created_at.timestamp()),
+                existing_selectors=[str(crawl_job_record.abi_selector)],
             )
-
-            existing_crawl_job_records[str(crawl_job_record.abi_selector)] = (
-                new_crawl_job
-            )
+        else:
+            if (
+                crawl_job_record.abi_selector
+                not in existing_crawl_job_records[str_address].existing_selectors
+            ):
+                existing_crawl_job_records[str_address].contract_abi.append(
+                    json.loads(str(crawl_job_record.abi))
+                )
+                existing_crawl_job_records[str_address].existing_selectors.append(
+                    str(crawl_job_record.abi_selector)
+                )
 
     return existing_crawl_job_records

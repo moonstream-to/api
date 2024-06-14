@@ -135,7 +135,6 @@ def continuous_crawler(
     evm_state_provider = Web3StateProvider(web3)
 
     if version == 2:
-
         evm_state_provider = MoonstreamEthereumStateProvider(
             web3,
             network,  # type: ignore

@@ -6,7 +6,11 @@ from urllib.parse import urlparse, urlunparse
 
 
 import requests
-from moonstreamdbv3.db import MoonstreamDBEngine, MoonstreamDBIndexesEngine
+from moonstreamdbv3.db import (
+    MoonstreamDBEngine,
+    MoonstreamDBIndexesEngine,
+    MoonstreamCustomDBEngine,
+)
 from moonstreamtypes.blockchain import AvailableBlockchainType
 from moonstreamtypes.subscriptions import blockchain_type_to_subscription_type
 from web3 import Web3
@@ -160,8 +164,7 @@ def get_db_connection(uuid):
     except Exception as e:
         raise Exception(f"Unhandled exception, error: {str(e)}")
 
-    connection_string = response.text.strip('"')
-
+    connection_string = response.text
     try:
         connection_string = ensure_port_in_connection_string(connection_string)
     except ValueError as e:
@@ -173,11 +176,18 @@ def get_db_connection(uuid):
 
 
 def ensure_port_in_connection_string(connection_string):
+    # Parse the connection string into components
     parsed_url = urlparse(connection_string)
+
+    # Check if a port is specified, and if not, add the default port
     if parsed_url.port is None:
-        host = f"{parsed_url.hostname}:5432"  # Assuming default port for PostgreSQL
-        parsed_url = parsed_url._replace(netloc=host)
-        connection_string = urlunparse(parsed_url)
+        # Append default port 5432 for PostgreSQL if no port specified
+
+        connection_string = connection_string.replace(
+            "/" + connection_string.split("/")[-1],
+            f":5432" + "/" + connection_string.split("/")[-1],
+        )
+    connection_string = connection_string.replace('"', "")
     return connection_string
 
 
@@ -529,7 +539,9 @@ def handle_historical_crawl_v3(args: argparse.Namespace) -> None:
 
     customer_connection = get_db_connection(args.customer_uuid)
 
-    filtered_function_call_jobs = []  # v1
+    if customer_connection == "":
+        raise ValueError("No connection string found for the customer")
+
     if args.only_events:
         filtered_function_call_jobs = []
         logger.info(f"Removing function call crawl jobs since --only-events is set")
@@ -555,7 +567,7 @@ def handle_historical_crawl_v3(args: argparse.Namespace) -> None:
 
     logger.info(f"Blockchain type: {blockchain_type.value}")
 
-    customer_engine = MoonstreamDBEngine()
+    customer_engine = MoonstreamCustomDBEngine(customer_connection)
 
     with customer_engine.yield_db_session_ctx() as db_session:
         web3: Optional[Web3] = None
