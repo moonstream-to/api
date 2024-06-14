@@ -163,6 +163,37 @@ class MoonstreamDBEngineRO(DBEngine):
             session.close()
 
 
+class MoonstreamCustomDBEngine(DBEngine):
+    def __init__(self, url: str, schema: Optional[str] = None) -> None:
+        super().__init__(url=url, schema=schema)
+
+        self._session_local = sessionmaker(bind=self.engine)
+
+        self._yield_db_session_ctx = contextmanager(self.yield_db_session)
+
+    @property
+    def session_local(self):
+        return self._session_local
+
+    @property
+    def yield_db_session_ctx(self):
+        return self._yield_db_session_ctx
+
+    def yield_db_session(
+        self,
+    ) -> Generator[Session, None, None]:
+        """
+        Yields a database connection (created using environment variables).
+        As per FastAPI docs:
+        https://fastapi.tiangolo.com/tutorial/sql-databases/#create-a-dependency
+        """
+        session = self._session_local()
+        try:
+            yield session
+        finally:
+            session.close()
+
+
 class MoonstreamDBIndexesEngine(DBEngine):
     def __init__(self, schema: Optional[str] = None) -> None:
         super().__init__(url=MOONSTREAM_DB_V3_INDEXES_URI, schema=schema)
