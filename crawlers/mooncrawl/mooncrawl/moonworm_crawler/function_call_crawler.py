@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Union
 
 from moonstreamdb.blockchain import AvailableBlockchainType
 from moonstreamtypes.blockchain import AvailableBlockchainType
@@ -11,6 +11,7 @@ from moonworm.crawler.function_call_crawler import (  # type: ignore
 from moonworm.crawler.moonstream_ethereum_state_provider import (  # type: ignore
     MoonstreamEthereumStateProvider,
 )
+from moonworm.crawler.ethereum_state_provider import Web3StateProvider
 from moonworm.watch import MockState  # type: ignore
 from sqlalchemy.orm import Session
 from web3 import Web3
@@ -23,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 def _crawl_functions(
     blockchain_type: AvailableBlockchainType,
-    ethereum_state_provider: MoonstreamEthereumStateProvider,
+    ethereum_state_provider: Union[MoonstreamEthereumStateProvider, Web3StateProvider],
     jobs: List[FunctionCallCrawlJob],
     from_block: int,
     to_block: int,

@@ -11,6 +11,7 @@ from moonworm.crawler.moonstream_ethereum_state_provider import (  # type: ignor
     MoonstreamEthereumStateProvider,
     Network,
 )
+from moonworm.crawler.ethereum_state_provider import Web3StateProvider
 from sqlalchemy.orm.session import Session
 from web3 import Web3
 
@@ -60,15 +61,15 @@ def historical_crawler(
     except Exception as e:
         raise Exception(e)
 
-    if version != 2:
-        ## Function call crawler is not supported in version 3
-        network = Network("ethereum")
+    evm_state_provider = Web3StateProvider(web3)
 
-    ethereum_state_provider = MoonstreamEthereumStateProvider(
-        web3,
-        network,  # type: ignore
-        db_session,
-    )
+    if version == 2:
+        ### Moonstream state provider use the V2 db to get the block
+        evm_state_provider = MoonstreamEthereumStateProvider(
+            web3,
+            network,  # type: ignore
+            db_session,
+        )
 
     logger.info(f"Starting historical event crawler start_block={start_block}")
 
@@ -139,7 +140,7 @@ def historical_crawler(
                 )
                 all_function_calls = _crawl_functions(
                     blockchain_type,
-                    ethereum_state_provider,
+                    evm_state_provider,
                     function_call_crawl_jobs,
                     batch_end_block,
                     start_block,
