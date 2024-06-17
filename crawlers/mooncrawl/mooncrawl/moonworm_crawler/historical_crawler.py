@@ -1,17 +1,14 @@
 import logging
 import time
-from typing import Dict, List, Optional, Union, Any
+from typing import Dict, List, Optional
 from uuid import UUID
 
 from eth_typing.evm import ChecksumAddress
-
-from moonstreamtypes.blockchain import AvailableBlockchainType
-from moonstreamtypes.networks import blockchain_type_to_network_type
+from moonstreamdb.blockchain import AvailableBlockchainType
+from moonstreamdb.networks import blockchain_type_to_network_type  # type: ignore
 from moonworm.crawler.moonstream_ethereum_state_provider import (  # type: ignore
     MoonstreamEthereumStateProvider,
-    Network,
 )
-from moonworm.crawler.ethereum_state_provider import Web3StateProvider
 from sqlalchemy.orm.session import Session
 from web3 import Web3
 
@@ -31,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 def historical_crawler(
     db_session: Session,
-    blockchain_type: AvailableBlockchainType,  # AvailableBlockchainType,
+    blockchain_type: AvailableBlockchainType,
     web3: Optional[Web3],
     event_crawl_jobs: List[EventCrawlJob],
     function_call_crawl_jobs: List[FunctionCallCrawlJob],
@@ -42,7 +39,6 @@ def historical_crawler(
     web3_uri: Optional[str] = None,
     addresses_deployment_blocks: Optional[Dict[ChecksumAddress, int]] = None,
     max_insert_batch: int = 10000,
-    version: int = 2,
 ):
     assert max_blocks_batch > 0, "max_blocks_batch must be greater than 0"
     assert min_sleep_time > 0, "min_sleep_time must be greater than 0"
@@ -61,15 +57,11 @@ def historical_crawler(
     except Exception as e:
         raise Exception(e)
 
-    evm_state_provider = Web3StateProvider(web3)
-
-    if version == 2:
-        ### Moonstream state provider use the V2 db to get the block
-        evm_state_provider = MoonstreamEthereumStateProvider(
-            web3,
-            network,  # type: ignore
-            db_session,
-        )
+    ethereum_state_provider = MoonstreamEthereumStateProvider(
+        web3,
+        network,
+        db_session,
+    )
 
     logger.info(f"Starting historical event crawler start_block={start_block}")
 
@@ -101,7 +93,6 @@ def historical_crawler(
                     to_block=start_block,
                     blocks_cache=blocks_cache,
                     db_block_query_batch=max_blocks_batch,
-                    version=version,
                 )
 
             else:
@@ -114,7 +105,6 @@ def historical_crawler(
                     to_block=start_block,
                     blocks_cache=blocks_cache,
                     db_block_query_batch=max_blocks_batch,
-                    version=version,
                 )
             logger.info(
                 f"Crawled {len(all_events)} events from {start_block} to {batch_end_block}."
@@ -127,12 +117,11 @@ def historical_crawler(
                         db_session,
                         all_events[i : i + max_insert_batch],
                         blockchain_type,
-                        version,
                     )
 
             else:
 
-                add_events_to_session(db_session, all_events, blockchain_type, version)
+                add_events_to_session(db_session, all_events, blockchain_type)
 
             if function_call_crawl_jobs:
                 logger.info(
@@ -140,7 +129,7 @@ def historical_crawler(
                 )
                 all_function_calls = _crawl_functions(
                     blockchain_type,
-                    evm_state_provider,
+                    ethereum_state_provider,
                     function_call_crawl_jobs,
                     batch_end_block,
                     start_block,
@@ -156,12 +145,11 @@ def historical_crawler(
                             db_session,
                             all_function_calls[i : i + max_insert_batch],
                             blockchain_type,
-                            version,
                         )
                 else:
 
                     add_function_calls_to_session(
-                        db_session, all_function_calls, blockchain_type, version
+                        db_session, all_function_calls, blockchain_type
                     )
 
             if addresses_deployment_blocks:
