@@ -3,7 +3,7 @@ from concurrent.futures import Future, ThreadPoolExecutor, wait
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 from uuid import UUID
 
-from moonstreamdb.blockchain import (
+from moonstreamtypes.blockchain import (
     AvailableBlockchainType,
     get_block_model,
     get_transaction_model,
@@ -39,6 +39,11 @@ from .settings import (
     MOONSTREAM_NODE_XDAI_A_EXTERNAL_URI,
     MOONSTREAM_NODE_ZKSYNC_ERA_A_EXTERNAL_URI,
     MOONSTREAM_NODE_ZKSYNC_ERA_SEPOLIA_A_EXTERNAL_URI,
+    MOONSTREAM_NODE_STARKNET_A_EXTERNAL_URI,
+    MOONSTREAM_NODE_STARKNET_SEPOLIA_A_EXTERNAL_URI,
+    MOONSTREAM_NODE_MANTLE_A_EXTERNAL_URI,
+    MOONSTREAM_NODE_MANTLE_SEPOLIA_A_EXTERNAL_URI,
+    MOONSTREAM_GAME7_ORBIT_ARBITRUM_SEPOLIA_A_EXTERNAL_URI,
     WEB3_CLIENT_REQUEST_TIMEOUT_SECONDS,
 )
 
@@ -52,9 +57,36 @@ class BlockCrawlError(Exception):
     """
 
 
+default_uri_mapping = {
+    AvailableBlockchainType.ETHEREUM: MOONSTREAM_NODE_ETHEREUM_A_EXTERNAL_URI,
+    AvailableBlockchainType.POLYGON: MOONSTREAM_NODE_POLYGON_A_EXTERNAL_URI,
+    AvailableBlockchainType.MUMBAI: MOONSTREAM_NODE_MUMBAI_A_EXTERNAL_URI,
+    AvailableBlockchainType.AMOY: MOONSTREAM_NODE_AMOY_A_EXTERNAL_URI,
+    AvailableBlockchainType.XDAI: MOONSTREAM_NODE_XDAI_A_EXTERNAL_URI,
+    AvailableBlockchainType.ZKSYNC_ERA: MOONSTREAM_NODE_ZKSYNC_ERA_A_EXTERNAL_URI,
+    AvailableBlockchainType.ZKSYNC_ERA_SEPOLIA: MOONSTREAM_NODE_ZKSYNC_ERA_SEPOLIA_A_EXTERNAL_URI,
+    AvailableBlockchainType.ARBITRUM_ONE: MOONSTREAM_NODE_ARBITRUM_ONE_A_EXTERNAL_URI,
+    AvailableBlockchainType.ARBITRUM_NOVA: MOONSTREAM_NODE_ARBITRUM_NOVA_A_EXTERNAL_URI,
+    AvailableBlockchainType.ARBITRUM_SEPOLIA: MOONSTREAM_NODE_ARBITRUM_SEPOLIA_A_EXTERNAL_URI,
+    AvailableBlockchainType.XAI: MOONSTREAM_NODE_XAI_A_EXTERNAL_URI,
+    AvailableBlockchainType.XAI_SEPOLIA: MOONSTREAM_NODE_XAI_SEPOLIA_A_EXTERNAL_URI,
+    AvailableBlockchainType.AVALANCHE: MOONSTREAM_NODE_AVALANCHE_A_EXTERNAL_URI,
+    AvailableBlockchainType.AVALANCHE_FUJI: MOONSTREAM_NODE_AVALANCHE_FUJI_A_EXTERNAL_URI,
+    AvailableBlockchainType.BLAST: MOONSTREAM_NODE_BLAST_A_EXTERNAL_URI,
+    AvailableBlockchainType.BLAST_SEPOLIA: MOONSTREAM_NODE_BLAST_SEPOLIA_A_EXTERNAL_URI,
+    AvailableBlockchainType.PROOFOFPLAY_APEX: MOONSTREAM_NODE_PROOFOFPLAY_APEX_A_EXTERNAL_URI,
+    AvailableBlockchainType.STARKNET: MOONSTREAM_NODE_STARKNET_A_EXTERNAL_URI,
+    AvailableBlockchainType.STARKNET_SEPOLIA: MOONSTREAM_NODE_STARKNET_SEPOLIA_A_EXTERNAL_URI,
+    AvailableBlockchainType.MANTLE: MOONSTREAM_NODE_MANTLE_A_EXTERNAL_URI,
+    AvailableBlockchainType.MANTLE_SEPOLIA: MOONSTREAM_NODE_MANTLE_SEPOLIA_A_EXTERNAL_URI,
+    AvailableBlockchainType.GAME7_ORBIT_ARBITRUM_SEPOLIA: MOONSTREAM_GAME7_ORBIT_ARBITRUM_SEPOLIA_A_EXTERNAL_URI,
+}
+
+
 def connect(
     blockchain_type: Optional[AvailableBlockchainType] = None,
     web3_uri: Optional[str] = None,
+    version: int = 2,
 ) -> Web3:
     if blockchain_type is None and web3_uri is None:
         raise Exception("Both blockchain_type and web3_uri could not be None")
@@ -63,41 +95,8 @@ def connect(
 
     request_kwargs: Dict[str, Any] = {"headers": {"Content-Type": "application/json"}}
     if web3_uri is None:
-        if blockchain_type == AvailableBlockchainType.ETHEREUM:
-            web3_uri = MOONSTREAM_NODE_ETHEREUM_A_EXTERNAL_URI
-        elif blockchain_type == AvailableBlockchainType.POLYGON:
-            web3_uri = MOONSTREAM_NODE_POLYGON_A_EXTERNAL_URI
-        elif blockchain_type == AvailableBlockchainType.MUMBAI:
-            web3_uri = MOONSTREAM_NODE_MUMBAI_A_EXTERNAL_URI
-        elif blockchain_type == AvailableBlockchainType.AMOY:
-            web3_uri = MOONSTREAM_NODE_AMOY_A_EXTERNAL_URI
-        elif blockchain_type == AvailableBlockchainType.XDAI:
-            web3_uri = MOONSTREAM_NODE_XDAI_A_EXTERNAL_URI
-        elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA:
-            web3_uri = MOONSTREAM_NODE_ZKSYNC_ERA_A_EXTERNAL_URI
-        elif blockchain_type == AvailableBlockchainType.ZKSYNC_ERA_SEPOLIA:
-            web3_uri = MOONSTREAM_NODE_ZKSYNC_ERA_SEPOLIA_A_EXTERNAL_URI
-        elif blockchain_type == AvailableBlockchainType.ARBITRUM_ONE:
-            web3_uri = MOONSTREAM_NODE_ARBITRUM_ONE_A_EXTERNAL_URI
-        elif blockchain_type == AvailableBlockchainType.ARBITRUM_NOVA:
-            web3_uri = MOONSTREAM_NODE_ARBITRUM_NOVA_A_EXTERNAL_URI
-        elif blockchain_type == AvailableBlockchainType.ARBITRUM_SEPOLIA:
-            web3_uri = MOONSTREAM_NODE_ARBITRUM_SEPOLIA_A_EXTERNAL_URI
-        elif blockchain_type == AvailableBlockchainType.XAI:
-            web3_uri = MOONSTREAM_NODE_XAI_A_EXTERNAL_URI
-        elif blockchain_type == AvailableBlockchainType.XAI_SEPOLIA:
-            web3_uri = MOONSTREAM_NODE_XAI_SEPOLIA_A_EXTERNAL_URI
-        elif blockchain_type == AvailableBlockchainType.AVALANCHE:
-            web3_uri = MOONSTREAM_NODE_AVALANCHE_A_EXTERNAL_URI
-        elif blockchain_type == AvailableBlockchainType.AVALANCHE_FUJI:
-            web3_uri = MOONSTREAM_NODE_AVALANCHE_FUJI_A_EXTERNAL_URI
-        elif blockchain_type == AvailableBlockchainType.BLAST:
-            web3_uri = MOONSTREAM_NODE_BLAST_A_EXTERNAL_URI
-        elif blockchain_type == AvailableBlockchainType.BLAST_SEPOLIA:
-            web3_uri = MOONSTREAM_NODE_BLAST_SEPOLIA_A_EXTERNAL_URI
-        elif blockchain_type == AvailableBlockchainType.PROOFOFPLAY_APEX:
-            web3_uri = MOONSTREAM_NODE_PROOFOFPLAY_APEX_A_EXTERNAL_URI
-        else:
+        web3_uri = default_uri_mapping.get(blockchain_type)  # type: ignore
+        if web3_uri is None:
             raise Exception("Wrong blockchain type provided for web3 URI")
 
     if web3_uri.startswith("http://") or web3_uri.startswith("https://"):
