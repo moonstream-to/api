@@ -167,6 +167,8 @@ class MoonstreamCustomDBEngine(DBEngine):
     def __init__(self, url: str, schema: Optional[str] = None) -> None:
         super().__init__(url=url, schema=schema)
 
+        logger.warning("Initialized custom database engine with specified URI")
+
         self._session_local = sessionmaker(bind=self.engine)
 
         self._yield_db_session_ctx = contextmanager(self.yield_db_session)
