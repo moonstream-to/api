@@ -46,6 +46,23 @@ ZKSYNC_ERA_STATE_TIMER_FILE="zksync-era-state.timer"
 ZKSYNC_ERA_STATE_CLEAN_SERVICE_FILE="zksync-era-state-clean.service"
 ZKSYNC_ERA_STATE_CLEAN_TIMER_FILE="zksync-era-state-clean.timer"
 
+
+# Xai
+XAI_STATE_SERVICE_FILE="xai-state.service"
+XAI_STATE_TIMER_FILE="xai-state.timer"
+XAI_STATE_CLEAN_SERVICE_FILE="xai-state-clean.service"
+XAI_STATE_CLEAN_TIMER_FILE="xai-state-clean.timer"
+XAI_METADATA_SERVICE_FILE="xai-metadata.service"
+XAI_METADATA_TIMER_FILE="xai-metadata.timer"
+
+# Xai sepolia
+XAI_SEPOLIA_STATE_SERVICE_FILE="xai-sepolia-state.service"
+XAI_SEPOLIA_STATE_TIMER_FILE="xai-sepolia-state.timer"
+XAI_SEPOLIA_STATE_CLEAN_SERVICE_FILE="xai-sepolia-state-clean.service"
+XAI_SEPOLIA_STATE_CLEAN_TIMER_FILE="xai-sepolia-state-clean.timer"
+XAI_SEPOLIA_METADATA_SERVICE_FILE="xai-sepolia-metadata.service"
+XAI_SEPOLIA_METADATA_TIMER_FILE="xai-sepolia-metadata.timer"
+
 set -eu
 
 echo
@@ -156,3 +173,58 @@ cp "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_CLEAN_SERVICE_FILE}" "/home/ubuntu/.config/
 cp "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_CLEAN_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ZKSYNC_ERA_STATE_CLEAN_TIMER_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000"  systemctl --user restart --no-block "${ZKSYNC_ERA_STATE_CLEAN_TIMER_FILE}"
+
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Xai state service and timer with: ${XAI_STATE_SERVICE_FILE}, ${XAI_STATE_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${XAI_STATE_SERVICE_FILE}" "${SCRIPT_DIR}/${XAI_STATE_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${XAI_STATE_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_STATE_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${XAI_STATE_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_STATE_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${XAI_STATE_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Xai state clean service and timer with: ${XAI_STATE_CLEAN_SERVICE_FILE}, ${XAI_STATE_CLEAN_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${XAI_STATE_CLEAN_SERVICE_FILE}" "${SCRIPT_DIR}/${XAI_STATE_CLEAN_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${XAI_STATE_CLEAN_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_STATE_CLEAN_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${XAI_STATE_CLEAN_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_STATE_CLEAN_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${XAI_STATE_CLEAN_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Xai metadata service and timer with: ${XAI_METADATA_SERVICE_FILE}, ${XAI_METADATA_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${XAI_METADATA_SERVICE_FILE}" "${SCRIPT_DIR}/${XAI_METADATA_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${XAI_METADATA_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_METADATA_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${XAI_METADATA_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_METADATA_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${XAI_METADATA_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Xai sepolia state service and timer with: ${XAI_SEPOLIA_STATE_SERVICE_FILE}, ${XAI_SEPOLIA_STATE_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${XAI_SEPOLIA_STATE_SERVICE_FILE}" "${SCRIPT_DIR}/${XAI_SEPOLIA_STATE_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${XAI_SEPOLIA_STATE_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_SEPOLIA_STATE_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${XAI_SEPOLIA_STATE_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_SEPOLIA_STATE_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${XAI_SEPOLIA_STATE_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Xai sepolia state clean service and timer with: ${XAI_SEPOLIA_STATE_CLEAN_SERVICE_FILE}, ${XAI_SEPOLIA_STATE_CLEAN_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${XAI_SEPOLIA_STATE_CLEAN_SERVICE_FILE}" "${SCRIPT_DIR}/${XAI_SEPOLIA_STATE_CLEAN_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${XAI_SEPOLIA_STATE_CLEAN_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_SEPOLIA_STATE_CLEAN_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${XAI_SEPOLIA_STATE_CLEAN_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_SEPOLIA_STATE_CLEAN_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${XAI_SEPOLIA_STATE_CLEAN_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Xai sepolia metadata service and timer with: ${XAI_SEPOLIA_METADATA_SERVICE_FILE}, ${XAI_SEPOLIA_METADATA_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${XAI_SEPOLIA_METADATA_SERVICE_FILE}" "${SCRIPT_DIR}/${XAI_SEPOLIA_METADATA_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${XAI_SEPOLIA_METADATA_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_SEPOLIA_METADATA_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${XAI_SEPOLIA_METADATA_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_SEPOLIA_METADATA_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${XAI_SEPOLIA_METADATA_TIMER_FILE}"
