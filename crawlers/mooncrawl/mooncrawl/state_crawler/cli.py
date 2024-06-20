@@ -643,28 +643,28 @@ def migrate_state_tasks_handler(args: argparse.Namespace) -> None:
 
     existing_state_tasks_list = []
 
-    print(f"Existing jobs: {len(existing_jobs)}")
-    print(f"New jobs: {jobs}")
+    logger.info(f"Existing jobs: {len(existing_jobs)}")
+    logger.info(f"New jobs: {jobs}")
 
     ### validate existing jobs
-    for job in existing_jobs:
+    for bugout_job in existing_jobs:
 
         try:
-            if job.content is None:
-                logger.error(f"Job content is None for entry {job.entry_url}")
+            if bugout_job.content is None:
+                logger.error(f"Job content is None for entry {bugout_job.entry_url}")
                 continue
             ### parse json
-            job_content = json.loads(job.content)
+            job_content = json.loads(bugout_job.content)
             ### validate via ViewTasks
             ViewTasks(**job_content)
         except Exception as e:
 
-            logger.error(f"Job validation of entry {job.entry_url} failed: {e}")
+            logger.error(f"Job validation of entry {bugout_job.entry_url} failed: {e}")
             continue
 
         ### from tags get blockchain, name and address
 
-        for tag in job.tags:
+        for tag in bugout_job.tags:
             if tag.startswith("blockchain"):
                 blockchain = tag.split(":")[1]
             if tag.startswith("name"):
