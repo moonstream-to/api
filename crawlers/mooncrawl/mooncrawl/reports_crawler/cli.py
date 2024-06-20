@@ -476,21 +476,23 @@ def generate_report_nft_dashboard_handler(args: argparse.Namespace):
 
     client = Moonstream()
 
+    reports = {
+        "cu_nft_dashboard_data": {},
+        "cu_land_nft_dashboard_data": {},
+        "cu_seaport_feed_polygon": {},
+        "cu_breeding_feed": {},
+        "cu_shadowcorns_owners": {},
+        "cu_shadowcorns_feed": {},
+        "cu_previous_day_distributed_rewards": {},
+        "cu_nft_dashboard_data_xai": {"blockchain": "xai"},
+    }
+
     for query in client.list_queries(
         token=args.moonstream_token,
     ).queries:
         params = {}  # type: ignore
 
-        if query.name not in [
-            "cu_nft_dashboard_data",
-            "cu_land_nft_dashboard_data",
-            "cu_seaport_feed_polygon",
-            "cu_breeding_feed",
-            "cu_shadowcorns_owners",
-            "cu_shadowcorns_feed",
-            "cu_previous_day_distributed_rewards",
-            "cu_nft_dashboard_data_xai",
-        ]:
+        if query.name not in reports:
             continue
         try:
             logger.info(f"Generating report for {query.name}")
@@ -507,9 +509,17 @@ def generate_report_nft_dashboard_handler(args: argparse.Namespace):
             # send as json
             ext = "json"
 
+            blockchain = ""
+
+            if reports[query.name].get("blockchain"):
+
+                blockchain = "/" + reports[query.name]["blockchain"]
+
+            path = f"queries/CryptoUnicorns{blockchain}/{query.name}/data.{ext}"
+
             url = client.upload_query_results(
                 json.dumps(data),
-                key=f"queries/{query.name}/data.{ext}",
+                key=path,
                 bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
             )
 
@@ -518,6 +528,8 @@ def generate_report_nft_dashboard_handler(args: argparse.Namespace):
             logger.info(f"Data recived. Uploading report for {query.name} as csv")
 
             ext = "csv"
+
+            path = f"queries/CU{blockchain}/{query.name}/data.{ext}"
             csv_buffer = StringIO()
 
             dict_csv_writer = csv.DictWriter(
@@ -530,7 +542,7 @@ def generate_report_nft_dashboard_handler(args: argparse.Namespace):
 
             url = client.upload_query_results(
                 data=csv_buffer.getvalue().encode("utf-8"),
-                key=f"queries/{query.name}/data.{ext}",
+                key=path,
                 bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
             )
 
