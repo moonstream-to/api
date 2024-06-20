@@ -523,12 +523,12 @@ def handle_crawl(args: argparse.Namespace) -> None:
 
     else:
 
+        logger.info("Reading jobs from the journal")
+
         jobs = []
 
         # Bugout
         query = f"#state_job #blockchain:{blockchain_type.value}"
-
-        print(f"Query: {query}")
 
         existing_jobs = get_all_entries_from_search(
             journal_id=MOONSTREAM_STATE_CRAWLER_JOURNAL_ID,
@@ -542,21 +542,21 @@ def handle_crawl(args: argparse.Namespace) -> None:
             logger.info("No jobs found in the journal")
             return
 
-    for job in existing_jobs:
+        for job in existing_jobs:
 
-        try:
-            if job.content is None:
-                logger.error(f"Job content is None for entry {job.entry_url}")
+            try:
+                if job.content is None:
+                    logger.error(f"Job content is None for entry {job.entry_url}")
+                    continue
+                ### parse json
+                job_content = json.loads(job.content)
+                ### validate via ViewTasks
+                ViewTasks(**job_content)
+                jobs.append(job_content)
+            except Exception as e:
+
+                logger.error(f"Job validation of entry {job.entry_url} failed: {e}")
                 continue
-            ### parse json
-            job_content = json.loads(job.content)
-            ### validate via ViewTasks
-            ViewTasks(**job_content)
-            jobs.append(job_content)
-        except Exception as e:
-
-            logger.error(f"Job validation of entry {job.entry_url} failed: {e}")
-            continue
 
     custom_web3_provider = args.web3_uri
 
