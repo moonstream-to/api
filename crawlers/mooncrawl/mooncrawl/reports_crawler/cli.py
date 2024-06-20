@@ -477,7 +477,7 @@ def generate_report_nft_dashboard_handler(args: argparse.Namespace):
     client = Moonstream()
 
     reports = {
-        "cu_nft_dashboard_data": {},
+        # "cu_nft_dashboard_data": {},
         "cu_land_nft_dashboard_data": {},
         "cu_seaport_feed_polygon": {},
         "cu_breeding_feed": {},
