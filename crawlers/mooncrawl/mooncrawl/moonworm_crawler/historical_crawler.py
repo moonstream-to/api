@@ -24,6 +24,7 @@ from .crawler import (
 from .db import add_events_to_session, add_function_calls_to_session, commit_session
 from .event_crawler import _autoscale_crawl_events, _crawl_events
 from .function_call_crawler import _crawl_functions
+from ..settings import CRAWLER_LABEL, SEER_CRAWLER_LABEL
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -62,6 +63,7 @@ def historical_crawler(
         raise Exception(e)
 
     evm_state_provider = Web3StateProvider(web3)
+    label = SEER_CRAWLER_LABEL
 
     if version == 2:
         ### Moonstream state provider use the V2 db to get the block
@@ -70,6 +72,8 @@ def historical_crawler(
             network,  # type: ignore
             db_session,
         )
+
+        label = CRAWLER_LABEL
 
     logger.info(f"Starting historical event crawler start_block={start_block}")
 
@@ -128,11 +132,14 @@ def historical_crawler(
                         all_events[i : i + max_insert_batch],
                         blockchain_type,
                         version,
+                        label_name=label,
                     )
 
             else:
 
-                add_events_to_session(db_session, all_events, blockchain_type, version)
+                add_events_to_session(
+                    db_session, all_events, blockchain_type, version, label_name=label
+                )
 
             if function_call_crawl_jobs:
                 logger.info(
@@ -157,11 +164,16 @@ def historical_crawler(
                             all_function_calls[i : i + max_insert_batch],
                             blockchain_type,
                             version,
+                            label_name=label,
                         )
                 else:
 
                     add_function_calls_to_session(
-                        db_session, all_function_calls, blockchain_type, version
+                        db_session,
+                        all_function_calls,
+                        blockchain_type,
+                        version,
+                        label_name=label,
                     )
 
             if addresses_deployment_blocks:
