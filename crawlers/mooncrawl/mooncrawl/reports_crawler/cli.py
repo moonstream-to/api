@@ -489,6 +489,7 @@ def generate_report_nft_dashboard_handler(args: argparse.Namespace):
             "cu_shadowcorns_owners",
             "cu_shadowcorns_feed",
             "cu_previous_day_distributed_rewards",
+            "cu_nft_dashboard_data_xai",
         ]:
             continue
         try:
