@@ -8,10 +8,10 @@ from moonstreamtypes.blockchain import (
     get_label_model,
     get_block_model,
 )
-from moonworm.crawler.log_scanner import (
-    _crawl_events as moonworm_autoscale_crawl_events,  # type: ignore
+from moonworm.crawler.log_scanner import (  # type: ignore
+    _crawl_events as moonworm_autoscale_crawl_events,
 )
-from moonworm.crawler.log_scanner import _fetch_events_chunk
+from moonworm.crawler.log_scanner import _fetch_events_chunk  # type: ignore
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import and_
 from web3 import Web3

@@ -11,8 +11,7 @@ from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from moonstream.client import Moonstream  # type: ignore
-from moonstreamdb.blockchain import AvailableBlockchainType
-from web3.middleware import geth_poa_middleware
+from moonstreamtypes.blockchain import AvailableBlockchainType
 
 from mooncrawl.moonworm_crawler.crawler import _retry_connect_web3
 

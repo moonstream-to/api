@@ -11,7 +11,7 @@ from moonworm.crawler.moonstream_ethereum_state_provider import (  # type: ignor
     MoonstreamEthereumStateProvider,
     Network,
 )
-from moonworm.crawler.ethereum_state_provider import Web3StateProvider
+from moonworm.crawler.ethereum_state_provider import Web3StateProvider  # type: ignore
 from sqlalchemy.orm.session import Session
 from web3 import Web3
 

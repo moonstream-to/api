@@ -3,7 +3,7 @@ from typing import Dict, Optional
 from uuid import UUID
 
 from bugout.app import Bugout
-from moonstreamdb.blockchain import AvailableBlockchainType
+from moonstreamtypes.blockchain import AvailableBlockchainType
 
 # Bugout
 BUGOUT_BROOD_URL = os.environ.get("BUGOUT_BROOD_URL", "https://auth.bugout.dev")

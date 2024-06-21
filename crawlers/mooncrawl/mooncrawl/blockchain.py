@@ -15,7 +15,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Query, Session
 from tqdm import tqdm
 from web3 import HTTPProvider, IPCProvider, Web3
-from web3.middleware import geth_poa_middleware
+from web3.middleware import geth_poa_middleware  # type: ignore
 from web3.types import BlockData
 
 from .data import DateRange

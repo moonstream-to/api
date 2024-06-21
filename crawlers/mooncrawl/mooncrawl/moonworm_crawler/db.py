@@ -22,7 +22,7 @@ def _event_to_label(
     event: Event,
     label_name=CRAWLER_LABEL,
     db_version: int = 2,
-) -> Base:
+) -> Base:  # type: ignore
     """
     Creates a label model.
     """
@@ -72,7 +72,7 @@ def _function_call_to_label(
     function_call: ContractFunctionCall,
     db_version: int = 2,
     label_name=CRAWLER_LABEL,
-) -> Base:
+) -> Base:  # type: ignore
     """
     Creates a label model.
     """

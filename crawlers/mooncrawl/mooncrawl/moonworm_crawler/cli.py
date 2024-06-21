@@ -14,7 +14,7 @@ from moonstreamdbv3.db import (
 from moonstreamtypes.blockchain import AvailableBlockchainType
 from moonstreamtypes.subscriptions import blockchain_type_to_subscription_type
 from web3 import Web3
-from web3.middleware import geth_poa_middleware
+from web3.middleware import geth_poa_middleware  # type: ignore
 
 from ..db import yield_db_session_ctx
 from ..settings import (
@@ -435,9 +435,9 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
         if args.find_deployed_blocks:
             addresses_set = set()
             for job in filtered_event_jobs:
-                addresses_set.update(job.contracts)
+                addresses_set.update(job.contracts)  # type: ignore
             for function_job in filtered_function_call_jobs:
-                addresses_set.add(function_job.contract_address)
+                addresses_set.add(function_job.contract_address)  # type: ignore
 
             if args.start is None:
                 start_block = web3.eth.blockNumber - 1
@@ -488,8 +488,8 @@ def handle_historical_crawl(args: argparse.Namespace) -> None:
             db_session,
             blockchain_type,
             web3,
-            filtered_event_jobs,
-            filtered_function_call_jobs,
+            filtered_event_jobs,  # type: ignore
+            filtered_function_call_jobs,  # type: ignore
             start_block,
             end_block,
             args.max_blocks_batch,
