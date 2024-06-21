@@ -5,11 +5,11 @@ import time
 import uuid
 from collections import OrderedDict
 from datetime import datetime
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Union, List
 
 import boto3  # type: ignore
 import requests  # type: ignore
-from bugout.data import BugoutResources
+from bugout.data import BugoutResources, BugoutSearchResult
 from bugout.exceptions import BugoutResponseException
 from moonstream.client import (  # type: ignore
     ENDPOINT_QUERIES,
@@ -170,3 +170,37 @@ def recive_S3_data_from_query(
             logger.info("Too many retries")
             break
     return data_response.json()
+
+
+def get_all_entries_from_search(
+    journal_id: str, search_query: str, limit: int, token: str, content: bool = False
+) -> List[BugoutSearchResult]:
+    """
+    Get all required entries from journal using search interface
+    """
+    offset = 0
+    results: List[BugoutSearchResult] = []
+    existing_methods = bc.search(
+        token=token,
+        journal_id=journal_id,
+        query=search_query,
+        content=content,
+        timeout=10.0,
+        limit=limit,
+        offset=offset,
+    )
+    results.extend(existing_methods.results)  # type: ignore
+    if len(results) != existing_methods.total_results:
+        for offset in range(limit, existing_methods.total_results, limit):
+            existing_methods = bc.search(
+                token=token,
+                journal_id=journal_id,
+                query=search_query,
+                content=content,
+                timeout=10.0,
+                limit=limit,
+                offset=offset,
+            )
+            results.extend(existing_methods.results)  # type: ignore
+
+    return results
