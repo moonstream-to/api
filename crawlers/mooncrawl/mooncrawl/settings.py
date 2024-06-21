@@ -45,7 +45,7 @@ DOCS_TARGET_PATH = "docs"
 
 # Crawler label
 CRAWLER_LABEL = "moonworm-alpha"
-SEER_CRAWLER_LABEL = "seer-alpha"
+SEER_CRAWLER_LABEL = "seer"
 VIEW_STATE_CRAWLER_LABEL = "view-state-alpha"
 METADATA_CRAWLER_LABEL = "metadata-crawler"
 
