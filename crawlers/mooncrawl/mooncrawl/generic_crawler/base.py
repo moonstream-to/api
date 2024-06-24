@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Set, Union
 
 from eth_typing import ChecksumAddress
 from hexbytes.main import HexBytes
-from moonstreamdb.blockchain import (
+from moonstreamtypes.blockchain import (
     AvailableBlockchainType,
     get_label_model,
     get_transaction_model,
@@ -314,7 +314,12 @@ def populate_with_events(
                 events.append(event)
 
         logger.info(f"Found {len(events)} events for populate")
-        add_events_to_session(db_session, events, blockchain_type, label_name)
+        add_events_to_session(
+            db_session=db_session,
+            events=events,
+            blockchain_type=blockchain_type,
+            label_name=label_name,
+        )
         commit_session(db_session)
         pbar.update(batch_end - current_block + 1)
         current_block = batch_end + 1
@@ -403,10 +408,10 @@ def crawl(
                 label_name,
             )
         add_events_to_session(
-            db_session,
-            events,
-            blockchain_type,
-            label_name,
+            db_session=db_session,
+            events=events,
+            blockchain_type=blockchain_type,
+            label_name=label_name,
         )
         commit_session(db_session)
         pbar.update(batch_end - current_block + 1)

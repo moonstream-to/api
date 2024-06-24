@@ -2,7 +2,7 @@ import json
 import logging
 from typing import Any, Dict
 
-from moonstreamdb.blockchain import AvailableBlockchainType, get_label_model
+from moonstreamtypes.blockchain import AvailableBlockchainType, get_label_model
 from sqlalchemy.orm import Session
 
 from ..settings import VIEW_STATE_CRAWLER_LABEL
