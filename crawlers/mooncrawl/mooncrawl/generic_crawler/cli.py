@@ -4,7 +4,7 @@ import logging
 from typing import Optional
 from uuid import UUID
 
-from moonstreamdb.blockchain import AvailableBlockchainType
+from moonstreamtypes.blockchain import AvailableBlockchainType
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 

@@ -14,7 +14,8 @@ from typing import Iterator, List
 from uuid import UUID
 
 import dateutil.parser  # type: ignore
-from moonstreamdb.blockchain import AvailableBlockchainType
+
+from moonstreamtypes.blockchain import AvailableBlockchainType
 
 from .blockchain import (
     DateRange,

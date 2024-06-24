@@ -3,7 +3,7 @@ from typing import Dict, Optional
 from uuid import UUID
 
 from bugout.app import Bugout
-from moonstreamdb.blockchain import AvailableBlockchainType
+from moonstreamtypes.blockchain import AvailableBlockchainType
 
 # Bugout
 BUGOUT_BROOD_URL = os.environ.get("BUGOUT_BROOD_URL", "https://auth.bugout.dev")
@@ -45,6 +45,7 @@ DOCS_TARGET_PATH = "docs"
 
 # Crawler label
 CRAWLER_LABEL = "moonworm-alpha"
+SEER_CRAWLER_LABEL = "seer"
 VIEW_STATE_CRAWLER_LABEL = "view-state-alpha"
 METADATA_CRAWLER_LABEL = "metadata-crawler"
 
@@ -194,6 +195,42 @@ MOONSTREAM_NODE_ARBITRUM_ONE_A_EXTERNAL_URI = os.environ.get(
 if MOONSTREAM_NODE_ARBITRUM_ONE_A_EXTERNAL_URI == "":
     raise Exception(
         "MOONSTREAM_NODE_ARBITRUM_ONE_A_EXTERNAL_URI env variable is not set"
+    )
+
+MOONSTREAM_NODE_STARKNET_A_EXTERNAL_URI = os.environ.get(
+    "MOONSTREAM_NODE_STARKNET_A_EXTERNAL_URI", ""
+)
+if MOONSTREAM_NODE_STARKNET_A_EXTERNAL_URI == "":
+    raise Exception("MOONSTREAM_NODE_STARKNET_A_EXTERNAL_URI env variable is not set")
+
+MOONSTREAM_NODE_STARKNET_SEPOLIA_A_EXTERNAL_URI = os.environ.get(
+    "MOONSTREAM_NODE_STARKNET_SEPOLIA_A_EXTERNAL_URI", ""
+)
+if MOONSTREAM_NODE_STARKNET_SEPOLIA_A_EXTERNAL_URI == "":
+    raise Exception(
+        "MOONSTREAM_NODE_STARKNET_SEPOLIA_A_EXTERNAL_URI env variable is not set"
+    )
+
+MOONSTREAM_NODE_MANTLE_A_EXTERNAL_URI = os.environ.get(
+    "MOONSTREAM_NODE_MANTLE_A_EXTERNAL_URI", ""
+)
+if MOONSTREAM_NODE_MANTLE_A_EXTERNAL_URI == "":
+    raise Exception("MOONSTREAM_NODE_MANTLE_A_EXTERNAL_URI env variable is not set")
+
+MOONSTREAM_NODE_MANTLE_SEPOLIA_A_EXTERNAL_URI = os.environ.get(
+    "MOONSTREAM_NODE_MANTLE_SEPOLIA_A_EXTERNAL_URI", ""
+)
+if MOONSTREAM_NODE_MANTLE_SEPOLIA_A_EXTERNAL_URI == "":
+    raise Exception(
+        "MOONSTREAM_NODE_MANTLE_SEPOLIA_A_EXTERNAL_URI env variable is not set"
+    )
+
+MOONSTREAM_NODE_GAME7_ORBIT_ARBITRUM_SEPOLIA_A_EXTERNAL_URI = os.environ.get(
+    "MOONSTREAM_NODE_GAME7_ORBIT_ARBITRUM_SEPOLIA_A_EXTERNAL_URI", ""
+)
+if MOONSTREAM_NODE_GAME7_ORBIT_ARBITRUM_SEPOLIA_A_EXTERNAL_URI == "":
+    raise Exception(
+        "MOONSTREAM_NODE_GAME7_ORBIT_ARBITRUM_SEPOLIA_A_EXTERNAL_URI env variable is not set"
     )
 
 
@@ -393,7 +430,12 @@ if MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID == "":
 
 MOONSTREAM_LEADERBOARD_GENERATOR_BATCH_SIZE = 12000
 MOONSTREAM_LEADERBOARD_GENERATOR_PUSH_TIMEOUT_SECONDS = 60
-
+MOONSTREAM_DB_V3_CONTROLLER_API = os.environ.get(
+    "MOONSTREAM_DB_V3_CONTROLLER_API", "https://mdb-v3-api.moonstream.to"
+)
+MOONSTREAM_DB_V3_CONTROLLER_SEER_ACCESS_TOKEN = os.environ.get(
+    "MOONSTREAM_DB_V3_CONTROLLER_SEER_ACCESS_TOKEN", ""
+)
 
 # state crawler
 

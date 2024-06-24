@@ -2,11 +2,16 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
-from moonstreamdb.blockchain import AvailableBlockchainType, get_block_model
-from moonworm.crawler.log_scanner import (
-    _crawl_events as moonworm_autoscale_crawl_events,  # type: ignore
+
+from moonstreamtypes.blockchain import (
+    AvailableBlockchainType,
+    get_label_model,
+    get_block_model,
 )
-from moonworm.crawler.log_scanner import _fetch_events_chunk
+from moonworm.crawler.log_scanner import (  # type: ignore
+    _crawl_events as moonworm_autoscale_crawl_events,
+)
+from moonworm.crawler.log_scanner import _fetch_events_chunk  # type: ignore
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import and_
 from web3 import Web3
@@ -26,6 +31,7 @@ class Event:
     block_timestamp: int
     transaction_hash: str
     log_index: int
+    block_hash: Optional[str] = None
 
 
 def _get_block_timestamp_from_web3(
@@ -48,6 +54,7 @@ def get_block_timestamp(
     block_number: int,
     blocks_cache: Dict[int, int],
     max_blocks_batch: int = 30,
+    version: int = 2,
 ) -> int:
     """
     Get the timestamp of a block.
@@ -63,6 +70,14 @@ def get_block_timestamp(
     :param blocks_cache: The cache of blocks.
     :return: The timestamp of the block.
     """
+
+    if version != 2:
+        if block_number in blocks_cache:
+            return blocks_cache[block_number]
+        target_block_timestamp = _get_block_timestamp_from_web3(web3, block_number)
+        blocks_cache[block_number] = target_block_timestamp
+        return target_block_timestamp
+
     assert max_blocks_batch > 0
 
     if block_number in blocks_cache:
@@ -71,7 +86,9 @@ def get_block_timestamp(
     block_model = get_block_model(blockchain_type)
 
     blocks = (
-        db_session.query(block_model.block_number, block_model.timestamp)
+        db_session.query(
+            block_model.block_number, block_model.timestamp, block_model.hash
+        )
         .filter(
             and_(
                 block_model.block_number >= block_number - max_blocks_batch - 1,
@@ -108,6 +125,7 @@ def _crawl_events(
     to_block: int,
     blocks_cache: Dict[int, int] = {},
     db_block_query_batch=10,
+    version: int = 2,
 ) -> List[Event]:
     all_events = []
     for job in jobs:
@@ -129,6 +147,7 @@ def _crawl_events(
                 raw_event["blockNumber"],
                 blocks_cache,
                 db_block_query_batch,
+                version,
             )
             event = Event(
                 event_name=raw_event["event"],
@@ -138,6 +157,7 @@ def _crawl_events(
                 block_timestamp=raw_event["blockTimestamp"],
                 transaction_hash=raw_event["transactionHash"],
                 log_index=raw_event["logIndex"],
+                block_hash=raw_event.get("blockHash"),
             )
             all_events.append(event)
 
@@ -154,21 +174,25 @@ def _autoscale_crawl_events(
     blocks_cache: Dict[int, int] = {},
     batch_size: int = 1000,
     db_block_query_batch=10,
+    version: int = 2,
 ) -> Tuple[List[Event], int]:
     """
     Crawl events with auto regulated batch_size.
     """
     all_events = []
     for job in jobs:
-        raw_events, batch_size = moonworm_autoscale_crawl_events(
-            web3=web3,
-            event_abi=job.event_abi,
-            from_block=from_block,
-            to_block=to_block,
-            batch_size=batch_size,
-            contract_address=job.contracts[0],
-            max_blocks_batch=3000,
-        )
+        try:
+            raw_events, batch_size = moonworm_autoscale_crawl_events(
+                web3=web3,
+                event_abi=job.event_abi,
+                from_block=from_block,
+                to_block=to_block,
+                batch_size=batch_size,
+                contract_address=job.contracts[0],
+                max_blocks_batch=3000,
+            )
+        except Exception as e:
+            breakpoint()
         for raw_event in raw_events:
             raw_event["blockTimestamp"] = get_block_timestamp(
                 db_session,
@@ -177,6 +201,7 @@ def _autoscale_crawl_events(
                 raw_event["blockNumber"],
                 blocks_cache,
                 db_block_query_batch,
+                version,
             )
             event = Event(
                 event_name=raw_event["event"],
@@ -186,6 +211,7 @@ def _autoscale_crawl_events(
                 block_timestamp=raw_event["blockTimestamp"],
                 transaction_hash=raw_event["transactionHash"],
                 log_index=raw_event["logIndex"],
+                block_hash=raw_event.get("blockHash"),
             )
             all_events.append(event)
 

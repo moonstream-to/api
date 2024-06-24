@@ -5,12 +5,14 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
-from moonstreamdb.blockchain import AvailableBlockchainType
-from moonstreamdb.networks import blockchain_type_to_network_type
-from moonstreamdb.subscriptions import blockchain_type_to_subscription_type
+
+from moonstreamtypes.blockchain import AvailableBlockchainType
+from moonstreamtypes.subscriptions import blockchain_type_to_subscription_type
+from moonstreamtypes.networks import blockchain_type_to_network_type
 from moonworm.crawler.moonstream_ethereum_state_provider import (  # type: ignore
     MoonstreamEthereumStateProvider,
 )
+from moonworm.crawler.ethereum_state_provider import Web3StateProvider
 from sqlalchemy.orm.session import Session
 from web3 import Web3
 
@@ -105,6 +107,7 @@ def continuous_crawler(
     new_jobs_refetch_interval: float = 120,
     web3_uri: Optional[str] = None,
     max_insert_batch: int = 10000,
+    version: int = 2,
 ):
     crawler_type = "continuous"
     assert (
@@ -129,11 +132,14 @@ def continuous_crawler(
     except Exception as e:
         raise Exception(e)
 
-    ethereum_state_provider = MoonstreamEthereumStateProvider(
-        web3,
-        network,
-        db_session,
-    )
+    evm_state_provider = Web3StateProvider(web3)
+
+    if version == 2:
+        evm_state_provider = MoonstreamEthereumStateProvider(
+            web3,
+            network,  # type: ignore
+            db_session,
+        )
 
     heartbeat_template = {
         "status": "crawling",
@@ -206,7 +212,7 @@ def continuous_crawler(
                 )
                 all_function_calls = _crawl_functions(
                     blockchain_type,
-                    ethereum_state_provider,
+                    evm_state_provider,
                     function_call_crawl_jobs,
                     start_block,
                     end_block,
@@ -268,7 +274,7 @@ def continuous_crawler(
                         function_call_crawl_jobs
                     )
                     heartbeat_template["function_call metrics"] = (
-                        ethereum_state_provider.metrics
+                        evm_state_provider.metrics
                     )
                     heartbeat(
                         crawler_type=crawler_type,
