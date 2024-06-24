@@ -484,7 +484,15 @@ def generate_report_nft_dashboard_handler(args: argparse.Namespace):
         "cu_shadowcorns_owners": {},
         "cu_shadowcorns_feed": {},
         "cu_previous_day_distributed_rewards": {},
-        "cu_nft_dashboard_data_xai": {"blockchain": "xai"},
+        "cu_nft_dashboard_data_xai": {
+            "blockchain": "xai",
+            "customer": "CryptoUnicorns",
+        },
+        "cu_shadowcorns_feed_xai": {"blockchain": "xai", "customer": "CryptoUnicorns"},
+        "cu_land_nft_dashboard_data_xai": {
+            "blockchain": "xai",
+            "customer": "CryptoUnicorns",
+        },
     }
 
     for query in client.list_queries(
@@ -496,26 +504,35 @@ def generate_report_nft_dashboard_handler(args: argparse.Namespace):
             continue
         try:
             logger.info(f"Generating report for {query.name}")
-            data = recive_S3_data_from_query(
-                client=client,
-                token=args.moonstream_token,
-                query_name=query.name,
-                params=params,
-                time_await=4,
-            )
+
+            try:
+                data = recive_S3_data_from_query(
+                    client=client,
+                    token=args.moonstream_token,
+                    query_name=query.name,
+                    params=params,
+                    time_await=4,
+                )
+            except Exception as err:
+                logger.error(f"Error while generating report for {query.name}. {err}")
+                continue
 
             logger.info(f"Data recived. Uploading report for {query.name} as json")
 
             # send as json
             ext = "json"
 
-            blockchain = ""
+            full_path = []
+
+            if reports[query.name].get("customer"):
+                full_path.append(reports[query.name]["customer"])
 
             if reports[query.name].get("blockchain"):
+                full_path.append(reports[query.name]["blockchain"])
 
-                blockchain = "/" + reports[query.name]["blockchain"]
+            full_path.append(query.name)
 
-            path = f"queries/CryptoUnicorns{blockchain}/{query.name}/data.{ext}"
+            path = f"queries/{'/'.join(full_path)}/data.{ext}"
 
             url = client.upload_query_results(
                 json.dumps(data),
@@ -529,8 +546,11 @@ def generate_report_nft_dashboard_handler(args: argparse.Namespace):
 
             ext = "csv"
 
-            path = f"queries/CU{blockchain}/{query.name}/data.{ext}"
+            path = f"queries/{'/'.join(full_path)}/data.{ext}"
             csv_buffer = StringIO()
+
+            if len(data["data"]) == 0:
+                continue
 
             dict_csv_writer = csv.DictWriter(
                 csv_buffer, fieldnames=data["data"][0].keys(), delimiter=","
