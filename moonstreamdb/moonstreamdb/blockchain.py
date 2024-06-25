@@ -5,12 +5,12 @@ from .models import (
     AmoyBlock,
     AmoyLabel,
     AmoyTransaction,
-    ArbitrumOneBlock,
-    ArbitrumOneLabel,
-    ArbitrumOneTransaction,
     ArbitrumNovaBlock,
     ArbitrumNovaLabel,
     ArbitrumNovaTransaction,
+    ArbitrumOneBlock,
+    ArbitrumOneLabel,
+    ArbitrumOneTransaction,
     ArbitrumSepoliaBlock,
     ArbitrumSepoliaLabel,
     ArbitrumSepoliaTransaction,
@@ -29,6 +29,12 @@ from .models import (
     EthereumBlock,
     EthereumLabel,
     EthereumTransaction,
+    MantleBlock,
+    MantleLabel,
+    MantleSepoliaBlock,
+    MantleSepoliaLabel,
+    MantleSepoliaTransaction,
+    MantleTransaction,
     MumbaiBlock,
     MumbaiLabel,
     MumbaiTransaction,
@@ -82,6 +88,8 @@ class AvailableBlockchainType(Enum):
     BLAST = "blast"
     BLAST_SEPOLIA = "blast_sepolia"
     PROOFOFPLAY_APEX = "proofofplay_apex"
+    MANTLE = "mantle"
+    MANTLE_SEPOLIA = "mantle_sepolia"
 
 
 def get_block_model(
@@ -107,6 +115,8 @@ def get_block_model(
         BlastBlock,
         BlastSepoliaBlock,
         ProofOfPlayApexBlock,
+        MantleBlock,
+        MantleSepoliaBlock,
     ]
 ]:
     """
@@ -133,6 +143,8 @@ def get_block_model(
             BlastBlock,
             BlastSepoliaBlock,
             ProofOfPlayApexBlock,
+            MantleBlock,
+            MantleSepoliaBlock,
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -173,6 +185,10 @@ def get_block_model(
         block_model = BlastSepoliaBlock
     elif blockchain_type == AvailableBlockchainType.PROOFOFPLAY_APEX:
         block_model = ProofOfPlayApexBlock
+    elif blockchain_type == AvailableBlockchainType.MANTLE:
+        block_model = MantleBlock
+    elif blockchain_type == AvailableBlockchainType.MANTLE_SEPOLIA:
+        block_model = MantleSepoliaBlock
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -202,6 +218,8 @@ def get_label_model(
         BlastLabel,
         BlastSepoliaLabel,
         ProofOfPlayApexLabel,
+        MantleLabel,
+        MantleSepoliaLabel,
     ]
 ]:
     """
@@ -228,6 +246,8 @@ def get_label_model(
             BlastLabel,
             BlastSepoliaLabel,
             ProofOfPlayApexLabel,
+            MantleLabel,
+            MantleSepoliaLabel,
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -268,6 +288,10 @@ def get_label_model(
         label_model = BlastSepoliaLabel
     elif blockchain_type == AvailableBlockchainType.PROOFOFPLAY_APEX:
         label_model = ProofOfPlayApexLabel
+    elif blockchain_type == AvailableBlockchainType.MANTLE:
+        label_model = MantleLabel
+    elif blockchain_type == AvailableBlockchainType.MANTLE_SEPOLIA:
+        label_model = MantleSepoliaLabel
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -297,6 +321,8 @@ def get_transaction_model(
         BlastTransaction,
         BlastSepoliaTransaction,
         ProofOfPlayApexTransaction,
+        MantleTransaction,
+        MantleSepoliaTransaction,
     ]
 ]:
     """
@@ -323,6 +349,8 @@ def get_transaction_model(
             BlastTransaction,
             BlastSepoliaTransaction,
             ProofOfPlayApexTransaction,
+            MantleTransaction,
+            MantleSepoliaTransaction,
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -363,6 +391,10 @@ def get_transaction_model(
         transaction_model = BlastSepoliaTransaction
     elif blockchain_type == AvailableBlockchainType.PROOFOFPLAY_APEX:
         transaction_model = ProofOfPlayApexTransaction
+    elif blockchain_type == AvailableBlockchainType.MANTLE:
+        transaction_model = MantleTransaction
+    elif blockchain_type == AvailableBlockchainType.MANTLE_SEPOLIA:
+        transaction_model = MantleSepoliaTransaction
     else:
         raise Exception("Unsupported blockchain type provided")
 
