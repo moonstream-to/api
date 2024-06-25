@@ -704,6 +704,7 @@ def get_event_crawl_job_records(
     blockchain_type: AvailableBlockchainType,
     addresses: List[str],
     existing_crawl_job_records: Dict[str, EventCrawlJob],
+    customer_id: Optional[str] = None,
 ):
     """
     Retrieve and update the event crawl job records from the database.
@@ -712,8 +713,11 @@ def get_event_crawl_job_records(
     query = (
         db_session.query(AbiJobs)
         .filter(AbiJobs.chain == blockchain_type.value)
-        .filter(func.length(AbiJobs.abi_selector) > 10)
+        .filter(func.cast(AbiJobs.abi_selector, JSON).op("->>")("type") == "event")
     )
+
+    if customer_id is not None:
+        query = query.filter(AbiJobs.customer_id == customer_id)
 
     if len(addresses) != 0:
         query = query.filter(
@@ -770,6 +774,7 @@ def get_function_call_crawl_job_records(
     blockchain_type: AvailableBlockchainType,
     addresses: List[str],
     existing_crawl_job_records: Dict[str, FunctionCallCrawlJob],
+    customer_id: Optional[str] = None,
 ):
     """
     Retrieve and update the function call crawl job records from the database.
@@ -785,6 +790,9 @@ def get_function_call_crawl_job_records(
             sqlcast(AbiJobs.abi, JSON).op("->>")("stateMutability") != "view",
         )
     )
+
+    if customer_id is not None:
+        query = query.filter(AbiJobs.customer_id == customer_id)
 
     if len(addresses) != 0:
         query = query.filter(
