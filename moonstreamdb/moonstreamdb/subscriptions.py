@@ -23,6 +23,8 @@ class SubscriptionTypes(Enum):
     BLAST_BLOCKCHAIN = "blast_smartcontract"
     BLAST_SEPOLIA_BLOCKCHAIN = "blast_sepolia_smartcontract"
     PROOFOFPLAY_APEX_BLOCKCHAIN = "proofofplay_apex_smartcontract"
+    MANTLE_BLOCKCHAIN = "mantle_smartcontract"
+    MANTLE_SEPOLIA_BLOCKCHAIN = "mantle_sepolia_smartcontract"
 
 
 def blockchain_type_to_subscription_type(
@@ -66,6 +68,10 @@ def blockchain_type_to_subscription_type(
         return SubscriptionTypes.BLAST_SEPOLIA_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.PROOFOFPLAY_APEX:
         return SubscriptionTypes.PROOFOFPLAY_APEX_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.MANTLE:
+        return SubscriptionTypes.MANTLE_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.MANTLE_SEPOLIA:
+        return SubscriptionTypes.MANTLE_SEPOLIA_BLOCKCHAIN
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 
@@ -90,6 +96,8 @@ subscription_id_by_blockchain = {
     "blast": "blast_smartcontract",
     "blast_sepolia": "blast_sepolia_smartcontract",
     "proofofplay_apex": "proofofplay_apex_smartcontract",
+    "mantle": "mantle_smartcontract",
+    "mantle_sepolia": "mantle_sepolia_smartcontract",
 }
 
 blockchain_by_subscription_id = {
@@ -111,6 +119,8 @@ blockchain_by_subscription_id = {
     "avalanche_fuji_blockchain": "avalanche_fuji",
     "blast_blockchain": "blast",
     "blast_sepolia_blockchain": "blast_sepolia",
+    "mantle_blockchain": "mantle",
+    "mantle_sepolia_blockchain": "mantle_sepolia",
     "proofofplay_apex_blockchain": "proofofplay_apex",
     "ethereum_smartcontract": "ethereum",
     "polygon_smartcontract": "polygon",
@@ -131,4 +141,6 @@ blockchain_by_subscription_id = {
     "blast_smartcontract": "blast",
     "blast_sepolia_smartcontract": "blast_sepolia",
     "proofofplay_apex_smartcontract": "proofofplay_apex",
+    "mantle_smartcontract": "mantle",
+    "mantle_sepolia_smartcontract": "mantle_sepolia",
 }
