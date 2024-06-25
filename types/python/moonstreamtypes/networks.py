@@ -5,12 +5,12 @@ from moonstreamdb.models import (
     AmoyBlock,
     AmoyLabel,
     AmoyTransaction,
-    ArbitrumOneBlock,
-    ArbitrumOneLabel,
-    ArbitrumOneTransaction,
     ArbitrumNovaBlock,
     ArbitrumNovaLabel,
     ArbitrumNovaTransaction,
+    ArbitrumOneBlock,
+    ArbitrumOneLabel,
+    ArbitrumOneTransaction,
     ArbitrumSepoliaBlock,
     ArbitrumSepoliaLabel,
     ArbitrumSepoliaTransaction,
@@ -30,6 +30,12 @@ from moonstreamdb.models import (
     EthereumBlock,
     EthereumLabel,
     EthereumTransaction,
+    MantleBlock,
+    MantleLabel,
+    MantleSepoliaBlock,
+    MantleSepoliaLabel,
+    MantleSepoliaTransaction,
+    MantleTransaction,
     MumbaiBlock,
     MumbaiLabel,
     MumbaiTransaction,
@@ -61,32 +67,32 @@ from moonstreamdb.models import (
     ZkSyncEraTestnetTransaction,
     ZkSyncEraTransaction,
 )
+from moonstreamdbv3.models import AmoyLabel as AmoyLabelV3
+from moonstreamdbv3.models import ArbitrumNovaLabel as ArbitrumNovaLabelV3
+from moonstreamdbv3.models import ArbitrumOneLabel as ArbitrumOneLabelV3
+from moonstreamdbv3.models import ArbitrumSepoliaLabel as ArbitrumSepoliaLabelV3
+from moonstreamdbv3.models import AvalancheFujiLabel as AvalancheFujiLabelV3
+from moonstreamdbv3.models import AvalancheLabel as AvalancheLabelV3
+from moonstreamdbv3.models import BaseLabel as BaseLabelV3
+from moonstreamdbv3.models import BlastLabel as BlastLabelV3
+from moonstreamdbv3.models import BlastSepoliaLabel as BlastSepoliaLabelV3
+from moonstreamdbv3.models import EthereumLabel as EthereumLabelV3
 from moonstreamdbv3.models import (
-    EthereumLabel as EthereumLabelV3,
-    SepoliaLabel as SepoliaLabelV3,
-    PolygonLabel as PolygonLabelV3,
-    MumbaiLabel as MumbaiLabelV3,
-    AmoyLabel as AmoyLabelV3,
-    XDaiLabel as XDaiLabelV3,
-    ZkSyncEraLabel as ZkSyncEraLabelV3,
-    ZkSyncEraSepoliaLabel as ZkSyncEraSepoliaLabelV3,
-    BaseLabel as BaseLabelV3,
-    ArbitrumNovaLabel as ArbitrumNovaLabelV3,
-    ArbitrumOneLabel as ArbitrumOneLabelV3,
-    ArbitrumSepoliaLabel as ArbitrumSepoliaLabelV3,
     Game7OrbitArbitrumSepoliaLabel as Game7OrbitArbitrumSepoliaLabelV3,
-    XaiLabel as XaiLabelV3,
-    XaiSepoliaLabel as XaiSepoliaLabelV3,
-    AvalancheLabel as AvalancheLabelV3,
-    AvalancheFujiLabel as AvalancheFujiLabelV3,
-    BlastLabel as BlastLabelV3,
-    BlastSepoliaLabel as BlastSepoliaLabelV3,
-    ProofOfPlayApexLabel as ProofOfPlayApexLabelV3,
-    StarknetLabel as StarknetLabelV3,
-    StarknetSepoliaLabel as StarknetSepoliaLabelV3,
-    MantleLabel as MantleLabelV3,
-    MantleSepoliaLabel as MantleSepoliaLabelV3,
 )
+from moonstreamdbv3.models import MantleLabel as MantleLabelV3
+from moonstreamdbv3.models import MantleSepoliaLabel as MantleSepoliaLabelV3
+from moonstreamdbv3.models import MumbaiLabel as MumbaiLabelV3
+from moonstreamdbv3.models import PolygonLabel as PolygonLabelV3
+from moonstreamdbv3.models import ProofOfPlayApexLabel as ProofOfPlayApexLabelV3
+from moonstreamdbv3.models import SepoliaLabel as SepoliaLabelV3
+from moonstreamdbv3.models import StarknetLabel as StarknetLabelV3
+from moonstreamdbv3.models import StarknetSepoliaLabel as StarknetSepoliaLabelV3
+from moonstreamdbv3.models import XaiLabel as XaiLabelV3
+from moonstreamdbv3.models import XaiSepoliaLabel as XaiSepoliaLabelV3
+from moonstreamdbv3.models import XDaiLabel as XDaiLabelV3
+from moonstreamdbv3.models import ZkSyncEraLabel as ZkSyncEraLabelV3
+from moonstreamdbv3.models import ZkSyncEraSepoliaLabel as ZkSyncEraSepoliaLabelV3
 
 from .blockchain import AvailableBlockchainType
 
@@ -140,6 +146,8 @@ tx_raw_types = Union[
     BlastTransaction,
     BlastSepoliaTransaction,
     ProofOfPlayApexTransaction,
+    MantleTransaction,
+    MantleSepoliaTransaction,
 ]
 
 MODELS: Dict[Network, Dict[str, Base]] = {
@@ -237,6 +245,16 @@ MODELS: Dict[Network, Dict[str, Base]] = {
         "blocks": ProofOfPlayApexBlock,
         "labels": ProofOfPlayApexLabel,
         "transactions": ProofOfPlayApexTransaction,
+    },
+    Network.mantle: {
+        "blocks": MantleBlock,
+        "labels": MantleLabel,
+        "transactions": MantleTransaction,
+    },
+    Network.mantle_sepolia: {
+        "blocks": MantleSepoliaBlock,
+        "labels": MantleSepoliaLabel,
+        "transactions": MantleSepoliaTransaction,
     },
 }
 
