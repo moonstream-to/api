@@ -41,6 +41,8 @@ AVALANCHE_FUJI_MOONWORM_CRAWLER_SERVICE_FILE="avalanche-fuji-moonworm-crawler.se
 BLAST_MOONWORM_CRAWLER_SERVICE_FILE="blast-moonworm-crawler.service"
 BLAST_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE="blast-sepolia-moonworm-crawler.service"
 PROOFOFPLAY_APEX_MOONWORM_CRAWLER_SERVICE_FILE="proofofplay-apex-moonworm-crawler.service"
+MANTLE_MOONWORM_CRAWLER_SERVICE_FILE="mantle-moonworm-crawler.service"
+MANTLE_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE="mantle-sepolia-moonworm-crawler.service"
 
 set -eu
 
@@ -209,3 +211,19 @@ chmod 644 "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_MOONWORM_CRAWLER_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${PROOFOFPLAY_APEX_MOONWORM_CRAWLER_SERVICE_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${PROOFOFPLAY_APEX_MOONWORM_CRAWLER_SERVICE_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Mantle moonworm crawler service definition with ${MANTLE_MOONWORM_CRAWLER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${MANTLE_MOONWORM_CRAWLER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${MANTLE_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${MANTLE_MOONWORM_CRAWLER_SERVICE_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MANTLE_MOONWORM_CRAWLER_SERVICE_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Mantle sepolia moonworm crawler service definition with ${MANTLE_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${MANTLE_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${MANTLE_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${MANTLE_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MANTLE_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"

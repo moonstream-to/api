@@ -147,7 +147,6 @@ XAI_HISTORICAL_CRAWL_EVENTS_TIMER_FILE="xai-historical-crawl-events.timer"
 XAI_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE="xai-historical-crawl-transactions.service"
 XAI_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE="xai-historical-crawl-transactions.timer"
 
-
 # Xai sepolia
 XAI_SEPOLIA_MISSING_SERVICE_FILE="xai-sepolia-missing.service"
 XAI_SEPOLIA_MISSING_TIMER_FILE="xai-sepolia-missing.timer"
@@ -198,6 +197,25 @@ PROOFOFPLAY_APEX_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE="proofofplay-apex-hist
 PROOFOFPLAY_APEX_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE="proofofplay-apex-historical-crawl-events.service"
 PROOFOFPLAY_APEX_HISTORICAL_CRAWL_EVENTS_TIMER_FILE="proofofplay-apex-historical-crawl-events.timer"
 
+# Mantle
+MANTLE_MISSING_SERVICE_FILE="mantle-missing.service"
+MANTLE_MISSING_TIMER_FILE="mantle-missing.timer"
+MANTLE_MOONWORM_CRAWLER_SERVICE_FILE="mantle-moonworm-crawler.service"
+MANTLE_SYNCHRONIZE_SERVICE="mantle-synchronize.service"
+MANTLE_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE="mantle-historical-crawl-events.service"
+MANTLE_HISTORICAL_CRAWL_EVENTS_TIMER_FILE="mantle-historical-crawl-events.timer"
+MANTLE_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE="mantle-historical-crawl-transactions.service"
+MANTLE_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE="mantle-historical-crawl-transactions.timer"
+
+# Mantle Sepolia
+MANTLE_SEPOLIA_MISSING_SERVICE_FILE="mantle-sepolia-missing.service"
+MANTLE_SEPOLIA_MISSING_TIMER_FILE="mantle-sepolia-missing.timer"
+MANTLE_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE="mantle-sepolia-moonworm-crawler.service"
+MANTLE_SEPOLIA_SYNCHRONIZE_SERVICE="mantle-sepolia-synchronize.service"
+MANTLE_SEPOLIA_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE="mantle-sepolia-historical-crawl-events.service"
+MANTLE_SEPOLIA_HISTORICAL_CRAWL_EVENTS_TIMER_FILE="mantle-sepolia-historical-crawl-events.timer"
+MANTLE_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE="mantle-sepolia-historical-crawl-transactions.service"
+MANTLE_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE="mantle-sepolia-historical-crawl-transactions.timer"
 
 set -eu
 
@@ -959,7 +977,6 @@ XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${BLAST_SE
 
 
 # Proofofplay Apex
-
 echo
 echo
 echo -e "${PREFIX_INFO} Replacing existing Proofofplay Apex block with transactions syncronizer service definition with ${PROOFOFPLAY_APEX_SYNCHRONIZE_SERVICE}"
@@ -1002,3 +1019,91 @@ cp "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}" "/ho
 cp "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${PROOFOFPLAY_APEX_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${PROOFOFPLAY_APEX_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+
+# Mantle
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Mantle block with transactions syncronizer service definition with ${MANTLE_SYNCHRONIZE_SERVICE}"
+chmod 644 "${SCRIPT_DIR}/${MANTLE_SYNCHRONIZE_SERVICE}"
+cp "${SCRIPT_DIR}/${MANTLE_SYNCHRONIZE_SERVICE}" "/home/ubuntu/.config/systemd/user/${MANTLE_SYNCHRONIZE_SERVICE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MANTLE_SYNCHRONIZE_SERVICE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Mantle missing service and timer with: ${MANTLE_MISSING_SERVICE_FILE}, ${MANTLE_MISSING_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${MANTLE_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${MANTLE_MISSING_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${MANTLE_MISSING_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${MANTLE_MISSING_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${MANTLE_MISSING_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${MANTLE_MISSING_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MANTLE_MISSING_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Mantle moonworm crawler service definition with ${MANTLE_MOONWORM_CRAWLER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${MANTLE_MOONWORM_CRAWLER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${MANTLE_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${MANTLE_MOONWORM_CRAWLER_SERVICE_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MANTLE_MOONWORM_CRAWLER_SERVICE_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Mantle historical events crawler service and timer with: ${MANTLE_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}, ${MANTLE_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${MANTLE_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}" "${SCRIPT_DIR}/${MANTLE_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${MANTLE_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${MANTLE_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${MANTLE_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${MANTLE_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000"  systemctl --user restart --no-block "${MANTLE_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Mantle historical transactions crawler service and timer with: ${MANTLE_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}, ${MANTLE_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${MANTLE_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}" "${SCRIPT_DIR}/${MANTLE_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${MANTLE_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${MANTLE_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${MANTLE_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${MANTLE_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MANTLE_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+
+# Mantle sepolia
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Mantle sepolia block with transactions syncronizer service definition with ${MANTLE_SEPOLIA_SYNCHRONIZE_SERVICE}"
+chmod 644 "${SCRIPT_DIR}/${MANTLE_SEPOLIA_SYNCHRONIZE_SERVICE}"
+cp "${SCRIPT_DIR}/${MANTLE_SEPOLIA_SYNCHRONIZE_SERVICE}" "/home/ubuntu/.config/systemd/user/${MANTLE_SEPOLIA_SYNCHRONIZE_SERVICE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MANTLE_SEPOLIA_SYNCHRONIZE_SERVICE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Mantle sepolia missing service and timer with: ${MANTLE_SEPOLIA_MISSING_SERVICE_FILE}, ${MANTLE_SEPOLIA_MISSING_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${MANTLE_SEPOLIA_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${MANTLE_SEPOLIA_MISSING_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${MANTLE_SEPOLIA_MISSING_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${MANTLE_SEPOLIA_MISSING_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${MANTLE_SEPOLIA_MISSING_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${MANTLE_SEPOLIA_MISSING_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MANTLE_SEPOLIA_MISSING_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Mantle sepolia moonworm crawler service definition with ${MANTLE_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
+chmod 644 "${SCRIPT_DIR}/${MANTLE_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${MANTLE_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${MANTLE_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MANTLE_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Mantle sepolia historical events crawler service and timer with: ${MANTLE_SEPOLIA_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}, ${MANTLE_SEPOLIA_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${MANTLE_SEPOLIA_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}" "${SCRIPT_DIR}/${MANTLE_SEPOLIA_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${MANTLE_SEPOLIA_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${MANTLE_SEPOLIA_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${MANTLE_SEPOLIA_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${MANTLE_SEPOLIA_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000"  systemctl --user restart --no-block "${MANTLE_SEPOLIA_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Mantle sepolia historical transactions crawler service and timer with: ${MANTLE_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}, ${MANTLE_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${MANTLE_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}" "${SCRIPT_DIR}/${MANTLE_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${MANTLE_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${MANTLE_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${MANTLE_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${MANTLE_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MANTLE_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
