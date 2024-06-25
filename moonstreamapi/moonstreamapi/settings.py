@@ -301,6 +301,11 @@ multicall_contracts: Dict[AvailableBlockchainType, str] = {
     AvailableBlockchainType.XDAI: "0xcA11bde05977b3631167028862bE2a173976CA11",
     AvailableBlockchainType.ZKSYNC_ERA: "0xF9cda624FBC7e059355ce98a31693d299FACd963",
     AvailableBlockchainType.ZKSYNC_ERA_TESTNET: "0xF9cda624FBC7e059355ce98a31693d299FACd963",
+    AvailableBlockchainType.AVALANCHE: "0xcA11bde05977b3631167028862bE2a173976CA11",
+    AvailableBlockchainType.AVALANCHE_FUJI: "0xcA11bde05977b3631167028862bE2a173976CA11",
+    AvailableBlockchainType.BLAST: "0xcA11bde05977b3631167028862bE2a173976CA11",
+    AvailableBlockchainType.MANTLE: "0xcA11bde05977b3631167028862bE2a173976CA11",
+    AvailableBlockchainType.MANTLE_SEPOLIA: "0xcA11bde05977b3631167028862bE2a173976CA11",
 }
 
 
