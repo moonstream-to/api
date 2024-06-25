@@ -145,7 +145,6 @@ blockchain_by_subscription_id = {
     "starknet_sepolia_blockchain": "starknet_sepolia",
     "mantle_blockchain": "mantle",
     "mantle_sepolia_blockchain": "mantle_sepolia",
-
     "ethereum_smartcontract": "ethereum",
     "polygon_smartcontract": "polygon",
     "mumbai_smartcontract": "mumbai",

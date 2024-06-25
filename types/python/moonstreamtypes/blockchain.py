@@ -5,12 +5,12 @@ from moonstreamdb.models import (
     AmoyBlock,
     AmoyLabel,
     AmoyTransaction,
-    ArbitrumOneBlock,
-    ArbitrumOneLabel,
-    ArbitrumOneTransaction,
     ArbitrumNovaBlock,
     ArbitrumNovaLabel,
     ArbitrumNovaTransaction,
+    ArbitrumOneBlock,
+    ArbitrumOneLabel,
+    ArbitrumOneTransaction,
     ArbitrumSepoliaBlock,
     ArbitrumSepoliaLabel,
     ArbitrumSepoliaTransaction,
@@ -29,6 +29,12 @@ from moonstreamdb.models import (
     EthereumBlock,
     EthereumLabel,
     EthereumTransaction,
+    MantleBlock,
+    MantleLabel,
+    MantleSepoliaBlock,
+    MantleSepoliaLabel,
+    MantleSepoliaTransaction,
+    MantleTransaction,
     MumbaiBlock,
     MumbaiLabel,
     MumbaiTransaction,
@@ -60,32 +66,32 @@ from moonstreamdb.models import (
     ZkSyncEraTestnetTransaction,
     ZkSyncEraTransaction,
 )
+from moonstreamdbv3.models import AmoyLabel as AmoyLabelV3
+from moonstreamdbv3.models import ArbitrumNovaLabel as ArbitrumNovaLabelV3
+from moonstreamdbv3.models import ArbitrumOneLabel as ArbitrumOneLabelV3
+from moonstreamdbv3.models import ArbitrumSepoliaLabel as ArbitrumSepoliaLabelV3
+from moonstreamdbv3.models import AvalancheFujiLabel as AvalancheFujiLabelV3
+from moonstreamdbv3.models import AvalancheLabel as AvalancheLabelV3
+from moonstreamdbv3.models import BaseLabel as BaseLabelV3
+from moonstreamdbv3.models import BlastLabel as BlastLabelV3
+from moonstreamdbv3.models import BlastSepoliaLabel as BlastSepoliaLabelV3
+from moonstreamdbv3.models import EthereumLabel as EthereumLabelV3
 from moonstreamdbv3.models import (
-    EthereumLabel as EthereumLabelV3,
-    SepoliaLabel as SepoliaLabelV3,
-    PolygonLabel as PolygonLabelV3,
-    MumbaiLabel as MumbaiLabelV3,
-    AmoyLabel as AmoyLabelV3,
-    XDaiLabel as XDaiLabelV3,
-    ZkSyncEraLabel as ZkSyncEraLabelV3,
-    ZkSyncEraSepoliaLabel as ZkSyncEraSepoliaLabelV3,
-    BaseLabel as BaseLabelV3,
-    ArbitrumNovaLabel as ArbitrumNovaLabelV3,
-    ArbitrumOneLabel as ArbitrumOneLabelV3,
-    ArbitrumSepoliaLabel as ArbitrumSepoliaLabelV3,
     Game7OrbitArbitrumSepoliaLabel as Game7OrbitArbitrumSepoliaLabelV3,
-    XaiLabel as XaiLabelV3,
-    XaiSepoliaLabel as XaiSepoliaLabelV3,
-    AvalancheLabel as AvalancheLabelV3,
-    AvalancheFujiLabel as AvalancheFujiLabelV3,
-    BlastLabel as BlastLabelV3,
-    BlastSepoliaLabel as BlastSepoliaLabelV3,
-    ProofOfPlayApexLabel as ProofOfPlayApexLabelV3,
-    StarknetLabel as StarknetLabelV3,
-    StarknetSepoliaLabel as StarknetSepoliaLabelV3,
-    MantleLabel as MantleLabelV3,
-    MantleSepoliaLabel as MantleSepoliaLabelV3,
 )
+from moonstreamdbv3.models import MantleLabel as MantleLabelV3
+from moonstreamdbv3.models import MantleSepoliaLabel as MantleSepoliaLabelV3
+from moonstreamdbv3.models import MumbaiLabel as MumbaiLabelV3
+from moonstreamdbv3.models import PolygonLabel as PolygonLabelV3
+from moonstreamdbv3.models import ProofOfPlayApexLabel as ProofOfPlayApexLabelV3
+from moonstreamdbv3.models import SepoliaLabel as SepoliaLabelV3
+from moonstreamdbv3.models import StarknetLabel as StarknetLabelV3
+from moonstreamdbv3.models import StarknetSepoliaLabel as StarknetSepoliaLabelV3
+from moonstreamdbv3.models import XaiLabel as XaiLabelV3
+from moonstreamdbv3.models import XaiSepoliaLabel as XaiSepoliaLabelV3
+from moonstreamdbv3.models import XDaiLabel as XDaiLabelV3
+from moonstreamdbv3.models import ZkSyncEraLabel as ZkSyncEraLabelV3
+from moonstreamdbv3.models import ZkSyncEraSepoliaLabel as ZkSyncEraSepoliaLabelV3
 
 
 class AvailableBlockchainType(Enum):
@@ -140,6 +146,8 @@ def get_block_model(
         BlastBlock,
         BlastSepoliaBlock,
         ProofOfPlayApexBlock,
+        MantleBlock,
+        MantleSepoliaBlock,
     ]
 ]:
     """
@@ -166,6 +174,8 @@ def get_block_model(
             BlastBlock,
             BlastSepoliaBlock,
             ProofOfPlayApexBlock,
+            MantleBlock,
+            MantleSepoliaBlock,
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -206,6 +216,10 @@ def get_block_model(
         block_model = BlastSepoliaBlock
     elif blockchain_type == AvailableBlockchainType.PROOFOFPLAY_APEX:
         block_model = ProofOfPlayApexBlock
+    elif blockchain_type == AvailableBlockchainType.MANTLE:
+        block_model = MantleBlock
+    elif blockchain_type == AvailableBlockchainType.MANTLE_SEPOLIA:
+        block_model = MantleSepoliaBlock
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -236,6 +250,8 @@ def get_label_model(
         BlastLabel,
         BlastSepoliaLabel,
         ProofOfPlayApexLabel,
+        MantleLabel,
+        MantleSepoliaLabel,
         EthereumLabelV3,
         SepoliaLabelV3,
         PolygonLabelV3,
@@ -290,6 +306,8 @@ def get_label_model(
             BlastLabel,
             BlastSepoliaLabel,
             ProofOfPlayApexLabel,
+            MantleLabel,
+            MantleSepoliaLabel,
             EthereumLabelV3,
             SepoliaLabelV3,
             PolygonLabelV3,
@@ -355,6 +373,10 @@ def get_label_model(
             label_model = BlastSepoliaLabel
         elif blockchain_type == AvailableBlockchainType.PROOFOFPLAY_APEX:
             label_model = ProofOfPlayApexLabel
+        elif blockchain_type == AvailableBlockchainType.MANTLE:
+            label_model = MantleLabel
+        elif blockchain_type == AvailableBlockchainType.MANTLE_SEPOLIA:
+            label_model = MantleSepoliaLabel
         else:
             raise Exception("Unsupported blockchain type provided")
     elif version == 3:
@@ -436,6 +458,8 @@ def get_transaction_model(
         BlastTransaction,
         BlastSepoliaTransaction,
         ProofOfPlayApexTransaction,
+        MantleTransaction,
+        MantleSepoliaTransaction,
     ]
 ]:
     """
@@ -462,6 +486,8 @@ def get_transaction_model(
             BlastTransaction,
             BlastSepoliaTransaction,
             ProofOfPlayApexTransaction,
+            MantleTransaction,
+            MantleSepoliaTransaction,
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -502,6 +528,10 @@ def get_transaction_model(
         transaction_model = BlastSepoliaTransaction
     elif blockchain_type == AvailableBlockchainType.PROOFOFPLAY_APEX:
         transaction_model = ProofOfPlayApexTransaction
+    elif blockchain_type == AvailableBlockchainType.MANTLE:
+        transaction_model = MantleTransaction
+    elif blockchain_type == AvailableBlockchainType.MANTLE_SEPOLIA:
+        transaction_model = MantleSepoliaTransaction
     else:
         raise Exception("Unsupported blockchain type provided")
 
