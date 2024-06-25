@@ -35,6 +35,8 @@ avalanche_event_type = "avalanche_blockchain"
 avalanche_fuji_sepolia_event_type = "avalanche_fuji_sepolia_blockchain"
 blast_event_type = "blast_blockchain"
 blast_sepolia_event_type = "blast_sepolia_blockchain"
+mantle_event_type = "mantle_blockchain"
+mantle_sepolia_event_type = "mantle_sepolia_blockchain"
 
 allowed_tags = ["tag:erc721"]
 
@@ -524,5 +526,19 @@ ProofOfPlayApexMoonwormProvider = MoonwormProvider(
     event_type="proofofplay_apex_smartcontract",
     blockchain=AvailableBlockchainType("proofofplay_apex"),
     description="Provider for reviving transactions from Proof of Play Apex tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
+MantleMoonwormProvider = MoonwormProvider(
+    event_type="mantle_smartcontract",
+    blockchain=AvailableBlockchainType("mantle"),
+    description="Provider for reviving transactions from Mantle tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
+MantleSepoliaMoonwormProvider = MoonwormProvider(
+    event_type="mantle_sepolia_smartcontract",
+    blockchain=AvailableBlockchainType("mantle_sepolia"),
+    description="Provider for reviving transactions from Mantle Sepolia tables.",
     streamboaundary_range_limit=2 * 60 * 60,
 )
