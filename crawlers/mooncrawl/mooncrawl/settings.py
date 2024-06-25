@@ -347,6 +347,7 @@ multicall_contracts: Dict[AvailableBlockchainType, str] = {
     AvailableBlockchainType.ETHEREUM: "0x5BA1e12693Dc8F9c48aAD8770482f4739bEeD696",
     AvailableBlockchainType.SEPOLIA: "0xcA11bde05977b3631167028862bE2a173976CA11",
     AvailableBlockchainType.ZKSYNC_ERA: "0xF9cda624FBC7e059355ce98a31693d299FACd963",
+    AvailableBlockchainType.ZKSYNC_ERA_TESTNET: "0xF9cda624FBC7e059355ce98a31693d299FACd963",
     AvailableBlockchainType.XDAI: "0xcA11bde05977b3631167028862bE2a173976CA11",
     AvailableBlockchainType.XAI: "0xcA11bde05977b3631167028862bE2a173976CA11",
     AvailableBlockchainType.BASE: "0xca11bde05977b3631167028862be2a173976ca11",
