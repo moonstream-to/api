@@ -573,3 +573,17 @@ ProofOfPlayApexTransactions = TransactionsProvider(
     description="Provider for resiving transactions from Proof of Play Apex tables.",
     streamboaundary_range_limit=2 * 60 * 60,
 )
+
+MantleTransactions = TransactionsProvider(
+    event_type="mantle_blockchain",
+    blockchain=AvailableBlockchainType("mantle"),
+    description="Provider for resiving transactions from Mantle tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
+
+MantleSepoliaTransactions = TransactionsProvider(
+    event_type="mantle_sepolia_blockchain",
+    blockchain=AvailableBlockchainType("mantle_sepolia"),
+    description="Provider for resiving transactions from Mantle Sepolia tables.",
+    streamboaundary_range_limit=2 * 60 * 60,
+)
