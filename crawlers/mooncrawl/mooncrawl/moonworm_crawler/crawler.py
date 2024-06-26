@@ -713,7 +713,7 @@ def get_event_crawl_job_records(
     query = (
         db_session.query(AbiJobs)
         .filter(AbiJobs.chain == blockchain_type.value)
-        .filter(func.cast(AbiJobs.abi_selector, JSON).op("->>")("type") == "event")
+        .filter(func.cast(AbiJobs.abi, JSON).op("->>")("type") == "event")
     )
 
     if customer_id is not None:

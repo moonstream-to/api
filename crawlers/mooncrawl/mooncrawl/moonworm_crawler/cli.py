@@ -211,6 +211,7 @@ def handle_crawl_v3(args: argparse.Namespace) -> None:
             blockchain_type,
             [],
             {},
+            args.customer_uuid,
         )
 
         logger.info(f"Initial event crawl jobs count: {len(initial_event_jobs)}")
@@ -220,6 +221,7 @@ def handle_crawl_v3(args: argparse.Namespace) -> None:
             blockchain_type,
             [],
             {},
+            args.customer_uuid,
         )
 
         logger.info(
@@ -876,6 +878,13 @@ def main() -> None:
         action="store_true",
         default=False,
         help="Force start from the start block",
+    )
+
+    crawl_parser_v3.add_argument(
+        "--customer-uuid",
+        type=UUID,
+        required=True,
+        help="Customer UUID",
     )
 
     crawl_parser_v3.set_defaults(func=handle_crawl_v3)
