@@ -6,12 +6,12 @@ from .models import (
     AmoyBlock,
     AmoyLabel,
     AmoyTransaction,
-    ArbitrumOneBlock,
-    ArbitrumOneLabel,
-    ArbitrumOneTransaction,
     ArbitrumNovaBlock,
     ArbitrumNovaLabel,
     ArbitrumNovaTransaction,
+    ArbitrumOneBlock,
+    ArbitrumOneLabel,
+    ArbitrumOneTransaction,
     ArbitrumSepoliaBlock,
     ArbitrumSepoliaLabel,
     ArbitrumSepoliaTransaction,
@@ -31,6 +31,12 @@ from .models import (
     EthereumBlock,
     EthereumLabel,
     EthereumTransaction,
+    MantleBlock,
+    MantleLabel,
+    MantleSepoliaBlock,
+    MantleSepoliaLabel,
+    MantleSepoliaTransaction,
+    MantleTransaction,
     MumbaiBlock,
     MumbaiLabel,
     MumbaiTransaction,
@@ -84,6 +90,8 @@ class Network(Enum):
     blast = "blast"
     blast_sepolia = "blast_sepolia"
     proofofplay_apex = "proofofplay_apex"
+    mantle = "mantle"
+    mantle_sepolia = "mantle_sepolia"
 
 
 tx_raw_types = Union[
@@ -106,6 +114,8 @@ tx_raw_types = Union[
     BlastTransaction,
     BlastSepoliaTransaction,
     ProofOfPlayApexTransaction,
+    MantleTransaction,
+    MantleSepoliaTransaction,
 ]
 
 MODELS: Dict[Network, Dict[str, Base]] = {
@@ -204,6 +214,16 @@ MODELS: Dict[Network, Dict[str, Base]] = {
         "labels": ProofOfPlayApexLabel,
         "transactions": ProofOfPlayApexTransaction,
     },
+    Network.mantle: {
+        "blocks": MantleBlock,
+        "labels": MantleLabel,
+        "transactions": MantleTransaction,
+    },
+    Network.mantle_sepolia: {
+        "blocks": MantleSepoliaBlock,
+        "labels": MantleSepoliaLabel,
+        "transactions": MantleSepoliaTransaction,
+    },
 }
 
 
@@ -248,5 +268,9 @@ def blockchain_type_to_network_type(
         return Network.blast_sepolia
     elif blockchain_type == AvailableBlockchainType.PROOFOFPLAY_APEX:
         return Network.proofofplay_apex
+    elif blockchain_type == AvailableBlockchainType.MANTLE:
+        return Network.mantle
+    elif blockchain_type == AvailableBlockchainType.MANTLE_SEPOLIA:
+        return Network.mantle_sepolia
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")

@@ -476,39 +476,67 @@ def generate_report_nft_dashboard_handler(args: argparse.Namespace):
 
     client = Moonstream()
 
+    reports = {
+        # "cu_nft_dashboard_data": {},
+        "cu_land_nft_dashboard_data": {},
+        "cu_seaport_feed_polygon": {},
+        "cu_breeding_feed": {},
+        "cu_shadowcorns_owners": {},
+        "cu_shadowcorns_feed": {},
+        "cu_previous_day_distributed_rewards": {},
+        "cu_nft_dashboard_data_xai": {
+            "blockchain": "xai",
+            "customer": "CryptoUnicorns",
+        },
+        "cu_shadowcorns_feed_xai": {"blockchain": "xai", "customer": "CryptoUnicorns"},
+        "cu_land_nft_dashboard_data_xai": {
+            "blockchain": "xai",
+            "customer": "CryptoUnicorns",
+        },
+    }
+
     for query in client.list_queries(
         token=args.moonstream_token,
     ).queries:
         params = {}  # type: ignore
 
-        if query.name not in [
-            "cu_nft_dashboard_data",
-            "cu_land_nft_dashboard_data",
-            "cu_seaport_feed_polygon",
-            "cu_breeding_feed",
-            "cu_shadowcorns_owners",
-            "cu_shadowcorns_feed",
-            "cu_previous_day_distributed_rewards",
-        ]:
+        if query.name not in reports:
             continue
         try:
             logger.info(f"Generating report for {query.name}")
-            data = recive_S3_data_from_query(
-                client=client,
-                token=args.moonstream_token,
-                query_name=query.name,
-                params=params,
-                time_await=4,
-            )
+
+            try:
+                data = recive_S3_data_from_query(
+                    client=client,
+                    token=args.moonstream_token,
+                    query_name=query.name,
+                    params=params,
+                    time_await=4,
+                )
+            except Exception as err:
+                logger.error(f"Error while generating report for {query.name}. {err}")
+                continue
 
             logger.info(f"Data recived. Uploading report for {query.name} as json")
 
             # send as json
             ext = "json"
 
+            full_path = []
+
+            if reports[query.name].get("customer"):
+                full_path.append(reports[query.name]["customer"])
+
+            if reports[query.name].get("blockchain"):
+                full_path.append(reports[query.name]["blockchain"])
+
+            full_path.append(query.name)
+
+            path = f"queries/{'/'.join(full_path)}/data.{ext}"
+
             url = client.upload_query_results(
                 json.dumps(data),
-                key=f"queries/{query.name}/data.{ext}",
+                key=path,
                 bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
             )
 
@@ -517,7 +545,12 @@ def generate_report_nft_dashboard_handler(args: argparse.Namespace):
             logger.info(f"Data recived. Uploading report for {query.name} as csv")
 
             ext = "csv"
+
+            path = f"queries/{'/'.join(full_path)}/data.{ext}"
             csv_buffer = StringIO()
+
+            if len(data["data"]) == 0:
+                continue
 
             dict_csv_writer = csv.DictWriter(
                 csv_buffer, fieldnames=data["data"][0].keys(), delimiter=","
@@ -529,7 +562,7 @@ def generate_report_nft_dashboard_handler(args: argparse.Namespace):
 
             url = client.upload_query_results(
                 data=csv_buffer.getvalue().encode("utf-8"),
-                key=f"queries/{query.name}/data.{ext}",
+                key=path,
                 bucket=MOONSTREAM_S3_PUBLIC_DATA_BUCKET,
             )
 
