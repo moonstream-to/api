@@ -13,30 +13,25 @@ from sqlalchemy.orm import Session, sessionmaker
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-try:
-    MOONSTREAM_DB_V3_URI = os.environ.get("MOONSTREAM_DB_V3_URI")
-    if MOONSTREAM_DB_V3_URI is None:
-        raise Warning("MOONSTREAM_DB_V3_URI environment variable must be set")
+MOONSTREAM_DB_V3_URI = os.environ.get("MOONSTREAM_DB_V3_URI")
+if MOONSTREAM_DB_V3_URI is None:
+    logger.warning("MOONSTREAM_DB_V3_URI environment variable must be set")
 
-    MOONSTREAM_DB_V3_URI_READ_ONLY = os.environ.get("MOONSTREAM_DB_V3_URI_READ_ONLY")
-    if MOONSTREAM_DB_V3_URI_READ_ONLY is None:
-        raise Warning("MOONSTREAM_DB_V3_URI_READ_ONLY environment variable must be set")
+MOONSTREAM_DB_V3_URI_READ_ONLY = os.environ.get("MOONSTREAM_DB_V3_URI_READ_ONLY")
+if MOONSTREAM_DB_V3_URI_READ_ONLY is None:
+    logger.warning("MOONSTREAM_DB_V3_URI_READ_ONLY environment variable must be set")
 
-    MOONSTREAM_DB_V3_INDEXES_URI = os.environ.get("MOONSTREAM_DB_V3_INDEXES_URI")
-    if MOONSTREAM_DB_V3_INDEXES_URI is None:
-        raise Warning("MOONSTREAM_DB_V3_INDEXES_URI environment variable must be set")
+MOONSTREAM_DB_V3_INDEXES_URI = os.environ.get("MOONSTREAM_DB_V3_INDEXES_URI")
+if MOONSTREAM_DB_V3_INDEXES_URI is None:
+    raise ValueError("MOONSTREAM_DB_V3_INDEXES_URI environment variable must be set")
 
-    MOONSTREAM_DB_V3_INDEXES_URI_READ_ONLY = os.environ.get(
-        "MOONSTREAM_DB_V3_INDEXES_URI_READ_ONLY"
+MOONSTREAM_DB_V3_INDEXES_URI_READ_ONLY = os.environ.get(
+    "MOONSTREAM_DB_V3_INDEXES_URI_READ_ONLY"
+)
+if MOONSTREAM_DB_V3_INDEXES_URI_READ_ONLY is None:
+    raise ValueError(
+        "MOONSTREAM_DB_V3_INDEXES_URI_READ_ONLY environment variable must be set"
     )
-    if MOONSTREAM_DB_V3_INDEXES_URI_READ_ONLY is None:
-        raise Warning(
-            "MOONSTREAM_DB_V3_INDEXES_URI_READ_ONLY environment variable must be set"
-        )
-except ValueError as e:
-    raise ValueError(e)
-except Warning:
-    logger.warning("Database variables not set")
 
 MOONSTREAM_POOL_SIZE_RAW = os.environ.get("MOONSTREAM_POOL_SIZE")
 MOONSTREAM_POOL_SIZE = 1
