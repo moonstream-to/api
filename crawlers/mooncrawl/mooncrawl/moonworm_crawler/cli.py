@@ -245,7 +245,9 @@ def handle_crawl_v3(args: argparse.Namespace) -> None:
                 logger.info("Using PoA middleware")
                 web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-        last_labeled_block = get_last_labeled_block_number(db_session, blockchain_type)
+        last_labeled_block = get_last_labeled_block_number(
+            db_session, blockchain_type, db_version=3
+        )
         logger.info(f"Last labeled block: {last_labeled_block}")
 
         start_block = args.start
