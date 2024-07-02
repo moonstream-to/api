@@ -113,6 +113,16 @@ PROOFOFPLAY_APEX_MISSING_SERVICE_FILE="proofofplay-apex-missing.service"
 PROOFOFPLAY_APEX_MISSING_TIMER_FILE="proofofplay-apex-missing.timer"
 PROOFOFPLAY_APEX_SYNCHRONIZE_SERVICE="proofofplay-apex-synchronize.service"
 
+# Mantle
+MANTLE_MISSING_SERVICE_FILE="mantle-missing.service"
+MANTLE_MISSING_TIMER_FILE="mantle-missing.timer"
+MANTLE_SYNCHRONIZE_SERVICE="mantle-synchronize.service"
+
+# Mantle Sepolia
+MANTLE_SEPOLIA_MISSING_SERVICE_FILE="mantle-sepolia-missing.service"
+MANTLE_SEPOLIA_MISSING_TIMER_FILE="mantle-sepolia-missing.timer"
+MANTLE_SEPOLIA_SYNCHRONIZE_SERVICE="mantle-sepolia-synchronize.service"
+
 set -eu
 
 echo
@@ -465,3 +475,39 @@ cp "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_MISSING_SERVICE_FILE}" "/home/ubuntu/.confi
 cp "${SCRIPT_DIR}/${PROOFOFPLAY_APEX_MISSING_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${PROOFOFPLAY_APEX_MISSING_TIMER_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${PROOFOFPLAY_APEX_MISSING_TIMER_FILE}"
+
+# Mantle
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Mantle block with transactions syncronizer service definition with ${MANTLE_SYNCHRONIZE_SERVICE}"
+chmod 644 "${SCRIPT_DIR}/${MANTLE_SYNCHRONIZE_SERVICE}"
+cp "${SCRIPT_DIR}/${MANTLE_SYNCHRONIZE_SERVICE}" "/home/ubuntu/.config/systemd/user/${MANTLE_SYNCHRONIZE_SERVICE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MANTLE_SYNCHRONIZE_SERVICE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Mantle missing service and timer with: ${MANTLE_MISSING_SERVICE_FILE}, ${MANTLE_MISSING_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${MANTLE_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${MANTLE_MISSING_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${MANTLE_MISSING_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${MANTLE_MISSING_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${MANTLE_MISSING_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${MANTLE_MISSING_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MANTLE_MISSING_TIMER_FILE}"
+
+# Mantle sepolia
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Mantle sepolia block with transactions syncronizer service definition with ${MANTLE_SEPOLIA_SYNCHRONIZE_SERVICE}"
+chmod 644 "${SCRIPT_DIR}/${MANTLE_SEPOLIA_SYNCHRONIZE_SERVICE}"
+cp "${SCRIPT_DIR}/${MANTLE_SEPOLIA_SYNCHRONIZE_SERVICE}" "/home/ubuntu/.config/systemd/user/${MANTLE_SEPOLIA_SYNCHRONIZE_SERVICE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MANTLE_SEPOLIA_SYNCHRONIZE_SERVICE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Mantle sepolia missing service and timer with: ${MANTLE_SEPOLIA_MISSING_SERVICE_FILE}, ${MANTLE_SEPOLIA_MISSING_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${MANTLE_SEPOLIA_MISSING_SERVICE_FILE}" "${SCRIPT_DIR}/${MANTLE_SEPOLIA_MISSING_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${MANTLE_SEPOLIA_MISSING_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${MANTLE_SEPOLIA_MISSING_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${MANTLE_SEPOLIA_MISSING_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${MANTLE_SEPOLIA_MISSING_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MANTLE_SEPOLIA_MISSING_TIMER_FILE}"
