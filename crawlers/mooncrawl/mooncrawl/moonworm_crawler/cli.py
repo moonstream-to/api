@@ -197,13 +197,21 @@ def handle_crawl_v3(args: argparse.Namespace) -> None:
 
     index_engine = MoonstreamDBIndexesEngine()
 
-    with index_engine.yield_db_session_ctx() as index_db_session:
+    logger.info(f"Blockchain type: {blockchain_type.value}")
+    customer_connection = get_db_connection(args.customer_uuid)
+
+    customer_engine = MoonstreamCustomDBEngine(customer_connection)
+
+    index_engine = MoonstreamDBIndexesEngine()
+
+    with customer_engine.yield_db_session_ctx() as db_session, index_engine.yield_db_session_ctx() as index_db_session:
 
         initial_event_jobs = get_event_crawl_job_records(
             index_db_session,
             blockchain_type,
             [],
             {},
+            args.customer_uuid,
         )
 
         logger.info(f"Initial event crawl jobs count: {len(initial_event_jobs)}")
@@ -213,14 +221,13 @@ def handle_crawl_v3(args: argparse.Namespace) -> None:
             blockchain_type,
             [],
             {},
+            args.customer_uuid,
         )
 
         logger.info(
             f"Initial function call crawl jobs count: {len(initial_function_call_jobs)}"
         )
 
-    logger.info(f"Blockchain type: {blockchain_type.value}")
-    with yield_db_session_ctx() as db_session:
         web3: Optional[Web3] = None
         if args.web3 is None:
             logger.info(
@@ -238,7 +245,9 @@ def handle_crawl_v3(args: argparse.Namespace) -> None:
                 logger.info("Using PoA middleware")
                 web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-        last_labeled_block = get_last_labeled_block_number(db_session, blockchain_type)
+        last_labeled_block = get_last_labeled_block_number(
+            db_session, blockchain_type, db_version=3
+        )
         logger.info(f"Last labeled block: {last_labeled_block}")
 
         start_block = args.start
@@ -292,6 +301,8 @@ def handle_crawl_v3(args: argparse.Namespace) -> None:
             args.heartbeat_interval,
             args.new_jobs_refetch_interval,
             web3_uri=args.web3_uri,
+            version=3,
+            index_db_session=index_db_session,
         )
 
 
@@ -869,6 +880,13 @@ def main() -> None:
         action="store_true",
         default=False,
         help="Force start from the start block",
+    )
+
+    crawl_parser_v3.add_argument(
+        "--customer-uuid",
+        type=UUID,
+        required=True,
+        help="Customer UUID",
     )
 
     crawl_parser_v3.set_defaults(func=handle_crawl_v3)

@@ -109,6 +109,8 @@ blockchain_names = [
     "blast",
     "blast_sepolia",
     "proofofplay_apex",
+    "mantle",
+    "mantle_sepolia",
 ]
 
 for b in blockchain_names:

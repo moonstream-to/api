@@ -129,6 +129,7 @@ def _crawl_events(
 ) -> List[Event]:
     all_events = []
     for job in jobs:
+
         raw_events = _fetch_events_chunk(
             web3,
             job.event_abi,
