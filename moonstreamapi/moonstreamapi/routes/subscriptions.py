@@ -12,6 +12,7 @@ from bugout.data import BugoutSearchResult, BugoutSearchResultAsEntity
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, BackgroundTasks, Depends, Form, Path, Query, Request
 from moonstreamdb.blockchain import AvailableBlockchainType
+from moonstreamdbv3.db import MoonstreamDBIndexesEngineInstance  # type: ignore
 from web3 import Web3
 
 from .. import data
@@ -24,6 +25,7 @@ from ..actions import (
     get_list_of_support_interfaces,
     get_moonworm_tasks,
     validate_abi_json,
+    create_seer_subscription,
 )
 from ..admin import subscription_types
 from ..middleware import MoonstreamHTTPException
@@ -51,11 +53,13 @@ async def add_subscription_handler(
     request: Request,
     background_tasks: BackgroundTasks,
     web3: Web3 = Depends(yield_web3_provider),
+    db_session: Any = Depends(MoonstreamDBIndexesEngineInstance.yield_db_session),
 ) -> data.SubscriptionResourceData:
     """
     Add subscription to blockchain stream data for user.
     """
     token = request.state.token
+    user = request.state.user
 
     form = await request.form()
 
@@ -71,6 +75,7 @@ async def add_subscription_handler(
     description = form_data.description
     tags = form_data.tags
     subscription_type_id = form_data.subscription_type_id
+    customer_id = form_data.customer_id
 
     if subscription_type_id != "ethereum_whalewatch":
         try:
@@ -129,10 +134,7 @@ async def add_subscription_handler(
         content["abi_hash"] = hash
 
         background_tasks.add_task(
-            apply_moonworm_tasks,
-            subscription_type_id,
-            json_abi,
-            address,
+            apply_moonworm_tasks, subscription_type_id, json_abi, address
         )
 
     if description:
@@ -202,6 +204,16 @@ async def add_subscription_handler(
         if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS
     ]
 
+    if entity_secondary_fields.get("abi"):
+        create_seer_subscription(
+            db_session=db_session,
+            user_id=user.id,
+            customer_id=customer_id,
+            subscription_id=entity.id,
+            abi=abi,
+            subscription_type_id=subscription_type_id,
+        )
+
     return data.SubscriptionResourceData(
         id=str(entity.id),
         user_id=str(user.id),
@@ -223,7 +235,9 @@ async def add_subscription_handler(
     response_model=data.SubscriptionResourceData,
 )
 async def delete_subscription_handler(
-    request: Request, subscription_id: str = Path(...)
+    request: Request,
+    subscription_id: str = Path(...),
+    db_session: Any = Depends(MoonstreamDBIndexesEngineInstance.yield_db_session),
 ):
     """
     Delete subscriptions.
@@ -284,6 +298,12 @@ async def delete_subscription_handler(
     if deleted_entity.secondary_fields is not None:
         abi = deleted_entity.secondary_fields.get("abi")
         description = deleted_entity.secondary_fields.get("description")
+
+    delete_seer_subscription(
+        db_session=db_session,
+        user_id=user.id,
+        subscription_id=subscription_id,
+    )
 
     return data.SubscriptionResourceData(
         id=str(deleted_entity.id),
@@ -400,6 +420,7 @@ async def update_subscriptions_handler(
     request: Request,
     background_tasks: BackgroundTasks,
     subscription_id: str = Path(...),
+    db_session: Any = Depends(MoonstreamDBIndexesEngineInstance.yield_db_session),
 ) -> data.SubscriptionResourceData:
     """
     Get user's subscriptions.
@@ -548,6 +569,15 @@ async def update_subscriptions_handler(
             json_abi,
             address,
         )
+
+        create_seer_subscription(
+            db_session=db_session,
+            user_id=user.id,
+            subscription_id=subscription_id,
+            abi=abi,
+            subscription_type_id=subscription_type_id,
+        )
+
     subscription_required_fields = (
         subscription.required_fields if subscription.required_fields is not None else {}
     )

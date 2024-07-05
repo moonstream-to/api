@@ -574,6 +574,7 @@ class AbiJobs(Base):
     address = Column(LargeBinary, nullable=False, index=True)
     user_id = Column(UUID(as_uuid=True), nullable=False, index=True)
     customer_id = Column(UUID(as_uuid=True), nullable=True, index=True)
+    subscription_id = Column(UUID(as_uuid=True), nullable=True, index=True)
     abi_selector = Column(VARCHAR(256), nullable=False, index=True)
     chain = Column(VARCHAR(256), nullable=False, index=True)
     abi_name = Column(VARCHAR(256), nullable=False, index=True)

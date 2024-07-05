@@ -26,13 +26,17 @@ from eth_utils.address import is_address  # type: ignore
 from moonstreamdb.blockchain import AvailableBlockchainType
 from moonstreamdb.models import EthereumLabel
 from moonstreamdb.subscriptions import blockchain_by_subscription_id
+from moonstreamdbv3.db import MoonstreamDBIndexesEngine
+from moonstreamdbv3.models_indexes import AbiJobs
 from slugify import slugify  # type: ignore
-from sqlalchemy import text
+from sqlalchemy import text, insert
 from sqlalchemy.orm import Session
 from web3 import Web3
 from web3._utils.validation import validate_abi
 
+
 from . import data
+from .admin.subscription_types import CANONICAL_SUBSCRIPTION_TYPES
 from .middleware import MoonstreamHTTPException
 from .reporter import reporter
 from .selectors_storage import selectors
@@ -559,6 +563,7 @@ def apply_moonworm_tasks(
                         ],
                     }
                 )
+
     except Exception as e:
         logger.error(f"Error get moonworm tasks: {str(e)}")
         reporter.error_report(e)
@@ -574,6 +579,125 @@ def apply_moonworm_tasks(
         except Exception as e:
             logger.error(f"Error create moonworm tasks: {str(e)}")
             reporter.error_report(e)
+
+
+def create_seer_subscription(
+    db_session: Session,
+    user_id: uuid.UUID,
+    customer_id: uuid.UUID,
+    address: str,
+    subscription_type: str,
+    abi: Any,
+    subscription_id: str,
+) -> None:
+
+    chain = CANONICAL_SUBSCRIPTION_TYPES[subscription_type].blockchain
+
+    add_abi_to_db(
+        db_session=db_session,
+        user_id=user_id,
+        customer_id=customer_id,
+        address=address,
+        abis=abi,
+        chain=chain,
+        subscription_id=subscription_id,
+    )
+
+
+def delete_seer_subscription(
+    db_session: Session,
+    user_id: uuid.UUID,
+    subscription_id,
+) -> None:
+    """
+    Delete seer subscription from db
+    """
+
+    db_session.query(AbiJobs).filter(
+        AbiJobs.user_id == user_id,
+        AbiJobs.subscription_id == subscription_id,
+    ).delete()
+
+    db_session.commit()
+
+
+def add_abi_to_db(
+    db_session: Session,
+    user_id: uuid.UUID,
+    customer_id: uuid.UUID,
+    address: str,
+    abis: List[Dict[str, Any]],
+    chain: str,
+    subscription_id: Optional[str] = None,
+) -> None:
+
+    abis_to_insert = []
+
+    for abi in abis:
+        if abi["type"] not in ("event", "function"):
+            continue
+
+        abi_selector = Web3.keccak(
+            text=abi["name"]
+            + "("
+            + ",".join(map(lambda x: x["type"], abi["inputs"]))
+            + ")"
+        )
+
+        if abi["type"] == "function":
+            abi_selector = abi_selector[:4]
+
+        abi_selector = abi_selector.hex()
+
+        try:
+            abi_job = {
+                "address": (
+                    bytes.fromhex(address[2:]) if address is not None else None
+                ),
+                "user_id": user_id,
+                "customer_id": customer_id,
+                "subscription_id": subscription_id,
+                "abi_selector": abi_selector,
+                "chain": chain,
+                "abi_name": abi["name"],
+                "status": "active",
+                "historical_crawl_status": "pending",
+                "progress": 0,
+                "moonworm_task_pickedup": False,
+                "abi": json.dumps(abi),
+            }
+
+            try:
+                AbiJobs(**abi_job)
+            except Exception as e:
+                logger.error(
+                    f"Error validating abi for address {address}:{abi} {str(e)}"
+                )
+                continue
+
+            abis_to_insert.append(abi_job)
+
+        except Exception as e:
+            logger.error(f"Error creating abi for address {address}:{abi} {str(e)}")
+            continue
+
+    insert_statement = insert(AbiJobs).values(abis_to_insert)
+
+    result_stmt = insert_statement.on_conflict_do_nothing(
+        index_elements=[
+            AbiJobs.chain,
+            AbiJobs.address,
+            AbiJobs.abi_selector,
+            AbiJobs.customer_id,
+        ]
+    )
+
+    try:
+        db_session.execute(result_stmt)
+        db_session.commit()
+    except Exception as e:
+        logger.error(f"Error inserting abi to db: {str(e)}")
+        db_session.rollback()
 
 
 def name_normalization(query_name: str) -> str:

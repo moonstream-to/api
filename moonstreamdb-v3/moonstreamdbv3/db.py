@@ -260,3 +260,6 @@ class MoonstreamDBIndexesEngineRO(DBEngine):
             yield session
         finally:
             session.close()
+
+
+MoonstreamDBIndexesEngineInstance = MoonstreamDBIndexesEngine()
