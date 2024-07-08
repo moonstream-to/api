@@ -26,6 +26,7 @@ from ..actions import (
     get_moonworm_tasks,
     validate_abi_json,
     create_seer_subscription,
+    delete_seer_subscription
 )
 from ..admin import subscription_types
 from ..middleware import MoonstreamHTTPException
