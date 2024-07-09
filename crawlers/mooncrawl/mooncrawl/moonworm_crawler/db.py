@@ -349,7 +349,7 @@ def add_function_calls_to_session(
             )
 
             record = {
-                "label": label_function_call.label,
+                "label": label_name,
                 "transaction_hash": label_function_call.transaction_hash,
                 "log_index": None,
                 "block_number": label_function_call.block_number,
