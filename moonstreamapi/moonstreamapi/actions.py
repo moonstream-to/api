@@ -29,8 +29,9 @@ from moonstreamdb.subscriptions import blockchain_by_subscription_id
 from moonstreamdbv3.db import MoonstreamDBIndexesEngine
 from moonstreamdbv3.models_indexes import AbiJobs
 from slugify import slugify  # type: ignore
-from sqlalchemy import text, insert
+from sqlalchemy import text
 from sqlalchemy.orm import Session
+from sqlalchemy.dialects.postgresql import insert
 from web3 import Web3
 from web3._utils.validation import validate_abi
 
@@ -634,6 +635,7 @@ def add_abi_to_db(
     abis_to_insert = []
 
     for abi in abis:
+        print(abi)
         if abi["type"] not in ("event", "function"):
             continue
 
@@ -689,12 +691,14 @@ def add_abi_to_db(
             AbiJobs.address,
             AbiJobs.abi_selector,
             AbiJobs.customer_id,
+            AbiJobs.user_id,
         ]
     )
 
     try:
         db_session.execute(result_stmt)
         db_session.commit()
+        print(f"Added {len(abis_to_insert)} abis to db")
     except Exception as e:
         logger.error(f"Error inserting abi to db: {str(e)}")
         db_session.rollback()

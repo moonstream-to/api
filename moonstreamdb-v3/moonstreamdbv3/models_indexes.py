@@ -566,7 +566,12 @@ class AbiJobs(Base):
 
     __table_args__ = (
         UniqueConstraint(
-            "chain", "address", "abi_selector", "customer_id", name="uq_abi_jobs"
+            "chain",
+            "address",
+            "abi_selector",
+            "customer_id",
+            "user_id",
+            name="uq_abi_jobs",
         ),
     )
 

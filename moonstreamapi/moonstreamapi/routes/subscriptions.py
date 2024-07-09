@@ -26,7 +26,7 @@ from ..actions import (
     get_moonworm_tasks,
     validate_abi_json,
     create_seer_subscription,
-    delete_seer_subscription
+    delete_seer_subscription,
 )
 from ..admin import subscription_types
 from ..middleware import MoonstreamHTTPException
@@ -430,6 +430,8 @@ async def update_subscriptions_handler(
 
     user = request.state.user
 
+    print("user", user)
+
     form = await request.form()
     try:
         form_data = data.UpdateSubscriptionRequest(**form)
@@ -441,6 +443,7 @@ async def update_subscriptions_handler(
     abi = form_data.abi
     description = form_data.description
     tags = form_data.tags
+    customer_id = form_data.customer_id
 
     try:
         journal_id = get_entity_subscription_journal_id(
@@ -563,7 +566,12 @@ async def update_subscriptions_handler(
         logger.error(f"Error update user subscriptions: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
-    if abi:
+    print("subscription", subscription)
+    print("subscription_entity", subscription_entity)
+    print(abi)  # noqa
+
+    if abi is not None:
+        print("apply_moonworm_tasks")
         background_tasks.add_task(
             apply_moonworm_tasks,
             subscription_type_id,
@@ -574,9 +582,11 @@ async def update_subscriptions_handler(
         create_seer_subscription(
             db_session=db_session,
             user_id=user.id,
+            customer_id=customer_id,
+            address=address,
+            subscription_type=subscription_type_id,
+            abi=json_abi,
             subscription_id=subscription_id,
-            abi=abi,
-            subscription_type_id=subscription_type_id,
         )
 
     subscription_required_fields = (
