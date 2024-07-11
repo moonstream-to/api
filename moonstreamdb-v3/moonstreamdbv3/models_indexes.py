@@ -86,6 +86,7 @@ class EvmBasedLogs(Base):
     selector = Column(VARCHAR(256), nullable=True, index=False)
     topic1 = Column(VARCHAR(256), nullable=True, index=False)
     topic2 = Column(VARCHAR(256), nullable=True, index=False)
+    topic3 = Column(VARCHAR(256), nullable=True, index=False)
     log_index = Column(BigInteger, nullable=False, index=False)
     path = Column(Text, nullable=False)
     indexed_at = Column(
