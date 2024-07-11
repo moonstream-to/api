@@ -1,0 +1,9 @@
+[Unit]
+Description=Fill missing blocks at Mantle sepolia database
+
+[Timer]
+OnBootSec=120s
+OnUnitActiveSec=15m
+
+[Install]
+WantedBy=timers.target
