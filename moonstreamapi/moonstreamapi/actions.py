@@ -27,7 +27,7 @@ from moonstreamdb.blockchain import AvailableBlockchainType
 from moonstreamdb.models import EthereumLabel
 from moonstreamdb.subscriptions import blockchain_by_subscription_id
 from moonstreamdbv3.db import MoonstreamDBIndexesEngine
-from moonstreamdbv3.models_indexes import AbiJobs
+from moonstreamdbv3.models_indexes import AbiJobs, AbiSubscriptions
 from slugify import slugify  # type: ignore
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -631,11 +631,25 @@ def add_abi_to_db(
     chain: str,
     subscription_id: Optional[str] = None,
 ) -> None:
-
     abis_to_insert = []
+    subscriptions_to_insert = []
+
+    try:
+        existing_abi_job = (
+            db_session.query(AbiJobs)
+            .filter(AbiJobs.chain == chain)
+            .filter(AbiJobs.address == bytes.fromhex(address[2:]))
+            .filter(AbiJobs.customer_id == customer_id)
+        ).all()
+    except Exception as e:
+        logger.error(f"Error get abi from db: {str(e)}")
+        db_session.rollback()
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    job_by_abi_selector = {abi.abi_selector: abi for abi in existing_abi_job}
 
     for abi in abis:
-        print(abi)
+
         if abi["type"] not in ("event", "function"):
             continue
 
@@ -652,53 +666,67 @@ def add_abi_to_db(
         abi_selector = abi_selector.hex()
 
         try:
-            abi_job = {
-                "address": (
-                    bytes.fromhex(address[2:]) if address is not None else None
-                ),
-                "user_id": user_id,
-                "customer_id": customer_id,
-                "subscription_id": subscription_id,
-                "abi_selector": abi_selector,
-                "chain": chain,
-                "abi_name": abi["name"],
-                "status": "active",
-                "historical_crawl_status": "pending",
-                "progress": 0,
-                "moonworm_task_pickedup": False,
-                "abi": json.dumps(abi),
-            }
 
-            try:
-                AbiJobs(**abi_job)
-            except Exception as e:
-                logger.error(
-                    f"Error validating abi for address {address}:{abi} {str(e)}"
-                )
-                continue
+            if abi_selector in job_by_abi_selector:
+                # ABI job already exists, create subscription link
+                if subscription_id:
+                    subscriptions_to_insert.append(
+                        {
+                            "abi_job_id": job_by_abi_selector[abi_selector].id,
+                            "subscription_id": subscription_id,
+                        }
+                    )
+            else:
+                # ABI job does not exist, create new ABI job
+                abi_job = {
+                    "address": (
+                        bytes.fromhex(address[2:]) if address is not None else None
+                    ),
+                    "user_id": user_id,
+                    "customer_id": customer_id,
+                    "abi_selector": abi_selector,
+                    "chain": chain,
+                    "abi_name": abi["name"],
+                    "status": "active",
+                    "historical_crawl_status": "pending",
+                    "progress": 0,
+                    "moonworm_task_pickedup": False,
+                    "abi": json.dumps(abi),
+                }
 
-            abis_to_insert.append(abi_job)
+                try:
+                    abi_job_instance = AbiJobs(**abi_job)
+                except Exception as e:
+                    logger.error(
+                        f"Error validating abi for address {address}:{abi} {str(e)}"
+                    )
+                    continue
+
+                abis_to_insert.append(abi_job_instance)
+                if subscription_id:
+                    subscriptions_to_insert.append(
+                        {
+                            "abi_job_id": abi_job_instance.id,
+                            "subscription_id": subscription_id,
+                        }
+                    )
 
         except Exception as e:
             logger.error(f"Error creating abi for address {address}:{abi} {str(e)}")
             continue
 
-    insert_statement = insert(AbiJobs).values(abis_to_insert)
-
-    result_stmt = insert_statement.on_conflict_do_nothing(
-        index_elements=[
-            AbiJobs.chain,
-            AbiJobs.address,
-            AbiJobs.abi_selector,
-            AbiJobs.customer_id,
-            AbiJobs.user_id,
-        ]
-    )
-
     try:
-        db_session.execute(result_stmt)
+        # Insert ABI jobs
+        if abis_to_insert:
+            db_session.bulk_save_objects(abis_to_insert)
+            db_session.flush()  # Ensure the ABI job IDs are generated
+
+        # Insert corresponding subscriptions
+        if subscriptions_to_insert:
+
+            db_session.bulk_insert_mappings(AbiSubscriptions, subscriptions_to_insert)
+
         db_session.commit()
-        print(f"Added {len(abis_to_insert)} abis to db")
     except Exception as e:
         logger.error(f"Error inserting abi to db: {str(e)}")
         db_session.rollback()
