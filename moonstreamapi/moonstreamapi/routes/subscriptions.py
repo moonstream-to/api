@@ -426,10 +426,7 @@ async def update_subscriptions_handler(
     Get user's subscriptions.
     """
     token = request.state.token
-
     user = request.state.user
-
-    print("user", user)
 
     form = await request.form()
     try:
@@ -565,12 +562,7 @@ async def update_subscriptions_handler(
         logger.error(f"Error update user subscriptions: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
-    print("subscription", subscription)
-    print("subscription_entity", subscription_entity)
-    print(abi)  # noqa
-
     if abi is not None:
-        print("apply_moonworm_tasks")
         background_tasks.add_task(
             apply_moonworm_tasks,
             subscription_type_id,
