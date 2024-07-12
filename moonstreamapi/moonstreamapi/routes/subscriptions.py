@@ -302,7 +302,6 @@ async def delete_subscription_handler(
 
     delete_seer_subscription(
         db_session=db_session,
-        user_id=user.id,
         subscription_id=subscription_id,
     )
 
