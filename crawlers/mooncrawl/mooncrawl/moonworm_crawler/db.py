@@ -345,7 +345,7 @@ def add_function_calls_to_session(
         for function_call in function_calls:
 
             label_function_call = _function_call_to_label(
-                blockchain_type, function_call, db_version
+                blockchain_type, function_call, db_version, label_name
             )
 
             record = {
