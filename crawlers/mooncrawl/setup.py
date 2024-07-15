@@ -38,7 +38,7 @@ setup(
         "chardet",
         "fastapi",
         "moonstreamdb>=0.4.5",
-        "moonstreamdb-v3>=0.0.11",
+        "moonstreamdb-v3>=0.0.13",
         "moonstream-types>=0.0.4",
         "moonstream>=0.1.1",
         "moonworm[moonstream]>=0.9.2",

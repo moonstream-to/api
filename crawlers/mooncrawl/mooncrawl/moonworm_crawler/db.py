@@ -265,7 +265,7 @@ def add_events_to_session(
                 "block_timestamp": label_event.block_timestamp,
                 "caller_address": None,
                 "origin_address": None,
-                "address": label_event.address,
+                "address": bytes.fromhex(label_event.address[2:]),
                 "label_name": label_event.label_name,
                 "label_type": "event",
                 "label_data": label_event.label_data,
@@ -345,7 +345,7 @@ def add_function_calls_to_session(
         for function_call in function_calls:
 
             label_function_call = _function_call_to_label(
-                blockchain_type, function_call, db_version
+                blockchain_type, function_call, db_version, label_name
             )
 
             record = {
@@ -355,9 +355,9 @@ def add_function_calls_to_session(
                 "block_number": label_function_call.block_number,
                 "block_hash": label_function_call.block_hash,
                 "block_timestamp": label_function_call.block_timestamp,
-                "caller_address": label_function_call.caller_address,
-                "origin_address": label_function_call.caller_address,
-                "address": label_function_call.address,
+                "caller_address": bytes.fromhex(label_function_call.caller_address[2:]),
+                "origin_address": bytes.fromhex(label_function_call.caller_address[2:]),
+                "address": bytes.fromhex(label_function_call.address[2:]),
                 "label_name": label_function_call.label_name,
                 "label_type": "tx_call",
                 "label_data": label_function_call.label_data,
