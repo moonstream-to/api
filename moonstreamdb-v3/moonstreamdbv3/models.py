@@ -94,15 +94,16 @@ class EvmBasedLabel(Base):  # type: ignore
     block_timestamp = Column(BigInteger, nullable=False)
 
     caller_address = Column(
-        VARCHAR(64),
+        LargeBinary,
         nullable=True,
         index=True,
     )
     origin_address = Column(
-        VARCHAR(64),
+        LargeBinary,
         nullable=True,
         index=True,
     )
+
     address = Column(
         LargeBinary,
         nullable=False,
