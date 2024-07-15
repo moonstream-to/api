@@ -1185,3 +1185,29 @@ def create_resource_for_user(
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
     return resource
+
+
+def chekc_user_resource_access(
+    customer_id: uuid.UUID,
+    user_token: uuid.UUID,
+) -> bool:
+    """
+    Check if user has access to customer_id
+    """
+
+    try:
+        response = bc.get_resource(
+            token=user_token,
+            resource_id=str(customer_id),
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
+        )
+
+    except BugoutResponseException as e:
+        if e.status_code == 404:
+            return False
+        raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        logger.error(f"Error get customer: {str(e)}")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+    return response.id == customer_id

@@ -21,6 +21,7 @@ from ..actions import (
     EntityJournalNotFoundException,
     apply_moonworm_tasks,
     check_if_smart_contract,
+    chekc_user_resource_access,
     get_entity_subscription_journal_id,
     get_list_of_support_interfaces,
     get_moonworm_tasks,
@@ -99,6 +100,19 @@ async def add_subscription_handler(
             status_code=400,
             detail="Currently ethereum_whalewatch not supported",
         )
+
+    if customer_id is not None:
+
+        results = chekc_user_resource_access(
+            customer_id=customer_id,
+            user_token=token,
+        )
+
+        if not results:
+            raise MoonstreamHTTPException(
+                status_code=403,
+                detail="User has no access to this customer",
+            )
 
     active_subscription_types_response = subscription_types.list_subscription_types(
         active_only=True
@@ -205,7 +219,7 @@ async def add_subscription_handler(
         if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS
     ]
 
-    if entity_secondary_fields.get("abi"):
+    if entity_secondary_fields.get("abi") and customer_id is not None:
         create_seer_subscription(
             db_session=db_session,
             user_id=user.id,
@@ -441,6 +455,19 @@ async def update_subscriptions_handler(
     tags = form_data.tags
     customer_id = form_data.customer_id
 
+    if customer_id is not None:
+
+        results = chekc_user_resource_access(
+            customer_id=customer_id,
+            user_token=token,
+        )
+
+        if not results:
+            raise MoonstreamHTTPException(
+                status_code=403,
+                detail="User has no access to this customer",
+            )
+
     try:
         journal_id = get_entity_subscription_journal_id(
             resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
@@ -562,7 +589,7 @@ async def update_subscriptions_handler(
         logger.error(f"Error update user subscriptions: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
-    if abi is not None:
+    if abi is not None and customer_id is not None:
         background_tasks.add_task(
             apply_moonworm_tasks,
             subscription_type_id,
