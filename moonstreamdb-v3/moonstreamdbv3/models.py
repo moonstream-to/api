@@ -26,6 +26,7 @@ from sqlalchemy import (
     Integer,
     MetaData,
     Text,
+    LargeBinary,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.compiler import compiles
@@ -93,18 +94,19 @@ class EvmBasedLabel(Base):  # type: ignore
     block_timestamp = Column(BigInteger, nullable=False)
 
     caller_address = Column(
-        VARCHAR(64),
+        LargeBinary,
         nullable=True,
         index=True,
     )
     origin_address = Column(
-        VARCHAR(64),
+        LargeBinary,
         nullable=True,
         index=True,
     )
+
     address = Column(
-        VARCHAR(64),
-        nullable=True,
+        LargeBinary,
+        nullable=False,
         index=True,
     )
 
