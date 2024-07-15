@@ -12,7 +12,6 @@ from bugout.data import BugoutSearchResult, BugoutSearchResultAsEntity
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, BackgroundTasks, Depends, Form, Path, Query, Request
 from moonstreamdb.blockchain import AvailableBlockchainType
-from moonstreamdbv3.db import MoonstreamDBIndexesEngineInstance  # type: ignore
 from web3 import Web3
 
 from .. import data
@@ -36,6 +35,7 @@ from ..settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_ENTITIES_RESERVED_TAGS,
     THREAD_TIMEOUT_SECONDS,
+    MOONSTREAM_DB_V3_INDEX_INSTANCE,
 )
 from ..settings import bugout_client as bc
 from ..web3_provider import yield_web3_provider
@@ -55,7 +55,7 @@ async def add_subscription_handler(
     request: Request,
     background_tasks: BackgroundTasks,
     web3: Web3 = Depends(yield_web3_provider),
-    db_session: Any = Depends(MoonstreamDBIndexesEngineInstance.yield_db_session),
+    db_session: Any = Depends(MOONSTREAM_DB_V3_INDEX_INSTANCE.yield_db_session),
 ) -> data.SubscriptionResourceData:
     """
     Add subscription to blockchain stream data for user.
@@ -252,7 +252,7 @@ async def add_subscription_handler(
 async def delete_subscription_handler(
     request: Request,
     subscription_id: str = Path(...),
-    db_session: Any = Depends(MoonstreamDBIndexesEngineInstance.yield_db_session),
+    db_session: Any = Depends(MOONSTREAM_DB_V3_INDEX_INSTANCE.yield_db_session),
 ):
     """
     Delete subscriptions.
@@ -434,7 +434,7 @@ async def update_subscriptions_handler(
     request: Request,
     background_tasks: BackgroundTasks,
     subscription_id: str = Path(...),
-    db_session: Any = Depends(MoonstreamDBIndexesEngineInstance.yield_db_session),
+    db_session: Any = Depends(MOONSTREAM_DB_V3_INDEX_INSTANCE.yield_db_session),
 ) -> data.SubscriptionResourceData:
     """
     Get user's subscriptions.

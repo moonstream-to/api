@@ -26,7 +26,6 @@ from eth_utils.address import is_address  # type: ignore
 from moonstreamdb.blockchain import AvailableBlockchainType
 from moonstreamdb.models import EthereumLabel
 from moonstreamdb.subscriptions import blockchain_by_subscription_id
-from moonstreamdbv3.db import MoonstreamDBIndexesEngine
 from moonstreamdbv3.models_indexes import AbiJobs, AbiSubscriptions
 from slugify import slugify  # type: ignore
 from sqlalchemy import text
@@ -1210,4 +1209,4 @@ def chekc_user_resource_access(
         logger.error(f"Error get customer: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
-    return response.id == customer_id
+    return str(response.id) == customer_id
