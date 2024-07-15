@@ -245,6 +245,7 @@ class UpdateSubscriptionRequest(BaseModel):
     abi: Optional[str] = Form(None)
     description: Optional[str] = Form(None)
     tags: Optional[List[Dict[str, str]]] = Form(None)
+    customer_id: Optional[str] = Form(None)
 
     @validator("tags", pre=True, always=True)
     def transform_to_dict(cls, v):
@@ -263,6 +264,7 @@ class CreateSubscriptionRequest(BaseModel):
     abi: Optional[str] = Form(None)
     description: Optional[str] = Form(None)
     tags: Optional[List[Dict[str, str]]] = Form(None)
+    customer_id: Optional[str] = Form(None)
 
     @validator("tags", pre=True, always=True)
     def transform_to_dict(cls, v):

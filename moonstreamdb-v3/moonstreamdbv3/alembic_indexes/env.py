@@ -65,6 +65,7 @@ from moonstreamdbv3.models_indexes import (
     MantleSepoliaLogIndex,
     MantleSepoliaReorgs,
     AbiJobs,
+    AbiSubscriptions,
 )
 
 
@@ -107,6 +108,7 @@ def include_symbol(tablename, schema):
         MantleSepoliaLogIndex.__tablename__,
         MantleSepoliaReorgs.__tablename__,
         AbiJobs.__tablename__,
+        AbiSubscriptions.__tablename__,
     }
 
 

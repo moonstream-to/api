@@ -567,7 +567,11 @@ class AbiJobs(Base):
 
     __table_args__ = (
         UniqueConstraint(
-            "chain", "address", "abi_selector", "customer_id", name="uq_abi_jobs"
+            "chain",
+            "address",
+            "abi_selector",
+            "customer_id",
+            name="uq_abi_jobs",
         ),
     )
 
@@ -587,5 +591,22 @@ class AbiJobs(Base):
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )
     updated_at = Column(
+        DateTime(timezone=True), server_default=utcnow(), nullable=False
+    )
+
+
+class AbiSubscriptions(Base):
+    __tablename__ = "abi_subscriptions"
+
+    __table_args__ = (PrimaryKeyConstraint("abi_job_id", "subscription_id"),)
+
+    abi_job_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("abi_jobs.id"),
+        nullable=False,
+        index=True,
+    )
+    subscription_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )

@@ -20,10 +20,13 @@ from ..actions import (
     EntityJournalNotFoundException,
     apply_moonworm_tasks,
     check_if_smart_contract,
+    chekc_user_resource_access,
     get_entity_subscription_journal_id,
     get_list_of_support_interfaces,
     get_moonworm_tasks,
     validate_abi_json,
+    create_seer_subscription,
+    delete_seer_subscription,
 )
 from ..admin import subscription_types
 from ..middleware import MoonstreamHTTPException
@@ -32,6 +35,7 @@ from ..settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_ENTITIES_RESERVED_TAGS,
     THREAD_TIMEOUT_SECONDS,
+    MOONSTREAM_DB_V3_INDEX_INSTANCE,
 )
 from ..settings import bugout_client as bc
 from ..web3_provider import yield_web3_provider
@@ -51,11 +55,13 @@ async def add_subscription_handler(
     request: Request,
     background_tasks: BackgroundTasks,
     web3: Web3 = Depends(yield_web3_provider),
+    db_session: Any = Depends(MOONSTREAM_DB_V3_INDEX_INSTANCE.yield_db_session),
 ) -> data.SubscriptionResourceData:
     """
     Add subscription to blockchain stream data for user.
     """
     token = request.state.token
+    user = request.state.user
 
     form = await request.form()
 
@@ -71,6 +77,7 @@ async def add_subscription_handler(
     description = form_data.description
     tags = form_data.tags
     subscription_type_id = form_data.subscription_type_id
+    customer_id = form_data.customer_id
 
     if subscription_type_id != "ethereum_whalewatch":
         try:
@@ -93,6 +100,19 @@ async def add_subscription_handler(
             status_code=400,
             detail="Currently ethereum_whalewatch not supported",
         )
+
+    if customer_id is not None:
+
+        results = chekc_user_resource_access(
+            customer_id=customer_id,
+            user_token=token,
+        )
+
+        if not results:
+            raise MoonstreamHTTPException(
+                status_code=403,
+                detail="User has no access to this customer",
+            )
 
     active_subscription_types_response = subscription_types.list_subscription_types(
         active_only=True
@@ -129,10 +149,7 @@ async def add_subscription_handler(
         content["abi_hash"] = hash
 
         background_tasks.add_task(
-            apply_moonworm_tasks,
-            subscription_type_id,
-            json_abi,
-            address,
+            apply_moonworm_tasks, subscription_type_id, json_abi, address
         )
 
     if description:
@@ -202,6 +219,16 @@ async def add_subscription_handler(
         if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS
     ]
 
+    if entity_secondary_fields.get("abi") and customer_id is not None:
+        create_seer_subscription(
+            db_session=db_session,
+            user_id=user.id,
+            customer_id=customer_id,
+            subscription_id=entity.id,
+            abi=abi,
+            subscription_type_id=subscription_type_id,
+        )
+
     return data.SubscriptionResourceData(
         id=str(entity.id),
         user_id=str(user.id),
@@ -223,7 +250,9 @@ async def add_subscription_handler(
     response_model=data.SubscriptionResourceData,
 )
 async def delete_subscription_handler(
-    request: Request, subscription_id: str = Path(...)
+    request: Request,
+    subscription_id: str = Path(...),
+    db_session: Any = Depends(MOONSTREAM_DB_V3_INDEX_INSTANCE.yield_db_session),
 ):
     """
     Delete subscriptions.
@@ -284,6 +313,11 @@ async def delete_subscription_handler(
     if deleted_entity.secondary_fields is not None:
         abi = deleted_entity.secondary_fields.get("abi")
         description = deleted_entity.secondary_fields.get("description")
+
+    delete_seer_subscription(
+        db_session=db_session,
+        subscription_id=subscription_id,
+    )
 
     return data.SubscriptionResourceData(
         id=str(deleted_entity.id),
@@ -400,12 +434,12 @@ async def update_subscriptions_handler(
     request: Request,
     background_tasks: BackgroundTasks,
     subscription_id: str = Path(...),
+    db_session: Any = Depends(MOONSTREAM_DB_V3_INDEX_INSTANCE.yield_db_session),
 ) -> data.SubscriptionResourceData:
     """
     Get user's subscriptions.
     """
     token = request.state.token
-
     user = request.state.user
 
     form = await request.form()
@@ -419,6 +453,20 @@ async def update_subscriptions_handler(
     abi = form_data.abi
     description = form_data.description
     tags = form_data.tags
+    customer_id = form_data.customer_id
+
+    if customer_id is not None:
+
+        results = chekc_user_resource_access(
+            customer_id=customer_id,
+            user_token=token,
+        )
+
+        if not results:
+            raise MoonstreamHTTPException(
+                status_code=403,
+                detail="User has no access to this customer",
+            )
 
     try:
         journal_id = get_entity_subscription_journal_id(
@@ -541,13 +589,24 @@ async def update_subscriptions_handler(
         logger.error(f"Error update user subscriptions: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
-    if abi:
+    if abi is not None and customer_id is not None:
         background_tasks.add_task(
             apply_moonworm_tasks,
             subscription_type_id,
             json_abi,
             address,
         )
+
+        create_seer_subscription(
+            db_session=db_session,
+            user_id=user.id,
+            customer_id=customer_id,
+            address=address,
+            subscription_type=subscription_type_id,
+            abi=json_abi,
+            subscription_id=subscription_id,
+        )
+
     subscription_required_fields = (
         subscription.required_fields if subscription.required_fields is not None else {}
     )

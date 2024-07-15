@@ -17,7 +17,7 @@ setup(
         "fastapi",
         "moonstream",
         "moonstreamdb>=0.4.5",
-        "moonstreamdb-v3>=0.0.9",
+        "moonstreamdb-v3>=0.0.13",
         "humbug",
         "pydantic==1.10.2",
         "pyevmasm",

@@ -38,7 +38,7 @@ Mako==1.2.3
 MarkupSafe==2.1.1
 moonstream==0.1.1
 moonstreamdb==0.4.5
-moonstreamdb-v3==0.0.9
+moonstreamdb-v3==0.0.13
 multiaddr==0.0.9
 multidict==6.0.2
 netaddr==0.8.0

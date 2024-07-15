@@ -3,6 +3,7 @@ from typing import Dict, Optional
 
 from bugout.app import Bugout
 from moonstreamdb.blockchain import AvailableBlockchainType
+from moonstreamdbv3.db import MoonstreamDBIndexesEngine
 
 # Bugout
 BUGOUT_BROOD_URL = os.environ.get("BUGOUT_BROOD_URL", "https://auth.bugout.dev")
@@ -408,3 +409,8 @@ if MOONSTREAM_LEADERBOARD_GENERATOR_JOURNAL_ID == "":
 MOONSTREAM_USAGE_REPORTS_JOURNAL_ID = os.environ.get(
     "MOONSTREAM_USAGE_REPORTS_JOURNAL_ID"
 )
+
+
+### Moonstreamdb v3 instance
+
+MOONSTREAM_DB_V3_INDEX_INSTANCE = MoonstreamDBIndexesEngine()
