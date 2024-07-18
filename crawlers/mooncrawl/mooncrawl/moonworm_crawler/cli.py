@@ -548,7 +548,10 @@ def handle_historical_crawl_v3(args: argparse.Namespace) -> None:
             f"Initial function call crawl jobs count: {len(initial_function_call_jobs)}"
         )
 
-    customer_connection = get_db_connection(args.customer_uuid)
+    if args.customer_db_uri is None:
+        customer_connection = get_db_connection(args.customer_uuid)
+    else:
+        customer_connection = args.customer_db_uri
 
     if customer_connection == "":
         raise ValueError("No connection string found for the customer")
@@ -984,10 +987,12 @@ def main() -> None:
     )
 
     historical_crawl_parser_v3.add_argument(
-        "--address",
+        "--addresses",
         "-a",
         required=False,
+        nargs="*",
         type=str,
+        help="Addresses to crawl",
     )
 
     historical_crawl_parser_v3.add_argument(
@@ -1074,6 +1079,13 @@ def main() -> None:
         type=UUID,
         required=True,
         help="Customer UUID",
+    )
+
+    historical_crawl_parser_v3.add_argument(
+        "--customer-db-uri",
+        type=str,
+        required=False,
+        help="Customer database URI",
     )
 
     historical_crawl_parser_v3.add_argument(
