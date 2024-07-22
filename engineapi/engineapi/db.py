@@ -14,7 +14,7 @@ from .settings import (
     ENGINE_POOL_SIZE,
     ENGINE_DB_STATEMENT_TIMEOUT_MILLIS,
     ENGINE_DB_POOL_RECYCLE_SECONDS,
-    ENGINE_DB_IDLE_SESSION_TIMEOUT_SECONDS,
+    ENGINE_DB_IDLE_SESSION_TIMEOUT_MILLISECONDS,
 )
 
 
@@ -32,7 +32,7 @@ def create_local_engine(
         pool_size=pool_size,
         pool_recycle=pool_recycle,
         connect_args={
-            "options": f"-c statement_timeout={statement_timeout} -c idle_session_timeout={statement_timeout}"
+            "options": f"-c statement_timeout={statement_timeout} -c idle_session_timeout={idle_session_timeout}"
         },
     )
 
@@ -42,7 +42,7 @@ engine = create_local_engine(
     pool_size=ENGINE_POOL_SIZE,
     statement_timeout=ENGINE_DB_STATEMENT_TIMEOUT_MILLIS,
     pool_recycle=ENGINE_DB_POOL_RECYCLE_SECONDS,
-    idle_session_timeout=ENGINE_DB_IDLE_SESSION_TIMEOUT_SECONDS,
+    idle_session_timeout=ENGINE_DB_IDLE_SESSION_TIMEOUT_MILLISECONDS,
 )
 
 SessionLocal = sessionmaker(bind=engine)
@@ -69,7 +69,7 @@ RO_engine = create_local_engine(
     pool_size=ENGINE_POOL_SIZE,
     statement_timeout=ENGINE_DB_STATEMENT_TIMEOUT_MILLIS,
     pool_recycle=ENGINE_DB_POOL_RECYCLE_SECONDS,
-    idle_session_timeout=ENGINE_DB_IDLE_SESSION_TIMEOUT_SECONDS,
+    idle_session_timeout=ENGINE_DB_IDLE_SESSION_TIMEOUT_MILLISECONDS,
 )
 
 RO_SessionLocal = sessionmaker(bind=RO_engine)
