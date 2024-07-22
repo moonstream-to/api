@@ -39,6 +39,8 @@ def blockchain_type_to_subscription_type(
 ) -> SubscriptionTypes:
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
         return SubscriptionTypes.ETHEREUM_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.SEPOLIA:
+        return SubscriptionTypes.SEPOLIA_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.POLYGON:
         return SubscriptionTypes.POLYGON_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.MUMBAI:
@@ -93,6 +95,7 @@ def blockchain_type_to_subscription_type(
 
 subscription_id_by_blockchain = {
     "ethereum": "ethereum_smartcontract",
+    "sepolia": "sepolia_smartcontract",
     "polygon": "polygon_smartcontract",
     "mumbai": "mumbai_smartcontract",
     "amoy": "amoy_smartcontract",
@@ -121,6 +124,7 @@ subscription_id_by_blockchain = {
 
 blockchain_by_subscription_id = {
     "ethereum_blockchain": "ethereum",
+    "sepolia_blockchain": "sepolia",
     "polygon_blockchain": "polygon",
     "mumbai_blockchain": "mumbai",
     "amoy_blockchain": "amoy",

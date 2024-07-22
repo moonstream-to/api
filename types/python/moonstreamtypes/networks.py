@@ -334,6 +334,7 @@ MODELS_V3: Dict[Network, Dict[str, Base]] = {
 }
 
 
+## Used only in crawlers
 def blockchain_type_to_network_type(
     blockchain_type: AvailableBlockchainType,
 ) -> Network:
