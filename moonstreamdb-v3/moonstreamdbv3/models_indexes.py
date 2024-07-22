@@ -153,11 +153,11 @@ class EthereumReorgs(EvmBasedReorgs):
     __tablename__ = "ethereum_reorgs"
 
 
-class EthereumSepoliaBlockIndex(EvmBasedBlocks):
+class SepoliaBlockIndex(EvmBasedBlocks):
     __tablename__ = "ethereum_sepolia_blocks"
 
 
-class EthereumSepoliaTransactionIndex(EvmBasedTransactions):
+class SepoliaTransactionIndex(EvmBasedTransactions):
     __tablename__ = "ethereum_sepolia_transactions"
 
     block_number = Column(
@@ -168,7 +168,7 @@ class EthereumSepoliaTransactionIndex(EvmBasedTransactions):
     )
 
 
-class EthereumSepoliaLogIndex(EvmBasedLogs):
+class SepoliaLogIndex(EvmBasedLogs):
 
     __tablename__ = "ethereum_sepolia_logs"
 
@@ -202,7 +202,7 @@ class EthereumSepoliaLogIndex(EvmBasedLogs):
     )
 
 
-class EthereumSepoliaReorgs(EvmBasedReorgs):
+class SepoliaReorgs(EvmBasedReorgs):
     __tablename__ = "ethereum_sepolia_reorgs"
 
 

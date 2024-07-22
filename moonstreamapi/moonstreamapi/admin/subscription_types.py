@@ -29,12 +29,12 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         stripe_price_id=None,
         active=True,
     ),
-    "ethereum_sepolia_smartcontract": SubscriptionTypeResourceData(
-        id="ethereum_sepolia_smartcontract",
-        name="Ethereum Sepolia smartcontracts",
-        blockchain="ethereum_sepolia",
+    "sepolia_smartcontract": SubscriptionTypeResourceData(
+        id="sepolia_smartcontract",
+        name="Sepolia smartcontracts",
+        blockchain="sepolia",
         choices=["input:address", "tag:erc721"],
-        description="Contracts events and tx_calls of contract of Ethereum Sepolia blockchain",
+        description="Contracts events and tx_calls of contract of Sepolia blockchain",
         icon_url="https://static.simiotics.com/moonstream/assets/ethereum/eth-diamond-purple.png",
         stripe_product_id=None,
         stripe_price_id=None,
