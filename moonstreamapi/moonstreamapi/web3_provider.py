@@ -26,6 +26,7 @@ from .settings import (
     MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI,
     MOONSTREAM_POLYGON_WEB3_PROVIDER_URI,
     MOONSTREAM_PROOFOFPLAY_APEX_WEB3_PROVIDER_URI,
+    MOONSTREAM_SEPOLIA_WEB3_PROVIDER_URI,
     MOONSTREAM_WYRM_WEB3_PROVIDER_URI,
     MOONSTREAM_XAI_SEPOLIA_WEB3_PROVIDER_URI,
     MOONSTREAM_XAI_WEB3_PROVIDER_URI,
@@ -75,6 +76,8 @@ def connect(
     if web3_uri is None:
         if blockchain_type == AvailableBlockchainType.ETHEREUM:
             web3_uri = MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.SEPOLIA:
+            web3_uri = MOONSTREAM_SEPOLIA_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.POLYGON:
             web3_uri = MOONSTREAM_POLYGON_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.MUMBAI:
