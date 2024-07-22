@@ -153,6 +153,59 @@ class EthereumReorgs(EvmBasedReorgs):
     __tablename__ = "ethereum_reorgs"
 
 
+class EthereumSepoliaBlockIndex(EvmBasedBlocks):
+    __tablename__ = "ethereum_sepolia_blocks"
+
+
+class EthereumSepoliaTransactionIndex(EvmBasedTransactions):
+    __tablename__ = "ethereum_sepolia_transactions"
+
+    block_number = Column(
+        BigInteger,
+        ForeignKey("ethereum_sepolia_blocks.block_number", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+
+class EthereumSepoliaLogIndex(EvmBasedLogs):
+
+    __tablename__ = "ethereum_sepolia_logs"
+
+    __table_args__ = (
+        Index(
+            "idx_ethereum_sepolia_logs_address_selector",
+            "address",
+            "selector",
+            unique=False,
+        ),
+        Index(
+            "idx_ethereum_sepolia_logs_block_hash_log_index",
+            "block_hash",
+            "log_index",
+            unique=True,
+        ),
+        UniqueConstraint(
+            "transaction_hash",
+            "log_index",
+            name="uq_ethereum_sepolia_log_index_transaction_hash_log_index",
+        ),
+        PrimaryKeyConstraint(
+            "transaction_hash", "log_index", name="pk_ethereum_sepolia_log_index"
+        ),
+    )
+    transaction_hash = Column(
+        VARCHAR(256),
+        ForeignKey("ethereum_sepolia_transactions.hash", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+
+class EthereumSepoliaReorgs(EvmBasedReorgs):
+    __tablename__ = "ethereum_sepolia_reorgs"
+
+
 ### Polygon
 
 
