@@ -69,7 +69,7 @@ RO_engine = create_local_engine(
     pool_size=ENGINE_POOL_SIZE,
     statement_timeout=ENGINE_DB_STATEMENT_TIMEOUT_MILLIS,
     pool_recycle=ENGINE_DB_POOL_RECYCLE_SECONDS,
-    max_overflow=1,
+    idle_session_timeout=ENGINE_DB_IDLE_SESSION_TIMEOUT_SECONDS,
 )
 
 RO_SessionLocal = sessionmaker(bind=RO_engine)
