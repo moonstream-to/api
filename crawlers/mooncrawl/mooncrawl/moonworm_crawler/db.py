@@ -266,7 +266,9 @@ def add_events_to_session(
                 "block_timestamp": label_event.block_timestamp,
                 "caller_address": None,
                 "origin_address": None,
-                "address": HexBytes(label_event.address),
+                "address": HexBytes(
+                    label_event.address
+                ),  # transform to \x00 format on insert
                 "label_name": label_event.label_name,
                 "label_type": "event",
                 "label_data": label_event.label_data,
@@ -358,7 +360,9 @@ def add_function_calls_to_session(
                 "block_timestamp": label_function_call.block_timestamp,
                 "caller_address": HexBytes(label_function_call.caller_address),
                 "origin_address": HexBytes(label_function_call.caller_address),
-                "address": HexBytes(label_function_call.address),
+                "address": HexBytes(
+                    label_function_call.address
+                ),  # transform to \x00 format on insert
                 "label_name": label_function_call.label_name,
                 "label_type": "tx_call",
                 "label_data": label_function_call.label_data,
