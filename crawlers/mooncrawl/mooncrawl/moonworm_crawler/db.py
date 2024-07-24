@@ -1,5 +1,6 @@
 import json
 import logging
+from hexbytes import HexBytes
 from typing import Dict, List, Optional, Union, Any
 
 from moonstreamdb.models import Base
@@ -265,7 +266,7 @@ def add_events_to_session(
                 "block_timestamp": label_event.block_timestamp,
                 "caller_address": None,
                 "origin_address": None,
-                "address": bytes.fromhex(label_event.address[2:]),
+                "address": HexBytes(label_event.address),
                 "label_name": label_event.label_name,
                 "label_type": "event",
                 "label_data": label_event.label_data,
@@ -355,9 +356,9 @@ def add_function_calls_to_session(
                 "block_number": label_function_call.block_number,
                 "block_hash": label_function_call.block_hash,
                 "block_timestamp": label_function_call.block_timestamp,
-                "caller_address": bytes.fromhex(label_function_call.caller_address[2:]),
-                "origin_address": bytes.fromhex(label_function_call.caller_address[2:]),
-                "address": bytes.fromhex(label_function_call.address[2:]),
+                "caller_address": HexBytes(label_function_call.caller_address),
+                "origin_address": HexBytes(label_function_call.caller_address),
+                "address": HexBytes(label_function_call.address),
                 "label_name": label_function_call.label_name,
                 "label_type": "tx_call",
                 "label_data": label_function_call.label_data,
