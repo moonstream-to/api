@@ -1,9 +1,7 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
 from alembic import context
+from sqlalchemy import engine_from_config, pool
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -27,30 +25,32 @@ target_metadata = MoonstreamBase.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 from moonstreamdbv3.models import (
-    EthereumLabel,
-    SepoliaLabel,
-    PolygonLabel,
-    MumbaiLabel,
     AmoyLabel,
-    XDaiLabel,
-    ZkSyncEraLabel,
-    ZkSyncEraSepoliaLabel,
-    BaseLabel,
     ArbitrumNovaLabel,
     ArbitrumOneLabel,
     ArbitrumSepoliaLabel,
-    Game7OrbitArbitrumSepoliaLabel,
-    XaiLabel,
-    XaiSepoliaLabel,
-    AvalancheLabel,
     AvalancheFujiLabel,
+    AvalancheLabel,
+    BaseLabel,
     BlastLabel,
     BlastSepoliaLabel,
-    ProofOfPlayApexLabel,
-    StarknetLabel,
-    StarknetSepoliaLabel,
+    EthereumLabel,
+    Game7OrbitArbitrumSepoliaLabel,
+    ImxZkevmLabel,
+    ImxZkevmSepoliaLabel,
     MantleLabel,
     MantleSepoliaLabel,
+    MumbaiLabel,
+    PolygonLabel,
+    ProofOfPlayApexLabel,
+    SepoliaLabel,
+    StarknetLabel,
+    StarknetSepoliaLabel,
+    XaiLabel,
+    XaiSepoliaLabel,
+    XDaiLabel,
+    ZkSyncEraLabel,
+    ZkSyncEraSepoliaLabel,
 )
 
 
@@ -80,6 +80,8 @@ def include_symbol(tablename, schema):
         StarknetSepoliaLabel.__tablename__,
         MantleLabel.__tablename__,
         MantleSepoliaLabel.__tablename__,
+        ImxZkevmLabel.__tablename__,
+        ImxZkevmSepoliaLabel.__tablename__,
     }
 
 

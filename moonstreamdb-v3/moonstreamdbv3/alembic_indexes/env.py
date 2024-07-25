@@ -1,9 +1,7 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
 from alembic import context
+from sqlalchemy import engine_from_config, pool
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -28,44 +26,52 @@ target_metadata = MoonstreamBase.metadata
 # ... etc.
 
 from moonstreamdbv3.models_indexes import (
-    EthereumBlockIndex,
-    EthereumTransactionIndex,
-    EthereumLogIndex,
-    EthereumReorgs,
-    PolygonBlockIndex,
-    PolygonTransactionIndex,
-    PolygonLogIndex,
-    PolygonReorgs,
-    XaiBlockIndex,
-    XaiTransactionIndex,
-    XaiLogIndex,
-    XaiReorgs,
-    XaiSepoliaBlockIndex,
-    XaiSepoliaTransactionIndex,
-    XaiSepoliaLogIndex,
-    XaiSepoliaReorgs,
+    AbiJobs,
+    AbiSubscriptions,
     ArbitrumOneBlockIndex,
-    ArbitrumOneTransactionIndex,
     ArbitrumOneLogIndex,
     ArbitrumOneReorgs,
+    ArbitrumOneTransactionIndex,
     ArbitrumSepoliaBlockIndex,
-    ArbitrumSepoliaTransactionIndex,
     ArbitrumSepoliaLogIndex,
     ArbitrumSepoliaReorgs,
+    ArbitrumSepoliaTransactionIndex,
+    EthereumBlockIndex,
+    EthereumLogIndex,
+    EthereumReorgs,
+    EthereumTransactionIndex,
     Game7OrbitArbitrumSepoliaBlockIndex,
-    Game7OrbitArbitrumSepoliaTransactionIndex,
     Game7OrbitArbitrumSepoliaLogIndex,
     Game7OrbitArbitrumSepoliaReorgs,
+    Game7OrbitArbitrumSepoliaTransactionIndex,
+    ImxZkevmBlockIndex,
+    ImxZkevmLogIndex,
+    ImxZkevmReorgs,
+    ImxZkevmSepoliaBlockIndex,
+    ImxZkevmSepoliaLogIndex,
+    ImxZkevmSepoliaReorgs,
+    ImxZkevmSepoliaTransactionIndex,
+    ImxZkevmTransactionIndex,
     MantleBlockIndex,
-    MantleTransactionIndex,
     MantleLogIndex,
     MantleReorgs,
     MantleSepoliaBlockIndex,
-    MantleSepoliaTransactionIndex,
     MantleSepoliaLogIndex,
     MantleSepoliaReorgs,
-    AbiJobs,
-    AbiSubscriptions,
+    MantleSepoliaTransactionIndex,
+    MantleTransactionIndex,
+    PolygonBlockIndex,
+    PolygonLogIndex,
+    PolygonReorgs,
+    PolygonTransactionIndex,
+    XaiBlockIndex,
+    XaiLogIndex,
+    XaiReorgs,
+    XaiSepoliaBlockIndex,
+    XaiSepoliaLogIndex,
+    XaiSepoliaReorgs,
+    XaiSepoliaTransactionIndex,
+    XaiTransactionIndex,
 )
 
 
@@ -109,6 +115,14 @@ def include_symbol(tablename, schema):
         MantleSepoliaReorgs.__tablename__,
         AbiJobs.__tablename__,
         AbiSubscriptions.__tablename__,
+        ImxZkevmBlockIndex.__tablename__,
+        ImxZkevmTransactionIndex.__tablename__,
+        ImxZkevmLogIndex.__tablename__,
+        ImxZkevmReorgs.__tablename__,
+        ImxZkevmSepoliaBlockIndex.__tablename__,
+        ImxZkevmSepoliaTransactionIndex.__tablename__,
+        ImxZkevmSepoliaLogIndex.__tablename__,
+        ImxZkevmSepoliaReorgs.__tablename__,
     }
 
 
