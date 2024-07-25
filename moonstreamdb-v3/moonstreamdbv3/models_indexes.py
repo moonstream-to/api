@@ -154,15 +154,15 @@ class EthereumReorgs(EvmBasedReorgs):
 
 
 class SepoliaBlockIndex(EvmBasedBlocks):
-    __tablename__ = "ethereum_sepolia_blocks"
+    __tablename__ = "sepolia_blocks"
 
 
 class SepoliaTransactionIndex(EvmBasedTransactions):
-    __tablename__ = "ethereum_sepolia_transactions"
+    __tablename__ = "sepolia_transactions"
 
     block_number = Column(
         BigInteger,
-        ForeignKey("ethereum_sepolia_blocks.block_number", ondelete="CASCADE"),
+        ForeignKey("sepolia_blocks.block_number", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -170,17 +170,17 @@ class SepoliaTransactionIndex(EvmBasedTransactions):
 
 class SepoliaLogIndex(EvmBasedLogs):
 
-    __tablename__ = "ethereum_sepolia_logs"
+    __tablename__ = "sepolia_logs"
 
     __table_args__ = (
         Index(
-            "idx_ethereum_sepolia_logs_address_selector",
+            "idx_sepolia_logs_address_selector",
             "address",
             "selector",
             unique=False,
         ),
         Index(
-            "idx_ethereum_sepolia_logs_block_hash_log_index",
+            "idx_sepolia_logs_block_hash_log_index",
             "block_hash",
             "log_index",
             unique=True,
@@ -188,22 +188,22 @@ class SepoliaLogIndex(EvmBasedLogs):
         UniqueConstraint(
             "transaction_hash",
             "log_index",
-            name="uq_ethereum_sepolia_log_index_transaction_hash_log_index",
+            name="uq_sepolia_log_index_transaction_hash_log_index",
         ),
         PrimaryKeyConstraint(
-            "transaction_hash", "log_index", name="pk_ethereum_sepolia_log_index"
+            "transaction_hash", "log_index", name="pk_sepolia_log_index"
         ),
     )
     transaction_hash = Column(
         VARCHAR(256),
-        ForeignKey("ethereum_sepolia_transactions.hash", ondelete="CASCADE"),
+        ForeignKey("sepolia_transactions.hash", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
 
 
 class SepoliaReorgs(EvmBasedReorgs):
-    __tablename__ = "ethereum_sepolia_reorgs"
+    __tablename__ = "sepolia_reorgs"
 
 
 ### Polygon
