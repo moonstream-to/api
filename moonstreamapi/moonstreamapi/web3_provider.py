@@ -21,11 +21,14 @@ from .settings import (
     MOONSTREAM_BLAST_SEPOLIA_WEB3_PROVIDER_URI,
     MOONSTREAM_BLAST_WEB3_PROVIDER_URI,
     MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI,
+    MOONSTREAM_IMX_ZKEVM_SEPOLIA_WEB3_PROVIDER_URI,
+    MOONSTREAM_IMX_ZKEVM_WEB3_PROVIDER_URI,
     MOONSTREAM_MANTLE_SEPOLIA_WEB3_PROVIDER_URI,
     MOONSTREAM_MANTLE_WEB3_PROVIDER_URI,
     MOONSTREAM_MUMBAI_WEB3_PROVIDER_URI,
     MOONSTREAM_POLYGON_WEB3_PROVIDER_URI,
     MOONSTREAM_PROOFOFPLAY_APEX_WEB3_PROVIDER_URI,
+    MOONSTREAM_SEPOLIA_WEB3_PROVIDER_URI,
     MOONSTREAM_WYRM_WEB3_PROVIDER_URI,
     MOONSTREAM_XAI_SEPOLIA_WEB3_PROVIDER_URI,
     MOONSTREAM_XAI_WEB3_PROVIDER_URI,
@@ -75,6 +78,8 @@ def connect(
     if web3_uri is None:
         if blockchain_type == AvailableBlockchainType.ETHEREUM:
             web3_uri = MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.SEPOLIA:
+            web3_uri = MOONSTREAM_SEPOLIA_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.POLYGON:
             web3_uri = MOONSTREAM_POLYGON_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.MUMBAI:
@@ -115,6 +120,10 @@ def connect(
             web3_uri = MOONSTREAM_MANTLE_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.MANTLE_SEPOLIA:
             web3_uri = MOONSTREAM_MANTLE_SEPOLIA_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.IMX_ZKEVM:
+            web3_uri = MOONSTREAM_IMX_ZKEVM_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.IMX_ZKEVM_SEPOLIA:
+            web3_uri = MOONSTREAM_IMX_ZKEVM_SEPOLIA_WEB3_PROVIDER_URI
         else:
             raise Exception("Wrong blockchain type provided for web3 URI")
 

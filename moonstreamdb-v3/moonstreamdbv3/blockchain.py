@@ -36,6 +36,7 @@ class AvailableBlockchainType(Enum):
     MUMBAI = "mumbai"
     AMOY = "amoy"
     XDAI = "xdai"
+    SEPOLIA = "sepolia"
     ZKSYNC_ERA = "zksync_era"
     ZKSYNC_ERA_TESTNET = "zksync_era_testnet"
     ZKSYNC_ERA_SEPOLIA = "zksync_era_sepolia"
@@ -119,6 +120,8 @@ def get_label_model(blockchain_type: AvailableBlockchainType) -> Type[
 
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
         label_model = EthereumLabel
+    elif blockchain_type == AvailableBlockchainType.SEPOLIA:
+        label_model = SepoliaLabel
     elif blockchain_type == AvailableBlockchainType.POLYGON:
         label_model = PolygonLabel
     elif blockchain_type == AvailableBlockchainType.MUMBAI:

@@ -153,6 +153,62 @@ class EthereumReorgs(EvmBasedReorgs):
     __tablename__ = "ethereum_reorgs"
 
 
+### Sepolia
+
+
+class SepoliaBlockIndex(EvmBasedBlocks):
+    __tablename__ = "sepolia_blocks"
+
+
+class SepoliaTransactionIndex(EvmBasedTransactions):
+    __tablename__ = "sepolia_transactions"
+
+    block_number = Column(
+        BigInteger,
+        ForeignKey("sepolia_blocks.block_number", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+
+class SepoliaLogIndex(EvmBasedLogs):
+
+    __tablename__ = "sepolia_logs"
+
+    __table_args__ = (
+        Index(
+            "idx_sepolia_logs_address_selector",
+            "address",
+            "selector",
+            unique=False,
+        ),
+        Index(
+            "idx_sepolia_logs_block_hash_log_index",
+            "block_hash",
+            "log_index",
+            unique=True,
+        ),
+        UniqueConstraint(
+            "transaction_hash",
+            "log_index",
+            name="uq_sepolia_log_index_transaction_hash_log_index",
+        ),
+        PrimaryKeyConstraint(
+            "transaction_hash", "log_index", name="pk_sepolia_log_index"
+        ),
+    )
+    transaction_hash = Column(
+        VARCHAR(256),
+        ForeignKey("sepolia_transactions.hash", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+
+class SepoliaReorgs(EvmBasedReorgs):
+    __tablename__ = "sepolia_reorgs"
+
+
 ### Polygon
 
 
@@ -557,6 +613,116 @@ class MantleSepoliaLogIndex(EvmBasedLogs):
 
 class MantleSepoliaReorgs(EvmBasedReorgs):
     __tablename__ = "mantle_sepolia_reorgs"
+
+
+### Immutable zkEvm
+
+
+class ImxZkevmBlockIndex(EvmBasedBlocks):
+    __tablename__ = "imx_zkevm_blocks"
+
+
+class ImxZkevmTransactionIndex(EvmBasedTransactions):
+    __tablename__ = "imx_zkevm_transactions"
+
+    block_number = Column(
+        BigInteger,
+        ForeignKey("imx_zkevm_blocks.block_number", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+
+class ImxZkevmLogIndex(EvmBasedLogs):
+    __tablename__ = "imx_zkevm_logs"
+
+    __table_args__ = (
+        Index(
+            "idx_imx_zkevm_logs_address_selector",
+            "address",
+            "selector",
+            unique=False,
+        ),
+        Index(
+            "idx_imx_zkevm_logs_block_hash_log_index",
+            "block_hash",
+            "log_index",
+            unique=True,
+        ),
+        UniqueConstraint(
+            "transaction_hash",
+            "log_index",
+            name="uq_imx_zkevm_log_index_transaction_hash_log_index",
+        ),
+        PrimaryKeyConstraint(
+            "transaction_hash", "log_index", name="pk_imx_zkevm_log_index"
+        ),
+    )
+    transaction_hash = Column(
+        VARCHAR(256),
+        ForeignKey("imx_zkevm_transactions.hash", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+
+class ImxZkevmReorgs(EvmBasedReorgs):
+    __tablename__ = "imx_zkevm_reorgs"
+
+
+### Immutable zkEvm Sepolia
+
+
+class ImxZkevmSepoliaBlockIndex(EvmBasedBlocks):
+    __tablename__ = "imx_zkevm_sepolia_blocks"
+
+
+class ImxZkevmSepoliaTransactionIndex(EvmBasedTransactions):
+    __tablename__ = "imx_zkevm_sepolia_transactions"
+
+    block_number = Column(
+        BigInteger,
+        ForeignKey("imx_zkevm_sepolia_blocks.block_number", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+
+class ImxZkevmSepoliaLogIndex(EvmBasedLogs):
+    __tablename__ = "imx_zkevm_sepolia_logs"
+
+    __table_args__ = (
+        Index(
+            "idx_imx_zkevm_sepolia_logs_address_selector",
+            "address",
+            "selector",
+            unique=False,
+        ),
+        Index(
+            "idx_imx_zkevm_sepolia_logs_block_hash_log_index",
+            "block_hash",
+            "log_index",
+            unique=True,
+        ),
+        UniqueConstraint(
+            "transaction_hash",
+            "log_index",
+            name="uq_imx_zkevm_sepolia_log_index_transaction_hash_log_index",
+        ),
+        PrimaryKeyConstraint(
+            "transaction_hash", "log_index", name="pk_imx_zkevm_sepolia_log_index"
+        ),
+    )
+    transaction_hash = Column(
+        VARCHAR(256),
+        ForeignKey("imx_zkevm_sepolia_transactions.hash", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+
+class ImxZkevmSepoliaReorgs(EvmBasedReorgs):
+    __tablename__ = "imx_zkevm_sepolia_reorgs"
 
 
 ### ABI Jobs

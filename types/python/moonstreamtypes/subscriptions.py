@@ -32,6 +32,8 @@ class SubscriptionTypes(Enum):
     STARKNET_SEPOLIA_BLOCKCHAIN = "starknet_sepolia_smartcontract"
     MANTLE_BLOCKCHAIN = "mantle_smartcontract"
     MANTLE_SEPOLIA_BLOCKCHAIN = "mantle_sepolia_smartcontract"
+    IMX_ZKEVM_BLOCKCHAIN = "imx_zkevm_smartcontract"
+    IMX_ZKEVM_SEPOLIA_BLOCKCHAIN = "imx_zkevm_sepolia_smartcontract"
 
 
 def blockchain_type_to_subscription_type(
@@ -39,6 +41,8 @@ def blockchain_type_to_subscription_type(
 ) -> SubscriptionTypes:
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
         return SubscriptionTypes.ETHEREUM_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.SEPOLIA:
+        return SubscriptionTypes.SEPOLIA_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.POLYGON:
         return SubscriptionTypes.POLYGON_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.MUMBAI:
@@ -87,12 +91,17 @@ def blockchain_type_to_subscription_type(
         return SubscriptionTypes.MANTLE_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.MANTLE_SEPOLIA:
         return SubscriptionTypes.MANTLE_SEPOLIA_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.IMX_ZKEVM:
+        return SubscriptionTypes.IMX_ZKEVM_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.IMX_ZKEVM_SEPOLIA:
+        return SubscriptionTypes.IMX_ZKEVM_SEPOLIA_BLOCKCHAIN
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 
 
 subscription_id_by_blockchain = {
     "ethereum": "ethereum_smartcontract",
+    "sepolia": "sepolia_smartcontract",
     "polygon": "polygon_smartcontract",
     "mumbai": "mumbai_smartcontract",
     "amoy": "amoy_smartcontract",
@@ -117,10 +126,13 @@ subscription_id_by_blockchain = {
     "starknet_sepolia": "starknet_sepolia_smartcontract",
     "mantle": "mantle_smartcontract",
     "mantle_sepolia": "mantle_sepolia_smartcontract",
+    "imx_zkevm": "imx_zkevm_smartcontract",
+    "imx_zkevm_sepolia": "imx_zkevm_sepolia_smartcontract",
 }
 
 blockchain_by_subscription_id = {
     "ethereum_blockchain": "ethereum",
+    "sepolia_blockchain": "sepolia",
     "polygon_blockchain": "polygon",
     "mumbai_blockchain": "mumbai",
     "amoy_blockchain": "amoy",
@@ -145,6 +157,8 @@ blockchain_by_subscription_id = {
     "starknet_sepolia_blockchain": "starknet_sepolia",
     "mantle_blockchain": "mantle",
     "mantle_sepolia_blockchain": "mantle_sepolia",
+    "imx_zkevm_blockchain": "imx_zkevm",
+    "imx_zkevm_sepolia_blockchain": "imx_zkevm_sepolia",
     "ethereum_smartcontract": "ethereum",
     "polygon_smartcontract": "polygon",
     "mumbai_smartcontract": "mumbai",
@@ -170,4 +184,6 @@ blockchain_by_subscription_id = {
     "starknet_sepolia_smartcontract": "starknet_sepolia",
     "mantle_smartcontract": "mantle",
     "mantle_sepolia_smartcontract": "mantle_sepolia",
+    "imx_zkevm_smartcontract": "imx_zkevm",
+    "imx_zkevm_sepolia_smartcontract": "imx_zkevm_sepolia",
 }
