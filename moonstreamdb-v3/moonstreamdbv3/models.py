@@ -148,6 +148,19 @@ class EthereumLabel(EvmBasedLabel):  # type: ignore
             unique=True,
             postgresql_where=text("label='seer' and label_type='event'"),
         ),
+        Index(
+            "uk_ethereum_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_ethereum_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
+        ),
     )
 
 
@@ -179,6 +192,19 @@ class SepoliaLabel(EvmBasedLabel):  # type: ignore
             "log_index",
             unique=True,
             postgresql_where=text("label='seer' and label_type='event'"),
+        ),
+        Index(
+            "uk_sepolia_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_sepolia_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
 
@@ -212,6 +238,19 @@ class PolygonLabel(EvmBasedLabel):  # type: ignore
             unique=True,
             postgresql_where=text("label='seer' and label_type='event'"),
         ),
+        Index(
+            "uk_polygon_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_polygon_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
+        ),
     )
 
 
@@ -243,6 +282,19 @@ class MumbaiLabel(EvmBasedLabel):  # type: ignore
             "log_index",
             unique=True,
             postgresql_where=text("label='seer' and label_type='event'"),
+        ),
+        Index(
+            "uk_mumbai_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_mumbai_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
 
@@ -276,6 +328,19 @@ class AmoyLabel(EvmBasedLabel):  # type: ignore
             unique=True,
             postgresql_where=text("label='seer' and label_type='event'"),
         ),
+        Index(
+            "uk_amoy_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_amoy_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
+        ),
     )
 
 
@@ -307,6 +372,19 @@ class XDaiLabel(EvmBasedLabel):  # type: ignore
             "log_index",
             unique=True,
             postgresql_where=text("label='seer' and label_type='event'"),
+        ),
+        Index(
+            "uk_xdai_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_xdai_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
 
@@ -340,6 +418,19 @@ class ZkSyncEraLabel(EvmBasedLabel):  # type: ignore
             unique=True,
             postgresql_where=text("label='seer' and label_type='event'"),
         ),
+        Index(
+            "uk_zksync_era_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_zksync_era_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
+        ),
     )
 
 
@@ -371,6 +462,19 @@ class ZkSyncEraSepoliaLabel(EvmBasedLabel):  # type: ignore
             "log_index",
             unique=True,
             postgresql_where=text("label='seer' and label_type='event'"),
+        ),
+        Index(
+            "uk_zksync_era_sepolia_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_zksync_era_sepolia_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
 
@@ -404,6 +508,19 @@ class BaseLabel(EvmBasedLabel):  # type: ignore
             unique=True,
             postgresql_where=text("label='seer' and label_type='event'"),
         ),
+        Index(
+            "uk_base_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_base_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
+        ),
     )
 
 
@@ -435,6 +552,19 @@ class ArbitrumNovaLabel(EvmBasedLabel):  # type: ignore
             "log_index",
             unique=True,
             postgresql_where=text("label='seer' and label_type='event'"),
+        ),
+        Index(
+            "uk_arbitrum_nova_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_arbitrum_nova_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
 
@@ -468,6 +598,19 @@ class ArbitrumOneLabel(EvmBasedLabel):  # type: ignore
             unique=True,
             postgresql_where=text("label='seer' and label_type='event'"),
         ),
+        Index(
+            "uk_arbitrum_one_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_arbitrum_one_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
+        ),
     )
 
 
@@ -499,6 +642,19 @@ class ArbitrumSepoliaLabel(EvmBasedLabel):  # type: ignore
             "log_index",
             unique=True,
             postgresql_where=text("label='seer' and label_type='event'"),
+        ),
+        Index(
+            "uk_arbitrum_sepolia_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_arbitrum_sepolia_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
 
@@ -532,6 +688,19 @@ class Game7OrbitArbitrumSepoliaLabel(EvmBasedLabel):  # type: ignore
             unique=True,
             postgresql_where=text("label='seer' and label_type='event'"),
         ),
+        Index(
+            "uk_g7o_arbitrum_sepolia_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_g7o_arbitrum_sepolia_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
+        ),
     )
 
 
@@ -563,6 +732,19 @@ class XaiLabel(EvmBasedLabel):  # type: ignore
             "log_index",
             unique=True,
             postgresql_where=text("label='seer' and label_type='event'"),
+        ),
+        Index(
+            "uk_xai_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_xai_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
 
@@ -596,6 +778,19 @@ class XaiSepoliaLabel(EvmBasedLabel):  # type: ignore
             unique=True,
             postgresql_where=text("label='seer' and label_type='event'"),
         ),
+        Index(
+            "uk_xai_sepolia_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_xai_sepolia_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
+        ),
     )
 
 
@@ -627,6 +822,19 @@ class AvalancheLabel(EvmBasedLabel):  # type: ignore
             "log_index",
             unique=True,
             postgresql_where=text("label='seer' and label_type='event'"),
+        ),
+        Index(
+            "uk_avalanche_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_avalanche_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
 
@@ -660,6 +868,19 @@ class AvalancheFujiLabel(EvmBasedLabel):  # type: ignore
             unique=True,
             postgresql_where=text("label='seer' and label_type='event'"),
         ),
+        Index(
+            "uk_avalanche_fuji_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_avalanche_fuji_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
+        ),
     )
 
 
@@ -691,6 +912,19 @@ class BlastLabel(EvmBasedLabel):  # type: ignore
             "log_index",
             unique=True,
             postgresql_where=text("label='seer' and label_type='event'"),
+        ),
+        Index(
+            "uk_blast_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_blast_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
 
@@ -724,6 +958,19 @@ class BlastSepoliaLabel(EvmBasedLabel):  # type: ignore
             unique=True,
             postgresql_where=text("label='seer' and label_type='event'"),
         ),
+        Index(
+            "uk_blast_sepolia_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_blast_sepolia_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
+        ),
     )
 
 
@@ -755,6 +1002,19 @@ class ProofOfPlayApexLabel(EvmBasedLabel):  # type: ignore
             "log_index",
             unique=True,
             postgresql_where=text("label='seer' and label_type='event'"),
+        ),
+        Index(
+            "uk_proofofplay_apex_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_proofofplay_apex_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
 
@@ -788,6 +1048,19 @@ class StarknetLabel(EvmBasedLabel):  # type: ignore
             unique=True,
             postgresql_where=text("label='seer' and label_type='event'"),
         ),
+        Index(
+            "uk_starknet_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_starknet_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
+        ),
     )
 
 
@@ -819,6 +1092,19 @@ class StarknetSepoliaLabel(EvmBasedLabel):  # type: ignore
             "log_index",
             unique=True,
             postgresql_where=text("label='seer' and label_type='event'"),
+        ),
+        Index(
+            "uk_starknet_sepolia_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_starknet_sepolia_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
 
@@ -852,6 +1138,19 @@ class MantleLabel(EvmBasedLabel):  # type: ignore
             unique=True,
             postgresql_where=text("label='seer' and label_type='event'"),
         ),
+        Index(
+            "uk_mantle_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_mantle_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
+        ),
     )
 
 
@@ -883,5 +1182,18 @@ class MantleSepoliaLabel(EvmBasedLabel):  # type: ignore
             "log_index",
             unique=True,
             postgresql_where=text("label='seer' and label_type='event'"),
+        ),
+        Index(
+            "uk_mantle_sepolia_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_mantle_sepolia_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
