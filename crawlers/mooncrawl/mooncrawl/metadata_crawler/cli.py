@@ -82,7 +82,10 @@ def crawl_uri(metadata_uri: str) -> Any:
 
 
 def parse_metadata(
-    blockchain_type: AvailableBlockchainType, batch_size: int, max_recrawl: int
+    blockchain_type: AvailableBlockchainType,
+    batch_size: int,
+    max_recrawl: int,
+    threads: int,
 ):
     """
     Parse all metadata of tokens.
@@ -185,7 +188,9 @@ def parse_metadata(
                     try:
                         with db_session.begin():
                             for token_uri_data in requests_chunk:
-                                with ThreadPoolExecutor(max_workers=1) as executor:
+                                with ThreadPoolExecutor(
+                                    max_workers=threads
+                                ) as executor:
                                     future = executor.submit(
                                         crawl_uri, token_uri_data.token_uri
                                     )
@@ -235,7 +240,9 @@ def handle_crawl(args: argparse.Namespace) -> None:
 
     blockchain_type = AvailableBlockchainType(args.blockchain)
 
-    parse_metadata(blockchain_type, args.commit_batch_size, args.max_recrawl)
+    parse_metadata(
+        blockchain_type, args.commit_batch_size, args.max_recrawl, args.threads
+    )
 
 
 def main() -> None:
@@ -268,6 +275,13 @@ def main() -> None:
         type=int,
         default=300,
         help="Maximum amount of recrawling of already crawled tokens",
+    )
+    metadata_crawler_parser.add_argument(
+        "--threads",
+        "-t",
+        type=int,
+        default=4,
+        help="Amount of threads for crawling",
     )
     metadata_crawler_parser.set_defaults(func=handle_crawl)
 
