@@ -80,6 +80,8 @@ from moonstreamdbv3.models import EthereumLabel as EthereumLabelV3
 from moonstreamdbv3.models import (
     Game7OrbitArbitrumSepoliaLabel as Game7OrbitArbitrumSepoliaLabelV3,
 )
+from moonstreamdbv3.models import ImxZkevmLabel as ImxZkevmLabelV3
+from moonstreamdbv3.models import ImxZkevmSepoliaLabel as ImxZkevmSepoliaLabelV3
 from moonstreamdbv3.models import MantleLabel as MantleLabelV3
 from moonstreamdbv3.models import MantleSepoliaLabel as MantleSepoliaLabelV3
 from moonstreamdbv3.models import MumbaiLabel as MumbaiLabelV3
@@ -124,6 +126,8 @@ class Network(Enum):
     starknet_sepolia = "starknet_sepolia"
     mantle = "mantle"
     mantle_sepolia = "mantle_sepolia"
+    imx_zkevm = "imx_zkevm"
+    imx_zkevm_sepolia = "imx_zkevm_sepolia"
 
 
 tx_raw_types = Union[
@@ -331,6 +335,12 @@ MODELS_V3: Dict[Network, Dict[str, Base]] = {
     Network.mantle_sepolia: {
         "labels": MantleSepoliaLabelV3,
     },
+    Network.imx_zkevm: {
+        "labels": ImxZkevmLabelV3,
+    },
+    Network.imx_zkevm_sepolia: {
+        "labels": ImxZkevmSepoliaLabelV3,
+    },
 }
 
 
@@ -390,5 +400,9 @@ def blockchain_type_to_network_type(
         return Network.mantle
     elif blockchain_type == AvailableBlockchainType.MANTLE_SEPOLIA:
         return Network.mantle_sepolia
+    elif blockchain_type == AvailableBlockchainType.IMX_ZKEVM:
+        return Network.imx_zkevm
+    elif blockchain_type == AvailableBlockchainType.IMX_ZKEVM_SEPOLIA:
+        return Network.imx_zkevm_sepolia
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")

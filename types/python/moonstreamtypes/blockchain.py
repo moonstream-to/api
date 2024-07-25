@@ -79,6 +79,8 @@ from moonstreamdbv3.models import EthereumLabel as EthereumLabelV3
 from moonstreamdbv3.models import (
     Game7OrbitArbitrumSepoliaLabel as Game7OrbitArbitrumSepoliaLabelV3,
 )
+from moonstreamdbv3.models import ImxZkevmLabel as ImxZkevmLabelV3
+from moonstreamdbv3.models import ImxZkevmSepoliaLabel as ImxZkevmSepoliaLabelV3
 from moonstreamdbv3.models import MantleLabel as MantleLabelV3
 from moonstreamdbv3.models import MantleSepoliaLabel as MantleSepoliaLabelV3
 from moonstreamdbv3.models import MumbaiLabel as MumbaiLabelV3
@@ -121,6 +123,8 @@ class AvailableBlockchainType(Enum):
     STARKNET_SEPOLIA = "starknet_sepolia"
     MANTLE = "mantle"
     MANTLE_SEPOLIA = "mantle_sepolia"
+    IMX_ZKEVM = "imx_zkevm"
+    IMX_ZKEVM_SEPOLIA = "imx_zkevm_sepolia"
 
 
 def get_block_model(
@@ -276,6 +280,8 @@ def get_label_model(
         StarknetSepoliaLabelV3,
         MantleLabelV3,
         MantleSepoliaLabelV3,
+        ImxZkevmLabelV3,
+        ImxZkevmSepoliaLabelV3,
     ]
 ]:
     """
@@ -332,6 +338,8 @@ def get_label_model(
             StarknetSepoliaLabelV3,
             MantleLabelV3,
             MantleSepoliaLabelV3,
+            ImxZkevmLabelV3,
+            ImxZkevmSepoliaLabelV3,
         ]
     ]
     if version == 2:
@@ -428,6 +436,10 @@ def get_label_model(
             label_model = MantleLabelV3
         elif blockchain_type == AvailableBlockchainType.MANTLE_SEPOLIA:
             label_model = MantleSepoliaLabelV3
+        elif blockchain_type == AvailableBlockchainType.IMX_ZKEVM:
+            label_model = ImxZkevmLabelV3
+        elif blockchain_type == AvailableBlockchainType.IMX_ZKEVM_SEPOLIA:
+            label_model = ImxZkevmSepoliaLabelV3
         else:
             raise Exception("Unsupported blockchain type provided")
     else:
