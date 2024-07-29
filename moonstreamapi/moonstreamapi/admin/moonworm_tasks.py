@@ -1,4 +1,5 @@
 import json
+from hexbytes import HexBytes
 import logging
 import os
 from typing import Any, Dict, List, Optional, Union
@@ -8,7 +9,7 @@ import boto3  # type: ignore
 from bugout.data import BugoutResource, BugoutResources, BugoutSearchResult
 from bugout.exceptions import BugoutResponseException
 from moonstreamdbv3.db import MoonstreamDBIndexesEngine
-from moonstreamdbv3.models_indexes import AbiJobs
+from moonstreamdbv3.models_indexes import AbiJobs, AbiSubscriptions
 from sqlalchemy.dialects.postgresql import insert
 from web3 import Web3
 
@@ -229,13 +230,17 @@ def migrate_v3_tasks(
 
     with db_engine.yield_db_session_ctx() as session:
 
-        user_subscriptions = []
-
         for index, subscription in enumerate(subscriptions):
+
+            user_subscription_abis = []
+
+            subscriptions_to_insert = {}
 
             abis = None
             address = None
             subscription_type_id = None
+
+            subscription_id = subscription.entry_url.split("/")[-1]
 
             if subscription.content is None:
                 continue
@@ -267,6 +272,15 @@ def migrate_v3_tasks(
 
             chain = CANONICAL_SUBSCRIPTION_TYPES[subscription_type_id].blockchain
 
+            existing_abi_jobs = (
+                session.query(AbiJobs)
+                .filter(AbiJobs.customer_id == customer_id)
+                .filter(AbiJobs.user_id == user_id)
+                .filter(AbiJobs.chain == blockchain)
+            ).all()
+
+            job_by_abi_selector = {abi.abi_selector: abi for abi in existing_abi_jobs}
+
             for abi_task in abis:
 
                 if abi_task["type"] not in ("event", "function"):
@@ -284,55 +298,80 @@ def migrate_v3_tasks(
 
                 abi_selector = abi_selector.hex()
 
-                try:
-
-                    abi_job = {
-                        "address": (
-                            bytes.fromhex(address[2:]) if address is not None else None
-                        ),
-                        "user_id": user_id,
-                        "customer_id": customer_id,
-                        "abi_selector": abi_selector,
-                        "chain": chain,
-                        "abi_name": abi_task["name"],
-                        "status": "active",
-                        "historical_crawl_status": "pending",
-                        "progress": 0,
-                        "moonworm_task_pickedup": False,
-                        "abi": json.dumps(abi_task),
-                    }
+                if abi_selector in job_by_abi_selector:
+                    # ABI job already exists, create subscription link
+                    if subscription_id:
+                        subscriptions_to_insert[
+                            str(job_by_abi_selector[abi_selector].id)
+                        ] = subscription_id
+                else:
 
                     try:
-                        AbiJobs(**abi_job)
+
+                        abi_job = {
+                            "address": (HexBytes(address)),
+                            "user_id": user_id,
+                            "customer_id": customer_id,
+                            "abi_selector": abi_selector,
+                            "chain": chain,
+                            "abi_name": abi_task["name"],
+                            "status": "active",
+                            "historical_crawl_status": "pending",
+                            "progress": 0,
+                            "moonworm_task_pickedup": False,
+                            "abi": json.dumps(abi_task),
+                        }
+
+                        try:
+                            AbiJobs(**abi_job)
+                        except Exception as e:
+                            logger.error(
+                                f"Error creating subscription for subscription {subscription.id}: {str(e)}"
+                            )
+                            continue
+
+                        user_subscription_abis.append(abi_job)
+
                     except Exception as e:
                         logger.error(
                             f"Error creating subscription for subscription {subscription.id}: {str(e)}"
                         )
+                        session.rollback()
                         continue
+            if len(user_subscription_abis) > 0:
+                insert_statement = insert(AbiJobs).values(user_subscription_abis)
 
-                    user_subscriptions.append(abi_job)
+                result_stmt = insert_statement.on_conflict_do_nothing().returning(
+                    AbiJobs.id
+                )
 
+                try:
+                    ids = session.execute(result_stmt)
                 except Exception as e:
-                    logger.error(
-                        f"Error creating subscription for subscription {subscription.id}: {str(e)}"
-                    )
+                    logger.error(f"Error inserting subscriptions: {str(e)}")
                     session.rollback()
-                    continue
 
-            insert_statement = insert(AbiJobs).values(user_subscriptions)
+                for id in ids:
+                    subscriptions_to_insert[id[0]] = subscription_id
 
-            result_stmt = insert_statement.on_conflict_do_nothing(
-                index_elements=[
-                    AbiJobs.chain,
-                    AbiJobs.address,
-                    AbiJobs.abi_selector,
-                    AbiJobs.customer_id,
-                ]
-            )
+            if len(subscriptions_to_insert) > 0:
+
+                insert_statement = insert(AbiSubscriptions).values(
+                    [
+                        {"abi_job_id": k, "subscription_id": v}
+                        for k, v in subscriptions_to_insert.items()
+                    ]
+                )
+
+                result_stmt = insert_statement.on_conflict_do_nothing()
+
+                try:
+                    session.execute(result_stmt)
+                except Exception as e:
+                    logger.error(f"Error inserting subscriptions: {str(e)}")
+                    session.rollback()
 
             try:
-                session.execute(result_stmt)
-
                 session.commit()
             except Exception as e:
                 logger.error(f"Error inserting subscriptions: {str(e)}")

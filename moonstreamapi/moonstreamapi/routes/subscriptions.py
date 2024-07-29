@@ -224,9 +224,10 @@ async def add_subscription_handler(
             db_session=db_session,
             user_id=user.id,
             customer_id=customer_id,
+            address=address,
             subscription_id=entity.id,
-            abi=abi,
-            subscription_type_id=subscription_type_id,
+            abi=json_abi,
+            subscription_type=subscription_type_id,
         )
 
     return data.SubscriptionResourceData(
