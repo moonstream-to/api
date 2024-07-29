@@ -1,4 +1,5 @@
 import json
+from hexbytes import HexBytes
 import logging
 import re
 import time
@@ -721,7 +722,7 @@ def get_event_crawl_job_records(
 
     if len(addresses) != 0:
         query = query.filter(
-            AbiJobs.address.in_([binascii.unhexlify(address) for address in addresses])
+            AbiJobs.address.in_([HexBytes(address) for address in addresses])
         )
 
     crawl_job_records = query.all()
