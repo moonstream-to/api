@@ -1,4 +1,5 @@
 import hashlib
+from hexbytes import HexBytes
 import json
 import logging
 import uuid
@@ -654,13 +655,13 @@ def add_abi_to_db(
     subscription_id: Optional[str] = None,
 ) -> None:
     abis_to_insert = []
-    subscriptions_to_insert = []
+    subscriptions_to_insert = {}
 
     try:
         existing_abi_job = (
             db_session.query(AbiJobs)
             .filter(AbiJobs.chain == chain)
-            .filter(AbiJobs.address == bytes.fromhex(address[2:]))
+            .filter(AbiJobs.address == HexBytes(address))
             .filter(AbiJobs.customer_id == customer_id)
         ).all()
     except Exception as e:
@@ -688,22 +689,16 @@ def add_abi_to_db(
         abi_selector = abi_selector.hex()
 
         try:
-
             if abi_selector in job_by_abi_selector:
                 # ABI job already exists, create subscription link
                 if subscription_id:
-                    subscriptions_to_insert.append(
-                        {
-                            "abi_job_id": job_by_abi_selector[abi_selector].id,
-                            "subscription_id": subscription_id,
-                        }
-                    )
+                    subscriptions_to_insert[
+                        str(job_by_abi_selector[abi_selector].id)
+                    ] = subscription_id
             else:
                 # ABI job does not exist, create new ABI job
                 abi_job = {
-                    "address": (
-                        bytes.fromhex(address[2:]) if address is not None else None
-                    ),
+                    "address": HexBytes(address),
                     "user_id": user_id,
                     "customer_id": customer_id,
                     "abi_selector": abi_selector,
@@ -717,21 +712,14 @@ def add_abi_to_db(
                 }
 
                 try:
-                    abi_job_instance = AbiJobs(**abi_job)
+                    AbiJobs(**abi_job)
                 except Exception as e:
                     logger.error(
                         f"Error validating abi for address {address}:{abi} {str(e)}"
                     )
-                    continue
+                    raise MoonstreamHTTPException(status_code=409, detail=str(e))
 
-                abis_to_insert.append(abi_job_instance)
-                if subscription_id:
-                    subscriptions_to_insert.append(
-                        {
-                            "abi_job_id": abi_job_instance.id,
-                            "subscription_id": subscription_id,
-                        }
-                    )
+                abis_to_insert.append(abi_job)
 
         except Exception as e:
             logger.error(f"Error creating abi for address {address}:{abi} {str(e)}")
@@ -743,19 +731,26 @@ def add_abi_to_db(
 
             insert_stmt = (
                 insert(AbiJobs)
-                .values([abi_job.__dict__ for abi_job in abis_to_insert])
-                .on_conflict_do_nothing(
-                    index_elements=["address", "chain", "abi_selector"]
-                )
+                .values([abi for abi in abis_to_insert])
+                .on_conflict_do_nothing()
+                .returning(AbiJobs.id)
             )
-            db_session.execute(insert_stmt)
+            abi_job_ids = db_session.execute(insert_stmt).fetchall()
+
+            for id in abi_job_ids:
+                subscriptions_to_insert[id[0]] = subscription_id
 
         # Insert corresponding subscriptions
         if subscriptions_to_insert:
 
             insert_stmt = (
                 insert(AbiSubscriptions)
-                .values(subscriptions_to_insert)
+                .values(
+                    [
+                        {"abi_job_id": k, "subscription_id": v}
+                        for k, v in subscriptions_to_insert.items()
+                    ]
+                )
                 .on_conflict_do_nothing(
                     index_elements=["abi_job_id", "subscription_id"]
                 )
