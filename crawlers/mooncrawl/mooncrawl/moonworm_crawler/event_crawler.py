@@ -189,11 +189,12 @@ def _autoscale_crawl_events(
                 from_block=from_block,
                 to_block=to_block,
                 batch_size=batch_size,
-                contract_address=job.contracts[0],
-                max_blocks_batch=3000,
+                contract_address=job.contracts,
+                max_blocks_batch=5000,
             )
         except Exception as e:
-            breakpoint()
+            logger.error(f"Error while fetching events: {e}")
+            raise e
         for raw_event in raw_events:
             raw_event["blockTimestamp"] = get_block_timestamp(
                 db_session,

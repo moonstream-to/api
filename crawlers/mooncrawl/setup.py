@@ -41,7 +41,7 @@ setup(
         "moonstreamdb-v3>=0.0.13",
         "moonstream-types>=0.0.4",
         "moonstream>=0.1.1",
-        "moonworm[moonstream]>=0.9.2",
+        "moonworm[moonstream]>=0.9.3",
         "humbug",
         "pydantic==1.9.2",
         "python-dateutil",
