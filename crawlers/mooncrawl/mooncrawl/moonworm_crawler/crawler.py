@@ -1,4 +1,5 @@
 import json
+from hexbytes import HexBytes
 import logging
 import re
 import time
@@ -721,7 +722,7 @@ def get_event_crawl_job_records(
 
     if len(addresses) != 0:
         query = query.filter(
-            AbiJobs.address.in_([binascii.unhexlify(address) for address in addresses])
+            AbiJobs.address.in_([HexBytes(address) for address in addresses])
         )
 
     crawl_job_records = query.all()
@@ -731,25 +732,25 @@ def get_event_crawl_job_records(
 
     for crawl_job_record in crawl_job_records:
 
+        selector = str(crawl_job_record.abi_selector)
+
         str_address = "0x" + crawl_job_record.address.hex()
 
         checksummed_address = Web3.toChecksumAddress(str_address)
 
-        if crawl_job_record.abi_selector in existing_crawl_job_records:
+        if selector in existing_crawl_job_records:
 
             if (
                 checksummed_address
-                not in existing_crawl_job_records[
-                    crawl_job_record.abi_selector
-                ].contracts
+                not in existing_crawl_job_records[selector].contracts
             ):
-                existing_crawl_job_records[
-                    crawl_job_record.abi_selector
-                ].contracts.append(checksummed_address)
+                existing_crawl_job_records[selector].contracts.append(
+                    checksummed_address
+                )
 
         else:
             new_crawl_job = EventCrawlJob(
-                event_abi_hash=str(crawl_job_record.abi_selector),
+                event_abi_hash=selector,
                 event_abi=json.loads(str(crawl_job_record.abi)),
                 contracts=[checksummed_address],
                 address_entries={
@@ -762,9 +763,7 @@ def get_event_crawl_job_records(
                 },
                 created_at=int(crawl_job_record.created_at.timestamp()),
             )
-            existing_crawl_job_records[str(crawl_job_record.abi_selector)] = (
-                new_crawl_job
-            )
+            existing_crawl_job_records[selector] = new_crawl_job
 
     return existing_crawl_job_records
 
@@ -805,6 +804,8 @@ def get_function_call_crawl_job_records(
     for crawl_job_record in crawl_job_records:
         str_address = "0x" + crawl_job_record.address.hex()
 
+        selector = str(crawl_job_record.abi_selector)
+
         if str_address not in existing_crawl_job_records:
             existing_crawl_job_records[str_address] = FunctionCallCrawlJob(
                 contract_abi=[json.loads(str(crawl_job_record.abi))],
@@ -816,18 +817,18 @@ def get_function_call_crawl_job_records(
                     ]
                 },
                 created_at=int(crawl_job_record.created_at.timestamp()),
-                existing_selectors=[str(crawl_job_record.abi_selector)],
+                existing_selectors=[selector],
             )
         else:
             if (
-                crawl_job_record.abi_selector
+                selector
                 not in existing_crawl_job_records[str_address].existing_selectors
             ):
                 existing_crawl_job_records[str_address].contract_abi.append(
                     json.loads(str(crawl_job_record.abi))
                 )
                 existing_crawl_job_records[str_address].existing_selectors.append(
-                    str(crawl_job_record.abi_selector)
+                    selector
                 )
 
     return existing_crawl_job_records

@@ -145,11 +145,14 @@ def get_last_labeled_block_number(
 def get_first_labeled_block_number(
     db_session: Session,
     blockchain_type: AvailableBlockchainType,
-    address: str,
+    address: Union[str, HexBytes],
     label_name: str = CRAWLER_LABEL,
     only_events: bool = False,
     db_version: int = 2,
 ) -> Optional[int]:
+
+    if db_version == 3:
+        address = HexBytes(address)
 
     label_model = get_label_model(blockchain_type, version=db_version)
 
