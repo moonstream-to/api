@@ -773,11 +773,10 @@ async def leaderboard_push_scores(
             status_code=409,
             detail=f"Duplicates in push to database is disallowed.\n List of duplicates:{e.duplicates}.\n Please handle duplicates manualy.",
         )
-    except actions.LeaderboardDeleteScoresError as e:
-        logger.error(f"Delete scores failed with error: {e}")
+    except actions.LeaderboardNormalizeScoresError as e:
         raise EngineHTTPException(
-            status_code=500,
-            detail=f"Delete scores failed.",
+            status_code=409,
+            detail=f"Normalize scores failed for addresses: {e.normilize_errors}.",
         )
     except Exception as e:
         logger.error(f"Score update failed with error: {e}")
@@ -1430,6 +1429,11 @@ async def leaderboard_version_push_scores_handler(
         raise EngineHTTPException(
             status_code=409,
             detail=f"Duplicates in push to database is disallowed.\n List of duplicates:{e.duplicates}.\n Please handle duplicates manualy.",
+        )
+    except actions.LeaderboardNormalizeScoresError as e:
+        raise EngineHTTPException(
+            status_code=409,
+            detail=f"Normalize scores failed for addresses: {e.normilize_errors}.",
         )
     except Exception as e:
         logger.error(f"Score update failed with error: {e}")
