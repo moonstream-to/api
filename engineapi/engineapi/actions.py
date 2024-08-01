@@ -77,7 +77,7 @@ class LeaderboardNormalizeScoresError(Exception):
     def __init__(self, message, normilize_errors):
         super(LeaderboardNormalizeScoresError, self).__init__(message)
         self.message = message
-        self.normilize_errors = errors
+        self.normilize_errors = normilize_errors
 
 
 class LeaderboardPushScoreError(Exception):
@@ -1700,7 +1700,7 @@ def add_scores(
 
     # Process each score and append to leaderboard_scores list
     non_normalized_addresses = []
-    for score in scores:
+    for index, score in enumerate(scores):
         try:
             normalized_address = normalizer_fn(score.address)
             leaderboard_scores.append(
@@ -1713,10 +1713,10 @@ def add_scores(
                 }
             )
         except Exception as e:
-            non_normalized_addresses.append((index, score.address))
-            logger.error(f"Error normalizing address {score.address}: {e}")
+            non_normalized_addresses.append((index + 1, score.address))
 
     if non_normalized_addresses:
+        logger.error(f"Error adding scores to leaderboard failed in normalizing")
         raise LeaderboardNormalizeScoresError(
             f"Error adding scores to leaderboard. Non-normalized addresses",
             non_normalized_addresses,
