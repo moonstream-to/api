@@ -770,12 +770,12 @@ async def leaderboard_push_scores(
         )
     except actions.DuplicateLeaderboardAddressError as e:
         raise EngineHTTPException(
-            status_code=409,
+            status_code=400,
             detail=f"Duplicates in push to database is disallowed.\n List of duplicates:{e.duplicates}.\n Please handle duplicates manualy.",
         )
     except actions.LeaderboardNormalizeScoresError as e:
         raise EngineHTTPException(
-            status_code=409,
+            status_code=400,
             detail=f"Normalize scores failed for addresses: {e.normilize_errors}.",
         )
     except Exception as e:
@@ -1427,12 +1427,12 @@ async def leaderboard_version_push_scores_handler(
         )
     except actions.DuplicateLeaderboardAddressError as e:
         raise EngineHTTPException(
-            status_code=409,
+            status_code=400,
             detail=f"Duplicates in push to database is disallowed.\n List of duplicates:{e.duplicates}.\n Please handle duplicates manualy.",
         )
     except actions.LeaderboardNormalizeScoresError as e:
         raise EngineHTTPException(
-            status_code=409,
+            status_code=400,
             detail=f"Normalize scores failed for addresses: {e.normilize_errors}.",
         )
     except Exception as e:
