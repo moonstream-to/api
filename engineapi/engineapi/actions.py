@@ -73,6 +73,17 @@ class DuplicateLeaderboardAddressError(Exception):
         self.duplicates = duplicates
 
 
+class LeaderboardNormalizeScoresError(Exception):
+    def __init__(self, message, normilize_errors):
+        super(LeaderboardNormalizeScoresError, self).__init__(message)
+        self.message = message
+        self.normilize_errors = normilize_errors
+
+
+class LeaderboardPushScoreError(Exception):
+    pass
+
+
 class LeaderboardIsEmpty(Exception):
     pass
 
@@ -1687,15 +1698,28 @@ def add_scores(
 
         raise DuplicateLeaderboardAddressError("Dublicated addresses", duplicates)
 
-    for score in scores:
-        leaderboard_scores.append(
-            {
-                "leaderboard_id": leaderboard_id,
-                "address": normalizer_fn(score.address),
-                "score": score.score,
-                "points_data": score.points_data,
-                "leaderboard_version_number": version_number,
-            }
+    # Process each score and append to leaderboard_scores list
+    non_normalized_addresses = []
+    for index, score in enumerate(scores):
+        try:
+            normalized_address = normalizer_fn(score.address)
+            leaderboard_scores.append(
+                {
+                    "leaderboard_id": leaderboard_id,
+                    "address": normalized_address,
+                    "score": score.score,
+                    "points_data": score.points_data,
+                    "leaderboard_version_number": version_number,
+                }
+            )
+        except Exception as e:
+            non_normalized_addresses.append((index + 1, score.address))
+
+    if non_normalized_addresses:
+        logger.error(f"Error adding scores to leaderboard failed in normalizing")
+        raise LeaderboardNormalizeScoresError(
+            f"Error adding scores to leaderboard. Non-normalized addresses",
+            non_normalized_addresses,
         )
 
     insert_statement = insert(LeaderboardScores).values(leaderboard_scores)
@@ -1715,8 +1739,10 @@ def add_scores(
     try:
         db_session.execute(result_stmt)
         db_session.commit()
-    except:
+    except Exception as e:
+        logger.error(f"Error adding scores to leaderboard failed on commit: {e}")
         db_session.rollback()
+        raise LeaderboardPushScoreError("Error committing scores")
 
     return leaderboard_scores
 
