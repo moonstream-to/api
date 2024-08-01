@@ -1740,7 +1740,7 @@ def add_scores(
         db_session.execute(result_stmt)
         db_session.commit()
     except Exception as e:
-        logger.error(f"Error adding scores to leaderboard: {e}")
+        logger.error(f"Error adding scores to leaderboard failed on commit: {e}")
         db_session.rollback()
         raise LeaderboardPushScoreError("Error committing scores")
 

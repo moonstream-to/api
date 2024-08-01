@@ -778,6 +778,11 @@ async def leaderboard_push_scores(
             status_code=400,
             detail=f"Normalize scores failed for addresses: {e.normilize_errors}.",
         )
+    except actions.LeaderboardPushScoreError as e:
+        raise EngineHTTPException(
+            status_code=500,
+            detail=f"Write scores to database failed",
+        )
     except Exception as e:
         logger.error(f"Score update failed with error: {e}")
         raise EngineHTTPException(status_code=500, detail="Score update failed.")
@@ -1434,6 +1439,11 @@ async def leaderboard_version_push_scores_handler(
         raise EngineHTTPException(
             status_code=400,
             detail=f"Normalize scores failed for addresses: {e.normilize_errors}.",
+        )
+    except actions.LeaderboardPushScoreError as e:
+        raise EngineHTTPException(
+            status_code=500,
+            detail=f"Write scores to database failed",
         )
     except Exception as e:
         logger.error(f"Score update failed with error: {e}")
