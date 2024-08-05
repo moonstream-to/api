@@ -80,6 +80,7 @@ from moonstreamdbv3.models import EthereumLabel as EthereumLabelV3
 from moonstreamdbv3.models import (
     Game7OrbitArbitrumSepoliaLabel as Game7OrbitArbitrumSepoliaLabelV3,
 )
+from moonstreamdbv3.models import Game7TestnetLabel as Game7TestnetLabelV3
 from moonstreamdbv3.models import ImxZkevmLabel as ImxZkevmLabelV3
 from moonstreamdbv3.models import ImxZkevmSepoliaLabel as ImxZkevmSepoliaLabelV3
 from moonstreamdbv3.models import MantleLabel as MantleLabelV3
@@ -115,6 +116,7 @@ class Network(Enum):
     arbitrum_nova = "arbitrum_nova"
     arbitrum_sepolia = "arbitrum_sepolia"
     game7_orbit_arbitrum_sepolia = "game7_orbit_arbitrum_sepolia"
+    game7_testnet = "game7_testnet"
     xai = "xai"
     xai_sepolia = "xai_sepolia"
     avalanche = "avalanche"
@@ -302,6 +304,9 @@ MODELS_V3: Dict[Network, Dict[str, Base]] = {
     Network.game7_orbit_arbitrum_sepolia: {
         "labels": Game7OrbitArbitrumSepoliaLabelV3,
     },
+    Network.game7_testnet: {
+        "labels": Game7TestnetLabelV3,
+    },
     Network.xai: {
         "labels": XaiLabelV3,
     },
@@ -378,6 +383,8 @@ def blockchain_type_to_network_type(
         return Network.arbitrum_sepolia
     elif blockchain_type == AvailableBlockchainType.GAME7_ORBIT_ARBITRUM_SEPOLIA:
         return Network.game7_orbit_arbitrum_sepolia
+    elif blockchain_type == AvailableBlockchainType.GAME7_TESTNET:
+        return Network.game7_testnet
     elif blockchain_type == AvailableBlockchainType.XAI:
         return Network.xai
     elif blockchain_type == AvailableBlockchainType.XAI_SEPOLIA:

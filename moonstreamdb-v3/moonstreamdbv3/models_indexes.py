@@ -725,6 +725,54 @@ class ImxZkevmSepoliaReorgs(EvmBasedReorgs):
     __tablename__ = "imx_zkevm_sepolia_reorgs"
 
 
+class Game7TestnetBlockIndex(EvmBasedBlocks):
+    __tablename__ = "game7_testnet_blocks"
+
+    l1_block_number = Column(BigInteger, nullable=False)
+
+
+class Game7TestnetTransactionIndex(EvmBasedTransactions):
+    __tablename__ = "game7_testnet_transactions"
+
+    block_number = Column(
+        BigInteger,
+        ForeignKey("game7_testnet_blocks.block_number", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+
+class Game7TestnetLogIndex(EvmBasedLogs):
+    __tablename__ = "game7_testnet_logs"
+
+    __table_args__ = (
+        Index(
+            "idx_game7_testnet_logs_address_selector",
+            "address",
+            "selector",
+            unique=False,
+        ),
+        UniqueConstraint(
+            "transaction_hash",
+            "log_index",
+            name="uq_game7_testnet_log_index_transaction_hash_log_index",
+        ),
+        PrimaryKeyConstraint(
+            "transaction_hash", "log_index", name="pk_game7_testnet_log_index"
+        ),
+    )
+    transaction_hash = Column(
+        VARCHAR(256),
+        ForeignKey("game7_testnet_transactions.hash", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+
+class Game7TestnetReorgs(EvmBasedReorgs):
+    __tablename__ = "game7_testnet_reorgs"
+
+
 ### ABI Jobs
 
 

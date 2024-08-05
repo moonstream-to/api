@@ -79,6 +79,7 @@ from moonstreamdbv3.models import EthereumLabel as EthereumLabelV3
 from moonstreamdbv3.models import (
     Game7OrbitArbitrumSepoliaLabel as Game7OrbitArbitrumSepoliaLabelV3,
 )
+from moonstreamdbv3.models import Game7TestnetLabel as Game7TestnetLabelV3
 from moonstreamdbv3.models import ImxZkevmLabel as ImxZkevmLabelV3
 from moonstreamdbv3.models import ImxZkevmSepoliaLabel as ImxZkevmSepoliaLabelV3
 from moonstreamdbv3.models import MantleLabel as MantleLabelV3
@@ -112,6 +113,7 @@ class AvailableBlockchainType(Enum):
     ARBITRUM_NOVA = "arbitrum_nova"
     ARBITRUM_SEPOLIA = "arbitrum_sepolia"
     GAME7_ORBIT_ARBITRUM_SEPOLIA = "game7_orbit_arbitrum_sepolia"
+    GAME7_TESTNET = "game7_testnet"
     XAI = "xai"
     XAI_SEPOLIA = "xai_sepolia"
     AVALANCHE = "avalanche"
@@ -269,6 +271,7 @@ def get_label_model(
         ArbitrumOneLabelV3,
         ArbitrumSepoliaLabelV3,
         Game7OrbitArbitrumSepoliaLabelV3,
+        Game7TestnetLabelV3,
         XaiLabelV3,
         XaiSepoliaLabelV3,
         AvalancheLabelV3,
@@ -327,6 +330,7 @@ def get_label_model(
             ArbitrumOneLabelV3,
             ArbitrumSepoliaLabelV3,
             Game7OrbitArbitrumSepoliaLabelV3,
+            Game7TestnetLabelV3,
             XaiLabelV3,
             XaiSepoliaLabelV3,
             AvalancheLabelV3,
@@ -414,6 +418,8 @@ def get_label_model(
             label_model = ArbitrumSepoliaLabelV3
         elif blockchain_type == AvailableBlockchainType.GAME7_ORBIT_ARBITRUM_SEPOLIA:
             label_model = Game7OrbitArbitrumSepoliaLabelV3
+        elif blockchain_type == AvailableBlockchainType.GAME7_TESTNET:
+            label_model = Game7TestnetLabelV3
         elif blockchain_type == AvailableBlockchainType.XAI:
             label_model = XaiLabelV3
         elif blockchain_type == AvailableBlockchainType.XAI_SEPOLIA:
