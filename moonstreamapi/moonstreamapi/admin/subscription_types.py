@@ -282,6 +282,17 @@ CANONICAL_SUBSCRIPTION_TYPES = {
         stripe_price_id=None,
         active=True,
     ),
+    "game7_testnet_smartcontract": SubscriptionTypeResourceData(
+        id="game7_testnet_smartcontract",
+        name="Game7 Testnet smartcontracts",
+        blockchain="game7_testnet",
+        choices=["input:address", "tag:erc721"],
+        description="Contracts events and tx_calls of contract of Game7 testnet blockchain.",
+        icon_url="https://static.simiotics.com/moonstream/assets/game7-testnet-token-logo.png",
+        stripe_product_id=None,
+        stripe_price_id=None,
+        active=True,
+    ),
     "ethereum_blockchain": SubscriptionTypeResourceData(
         id="ethereum_blockchain",
         name="Ethereum transactions",

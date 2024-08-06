@@ -21,6 +21,7 @@ class SubscriptionTypes(Enum):
     GAME7_ORBIT_ARBITRUM_SEPOLIA_BLOCKCHAIN = (
         "game7_orbit_arbitrum_sepolia_smartcontract"
     )
+    GAME7_TESTNET_BLOCKCHAIN = "game7_testnet_smartcontract"
     XAI_BLOCKCHAIN = "xai_smartcontract"
     XAI_SEPOLIA_BLOCKCHAIN = "xai_sepolia_smartcontract"
     AVALANCHE_BLOCKCHAIN = "avalanche_smartcontract"
@@ -69,6 +70,8 @@ def blockchain_type_to_subscription_type(
         return SubscriptionTypes.ARBITRUM_SEPOLIA_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.GAME7_ORBIT_ARBITRUM_SEPOLIA:
         return SubscriptionTypes.GAME7_ORBIT_ARBITRUM_SEPOLIA_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.GAME7_TESTNET:
+        return SubscriptionTypes.GAME7_TESTNET_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.XAI:
         return SubscriptionTypes.XAI_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.XAI_SEPOLIA:
@@ -115,6 +118,7 @@ subscription_id_by_blockchain = {
     "arbitrum_nova": "arbitrum_nova_smartcontract",
     "arbitrum_sepolia": "arbitrum_sepolia_smartcontract",
     "game7_orbit_arbitrum_sepolia": "game7_orbit_arbitrum_sepolia_smartcontract",
+    "game7_testnet": "game7_testnet_smartcontract",
     "xai": "xai_smartcontract",
     "xai_sepolia": "xai_sepolia_smartcontract",
     "avalanche": "avalanche_smartcontract",
@@ -146,6 +150,7 @@ blockchain_by_subscription_id = {
     "arbitrum_nova_blockchain": "arbitrum_nova",
     "arbitrum_sepolia_blockchain": "arbitrum_sepolia",
     "game7_orbit_arbitrum_sepolia_blockchain": "game7_orbit_arbitrum_sepolia",
+    "game7_testnet_blockchain": "game7_testnet",
     "xai_blockchain": "xai",
     "xai_sepolia_blockchain": "xai_sepolia",
     "avalanche_blockchain": "avalanche",
@@ -173,6 +178,7 @@ blockchain_by_subscription_id = {
     "arbitrum_nova_smartcontract": "arbitrum_nova",
     "arbitrum_sepolia_smartcontract": "arbitrum_sepolia",
     "game7_orbit_arbitrum_sepolia_smartcontract": "game7_orbit_arbitrum_sepolia",
+    "game7_testnet_smartcontract": "game7_testnet",
     "xai_smartcontract": "xai",
     "xai_sepolia_smartcontract": "xai_sepolia",
     "avalanche_smartcontract": "avalanche",
