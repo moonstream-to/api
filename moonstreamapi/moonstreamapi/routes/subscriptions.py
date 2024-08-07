@@ -587,6 +587,7 @@ async def update_subscriptions_handler(
             ),
             required_fields=update_required_fields,
             secondary_fields=update_secondary_fields,
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
         )
     except Exception as e:
         logger.error(f"Error update user subscriptions: {str(e)}")
