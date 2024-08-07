@@ -36,6 +36,7 @@ from ..settings import (
     MOONSTREAM_ENTITIES_RESERVED_TAGS,
     THREAD_TIMEOUT_SECONDS,
     MOONSTREAM_DB_V3_INDEX_INSTANCE,
+    BUGOUT_REQUEST_TIMEOUT_SECONDS,
 )
 from ..settings import bugout_client as bc
 from ..web3_provider import yield_web3_provider
@@ -192,6 +193,7 @@ async def add_subscription_handler(
             title=label,
             required_fields=required_fields,
             secondary_fields=content,
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
         )
     except EntityJournalNotFoundException as e:
         raise MoonstreamHTTPException(
@@ -200,7 +202,7 @@ async def add_subscription_handler(
             internal_error=e,
         )
     except Exception as e:
-        logger.error(f"Failed to get journal id")
+        logger.error(f"Failed to create subscription entity error: {str(e)}")
         raise MoonstreamHTTPException(
             status_code=500,
             internal_error=e,
@@ -585,6 +587,7 @@ async def update_subscriptions_handler(
             ),
             required_fields=update_required_fields,
             secondary_fields=update_secondary_fields,
+            timeout=BUGOUT_REQUEST_TIMEOUT_SECONDS,
         )
     except Exception as e:
         logger.error(f"Error update user subscriptions: {str(e)}")
