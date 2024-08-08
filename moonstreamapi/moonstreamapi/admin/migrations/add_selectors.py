@@ -86,18 +86,22 @@ def fill_missing_selectors_in_moonworm_tasks() -> None:
 
         logger.info(f"Found {count} missing selectors in batch {len(task_batch)} tasks")
 
-        ## update entries
+        # ## update entries tags in batch
 
-        try:
-            bc.create_entries_tags(
-                journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
-                token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-                entries_tags=entries_tags,
-                timeout=15,
-            )
-        except BugoutResponseException as e:
-            logger.error(f"Unable to update entries tags: {e}")
-            continue
+        for batch in [
+            entries_tags[i : i + batch_size]
+            for i in range(0, len(entries_tags), batch_size)
+        ]:
+            try:
+                bc.create_entries_tags(
+                    journal_id=MOONSTREAM_MOONWORM_TASKS_JOURNAL,
+                    token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+                    entries_tags=batch,
+                    timeout=15,
+                )
+            except BugoutResponseException as e:
+                logger.error(f"Unable to update entries tags: {e}")
+                continue
 
 
 def deduplicate_moonworm_task_by_selector():
