@@ -151,7 +151,7 @@ def get_first_labeled_block_number(
     db_version: int = 2,
 ) -> Optional[int]:
 
-    if db_version == 3:
+    if db_version == 3 and address is not None:
         address = HexBytes(address)
 
     label_model = get_label_model(blockchain_type, version=db_version)

@@ -198,7 +198,10 @@ def handle_crawl_v3(args: argparse.Namespace) -> None:
     index_engine = MoonstreamDBIndexesEngine()
 
     logger.info(f"Blockchain type: {blockchain_type.value}")
-    customer_connection = get_db_connection(args.customer_uuid)
+    if args.customer_uri is not None:
+        customer_connection = args.customer_uri
+    else:
+        customer_connection = get_db_connection(args.customer_uuid)
 
     customer_engine = MoonstreamCustomDBEngine(customer_connection)
 
@@ -890,6 +893,13 @@ def main() -> None:
         type=UUID,
         required=True,
         help="Customer UUID",
+    )
+
+    crawl_parser_v3.add_argument(
+        "--customer-uri",
+        type=str,
+        required=False,
+        help="Customer URI",
     )
 
     crawl_parser_v3.set_defaults(func=handle_crawl_v3)
