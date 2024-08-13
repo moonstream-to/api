@@ -9,12 +9,12 @@ from sqlalchemy import (
     Column,
     DateTime,
     ForeignKey,
+    ForeignKeyConstraint,
     Index,
     Integer,
     MetaData,
     String,
     UniqueConstraint,
-    ForeignKeyConstraint,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.compiler import compiles
@@ -178,7 +178,7 @@ class CallRequestType(Base):  # type: ignore
 
 class MetatxRequester(Base):  # type: ignore
     """
-    MetatxRequester represents id of user from bugout authorization.
+    MetatxRequester represents id of resource at Bugout.
     """
 
     __tablename__ = "metatx_requesters"

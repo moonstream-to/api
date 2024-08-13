@@ -4,7 +4,7 @@ import logging
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Sequence, Set, Tuple
 from uuid import UUID
 
-from bugout.data import BugoutResource, BugoutResources, BugoutUser
+from bugout.data import BugoutResource, BugoutResources, BugoutUserWithGroups
 from bugout.exceptions import BugoutResponseException
 from eip712.messages import EIP712Message, _hash_eip191_message
 from eth_account.messages import encode_defunct
@@ -72,11 +72,11 @@ def parse_auth_header(auth_header: str) -> Tuple[str, str]:
     return auth_list[0], auth_list[1]
 
 
-def bugout_auth(token: str) -> BugoutUser:
+def bugout_auth(token: str) -> BugoutUserWithGroups:
     """
     Extended bugout.get_user with additional checks.
     """
-    user: BugoutUser = bc.get_user(token)
+    user: BugoutUserWithGroups = bc.auth(token)
     if not user.verified:
         raise BugoutUnverifiedAuth("Only verified accounts can have access")
     if str(user.application_id) != str(MOONSTREAM_APPLICATION_ID):
@@ -85,9 +85,9 @@ def bugout_auth(token: str) -> BugoutUser:
     return user
 
 
-def brood_auth(token: UUID) -> BugoutUser:
+def brood_auth(token: UUID) -> BugoutUserWithGroups:
     try:
-        user: BugoutUser = bugout_auth(token=token)
+        user: BugoutUserWithGroups = bugout_auth(token=token)
     except BugoutUnverifiedAuth:
         logger.info(f"Attempted access by unverified Brood account: {user.id}")
         raise EngineHTTPException(
@@ -116,7 +116,7 @@ def brood_auth(token: UUID) -> BugoutUser:
 
 async def request_user_auth(
     token: UUID = Depends(oauth2_scheme),
-) -> BugoutUser:
+) -> BugoutUserWithGroups:
     user = brood_auth(token=token)
 
     return user
@@ -124,11 +124,11 @@ async def request_user_auth(
 
 async def request_none_or_user_auth(
     authorization: str = Header(None),
-) -> Optional[BugoutUser]:
+) -> Optional[BugoutUserWithGroups]:
     """
     Fetch Bugout user if authorization token provided.
     """
-    user: Optional[BugoutUser] = None
+    user: Optional[BugoutUserWithGroups] = None
     if authorization is not None:
         token: str = ""
         try:
@@ -239,7 +239,7 @@ class BroodAuthMiddleware(BaseHTTPMiddleware):
             return Response(status_code=500, content="Internal server error")
 
         try:
-            user: BugoutUser = bugout_auth(token=user_token)
+            user: BugoutUserWithGroups = bugout_auth(token=user_token)
         except BugoutUnverifiedAuth:
             logger.info(f"Attempted access by unverified Brood account: {user.id}")
             return Response(
