@@ -116,10 +116,10 @@ def brood_auth(token: UUID) -> BugoutUserWithGroups:
 
 async def request_user_auth(
     token: UUID = Depends(oauth2_scheme),
-) -> BugoutUserWithGroups:
+) -> Tuple[BugoutUserWithGroups, UUID]:
     user = brood_auth(token=token)
 
-    return user
+    return user, token
 
 
 async def request_none_or_user_auth(

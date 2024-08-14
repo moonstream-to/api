@@ -20,6 +20,7 @@ from .models import (
     MetatxRequester,
     RegisteredContract,
 )
+from .settings import bugout_client
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -658,6 +659,13 @@ def complete_call_request(
         raise
 
     return (call_request, registered_contract)
+
+
+def fetch_metatx_requester_ids(token):
+    params = {"type": "metatx_requester"}
+    resources = bugout_client.list_resources(token=token, params=params)
+
+    return resources
 
 
 def handle_register(args: argparse.Namespace) -> None:

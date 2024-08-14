@@ -90,12 +90,16 @@ async def list_registered_contracts_route(
     address: Optional[str] = Query(None),
     limit: int = Query(10),
     offset: Optional[int] = Query(None),
-    user: BugoutUser = Depends(request_user_auth),
+    user_authorization: Tuple[BugoutUser, UUID] = Depends(request_user_auth),
     db_session: Session = Depends(db.yield_db_read_only_session),
 ) -> List[data.RegisteredContractResponse]:
     """
     Users can use this endpoint to look up the contracts they have registered against this API.
     """
+    user, token = user_authorization
+
+    contracts_actions.fetch_metatx_requester_ids(token=token)
+
     try:
         registered_contracts_with_blockchain = (
             contracts_actions.lookup_registered_contracts(
@@ -124,12 +128,14 @@ async def list_registered_contracts_route(
 )
 async def get_registered_contract_route(
     contract_id: UUID = Path(...),
-    user: BugoutUser = Depends(request_user_auth),
+    user_authorization: Tuple[BugoutUser, UUID] = Depends(request_user_auth),
     db_session: Session = Depends(db.yield_db_read_only_session),
 ) -> List[data.RegisteredContractResponse]:
     """
     Get the contract by ID.
     """
+    user = user_authorization
+
     try:
         contract_with_blockchain = contracts_actions.get_registered_contract(
             db_session=db_session,
@@ -155,12 +161,14 @@ async def get_registered_contract_route(
 )
 async def register_contract_route(
     contract: data.RegisterContractRequest = Body(...),
-    user: BugoutUser = Depends(request_user_auth),
+    user_authorization: Tuple[BugoutUser, UUID] = Depends(request_user_auth),
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.RegisteredContractResponse:
     """
     Allows users to register contracts.
     """
+    user = user_authorization
+
     try:
         contract_with_blockchain = contracts_actions.register_contract(
             db_session=db_session,
@@ -197,9 +205,11 @@ async def register_contract_route(
 async def update_contract_route(
     contract_id: UUID = Path(...),
     update_info: data.UpdateContractRequest = Body(...),
-    user: BugoutUser = Depends(request_user_auth),
+    user_authorization: Tuple[BugoutUser, UUID] = Depends(request_user_auth),
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.RegisteredContractResponse:
+    user = user_authorization
+
     try:
         contract_with_blockchain = contracts_actions.update_registered_contract(
             db_session=db_session,
@@ -231,12 +241,14 @@ async def update_contract_route(
 )
 async def delete_contract_route(
     contract_id: UUID = Path(...),
-    user: BugoutUser = Depends(request_user_auth),
+    user_authorization: Tuple[BugoutUser, UUID] = Depends(request_user_auth),
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.RegisteredContractResponse:
     """
     Allows users to delete contracts that they have registered.
     """
+    user = user_authorization
+
     try:
         deleted_contract_with_blockchain = contracts_actions.delete_registered_contract(
             db_session=db_session,
@@ -324,12 +336,14 @@ async def list_requests_route(
 )
 async def check_requests_route(
     request_data: data.CreateCallRequestsAPIRequest = Body(...),
-    user: BugoutUser = Depends(request_user_auth),
+    user_authorization: Tuple[BugoutUser, UUID] = Depends(request_user_auth),
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.CallRequestsCheck:
     """
     Implemented for pre-check until list of requests to be pushed into database.
     """
+    user = user_authorization
+
     try:
         incoming_requests: Set[Tuple[str, str]] = set()
         incoming_request_ids: List[str] = []
@@ -374,7 +388,7 @@ async def check_requests_route(
 )
 async def get_request(
     request_id: UUID = Path(...),
-    _: BugoutUser = Depends(request_user_auth),
+    _: Tuple[BugoutUser, UUID] = Depends(request_user_auth),
     db_session: Session = Depends(db.yield_db_read_only_session),
 ) -> List[data.CallRequestResponse]:
     """
@@ -402,7 +416,7 @@ async def get_request(
 @app.post("/requests", tags=["requests"], response_model=int)
 async def create_requests(
     request_data: data.CreateCallRequestsAPIRequest = Body(...),
-    user: BugoutUser = Depends(request_user_auth),
+    user_authorization: Tuple[BugoutUser, UUID] = Depends(request_user_auth),
     db_session: Session = Depends(db.yield_db_session),
 ) -> int:
     """
@@ -410,6 +424,8 @@ async def create_requests(
 
     At least one of `contract_id` or `contract_address` must be provided in the request body.
     """
+    user = user_authorization
+
     try:
         num_requests = contracts_actions.create_request_calls(
             db_session=db_session,
@@ -455,12 +471,14 @@ async def create_requests(
 @app.delete("/requests", tags=["requests"], response_model=int)
 async def delete_requests(
     request_ids: List[UUID] = Body(...),
-    user: BugoutUser = Depends(request_user_auth),
+    user_authorization: Tuple[BugoutUser, UUID] = Depends(request_user_auth),
     db_session: Session = Depends(db.yield_db_session),
 ) -> int:
     """
     Allows users to delete requests.
     """
+    user = user_authorization
+
     try:
         deleted_requests = contracts_actions.delete_requests(
             db_session=db_session,
