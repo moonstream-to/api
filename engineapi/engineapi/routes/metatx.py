@@ -139,13 +139,20 @@ async def get_registered_contract_route(
     """
     Get the contract by ID.
     """
-    user = user_authorization
+    _, token = user_authorization
 
     try:
+        metatx_requester_ids = contracts_actions.fetch_metatx_requester_ids(token=token)
+
         contract_with_blockchain = contracts_actions.get_registered_contract(
             db_session=db_session,
-            metatx_requester_id=user.id,
+            metatx_requester_ids=metatx_requester_ids,
             contract_id=contract_id,
+        )
+    except contracts_actions.MetatxRequestersNotFound:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Metatx requester IDs not found",
         )
     except NoResultFound:
         raise EngineHTTPException(
@@ -172,12 +179,12 @@ async def register_contract_route(
     """
     Allows users to register contracts.
     """
-    user = user_authorization
+    user, _ = user_authorization
 
     try:
         contract_with_blockchain = contracts_actions.register_contract(
             db_session=db_session,
-            metatx_requester_id=user.id,
+            user_id=user.id,
             blockchain_name=contract.blockchain,
             address=contract.address,
             title=contract.title,
@@ -213,7 +220,7 @@ async def update_contract_route(
     user_authorization: Tuple[BugoutUser, UUID] = Depends(request_user_auth),
     db_session: Session = Depends(db.yield_db_session),
 ) -> data.RegisteredContractResponse:
-    user = user_authorization
+    user, _ = user_authorization
 
     try:
         contract_with_blockchain = contracts_actions.update_registered_contract(
@@ -252,7 +259,7 @@ async def delete_contract_route(
     """
     Allows users to delete contracts that they have registered.
     """
-    user = user_authorization
+    user, _ = user_authorization
 
     try:
         deleted_contract_with_blockchain = contracts_actions.delete_registered_contract(
@@ -347,7 +354,7 @@ async def check_requests_route(
     """
     Implemented for pre-check until list of requests to be pushed into database.
     """
-    user = user_authorization
+    user, _ = user_authorization
 
     try:
         incoming_requests: Set[Tuple[str, str]] = set()
@@ -429,7 +436,7 @@ async def create_requests(
 
     At least one of `contract_id` or `contract_address` must be provided in the request body.
     """
-    user = user_authorization
+    user, _ = user_authorization
 
     try:
         num_requests = contracts_actions.create_request_calls(
@@ -482,7 +489,7 @@ async def delete_requests(
     """
     Allows users to delete requests.
     """
-    user = user_authorization
+    user, _ = user_authorization
 
     try:
         deleted_requests = contracts_actions.delete_requests(

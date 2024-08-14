@@ -7,6 +7,7 @@ from bugout.data import BugoutResourceHolder
 from sqlalchemy.sql import delete, distinct, func, insert, update
 
 from .. import db, models
+from ..contracts_actions import create_resource_for_registered_contract
 from ..settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_APPLICATION_ID,
@@ -22,8 +23,6 @@ def generate_handler(args: argparse.Namespace):
     3. Grant permissions for resource to metatx requester
     4. Replace metatx requester table with uuid of resource
     """
-    resource_data = {"type": "metatx_requester"}
-
     with db.yield_db_session_ctx() as db_session:
         query = (
             db_session.query(
@@ -59,30 +58,9 @@ def generate_handler(args: argparse.Namespace):
                 f"Processing metatx_requester_id: {mr_id} with registered_contracts_cnt: {registered_contracts_cnt} and call_requests_cnt: {call_requests_cnt}"
             )
 
-            # Create Brood resource
+            # Create Brood resource and grant permissions to user
             try:
-                resource = bugout_client.create_resource(
-                    token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-                    application_id=MOONSTREAM_APPLICATION_ID,
-                    resource_data=resource_data,
-                )
-                print(f"Created resource with ID: {resource.id}")
-            except Exception as e:
-                print(str(e))
-                continue
-
-            # Grant access for resource to metatx requester
-            try:
-                resource_holder = bugout_client.add_resource_holder_permissions(
-                    token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-                    resource_id=resource.id,
-                    holder_permissions=BugoutResourceHolder(
-                        holder_id=str(mr_id),
-                        holder_type="user",
-                        permissions=["create", "read", "update", "delete"],
-                    ),
-                )
-                print("Granted permissions for resource to metatx requester")
+                resource_id = create_resource_for_registered_contract(user_id=mr_id)
             except Exception as e:
                 print(str(e))
                 continue
@@ -90,7 +68,7 @@ def generate_handler(args: argparse.Namespace):
             try:
                 # Create new metatx_requester_id equal to resource ID
                 metatx_requester_stmt = insert(models.MetatxRequester).values(
-                    id=str(resource.id)
+                    id=str(resource_id)
                 )
                 db_session.execute(metatx_requester_stmt)
 
@@ -98,7 +76,7 @@ def generate_handler(args: argparse.Namespace):
                 update_registered_contract = (
                     update(models.RegisteredContract)
                     .where(models.RegisteredContract.metatx_requester_id == str(mr_id))
-                    .values(metatx_requester_id=str(resource.id))
+                    .values(metatx_requester_id=str(resource_id))
                 )
                 db_session.execute(update_registered_contract)
 
@@ -106,7 +84,7 @@ def generate_handler(args: argparse.Namespace):
                 update_call_request = (
                     update(models.CallRequest)
                     .where(models.CallRequest.metatx_requester_id == str(mr_id))
-                    .values(metatx_requester_id=str(resource.id))
+                    .values(metatx_requester_id=str(resource_id))
                 )
                 db_session.execute(update_call_request)
 
@@ -118,7 +96,7 @@ def generate_handler(args: argparse.Namespace):
 
                 db_session.commit()
                 print(
-                    f"Updated all metatx_requester_id from {str(mr_id)} to {str(resource.id)} successfully in each table"
+                    f"Updated all metatx_requester_id from {str(mr_id)} to {str(resource_id)} successfully in each table"
                 )
 
             except Exception as e:

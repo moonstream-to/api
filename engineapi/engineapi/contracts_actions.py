@@ -5,6 +5,7 @@ import uuid
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Set, Tuple
 
+from bugout.data import BugoutResourceHolder
 from sqlalchemy import func, or_, text, tuple_
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine import Row
@@ -20,7 +21,11 @@ from .models import (
     MetatxRequester,
     RegisteredContract,
 )
-from .settings import bugout_client
+from .settings import (
+    MOONSTREAM_ADMIN_ACCESS_TOKEN,
+    MOONSTREAM_APPLICATION_ID,
+    bugout_client,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -164,11 +169,46 @@ def validate_method_and_params(
     return call_request_type
 
 
+def create_resource_for_registered_contract(user_id: uuid.UUID) -> uuid.UUID:
+    resource_data = {"type": "metatx_requester"}
+    creator_permissions = ["create", "read", "update", "delete"]
+
+    resource = bugout_client.create_resource(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        application_id=MOONSTREAM_APPLICATION_ID,
+        resource_data=resource_data,
+    )
+    logger.info(f"Created resource with ID: {str(resource.id)}")
+
+    resource_holder = bugout_client.add_resource_holder_permissions(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        resource_id=resource.id,
+        holder_permissions=BugoutResourceHolder(
+            holder_id=str(user_id),
+            holder_type="user",
+            permissions=["create", "read", "update", "delete"],
+        ),
+    )
+    logger.info(
+        f"Granted {creator_permissions} permissions for resource {str(resource.id)} to metatx requester with ID: {user_id}"
+    )
+
+    return resource.id
+
+
+def delete_resource_for_registered_contract(resource_id: uuid.UUID) -> None:
+    resource = bugout_client.delete_resource(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        resource_id=resource_id,
+    )
+    logger.info(f"Delete resource with ID: {resource.id} for registered contract")
+
+
 def register_contract(
     db_session: Session,
     blockchain_name: str,
     address: str,
-    metatx_requester_id: uuid.UUID,
+    user_id: uuid.UUID,
     title: Optional[str],
     description: Optional[str],
     image_uri: Optional[str],
@@ -176,18 +216,25 @@ def register_contract(
     """
     Register a contract against the Engine instance
     """
-    try:
-        blockchain = (
-            db_session.query(Blockchain)
-            .filter(Blockchain.name == blockchain_name)
-            .one_or_none()
-        )
-        if blockchain is None:
-            raise UnsupportedBlockchain("Unsupported blockchain specified")
+    blockchain = (
+        db_session.query(Blockchain)
+        .filter(Blockchain.name == blockchain_name)
+        .one_or_none()
+    )
 
-        metatx_requester_stmt = insert(MetatxRequester.__table__).values(
-            id=metatx_requester_id
+    if blockchain is None:
+        raise UnsupportedBlockchain("Unsupported blockchain specified")
+
+    try:
+        resource_id = create_resource_for_registered_contract(user_id=user_id)
+    except Exception as err:
+        logger.error(repr(err))
+        raise Exception(
+            f"Unhandled exception during resource creation for user with ID: {str(user_id)}"
         )
+
+    try:
+        metatx_requester_stmt = insert(MetatxRequester.__table__).values(id=resource_id)
         metatx_requester_stmt_do_nothing_stmt = (
             metatx_requester_stmt.on_conflict_do_nothing()
         )
@@ -196,7 +243,7 @@ def register_contract(
         contract = RegisteredContract(
             blockchain_id=blockchain.id,
             address=Web3.toChecksumAddress(address),
-            metatx_requester_id=metatx_requester_id,
+            metatx_requester_id=resource_id,
             title=title,
             description=description,
             image_uri=image_uri,
@@ -205,11 +252,15 @@ def register_contract(
         db_session.commit()
     except IntegrityError as err:
         db_session.rollback()
+        delete_resource_for_registered_contract(resource_id)
         raise ContractAlreadyRegistered()
     except Exception as err:
         db_session.rollback()
+        delete_resource_for_registered_contract(resource_id)
         logger.error(repr(err))
-        raise
+        raise Exception(
+            f"Unhandled exception during creating new registered contract for user with ID: {str(user_id)}"
+        )
 
     return (contract, blockchain)
 
@@ -260,7 +311,7 @@ def update_registered_contract(
 
 def get_registered_contract(
     db_session: Session,
-    metatx_requester_id: uuid.UUID,
+    metatx_requester_ids: List[uuid.UUID],
     contract_id: uuid.UUID,
 ) -> Tuple[RegisteredContract, Blockchain]:
     """
@@ -269,7 +320,7 @@ def get_registered_contract(
     contract_with_blockchain = (
         db_session.query(RegisteredContract, Blockchain)
         .join(Blockchain, Blockchain.id == RegisteredContract.blockchain_id)
-        .filter(RegisteredContract.metatx_requester_id == metatx_requester_id)
+        .filter(RegisteredContract.metatx_requester_id.in_(metatx_requester_ids))
         .filter(RegisteredContract.id == contract_id)
         .one()
     )
@@ -697,7 +748,7 @@ def handle_register(args: argparse.Namespace) -> None:
                 blockchain=args.blockchain,
                 address=args.address,
                 contract_type=args.contract_type,
-                moonstream_user_id=args.user_id,
+                user_id=args.user_id,
                 title=args.title,
                 description=args.description,
                 image_uri=args.image_uri,
