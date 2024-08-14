@@ -204,6 +204,16 @@ def delete_resource_for_registered_contract(resource_id: uuid.UUID) -> None:
     logger.info(f"Delete resource with ID: {resource.id} for registered contract")
 
 
+def clean_metatx_requester_id(db_session: Session, metatx_requester_id: uuid.UUID):
+    query = db_session.query(RegisteredContract).filter(
+        RegisteredContract.metatx_requester_id == metatx_requester_id
+    )
+    r_contracts = query.all()
+
+    if len(r_contracts) == 0:
+        delete_resource_for_registered_contract(resource_id=metatx_requester_id)
+
+
 def register_contract(
     db_session: Session,
     blockchain_name: str,
@@ -267,7 +277,7 @@ def register_contract(
 
 def update_registered_contract(
     db_session: Session,
-    metatx_requester_id: uuid.UUID,
+    metatx_requester_ids: List[uuid.UUID],
     contract_id: uuid.UUID,
     title: Optional[str] = None,
     description: Optional[str] = None,
@@ -283,7 +293,7 @@ def update_registered_contract(
         .join(Blockchain, Blockchain.id == RegisteredContract.blockchain_id)
         .filter(
             RegisteredContract.id == contract_id,
-            RegisteredContract.metatx_requester_id == metatx_requester_id,
+            RegisteredContract.metatx_requester_id.in_(metatx_requester_ids),
         )
         .one()
     )
@@ -364,17 +374,18 @@ def lookup_registered_contracts(
 
 def delete_registered_contract(
     db_session: Session,
-    metatx_requester_id: uuid.UUID,
+    metatx_requester_ids: List[uuid.UUID],
     registered_contract_id: uuid.UUID,
 ) -> Tuple[RegisteredContract, Blockchain]:
     """
     Delete a registered contract
     """
+
     try:
         contract_with_blockchain = (
             db_session.query(RegisteredContract, Blockchain)
             .join(Blockchain, Blockchain.id == RegisteredContract.blockchain_id)
-            .filter(RegisteredContract.metatx_requester_id == metatx_requester_id)
+            .filter(RegisteredContract.metatx_requester_id.in_(metatx_requester_ids))
             .filter(RegisteredContract.id == registered_contract_id)
             .one()
         )
@@ -790,7 +801,7 @@ def handle_delete(args: argparse.Namespace) -> None:
             deleted_contract = delete_registered_contract(
                 db_session=db_session,
                 registered_contract_id=args.id,
-                moonstream_user_id=args.user_id,
+                moonstream_user_ids=[args.resource_id],
             )
     except Exception as err:
         logger.error(err)
@@ -982,11 +993,11 @@ def generate_cli() -> argparse.ArgumentParser:
         help="The ID of the contract to delete",
     )
     delete_parser.add_argument(
-        "-u",
-        "--user-id",
+        "-r",
+        "--resource-id",
         type=uuid.UUID,
         required=True,
-        help="The ID of the Moonstream user whose contract to delete",
+        help="The ID of the Moonstream resource whose contract to delete",
     )
     delete_parser.set_defaults(func=handle_delete)
 
