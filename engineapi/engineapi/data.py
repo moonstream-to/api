@@ -267,6 +267,17 @@ class RegisteredContractResponse(BaseModel):
         orm_mode = True
 
 
+class RegisteredContractHolderResponse(BaseModel):
+    holder_id: UUID
+    holder_type: str
+    permissions: List[str] = Field(default_factory=list)
+    name: Optional[str] = None
+
+
+class RegisteredContractWithHoldersResponse(RegisteredContractResponse):
+    holders: List[RegisteredContractHolderResponse] = Field(default_factory=list)
+
+
 class CallSpecification(BaseModel):
     caller: str
     method: str

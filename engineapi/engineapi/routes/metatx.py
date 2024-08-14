@@ -10,7 +10,7 @@ import logging
 from typing import Dict, List, Optional, Set, Tuple
 from uuid import UUID
 
-from bugout.data import BugoutUser
+from bugout.data import BugoutUser, HolderType
 from fastapi import BackgroundTasks, Body, Depends, FastAPI, Form, Path, Query, Request
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
@@ -302,6 +302,58 @@ async def delete_contract_route(
     )
 
     return parsed_registered_contract
+
+
+@app.get(
+    "/contracts/{contract_id}/holders",
+    tags=["contracts"],
+    response_model=data.RegisteredContractWithHoldersResponse,
+)
+async def get_registered_contract_holders_route(
+    contract_id: UUID = Path(...),
+    user_authorization: Tuple[BugoutUser, UUID] = Depends(request_user_auth),
+    extended: bool = Query(False),
+    db_session: Session = Depends(db.yield_db_read_only_session),
+) -> data.RegisteredContractWithHoldersResponse:
+    """
+    Get the contract holders.
+    """
+    _, token = user_authorization
+
+    try:
+        metatx_requester_ids = contracts_actions.fetch_metatx_requester_ids(token=token)
+
+        contract_with_blockchain = contracts_actions.get_registered_contract(
+            db_session=db_session,
+            metatx_requester_ids=metatx_requester_ids,
+            contract_id=contract_id,
+        )
+
+        holders = contracts_actions.fetch_metatx_requester_holders(
+            resource_id=contract_with_blockchain[0].metatx_requester_id,
+            extended=extended,
+        )
+    except contracts_actions.MetatxRequestersNotFound:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Metatx requester IDs not found",
+        )
+    except NoResultFound:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Either there is not contract with that ID or you do not have access to that contract.",
+        )
+    except Exception as err:
+        logger.error(repr(err))
+        raise EngineHTTPException(status_code=500)
+
+    parser_registered_contract = contracts_actions.parse_registered_contract_response(
+        contract_with_blockchain
+    )
+
+    return data.RegisteredContractWithHoldersResponse(
+        **parser_registered_contract.dict(), holders=holders
+    )
 
 
 # TODO(kompotkot): route `/contracts/types` deprecated

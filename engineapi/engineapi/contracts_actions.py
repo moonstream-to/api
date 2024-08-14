@@ -2,10 +2,11 @@ import argparse
 import json
 import logging
 import uuid
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from bugout.data import BugoutResourceHolder
+from bugout.data import BugoutResourceHolder, BugoutResourceHolders, HolderType
 from sqlalchemy import func, or_, text, tuple_
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine import Row
@@ -25,6 +26,7 @@ from .settings import (
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_APPLICATION_ID,
     bugout_client,
+    bugout_client_semaphore,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -87,6 +89,20 @@ class MetatxRequestersNotFound(Exception):
     """
     Raised when metatx requesters is not found in Brood resources.
     """
+
+
+def parse_registered_contract_holders_response(
+    bugout_holder: BugoutResourceHolder, name: Optional[str] = None
+) -> data.RegisteredContractHolderResponse:
+    holder = data.RegisteredContractHolderResponse(
+        holder_id=bugout_holder.id,
+        holder_type=bugout_holder.holder_type.value,
+        permissions=[p.value for p in bugout_holder.permissions],
+    )
+    if name is not None:
+        holder.name = name
+
+    return holder
 
 
 def parse_registered_contract_response(
@@ -212,6 +228,58 @@ def clean_metatx_requester_id(db_session: Session, metatx_requester_id: uuid.UUI
 
     if len(r_contracts) == 0:
         delete_resource_for_registered_contract(resource_id=metatx_requester_id)
+
+
+def extend_bugout_holder(holder: BugoutResourceHolder) -> str:
+    bugout_client_semaphore.acquire()
+    try:
+        if holder.holder_type == HolderType.user:
+            user = bugout_client.find_user(
+                token=MOONSTREAM_ADMIN_ACCESS_TOKEN, user_id=holder.id
+            )
+            return parse_registered_contract_holders_response(
+                bugout_holder=holder, name=user.username
+            )
+        elif holder.holder_type == HolderType.group:
+            group = bugout_client.find_group(
+                token=MOONSTREAM_ADMIN_ACCESS_TOKEN, group_id=holder.id
+            )
+            return parse_registered_contract_holders_response(
+                bugout_holder=holder, name=group.group_name
+            )
+    finally:
+        bugout_client_semaphore.release()
+
+
+def fetch_metatx_requester_holders(
+    resource_id: uuid.UUID, extended: bool = False
+) -> List[data.RegisteredContractHolderResponse]:
+
+    holders = bugout_client.get_resource_holders(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        resource_id=resource_id,
+    )
+
+    parsed_holders: List[data.RegisteredContractHolderResponse] = []
+    if extended is True:
+        with ThreadPoolExecutor() as executor:
+            futures = [
+                executor.submit(extend_bugout_holder, h) for h in holders.holders
+            ]
+
+            for future in as_completed(futures):
+                try:
+                    result = future.result()
+                    parsed_holders.append(result)
+                except Exception as err:
+                    logger.error(str(err))
+    else:
+        parsed_holders = [
+            parse_registered_contract_holders_response(bugout_holder=h)
+            for h in holders.holders
+        ]
+
+    return parsed_holders
 
 
 def register_contract(
