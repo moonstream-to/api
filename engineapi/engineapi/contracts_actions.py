@@ -230,7 +230,9 @@ def clean_metatx_requester_id(db_session: Session, metatx_requester_id: uuid.UUI
         delete_resource_for_registered_contract(resource_id=metatx_requester_id)
 
 
-def extend_bugout_holder(holder: BugoutResourceHolder) -> str:
+def extend_bugout_holder(
+    holder: BugoutResourceHolder,
+) -> data.RegisteredContractHolderResponse:
     bugout_client_semaphore.acquire()
     try:
         if holder.holder_type == HolderType.user:
@@ -278,6 +280,38 @@ def fetch_metatx_requester_holders(
             parse_registered_contract_holders_response(bugout_holder=h)
             for h in holders.holders
         ]
+
+    return parsed_holders
+
+
+def add_metatx_requester_holder(
+    resource_id: uuid.UUID, holder_permissions: BugoutResourceHolder
+) -> List[data.RegisteredContractHolderResponse]:
+    holders = bugout_client.add_resource_holder_permissions(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        resource_id=resource_id,
+        holder_permissions=holder_permissions,
+    )
+    parsed_holders = [
+        parse_registered_contract_holders_response(bugout_holder=h)
+        for h in holders.holders
+    ]
+
+    return parsed_holders
+
+
+def delete_metatx_requester_holder(
+    resource_id: uuid.UUID, holder_permissions: BugoutResourceHolder
+) -> List[data.RegisteredContractHolderResponse]:
+    holders = bugout_client.delete_resource_holder_permissions(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        resource_id=resource_id,
+        holder_permissions=holder_permissions,
+    )
+    parsed_holders = [
+        parse_registered_contract_holders_response(bugout_holder=h)
+        for h in holders.holders
+    ]
 
     return parsed_holders
 
