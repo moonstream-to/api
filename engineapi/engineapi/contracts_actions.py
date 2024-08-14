@@ -78,6 +78,12 @@ class CallRequestIdDuplicates(Exception):
     """
 
 
+class MetatxRequestersNotFound(Exception):
+    """
+    Raised when metatx requesters is not found in Brood resources.
+    """
+
+
 def parse_registered_contract_response(
     obj: Tuple[RegisteredContract, Blockchain]
 ) -> data.RegisteredContractResponse:
@@ -274,7 +280,7 @@ def get_registered_contract(
 
 def lookup_registered_contracts(
     db_session: Session,
-    metatx_requester_id: uuid.UUID,
+    metatx_requester_ids: List[uuid.UUID],
     blockchain: Optional[str] = None,
     address: Optional[str] = None,
     limit: int = 10,
@@ -286,7 +292,7 @@ def lookup_registered_contracts(
     query = (
         db_session.query(RegisteredContract, Blockchain)
         .join(Blockchain, Blockchain.id == RegisteredContract.blockchain_id)
-        .filter(RegisteredContract.metatx_requester_id == metatx_requester_id)
+        .filter(RegisteredContract.metatx_requester_id.in_(metatx_requester_ids))
     )
 
     if blockchain is not None:
@@ -661,11 +667,23 @@ def complete_call_request(
     return (call_request, registered_contract)
 
 
-def fetch_metatx_requester_ids(token):
+def fetch_metatx_requester_ids(token: uuid.UUID) -> List[uuid.UUID]:
     params = {"type": "metatx_requester"}
-    resources = bugout_client.list_resources(token=token, params=params)
 
-    return resources
+    try:
+        resources = bugout_client.list_resources(token=token, params=params)
+    except Exception as err:
+        logger.error("Failed to list resources")
+        raise Exception(err)
+
+    if len(resources.resources) == 0:
+        raise MetatxRequestersNotFound(
+            "No metatx requesters for specific user available"
+        )
+
+    metatx_requester_ids = [r.id for r in resources.resources]
+
+    return metatx_requester_ids
 
 
 def handle_register(args: argparse.Namespace) -> None:

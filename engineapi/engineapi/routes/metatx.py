@@ -96,20 +96,25 @@ async def list_registered_contracts_route(
     """
     Users can use this endpoint to look up the contracts they have registered against this API.
     """
-    user, token = user_authorization
-
-    contracts_actions.fetch_metatx_requester_ids(token=token)
+    _, token = user_authorization
 
     try:
+        metatx_requester_ids = contracts_actions.fetch_metatx_requester_ids(token=token)
+
         registered_contracts_with_blockchain = (
             contracts_actions.lookup_registered_contracts(
                 db_session=db_session,
-                metatx_requester_id=user.id,
+                metatx_requester_ids=metatx_requester_ids,
                 blockchain=blockchain,
                 address=address,
                 limit=limit,
                 offset=offset,
             )
+        )
+    except contracts_actions.MetatxRequestersNotFound:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Metatx requester IDs not found",
         )
     except Exception as err:
         logger.error(repr(err))
