@@ -347,10 +347,7 @@ def register_contract(
 
     try:
         metatx_requester_stmt = insert(MetatxRequester.__table__).values(id=resource_id)
-        metatx_requester_stmt_do_nothing_stmt = (
-            metatx_requester_stmt.on_conflict_do_nothing()
-        )
-        db_session.execute(metatx_requester_stmt_do_nothing_stmt)
+        db_session.execute(metatx_requester_stmt)
 
         contract = RegisteredContract(
             blockchain_id=blockchain.id,
@@ -507,7 +504,7 @@ def delete_registered_contract(
 
 def create_request_calls(
     db_session: Session,
-    metatx_requester_id: uuid.UUID,
+    metatx_requester_ids: List[uuid.UUID],
     registered_contract_id: Optional[uuid.UUID],
     contract_address: Optional[str],
     call_specs: List[data.CallSpecification],
@@ -537,7 +534,7 @@ def create_request_calls(
 
     # Check that the moonstream_user_id matches a RegisteredContract with the given id or address
     query = db_session.query(RegisteredContract).filter(
-        RegisteredContract.metatx_requester_id == metatx_requester_id
+        RegisteredContract.metatx_requester_id.in_(metatx_requester_ids)
     )
 
     if registered_contract_id is not None:
@@ -551,7 +548,7 @@ def create_request_calls(
     try:
         registered_contract = query.one()
     except NoResultFound:
-        raise ValueError("Invalid registered_contract_id or metatx_requester_id")
+        raise ValueError("Invalid registered_contract_id or metatx_requester_ids")
 
     # Normalize the caller argument using Web3.toChecksumAddress
     for specification in call_specs:
@@ -585,7 +582,7 @@ def create_request_calls(
         request = CallRequest(
             registered_contract_id=registered_contract.id,
             call_request_type_name=call_request_type,
-            metatx_requester_id=metatx_requester_id,
+            metatx_requester_id=registered_contract.metatx_requester_id,
             caller=normalized_caller,
             method=specification.method,
             request_id=specification.request_id,
@@ -610,7 +607,7 @@ def create_request_calls(
 
 def get_call_request_from_tuple(
     db_session: Session,
-    metatx_requester_id: uuid.UUID,
+    metatx_requester_ids: List[uuid.UUID],
     requests: Set[Tuple[str, str]],
     contract_id: Optional[uuid.UUID] = None,
     contract_address: Optional[str] = None,
@@ -625,7 +622,7 @@ def get_call_request_from_tuple(
             RegisteredContract,
             CallRequest.registered_contract_id == RegisteredContract.id,
         )
-        .filter(RegisteredContract.metatx_requester_id == metatx_requester_id)
+        .filter(RegisteredContract.metatx_requester_id.in_(metatx_requester_ids))
         .filter(tuple_(CallRequest.caller, CallRequest.request_id).in_(requests))
     )
     if contract_id is not None:
@@ -691,7 +688,7 @@ def list_call_requests(
     offset: Optional[int] = None,
     show_expired: bool = False,
     live_after: Optional[int] = None,
-    metatx_requester_id: Optional[uuid.UUID] = None,
+    metatx_requester_ids: List[uuid.UUID] = [],
 ) -> List[Row[Tuple[CallRequest, RegisteredContract, CallRequestType]]]:
     """
     List call requests.
@@ -732,9 +729,9 @@ def list_call_requests(
 
     # If user id not specified, do not show call_requests before live_at.
     # Otherwise check show_before_live_at argument from query parameter
-    if metatx_requester_id is not None:
+    if len(metatx_requester_ids) != 0:
         query = query.filter(
-            CallRequest.metatx_requester_id == metatx_requester_id,
+            CallRequest.metatx_requester_id.in_(metatx_requester_ids),
         )
     else:
         query = query.filter(
@@ -767,7 +764,7 @@ def list_call_requests(
 
 def delete_requests(
     db_session: Session,
-    metatx_requester_id: uuid.UUID,
+    metatx_requester_ids: List[uuid.UUID],
     request_ids: List[uuid.UUID] = [],
 ) -> int:
     """
@@ -776,7 +773,7 @@ def delete_requests(
     try:
         requests_to_delete_query = (
             db_session.query(CallRequest)
-            .filter(CallRequest.metatx_requester_id == metatx_requester_id)
+            .filter(CallRequest.metatx_requester_id.in_(metatx_requester_ids))
             .filter(CallRequest.id.in_(request_ids))
         )
         requests_to_delete_num: int = requests_to_delete_query.delete(
@@ -880,7 +877,7 @@ def handle_list(args: argparse.Namespace) -> None:
         with db.yield_db_session_ctx() as db_session:
             contracts = lookup_registered_contracts(
                 db_session=db_session,
-                moonstream_user_id=args.user_id,
+                metatx_requester_ids=[args.resource_id],
                 blockchain=args.blockchain,
                 address=args.address,
                 contract_type=args.contract_type,
@@ -934,7 +931,7 @@ def handle_request_calls(args: argparse.Namespace) -> None:
         with db.yield_db_session_ctx() as db_session:
             create_request_calls(
                 db_session=db_session,
-                moonstream_user_id=args.moonstream_user_id,
+                metatx_requester_ids=[args.resource_id],
                 registered_contract_id=args.registered_contract_id,
                 call_specs=call_specs,
                 ttl_days=args.ttl_days,
@@ -1060,11 +1057,11 @@ def generate_cli() -> argparse.ArgumentParser:
         help="The type of the contract",
     )
     list_contracts_parser.add_argument(
-        "-u",
-        "--user-id",
+        "-r",
+        "--resource-id",
         type=uuid.UUID,
         required=True,
-        help="The ID of the Moonstream user whose contracts to list",
+        help="The ID of the Bugout resource representing metatx requester whose contracts to list",
     )
     list_contracts_parser.add_argument(
         "-N",
@@ -1099,7 +1096,7 @@ def generate_cli() -> argparse.ArgumentParser:
         "--resource-id",
         type=uuid.UUID,
         required=True,
-        help="The ID of the Moonstream resource whose contract to delete",
+        help="The ID of the Bugout resource representing metatx requester whose contract to delete",
     )
     delete_parser.set_defaults(func=handle_delete)
 
@@ -1115,11 +1112,11 @@ def generate_cli() -> argparse.ArgumentParser:
         help="The ID of the registered contract to create call requests for",
     )
     request_calls_parser.add_argument(
-        "-u",
-        "--moonstream-user-id",
+        "-r",
+        "--resource-id",
         type=uuid.UUID,
         required=True,
-        help="The ID of the Moonstream user who owns the contract",
+        help="The ID of the Bugout resource representing metatx requester who owns the contract",
     )
     request_calls_parser.add_argument(
         "-c",

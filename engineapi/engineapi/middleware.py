@@ -118,17 +118,15 @@ async def request_user_auth(
     token: UUID = Depends(oauth2_scheme),
 ) -> Tuple[BugoutUserWithGroups, UUID]:
     user = brood_auth(token=token)
-
     return user, token
 
 
 async def request_none_or_user_auth(
     authorization: str = Header(None),
-) -> Optional[BugoutUserWithGroups]:
+) -> Optional[Tuple[BugoutUserWithGroups, UUID]]:
     """
     Fetch Bugout user if authorization token provided.
     """
-    user: Optional[BugoutUserWithGroups] = None
     if authorization is not None:
         token: str = ""
         try:
@@ -143,8 +141,9 @@ async def request_none_or_user_auth(
 
         if token != "":
             user = brood_auth(token=token)
+            return user, token
 
-    return user
+    return None
 
 
 async def metatx_verify_header(

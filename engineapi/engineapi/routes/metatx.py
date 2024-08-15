@@ -496,7 +496,9 @@ async def list_requests_route(
     offset: Optional[int] = Query(None),
     show_expired: bool = Query(False),
     live_after: Optional[int] = Query(None),
-    user: Optional[BugoutUser] = Depends(request_none_or_user_auth),
+    user_authorization: Optional[Tuple[BugoutUser, UUID]] = Depends(
+        request_none_or_user_auth
+    ),
     db_session: Session = Depends(db.yield_db_read_only_session),
 ) -> List[data.CallRequestResponse]:
     """
@@ -504,7 +506,11 @@ async def list_requests_route(
 
     At least one of `contract_id` or `contract_address` must be provided as query parameters.
     """
+    _, token = user_authorization
+
     try:
+        metatx_requester_ids = contracts_actions.fetch_metatx_requester_ids(token=token)
+
         requests = contracts_actions.list_call_requests(
             db_session=db_session,
             contract_id=contract_id,
@@ -514,7 +520,12 @@ async def list_requests_route(
             offset=offset,
             show_expired=show_expired,
             live_after=live_after,
-            metatx_requester_id=user.id if user is not None else None,
+            metatx_requester_ids=metatx_requester_ids,
+        )
+    except contracts_actions.MetatxRequestersNotFound:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Metatx requester IDs not found",
         )
     except ValueError as e:
         logger.error(repr(e))
@@ -538,7 +549,7 @@ async def check_requests_route(
     """
     Implemented for pre-check until list of requests to be pushed into database.
     """
-    user, _ = user_authorization
+    _, token = user_authorization
 
     try:
         incoming_requests: Set[Tuple[str, str]] = set()
@@ -553,12 +564,19 @@ async def check_requests_route(
                 "There are same call_request_id's in one request"
             )
 
+        metatx_requester_ids = contracts_actions.fetch_metatx_requester_ids(token=token)
+
         existing_requests = contracts_actions.get_call_request_from_tuple(
             db_session=db_session,
-            metatx_requester_id=user.id,
+            metatx_requester_ids=metatx_requester_ids,
             requests=incoming_requests,
             contract_id=request_data.contract_id,
             contract_address=request_data.contract_address,
+        )
+    except contracts_actions.MetatxRequestersNotFound:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Metatx requester IDs not found",
         )
     except contracts_actions.CallRequestIdDuplicates:
         raise EngineHTTPException(
@@ -620,17 +638,24 @@ async def create_requests(
 
     At least one of `contract_id` or `contract_address` must be provided in the request body.
     """
-    user, _ = user_authorization
+    _, token = user_authorization
 
     try:
+        metatx_requester_ids = contracts_actions.fetch_metatx_requester_ids(token=token)
+
         num_requests = contracts_actions.create_request_calls(
             db_session=db_session,
-            metatx_requester_id=user.id,
+            metatx_requester_ids=metatx_requester_ids,
             registered_contract_id=request_data.contract_id,
             contract_address=request_data.contract_address,
             call_specs=request_data.specifications,
             ttl_days=request_data.ttl_days,
             live_at=request_data.live_at,
+        )
+    except contracts_actions.MetatxRequestersNotFound:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Metatx requester IDs not found",
         )
     except contracts_actions.InvalidAddressFormat as err:
         raise EngineHTTPException(
@@ -673,13 +698,20 @@ async def delete_requests(
     """
     Allows users to delete requests.
     """
-    user, _ = user_authorization
+    _, token = user_authorization
 
     try:
+        metatx_requester_ids = contracts_actions.fetch_metatx_requester_ids(token=token)
+
         deleted_requests = contracts_actions.delete_requests(
             db_session=db_session,
-            metatx_requester_id=user.id,
+            metatx_requester_ids=metatx_requester_ids,
             request_ids=request_ids,
+        )
+    except contracts_actions.MetatxRequestersNotFound:
+        raise EngineHTTPException(
+            status_code=404,
+            detail="Metatx requester IDs not found",
         )
     except Exception as err:
         logger.error(repr(err))
