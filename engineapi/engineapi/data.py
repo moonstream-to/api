@@ -278,6 +278,12 @@ class RegisteredContractWithHoldersResponse(RegisteredContractResponse):
     holders: List[RegisteredContractHolderResponse] = Field(default_factory=list)
 
 
+class MetatxRequestersResponse(BaseModel):
+    metatx_requester_id: UUID
+    registered_contracts_count: int
+    call_requests_count: int
+
+
 class CallSpecification(BaseModel):
     caller: str
     method: str

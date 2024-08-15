@@ -11,7 +11,7 @@ from typing import Dict, List, Optional, Set, Tuple
 from uuid import UUID
 
 from bugout.data import BugoutResourceHolder, BugoutUser
-from fastapi import BackgroundTasks, Body, Depends, FastAPI, Form, Path, Query, Request
+from fastapi import BackgroundTasks, Body, Depends, FastAPI, Path, Query, Request
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 from web3 import Web3
@@ -40,6 +40,10 @@ tags_metadata = [
         "description": DESCRIPTION,
     },
     {"name": "requests", "description": "Call requests for registered contracts."},
+    {
+        "name": "requesters",
+        "description": "Metatx requester represented by resource for registered contracts access.",
+    },
 ]
 
 
@@ -302,6 +306,36 @@ async def delete_contract_route(
     )
 
     return parsed_registered_contract
+
+
+@app.get(
+    "/requesters",
+    tags=["requesters"],
+    response_model=List[data.MetatxRequestersResponse],
+)
+async def list_metatx_requesters_route(
+    user_authorization: Tuple[BugoutUser, UUID] = Depends(request_user_auth),
+    db_session: Session = Depends(db.yield_db_read_only_session),
+) -> List[data.MetatxRequestersResponse]:
+    """
+    Get list of metatx requesters available to user.
+
+    Helps to track number of empty metatx requesters without registered contracts and call requests.
+    """
+    _, token = user_authorization
+
+    try:
+        metatx_requester_ids = contracts_actions.fetch_metatx_requester_ids(token=token)
+        metatx_requesters = (
+            contracts_actions.count_contracts_and_requests_for_requester(
+                db_session=db_session, metatx_requester_ids=metatx_requester_ids
+            )
+        )
+    except Exception as err:
+        logger.error(repr(err))
+        raise EngineHTTPException(status_code=500)
+
+    return metatx_requesters
 
 
 @app.get(

@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from bugout.data import BugoutResourceHolder, BugoutResourceHolders, HolderType
+from bugout.data import BugoutResourceHolder, HolderType
 from sqlalchemy import func, or_, text, tuple_
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine import Row
@@ -23,6 +23,7 @@ from .models import (
     RegisteredContract,
 )
 from .settings import (
+    METATX_REQUESTER_TYPE,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_APPLICATION_ID,
     bugout_client,
@@ -186,7 +187,7 @@ def validate_method_and_params(
 
 
 def create_resource_for_registered_contract(user_id: uuid.UUID) -> uuid.UUID:
-    resource_data = {"type": "metatx_requester"}
+    resource_data = {"type": METATX_REQUESTER_TYPE}
     creator_permissions = ["create", "read", "update", "delete"]
 
     resource = bugout_client.create_resource(
@@ -845,6 +846,66 @@ def fetch_metatx_requester_ids(token: uuid.UUID) -> List[uuid.UUID]:
     metatx_requester_ids = [r.id for r in resources.resources]
 
     return metatx_requester_ids
+
+
+def count_contracts_and_requests_for_requester(
+    db_session: Session, metatx_requester_ids: List[uuid.UUID]
+) -> List[data.MetatxRequestersResponse]:
+    registered_contracts_subquery = (
+        db_session.query(
+            RegisteredContract.metatx_requester_id,
+            func.count(RegisteredContract.id).label("registered_contracts_count"),
+        )
+        .filter(RegisteredContract.metatx_requester_id.in_(metatx_requester_ids))
+        .group_by(RegisteredContract.metatx_requester_id)
+        .subquery()
+    )
+    call_requests_subquery = (
+        db_session.query(
+            CallRequest.metatx_requester_id,
+            func.count(CallRequest.id).label("call_requests_count"),
+        )
+        .filter(CallRequest.metatx_requester_id.in_(metatx_requester_ids))
+        .group_by(CallRequest.metatx_requester_id)
+        .subquery()
+    )
+
+    query = db_session.query(
+        registered_contracts_subquery.c.metatx_requester_id,
+        registered_contracts_subquery.c.registered_contracts_count,
+        call_requests_subquery.c.call_requests_count,
+    ).outerjoin(
+        call_requests_subquery,
+        registered_contracts_subquery.c.metatx_requester_id
+        == call_requests_subquery.c.metatx_requester_id,
+    )
+
+    results = query.all()
+
+    metatx_requesters: List[data.MetatxRequestersResponse] = []
+    for r in results:
+        metatx_requester_id = r[0]
+        metatx_requesters.append(
+            data.MetatxRequestersResponse(
+                metatx_requester_id=metatx_requester_id,
+                registered_contracts_count=r[1],
+                call_requests_count=r[2],
+            )
+        )
+
+        metatx_requester_ids.remove(metatx_requester_id)
+
+    # Add empty metatx requesters
+    for r_id in metatx_requester_ids:
+        metatx_requesters.append(
+            data.MetatxRequestersResponse(
+                metatx_requester_id=r_id,
+                registered_contracts_count=0,
+                call_requests_count=0,
+            )
+        )
+
+    return metatx_requesters
 
 
 def handle_register(args: argparse.Namespace) -> None:

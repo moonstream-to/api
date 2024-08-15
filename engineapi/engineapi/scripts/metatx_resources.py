@@ -3,16 +3,10 @@ import sys
 import time
 from typing import Any, Dict, List, Optional
 
-from bugout.data import BugoutResourceHolder
 from sqlalchemy.sql import delete, distinct, func, insert, update
 
 from .. import db, models
 from ..contracts_actions import create_resource_for_registered_contract
-from ..settings import (
-    MOONSTREAM_ADMIN_ACCESS_TOKEN,
-    MOONSTREAM_APPLICATION_ID,
-    bugout_client,
-)
 
 
 def generate_handler(args: argparse.Namespace):
