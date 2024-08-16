@@ -139,7 +139,7 @@ async def get_registered_contract_route(
     contract_id: UUID = Path(...),
     user_authorization: Tuple[BugoutUser, UUID] = Depends(request_user_auth),
     db_session: Session = Depends(db.yield_db_read_only_session),
-) -> List[data.RegisteredContractResponse]:
+) -> data.RegisteredContractResponse:
     """
     Get the contract by ID.
     """

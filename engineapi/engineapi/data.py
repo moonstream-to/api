@@ -247,6 +247,7 @@ class UpdateContractRequest(BaseModel):
 class RegisteredContractResponse(BaseModel):
     id: UUID
     blockchain: Optional[str] = None
+    chain_id: Optional[int] = None
     address: str
     metatx_requester_id: UUID
     title: Optional[str] = None

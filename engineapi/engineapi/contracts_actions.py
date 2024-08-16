@@ -112,6 +112,7 @@ def parse_registered_contract_response(
     return data.RegisteredContractResponse(
         id=obj[0].id,
         blockchain=obj[1].name,
+        chain_id=obj[1].chain_id,
         address=obj[0].address,
         metatx_requester_id=obj[0].metatx_requester_id,
         title=obj[0].title,
