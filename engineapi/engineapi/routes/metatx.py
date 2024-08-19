@@ -540,10 +540,15 @@ async def list_requests_route(
 
     At least one of `contract_id` or `contract_address` must be provided as query parameters.
     """
-    _, token = user_authorization
+    token = None
+    if user_authorization is not None:
+        _, token = user_authorization
 
     try:
-        metatx_requester_ids = contracts_actions.fetch_metatx_requester_ids(token=token)
+        if token is not None:
+            metatx_requester_ids = contracts_actions.fetch_metatx_requester_ids(token=token)
+        else:
+            metatx_requester_ids = []
 
         requests = contracts_actions.list_call_requests(
             db_session=db_session,
