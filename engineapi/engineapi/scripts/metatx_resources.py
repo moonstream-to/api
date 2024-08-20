@@ -12,22 +12,20 @@ from ..contracts_actions import create_resource_for_registered_contract
 def generate_handler(args: argparse.Namespace):
     """
     Loop:
-    1. Fetch metatx requester
+    1. Fetch all registered contracts
     2. Generate resource
-    3. Grant permissions for resource to metatx requester
-    4. Replace metatx requester table with uuid of resource
+    3. Grant permissions for resource to metatx requesters
+    4. Replace metatx requester in registered contracts table with uuid of resource
     """
     with db.yield_db_session_ctx() as db_session:
         query = (
             db_session.query(
+                models.RegisteredContract.id,
                 models.MetatxRequester.id,
-                func.count(distinct(models.RegisteredContract.id)).label(
-                    "registered_contracts_cnt"
-                ),
                 func.count(distinct(models.CallRequest.id)).label("call_requests_cnt"),
             )
             .outerjoin(
-                models.RegisteredContract,
+                models.MetatxRequester,
                 models.RegisteredContract.metatx_requester_id
                 == models.MetatxRequester.id,
             )
@@ -35,10 +33,20 @@ def generate_handler(args: argparse.Namespace):
                 models.CallRequest,
                 models.CallRequest.metatx_requester_id == models.MetatxRequester.id,
             )
-            .group_by(models.MetatxRequester.id)
+            .group_by(models.RegisteredContract.id, models.MetatxRequester.id)
         )
 
         result = query.all()
+
+        print(
+            "RegisteredContract.id                 |   MetatxRequester.id                    |   call_requests_cnt"
+        )
+        print(
+            "                                      |                                         |   "
+        )
+        for rc in result:
+            print(f"{rc[0]}  |   {rc[1]}  |   {rc[2]}")
+        print("\n")
 
         print(f"There are {len(result)} total results")
 
