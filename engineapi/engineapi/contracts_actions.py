@@ -187,18 +187,25 @@ def validate_method_and_params(
     return call_request_type
 
 
-def create_resource_for_registered_contract(user_id: uuid.UUID) -> uuid.UUID:
-    resource_data = {"type": METATX_REQUESTER_TYPE}
-    creator_permissions = ["create", "read", "update", "delete"]
+def create_resource_for_registered_contract(
+    registered_contract_id: uuid.UUID, user_id: uuid.UUID
+) -> uuid.UUID:
+    resource_data = {
+        "type": METATX_REQUESTER_TYPE,
+        "created_by": str(user_id),
+        "registered_contract_id": str(registered_contract_id),
+    }
 
     resource = bugout_client.create_resource(
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
         application_id=MOONSTREAM_APPLICATION_ID,
         resource_data=resource_data,
     )
-    logger.info(f"Created resource with ID: {str(resource.id)}")
+    logger.info(
+        f"Created resource with ID: {str(resource.id)} for registered contract with ID: {str(registered_contract_id)}"
+    )
 
-    resource_holder = bugout_client.add_resource_holder_permissions(
+    _ = bugout_client.add_resource_holder_permissions(
         token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
         resource_id=resource.id,
         holder_permissions=BugoutResourceHolder(
@@ -208,7 +215,7 @@ def create_resource_for_registered_contract(user_id: uuid.UUID) -> uuid.UUID:
         ),
     )
     logger.info(
-        f"Granted {creator_permissions} permissions for resource {str(resource.id)} to metatx requester with ID: {user_id}"
+        f"Granted creator permissions for resource with ID: {str(resource.id)} to metatx requester with ID: {user_id}"
     )
 
     return resource.id
@@ -339,8 +346,12 @@ def register_contract(
     if blockchain is None:
         raise UnsupportedBlockchain("Unsupported blockchain specified")
 
+    registered_contract_id = uuid.uuid4()
+
     try:
-        resource_id = create_resource_for_registered_contract(user_id=user_id)
+        resource_id = create_resource_for_registered_contract(
+            registered_contract_id=registered_contract_id, user_id=user_id
+        )
     except Exception as err:
         logger.error(repr(err))
         raise Exception(
@@ -352,6 +363,7 @@ def register_contract(
         db_session.execute(metatx_requester_stmt)
 
         contract = RegisteredContract(
+            id=registered_contract_id,
             blockchain_id=blockchain.id,
             address=Web3.toChecksumAddress(address),
             metatx_requester_id=resource_id,
@@ -363,11 +375,11 @@ def register_contract(
         db_session.commit()
     except IntegrityError as err:
         db_session.rollback()
-        delete_resource_for_registered_contract(resource_id)
+        delete_resource_for_registered_contract(resource_id=resource_id)
         raise ContractAlreadyRegistered()
     except Exception as err:
         db_session.rollback()
-        delete_resource_for_registered_contract(resource_id)
+        delete_resource_for_registered_contract(resource_id=resource_id)
         logger.error(repr(err))
         raise Exception(
             f"Unhandled exception during creating new registered contract for user with ID: {str(user_id)}"
