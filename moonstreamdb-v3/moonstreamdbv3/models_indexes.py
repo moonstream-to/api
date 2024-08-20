@@ -53,6 +53,8 @@ class EvmBasedBlocks(Base):
     parent_hash = Column(VARCHAR(256), nullable=False)
     row_id = Column(BigInteger, nullable=False, index=False)
     path = Column(Text, nullable=False)
+    transactions_indexed_at = Column(DateTime(timezone=True), nullable=True)
+    logs_indexed_at = Column(DateTime(timezone=True), nullable=True)
     indexed_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )
