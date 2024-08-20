@@ -222,11 +222,40 @@ def create_resource_for_registered_contract(
 
 
 def delete_resource_for_registered_contract(resource_id: uuid.UUID) -> None:
-    resource = bugout_client.delete_resource(
-        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-        resource_id=resource_id,
+    try:
+        resource = bugout_client.delete_resource(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            resource_id=resource_id,
+        )
+    except Exception as err:
+        logger.error(f"Unable to delete resource with ID: {resource_id}, err: {err}")
+        raise
+
+    logger.info(f"Deleted resource with ID: {resource.id} for registered contract")
+
+
+def delete_metatx_requester(
+    db_session: Session, metatx_requester_id: uuid.UUID
+) -> None:
+    try:
+        metatx_requester = (
+            db_session.query(MetatxRequester)
+            .filter(MetatxRequester.id == metatx_requester_id)
+            .one()
+        )
+
+        db_session.delete(metatx_requester)
+        db_session.commit()
+    except Exception as err:
+        db_session.rollback()
+        logger.error(
+            f"Unable to delete metatx requester with ID: {metatx_requester_id}, err: {err}"
+        )
+        raise
+
+    logger.info(
+        f"Deleted metatx requester with ID: {metatx_requester_id} for registered contract"
     )
-    logger.info(f"Delete resource with ID: {resource.id} for registered contract")
 
 
 def clean_metatx_requester_id(db_session: Session, metatx_requester_id: uuid.UUID):
@@ -237,6 +266,10 @@ def clean_metatx_requester_id(db_session: Session, metatx_requester_id: uuid.UUI
 
     if len(r_contracts) == 0:
         delete_resource_for_registered_contract(resource_id=metatx_requester_id)
+
+        delete_metatx_requester(
+            db_session=db_session, metatx_requester_id=metatx_requester_id
+        )
 
 
 def extend_bugout_holder(
