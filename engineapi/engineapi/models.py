@@ -9,12 +9,12 @@ from sqlalchemy import (
     Column,
     DateTime,
     ForeignKey,
+    ForeignKeyConstraint,
     Index,
     Integer,
     MetaData,
     String,
     UniqueConstraint,
-    ForeignKeyConstraint,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.compiler import compiles
@@ -176,9 +176,12 @@ class CallRequestType(Base):  # type: ignore
     description = Column(String, nullable=True)
 
 
+# TODO(kompotkot): Since this migrated under resource control, this table should be dropped, but
+# first ForeignKey with CASCADE from registered_contracts and call_requests and replace it
+# with simple UUID(as_uuid=True) column.
 class MetatxRequester(Base):  # type: ignore
     """
-    MetatxRequester represents id of user from bugout authorization.
+    MetatxRequester represents id of resource at Bugout.
     """
 
     __tablename__ = "metatx_requesters"

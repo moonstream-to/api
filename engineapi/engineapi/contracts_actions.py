@@ -2,9 +2,11 @@ import argparse
 import json
 import logging
 import uuid
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Set, Tuple
 
+from bugout.data import BugoutResourceHolder, HolderType
 from sqlalchemy import func, or_, text, tuple_
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine import Row
@@ -19,6 +21,13 @@ from .models import (
     CallRequestType,
     MetatxRequester,
     RegisteredContract,
+)
+from .settings import (
+    METATX_REQUESTER_TYPE,
+    MOONSTREAM_ADMIN_ACCESS_TOKEN,
+    MOONSTREAM_APPLICATION_ID,
+    bugout_client,
+    bugout_client_semaphore,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -77,12 +86,33 @@ class CallRequestIdDuplicates(Exception):
     """
 
 
+class MetatxRequestersNotFound(Exception):
+    """
+    Raised when metatx requesters is not found in Brood resources.
+    """
+
+
+def parse_registered_contract_holders_response(
+    bugout_holder: BugoutResourceHolder, name: Optional[str] = None
+) -> data.RegisteredContractHolderResponse:
+    holder = data.RegisteredContractHolderResponse(
+        holder_id=bugout_holder.id,
+        holder_type=bugout_holder.holder_type.value,
+        permissions=[p.value for p in bugout_holder.permissions],
+    )
+    if name is not None:
+        holder.name = name
+
+    return holder
+
+
 def parse_registered_contract_response(
     obj: Tuple[RegisteredContract, Blockchain]
 ) -> data.RegisteredContractResponse:
     return data.RegisteredContractResponse(
         id=obj[0].id,
         blockchain=obj[1].name,
+        chain_id=obj[1].chain_id,
         address=obj[0].address,
         metatx_requester_id=obj[0].metatx_requester_id,
         title=obj[0].title,
@@ -157,11 +187,182 @@ def validate_method_and_params(
     return call_request_type
 
 
+def create_resource_for_registered_contract(
+    registered_contract_id: uuid.UUID, user_id: uuid.UUID
+) -> uuid.UUID:
+    resource_data = {
+        "type": METATX_REQUESTER_TYPE,
+        "created_by": str(user_id),
+        "registered_contract_id": str(registered_contract_id),
+    }
+
+    resource = bugout_client.create_resource(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        application_id=MOONSTREAM_APPLICATION_ID,
+        resource_data=resource_data,
+    )
+    logger.info(
+        f"Created resource with ID: {str(resource.id)} for registered contract with ID: {str(registered_contract_id)}"
+    )
+
+    _ = bugout_client.add_resource_holder_permissions(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        resource_id=resource.id,
+        holder_permissions=BugoutResourceHolder(
+            holder_id=str(user_id),
+            holder_type="user",
+            permissions=["create", "read", "update", "delete"],
+        ),
+    )
+    logger.info(
+        f"Granted creator permissions for resource with ID: {str(resource.id)} to metatx requester with ID: {user_id}"
+    )
+
+    return resource.id
+
+
+def delete_resource_for_registered_contract(resource_id: uuid.UUID) -> None:
+    try:
+        resource = bugout_client.delete_resource(
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            resource_id=resource_id,
+        )
+    except Exception as err:
+        logger.error(f"Unable to delete resource with ID: {resource_id}, err: {err}")
+        raise
+
+    logger.info(f"Deleted resource with ID: {resource.id} for registered contract")
+
+
+def delete_metatx_requester(
+    db_session: Session, metatx_requester_id: uuid.UUID
+) -> None:
+    try:
+        metatx_requester = (
+            db_session.query(MetatxRequester)
+            .filter(MetatxRequester.id == metatx_requester_id)
+            .one()
+        )
+
+        db_session.delete(metatx_requester)
+        db_session.commit()
+    except Exception as err:
+        db_session.rollback()
+        logger.error(
+            f"Unable to delete metatx requester with ID: {metatx_requester_id}, err: {err}"
+        )
+        raise
+
+    logger.info(
+        f"Deleted metatx requester with ID: {metatx_requester_id} for registered contract"
+    )
+
+
+def clean_metatx_requester_id(db_session: Session, metatx_requester_id: uuid.UUID):
+    query = db_session.query(RegisteredContract).filter(
+        RegisteredContract.metatx_requester_id == metatx_requester_id
+    )
+    r_contracts = query.all()
+
+    if len(r_contracts) == 0:
+        delete_resource_for_registered_contract(resource_id=metatx_requester_id)
+
+        delete_metatx_requester(
+            db_session=db_session, metatx_requester_id=metatx_requester_id
+        )
+
+
+def extend_bugout_holder(
+    holder: BugoutResourceHolder,
+) -> data.RegisteredContractHolderResponse:
+    bugout_client_semaphore.acquire()
+    try:
+        if holder.holder_type == HolderType.user:
+            user = bugout_client.find_user(
+                token=MOONSTREAM_ADMIN_ACCESS_TOKEN, user_id=holder.id
+            )
+            return parse_registered_contract_holders_response(
+                bugout_holder=holder, name=user.username
+            )
+        elif holder.holder_type == HolderType.group:
+            group = bugout_client.find_group(
+                token=MOONSTREAM_ADMIN_ACCESS_TOKEN, group_id=holder.id
+            )
+            return parse_registered_contract_holders_response(
+                bugout_holder=holder, name=group.group_name
+            )
+    finally:
+        bugout_client_semaphore.release()
+
+
+def fetch_metatx_requester_holders(
+    resource_id: uuid.UUID, extended: bool = False
+) -> List[data.RegisteredContractHolderResponse]:
+
+    holders = bugout_client.get_resource_holders(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        resource_id=resource_id,
+    )
+
+    parsed_holders: List[data.RegisteredContractHolderResponse] = []
+    if extended is True:
+        with ThreadPoolExecutor() as executor:
+            futures = [
+                executor.submit(extend_bugout_holder, h) for h in holders.holders
+            ]
+
+            for future in as_completed(futures):
+                try:
+                    result = future.result()
+                    parsed_holders.append(result)
+                except Exception as err:
+                    logger.error(str(err))
+    else:
+        parsed_holders = [
+            parse_registered_contract_holders_response(bugout_holder=h)
+            for h in holders.holders
+        ]
+
+    return parsed_holders
+
+
+def add_metatx_requester_holder(
+    resource_id: uuid.UUID, holder_permissions: BugoutResourceHolder
+) -> List[data.RegisteredContractHolderResponse]:
+    holders = bugout_client.add_resource_holder_permissions(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        resource_id=resource_id,
+        holder_permissions=holder_permissions,
+    )
+    parsed_holders = [
+        parse_registered_contract_holders_response(bugout_holder=h)
+        for h in holders.holders
+    ]
+
+    return parsed_holders
+
+
+def delete_metatx_requester_holder(
+    resource_id: uuid.UUID, holder_permissions: BugoutResourceHolder
+) -> List[data.RegisteredContractHolderResponse]:
+    holders = bugout_client.delete_resource_holder_permissions(
+        token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+        resource_id=resource_id,
+        holder_permissions=holder_permissions,
+    )
+    parsed_holders = [
+        parse_registered_contract_holders_response(bugout_holder=h)
+        for h in holders.holders
+    ]
+
+    return parsed_holders
+
+
 def register_contract(
     db_session: Session,
     blockchain_name: str,
     address: str,
-    metatx_requester_id: uuid.UUID,
+    user_id: uuid.UUID,
     title: Optional[str],
     description: Optional[str],
     image_uri: Optional[str],
@@ -169,27 +370,36 @@ def register_contract(
     """
     Register a contract against the Engine instance
     """
-    try:
-        blockchain = (
-            db_session.query(Blockchain)
-            .filter(Blockchain.name == blockchain_name)
-            .one_or_none()
-        )
-        if blockchain is None:
-            raise UnsupportedBlockchain("Unsupported blockchain specified")
+    blockchain = (
+        db_session.query(Blockchain)
+        .filter(Blockchain.name == blockchain_name)
+        .one_or_none()
+    )
 
-        metatx_requester_stmt = insert(MetatxRequester.__table__).values(
-            id=metatx_requester_id
+    if blockchain is None:
+        raise UnsupportedBlockchain("Unsupported blockchain specified")
+
+    registered_contract_id = uuid.uuid4()
+
+    try:
+        resource_id = create_resource_for_registered_contract(
+            registered_contract_id=registered_contract_id, user_id=user_id
         )
-        metatx_requester_stmt_do_nothing_stmt = (
-            metatx_requester_stmt.on_conflict_do_nothing()
+    except Exception as err:
+        logger.error(repr(err))
+        raise Exception(
+            f"Unhandled exception during resource creation for user with ID: {str(user_id)}"
         )
-        db_session.execute(metatx_requester_stmt_do_nothing_stmt)
+
+    try:
+        metatx_requester_stmt = insert(MetatxRequester.__table__).values(id=resource_id)
+        db_session.execute(metatx_requester_stmt)
 
         contract = RegisteredContract(
+            id=registered_contract_id,
             blockchain_id=blockchain.id,
             address=Web3.toChecksumAddress(address),
-            metatx_requester_id=metatx_requester_id,
+            metatx_requester_id=resource_id,
             title=title,
             description=description,
             image_uri=image_uri,
@@ -198,18 +408,22 @@ def register_contract(
         db_session.commit()
     except IntegrityError as err:
         db_session.rollback()
+        delete_resource_for_registered_contract(resource_id=resource_id)
         raise ContractAlreadyRegistered()
     except Exception as err:
         db_session.rollback()
+        delete_resource_for_registered_contract(resource_id=resource_id)
         logger.error(repr(err))
-        raise
+        raise Exception(
+            f"Unhandled exception during creating new registered contract for user with ID: {str(user_id)}"
+        )
 
     return (contract, blockchain)
 
 
 def update_registered_contract(
     db_session: Session,
-    metatx_requester_id: uuid.UUID,
+    metatx_requester_ids: List[uuid.UUID],
     contract_id: uuid.UUID,
     title: Optional[str] = None,
     description: Optional[str] = None,
@@ -225,7 +439,7 @@ def update_registered_contract(
         .join(Blockchain, Blockchain.id == RegisteredContract.blockchain_id)
         .filter(
             RegisteredContract.id == contract_id,
-            RegisteredContract.metatx_requester_id == metatx_requester_id,
+            RegisteredContract.metatx_requester_id.in_(metatx_requester_ids),
         )
         .one()
     )
@@ -253,7 +467,7 @@ def update_registered_contract(
 
 def get_registered_contract(
     db_session: Session,
-    metatx_requester_id: uuid.UUID,
+    metatx_requester_ids: List[uuid.UUID],
     contract_id: uuid.UUID,
 ) -> Tuple[RegisteredContract, Blockchain]:
     """
@@ -262,7 +476,7 @@ def get_registered_contract(
     contract_with_blockchain = (
         db_session.query(RegisteredContract, Blockchain)
         .join(Blockchain, Blockchain.id == RegisteredContract.blockchain_id)
-        .filter(RegisteredContract.metatx_requester_id == metatx_requester_id)
+        .filter(RegisteredContract.metatx_requester_id.in_(metatx_requester_ids))
         .filter(RegisteredContract.id == contract_id)
         .one()
     )
@@ -273,7 +487,7 @@ def get_registered_contract(
 
 def lookup_registered_contracts(
     db_session: Session,
-    metatx_requester_id: uuid.UUID,
+    metatx_requester_ids: List[uuid.UUID],
     blockchain: Optional[str] = None,
     address: Optional[str] = None,
     limit: int = 10,
@@ -285,7 +499,7 @@ def lookup_registered_contracts(
     query = (
         db_session.query(RegisteredContract, Blockchain)
         .join(Blockchain, Blockchain.id == RegisteredContract.blockchain_id)
-        .filter(RegisteredContract.metatx_requester_id == metatx_requester_id)
+        .filter(RegisteredContract.metatx_requester_id.in_(metatx_requester_ids))
     )
 
     if blockchain is not None:
@@ -306,17 +520,18 @@ def lookup_registered_contracts(
 
 def delete_registered_contract(
     db_session: Session,
-    metatx_requester_id: uuid.UUID,
+    metatx_requester_ids: List[uuid.UUID],
     registered_contract_id: uuid.UUID,
 ) -> Tuple[RegisteredContract, Blockchain]:
     """
     Delete a registered contract
     """
+
     try:
         contract_with_blockchain = (
             db_session.query(RegisteredContract, Blockchain)
             .join(Blockchain, Blockchain.id == RegisteredContract.blockchain_id)
-            .filter(RegisteredContract.metatx_requester_id == metatx_requester_id)
+            .filter(RegisteredContract.metatx_requester_id.in_(metatx_requester_ids))
             .filter(RegisteredContract.id == registered_contract_id)
             .one()
         )
@@ -336,7 +551,7 @@ def delete_registered_contract(
 
 def create_request_calls(
     db_session: Session,
-    metatx_requester_id: uuid.UUID,
+    metatx_requester_ids: List[uuid.UUID],
     registered_contract_id: Optional[uuid.UUID],
     contract_address: Optional[str],
     call_specs: List[data.CallSpecification],
@@ -366,7 +581,7 @@ def create_request_calls(
 
     # Check that the moonstream_user_id matches a RegisteredContract with the given id or address
     query = db_session.query(RegisteredContract).filter(
-        RegisteredContract.metatx_requester_id == metatx_requester_id
+        RegisteredContract.metatx_requester_id.in_(metatx_requester_ids)
     )
 
     if registered_contract_id is not None:
@@ -380,7 +595,7 @@ def create_request_calls(
     try:
         registered_contract = query.one()
     except NoResultFound:
-        raise ValueError("Invalid registered_contract_id or metatx_requester_id")
+        raise ValueError("Invalid registered_contract_id or metatx_requester_ids")
 
     # Normalize the caller argument using Web3.toChecksumAddress
     for specification in call_specs:
@@ -414,7 +629,7 @@ def create_request_calls(
         request = CallRequest(
             registered_contract_id=registered_contract.id,
             call_request_type_name=call_request_type,
-            metatx_requester_id=metatx_requester_id,
+            metatx_requester_id=registered_contract.metatx_requester_id,
             caller=normalized_caller,
             method=specification.method,
             request_id=specification.request_id,
@@ -439,7 +654,7 @@ def create_request_calls(
 
 def get_call_request_from_tuple(
     db_session: Session,
-    metatx_requester_id: uuid.UUID,
+    metatx_requester_ids: List[uuid.UUID],
     requests: Set[Tuple[str, str]],
     contract_id: Optional[uuid.UUID] = None,
     contract_address: Optional[str] = None,
@@ -454,7 +669,7 @@ def get_call_request_from_tuple(
             RegisteredContract,
             CallRequest.registered_contract_id == RegisteredContract.id,
         )
-        .filter(RegisteredContract.metatx_requester_id == metatx_requester_id)
+        .filter(RegisteredContract.metatx_requester_id.in_(metatx_requester_ids))
         .filter(tuple_(CallRequest.caller, CallRequest.request_id).in_(requests))
     )
     if contract_id is not None:
@@ -520,7 +735,7 @@ def list_call_requests(
     offset: Optional[int] = None,
     show_expired: bool = False,
     live_after: Optional[int] = None,
-    metatx_requester_id: Optional[uuid.UUID] = None,
+    metatx_requester_ids: List[uuid.UUID] = [],
 ) -> List[Row[Tuple[CallRequest, RegisteredContract, CallRequestType]]]:
     """
     List call requests.
@@ -561,9 +776,9 @@ def list_call_requests(
 
     # If user id not specified, do not show call_requests before live_at.
     # Otherwise check show_before_live_at argument from query parameter
-    if metatx_requester_id is not None:
+    if len(metatx_requester_ids) != 0:
         query = query.filter(
-            CallRequest.metatx_requester_id == metatx_requester_id,
+            CallRequest.metatx_requester_id.in_(metatx_requester_ids),
         )
     else:
         query = query.filter(
@@ -596,7 +811,7 @@ def list_call_requests(
 
 def delete_requests(
     db_session: Session,
-    metatx_requester_id: uuid.UUID,
+    metatx_requester_ids: List[uuid.UUID],
     request_ids: List[uuid.UUID] = [],
 ) -> int:
     """
@@ -605,7 +820,7 @@ def delete_requests(
     try:
         requests_to_delete_query = (
             db_session.query(CallRequest)
-            .filter(CallRequest.metatx_requester_id == metatx_requester_id)
+            .filter(CallRequest.metatx_requester_id.in_(metatx_requester_ids))
             .filter(CallRequest.id.in_(request_ids))
         )
         requests_to_delete_num: int = requests_to_delete_query.delete(
@@ -660,6 +875,85 @@ def complete_call_request(
     return (call_request, registered_contract)
 
 
+def fetch_metatx_requester_ids(token: uuid.UUID) -> List[uuid.UUID]:
+    params = {"type": "metatx_requester"}
+
+    try:
+        resources = bugout_client.list_resources(token=token, params=params)
+    except Exception as err:
+        logger.error("Failed to list resources")
+        raise Exception(err)
+
+    if len(resources.resources) == 0:
+        raise MetatxRequestersNotFound(
+            "No metatx requesters for specific user available"
+        )
+
+    metatx_requester_ids = [r.id for r in resources.resources]
+
+    return metatx_requester_ids
+
+
+def count_contracts_and_requests_for_requester(
+    db_session: Session, metatx_requester_ids: List[uuid.UUID]
+) -> List[data.MetatxRequestersResponse]:
+    registered_contracts_subquery = (
+        db_session.query(
+            RegisteredContract.metatx_requester_id,
+            func.count(RegisteredContract.id).label("registered_contracts_count"),
+        )
+        .filter(RegisteredContract.metatx_requester_id.in_(metatx_requester_ids))
+        .group_by(RegisteredContract.metatx_requester_id)
+        .subquery()
+    )
+    call_requests_subquery = (
+        db_session.query(
+            CallRequest.metatx_requester_id,
+            func.count(CallRequest.id).label("call_requests_count"),
+        )
+        .filter(CallRequest.metatx_requester_id.in_(metatx_requester_ids))
+        .group_by(CallRequest.metatx_requester_id)
+        .subquery()
+    )
+
+    query = db_session.query(
+        registered_contracts_subquery.c.metatx_requester_id,
+        registered_contracts_subquery.c.registered_contracts_count,
+        call_requests_subquery.c.call_requests_count,
+    ).outerjoin(
+        call_requests_subquery,
+        registered_contracts_subquery.c.metatx_requester_id
+        == call_requests_subquery.c.metatx_requester_id,
+    )
+
+    results = query.all()
+
+    metatx_requesters: List[data.MetatxRequestersResponse] = []
+    for r in results:
+        metatx_requester_id = r[0]
+        metatx_requesters.append(
+            data.MetatxRequestersResponse(
+                metatx_requester_id=metatx_requester_id,
+                registered_contracts_count=r[1],
+                call_requests_count=r[2],
+            )
+        )
+
+        metatx_requester_ids.remove(metatx_requester_id)
+
+    # Add empty metatx requesters
+    for r_id in metatx_requester_ids:
+        metatx_requesters.append(
+            data.MetatxRequestersResponse(
+                metatx_requester_id=r_id,
+                registered_contracts_count=0,
+                call_requests_count=0,
+            )
+        )
+
+    return metatx_requesters
+
+
 def handle_register(args: argparse.Namespace) -> None:
     """
     Handles the register command.
@@ -671,7 +965,7 @@ def handle_register(args: argparse.Namespace) -> None:
                 blockchain=args.blockchain,
                 address=args.address,
                 contract_type=args.contract_type,
-                moonstream_user_id=args.user_id,
+                user_id=args.user_id,
                 title=args.title,
                 description=args.description,
                 image_uri=args.image_uri,
@@ -690,7 +984,7 @@ def handle_list(args: argparse.Namespace) -> None:
         with db.yield_db_session_ctx() as db_session:
             contracts = lookup_registered_contracts(
                 db_session=db_session,
-                moonstream_user_id=args.user_id,
+                metatx_requester_ids=[args.resource_id],
                 blockchain=args.blockchain,
                 address=args.address,
                 contract_type=args.contract_type,
@@ -713,7 +1007,7 @@ def handle_delete(args: argparse.Namespace) -> None:
             deleted_contract = delete_registered_contract(
                 db_session=db_session,
                 registered_contract_id=args.id,
-                moonstream_user_id=args.user_id,
+                moonstream_user_ids=[args.resource_id],
             )
     except Exception as err:
         logger.error(err)
@@ -744,7 +1038,7 @@ def handle_request_calls(args: argparse.Namespace) -> None:
         with db.yield_db_session_ctx() as db_session:
             create_request_calls(
                 db_session=db_session,
-                moonstream_user_id=args.moonstream_user_id,
+                metatx_requester_ids=[args.resource_id],
                 registered_contract_id=args.registered_contract_id,
                 call_specs=call_specs,
                 ttl_days=args.ttl_days,
@@ -870,11 +1164,11 @@ def generate_cli() -> argparse.ArgumentParser:
         help="The type of the contract",
     )
     list_contracts_parser.add_argument(
-        "-u",
-        "--user-id",
+        "-r",
+        "--resource-id",
         type=uuid.UUID,
         required=True,
-        help="The ID of the Moonstream user whose contracts to list",
+        help="The ID of the Bugout resource representing metatx requester whose contracts to list",
     )
     list_contracts_parser.add_argument(
         "-N",
@@ -905,11 +1199,11 @@ def generate_cli() -> argparse.ArgumentParser:
         help="The ID of the contract to delete",
     )
     delete_parser.add_argument(
-        "-u",
-        "--user-id",
+        "-r",
+        "--resource-id",
         type=uuid.UUID,
         required=True,
-        help="The ID of the Moonstream user whose contract to delete",
+        help="The ID of the Bugout resource representing metatx requester whose contract to delete",
     )
     delete_parser.set_defaults(func=handle_delete)
 
@@ -925,11 +1219,11 @@ def generate_cli() -> argparse.ArgumentParser:
         help="The ID of the registered contract to create call requests for",
     )
     request_calls_parser.add_argument(
-        "-u",
-        "--moonstream-user-id",
+        "-r",
+        "--resource-id",
         type=uuid.UUID,
         required=True,
-        help="The ID of the Moonstream user who owns the contract",
+        help="The ID of the Bugout resource representing metatx requester who owns the contract",
     )
     request_calls_parser.add_argument(
         "-c",

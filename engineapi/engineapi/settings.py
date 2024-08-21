@@ -1,5 +1,6 @@
 import logging
 import os
+import threading
 import warnings
 from time import sleep
 from typing import Optional, Set
@@ -17,6 +18,10 @@ BUGOUT_SPIRE_URL = os.environ.get("BUGOUT_SPIRE_URL", "https://spire.bugout.dev"
 
 bugout_client = Bugout(brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIRE_URL)
 
+BUGOUT_MAX_CONCURRENT_REQUESTS = 4
+bugout_client_semaphore = threading.Semaphore(BUGOUT_MAX_CONCURRENT_REQUESTS)
+
+METATX_REQUESTER_TYPE = "metatx_requester"
 
 ENGINE_DEV_RAW = os.environ.get("ENGINE_DEV", "")
 ENGINE_DEV = True if ENGINE_DEV_RAW in {"1", "true", "yes", "t", "y"} else False

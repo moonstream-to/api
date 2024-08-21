@@ -247,6 +247,7 @@ class UpdateContractRequest(BaseModel):
 class RegisteredContractResponse(BaseModel):
     id: UUID
     blockchain: Optional[str] = None
+    chain_id: Optional[int] = None
     address: str
     metatx_requester_id: UUID
     title: Optional[str] = None
@@ -265,6 +266,23 @@ class RegisteredContractResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class RegisteredContractHolderResponse(BaseModel):
+    holder_id: UUID
+    holder_type: str
+    permissions: List[str] = Field(default_factory=list)
+    name: Optional[str] = None
+
+
+class RegisteredContractWithHoldersResponse(RegisteredContractResponse):
+    holders: List[RegisteredContractHolderResponse] = Field(default_factory=list)
+
+
+class MetatxRequestersResponse(BaseModel):
+    metatx_requester_id: UUID
+    registered_contracts_count: int
+    call_requests_count: int
 
 
 class CallSpecification(BaseModel):
