@@ -801,7 +801,7 @@ class AbiJobs(Base):
     status = Column(VARCHAR(256), nullable=False, index=True)
     historical_crawl_status = Column(VARCHAR(256), nullable=False, index=True)
     progress = Column(Integer, nullable=False, index=False)
-    moonworm_task_pickedup = Column(Boolean, nullable=False, index=False)
+    task_pickedup = Column(Boolean, nullable=False, index=False)
     abi = Column(Text, nullable=False)
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False

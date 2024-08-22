@@ -707,7 +707,7 @@ def add_abi_to_db(
                     "status": "active",
                     "historical_crawl_status": "pending",
                     "progress": 0,
-                    "moonworm_task_pickedup": False,
+                    "task_pickedup": False,
                     "abi": json.dumps(abi),
                 }
 

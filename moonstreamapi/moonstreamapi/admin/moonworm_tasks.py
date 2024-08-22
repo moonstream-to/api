@@ -141,7 +141,7 @@ def create_v3_task(
                         "status": "active",
                         "historical_crawl_status": "pending",
                         "progress": 0,
-                        "moonworm_task_pickedup": False,
+                        "task_pickedup": False,
                         "abi": json.dumps(abi_task),
                     }
                 )
@@ -318,7 +318,7 @@ def migrate_v3_tasks(
                             "status": "active",
                             "historical_crawl_status": "pending",
                             "progress": 0,
-                            "moonworm_task_pickedup": False,
+                            "task_pickedup": False,
                             "abi": json.dumps(abi_task),
                         }
 
