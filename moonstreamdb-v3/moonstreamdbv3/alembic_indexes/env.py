@@ -36,6 +36,10 @@ from moonstreamdbv3.models_indexes import (
     ArbitrumSepoliaLogIndex,
     ArbitrumSepoliaReorgs,
     ArbitrumSepoliaTransactionIndex,
+    B3BlockIndex,
+    B3Reorgs,
+    B3SepoliaBlockIndex,
+    B3SepoliaReorgs,
     EthereumBlockIndex,
     EthereumLogIndex,
     EthereumReorgs,
@@ -131,6 +135,10 @@ def include_symbol(tablename, schema):
         ImxZkevmSepoliaTransactionIndex.__tablename__,
         ImxZkevmSepoliaLogIndex.__tablename__,
         ImxZkevmSepoliaReorgs.__tablename__,
+        B3BlockIndex.__tablename__,
+        B3Reorgs.__tablename__,
+        B3SepoliaBlockIndex.__tablename__,
+        B3SepoliaReorgs.__tablename__,
     }
 
 
