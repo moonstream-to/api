@@ -35,6 +35,8 @@ class SubscriptionTypes(Enum):
     MANTLE_SEPOLIA_BLOCKCHAIN = "mantle_sepolia_smartcontract"
     IMX_ZKEVM_BLOCKCHAIN = "imx_zkevm_smartcontract"
     IMX_ZKEVM_SEPOLIA_BLOCKCHAIN = "imx_zkevm_sepolia_smartcontract"
+    B3_BLOCKCHAIN = "b3_smartcontract"
+    B3_SEPOLIA_BLOCKCHAIN = "b3_sepolia_smartcontract"
 
 
 def blockchain_type_to_subscription_type(
@@ -98,6 +100,10 @@ def blockchain_type_to_subscription_type(
         return SubscriptionTypes.IMX_ZKEVM_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.IMX_ZKEVM_SEPOLIA:
         return SubscriptionTypes.IMX_ZKEVM_SEPOLIA_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.B3:
+        return SubscriptionTypes.B3_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.B3_SEPOLIA:
+        return SubscriptionTypes.B3_SEPOLIA_BLOCKCHAIN
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 
@@ -132,6 +138,8 @@ subscription_id_by_blockchain = {
     "mantle_sepolia": "mantle_sepolia_smartcontract",
     "imx_zkevm": "imx_zkevm_smartcontract",
     "imx_zkevm_sepolia": "imx_zkevm_sepolia_smartcontract",
+    "b3": "b3_smartcontract",
+    "b3_sepolia": "b3_sepolia_smartcontract",
 }
 
 blockchain_by_subscription_id = {
@@ -192,4 +200,6 @@ blockchain_by_subscription_id = {
     "mantle_sepolia_smartcontract": "mantle_sepolia",
     "imx_zkevm_smartcontract": "imx_zkevm",
     "imx_zkevm_sepolia_smartcontract": "imx_zkevm_sepolia",
+    "b3_smartcontract": "b3",
+    "b3_sepolia_smartcontract": "b3_sepolia",
 }
