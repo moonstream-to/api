@@ -31,6 +31,8 @@ from moonstreamdbv3.models import (
     ArbitrumSepoliaLabel,
     AvalancheFujiLabel,
     AvalancheLabel,
+    B3Label,
+    B3SepoliaLabel,
     BaseLabel,
     BlastLabel,
     BlastSepoliaLabel,
@@ -84,6 +86,8 @@ def include_symbol(tablename, schema):
         MantleSepoliaLabel.__tablename__,
         ImxZkevmLabel.__tablename__,
         ImxZkevmSepoliaLabel.__tablename__,
+        B3Label.__tablename__,
+        B3SepoliaLabel.__tablename__,
     }
 
 

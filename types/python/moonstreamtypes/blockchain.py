@@ -20,6 +20,8 @@ from moonstreamdb.models import (
     AvalancheFujiTransaction,
     AvalancheLabel,
     AvalancheTransaction,
+    B3Block,
+    B3SepoliaBlock,
     BlastBlock,
     BlastLabel,
     BlastSepoliaBlock,
@@ -95,6 +97,8 @@ from moonstreamdbv3.models import XaiSepoliaLabel as XaiSepoliaLabelV3
 from moonstreamdbv3.models import XDaiLabel as XDaiLabelV3
 from moonstreamdbv3.models import ZkSyncEraLabel as ZkSyncEraLabelV3
 from moonstreamdbv3.models import ZkSyncEraSepoliaLabel as ZkSyncEraSepoliaLabelV3
+from moonstreamdbv3.models import B3Label as B3LabelV3
+from moonstreamdbv3.models import B3SepoliaLabel as B3SepoliaLabelV3
 
 
 class AvailableBlockchainType(Enum):
@@ -127,6 +131,8 @@ class AvailableBlockchainType(Enum):
     MANTLE_SEPOLIA = "mantle_sepolia"
     IMX_ZKEVM = "imx_zkevm"
     IMX_ZKEVM_SEPOLIA = "imx_zkevm_sepolia"
+    B3 = "b3"
+    B3_SEPOLIA = "b3_sepolia"
 
 
 def get_block_model(
@@ -154,6 +160,8 @@ def get_block_model(
         ProofOfPlayApexBlock,
         MantleBlock,
         MantleSepoliaBlock,
+        B3Block,
+        B3SepoliaBlock,
     ]
 ]:
     """
@@ -182,6 +190,8 @@ def get_block_model(
             ProofOfPlayApexBlock,
             MantleBlock,
             MantleSepoliaBlock,
+            B3Block,
+            B3SepoliaBlock,
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -226,6 +236,10 @@ def get_block_model(
         block_model = MantleBlock
     elif blockchain_type == AvailableBlockchainType.MANTLE_SEPOLIA:
         block_model = MantleSepoliaBlock
+    elif blockchain_type == AvailableBlockchainType.B3:
+        block_model = B3Block
+    elif blockchain_type == AvailableBlockchainType.B3_SEPOLIA:
+        block_model = B3SepoliaBlock
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -285,6 +299,8 @@ def get_label_model(
         MantleSepoliaLabelV3,
         ImxZkevmLabelV3,
         ImxZkevmSepoliaLabelV3,
+        B3LabelV3,
+        B3SepoliaLabelV3,
     ]
 ]:
     """
@@ -344,6 +360,8 @@ def get_label_model(
             MantleSepoliaLabelV3,
             ImxZkevmLabelV3,
             ImxZkevmSepoliaLabelV3,
+            B3LabelV3,
+            B3SepoliaLabelV3,
         ]
     ]
     if version == 2:
@@ -446,6 +464,10 @@ def get_label_model(
             label_model = ImxZkevmLabelV3
         elif blockchain_type == AvailableBlockchainType.IMX_ZKEVM_SEPOLIA:
             label_model = ImxZkevmSepoliaLabelV3
+        elif blockchain_type == AvailableBlockchainType.B3:
+            label_model = B3LabelV3
+        elif blockchain_type == AvailableBlockchainType.B3_SEPOLIA:
+            label_model = B3SepoliaLabelV3
         else:
             raise Exception("Unsupported blockchain type provided")
     else:
