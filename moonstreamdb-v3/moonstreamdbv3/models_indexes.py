@@ -775,6 +775,22 @@ class Game7TestnetReorgs(EvmBasedReorgs):
     __tablename__ = "game7_testnet_reorgs"
 
 
+class B3BlockIndex(EvmBasedBlocks):
+    __tablename__ = "b3_blocks"
+
+
+class B3Reorgs(EvmBasedReorgs):
+    __tablename__ = "b3_reorgs"
+
+
+class B3SepoliaBlockIndex(EvmBasedBlocks):
+    __tablename__ = "b3_sepolia_blocks"
+
+
+class B3SepoliaReorgs(EvmBasedReorgs):
+    __tablename__ = "b3_sepolia_reorgs"
+
+
 ### ABI Jobs
 
 

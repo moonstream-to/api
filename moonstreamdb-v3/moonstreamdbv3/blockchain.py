@@ -28,6 +28,8 @@ from .models import (
     StarknetSepoliaLabel,
     MantleLabel,
     MantleSepoliaLabel,
+    B3Label,
+    B3SepoliaLabel,
 )
 
 
@@ -57,6 +59,8 @@ class AvailableBlockchainType(Enum):
     MANTLE_SEPOLIA = "mantle_sepolia"
     GAME7_ORBIT_ARBITRUM_SEPOLIA = "game7_orbit_arbitrum_sepolia"
     GAME7_TESTNET = "game7_testnet"
+    B3 = "b3"
+    B3_SEPOLIA = "b3_sepolia"
 
 
 def get_label_model(blockchain_type: AvailableBlockchainType) -> Type[
@@ -86,6 +90,8 @@ def get_label_model(blockchain_type: AvailableBlockchainType) -> Type[
         StarknetSepoliaLabel,
         MantleLabel,
         MantleSepoliaLabel,
+        B3Label,
+        B3SepoliaLabel,
     ]
 ]:
     """
@@ -119,6 +125,8 @@ def get_label_model(blockchain_type: AvailableBlockchainType) -> Type[
             StarknetSepoliaLabel,
             MantleLabel,
             MantleSepoliaLabel,
+            B3Label,
+            B3SepoliaLabel,
         ]
     ]
 
@@ -170,6 +178,10 @@ def get_label_model(blockchain_type: AvailableBlockchainType) -> Type[
         label_model = Game7OrbitArbitrumSepoliaLabel
     elif blockchain_type == AvailableBlockchainType.GAME7_TESTNET:
         label_model = Game7TestnetLabel
+    elif blockchain_type == AvailableBlockchainType.B3:
+        label_model = B3Label
+    elif blockchain_type == AvailableBlockchainType.B3_SEPOLIA:
+        label_model = B3SepoliaLabel
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 

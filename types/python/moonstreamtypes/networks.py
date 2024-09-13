@@ -96,6 +96,8 @@ from moonstreamdbv3.models import XaiSepoliaLabel as XaiSepoliaLabelV3
 from moonstreamdbv3.models import XDaiLabel as XDaiLabelV3
 from moonstreamdbv3.models import ZkSyncEraLabel as ZkSyncEraLabelV3
 from moonstreamdbv3.models import ZkSyncEraSepoliaLabel as ZkSyncEraSepoliaLabelV3
+from moonstreamdbv3.models import B3Label as B3LabelV3
+from moonstreamdbv3.models import B3SepoliaLabel as B3SepoliaLabelV3
 
 from .blockchain import AvailableBlockchainType
 
@@ -130,6 +132,8 @@ class Network(Enum):
     mantle_sepolia = "mantle_sepolia"
     imx_zkevm = "imx_zkevm"
     imx_zkevm_sepolia = "imx_zkevm_sepolia"
+    b3 = "b3"
+    b3_sepolia = "b3_sepolia"
 
 
 tx_raw_types = Union[
@@ -346,6 +350,12 @@ MODELS_V3: Dict[Network, Dict[str, Base]] = {
     Network.imx_zkevm_sepolia: {
         "labels": ImxZkevmSepoliaLabelV3,
     },
+    Network.b3: {
+        "labels": B3LabelV3,
+    },
+    Network.b3_sepolia: {
+        "labels": B3SepoliaLabelV3,
+    },
 }
 
 
@@ -411,5 +421,9 @@ def blockchain_type_to_network_type(
         return Network.imx_zkevm
     elif blockchain_type == AvailableBlockchainType.IMX_ZKEVM_SEPOLIA:
         return Network.imx_zkevm_sepolia
+    elif blockchain_type == AvailableBlockchainType.B3:
+        return Network.b3
+    elif blockchain_type == AvailableBlockchainType.B3_SEPOLIA:
+        return Network.b3_sepolia
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
