@@ -106,13 +106,17 @@ class EvmBasedReorgs(Base):
 class evmBasedContracts(Base):
     __abstract__ = True
     address = Column(LargeBinary(length=20), primary_key=True, nullable=False)
-    bytecode = Column(Text, nullable=False)
+    bytecode = Column(Text, nullable=True)
+    deployed_bytecode = Column(Text, nullable=False)
     abi = Column(JSONB, nullable=True)
     deployed_at_block_number = Column(BigInteger, nullable=False)
     deployed_at_block_hash = Column(VARCHAR(256), nullable=False)
     deployed_at_block_timestamp = Column(BigInteger, nullable=False)
+    transaction_hash = Column(VARCHAR(256), nullable=False, index=True)
+    transaction_index = Column(BigInteger, nullable=False)
     name = Column(VARCHAR(256), nullable=True, index=True)
     statistics = Column(JSONB, nullable=True)
+    supported_standards = Column(JSONB, nullable=True)
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )
