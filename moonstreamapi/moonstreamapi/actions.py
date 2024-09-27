@@ -1184,7 +1184,7 @@ def create_resource_for_user(
 def chekc_user_resource_access(
     customer_id: uuid.UUID,
     user_token: uuid.UUID,
-) -> bool:
+) -> Optional[BugoutResource]:
     """
     Check if user has access to customer_id
     """
@@ -1198,10 +1198,10 @@ def chekc_user_resource_access(
 
     except BugoutResponseException as e:
         if e.status_code == 404:
-            return False
+            return None
         raise MoonstreamHTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
         logger.error(f"Error get customer: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
-    return str(response.id) == customer_id
+    return response

@@ -109,11 +109,13 @@ async def add_subscription_handler(
             user_token=token,
         )
 
-        if not results:
+        if results is None:
             raise MoonstreamHTTPException(
                 status_code=403,
                 detail="User has no access to this customer",
             )
+
+        customer_instance_name = results.resource_data["name"]
 
     active_subscription_types_response = subscription_types.list_subscription_types(
         active_only=True
@@ -172,6 +174,18 @@ async def add_subscription_handler(
         {"user_id": f"{user.id}"},
     ]
 
+    if customer_id is not None and customer_instance_name is not None:
+        required_fields.extend(
+            [
+                {
+                    "customer_id": f"{customer_id}",
+                },
+                {
+                    "instance_name": f"{customer_instance_name}",
+                },
+            ]
+        )
+
     if allowed_required_fields:
         required_fields.extend(allowed_required_fields)
 
@@ -218,7 +232,7 @@ async def add_subscription_handler(
         f"{key}:{value}"
         for tag in entity_required_fields
         for key, value in tag.items()
-        if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS
+        if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS or key == "instance_name"
     ]
 
     if entity_secondary_fields.get("abi") and customer_id is not None:
@@ -402,7 +416,7 @@ async def get_subscriptions_handler(
             f"{key}:{value}"
             for tag in tags
             for key, value in tag.items()
-            if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS
+            if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS or key == "instance_name"
         ]
 
         subscriptions.append(
@@ -465,7 +479,7 @@ async def update_subscriptions_handler(
             user_token=token,
         )
 
-        if not results:
+        if results is None:
             raise MoonstreamHTTPException(
                 status_code=403,
                 detail="User has no access to this customer",
@@ -624,7 +638,7 @@ async def update_subscriptions_handler(
         f"{key}:{value}"
         for tag in subscription_required_fields
         for key, value in tag.items()
-        if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS
+        if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS and key != "instance_name"
     ]
 
     return data.SubscriptionResourceData(

@@ -309,6 +309,8 @@ MOONSTREAM_ENTITIES_RESERVED_TAGS = [
     "user_id",
     "address",
     "blockchain",
+    "customer_id",
+    "instance_name",
 ]
 
 ## Moonstream resources types
