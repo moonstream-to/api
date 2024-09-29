@@ -927,3 +927,19 @@ class AbiSubscriptions(Base):
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )
+
+
+class BytecodeStorage(Base):
+
+    __tablename__ = "bytecode_storage"
+
+    __table_args__ = (UniqueConstraint("hash", name="uq_bytecode_storage_hash"),)
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    hash = Column(Text, nullable=False, index=True)
+    bytecode = Column(Text, nullable=False)
+    title = Column(VARCHAR(256), nullable=True)
+    description = Column(Text, nullable=True)
+    Abi = Column(Text, nullable=True)
+    code = Column(Text, nullable=True)
+    metadata = Column(JSONB, nullable=True)
