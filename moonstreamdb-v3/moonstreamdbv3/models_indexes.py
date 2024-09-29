@@ -942,4 +942,4 @@ class BytecodeStorage(Base):
     description = Column(Text, nullable=True)
     Abi = Column(Text, nullable=True)
     code = Column(Text, nullable=True)
-    metadata = Column(JSONB, nullable=True)
+    data = Column(JSONB, nullable=True)
