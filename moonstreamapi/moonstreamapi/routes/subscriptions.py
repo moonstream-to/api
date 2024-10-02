@@ -158,12 +158,12 @@ async def add_subscription_handler(
     if description:
         content["description"] = description
 
+    excluded_keys = MOONSTREAM_ENTITIES_RESERVED_TAGS
+
     allowed_required_fields: List[Any] = []
     if tags:
         allowed_required_fields = [
-            item
-            for item in tags
-            if not any(key in item for key in MOONSTREAM_ENTITIES_RESERVED_TAGS)
+            item for item in tags if not any(key in item for key in excluded_keys)
         ]
 
     required_fields: List[Dict[str, Union[str, bool, int, List[Any]]]] = [
@@ -228,11 +228,15 @@ async def add_subscription_handler(
     entity_secondary_fields = (
         entity.secondary_fields if entity.secondary_fields is not None else {}
     )
+
+    # We remove the instance_name for return that tag to the frontend
+    excluded_keys = excluded_keys - {"instance_name"}
+
     normalized_entity_tags = [
         f"{key}:{value}"
         for tag in entity_required_fields
         for key, value in tag.items()
-        if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS or key == "instance_name"
+        if key not in excluded_keys
     ]
 
     if entity_secondary_fields.get("abi") and customer_id is not None:
@@ -324,7 +328,7 @@ async def delete_subscription_handler(
         f"{key}:{value}"
         for tag in tags_raw
         for key, value in tag.items()
-        if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS
+        if key not in (MOONSTREAM_ENTITIES_RESERVED_TAGS - {"instance_name"})
     ]
 
     if deleted_entity.secondary_fields is not None:
@@ -397,6 +401,9 @@ async def get_subscriptions_handler(
         List[BugoutSearchResultAsEntity], subscriptions_list.results
     )
 
+    # We remove the instance_name for return that tag to the frontend
+    excluded_keys = MOONSTREAM_ENTITIES_RESERVED_TAGS - {"instance_name"}
+
     for subscription in user_subscriptions_results:
         tags = subscription.required_fields
 
@@ -416,7 +423,7 @@ async def get_subscriptions_handler(
             f"{key}:{value}"
             for tag in tags
             for key, value in tag.items()
-            if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS or key == "instance_name"
+            if key not in excluded_keys
         ]
 
         subscriptions.append(
@@ -485,6 +492,8 @@ async def update_subscriptions_handler(
                 detail="Not found customer",
             )
 
+    excluded_keys = MOONSTREAM_ENTITIES_RESERVED_TAGS
+
     try:
         journal_id = get_entity_subscription_journal_id(
             resource_type=BUGOUT_RESOURCE_TYPE_ENTITY_SUBSCRIPTION,
@@ -504,7 +513,7 @@ async def update_subscriptions_handler(
             update_required_fields = [
                 field
                 for field in subscription_entity.required_fields
-                if any(key in field for key in MOONSTREAM_ENTITIES_RESERVED_TAGS)
+                if any(key in field for key in excluded_keys)
             ]
 
         update_secondary_fields = (
@@ -570,9 +579,7 @@ async def update_subscriptions_handler(
 
     if tags:
         allowed_required_fields = [
-            item
-            for item in tags
-            if not any(key in item for key in MOONSTREAM_ENTITIES_RESERVED_TAGS)
+            item for item in tags if not any(key in item for key in excluded_keys)
         ]
 
         if allowed_required_fields:
@@ -633,12 +640,14 @@ async def update_subscriptions_handler(
         if subscription.secondary_fields is not None
         else {}
     )
+    # We remove the instance_name for return that tag to the frontend
+    excluded_keys = excluded_keys - {"instance_name"}
 
     normalized_entity_tags = [
         f"{key}:{value}"
         for tag in subscription_required_fields
         for key, value in tag.items()
-        if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS or key == "instance_name"
+        if key not in excluded_keys
     ]
 
     return data.SubscriptionResourceData(
