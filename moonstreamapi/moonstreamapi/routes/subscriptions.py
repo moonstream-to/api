@@ -20,7 +20,7 @@ from ..actions import (
     EntityJournalNotFoundException,
     apply_moonworm_tasks,
     check_if_smart_contract,
-    chekc_user_resource_access,
+    check_user_resource_access,
     get_entity_subscription_journal_id,
     get_list_of_support_interfaces,
     get_moonworm_tasks,
@@ -104,15 +104,15 @@ async def add_subscription_handler(
 
     if customer_id is not None:
 
-        results = chekc_user_resource_access(
+        results = check_user_resource_access(
             customer_id=customer_id,
             user_token=token,
         )
 
         if results is None:
             raise MoonstreamHTTPException(
-                status_code=403,
-                detail="User has no access to this customer",
+                status_code=404,
+                detail="Not found customer",
             )
 
         customer_instance_name = results.resource_data["name"]
@@ -474,15 +474,15 @@ async def update_subscriptions_handler(
 
     if customer_id is not None:
 
-        results = chekc_user_resource_access(
+        results = check_user_resource_access(
             customer_id=customer_id,
             user_token=token,
         )
 
         if results is None:
             raise MoonstreamHTTPException(
-                status_code=403,
-                detail="User has no access to this customer",
+                status_code=404,
+                detail="Not found customer",
             )
 
     try:
@@ -638,7 +638,7 @@ async def update_subscriptions_handler(
         f"{key}:{value}"
         for tag in subscription_required_fields
         for key, value in tag.items()
-        if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS and key != "instance_name"
+        if key not in MOONSTREAM_ENTITIES_RESERVED_TAGS or key == "instance_name"
     ]
 
     return data.SubscriptionResourceData(

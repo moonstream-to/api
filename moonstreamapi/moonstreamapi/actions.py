@@ -1181,7 +1181,7 @@ def create_resource_for_user(
     return resource
 
 
-def chekc_user_resource_access(
+def check_user_resource_access(
     customer_id: uuid.UUID,
     user_token: uuid.UUID,
 ) -> Optional[BugoutResource]:
