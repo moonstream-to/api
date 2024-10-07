@@ -174,6 +174,70 @@ def create_v3_task(
     return None
 
 
+def get_v3_tasks(
+    customer_id: Optional[str] = None,
+    user_id: Optional[str] = None,
+    address: Optional[str] = None,
+    blockchain: Optional[str] = None,
+) -> List[AbiJobs]:
+    """
+    Get moonworm v3 tasks.
+    """
+    if (
+        customer_id is None
+        and user_id is None
+        and address is None
+        and blockchain is None
+    ):
+        raise Exception(
+            "At least one of customer_id, or user_id, or address, or blockchain should be set"
+        )
+
+    db_engine = MoonstreamDBIndexesEngine()
+
+    with db_engine.yield_db_session_ctx() as db_session_v3:
+        query = db_session_v3.query(AbiJobs)
+
+        if customer_id is not None:
+            query = query.filter(AbiJobs.customer_id == customer_id)
+        if user_id is not None:
+            query = query.filter(AbiJobs.user_id == user_id)
+        if address is not None:
+            query = query.filter(AbiJobs.address == bytes.fromhex(address[2:]))
+        if blockchain is not None:
+            query = query.filter(AbiJobs.chain == blockchain)
+
+        try:
+            tasks = query.all()
+        except Exception as e:
+            logger.error(f"Error selecting tasks, err: {str(e)}")
+            raise e
+
+    return tasks
+
+
+def delete_v3_tasks(tasks: List[AbiJobs]) -> None:
+    tasks_len = len(tasks)
+    if tasks_len == 0:
+        raise Exception("No tasks to delete")
+
+    db_engine = MoonstreamDBIndexesEngine()
+
+    with db_engine.yield_db_session_ctx() as db_session_v3:
+        try:
+            for task in tasks:
+                db_session_v3.delete(task)
+                pass
+
+            db_session_v3.commit()
+        except Exception as e:
+            logger.error(f"Error delete tasks: {str(e)}")
+            db_session_v3.rollback()
+            raise e
+
+    logger.info(f"Deleted {tasks_len} tasks")
+
+
 def migrate_v3_tasks(
     user_id: UUID, customer_id: UUID, blockchain: Optional[str] = None
 ):
