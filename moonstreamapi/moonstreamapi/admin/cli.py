@@ -315,6 +315,33 @@ def create_v3_task_handler(args: argparse.Namespace) -> None:
     )
 
 
+def delete_v3_task_handler(args: argparse.Namespace) -> None:
+
+    tasks = moonworm_tasks.get_v3_tasks(
+        user_id=args.user_id,
+        customer_id=args.customer_id,
+        blockchain=args.blockchain,
+        address=args.address,
+    )
+
+    tasks_dict_output: Dict[str, int] = {}
+    for task in tasks:
+        if task.chain not in tasks_dict_output:
+            tasks_dict_output[task.chain] = 0
+        tasks_dict_output[task.chain] += 1
+    
+    print("Found:")
+    for k, v in tasks_dict_output.items():
+        print(f"- {k} - {v} tasks")
+
+    response = input(f"Delete {len(tasks)} tasks? (yes/y): ").strip().lower()
+    if response != "yes" and response != "y":
+        logger.warning("Canceled")
+        return
+
+    moonworm_tasks.delete_v3_tasks(tasks=tasks)
+
+
 def main() -> None:
     cli_description = f"""Moonstream Admin CLI
 
@@ -598,8 +625,8 @@ This CLI is configured to work with the following API URLs:
     parser_moonworm_tasks_migrate.set_defaults(func=moonworm_tasks_v3_migrate)
 
     parser_moonworm_tasks_v3_create = subcommands_moonworm_tasks.add_parser(
-        "create_v3_tasks",
-        description="Create v3 tasks from v2 tasks",
+        "create-v3-tasks",
+        description="Create new v3 tasks",
     )
 
     parser_moonworm_tasks_v3_create.add_argument(
@@ -638,6 +665,37 @@ This CLI is configured to work with the following API URLs:
     )
 
     parser_moonworm_tasks_v3_create.set_defaults(func=create_v3_task_handler)
+
+    parser_moonworm_tasks_v3_delete = subcommands_moonworm_tasks.add_parser(
+        "delete-v3-tasks",
+        description="Delete v3 tasks",
+    )
+
+    parser_moonworm_tasks_v3_delete.add_argument(
+        "--user-id",
+        type=uuid_type,
+        help="The user ID of which we wish to delete the task",
+    )
+
+    parser_moonworm_tasks_v3_delete.add_argument(
+        "--customer-id",
+        type=uuid_type,
+        help="The customer ID of which we wish to delete the task",
+    )
+
+    parser_moonworm_tasks_v3_delete.add_argument(
+        "--blockchain",
+        type=str,
+        help="Blockchain name",
+    )
+
+    parser_moonworm_tasks_v3_delete.add_argument(
+        "--address",
+        type=str,
+        help="Contract address",
+    )
+
+    parser_moonworm_tasks_v3_delete.set_defaults(func=delete_v3_task_handler)
 
     queries_parser = subcommands.add_parser(
         "queries", description="Manage Moonstream queries"
