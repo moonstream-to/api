@@ -727,6 +727,22 @@ class ImxZkevmSepoliaReorgs(EvmBasedReorgs):
     __tablename__ = "imx_zkevm_sepolia_reorgs"
 
 
+# Game7
+
+
+class Game7BlockIndex(EvmBasedBlocks):
+    __tablename__ = "game7_blocks"
+
+    l1_block_number = Column(BigInteger, nullable=False)
+
+
+class Game7Reorgs(EvmBasedReorgs):
+    __tablename__ = "game7_reorgs"
+
+
+# Game7 Testnet
+
+
 class Game7TestnetBlockIndex(EvmBasedBlocks):
     __tablename__ = "game7_testnet_blocks"
 
@@ -773,6 +789,9 @@ class Game7TestnetLogIndex(EvmBasedLogs):
 
 class Game7TestnetReorgs(EvmBasedReorgs):
     __tablename__ = "game7_testnet_reorgs"
+
+
+# B3
 
 
 class B3BlockIndex(EvmBasedBlocks):
