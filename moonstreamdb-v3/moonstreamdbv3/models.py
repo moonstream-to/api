@@ -15,6 +15,7 @@ Example of label_data column record:
     }
 """
 
+import os
 import uuid
 
 from sqlalchemy import (
@@ -55,6 +56,10 @@ Following:
 2. https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-CURRENT
 3. https://stackoverflow.com/a/33532154/13659585
 """
+
+MOONSTREAM_DB_V3_SCHEMA_NAME = os.environ.get(
+    "MOONSTREAM_DB_V3_SCHEMA_NAME", "blockchain"
+)
 
 
 class utcnow(expression.FunctionElement):
