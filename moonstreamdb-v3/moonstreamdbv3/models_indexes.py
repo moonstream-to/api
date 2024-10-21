@@ -108,6 +108,9 @@ class evmBasedContracts(Base):
     address = Column(LargeBinary(length=20), primary_key=True, nullable=False)
     bytecode = Column(Text, nullable=True)
     deployed_bytecode = Column(Text, nullable=False)
+    bytecode_storage_id = Column(
+        UUID(as_uuid=True), ForeignKey("bytecode_storage.id"), nullable=True
+    )
     abi = Column(JSONB, nullable=True)
     deployed_at_block_number = Column(BigInteger, nullable=False)
     deployed_at_block_hash = Column(VARCHAR(256), nullable=False)
