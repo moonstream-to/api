@@ -25,6 +25,7 @@ target_metadata = MoonstreamBase.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 from moonstreamdbv3.models import (
+    MOONSTREAM_DB_V3_SCHEMA_NAME,
     AmoyLabel,
     ArbitrumNovaLabel,
     ArbitrumOneLabel,
@@ -37,6 +38,7 @@ from moonstreamdbv3.models import (
     BlastLabel,
     BlastSepoliaLabel,
     EthereumLabel,
+    Game7Label,
     Game7OrbitArbitrumSepoliaLabel,
     Game7TestnetLabel,
     ImxZkevmLabel,
@@ -71,6 +73,7 @@ def include_symbol(tablename, schema):
         ArbitrumNovaLabel.__tablename__,
         ArbitrumOneLabel.__tablename__,
         ArbitrumSepoliaLabel.__tablename__,
+        Game7Label.__tablename__,
         Game7OrbitArbitrumSepoliaLabel.__tablename__,
         Game7TestnetLabel.__tablename__,
         XaiLabel.__tablename__,
@@ -110,6 +113,7 @@ def run_migrations_offline() -> None:
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         version_table="alembic_version",
+        version_table_schema=MOONSTREAM_DB_V3_SCHEMA_NAME,
         include_schemas=True,
         include_symbol=include_symbol,
     )
@@ -136,6 +140,7 @@ def run_migrations_online() -> None:
             connection=connection,
             target_metadata=target_metadata,
             version_table="alembic_version",
+            version_table_schema=MOONSTREAM_DB_V3_SCHEMA_NAME,
             include_schemas=True,
             include_symbol=include_symbol,
         )

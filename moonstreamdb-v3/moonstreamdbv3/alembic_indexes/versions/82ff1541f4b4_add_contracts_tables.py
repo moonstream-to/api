@@ -1,8 +1,8 @@
 """Add contracts tables
 
-Revision ID: e1ca63e94f03
-Revises: 6807bdf6f417
-Create Date: 2024-11-04 13:34:09.484335
+Revision ID: 82ff1541f4b4
+Revises: c1bc596631f9
+Create Date: 2024-11-04 14:29:45.303216
 
 """
 
@@ -13,8 +13,8 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = "e1ca63e94f03"
-down_revision: Union[str, None] = "6807bdf6f417"
+revision: str = "82ff1541f4b4"
+down_revision: Union[str, None] = "c1bc596631f9"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -322,6 +322,59 @@ def upgrade() -> None:
     op.create_index(
         op.f("ix_ethereum_contracts_transaction_hash"),
         "ethereum_contracts",
+        ["transaction_hash"],
+        unique=False,
+    )
+    op.create_table(
+        "game7_contracts",
+        sa.Column("address", sa.LargeBinary(length=20), nullable=False),
+        sa.Column("deployed_bytecode", sa.Text(), nullable=False),
+        sa.Column("deployed_bytecode_hash", sa.VARCHAR(length=32), nullable=False),
+        sa.Column("bytecode_storage_id", sa.UUID(), nullable=True),
+        sa.Column("abi", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+        sa.Column("deployed_at_block_number", sa.BigInteger(), nullable=False),
+        sa.Column("deployed_at_block_hash", sa.VARCHAR(length=256), nullable=False),
+        sa.Column("deployed_at_block_timestamp", sa.BigInteger(), nullable=False),
+        sa.Column("transaction_hash", sa.VARCHAR(length=256), nullable=False),
+        sa.Column("transaction_index", sa.BigInteger(), nullable=False),
+        sa.Column("name", sa.VARCHAR(length=256), nullable=True),
+        sa.Column("statistics", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+        sa.Column(
+            "supported_standards",
+            postgresql.JSONB(astext_type=sa.Text()),
+            nullable=True,
+        ),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("TIMEZONE('utc', statement_timestamp())"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("TIMEZONE('utc', statement_timestamp())"),
+            nullable=False,
+        ),
+        sa.ForeignKeyConstraint(
+            ["bytecode_storage_id"],
+            ["bytecode_storage.id"],
+            name=op.f("fk_game7_contracts_bytecode_storage_id_bytecode_storage"),
+        ),
+        sa.PrimaryKeyConstraint("address", name=op.f("pk_game7_contracts")),
+    )
+    op.create_index(
+        op.f("ix_game7_contracts_deployed_bytecode_hash"),
+        "game7_contracts",
+        ["deployed_bytecode_hash"],
+        unique=False,
+    )
+    op.create_index(
+        op.f("ix_game7_contracts_name"), "game7_contracts", ["name"], unique=False
+    )
+    op.create_index(
+        op.f("ix_game7_contracts_transaction_hash"),
+        "game7_contracts",
         ["transaction_hash"],
         unique=False,
     )
@@ -993,6 +1046,14 @@ def downgrade() -> None:
         table_name="game7_orbit_arbitrum_sepolia_contracts",
     )
     op.drop_table("game7_orbit_arbitrum_sepolia_contracts")
+    op.drop_index(
+        op.f("ix_game7_contracts_transaction_hash"), table_name="game7_contracts"
+    )
+    op.drop_index(op.f("ix_game7_contracts_name"), table_name="game7_contracts")
+    op.drop_index(
+        op.f("ix_game7_contracts_deployed_bytecode_hash"), table_name="game7_contracts"
+    )
+    op.drop_table("game7_contracts")
     op.drop_index(
         op.f("ix_ethereum_contracts_transaction_hash"), table_name="ethereum_contracts"
     )

@@ -15,6 +15,7 @@ Example of label_data column record:
     }
 """
 
+import os
 import uuid
 
 from sqlalchemy import (
@@ -55,6 +56,10 @@ Following:
 2. https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-CURRENT
 3. https://stackoverflow.com/a/33532154/13659585
 """
+
+MOONSTREAM_DB_V3_SCHEMA_NAME = os.environ.get(
+    "MOONSTREAM_DB_V3_SCHEMA_NAME", "blockchain"
+)
 
 
 class utcnow(expression.FunctionElement):
@@ -1281,6 +1286,51 @@ class ImxZkevmSepoliaLabel(EvmBasedLabel):  # type: ignore
         ),
         Index(
             "uk_imx_zkevm_sepolia_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
+        ),
+    )
+
+
+class Game7Label(EvmBasedLabel):  # type: ignore
+    __tablename__ = "game7_labels"
+
+    __table_args__ = (
+        Index(
+            "ix_game7_labels_addr_block_num",
+            "address",
+            "block_number",
+            unique=False,
+        ),
+        Index(
+            "ix_game7_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
+            unique=False,
+        ),
+        Index(
+            "uk_game7_labels_tx_hash_tx_call",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_game7_labels_tx_hash_log_idx_evt",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer' and label_type='event'"),
+        ),
+        Index(
+            "uk_game7_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_game7_labels_tx_hash_log_idx_evt_raw",
             "transaction_hash",
             "log_index",
             unique=True,

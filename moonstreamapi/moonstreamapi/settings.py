@@ -301,15 +301,19 @@ if MOONSTREAM_S3_QUERIES_BUCKET_PREFIX == "":
     )
 
 # Entities reserved tags
-MOONSTREAM_ENTITIES_RESERVED_TAGS = [
-    "type",
-    "subscription_type_id",
-    "color",
-    "label",
-    "user_id",
-    "address",
-    "blockchain",
-]
+MOONSTREAM_ENTITIES_RESERVED_TAGS = set(
+    [
+        "type",
+        "subscription_type_id",
+        "color",
+        "label",
+        "user_id",
+        "address",
+        "blockchain",
+        "customer_id",
+        "instance_name",
+    ]
+)
 
 ## Moonstream resources types
 

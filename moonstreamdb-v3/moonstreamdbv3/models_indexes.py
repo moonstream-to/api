@@ -806,6 +806,24 @@ class ImxZkevmSepoliaContracts(evmBasedContracts):
 
 
 ### Game7 Testnet
+# Game7
+
+
+class Game7BlockIndex(EvmBasedBlocks):
+    __tablename__ = "game7_blocks"
+
+    l1_block_number = Column(BigInteger, nullable=False)
+
+
+class Game7Reorgs(EvmBasedReorgs):
+    __tablename__ = "game7_reorgs"
+
+
+class Game7Contracts(evmBasedContracts):
+    __tablename__ = "game7_contracts"
+
+
+# Game7 Testnet
 
 
 class Game7TestnetBlockIndex(EvmBasedBlocks):
@@ -860,6 +878,7 @@ class Game7TestnetContracts(evmBasedContracts):
     __tablename__ = "game7_testnet_contracts"
 
 
+# B3
 class B3BlockIndex(EvmBasedBlocks):
     __tablename__ = "b3_blocks"
 
