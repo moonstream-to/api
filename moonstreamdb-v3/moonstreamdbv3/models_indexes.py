@@ -106,8 +106,10 @@ class EvmBasedReorgs(Base):
 class evmBasedContracts(Base):
     __abstract__ = True
     address = Column(LargeBinary(length=20), primary_key=True, nullable=False)
-    bytecode = Column(Text, nullable=True)
     deployed_bytecode = Column(Text, nullable=False)
+    deployed_bytecode_hash = Column(
+        VARCHAR(32), nullable=False, index=True
+    )  # MD5 hash of the deployed bytecode
     bytecode_storage_id = Column(
         UUID(as_uuid=True), ForeignKey("bytecode_storage.id"), nullable=True
     )
@@ -124,7 +126,10 @@ class evmBasedContracts(Base):
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )
     updated_at = Column(
-        DateTime(timezone=True), server_default=utcnow(), nullable=False
+        DateTime(timezone=True),
+        server_default=utcnow(),
+        onupdate=utcnow(),
+        nullable=False,
     )
 
 
@@ -940,10 +945,19 @@ class BytecodeStorage(Base):
     __table_args__ = (UniqueConstraint("hash", name="uq_bytecode_storage_hash"),)
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    hash = Column(Text, nullable=False, index=True)
+    hash = Column(VARCHAR(32), nullable=False, index=True)
     bytecode = Column(Text, nullable=False)
     title = Column(VARCHAR(256), nullable=True)
     description = Column(Text, nullable=True)
-    Abi = Column(Text, nullable=True)
-    code = Column(Text, nullable=True)
+    abi = Column(JSONB, nullable=True)
+    code = Column(Text, nullable=True)  # source code
     data = Column(JSONB, nullable=True)
+    created_at = Column(
+        DateTime(timezone=True), server_default=utcnow(), nullable=False
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=utcnow(),
+        onupdate=utcnow(),
+        nullable=False,
+    )
