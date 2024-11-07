@@ -106,6 +106,7 @@ class EvmBasedReorgs(Base):
 class evmBasedContracts(Base):
     __abstract__ = True
     address = Column(LargeBinary(length=20), primary_key=True, nullable=False)
+    deployed_by = Column(LargeBinary(length=20), nullable=False, index=True)
     deployed_bytecode = Column(Text, nullable=False)
     deployed_bytecode_hash = Column(
         VARCHAR(32), nullable=False, index=True
