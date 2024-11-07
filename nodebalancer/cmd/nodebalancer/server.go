@@ -214,6 +214,15 @@ func Server() {
 			// Change r.Host from nodebalancer's to end host so TLS check will be passed
 			r.Host = r.URL.Host
 		}
+
+		proxyToEndpoint.ModifyResponse = func(w *http.Response) error {
+			// Remove proxy headers
+			for k := range w.Header {
+				w.Header.Del(k)
+			}
+			return nil
+		}
+
 		proxyErrorHandler(proxyToEndpoint, endpoint)
 
 		blockchainPool.AddNode(&Node{
