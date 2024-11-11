@@ -744,8 +744,8 @@ class ArbitrumSepoliaLabel(EvmBasedLabel):  # type: ignore
     )
 
 
-class ArbitrumOneSepoliaLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "arbitrum_one_sepolia_labels"
+class ArbitrumSepoliaTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "arbitrum_sepolia_transactions"
 
     l1_block_number = Column(BigInteger, nullable=True)
 
