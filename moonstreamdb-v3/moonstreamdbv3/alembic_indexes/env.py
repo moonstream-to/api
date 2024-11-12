@@ -74,6 +74,12 @@ from moonstreamdbv3.models_indexes import (
     PolygonLogIndex,
     PolygonReorgs,
     PolygonTransactionIndex,
+    RoninBlockIndex,
+    RoninReorgs,
+    RoninContracts,
+    RoninSaigonBlockIndex,
+    RoninSaigonReorgs,
+    RoninSaigonContracts,
     XaiBlockIndex,
     XaiLogIndex,
     XaiReorgs,
@@ -143,6 +149,12 @@ def include_symbol(tablename, schema):
         B3Reorgs.__tablename__,
         B3SepoliaBlockIndex.__tablename__,
         B3SepoliaReorgs.__tablename__,
+        RoninBlockIndex.__tablename__,
+        RoninReorgs.__tablename__,
+        RoninContracts.__tablename__,
+        RoninSaigonBlockIndex.__tablename__,
+        RoninSaigonReorgs.__tablename__,
+        RoninSaigonContracts.__tablename__,
     }
 
 

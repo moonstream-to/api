@@ -904,6 +904,30 @@ class B3SepoliaContracts(evmBasedContracts):
     __tablename__ = "b3_sepolia_contracts"
 
 
+class RoninBlockIndex(EvmBasedBlocks):
+    __tablename__ = "ronin_blocks"
+
+
+class RoninReorgs(EvmBasedReorgs):
+    __tablename__ = "ronin_reorgs"
+
+
+class RoninContracts(evmBasedContracts):
+    __tablename__ = "ronin_contracts"
+
+
+class RoninSaigonBlockIndex(EvmBasedBlocks):
+    __tablename__ = "ronin_saigon_blocks"
+
+
+class RoninSaigonReorgs(EvmBasedReorgs):
+    __tablename__ = "ronin_saigon_reorgs"
+
+
+class RoninSaigonContracts(evmBasedContracts):
+    __tablename__ = "ronin_saigon_contracts"
+
+
 ### ABI Jobs
 
 
