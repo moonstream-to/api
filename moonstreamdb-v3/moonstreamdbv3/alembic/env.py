@@ -49,7 +49,7 @@ from moonstreamdbv3.models import (
     PolygonLabel,
     ProofOfPlayApexLabel,
     RoninLabel,
-    RoninSepoliaLabel,
+    RoninSaigonLabel,
     SepoliaLabel,
     StarknetLabel,
     StarknetSepoliaLabel,
@@ -94,7 +94,7 @@ def include_symbol(tablename, schema):
         B3Label.__tablename__,
         B3SepoliaLabel.__tablename__,
         RoninLabel.__tablename__,
-        RoninSepoliaLabel.__tablename__,
+        RoninSaigonLabel.__tablename__,
     }
 
 

@@ -1,8 +1,8 @@
-"""add ronin
+"""add ronin chain
 
-Revision ID: f8ea378cffbf
+Revision ID: e6d3c285e7cc
 Revises: d816689b786a
-Create Date: 2024-11-11 16:16:09.255737
+Create Date: 2024-11-12 12:54:33.415972
 
 """
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = "f8ea378cffbf"
+revision: str = "e6d3c285e7cc"
 down_revision: Union[str, None] = "d816689b786a"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -122,7 +122,7 @@ def upgrade() -> None:
         postgresql_where=sa.text("label='seer-raw' and label_type='tx_call'"),
     )
     op.create_table(
-        "ronin_sepolia_labels",
+        "ronin_saigon_labels",
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("label", sa.VARCHAR(length=256), nullable=False),
         sa.Column("transaction_hash", sa.VARCHAR(length=128), nullable=False),
@@ -142,155 +142,154 @@ def upgrade() -> None:
             server_default=sa.text("TIMEZONE('utc', statement_timestamp())"),
             nullable=False,
         ),
-        sa.PrimaryKeyConstraint("id", name=op.f("pk_ronin_sepolia_labels")),
-        sa.UniqueConstraint("id", name=op.f("uq_ronin_sepolia_labels_id")),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_ronin_saigon_labels")),
+        sa.UniqueConstraint("id", name=op.f("uq_ronin_saigon_labels_id")),
     )
     op.create_index(
-        "ix_ronin_sepolia_labels_addr_block_num",
-        "ronin_sepolia_labels",
+        "ix_ronin_saigon_labels_addr_block_num",
+        "ronin_saigon_labels",
         ["address", "block_number"],
         unique=False,
     )
     op.create_index(
-        "ix_ronin_sepolia_labels_addr_block_ts",
-        "ronin_sepolia_labels",
+        "ix_ronin_saigon_labels_addr_block_ts",
+        "ronin_saigon_labels",
         ["address", "block_timestamp"],
         unique=False,
     )
     op.create_index(
-        op.f("ix_ronin_sepolia_labels_address"),
-        "ronin_sepolia_labels",
+        op.f("ix_ronin_saigon_labels_address"),
+        "ronin_saigon_labels",
         ["address"],
         unique=False,
     )
     op.create_index(
-        op.f("ix_ronin_sepolia_labels_block_number"),
-        "ronin_sepolia_labels",
+        op.f("ix_ronin_saigon_labels_block_number"),
+        "ronin_saigon_labels",
         ["block_number"],
         unique=False,
     )
     op.create_index(
-        op.f("ix_ronin_sepolia_labels_caller_address"),
-        "ronin_sepolia_labels",
+        op.f("ix_ronin_saigon_labels_caller_address"),
+        "ronin_saigon_labels",
         ["caller_address"],
         unique=False,
     )
     op.create_index(
-        op.f("ix_ronin_sepolia_labels_label"),
-        "ronin_sepolia_labels",
+        op.f("ix_ronin_saigon_labels_label"),
+        "ronin_saigon_labels",
         ["label"],
         unique=False,
     )
     op.create_index(
-        op.f("ix_ronin_sepolia_labels_label_name"),
-        "ronin_sepolia_labels",
+        op.f("ix_ronin_saigon_labels_label_name"),
+        "ronin_saigon_labels",
         ["label_name"],
         unique=False,
     )
     op.create_index(
-        op.f("ix_ronin_sepolia_labels_label_type"),
-        "ronin_sepolia_labels",
+        op.f("ix_ronin_saigon_labels_label_type"),
+        "ronin_saigon_labels",
         ["label_type"],
         unique=False,
     )
     op.create_index(
-        op.f("ix_ronin_sepolia_labels_origin_address"),
-        "ronin_sepolia_labels",
+        op.f("ix_ronin_saigon_labels_origin_address"),
+        "ronin_saigon_labels",
         ["origin_address"],
         unique=False,
     )
     op.create_index(
-        op.f("ix_ronin_sepolia_labels_transaction_hash"),
-        "ronin_sepolia_labels",
+        op.f("ix_ronin_saigon_labels_transaction_hash"),
+        "ronin_saigon_labels",
         ["transaction_hash"],
         unique=False,
     )
     op.create_index(
-        "uk_ronin_sepolia_labels_tx_hash_log_idx_evt",
-        "ronin_sepolia_labels",
+        "uk_ronin_saigon_labels_tx_hash_log_idx_evt",
+        "ronin_saigon_labels",
         ["transaction_hash", "log_index"],
         unique=True,
         postgresql_where=sa.text("label='seer' and label_type='event'"),
     )
     op.create_index(
-        "uk_ronin_sepolia_labels_tx_hash_log_idx_evt_raw",
-        "ronin_sepolia_labels",
+        "uk_ronin_saigon_labels_tx_hash_log_idx_evt_raw",
+        "ronin_saigon_labels",
         ["transaction_hash", "log_index"],
         unique=True,
         postgresql_where=sa.text("label='seer-raw' and label_type='event'"),
     )
     op.create_index(
-        "uk_ronin_sepolia_labels_tx_hash_tx_call",
-        "ronin_sepolia_labels",
+        "uk_ronin_saigon_labels_tx_hash_tx_call",
+        "ronin_saigon_labels",
         ["transaction_hash"],
         unique=True,
         postgresql_where=sa.text("label='seer' and label_type='tx_call'"),
     )
     op.create_index(
-        "uk_ronin_sepolia_labels_tx_hash_tx_call_raw",
-        "ronin_sepolia_labels",
+        "uk_ronin_saigon_labels_tx_hash_tx_call_raw",
+        "ronin_saigon_labels",
         ["transaction_hash"],
         unique=True,
         postgresql_where=sa.text("label='seer-raw' and label_type='tx_call'"),
     )
+    # ### end Alembic commands ###
 
 
 def downgrade() -> None:
     # ### commands auto generated by Alembic - please adjust! ###
     op.drop_index(
-        "uk_ronin_sepolia_labels_tx_hash_tx_call_raw",
-        table_name="ronin_sepolia_labels",
+        "uk_ronin_saigon_labels_tx_hash_tx_call_raw",
+        table_name="ronin_saigon_labels",
         postgresql_where=sa.text("label='seer-raw' and label_type='tx_call'"),
     )
     op.drop_index(
-        "uk_ronin_sepolia_labels_tx_hash_tx_call",
-        table_name="ronin_sepolia_labels",
+        "uk_ronin_saigon_labels_tx_hash_tx_call",
+        table_name="ronin_saigon_labels",
         postgresql_where=sa.text("label='seer' and label_type='tx_call'"),
     )
     op.drop_index(
-        "uk_ronin_sepolia_labels_tx_hash_log_idx_evt_raw",
-        table_name="ronin_sepolia_labels",
+        "uk_ronin_saigon_labels_tx_hash_log_idx_evt_raw",
+        table_name="ronin_saigon_labels",
         postgresql_where=sa.text("label='seer-raw' and label_type='event'"),
     )
     op.drop_index(
-        "uk_ronin_sepolia_labels_tx_hash_log_idx_evt",
-        table_name="ronin_sepolia_labels",
+        "uk_ronin_saigon_labels_tx_hash_log_idx_evt",
+        table_name="ronin_saigon_labels",
         postgresql_where=sa.text("label='seer' and label_type='event'"),
     )
     op.drop_index(
-        op.f("ix_ronin_sepolia_labels_transaction_hash"),
-        table_name="ronin_sepolia_labels",
+        op.f("ix_ronin_saigon_labels_transaction_hash"),
+        table_name="ronin_saigon_labels",
     )
     op.drop_index(
-        op.f("ix_ronin_sepolia_labels_origin_address"),
-        table_name="ronin_sepolia_labels",
+        op.f("ix_ronin_saigon_labels_origin_address"), table_name="ronin_saigon_labels"
     )
     op.drop_index(
-        op.f("ix_ronin_sepolia_labels_label_type"), table_name="ronin_sepolia_labels"
+        op.f("ix_ronin_saigon_labels_label_type"), table_name="ronin_saigon_labels"
     )
     op.drop_index(
-        op.f("ix_ronin_sepolia_labels_label_name"), table_name="ronin_sepolia_labels"
+        op.f("ix_ronin_saigon_labels_label_name"), table_name="ronin_saigon_labels"
     )
     op.drop_index(
-        op.f("ix_ronin_sepolia_labels_label"), table_name="ronin_sepolia_labels"
+        op.f("ix_ronin_saigon_labels_label"), table_name="ronin_saigon_labels"
     )
     op.drop_index(
-        op.f("ix_ronin_sepolia_labels_caller_address"),
-        table_name="ronin_sepolia_labels",
+        op.f("ix_ronin_saigon_labels_caller_address"), table_name="ronin_saigon_labels"
     )
     op.drop_index(
-        op.f("ix_ronin_sepolia_labels_block_number"), table_name="ronin_sepolia_labels"
+        op.f("ix_ronin_saigon_labels_block_number"), table_name="ronin_saigon_labels"
     )
     op.drop_index(
-        op.f("ix_ronin_sepolia_labels_address"), table_name="ronin_sepolia_labels"
+        op.f("ix_ronin_saigon_labels_address"), table_name="ronin_saigon_labels"
     )
     op.drop_index(
-        "ix_ronin_sepolia_labels_addr_block_ts", table_name="ronin_sepolia_labels"
+        "ix_ronin_saigon_labels_addr_block_ts", table_name="ronin_saigon_labels"
     )
     op.drop_index(
-        "ix_ronin_sepolia_labels_addr_block_num", table_name="ronin_sepolia_labels"
+        "ix_ronin_saigon_labels_addr_block_num", table_name="ronin_saigon_labels"
     )
-    op.drop_table("ronin_sepolia_labels")
+    op.drop_table("ronin_saigon_labels")
     op.drop_index(
         "uk_ronin_labels_tx_hash_tx_call_raw",
         table_name="ronin_labels",
