@@ -1634,3 +1634,97 @@ class B3SepoliaLabel(EvmBasedLabel):  # type: ignore
 
 class B3SepoliaTransaction(EvmBasedTransaction):  # type: ignore
     __tablename__ = "b3_sepolia_transactions"
+
+
+class RoninLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "ronin_labels"
+
+    __table_args__ = (
+        Index(
+            "ix_ronin_labels_addr_block_num",
+            "address",
+            "block_number",
+            unique=False,
+        ),
+        Index(
+            "ix_ronin_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
+            unique=False,
+        ),
+        Index(
+            "uk_ronin_labels_tx_hash_tx_call",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_ronin_labels_tx_hash_log_idx_evt",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer' and label_type='event'"),
+        ),
+        Index(
+            "uk_ronin_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_ronin_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
+        ),
+    )
+
+
+class RoninSaigonLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "ronin_saigon_labels"
+
+    __table_args__ = (
+        Index(
+            "ix_ronin_saigon_labels_addr_block_num",
+            "address",
+            "block_number",
+            unique=False,
+        ),
+        Index(
+            "ix_ronin_saigon_labels_addr_block_ts",
+            "address",
+            "block_timestamp",
+            unique=False,
+        ),
+        Index(
+            "uk_ronin_saigon_labels_tx_hash_tx_call",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_ronin_saigon_labels_tx_hash_log_idx_evt",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer' and label_type='event'"),
+        ),
+        Index(
+            "uk_ronin_saigon_labels_tx_hash_tx_call_raw",
+            "transaction_hash",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
+        ),
+        Index(
+            "uk_ronin_saigon_labels_tx_hash_log_idx_evt_raw",
+            "transaction_hash",
+            "log_index",
+            unique=True,
+            postgresql_where=text("label='seer-raw' and label_type='event'"),
+        ),
+    )
+
+
+class RoninTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "ronin_transactions"

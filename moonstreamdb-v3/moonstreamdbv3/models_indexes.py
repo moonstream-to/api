@@ -15,7 +15,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import expression
@@ -103,6 +103,37 @@ class EvmBasedReorgs(Base):
     block_hash = Column(VARCHAR(256), nullable=False, index=True)
 
 
+class evmBasedContracts(Base):
+    __abstract__ = True
+    address = Column(LargeBinary(length=20), primary_key=True, nullable=False)
+    deployed_by = Column(LargeBinary(length=20), nullable=False, index=True)
+    deployed_bytecode = Column(Text, nullable=False)
+    deployed_bytecode_hash = Column(
+        VARCHAR(32), nullable=False, index=True
+    )  # MD5 hash of the deployed bytecode
+    bytecode_storage_id = Column(
+        UUID(as_uuid=True), ForeignKey("bytecode_storage.id"), nullable=True
+    )
+    abi = Column(JSONB, nullable=True)
+    deployed_at_block_number = Column(BigInteger, nullable=False)
+    deployed_at_block_hash = Column(VARCHAR(256), nullable=False)
+    deployed_at_block_timestamp = Column(BigInteger, nullable=False)
+    transaction_hash = Column(VARCHAR(256), nullable=False, index=True)
+    transaction_index = Column(BigInteger, nullable=False)
+    name = Column(VARCHAR(256), nullable=True, index=True)
+    statistics = Column(JSONB, nullable=True)
+    supported_standards = Column(JSONB, nullable=True)
+    created_at = Column(
+        DateTime(timezone=True), server_default=utcnow(), nullable=False
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=utcnow(),
+        onupdate=utcnow(),
+        nullable=False,
+    )
+
+
 ### Ethereum
 
 
@@ -153,6 +184,10 @@ class EthereumLogIndex(EvmBasedLogs):
 
 class EthereumReorgs(EvmBasedReorgs):
     __tablename__ = "ethereum_reorgs"
+
+
+class EthereumContracts(evmBasedContracts):
+    __tablename__ = "ethereum_contracts"
 
 
 ### Sepolia
@@ -211,6 +246,10 @@ class SepoliaReorgs(EvmBasedReorgs):
     __tablename__ = "sepolia_reorgs"
 
 
+class SepoliaContracts(evmBasedContracts):
+    __tablename__ = "sepolia_contracts"
+
+
 ### Polygon
 
 
@@ -256,6 +295,10 @@ class PolygonReorgs(EvmBasedReorgs):
     __tablename__ = "polygon_reorgs"
 
 
+class PolygonContracts(evmBasedContracts):
+    __tablename__ = "polygon_contracts"
+
+
 ### Xai
 
 
@@ -299,6 +342,10 @@ class XaiLogIndex(EvmBasedLogs):
 
 class XaiReorgs(EvmBasedReorgs):
     __tablename__ = "xai_reorgs"
+
+
+class XaiContracts(evmBasedContracts):
+    __tablename__ = "xai_contracts"
 
 
 ### Xai Sepolia
@@ -348,6 +395,10 @@ class XaiSepoliaLogIndex(EvmBasedLogs):
 
 class XaiSepoliaReorgs(EvmBasedReorgs):
     __tablename__ = "xai_sepolia_reorgs"
+
+
+class XaiSepoliaContracts(evmBasedContracts):
+    __tablename__ = "xai_sepolia_contracts"
 
 
 ### Arbitrum One
@@ -402,6 +453,10 @@ class ArbitrumOneReorgs(EvmBasedReorgs):
     __tablename__ = "arbitrum_one_reorgs"
 
 
+class ArbitrumOneContracts(evmBasedContracts):
+    __tablename__ = "arbitrum_one_contracts"
+
+
 ### Arbitrum Sepolia
 
 
@@ -452,6 +507,10 @@ class ArbitrumSepoliaLogIndex(EvmBasedLogs):
 
 class ArbitrumSepoliaReorgs(EvmBasedReorgs):
     __tablename__ = "arbitrum_sepolia_reorgs"
+
+
+class ArbitrumSepoliaContracts(evmBasedContracts):
+    __tablename__ = "arbitrum_sepolia_contracts"
 
 
 ### Game7 Orbit Arbitrum Sepolia
@@ -512,6 +571,10 @@ class Game7OrbitArbitrumSepoliaReorgs(EvmBasedReorgs):
     __tablename__ = "game7_orbit_arbitrum_sepolia_reorgs"
 
 
+class Game7OrbitArbitrumSepoliaContracts(evmBasedContracts):
+    __tablename__ = "game7_orbit_arbitrum_sepolia_contracts"
+
+
 ### Mantle
 
 
@@ -560,6 +623,10 @@ class MantleLogIndex(EvmBasedLogs):
 
 class MantleReorgs(EvmBasedReorgs):
     __tablename__ = "mantle_reorgs"
+
+
+class MantleContracts(evmBasedContracts):
+    __tablename__ = "mantle_contracts"
 
 
 ### Mantle Sepolia
@@ -617,6 +684,10 @@ class MantleSepoliaReorgs(EvmBasedReorgs):
     __tablename__ = "mantle_sepolia_reorgs"
 
 
+class MantleSepoliaContracts(evmBasedContracts):
+    __tablename__ = "mantle_sepolia_contracts"
+
+
 ### Immutable zkEvm
 
 
@@ -670,6 +741,10 @@ class ImxZkevmLogIndex(EvmBasedLogs):
 
 class ImxZkevmReorgs(EvmBasedReorgs):
     __tablename__ = "imx_zkevm_reorgs"
+
+
+class ImxZkevmContracts(evmBasedContracts):
+    __tablename__ = "imx_zkevm_contracts"
 
 
 ### Immutable zkEvm Sepolia
@@ -727,6 +802,11 @@ class ImxZkevmSepoliaReorgs(EvmBasedReorgs):
     __tablename__ = "imx_zkevm_sepolia_reorgs"
 
 
+class ImxZkevmSepoliaContracts(evmBasedContracts):
+    __tablename__ = "imx_zkevm_sepolia_contracts"
+
+
+### Game7 Testnet
 # Game7
 
 
@@ -738,6 +818,10 @@ class Game7BlockIndex(EvmBasedBlocks):
 
 class Game7Reorgs(EvmBasedReorgs):
     __tablename__ = "game7_reorgs"
+
+
+class Game7Contracts(evmBasedContracts):
+    __tablename__ = "game7_contracts"
 
 
 # Game7 Testnet
@@ -791,9 +875,11 @@ class Game7TestnetReorgs(EvmBasedReorgs):
     __tablename__ = "game7_testnet_reorgs"
 
 
+class Game7TestnetContracts(evmBasedContracts):
+    __tablename__ = "game7_testnet_contracts"
+
+
 # B3
-
-
 class B3BlockIndex(EvmBasedBlocks):
     __tablename__ = "b3_blocks"
 
@@ -802,12 +888,44 @@ class B3Reorgs(EvmBasedReorgs):
     __tablename__ = "b3_reorgs"
 
 
+class B3Contracts(evmBasedContracts):
+    __tablename__ = "b3_contracts"
+
+
 class B3SepoliaBlockIndex(EvmBasedBlocks):
     __tablename__ = "b3_sepolia_blocks"
 
 
 class B3SepoliaReorgs(EvmBasedReorgs):
     __tablename__ = "b3_sepolia_reorgs"
+
+
+class B3SepoliaContracts(evmBasedContracts):
+    __tablename__ = "b3_sepolia_contracts"
+
+
+class RoninBlockIndex(EvmBasedBlocks):
+    __tablename__ = "ronin_blocks"
+
+
+class RoninReorgs(EvmBasedReorgs):
+    __tablename__ = "ronin_reorgs"
+
+
+class RoninContracts(evmBasedContracts):
+    __tablename__ = "ronin_contracts"
+
+
+class RoninSaigonBlockIndex(EvmBasedBlocks):
+    __tablename__ = "ronin_saigon_blocks"
+
+
+class RoninSaigonReorgs(EvmBasedReorgs):
+    __tablename__ = "ronin_saigon_reorgs"
+
+
+class RoninSaigonContracts(evmBasedContracts):
+    __tablename__ = "ronin_saigon_contracts"
 
 
 ### ABI Jobs
@@ -861,4 +979,29 @@ class AbiSubscriptions(Base):
     subscription_id = Column(UUID(as_uuid=True), nullable=False, index=True)
     created_at = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
+    )
+
+
+class BytecodeStorage(Base):
+
+    __tablename__ = "bytecode_storage"
+
+    __table_args__ = (UniqueConstraint("hash", name="uq_bytecode_storage_hash"),)
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    hash = Column(VARCHAR(32), nullable=False, index=True)
+    bytecode = Column(Text, nullable=False)
+    title = Column(VARCHAR(256), nullable=True)
+    description = Column(Text, nullable=True)
+    abi = Column(JSONB, nullable=True)
+    code = Column(Text, nullable=True)  # source code
+    data = Column(JSONB, nullable=True)
+    created_at = Column(
+        DateTime(timezone=True), server_default=utcnow(), nullable=False
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=utcnow(),
+        onupdate=utcnow(),
+        nullable=False,
     )
