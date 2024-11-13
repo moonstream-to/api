@@ -1,8 +1,8 @@
-"""add transactions
+"""add raw transactions
 
-Revision ID: d13b6bb1d214
-Revises: d816689b786a
-Create Date: 2024-11-10 23:34:21.581396
+Revision ID: a6580c96ae2c
+Revises: e6d3c285e7cc
+Create Date: 2024-11-13 11:56:48.605875
 
 """
 
@@ -13,8 +13,8 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = "d13b6bb1d214"
-down_revision: Union[str, None] = "d816689b786a"
+revision: str = "a6580c96ae2c"
+down_revision: Union[str, None] = "e6d3c285e7cc"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -1570,6 +1570,72 @@ def upgrade() -> None:
         unique=False,
     )
     op.create_table(
+        "ronin_transactions",
+        sa.Column("hash", sa.VARCHAR(length=256), nullable=False),
+        sa.Column("block_timestamp", sa.BigInteger(), nullable=False),
+        sa.Column("block_hash", sa.VARCHAR(length=256), nullable=False),
+        sa.Column("from_address", sa.LargeBinary(), nullable=True),
+        sa.Column("to_address", sa.LargeBinary(), nullable=True),
+        sa.Column("gas", sa.BigInteger(), nullable=True),
+        sa.Column("gas_price", sa.BigInteger(), nullable=True),
+        sa.Column("max_fee_per_gas", sa.BigInteger(), nullable=True),
+        sa.Column("max_priority_fee_per_gas", sa.BigInteger(), nullable=True),
+        sa.Column("input", sa.Text(), nullable=True),
+        sa.Column("nonce", sa.BigInteger(), nullable=True),
+        sa.Column("transaction_index", sa.BigInteger(), nullable=True),
+        sa.Column("transaction_type", sa.Integer(), nullable=True),
+        sa.Column("value", sa.BigInteger(), nullable=True),
+        sa.Column(
+            "indexed_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("TIMEZONE('utc', statement_timestamp())"),
+            nullable=False,
+        ),
+        sa.PrimaryKeyConstraint("hash", name=op.f("pk_ronin_transactions")),
+    )
+    op.create_index(
+        op.f("ix_ronin_transactions_block_hash"),
+        "ronin_transactions",
+        ["block_hash"],
+        unique=False,
+    )
+    op.create_index(
+        op.f("ix_ronin_transactions_block_timestamp"),
+        "ronin_transactions",
+        ["block_timestamp"],
+        unique=False,
+    )
+    op.create_index(
+        op.f("ix_ronin_transactions_from_address"),
+        "ronin_transactions",
+        ["from_address"],
+        unique=False,
+    )
+    op.create_index(
+        op.f("ix_ronin_transactions_gas"), "ronin_transactions", ["gas"], unique=False
+    )
+    op.create_index(
+        op.f("ix_ronin_transactions_gas_price"),
+        "ronin_transactions",
+        ["gas_price"],
+        unique=False,
+    )
+    op.create_index(
+        op.f("ix_ronin_transactions_hash"), "ronin_transactions", ["hash"], unique=True
+    )
+    op.create_index(
+        op.f("ix_ronin_transactions_to_address"),
+        "ronin_transactions",
+        ["to_address"],
+        unique=False,
+    )
+    op.create_index(
+        op.f("ix_ronin_transactions_value"),
+        "ronin_transactions",
+        ["value"],
+        unique=False,
+    )
+    op.create_table(
         "sepolia_transactions",
         sa.Column("hash", sa.VARCHAR(length=256), nullable=False),
         sa.Column("block_timestamp", sa.BigInteger(), nullable=False),
@@ -2142,6 +2208,25 @@ def downgrade() -> None:
         op.f("ix_sepolia_transactions_block_hash"), table_name="sepolia_transactions"
     )
     op.drop_table("sepolia_transactions")
+    op.drop_index(op.f("ix_ronin_transactions_value"), table_name="ronin_transactions")
+    op.drop_index(
+        op.f("ix_ronin_transactions_to_address"), table_name="ronin_transactions"
+    )
+    op.drop_index(op.f("ix_ronin_transactions_hash"), table_name="ronin_transactions")
+    op.drop_index(
+        op.f("ix_ronin_transactions_gas_price"), table_name="ronin_transactions"
+    )
+    op.drop_index(op.f("ix_ronin_transactions_gas"), table_name="ronin_transactions")
+    op.drop_index(
+        op.f("ix_ronin_transactions_from_address"), table_name="ronin_transactions"
+    )
+    op.drop_index(
+        op.f("ix_ronin_transactions_block_timestamp"), table_name="ronin_transactions"
+    )
+    op.drop_index(
+        op.f("ix_ronin_transactions_block_hash"), table_name="ronin_transactions"
+    )
+    op.drop_table("ronin_transactions")
     op.drop_index(
         op.f("ix_proofofplay_apex_transactions_value"),
         table_name="proofofplay_apex_transactions",
