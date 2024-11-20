@@ -218,7 +218,9 @@ func Server() {
 		proxyToEndpoint.ModifyResponse = func(w *http.Response) error {
 			// Remove proxy headers
 			for k := range w.Header {
-				w.Header.Del(k)
+				if k == "Access-Control-Allow-Origin" || k == "Access-Control-Allow-Methods" || k == "Access-Control-Allow-Credentials" || k == "Access-Control-Allow-Headers" {
+					w.Header.Del(k)
+				}
 			}
 			return nil
 		}
