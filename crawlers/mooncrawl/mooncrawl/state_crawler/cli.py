@@ -8,6 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures._base import TimeoutError
 from pprint import pprint
 from typing import Any, Dict, List, Optional
+import requests
 from uuid import UUID
 
 from moonstream.client import Moonstream  # type: ignore
@@ -17,7 +18,7 @@ from mooncrawl.moonworm_crawler.crawler import _retry_connect_web3
 from ..actions import recive_S3_data_from_query, get_all_entries_from_search
 from ..blockchain import connect
 from ..data import ViewTasks
-from ..db import PrePing_SessionLocal
+from ..db import PrePing_SessionLocal, create_moonstream_engine, sessionmaker
 from ..settings import (
     bugout_client as bc,
     INFURA_PROJECT_ID,
@@ -35,6 +36,45 @@ logger = logging.getLogger(__name__)
 
 
 client = Moonstream()
+
+
+def request_connection_string(costumer_id: str, token: str, instance_id: int) -> str:
+    """
+    Request connection string from the Moonstream API.
+    """
+    response = requests.get(
+        f"https://mdb-v3-api.moonstream.to/customers/{costumer_id}/instances/{instance_id}/creds/seer/url",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    response.raise_for_status()
+
+    return response.text
+
+
+def fetch_customers_connections(
+    jobs: List[Dict[str, Any]], token: str
+) -> Dict[str, Any]:
+
+    connections = {}
+
+    instance_id = 1
+
+    for job in jobs:
+        if job.get("customer_id") is not None:
+            if job["customer_id"] not in connections:
+                connections[job["customer_id"]] = {}
+                if job.get("instance_id") is not None:
+                    instance_id = job["instance_id"]
+                else:
+                    instance_id = 1
+                connection_string = request_connection_string(
+                    job["customer_id"], token, instance_id
+                )
+
+                connections[job["customer_id"]][instance_id] = connection_string
+
+    return connections
 
 
 def execute_query(query: Dict[str, Any], token: str):
@@ -105,6 +145,7 @@ def make_multicall(
     calls: List[Any],
     block_timestamp: int,
     block_number: str = "latest",
+    block_hash: Optional[str] = None,
 ) -> Any:
     multicall_calls = []
 
@@ -142,6 +183,7 @@ def make_multicall(
                         "call_data": multicall_calls[index][1],
                         "block_number": block_number,
                         "block_timestamp": block_timestamp,
+                        "block_hash": block_hash,
                         "status": encoded_data[0],
                     }
                 )
@@ -157,6 +199,7 @@ def make_multicall(
                         "call_data": multicall_calls[index][1],
                         "block_number": block_number,
                         "block_timestamp": block_timestamp,
+                        "block_hash": block_hash,
                         "status": encoded_data[0],
                     }
                 )
@@ -200,6 +243,8 @@ def crawl_calls_level(
     block_timestamp,
     max_batch_size=3000,
     min_batch_size=4,
+    v3=False,
+    block_hash=None,
 ):
     calls_of_level = []
 
@@ -261,6 +306,7 @@ def crawl_calls_level(
                     call_chunk,
                     block_timestamp,
                     block_number,
+                    block_hash,
                 )
                 make_multicall_result = future.result(timeout=20)
             retry = 0
@@ -288,8 +334,9 @@ def crawl_calls_level(
         logger.debug(f"Retry: {retry}")
         # results parsing and writing to database
         add_to_session_count = 0
+
         for result in make_multicall_result:
-            db_view = view_call_to_label(blockchain_type, result)
+            db_view = view_call_to_label(blockchain_type, result, v3)
             db_session.add(db_view)
             add_to_session_count += 1
 
@@ -310,6 +357,7 @@ def parse_jobs(
     batch_size: int,
     moonstream_token: str,
     web3_uri: Optional[str] = None,
+    v3: bool = False,
 ):
     """
     Parse jobs from list and generate web3 interfaces for each contract.
@@ -348,6 +396,7 @@ def parse_jobs(
     logger.info(f"Current block number: {block_number}")
 
     block_timestamp = web3_client.eth.get_block(block_number).timestamp  # type: ignore
+    block_hash = web3_client.eth.get_block(block_number).hash  # type: ignore
 
     multicaller = Multicall2(
         web3_client, web3_client.toChecksumAddress(multicall_contracts[blockchain_type])
@@ -464,8 +513,23 @@ def parse_jobs(
 
     # reverse call_tree
     call_tree_levels = sorted(calls.keys(), reverse=True)[:-1]
-
-    db_session = PrePing_SessionLocal()
+    customers_connections_sessions = {}
+    if v3:
+        customers_connections = fetch_customers_connections(jobs, moonstream_token)
+        for customer_id in customers_connections:
+            for instance_id in customers_connections[customer_id]:
+                ### Create engine for each customer
+                engine = create_moonstream_engine(
+                    customers_connections[customer_id][instance_id], 10, 10000
+                )
+                session = sessionmaker(bind=engine)
+                try:
+                    customers_connections_sessions[customer_id][instance_id] = session()
+                except Exception as e:
+                    logger.error(f"Connection to {engine} failed: {e}")
+                    continue
+    else:
+        db_session = PrePing_SessionLocal()
 
     # run crawling of levels
     try:
@@ -474,36 +538,41 @@ def parse_jobs(
         logger.info(f"call_tree_levels: {call_tree_levels}")
 
         batch_size = crawl_calls_level(
-            web3_client,
-            db_session,
-            calls[0],
-            responces,
-            contracts_ABIs,
-            interfaces,
-            batch_size,
-            multicall_method,
-            block_number,
-            blockchain_type,
-            block_timestamp,
+            web3_client=web3_client,
+            db_session=db_session,
+            customers_connections=customers_connections,
+            calls=calls[0],
+            responces=responces,
+            contracts_ABIs=contracts_ABIs,
+            interfaces=interfaces,
+            batch_size=batch_size,
+            multicall_method=multicall_method,
+            block_number=block_number,
+            blockchain_type=blockchain_type,
+            block_timestamp=block_timestamp,
+            v3=v3,
+            block_hash=block_hash,
         )
 
         for level in call_tree_levels:
             logger.info(f"Crawl level: {level}. Jobs amount: {len(calls[level])}")
 
             batch_size = crawl_calls_level(
-                web3_client,
-                db_session,
-                calls[level],
-                responces,
-                contracts_ABIs,
-                interfaces,
-                batch_size,
-                multicall_method,
-                block_number,
-                blockchain_type,
-                block_timestamp,
+                web3_client=web3_client,
+                db_session=db_session,
+                customers_connections=customers_connections,
+                calls=calls[level],
+                responces=responces,
+                contracts_ABIs=contracts_ABIs,
+                interfaces=interfaces,
+                batch_size=batch_size,
+                multicall_method=multicall_method,
+                block_number=block_number,
+                blockchain_type=blockchain_type,
+                block_timestamp=block_timestamp,
+                v3=v3,
+                block_hash=block_hash,
             )
-
     finally:
         db_session.close()
 
@@ -576,6 +645,78 @@ def handle_crawl(args: argparse.Namespace) -> None:
         args.batch_size,
         args.moonstream_token,
         args.web3_uri,
+    )
+
+
+def handle_crawl_v3(args: argparse.Namespace) -> None:
+    """
+    Ability to track states of the contracts.
+
+    Read all view methods of the contracts and crawl
+    """
+
+    blockchain_type = AvailableBlockchainType(args.blockchain)
+
+    if args.jobs_file is not None:
+        with open(args.jobs_file, "r") as f:
+            jobs = json.load(f)
+
+    else:
+
+        logger.info("Reading jobs from the journal")
+
+        jobs = []
+
+        # Bugout
+        query = f"#state_job #blockchain:{blockchain_type.value}"
+
+        existing_jobs = get_all_entries_from_search(
+            journal_id=MOONSTREAM_STATE_CRAWLER_JOURNAL_ID,
+            search_query=query,
+            limit=1000,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            content=True,
+        )
+
+        if len(existing_jobs) == 0:
+            logger.info("No jobs found in the journal")
+            return
+
+        for job in existing_jobs:
+
+            try:
+                if job.content is None:
+                    logger.error(f"Job content is None for entry {job.entry_url}")
+                    continue
+                ### parse json
+                job_content = json.loads(job.content)
+                ### validate via ViewTasks
+                ViewTasks(**job_content)
+                jobs.append(job_content)
+            except Exception as e:
+
+                logger.error(f"Job validation of entry {job.entry_url} failed: {e}")
+                continue
+
+    custom_web3_provider = args.web3_uri
+
+    if args.infura and INFURA_PROJECT_ID is not None:
+        if blockchain_type not in infura_networks:
+            raise ValueError(
+                f"Infura is not supported for {blockchain_type} blockchain type"
+            )
+        logger.info(f"Using Infura!")
+        custom_web3_provider = infura_networks[blockchain_type]["url"]
+
+    parse_jobs(
+        jobs,
+        blockchain_type,
+        custom_web3_provider,
+        args.block_number,
+        args.batch_size,
+        args.moonstream_token,
+        args.web3_uri,
+        True,
     )
 
 
@@ -818,6 +959,49 @@ def main() -> None:
         help="Path to abi file.",
     )
     generate_view_parser.set_defaults(func=parse_abi)
+
+    generate_view_parser = subparsers.add_parser(
+        "crawl-jobs-v3",
+        help="continuous crawling the view methods from job structure",
+    )
+
+    generate_view_parser.add_argument(
+        "--moonstream-token",
+        "-t",
+        type=str,
+        help="Moonstream token",
+        required=True,
+    )
+    generate_view_parser.add_argument(
+        "--blockchain",
+        "-b",
+        type=str,
+        help="Type of blovkchain wich writng in database",
+        required=True,
+    )
+    generate_view_parser.add_argument(
+        "--infura",
+        action="store_true",
+        help="Use infura as web3 provider",
+    )
+    generate_view_parser.add_argument(
+        "--block-number", "-N", type=str, help="Block number."
+    )
+    generate_view_parser.add_argument(
+        "--jobs-file",
+        "-j",
+        type=str,
+        help="Path to json file with jobs",
+        required=False,
+    )
+    generate_view_parser.add_argument(
+        "--batch-size",
+        "-s",
+        type=int,
+        default=500,
+        help="Size of chunks wich send to Multicall2 contract.",
+    )
+    generate_view_parser.set_defaults(func=handle_crawl_v3)
 
     args = parser.parse_args()
     args.func(args)

@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 def view_call_to_label(
     blockchain_type: AvailableBlockchainType,
     call: Dict[str, Any],
+    v3: bool = False,
     label_name=VIEW_STATE_CRAWLER_LABEL,
 ):
     """
@@ -35,14 +36,33 @@ def view_call_to_label(
         ).replace(r"\u0000", "")
     )
 
-    label = label_model(
-        label=label_name,
-        label_data=sanityzed_label_data,
-        address=call["address"],
-        block_number=call["block_number"],
-        transaction_hash=None,
-        block_timestamp=call["block_timestamp"],
-    )
+    if v3:
+
+        del sanityzed_label_data["type"]
+        del sanityzed_label_data["name"]
+
+        label = label_model(
+            label=label_name,
+            label_name=call["name"],
+            label_type="view",
+            label_data=sanityzed_label_data,
+            address=call["address"],
+            block_number=call["block_number"],
+            transaction_hash="0x",
+            block_timestamp=call["block_timestamp"],
+            block_hash=call["block_hash"],
+        )
+
+    else:
+
+        label = label_model(
+            label=label_name,
+            label_data=sanityzed_label_data,
+            address=call["address"],
+            block_number=call["block_number"],
+            transaction_hash=None,
+            block_timestamp=call["block_timestamp"],
+        )
 
     return label
 

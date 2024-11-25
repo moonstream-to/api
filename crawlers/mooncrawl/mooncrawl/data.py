@@ -67,3 +67,5 @@ class ViewTasks(BaseModel):
     name: str
     outputs: List[Dict[str, Any]]
     address: str
+    customer_id: Optional[str] = None
+    instance_id: Optional[str] = None
