@@ -44,58 +44,6 @@ def view_call_to_label(
         del sanityzed_label_data["type"]
         del sanityzed_label_data["name"]
 
-        # class EvmBasedLabel(Base):  # type: ignore
-        #     __abstract__ = True
-
-        #     id = Column(
-        #         UUID(as_uuid=True),
-        #         primary_key=True,
-        #         default=uuid.uuid4,
-        #         unique=True,
-        #         nullable=False,
-        #     )
-        #     label = Column(VARCHAR(256), nullable=False, index=True)
-
-        #     transaction_hash = Column(
-        #         VARCHAR(128),
-        #         nullable=False,
-        #         index=True,
-        #     )
-        #     log_index = Column(Integer, nullable=True)
-
-        #     block_number = Column(
-        #         BigInteger,
-        #         nullable=False,
-        #         index=True,
-        #     )
-        #     block_hash = Column(VARCHAR(256), nullable=False)
-        #     block_timestamp = Column(BigInteger, nullable=False)
-
-        #     caller_address = Column(
-        #         LargeBinary,
-        #         nullable=True,
-        #         index=True,
-        #     )
-        #     origin_address = Column(
-        #         LargeBinary,
-        #         nullable=True,
-        #         index=True,
-        #     )
-
-        #     address = Column(
-        #         LargeBinary,
-        #         nullable=False,
-        #         index=True,
-        #     )
-
-        #     label_name = Column(Text, nullable=True, index=True)
-        #     label_type = Column(VARCHAR(64), nullable=True, index=True)
-        #     label_data = Column(JSONB, nullable=True)
-
-        #     created_at = Column(
-        #         DateTime(timezone=True), server_default=utcnow(), nullable=False
-        #     )
-
         ## add zero transaction hash
 
         label = label_model(
