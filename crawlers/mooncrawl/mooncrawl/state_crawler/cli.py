@@ -485,14 +485,6 @@ def recursive_unpack(
         level = 0
         calls.setdefault(level, []).append(abi)
 
-    # if not contracts_methods.get(job["address"]):
-    #     contracts_methods[job["address"]] = []
-    # if generated_hash not in contracts_methods[job["address"]]:
-    #     contracts_methods[job["address"]].append(generated_hash)
-    #     if not contracts_ABIs.get(job["address"]):
-    #         contracts_ABIs[job["address"]] = {}
-    #     contracts_ABIs[job["address"]][generated_hash] = abi
-
     contracts_methods.setdefault(method_abi["address"], [])
     if generated_hash not in contracts_methods[method_abi["address"]]:
         contracts_methods[method_abi["address"]].append(generated_hash)
@@ -968,49 +960,6 @@ def main() -> None:
         help="Path to abi file.",
     )
     generate_view_parser.set_defaults(func=parse_abi)
-
-    # generate_view_parser = subparsers.add_parser(
-    #     "crawl-jobs-v3",
-    #     help="continuous crawling the view methods from job structure",
-    # )
-
-    # generate_view_parser.add_argument(
-    #     "--moonstream-token",
-    #     "-t",
-    #     type=str,
-    #     help="Moonstream token",
-    #     required=True,
-    # )
-    # generate_view_parser.add_argument(
-    #     "--blockchain",
-    #     "-b",
-    #     type=str,
-    #     help="Type of blovkchain wich writng in database",
-    #     required=True,
-    # )
-    # generate_view_parser.add_argument(
-    #     "--infura",
-    #     action="store_true",
-    #     help="Use infura as web3 provider",
-    # )
-    # generate_view_parser.add_argument(
-    #     "--block-number", "-N", type=str, help="Block number."
-    # )
-    # generate_view_parser.add_argument(
-    #     "--jobs-file",
-    #     "-j",
-    #     type=str,
-    #     help="Path to json file with jobs",
-    #     required=False,
-    # )
-    # generate_view_parser.add_argument(
-    #     "--batch-size",
-    #     "-s",
-    #     type=int,
-    #     default=500,
-    #     help="Size of chunks wich send to Multicall2 contract.",
-    # )
-    # generate_view_parser.set_defaults(func=handle_crawl_v3)
 
     args = parser.parse_args()
     args.func(args)
