@@ -1,6 +1,8 @@
 import json
 import logging
 from typing import Any, Dict
+from hexbytes import HexBytes
+
 
 from moonstreamtypes.blockchain import AvailableBlockchainType, get_label_model
 from sqlalchemy.orm import Session
@@ -21,7 +23,8 @@ def view_call_to_label(
     Creates a label model.
 
     """
-    label_model = get_label_model(blockchain_type)
+    version = 3 if v3 else 2
+    label_model = get_label_model(blockchain_type, version=version)
 
     sanityzed_label_data = json.loads(
         json.dumps(
@@ -41,14 +44,69 @@ def view_call_to_label(
         del sanityzed_label_data["type"]
         del sanityzed_label_data["name"]
 
+        # class EvmBasedLabel(Base):  # type: ignore
+        #     __abstract__ = True
+
+        #     id = Column(
+        #         UUID(as_uuid=True),
+        #         primary_key=True,
+        #         default=uuid.uuid4,
+        #         unique=True,
+        #         nullable=False,
+        #     )
+        #     label = Column(VARCHAR(256), nullable=False, index=True)
+
+        #     transaction_hash = Column(
+        #         VARCHAR(128),
+        #         nullable=False,
+        #         index=True,
+        #     )
+        #     log_index = Column(Integer, nullable=True)
+
+        #     block_number = Column(
+        #         BigInteger,
+        #         nullable=False,
+        #         index=True,
+        #     )
+        #     block_hash = Column(VARCHAR(256), nullable=False)
+        #     block_timestamp = Column(BigInteger, nullable=False)
+
+        #     caller_address = Column(
+        #         LargeBinary,
+        #         nullable=True,
+        #         index=True,
+        #     )
+        #     origin_address = Column(
+        #         LargeBinary,
+        #         nullable=True,
+        #         index=True,
+        #     )
+
+        #     address = Column(
+        #         LargeBinary,
+        #         nullable=False,
+        #         index=True,
+        #     )
+
+        #     label_name = Column(Text, nullable=True, index=True)
+        #     label_type = Column(VARCHAR(64), nullable=True, index=True)
+        #     label_data = Column(JSONB, nullable=True)
+
+        #     created_at = Column(
+        #         DateTime(timezone=True), server_default=utcnow(), nullable=False
+        #     )
+
+        ## add zero transaction hash
+
         label = label_model(
             label=label_name,
             label_name=call["name"],
             label_type="view",
             label_data=sanityzed_label_data,
-            address=call["address"],
+            ### bytea
+            address=HexBytes(call["address"]),
             block_number=call["block_number"],
-            transaction_hash="0x",
+            transaction_hash="0x2653135e31407726a25dd8d304878578cdfcc7d69a2b319d1aca4a37ed66956a",
             block_timestamp=call["block_timestamp"],
             block_hash=call["block_hash"],
         )

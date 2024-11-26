@@ -69,3 +69,4 @@ class ViewTasks(BaseModel):
     address: str
     customer_id: Optional[str] = None
     instance_id: Optional[str] = None
+    v3: Optional[bool] = False
