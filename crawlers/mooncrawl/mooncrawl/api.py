@@ -232,6 +232,7 @@ async def queries_data_update_handler(
 
     requested_query = request_data.query
 
+    blockchain_table = None
     if request_data.blockchain:
         if request_data.blockchain not in [i.value for i in AvailableBlockchainType]:
             logger.error(f"Unknown blockchain {request_data.blockchain}")
@@ -253,6 +254,8 @@ async def queries_data_update_handler(
                 get_label_model(blockchain).__tablename__,
             )
         )
+
+        blockchain_table = get_label_model(blockchain).__tablename__
 
     # Check if it can transform to TextClause
     try:
@@ -296,6 +299,9 @@ async def queries_data_update_handler(
             query=query,
             params=passed_params,
             params_hash=params_hash,
+            customer_id=request_data.customer_id,
+            instance_id=request_data.instance_id,
+            blockchain_table=blockchain_table,
         )
 
     except Exception as e:

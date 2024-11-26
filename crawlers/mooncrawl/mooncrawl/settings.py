@@ -481,3 +481,8 @@ if MOONSTREAM_STATE_CRAWLER_JOURNAL_ID == "":
     raise ValueError(
         "MOONSTREAM_STATE_CRAWLER_JOURNAL_ID environment variable must be set"
     )
+
+
+MOONSTREAM_DB_V3_CONTROLLER_API = os.environ.get(
+    "MOONSTREAM_DB_V3_CONTROLLER_API", "https://mdb-v3-api.moonstream.to"
+)

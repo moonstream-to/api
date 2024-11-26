@@ -27,6 +27,7 @@ from ..actions import (
     get_query_by_name,
     name_normalization,
     query_parameter_hash,
+    check_user_resource_access,
 )
 from ..middleware import MoonstreamHTTPException
 from ..settings import (
@@ -370,6 +371,8 @@ async def update_query_data_handler(
     request: Request,
     query_name: str = Path(..., description="Query name"),
     request_update: data.UpdateDataRequest = Body(...),
+    customer_id: Optional[str] = Query(None),
+    instance_id: Optional[str] = Query(None),
 ) -> data.QueryPresignUrl:
     """
     Request update data on S3 bucket
@@ -385,6 +388,26 @@ async def update_query_data_handler(
                 status_code=400,
                 detail=f"Provided blockchain is not supported.",
             )
+
+    json_payload = {}
+
+    is_customer_database = customer_id is not None and instance_id is not None
+
+    if is_customer_database:
+
+        results = check_user_resource_access(
+            customer_id=customer_id,
+            user_token=token,
+        )
+
+        if results is None:
+            raise MoonstreamHTTPException(
+                status_code=404,
+                detail="Not found customer",
+            )
+
+        json_payload["customer_id"] = customer_id
+        json_payload["instance_id"] = instance_id
 
     # normalize query name
 
@@ -436,8 +459,9 @@ async def update_query_data_handler(
             raise MoonstreamHTTPException(status_code=500, internal_error=e)
 
         ### check tags
-
-        if "preapprove" in entry.tags or "approved" not in entry.tags:
+        if (
+            "preapprove" in entry.tags or "approved" not in entry.tags
+        ) and not is_customer_database:
             raise MoonstreamHTTPException(
                 status_code=403, detail="Query not approved yet."
             )
@@ -456,17 +480,18 @@ async def update_query_data_handler(
 
         if "ext:csv" in tags:
             file_type = "csv"
+
+        json_payload["query"] = content
+        json_payload["params"] = request_update.params
+        json_payload["file_type"] = file_type
+        json_payload["blockchain"] = (
+            request_update.blockchain if request_update.blockchain else None
+        )
+
         try:
             responce = requests.post(
                 f"{MOONSTREAM_CRAWLERS_SERVER_URL}:{MOONSTREAM_CRAWLERS_SERVER_PORT}/jobs/{query_id}/query_update",
-                json={
-                    "query": content,
-                    "params": request_update.params,
-                    "file_type": file_type,
-                    "blockchain": (
-                        request_update.blockchain if request_update.blockchain else None
-                    ),
-                },
+                json=json_payload,
                 timeout=MOONSTREAM_INTERNAL_REQUEST_TIMEOUT_SECONDS,
             )
         except Exception as e:
