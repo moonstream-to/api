@@ -5,16 +5,24 @@ import logging
 import re
 from collections import OrderedDict
 from io import StringIO
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
 from sqlalchemy.sql.expression import TextClause
 
-from ..actions import push_data_to_bucket
-from ..db import RO_pre_ping_query_engine
+from ..actions import push_data_to_bucket, get_customer_db_uri
+from ..db import (
+    RO_pre_ping_query_engine,
+    MOONSTREAM_DB_URI_READ_ONLY,
+    MoonstreamCustomDBEngine,
+)
 from ..reporter import reporter
-from ..settings import MOONSTREAM_S3_QUERIES_BUCKET_PREFIX
+from ..settings import (
+    CRAWLER_LABEL,
+    SEER_CRAWLER_LABEL,
+    MOONSTREAM_DB_V3_SCHEMA_NAME,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -64,12 +72,26 @@ def data_generate(
     query: TextClause,
     params: Dict[str, Any],
     params_hash: str,
+    customer_id: Optional[str] = None,
+    instance_id: Optional[str] = None,
+    blockchain_table: Optional[str] = None,
 ):
     """
     Generate query and push it to S3
     """
+    label = CRAWLER_LABEL
+    db_uri = MOONSTREAM_DB_URI_READ_ONLY
+    if customer_id is not None and instance_id is not None:
+        db_uri = get_customer_db_uri(customer_id, instance_id, "customer")
+        label = SEER_CRAWLER_LABEL
 
-    process_session = sessionmaker(bind=RO_pre_ping_query_engine)
+        engine = MoonstreamCustomDBEngine(
+            url=db_uri, schema=MOONSTREAM_DB_V3_SCHEMA_NAME
+        )
+    else:
+        engine = RO_pre_ping_query_engine
+
+    process_session = sessionmaker(bind=engine)
     db_session = process_session()
 
     metadata = {
@@ -80,35 +102,32 @@ def data_generate(
         "params": json.dumps(params),
     }
 
-    try:
-        # TODO:(Andrey) Need optimization that information is usefull but incomplete
-        block_number, block_timestamp = db_session.execute(
-            text(
-                "SELECT block_number, block_timestamp FROM polygon_labels WHERE block_number=(SELECT max(block_number) FROM polygon_labels where label='moonworm-alpha') limit 1;"
-            ),
-        ).one()
+    block_number = None
+    block_timestamp = None
 
+    try:
+        ### If blockchain is provided, we need to get the latest block number and timestamp
+        if blockchain_table is not None:
+            block_number, block_timestamp = db_session.execute(
+                text(
+                    f"SELECT block_number, block_timestamp FROM {blockchain_table} WHERE label='{label}' ORDER BY block_number DESC LIMIT 1"
+                ),
+            ).one()
         if file_type == "csv":
             csv_buffer = StringIO()
             csv_writer = csv.writer(csv_buffer, delimiter=";")
 
-            # engine.execution_options(stream_results=True)
             query_instance = db_session.execute(query, params)  # type: ignore
 
             csv_writer.writerow(query_instance.keys())
             csv_writer.writerows(query_instance.fetchall())
 
-            metadata["block_number"] = block_number
-            metadata["block_timestamp"] = block_timestamp
+            metadata["block_number"] = block_number  # type: ignore
+            metadata["block_timestamp"] = block_timestamp  # type: ignore
 
             data = csv_buffer.getvalue().encode("utf-8")
 
         else:
-            block_number, block_timestamp = db_session.execute(
-                text(
-                    "SELECT block_number, block_timestamp FROM polygon_labels WHERE block_number=(SELECT max(block_number) FROM polygon_labels where label='moonworm-alpha') limit 1;"
-                ),
-            ).one()
 
             data = json.dumps(
                 {

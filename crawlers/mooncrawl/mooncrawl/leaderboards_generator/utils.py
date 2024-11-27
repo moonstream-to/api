@@ -22,6 +22,7 @@ def get_results_for_moonstream_query(
     moonstream_access_token: str,
     query_name: str,
     params: Dict[str, Any],
+    query_params: Dict[str, Any],
     blockchain: Optional[str] = None,
     api_url: str = MOONSTREAM_API_URL,
     max_retries: int = 100,
@@ -70,8 +71,13 @@ def get_results_for_moonstream_query(
     attempts = 0
 
     while not success and attempts < query_api_retries:
+
         response = requests.post(
-            request_url, json=request_body, headers=headers, timeout=10
+            request_url,
+            json=request_body,
+            headers=headers,
+            timeout=10,
+            params=query_params,
         )
         attempts += 1
         response.raise_for_status()

@@ -91,6 +91,13 @@ def handle_leaderboards(args: argparse.Namespace) -> None:
             params = leaderboard_data["params"]
 
         blockchain = leaderboard_data.get("blockchain", None)
+        query_params = {}
+
+        if leaderboard_data.get("customer_id", False):
+            query_params["customer_id"] = leaderboard_data["customer_id"]
+
+        if leaderboard_data.get("instance_id", False):
+            query_params["instance_id"] = str(leaderboard_data["instance_id"])
 
         ### execute query
         try:
@@ -98,6 +105,7 @@ def handle_leaderboards(args: argparse.Namespace) -> None:
                 args.query_api_access_token,
                 query_name,
                 params,
+                query_params,
                 blockchain,
                 MOONSTREAM_API_URL,
                 args.max_retries,
