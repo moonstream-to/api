@@ -232,7 +232,7 @@ async def queries_data_update_handler(
 
     requested_query = request_data.query
 
-    blockchain_table = None
+    blockchain_table = "polygon_labels"
     if request_data.blockchain:
         if request_data.blockchain not in [i.value for i in AvailableBlockchainType]:
             logger.error(f"Unknown blockchain {request_data.blockchain}")
