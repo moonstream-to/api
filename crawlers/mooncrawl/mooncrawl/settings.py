@@ -486,3 +486,7 @@ if MOONSTREAM_STATE_CRAWLER_JOURNAL_ID == "":
 MOONSTREAM_DB_V3_CONTROLLER_API = os.environ.get(
     "MOONSTREAM_DB_V3_CONTROLLER_API", "https://mdb-v3-api.moonstream.to"
 )
+
+MOONSTREAM_DB_V3_SCHEMA_NAME = os.environ.get(
+    "MOONSTREAM_DB_V3_SCHEMA_NAME", "blockchain"
+)

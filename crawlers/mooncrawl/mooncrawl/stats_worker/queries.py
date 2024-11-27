@@ -13,15 +13,16 @@ from sqlalchemy.sql.expression import TextClause
 
 from ..actions import push_data_to_bucket, get_customer_db_uri
 from ..db import (
-    create_moonstream_engine,
-    MOONSTREAM_QUERY_API_DB_STATEMENT_TIMEOUT_MILLIS,
+    RO_pre_ping_query_engine,
     MOONSTREAM_DB_URI_READ_ONLY,
+    MoonstreamCustomDBEngine,
 )
 from ..reporter import reporter
 from ..settings import (
     MOONSTREAM_S3_QUERIES_BUCKET_PREFIX,
     CRAWLER_LABEL,
     SEER_CRAWLER_LABEL,
+    MOONSTREAM_DB_V3_SCHEMA_NAME,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -85,18 +86,14 @@ def data_generate(
         db_uri = get_customer_db_uri(customer_id, instance_id, "customer")
         label = SEER_CRAWLER_LABEL
 
-    if db_uri is None:
-        logger.error("No DB URI provided")
-        return
+        engine = MoonstreamCustomDBEngine(
+            url=db_uri, schema=MOONSTREAM_DB_V3_SCHEMA_NAME
+        )
+    else:
+        engine = RO_pre_ping_query_engine
 
-    data_engine = create_moonstream_engine(
-        url=db_uri,
-        pool_size=1,
-        statement_timeout=MOONSTREAM_QUERY_API_DB_STATEMENT_TIMEOUT_MILLIS,
-        pool_pre_ping=True,
-    )
-
-    db_session = sessionmaker(bind=data_engine)()
+    process_session = sessionmaker(bind=engine)
+    db_session = process_session()
 
     metadata = {
         "source": "drone-query-generation",

@@ -484,9 +484,7 @@ async def update_query_data_handler(
         json_payload["query"] = content
         json_payload["params"] = request_update.params
         json_payload["file_type"] = file_type
-        json_payload["blockchain"] = (
-            request_update.blockchain if request_update.blockchain else None
-        )
+        json_payload["blockchain"] = request_update.blockchain
 
         try:
             responce = requests.post(
