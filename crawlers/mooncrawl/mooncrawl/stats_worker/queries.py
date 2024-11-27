@@ -19,7 +19,6 @@ from ..db import (
 )
 from ..reporter import reporter
 from ..settings import (
-    MOONSTREAM_S3_QUERIES_BUCKET_PREFIX,
     CRAWLER_LABEL,
     SEER_CRAWLER_LABEL,
     MOONSTREAM_DB_V3_SCHEMA_NAME,
