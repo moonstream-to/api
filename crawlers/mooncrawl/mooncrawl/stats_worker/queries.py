@@ -15,7 +15,7 @@ from ..actions import push_data_to_bucket, get_customer_db_uri
 from ..db import (
     RO_pre_ping_query_engine,
     MOONSTREAM_DB_URI_READ_ONLY,
-    MoonstreamCustomDBEngine,
+    DBEngine,
 )
 from ..reporter import reporter
 from ..settings import (
@@ -85,9 +85,7 @@ def data_generate(
         db_uri = get_customer_db_uri(customer_id, instance_id, "customer")
         label = SEER_CRAWLER_LABEL
 
-        engine = MoonstreamCustomDBEngine(
-            url=db_uri, schema=MOONSTREAM_DB_V3_SCHEMA_NAME
-        )
+        engine = DBEngine(url=db_uri, schema=MOONSTREAM_DB_V3_SCHEMA_NAME).engine
     else:
         engine = RO_pre_ping_query_engine
 
