@@ -1,6 +1,8 @@
 import json
 import logging
 from typing import Any, Dict
+from hexbytes import HexBytes
+
 
 from moonstreamtypes.blockchain import AvailableBlockchainType, get_label_model
 from sqlalchemy.orm import Session
@@ -14,13 +16,15 @@ logger = logging.getLogger(__name__)
 def view_call_to_label(
     blockchain_type: AvailableBlockchainType,
     call: Dict[str, Any],
+    v3: bool = False,
     label_name=VIEW_STATE_CRAWLER_LABEL,
 ):
     """
     Creates a label model.
 
     """
-    label_model = get_label_model(blockchain_type)
+    version = 3 if v3 else 2
+    label_model = get_label_model(blockchain_type, version=version)
 
     sanityzed_label_data = json.loads(
         json.dumps(
@@ -35,14 +39,36 @@ def view_call_to_label(
         ).replace(r"\u0000", "")
     )
 
-    label = label_model(
-        label=label_name,
-        label_data=sanityzed_label_data,
-        address=call["address"],
-        block_number=call["block_number"],
-        transaction_hash=None,
-        block_timestamp=call["block_timestamp"],
-    )
+    if v3:
+
+        del sanityzed_label_data["type"]
+        del sanityzed_label_data["name"]
+
+        ## add zero transaction hash
+
+        label = label_model(
+            label=label_name,
+            label_name=call["name"],
+            label_type="view",
+            label_data=sanityzed_label_data,
+            ### bytea
+            address=HexBytes(call["address"]),
+            block_number=call["block_number"],
+            transaction_hash="0x2653135e31407726a25dd8d304878578cdfcc7d69a2b319d1aca4a37ed66956a",
+            block_timestamp=call["block_timestamp"],
+            block_hash=call["block_hash"],
+        )
+
+    else:
+
+        label = label_model(
+            label=label_name,
+            label_data=sanityzed_label_data,
+            address=call["address"],
+            block_number=call["block_number"],
+            transaction_hash=None,
+            block_timestamp=call["block_timestamp"],
+        )
 
     return label
 
