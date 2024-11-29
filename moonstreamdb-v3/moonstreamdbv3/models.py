@@ -124,6 +124,38 @@ class EvmBasedLabel(Base):  # type: ignore
     )
 
 
+class EvmBasedTransaction(Base):  # type: ignore
+    __abstract__ = True
+
+    hash = Column(
+        VARCHAR(256), primary_key=True, unique=True, nullable=False, index=True
+    )
+    block_number = (
+        Column(
+            BigInteger,
+            nullable=False,
+            index=True,
+        ),
+    )
+    block_timestamp = Column(BigInteger, nullable=False, index=True)
+    block_hash = Column(VARCHAR(256), nullable=False, index=True)
+    from_address = Column(LargeBinary, index=True)
+    to_address = Column(LargeBinary, index=True)
+    gas = Column(BigInteger, index=True)
+    gas_price = Column(BigInteger, index=True)
+    max_fee_per_gas = Column(BigInteger, nullable=True)
+    max_priority_fee_per_gas = Column(BigInteger, nullable=True)
+    input = Column(Text)
+    nonce = Column(BigInteger)
+    transaction_index = Column(BigInteger)
+    transaction_type = Column(Integer, nullable=True)
+    value = Column(BigInteger, index=True)
+
+    indexed_at = Column(
+        DateTime(timezone=True), server_default=utcnow(), nullable=False
+    )
+
+
 class EthereumLabel(EvmBasedLabel):  # type: ignore
     __tablename__ = "ethereum_labels"
 
@@ -167,6 +199,10 @@ class EthereumLabel(EvmBasedLabel):  # type: ignore
             postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
+
+
+class EthereumTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "ethereum_transactions"
 
 
 class SepoliaLabel(EvmBasedLabel):  # type: ignore
@@ -214,6 +250,10 @@ class SepoliaLabel(EvmBasedLabel):  # type: ignore
     )
 
 
+class SepoliaTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "sepolia_transactions"
+
+
 class PolygonLabel(EvmBasedLabel):  # type: ignore
     __tablename__ = "polygon_labels"
 
@@ -257,6 +297,10 @@ class PolygonLabel(EvmBasedLabel):  # type: ignore
             postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
+
+
+class PolygonTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "polygon_transactions"
 
 
 class MumbaiLabel(EvmBasedLabel):  # type: ignore
@@ -304,6 +348,10 @@ class MumbaiLabel(EvmBasedLabel):  # type: ignore
     )
 
 
+class MumbaiTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "mumbai_transactions"
+
+
 class AmoyLabel(EvmBasedLabel):  # type: ignore
     __tablename__ = "amoy_labels"
 
@@ -347,6 +395,10 @@ class AmoyLabel(EvmBasedLabel):  # type: ignore
             postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
+
+
+class AmoyTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "amoy_transactions"
 
 
 class XDaiLabel(EvmBasedLabel):  # type: ignore
@@ -394,6 +446,10 @@ class XDaiLabel(EvmBasedLabel):  # type: ignore
     )
 
 
+class XDaiTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "xdai_transactions"
+
+
 class ZkSyncEraLabel(EvmBasedLabel):  # type: ignore
     __tablename__ = "zksync_era_labels"
 
@@ -437,6 +493,10 @@ class ZkSyncEraLabel(EvmBasedLabel):  # type: ignore
             postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
+
+
+class ZkSyncEraTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "zksync_era_transactions"
 
 
 class ZkSyncEraSepoliaLabel(EvmBasedLabel):  # type: ignore
@@ -484,6 +544,10 @@ class ZkSyncEraSepoliaLabel(EvmBasedLabel):  # type: ignore
     )
 
 
+class ZkSyncEraSepoliaTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "zksync_era_sepolia_transactions"
+
+
 class BaseLabel(EvmBasedLabel):  # type: ignore
     __tablename__ = "base_labels"
 
@@ -527,6 +591,10 @@ class BaseLabel(EvmBasedLabel):  # type: ignore
             postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
+
+
+class BaseTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "base_transactions"
 
 
 class ArbitrumNovaLabel(EvmBasedLabel):  # type: ignore
@@ -574,6 +642,12 @@ class ArbitrumNovaLabel(EvmBasedLabel):  # type: ignore
     )
 
 
+class ArbitrumNovaTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "arbitrum_nova_transactions"
+
+    l1_block_number = Column(BigInteger, nullable=True)
+
+
 class ArbitrumOneLabel(EvmBasedLabel):  # type: ignore
     __tablename__ = "arbitrum_one_labels"
 
@@ -617,6 +691,12 @@ class ArbitrumOneLabel(EvmBasedLabel):  # type: ignore
             postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
+
+
+class ArbitrumOneTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "arbitrum_one_transactions"
+
+    l1_block_number = Column(BigInteger, nullable=True)
 
 
 class ArbitrumSepoliaLabel(EvmBasedLabel):  # type: ignore
@@ -664,6 +744,12 @@ class ArbitrumSepoliaLabel(EvmBasedLabel):  # type: ignore
     )
 
 
+class ArbitrumSepoliaTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "arbitrum_sepolia_transactions"
+
+    l1_block_number = Column(BigInteger, nullable=True)
+
+
 class Game7OrbitArbitrumSepoliaLabel(EvmBasedLabel):  # type: ignore
     __tablename__ = "game7_orbit_arbitrum_sepolia_labels"
 
@@ -707,6 +793,12 @@ class Game7OrbitArbitrumSepoliaLabel(EvmBasedLabel):  # type: ignore
             postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
+
+
+class Game7OrbitArbitrumSepoliaTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "game7_orbit_arbitrum_sepolia_transactions"
+
+    l1_block_number = Column(BigInteger, nullable=True)
 
 
 class XaiLabel(EvmBasedLabel):  # type: ignore
@@ -754,6 +846,12 @@ class XaiLabel(EvmBasedLabel):  # type: ignore
     )
 
 
+class XaiTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "xai_transactions"
+
+    l1_block_number = Column(BigInteger, nullable=True)
+
+
 class XaiSepoliaLabel(EvmBasedLabel):  # type: ignore
     __tablename__ = "xai_sepolia_labels"
 
@@ -797,6 +895,12 @@ class XaiSepoliaLabel(EvmBasedLabel):  # type: ignore
             postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
+
+
+class XaiSepoliaTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "xai_sepolia_transactions"
+
+    l1_block_number = Column(BigInteger, nullable=True)
 
 
 class AvalancheLabel(EvmBasedLabel):  # type: ignore
@@ -844,6 +948,10 @@ class AvalancheLabel(EvmBasedLabel):  # type: ignore
     )
 
 
+class AvalancheTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "avalanche_transactions"
+
+
 class AvalancheFujiLabel(EvmBasedLabel):  # type: ignore
     __tablename__ = "avalanche_fuji_labels"
 
@@ -887,6 +995,10 @@ class AvalancheFujiLabel(EvmBasedLabel):  # type: ignore
             postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
+
+
+class AvalancheFujiTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "avalanche_fuji_transactions"
 
 
 class BlastLabel(EvmBasedLabel):  # type: ignore
@@ -934,6 +1046,10 @@ class BlastLabel(EvmBasedLabel):  # type: ignore
     )
 
 
+class BlastTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "blast_transactions"
+
+
 class BlastSepoliaLabel(EvmBasedLabel):  # type: ignore
     __tablename__ = "blast_sepolia_labels"
 
@@ -979,6 +1095,10 @@ class BlastSepoliaLabel(EvmBasedLabel):  # type: ignore
     )
 
 
+class BlastSepoliaTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "blast_sepolia_transactions"
+
+
 class ProofOfPlayApexLabel(EvmBasedLabel):  # type: ignore
     __tablename__ = "proofofplay_apex_labels"
 
@@ -1022,6 +1142,12 @@ class ProofOfPlayApexLabel(EvmBasedLabel):  # type: ignore
             postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
+
+
+class ProofOfPlayApexTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "proofofplay_apex_transactions"
+
+    l1_block_number = Column(BigInteger, nullable=True)
 
 
 class StarknetLabel(EvmBasedLabel):  # type: ignore
@@ -1159,6 +1285,10 @@ class MantleLabel(EvmBasedLabel):  # type: ignore
     )
 
 
+class MantleTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "mantle_transactions"
+
+
 class MantleSepoliaLabel(EvmBasedLabel):  # type: ignore
     __tablename__ = "mantle_sepolia_labels"
 
@@ -1202,6 +1332,10 @@ class MantleSepoliaLabel(EvmBasedLabel):  # type: ignore
             postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
+
+
+class MantleSepoliaTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "mantle_sepolia_transactions"
 
 
 class ImxZkevmLabel(EvmBasedLabel):  # type: ignore
@@ -1249,6 +1383,10 @@ class ImxZkevmLabel(EvmBasedLabel):  # type: ignore
     )
 
 
+class ImxZkevmTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "imx_zkevm_transactions"
+
+
 class ImxZkevmSepoliaLabel(EvmBasedLabel):  # type: ignore
     __tablename__ = "imx_zkevm_sepolia_labels"
 
@@ -1292,6 +1430,10 @@ class ImxZkevmSepoliaLabel(EvmBasedLabel):  # type: ignore
             postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
+
+
+class ImxZkevmSepoliaTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "imx_zkevm_sepolia_transactions"
 
 
 class Game7Label(EvmBasedLabel):  # type: ignore
@@ -1339,6 +1481,12 @@ class Game7Label(EvmBasedLabel):  # type: ignore
     )
 
 
+class Game7Transaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "game7_transactions"
+
+    l1_block_number = Column(BigInteger, nullable=True)
+
+
 class Game7TestnetLabel(EvmBasedLabel):  # type: ignore
     __tablename__ = "game7_testnet_labels"
 
@@ -1382,6 +1530,12 @@ class Game7TestnetLabel(EvmBasedLabel):  # type: ignore
             postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
+
+
+class Game7TestnetTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "game7_testnet_transactions"
+
+    l1_block_number = Column(BigInteger, nullable=True)
 
 
 class B3Label(EvmBasedLabel):  # type: ignore
@@ -1429,6 +1583,10 @@ class B3Label(EvmBasedLabel):  # type: ignore
     )
 
 
+class B3Transaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "b3_transactions"
+
+
 class B3SepoliaLabel(EvmBasedLabel):  # type: ignore
     __tablename__ = "b3_sepolia_labels"
 
@@ -1472,6 +1630,10 @@ class B3SepoliaLabel(EvmBasedLabel):  # type: ignore
             postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
+
+
+class B3SepoliaTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "b3_sepolia_transactions"
 
 
 class RoninLabel(EvmBasedLabel):  # type: ignore
@@ -1562,3 +1724,7 @@ class RoninSaigonLabel(EvmBasedLabel):  # type: ignore
             postgresql_where=text("label='seer-raw' and label_type='event'"),
         ),
     )
+
+
+class RoninTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "ronin_transactions"
