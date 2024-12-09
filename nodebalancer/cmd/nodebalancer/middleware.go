@@ -387,6 +387,10 @@ func corsMiddleware(next http.Handler) http.Handler {
 		}
 
 		if r.Method == "OPTIONS" {
+			w.Header().Set("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+			// Credentials are cookies, authorization headers, or TLS client certificates
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+			w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
 			w.WriteHeader(http.StatusOK)
 			return
 		}
