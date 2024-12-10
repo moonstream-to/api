@@ -3,9 +3,9 @@ module github.com/bugout-dev/moonstream/nodes/node_balancer
 go 1.17
 
 require (
-	github.com/bugout-dev/bugout-go v0.4.3
-	github.com/bugout-dev/humbug/go v0.0.0-20211206230955-57607cd2d205
-	github.com/google/uuid v1.3.0
+	github.com/bugout-dev/bugout-go v0.4.5
+	github.com/bugout-dev/humbug/go v0.0.0-20230713220619-2cd74a2b36d7
+	github.com/google/uuid v1.6.0
 	github.com/urfave/cli/v2 v2.27.5
 )
 

@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/urfave/cli/v2"
@@ -233,6 +235,128 @@ var CommonCommands = []*cli.Command{
 						return fmt.Errorf("unable to marshal user accesses struct, err: %v", marErr)
 					}
 					fmt.Println(string(userAccessesJson))
+
+					return nil
+				},
+			},
+			{
+				Name:  "verify",
+				Usage: "Verify accesses in correct state",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "access-token",
+						Aliases:  []string{"t"},
+						Usage:    "Authorized user access token with granted privileges to get resources in Moonstream Bugout application",
+						Required: true,
+					},
+				},
+				Action: func(c *cli.Context) error {
+					accessToken := c.String("access-token")
+
+					var clientErr error
+					bugoutClient, clientErr = CreateBugoutClient()
+					if clientErr != nil {
+						return fmt.Errorf("an error occurred during Bugout client creation: %v", clientErr)
+					}
+
+					resources, getResErr := GetAccesses("", "", accessToken)
+					if getResErr != nil {
+						return fmt.Errorf("unable to get Bugout resources, err: %v", getResErr)
+					}
+
+					if len(resources.Resources) == 0 {
+						fmt.Println("[]")
+						return nil
+					}
+
+					var wg sync.WaitGroup
+					sem := make(chan struct{}, 3)
+					errChan := make(chan error, len(resources.Resources))
+
+					var modifiedClientAccesses []ClientAccess
+					var deleteClientAccesses []ClientAccess
+					shareResourceIds := make(map[string]bool)
+					for _, resource := range resources.Resources {
+						wg.Add(1)
+						go func(resourceId string) {
+							defer wg.Done()
+							sem <- struct{}{}
+
+							var isShared bool
+
+							holders, holdErr := CheckAccess(resourceId, accessToken)
+							if holdErr != nil {
+								errChan <- fmt.Errorf("failed get holders for resource ID %s with error %v", resourceId, holdErr)
+							}
+
+							for _, h := range holders.Holders {
+								if h.Id == NB_CONTROLLER_USER_ID {
+									isShared = true
+								}
+							}
+
+							if !isShared {
+								shareResourceIds[resourceId] = true
+							}
+
+							<-sem
+						}(resource.Id)
+
+						var isModified bool
+						clientAccess, parseErr := ParseResourceDataToClientAccess(resource)
+						if parseErr != nil {
+							fmt.Printf("Unable to parse resource data, err: %v", parseErr)
+							continue
+						}
+
+						if clientAccess.ClientResourceData.Name == "" || clientAccess.ClientResourceData.AccessID == "" {
+							deleteClientAccesses = append(deleteClientAccesses, *clientAccess)
+							continue
+						}
+
+						if clientAccess.ClientResourceData.PeriodStartTs == 0 {
+							clientAccess.ClientResourceData.PeriodStartTs = int64(time.Now().Unix())
+							isModified = true
+						}
+
+						if clientAccess.ClientResourceData.PeriodDuration < 3600 {
+							clientAccess.ClientResourceData.PeriodDuration = 3600
+							isModified = true
+						}
+
+						if isModified {
+							modifiedClientAccesses = append(modifiedClientAccesses, *clientAccess)
+							continue
+						}
+					}
+
+					fmt.Printf("There are %d accesses to modify:\n", len(modifiedClientAccesses))
+					for _, a := range modifiedClientAccesses {
+						fmt.Printf("  - resource ID %s with access ID %s\n", a.ResourceID, a.ClientResourceData.AccessID)
+					}
+					fmt.Printf("There are %d accesses to delete\n", len(deleteClientAccesses))
+					for _, a := range deleteClientAccesses {
+						fmt.Printf("  - resource ID %s with access ID %s\n", a.ResourceID, a.ClientResourceData.AccessID)
+					}
+
+					wg.Wait()
+					close(sem)
+					close(errChan)
+
+					var errorMessages []string
+					for err := range errChan {
+						errorMessages = append(errorMessages, err.Error())
+					}
+
+					if len(errorMessages) > 0 {
+						fmt.Printf("errors occurred during verification:\n%s", strings.Join(errorMessages, "\n"))
+					}
+
+					fmt.Printf("There are %d accesses not shared with nodebalancer application user\n", len(shareResourceIds))
+					fmt.Printf("There are %d accesses to delete\n", len(deleteClientAccesses))
+					for a := range shareResourceIds {
+						fmt.Printf("  - resource ID %s\n", a)
+					}
 
 					return nil
 				},

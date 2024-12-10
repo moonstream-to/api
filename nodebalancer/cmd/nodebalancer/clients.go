@@ -240,6 +240,15 @@ func AddNewAccess(accessId, userId, name, description string, blockchainAccess, 
 	return &newUserAccess, nil
 }
 
+func CheckAccess(resourceId, accessToken string) (*brood.ResourceHolders, error) {
+	holders, holdErr := bugoutClient.Brood.GetResourceHolders(accessToken, resourceId)
+	if holdErr != nil {
+		return nil, fmt.Errorf("unable to fetch resource holders, err: %v", holdErr)
+	}
+
+	return &holders, nil
+}
+
 func ShareAccess(resourceId, userId, holderType string, permissions []string, accessToken string) (*brood.ResourceHolders, error) {
 	resourceHolderPermissions, holdErr := bugoutClient.Brood.AddResourceHolderPermissions(
 		accessToken, resourceId, brood.ResourceHolder{
