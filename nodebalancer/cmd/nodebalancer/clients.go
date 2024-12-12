@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/bugout-dev/bugout-go/pkg/brood"
+	"github.com/google/uuid"
 )
 
 var (
@@ -194,16 +195,24 @@ func (cpool *ClientPool) CleanInactiveClientNodes() int {
 }
 
 // Creates new Bugout resource according to nodebalancer type to grant user or application access to call JSON RPC nodes
-func AddNewAccess(accessId, userId, name, description string, blockchainAccess, extendedMethods bool, periodDuration, maxCallsPerPeriod uint, accessToken string) (*ClientAccess, error) {
-	_, findErr := bugoutClient.Brood.FindUser(
-		accessToken,
-		map[string]string{
-			"user_id":        userId,
-			"application_id": MOONSTREAM_APPLICATION_ID,
-		},
-	)
-	if findErr != nil {
-		return nil, fmt.Errorf("user does not exists, err: %v", findErr)
+func AddNewAccess(accessToken, accessId, userId, name, description string, blockchainAccess, extendedMethods bool, periodDuration, maxCallsPerPeriod uint) (*ClientAccess, error) {
+	if userId == "" {
+		userId = NB_CONTROLLER_USER_ID
+	} else {
+		_, findErr := bugoutClient.Brood.FindUser(
+			accessToken,
+			map[string]string{
+				"user_id":        userId,
+				"application_id": MOONSTREAM_APPLICATION_ID,
+			},
+		)
+		if findErr != nil {
+			return nil, fmt.Errorf("user does not exists, err: %v", findErr)
+		}
+	}
+
+	if accessId == "" {
+		accessId = uuid.NewString()
 	}
 
 	proposedClientResourceData := ClientResourceData{
@@ -240,16 +249,8 @@ func AddNewAccess(accessId, userId, name, description string, blockchainAccess, 
 	return &newUserAccess, nil
 }
 
-func CheckAccess(resourceId, accessToken string) (*brood.ResourceHolders, error) {
-	holders, holdErr := bugoutClient.Brood.GetResourceHolders(accessToken, resourceId)
-	if holdErr != nil {
-		return nil, fmt.Errorf("unable to fetch resource holders, err: %v", holdErr)
-	}
-
-	return &holders, nil
-}
-
-func ShareAccess(resourceId, userId, holderType string, permissions []string, accessToken string) (*brood.ResourceHolders, error) {
+// Share access represented as Brood resource with new holder. Mostly used to share with nodebalancer application user
+func ShareAccess(accessToken, resourceId, userId, holderType string, permissions []string) (*brood.ResourceHolders, error) {
 	resourceHolderPermissions, holdErr := bugoutClient.Brood.AddResourceHolderPermissions(
 		accessToken, resourceId, brood.ResourceHolder{
 			Id:          userId,
@@ -258,13 +259,14 @@ func ShareAccess(resourceId, userId, holderType string, permissions []string, ac
 		},
 	)
 	if holdErr != nil {
-		return nil, fmt.Errorf("unable to grant permissions to user with ID %s at resource with ID %s, err: %v", resourceId, userId, holdErr)
+		return nil, fmt.Errorf("unable to grant permissions to user with ID %s at resource with ID %s, err: %v", userId, resourceId, holdErr)
 	}
 
 	return &resourceHolderPermissions, nil
 }
 
-func GetAccesses(accessId, userId, accessToken string) (*brood.Resources, error) {
+// Get resource with nodebalancer access type
+func GetResources(accessToken, accessId, userId string) (*brood.Resources, error) {
 	queryParameters := map[string]string{
 		"type": BUGOUT_RESOURCE_TYPE_NODEBALANCER_ACCESS,
 	}
@@ -283,6 +285,7 @@ func GetAccesses(accessId, userId, accessToken string) (*brood.Resources, error)
 	return &resources, nil
 }
 
+// Parse Brood resource to nodebalancer client access representation
 func ParseResourceDataToClientAccess(resource brood.Resource) (*ClientAccess, error) {
 	resourceData, marErr := json.Marshal(resource.ResourceData)
 	if marErr != nil {
@@ -297,13 +300,4 @@ func ParseResourceDataToClientAccess(resource brood.Resource) (*ClientAccess, er
 	}
 
 	return &clientAccess, nil
-}
-
-func DeleteAccess(resourceId, accessToken string) (*brood.Resource, error) {
-	del, delErr := bugoutClient.Brood.DeleteResource(accessToken, resourceId)
-	if delErr != nil {
-		return nil, fmt.Errorf("unable to delete resource, err: %v", delErr)
-	}
-
-	return &del, nil
 }

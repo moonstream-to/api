@@ -3,37 +3,36 @@
 ## Installation
 
 -   Prepare environment variables, according to `sample.env`.
--   Build application
+-   Build an application
 
 ```bash
 go build -o nodebalancer .
 ```
 
-## Work with nodebalancer
+## CLI
 
 **IMPORTANT** Do not use flag `-debug` in production.
 
-### add-access
+Node balancer access manipulation requires an administration token to create and modify resources within the Bugout moonstream application.
+
+### add new access
 
 Add new access for user:
 
 ```bash
-nodebalancer add-access \
-	--user-id "<user_uuid>" \
-	--access-id "<access_uuid>" \
+./nodebalancer access add \
+	--access-token "<bugout_access_token>"
 	--name "Access name" \
-	--description "Description of access" \
-	--extended-methods false \
-	--blockchain--access true
+	--description "Description of access"
 ```
 
-### delete-access
+### delete access
 
 Delete user access:
 
 ```bash
-nodebalancer delete-access \
-	--user-id "<user_uuid>" \
+./nodebalancer access delete \
+	--access-token "<bugout_access_token>"
 	--access-id "<access_uuid>"
 ```
 
@@ -42,10 +41,10 @@ If `access-id` not specified, all user accesses will be deleted.
 ### users
 
 ```bash
-nodebalancer users | jq .
+nodebalancer access list --access-token "<bugout_access_token>" | jq .
 ```
 
-This command will return a list of bugout resources of registered users to access node balancer with their `crawlers/app/project` (in our project we will call it `crawlers`).
+This command will return a list of bugout resources of registered users to access node balancer.
 
 ```json
 [
