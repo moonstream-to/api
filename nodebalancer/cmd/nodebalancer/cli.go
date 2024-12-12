@@ -567,8 +567,8 @@ var CommonCommands = []*cli.Command{
 		Name:  "version",
 		Usage: "Shows nodebalancer package version",
 		Action: func(cCtx *cli.Context) error {
-			fmt.Println(NB_VERSION)
-			fmt.Println(bugout.Version)
+			fmt.Printf("Node Balancer version: %s\n", NB_VERSION)
+			fmt.Printf("Bugout version: %s\n", bugout.Version)
 			return nil
 		},
 	},
