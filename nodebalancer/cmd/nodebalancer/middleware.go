@@ -441,7 +441,7 @@ func logMiddleware(next http.Handler) http.Handler {
 			}
 		}
 
-		if stateCLI.enableDebugFlag {
+		if NB_ENABLE_DEBUG {
 			if r.URL.RawQuery != "" {
 				logStr += fmt.Sprintf(" %s", r.URL.RawQuery)
 			}
@@ -488,14 +488,14 @@ func accessMiddleware(next http.Handler) http.Handler {
 
 		// If access id does not belong to internal crawlers, then check cache or find it in Bugout resources
 		if accessID != "" && accessID == NB_CONTROLLER_ACCESS_ID {
-			if stateCLI.enableDebugFlag {
+			if NB_ENABLE_DEBUG {
 				log.Printf("Access ID belongs to internal usage for user with ID %s", currentClientAccess.ClientResourceData.UserID)
 			}
 			currentClientAccess = internalUsageAccess
 			currentClientAccess.LastAccessTs = tsNow
 			currentClientAccess.requestedDataSource = requestedDataSource
 		} else if accessID != "" && accessCache.isAccessIdInCache(accessID) {
-			if stateCLI.enableDebugFlag {
+			if NB_ENABLE_DEBUG {
 				log.Printf("Access ID found in cache for user with ID %s", currentClientAccess.ClientResourceData.UserID)
 			}
 			currentClientAccess = *accessCache.accessIds[accessID]
@@ -507,7 +507,7 @@ func accessMiddleware(next http.Handler) http.Handler {
 			currentClientAccess.requestedDataSource = requestedDataSource
 			accessCache.UpdateAccessAtCache(accessID, authorizationToken, requestedDataSource, tsNow)
 		} else if accessID == "" && accessCache.isAuthorizationTokenInCache(authorizationToken) {
-			if stateCLI.enableDebugFlag {
+			if NB_ENABLE_DEBUG {
 				log.Printf("Client connected with Authorization token")
 			}
 			currentClientAccess = *accessCache.authorizationTokens[authorizationToken]
@@ -519,7 +519,7 @@ func accessMiddleware(next http.Handler) http.Handler {
 			currentClientAccess.requestedDataSource = requestedDataSource
 			accessCache.UpdateAccessAtCache(accessID, authorizationToken, requestedDataSource, tsNow)
 		} else {
-			if stateCLI.enableDebugFlag {
+			if NB_ENABLE_DEBUG {
 				log.Printf("No access identity found in cache, looking at Brood resources")
 			}
 
@@ -543,7 +543,7 @@ func accessMiddleware(next http.Handler) http.Handler {
 			if authorizationToken != "" && accessCache.isAccessIdInCache(currentClientAccess.ClientResourceData.AccessID) {
 				accessCache.authorizationTokens[authorizationToken] = accessCache.accessIds[currentClientAccess.ClientResourceData.AccessID]
 			} else {
-				if stateCLI.enableDebugFlag {
+				if NB_ENABLE_DEBUG {
 					log.Printf("Adding new access identifier in cache")
 				}
 				err := accessCache.AddAccessToCache(currentClientAccess, tsNow)

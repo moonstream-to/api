@@ -515,17 +515,50 @@ var CommonCommands = []*cli.Command{
 		},
 	},
 	{
-		Name:  "configure",
-		Usage: "Generate nodebalancer configuration",
-		Action: func(cCtx *cli.Context) error {
-
-			return nil
-		},
-	},
-	{
 		Name:  "server",
 		Usage: "Start nodebalancer server",
-		Action: func(cCtx *cli.Context) error {
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:     "config",
+				Aliases:  []string{"c"},
+				Usage:    "Path to configuration file",
+				Required: true,
+			},
+			&cli.StringFlag{
+				Name:  "host",
+				Usage: "Server listening address",
+				Value: "127.0.0.1",
+			},
+			&cli.StringFlag{
+				Name:    "port",
+				Aliases: []string{"p"},
+				Usage:   "Server listening port",
+				Value:   "8544",
+			},
+			&cli.BoolFlag{
+				Name:  "healthcheck",
+				Usage: "Repeatedly send ping requests to the node to verify its availability",
+			},
+			&cli.BoolFlag{
+				Name:  "debug",
+				Usage: "Show extended logs",
+			},
+		},
+		Action: func(c *cli.Context) error {
+			NB_ENABLE_DEBUG = c.Bool("debug")
+
+			var clientErr error
+			bugoutClient, clientErr = CreateBugoutClient()
+			if clientErr != nil {
+				return clientErr
+			}
+
+			CheckEnvVarSet()
+
+			servErr := Server(c.String("config"), c.String("host"), c.String("port"), c.Bool("healthcheck"))
+			if servErr != nil {
+				return servErr
+			}
 
 			return nil
 		},

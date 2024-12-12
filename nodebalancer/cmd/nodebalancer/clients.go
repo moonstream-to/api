@@ -60,7 +60,7 @@ func (ca *ClientAccess) CheckClientCallPeriodLimits(tsNow int64) bool {
 		}
 	} else {
 		// Client period should be refreshed
-		if stateCLI.enableDebugFlag {
+		if NB_ENABLE_DEBUG {
 			log.Printf("Refresh client's period_start_ts with time.now() and reset calls_per_period")
 		}
 		ca.ClientResourceData.CallsPerPeriod = 0
