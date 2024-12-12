@@ -482,7 +482,7 @@ var CommonCommands = []*cli.Command{
 						}
 					}
 
-					fmt.Printf("There are %d accesses to modify:\n", len(modifiedClientAccesses))
+					fmt.Printf("There are %d accesses to modify\n", len(modifiedClientAccesses))
 					for _, a := range modifiedClientAccesses {
 						fmt.Printf("  - resource ID %s with access ID %s\n", a.ResourceID, a.ClientResourceData.AccessID)
 					}

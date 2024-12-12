@@ -41,7 +41,7 @@ If `access-id` not specified, all user accesses will be deleted.
 ### users
 
 ```bash
-nodebalancer access list --access-token "<bugout_access_token>" | jq .
+./nodebalancer access list --access-token "<bugout_access_token>" | jq .
 ```
 
 This command will return a list of bugout resources of registered users to access node balancer.
@@ -71,7 +71,7 @@ This command will return a list of bugout resources of registered users to acces
 ### server
 
 ```bash
-nodebalancer server -host 0.0.0.0 -port 8544 -healthcheck
+./nodebalancer server --host 0.0.0.0 --port 8544 --healthcheck
 ```
 
 Flag `--healthcheck` will execute background process to ping-pong available nodes to keep their status and current block number.
