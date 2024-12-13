@@ -48,13 +48,15 @@ var (
 	NB_HEALTH_CHECK_CALL_TIMEOUT   = time.Second * 2
 
 	NB_CACHE_CLEANING_INTERVAL          = time.Second * 10
+	NB_CACHE_CLEANING_INTERVAL_RAW      = os.Getenv("NB_CACHE_CLEANING_INTERVAL")
 	NB_CACHE_ACCESS_ID_LIFETIME         = int64(120) // 2 minutes
 	NB_CACHE_ACCESS_ID_SESSION_LIFETIME = int64(600) // 10 minutes
 
 	NB_MAX_COUNTER_NUMBER = uint64(10000000)
 
 	// Client configuration
-	NB_CLIENT_NODE_KEEP_ALIVE = int64(5) // How long to store node in hot list for client in seconds
+	NB_CLIENT_NODE_KEEP_ALIVE     = int64(5) // How long to store node in hot list for client in seconds
+	NB_CLIENT_NODE_KEEP_ALIVE_RAW = os.Getenv("NB_CLIENT_NODE_KEEP_ALIVE")
 
 	NB_ACCESS_ID_HEADER   = os.Getenv("NB_ACCESS_ID_HEADER")
 	NB_DATA_SOURCE_HEADER = os.Getenv("NB_DATA_SOURCE_HEADER")
@@ -95,6 +97,18 @@ func CheckEnvVarSet() {
 	for _, o := range strings.Split(MOONSTREAM_CORS_ALLOWED_ORIGINS, ",") {
 		CORS_WHITELIST_MAP[o] = true
 	}
+
+	cacheCleaningInterval, err := strconv.Atoi(NB_CACHE_CLEANING_INTERVAL_RAW)
+	if err != nil {
+		log.Printf("unable to parse environment variable %s as integer and set to default %d, err: %v", NB_CACHE_CLEANING_INTERVAL_RAW, NB_CACHE_CLEANING_INTERVAL, err)
+	}
+	NB_CACHE_CLEANING_INTERVAL = time.Duration(cacheCleaningInterval) * time.Second
+
+	clientKeepAlive, err := strconv.Atoi(NB_CLIENT_NODE_KEEP_ALIVE_RAW)
+	if err != nil {
+		log.Printf("unable to parse environment variable %s as integer and set to default %d, err: %v", NB_CLIENT_NODE_KEEP_ALIVE_RAW, NB_CLIENT_NODE_KEEP_ALIVE, err)
+	}
+	NB_CLIENT_NODE_KEEP_ALIVE = int64(clientKeepAlive)
 }
 
 // Nodes configuration
