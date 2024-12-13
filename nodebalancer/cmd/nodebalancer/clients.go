@@ -1,15 +1,10 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"log"
 	"reflect"
 	"sync"
 	"time"
-
-	"github.com/bugout-dev/bugout-go/pkg/brood"
-	"github.com/google/uuid"
 )
 
 var (
@@ -60,7 +55,7 @@ func (ca *ClientAccess) CheckClientCallPeriodLimits(tsNow int64) bool {
 		}
 	} else {
 		// Client period should be refreshed
-		if NB_ENABLE_DEBUG {
+		if stateCLI.enableDebugFlag {
 			log.Printf("Refresh client's period_start_ts with time.now() and reset calls_per_period")
 		}
 		ca.ClientResourceData.CallsPerPeriod = 0
@@ -192,112 +187,4 @@ func (cpool *ClientPool) CleanInactiveClientNodes() int {
 	}
 
 	return cnt
-}
-
-// Creates new Bugout resource according to nodebalancer type to grant user or application access to call JSON RPC nodes
-func AddNewAccess(accessToken, accessId, userId, name, description string, blockchainAccess, extendedMethods bool, periodDuration, maxCallsPerPeriod uint) (*ClientAccess, error) {
-	if userId == "" {
-		userId = NB_CONTROLLER_USER_ID
-	} else {
-		_, findErr := bugoutClient.Brood.FindUser(
-			accessToken,
-			map[string]string{
-				"user_id":        userId,
-				"application_id": MOONSTREAM_APPLICATION_ID,
-			},
-		)
-		if findErr != nil {
-			return nil, fmt.Errorf("user does not exists, err: %v", findErr)
-		}
-	}
-
-	if accessId == "" {
-		accessId = uuid.NewString()
-	}
-
-	proposedClientResourceData := ClientResourceData{
-		AccessID:         accessId,
-		UserID:           userId,
-		Name:             name,
-		Description:      description,
-		BlockchainAccess: blockchainAccess,
-		ExtendedMethods:  extendedMethods,
-
-		PeriodDuration:    int64(periodDuration),
-		PeriodStartTs:     int64(time.Now().Unix()),
-		MaxCallsPerPeriod: int64(maxCallsPerPeriod),
-		CallsPerPeriod:    0,
-
-		Type: BUGOUT_RESOURCE_TYPE_NODEBALANCER_ACCESS,
-	}
-
-	resource, err := bugoutClient.Brood.CreateResource(accessToken, MOONSTREAM_APPLICATION_ID, proposedClientResourceData)
-	if err != nil {
-		return nil, fmt.Errorf("unable to create user access, err: %v", err)
-	}
-	resourceData, err := json.Marshal(resource.ResourceData)
-	if err != nil {
-		return nil, fmt.Errorf("unable to encode resource %s data interface to json, err: %v", resource.Id, err)
-	}
-	var newUserAccess ClientAccess
-	err = json.Unmarshal(resourceData, &newUserAccess)
-	if err != nil {
-		return nil, fmt.Errorf("unable to decode resource %s data json to structure, err: %v", resource.Id, err)
-	}
-	newUserAccess.ResourceID = resource.Id
-
-	return &newUserAccess, nil
-}
-
-// Share access represented as Brood resource with new holder. Mostly used to share with nodebalancer application user
-func ShareAccess(accessToken, resourceId, userId, holderType string, permissions []string) (*brood.ResourceHolders, error) {
-	resourceHolderPermissions, holdErr := bugoutClient.Brood.AddResourceHolderPermissions(
-		accessToken, resourceId, brood.ResourceHolder{
-			Id:          userId,
-			HolderType:  holderType,
-			Permissions: permissions,
-		},
-	)
-	if holdErr != nil {
-		return nil, fmt.Errorf("unable to grant permissions to user with ID %s at resource with ID %s, err: %v", userId, resourceId, holdErr)
-	}
-
-	return &resourceHolderPermissions, nil
-}
-
-// Get resource with nodebalancer access type
-func GetResources(accessToken, accessId, userId string) (*brood.Resources, error) {
-	queryParameters := map[string]string{
-		"type": BUGOUT_RESOURCE_TYPE_NODEBALANCER_ACCESS,
-	}
-	if userId != "" {
-		queryParameters["user_id"] = userId
-	}
-	if accessId != "" {
-		queryParameters["access_id"] = accessId
-	}
-
-	resources, getResErr := bugoutClient.Brood.GetResources(accessToken, MOONSTREAM_APPLICATION_ID, queryParameters)
-	if getResErr != nil {
-		return nil, fmt.Errorf("unable to get Bugout resources, err: %v", getResErr)
-	}
-
-	return &resources, nil
-}
-
-// Parse Brood resource to nodebalancer client access representation
-func ParseResourceDataToClientAccess(resource brood.Resource) (*ClientAccess, error) {
-	resourceData, marErr := json.Marshal(resource.ResourceData)
-	if marErr != nil {
-		return nil, fmt.Errorf("unable to encode resource %s data interface to json, err: %v", resource.Id, marErr)
-	}
-
-	var clientAccess ClientAccess
-	clientAccess.ResourceID = resource.Id
-	unmarErr := json.Unmarshal(resourceData, &clientAccess.ClientResourceData)
-	if unmarErr != nil {
-		return nil, fmt.Errorf("unable to decode resource %s data json to structure, err: %v", resource.Id, unmarErr)
-	}
-
-	return &clientAccess, nil
 }

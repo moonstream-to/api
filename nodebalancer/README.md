@@ -3,36 +3,37 @@
 ## Installation
 
 -   Prepare environment variables, according to `sample.env`.
--   Build an application
+-   Build application
 
 ```bash
 go build -o nodebalancer .
 ```
 
-## CLI
+## Work with nodebalancer
 
 **IMPORTANT** Do not use flag `-debug` in production.
 
-Node balancer access manipulation requires an administration token to create and modify resources within the Bugout moonstream application.
-
-### add new access
+### add-access
 
 Add new access for user:
 
 ```bash
-./nodebalancer access add \
-	--access-token "<bugout_access_token>"
+nodebalancer add-access \
+	--user-id "<user_uuid>" \
+	--access-id "<access_uuid>" \
 	--name "Access name" \
-	--description "Description of access"
+	--description "Description of access" \
+	--extended-methods false \
+	--blockchain--access true
 ```
 
-### delete access
+### delete-access
 
 Delete user access:
 
 ```bash
-./nodebalancer access delete \
-	--access-token "<bugout_access_token>"
+nodebalancer delete-access \
+	--user-id "<user_uuid>" \
 	--access-id "<access_uuid>"
 ```
 
@@ -41,10 +42,10 @@ If `access-id` not specified, all user accesses will be deleted.
 ### users
 
 ```bash
-./nodebalancer access list --access-token "<bugout_access_token>" | jq .
+nodebalancer users | jq .
 ```
 
-This command will return a list of bugout resources of registered users to access node balancer.
+This command will return a list of bugout resources of registered users to access node balancer with their `crawlers/app/project` (in our project we will call it `crawlers`).
 
 ```json
 [
@@ -71,7 +72,7 @@ This command will return a list of bugout resources of registered users to acces
 ### server
 
 ```bash
-./nodebalancer server --host 0.0.0.0 --port 8544 --healthcheck
+nodebalancer server -host 0.0.0.0 -port 8544 -healthcheck
 ```
 
 Flag `--healthcheck` will execute background process to ping-pong available nodes to keep their status and current block number.
