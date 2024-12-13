@@ -5,11 +5,13 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -105,7 +107,7 @@ func proxyErrorHandler(proxy *httputil.ReverseProxy, url *url.URL) {
 	}
 }
 
-func Server(configPath, listeningHostAddr, listeningPort string, enableHealthCheck bool) error {
+func Server() {
 	// Create Access ID cache
 	CreateAccessCache()
 
@@ -115,26 +117,47 @@ func Server(configPath, listeningHostAddr, listeningPort string, enableHealthChe
 	consent := humbug.CreateHumbugConsent(humbug.True)
 	reporter, err = humbug.CreateHumbugReporter(consent, "moonstream-node-balancer", sessionID, HUMBUG_REPORTER_NB_TOKEN)
 	if err != nil {
-		return fmt.Errorf("invalid Humbug Crash configuration, err: %v", err)
+		fmt.Printf("Invalid Humbug Crash configuration, err: %v\n", err)
+		os.Exit(1)
 	}
 	// Record system information
 	reporter.Publish(humbug.SystemReport())
 
 	// Fetch access id for internal usage (crawlers, infrastructure, etc)
-	resources, getErr := GetResources(NB_CONTROLLER_TOKEN, NB_CONTROLLER_ACCESS_ID, "")
-	if getErr != nil {
-		return fmt.Errorf("unable to get user with provided access identifier, err: %v", getErr)
+	resources, err := bugoutClient.Brood.GetResources(
+		NB_CONTROLLER_TOKEN,
+		MOONSTREAM_APPLICATION_ID,
+		map[string]string{"access_id": NB_CONTROLLER_ACCESS_ID},
+	)
+	if err != nil {
+		fmt.Printf("Unable to get user with provided access identifier, err: %v\n", err)
+		os.Exit(1)
 	}
 	if len(resources.Resources) == 1 {
-		clientAccess, parseErr := ParseResourceDataToClientAccess(resources.Resources[0])
-		if parseErr != nil {
-			return parseErr
+		resourceData, err := json.Marshal(resources.Resources[0].ResourceData)
+		if err != nil {
+			fmt.Printf("Unable to encode resource data interface to json, err: %v\n", err)
+			os.Exit(1)
 		}
-		internalUsageAccess = *clientAccess
-
+		var clientResourceData ClientResourceData
+		err = json.Unmarshal(resourceData, &clientResourceData)
+		if err != nil {
+			fmt.Printf("Unable to decode resource data json to structure, err: %v\n", err)
+			os.Exit(1)
+		}
+		internalUsageAccess = ClientAccess{
+			ClientResourceData: ClientResourceData{
+				UserID:           clientResourceData.UserID,
+				AccessID:         clientResourceData.AccessID,
+				Name:             clientResourceData.Name,
+				Description:      clientResourceData.Description,
+				BlockchainAccess: clientResourceData.BlockchainAccess,
+				ExtendedMethods:  clientResourceData.ExtendedMethods,
+			},
+		}
 		log.Printf(
 			"Internal crawlers access set, resource id: %s, blockchain access: %t, extended methods: %t",
-			resources.Resources[0].Id, internalUsageAccess.ClientResourceData.BlockchainAccess, internalUsageAccess.ClientResourceData.ExtendedMethods,
+			resources.Resources[0].Id, clientResourceData.BlockchainAccess, clientResourceData.ExtendedMethods,
 		)
 
 	} else if len(resources.Resources) == 0 {
@@ -150,13 +173,15 @@ func Server(configPath, listeningHostAddr, listeningPort string, enableHealthChe
 		}
 		fmt.Printf("There are no provided NB_CONTROLLER_ACCESS_ID records in Brood resources. Using provided with environment variable or randomly generated\n")
 	} else {
-		return fmt.Errorf("user with provided access identifier has wrong number of resources: %d\n", len(resources.Resources))
+		fmt.Printf("User with provided access identifier has wrong number of resources: %d\n", len(resources.Resources))
+		os.Exit(1)
 	}
 
 	// Fill NodeConfigList with initial nodes from environment variables
-	err = LoadConfig(configPath)
+	err = LoadConfig(stateCLI.configPathFlag)
 	if err != nil {
-		return err
+		fmt.Println(err)
+		os.Exit(1)
 	}
 	supportedBlockchains = make(map[string]bool)
 
@@ -164,7 +189,8 @@ func Server(configPath, listeningHostAddr, listeningPort string, enableHealthChe
 	for i, nodeConfig := range nodeConfigs {
 		endpoint, err := url.Parse(nodeConfig.Endpoint)
 		if err != nil {
-			return err
+			fmt.Println(err)
+			os.Exit(1)
 		}
 
 		// Append to supported blockchain set
@@ -225,7 +251,7 @@ func Server(configPath, listeningHostAddr, listeningPort string, enableHealthChe
 	commonHandler = panicMiddleware(commonHandler)
 
 	server := http.Server{
-		Addr:         fmt.Sprintf("%s:%s", listeningHostAddr, listeningPort),
+		Addr:         fmt.Sprintf("%s:%s", stateCLI.listeningAddrFlag, stateCLI.listeningPortFlag),
 		Handler:      commonHandler,
 		ReadTimeout:  40 * time.Second,
 		WriteTimeout: 40 * time.Second,
@@ -233,18 +259,17 @@ func Server(configPath, listeningHostAddr, listeningPort string, enableHealthChe
 
 	// Start node health checking and current block fetching
 	blockchainPool.HealthCheck()
-	if enableHealthCheck {
-		go initHealthCheck(NB_ENABLE_DEBUG)
+	if stateCLI.enableHealthCheckFlag {
+		go initHealthCheck(stateCLI.enableDebugFlag)
 	}
 
 	// Start access id cache cleaning
-	go initCacheCleaning(NB_ENABLE_DEBUG)
+	go initCacheCleaning(stateCLI.enableDebugFlag)
 
-	log.Printf("Starting node load balancer HTTP server at %s:%s", listeningHostAddr, listeningPort)
+	log.Printf("Starting node load balancer HTTP server at %s:%s", stateCLI.listeningAddrFlag, stateCLI.listeningPortFlag)
 	err = server.ListenAndServe()
 	if err != nil {
-		return fmt.Errorf("failed to start server listener, err: %v", err)
+		fmt.Printf("Failed to start server listener, err: %v\n", err)
+		os.Exit(1)
 	}
-
-	return nil
 }
