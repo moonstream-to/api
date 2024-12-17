@@ -16,7 +16,7 @@ from bugout.data import (
 )
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, Body, Path, Query, Request
-from moonstreamdb.blockchain import AvailableBlockchainType
+from moonstreamtypes.blockchain import AvailableBlockchainType
 from sqlalchemy import text
 
 from .. import data

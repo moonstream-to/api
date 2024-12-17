@@ -16,7 +16,15 @@ from moonstream.client import (  # type: ignore
     Moonstream,
     MoonstreamQueryResultUrl,
 )
+from sqlalchemy import text, TextClause
+from moonstreamtypes.blockchain import (
+    AvailableBlockchainType,
+    get_block_model,
+    get_label_model,
+    get_transaction_model,
+)
 
+from .data import QueryDataUpdate
 from .middleware import MoonstreamHTTPException
 from .settings import (
     bugout_client as bc,
@@ -31,6 +39,12 @@ logger = logging.getLogger(__name__)
 class EntityCollectionNotFoundException(Exception):
     """
     Raised when entity collection is not found
+    """
+
+
+class QueryTextClauseException(Exception):
+    """
+    Raised when query can't be transformed to TextClause
     """
 
 
@@ -120,6 +134,7 @@ def recive_S3_data_from_query(
     time_await: int = 2,
     max_retries: int = 30,
     custom_body: Optional[Dict[str, Any]] = None,
+    customer_params: Optional[Dict[str, Any]] = {},
 ) -> Any:
     """
     Await the query to be update data on S3 with if_modified_since and return new the data.
@@ -133,7 +148,7 @@ def recive_S3_data_from_query(
     if_modified_since = if_modified_since_datetime.strftime("%a, %d %b %Y %H:%M:%S GMT")
 
     time.sleep(2)
-    if custom_body:
+    if custom_body or customer_params:
         headers = {
             "Authorization": f"Bearer {token}",
         }
@@ -142,9 +157,11 @@ def recive_S3_data_from_query(
         response = requests.post(
             url=f"{client.api.endpoints[ENDPOINT_QUERIES]}/{query_name}/update_data",
             headers=headers,
+            params=customer_params,
             json=json,
             timeout=5,
         )
+        print(response.json())
         data_url = MoonstreamQueryResultUrl(url=response.json()["url"])
     else:
         data_url = client.exec_query(
@@ -226,3 +243,74 @@ def get_customer_db_uri(
     except Exception as e:
         logger.error(f"Error get customer db uri: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+
+def resolve_table_names(request_data: QueryDataUpdate) -> Dict[str, str]:
+    """
+    Determines the table names based on the blockchain and labels version.
+    Returns an empty dictionary if blockchain is not provided.
+    """
+    if not request_data.blockchain:
+        return {"labels_table": "ethereum_labels"}
+
+    if request_data.blockchain not in [i.value for i in AvailableBlockchainType]:
+        logger.error(f"Unknown blockchain {request_data.blockchain}")
+        raise MoonstreamHTTPException(status_code=403, detail="Unknown blockchain")
+
+    blockchain = AvailableBlockchainType(request_data.blockchain)
+    labels_version = 2
+
+    if request_data.customer_id is not None and request_data.instance_id is not None:
+        labels_version = 3
+
+    print(labels_version, blockchain)
+
+    tables = {
+        "labels_table": get_label_model(blockchain, labels_version).__tablename__,
+    }
+
+    if labels_version != 3:
+        tables.update(
+            {
+                "transactions_table": get_transaction_model(blockchain).__tablename__,
+                "blocks_table": get_block_model(blockchain).__tablename__,
+            }
+        )
+
+    return tables
+
+
+def prepare_query(
+    requested_query: str, tables: Dict[str, str], query_id: str
+) -> TextClause:
+    """
+    Prepares the SQL query by replacing placeholders with actual table names.
+    """
+    # Check and replace placeholders only if they exist in the query
+    if "__labels_table__" in requested_query:
+        requested_query = requested_query.replace(
+            "__labels_table__", tables.get("labels_table", "ethereum_labels")
+        )
+
+    if "__transactions_table__" in requested_query and "transactions_table" in tables:
+        requested_query = requested_query.replace(
+            "__transactions_table__", tables["transactions_table"]
+        )
+
+    if "__blocks_table__" in requested_query and "blocks_table" in tables:
+        requested_query = requested_query.replace(
+            "__blocks_table__", tables["blocks_table"]
+        )
+
+        # Check if it can transform to TextClause
+    try:
+        query = text(requested_query)
+    except Exception as e:
+        logger.error(
+            f"Can't parse query {query_id} to TextClause in drones /query_update endpoint, error: {e}"
+        )
+        raise QueryTextClauseException(
+            f"Can't parse query {query_id} to TextClause in drones /query_update endpoint, error: {e}"
+        )
+
+    return query
