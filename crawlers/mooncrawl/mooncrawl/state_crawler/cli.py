@@ -27,7 +27,7 @@ from ..settings import (
     multicall_contracts,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_STATE_CRAWLER_JOURNAL_ID,
-    MOONSTREAM_DB_V3_CONTROLLER_API
+    MOONSTREAM_DB_V3_CONTROLLER_API,
 )
 from .db import clean_labels, commit_session, view_call_to_label
 from .Multicall2_interface import Contract as Multicall2
@@ -40,21 +40,26 @@ logger = logging.getLogger(__name__)
 client = Moonstream()
 
 
-def request_connection_string(customer_id: str, instance_id: int, token: str) -> str:
+def request_connection_string(
+    customer_id: str,
+    instance_id: int,
+    token: str,
+    user: str = "seer",  # token with write access
+) -> str:
     """
     Request connection string from the Moonstream API.
     """
     response = requests.get(
-        f"{MOONSTREAM_DB_V3_CONTROLLER_API}/customers/{customer_id}/instances/{instance_id}/creds/seer/url",
+        f"{MOONSTREAM_DB_V3_CONTROLLER_API}/customers/{customer_id}/instances/{instance_id}/creds/{user}/url",
         headers={"Authorization": f"Bearer {token}"},
     )
 
     response.raise_for_status()
 
-    return response.text
+    return response.text.replace('"', "")
 
 
-def execute_query(query: Dict[str, Any], token: str):
+def execute_query(query: Dict[str, Any], token: str) -> Any:
     """
     Query task example:
 
@@ -72,6 +77,8 @@ def execute_query(query: Dict[str, Any], token: str):
 
     """
 
+    print(f"Executing query: {query}")
+
     # get the query url
     query_url = query["query_url"]
 
@@ -82,6 +89,11 @@ def execute_query(query: Dict[str, Any], token: str):
     params = query["params"]
 
     body = {"params": params}
+    query_params = dict()
+
+    if query.get("customer_id") and query.get("instance_id"):
+        query_params["customer_id"] = query["customer_id"]
+        query_params["instance_id"] = query["instance_id"]
 
     if blockchain:
         body["blockchain"] = blockchain
@@ -93,6 +105,7 @@ def execute_query(query: Dict[str, Any], token: str):
         token=token,
         query_name=query_url,
         custom_body=body,
+        customer_params=query_params,
     )
 
     # extract the keys as a list
@@ -516,18 +529,21 @@ def process_address_field(job: Dict[str, Any], moonstream_token: str) -> List[st
     if isinstance(job["address"], str):
         return [Web3.toChecksumAddress(job["address"])]
     elif isinstance(job["address"], list):
-        return [Web3.toChecksumAddress(address) for address in job["address"]] # manual job multiplication
+        return [
+            Web3.toChecksumAddress(address) for address in job["address"]
+        ]  # manual job multiplication
     elif isinstance(job["address"], dict):
         if job["address"].get("type") == "queryAPI":
             # QueryAPI job multiplication
             addresses = execute_query(job["address"], token=moonstream_token)
+            checsum_addresses = []
             for address in addresses:
                 try:
-                    Web3.toChecksumAddress(address)
+                    checsum_addresses.append(Web3.toChecksumAddress(address))
                 except Exception as e:
-                    logger.error(f"Invalid address: {address}") 
+                    logger.error(f"Invalid address: {address}")
                     continue
-            return addresses
+            return checsum_addresses
         else:
             raise ValueError(f"Invalid address type: {type(job['address'])}")
     else:
@@ -581,7 +597,6 @@ def parse_jobs(
 
             job["address"] = addresses[0]
 
-
             v3 = job.get("v3", False)
             customer_id = job.get("customer_id")
             instance_id = job.get("instance_id")
@@ -620,7 +635,6 @@ def parse_jobs(
             else:
                 if "v2" not in db_sessions:
                     db_sessions["v2"] = PrePing_SessionLocal()
-
 
             if job["address"] not in contracts_ABIs:
                 contracts_ABIs[job["address"]] = {}
