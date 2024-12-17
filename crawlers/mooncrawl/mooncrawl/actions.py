@@ -145,6 +145,7 @@ def recive_S3_data_from_query(
             json=json,
             timeout=5,
         )
+        print(response.json())
         data_url = MoonstreamQueryResultUrl(url=response.json()["url"])
     else:
         data_url = client.exec_query(

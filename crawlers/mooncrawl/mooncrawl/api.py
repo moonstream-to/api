@@ -13,7 +13,7 @@ import boto3  # type: ignore
 from bugout.data import BugoutJournalEntity, BugoutResource
 from fastapi import BackgroundTasks, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from moonstreamdb.blockchain import (
+from moonstreamtypes.blockchain import (
     AvailableBlockchainType,
     get_block_model,
     get_label_model,
@@ -231,6 +231,7 @@ async def queries_data_update_handler(
         raise MoonstreamHTTPException(status_code=500)
 
     requested_query = request_data.query
+    labels_version = 2
 
     blockchain_table = "polygon_labels"
     if request_data.blockchain:
@@ -239,6 +240,12 @@ async def queries_data_update_handler(
             raise MoonstreamHTTPException(status_code=403, detail="Unknown blockchain")
 
         blockchain = AvailableBlockchainType(request_data.blockchain)
+
+        if (
+            request_data.customer_id is not None
+            and request_data.instance_id is not None
+        ):
+            labels_version = 3
 
         requested_query = (
             requested_query.replace(
@@ -251,11 +258,11 @@ async def queries_data_update_handler(
             )
             .replace(
                 "__labels_table__",
-                get_label_model(blockchain).__tablename__,
+                get_label_model(blockchain, labels_version).__tablename__,
             )
         )
 
-        blockchain_table = get_label_model(blockchain).__tablename__
+        blockchain_table = get_label_model(blockchain, labels_version).__tablename__
 
     # Check if it can transform to TextClause
     try:

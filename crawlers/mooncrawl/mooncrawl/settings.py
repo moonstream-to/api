@@ -41,7 +41,6 @@ MOONSTREAM_DB_V3_CONTROLLER_API = os.environ.get(
 )
 
 
-
 # Origin
 RAW_ORIGINS = os.environ.get("MOONSTREAM_CORS_ALLOWED_ORIGINS")
 if RAW_ORIGINS is None:
@@ -392,6 +391,7 @@ multicall_contracts: Dict[AvailableBlockchainType, str] = {
     AvailableBlockchainType.BLAST: "0xcA11bde05977b3631167028862bE2a173976CA11",
     AvailableBlockchainType.MANTLE: "0xcA11bde05977b3631167028862bE2a173976CA11",
     AvailableBlockchainType.MANTLE_SEPOLIA: "0xcA11bde05977b3631167028862bE2a173976CA11",
+    AvailableBlockchainType.GAME7_TESTNET: "0xcA11bde05977b3631167028862bE2a173976CA11",
 }
 
 
@@ -501,4 +501,3 @@ MOONSTREAM_DB_V3_CONTROLLER_API = os.environ.get(
 MOONSTREAM_DB_V3_SCHEMA_NAME = os.environ.get(
     "MOONSTREAM_DB_V3_SCHEMA_NAME", "blockchain"
 )
-
