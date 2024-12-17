@@ -27,6 +27,7 @@ from ..settings import (
     multicall_contracts,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
     MOONSTREAM_STATE_CRAWLER_JOURNAL_ID,
+    MOONSTREAM_DB_V3_CONTROLLER_API
 )
 from .db import clean_labels, commit_session, view_call_to_label
 from .Multicall2_interface import Contract as Multicall2
@@ -44,7 +45,7 @@ def request_connection_string(customer_id: str, instance_id: int, token: str) ->
     Request connection string from the Moonstream API.
     """
     response = requests.get(
-        f"https://mdb-v3-api.moonstream.to/customers/{customer_id}/instances/{instance_id}/creds/seer/url",
+        f"{MOONSTREAM_DB_V3_CONTROLLER_API}/customers/{customer_id}/instances/{instance_id}/creds/seer/url",
         headers={"Authorization": f"Bearer {token}"},
     )
 
@@ -510,6 +511,29 @@ def build_interfaces(
     return interfaces
 
 
+def process_address_field(job: Dict[str, Any], moonstream_token: str) -> List[str]:
+    """Processes the address field of a job and returns a list of addresses."""
+    if isinstance(job["address"], str):
+        return [Web3.toChecksumAddress(job["address"])]
+    elif isinstance(job["address"], list):
+        return [Web3.toChecksumAddress(address) for address in job["address"]] # manual job multiplication
+    elif isinstance(job["address"], dict):
+        if job["address"].get("type") == "queryAPI":
+            # QueryAPI job multiplication
+            addresses = execute_query(job["address"], token=moonstream_token)
+            for address in addresses:
+                try:
+                    Web3.toChecksumAddress(address)
+                except Exception as e:
+                    logger.error(f"Invalid address: {address}") 
+                    continue
+            return addresses
+        else:
+            raise ValueError(f"Invalid address type: {type(job['address'])}")
+    else:
+        raise ValueError(f"Invalid address type: {type(job['address'])}")
+
+
 def parse_jobs(
     jobs: List[Any],
     blockchain_type: Any,
@@ -542,11 +566,27 @@ def parse_jobs(
     # All sessions are stored in the dictionary db_sessions
     # Under one try block
     try:
-        # Process jobs and create sessions
+        # Process jobs and create session
+
         for job in jobs:
+
+            ### process address field
+            ### Handle case when 1 job represents multiple contracts
+            addresses = process_address_field(job, moonstream_token)
+
+            for address in addresses[1:]:
+                new_job = job.copy()
+                new_job["address"] = address
+                jobs.append(new_job)
+
+            job["address"] = addresses[0]
+
+
             v3 = job.get("v3", False)
             customer_id = job.get("customer_id")
             instance_id = job.get("instance_id")
+
+            ### DB sessions
             if customer_db_uri is not None:
                 if v3 and (customer_id, instance_id) not in db_sessions:
                     # Create session
@@ -580,6 +620,7 @@ def parse_jobs(
             else:
                 if "v2" not in db_sessions:
                     db_sessions["v2"] = PrePing_SessionLocal()
+
 
             if job["address"] not in contracts_ABIs:
                 contracts_ABIs[job["address"]] = {}
