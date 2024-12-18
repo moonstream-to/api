@@ -81,6 +81,7 @@ from moonstreamdbv3.models import (
     Game7OrbitArbitrumSepoliaLabel as Game7OrbitArbitrumSepoliaLabelV3,
 )
 from moonstreamdbv3.models import Game7TestnetLabel as Game7TestnetLabelV3
+from moonstreamdbv3.models import Game7Label as Game7LabelV3
 from moonstreamdbv3.models import ImxZkevmLabel as ImxZkevmLabelV3
 from moonstreamdbv3.models import ImxZkevmSepoliaLabel as ImxZkevmSepoliaLabelV3
 from moonstreamdbv3.models import MantleLabel as MantleLabelV3
@@ -98,6 +99,8 @@ from moonstreamdbv3.models import ZkSyncEraLabel as ZkSyncEraLabelV3
 from moonstreamdbv3.models import ZkSyncEraSepoliaLabel as ZkSyncEraSepoliaLabelV3
 from moonstreamdbv3.models import B3Label as B3LabelV3
 from moonstreamdbv3.models import B3SepoliaLabel as B3SepoliaLabelV3
+from moonstreamdbv3.models import RoninLabel as RoninLabelV3
+from moonstreamdbv3.models import RoninSaigonLabel as RoninSaigonLabelV3
 
 from .blockchain import AvailableBlockchainType
 
@@ -119,6 +122,7 @@ class Network(Enum):
     arbitrum_sepolia = "arbitrum_sepolia"
     game7_orbit_arbitrum_sepolia = "game7_orbit_arbitrum_sepolia"
     game7_testnet = "game7_testnet"
+    game7 = "game7"
     xai = "xai"
     xai_sepolia = "xai_sepolia"
     avalanche = "avalanche"
@@ -134,6 +138,8 @@ class Network(Enum):
     imx_zkevm_sepolia = "imx_zkevm_sepolia"
     b3 = "b3"
     b3_sepolia = "b3_sepolia"
+    ronin = "ronin"
+    ronin_saigon = "ronin_saigon"
 
 
 tx_raw_types = Union[
@@ -311,6 +317,9 @@ MODELS_V3: Dict[Network, Dict[str, Base]] = {
     Network.game7_testnet: {
         "labels": Game7TestnetLabelV3,
     },
+    Network.game7: {
+        "labels": Game7LabelV3,
+    },
     Network.xai: {
         "labels": XaiLabelV3,
     },
@@ -356,6 +365,12 @@ MODELS_V3: Dict[Network, Dict[str, Base]] = {
     Network.b3_sepolia: {
         "labels": B3SepoliaLabelV3,
     },
+    Network.ronin: {
+        "labels": RoninLabelV3,
+    },
+    Network.ronin_saigon: {
+        "labels": RoninSaigonLabelV3,
+    },
 }
 
 
@@ -395,6 +410,8 @@ def blockchain_type_to_network_type(
         return Network.game7_orbit_arbitrum_sepolia
     elif blockchain_type == AvailableBlockchainType.GAME7_TESTNET:
         return Network.game7_testnet
+    elif blockchain_type == AvailableBlockchainType.GAME7:
+        return Network.game7
     elif blockchain_type == AvailableBlockchainType.XAI:
         return Network.xai
     elif blockchain_type == AvailableBlockchainType.XAI_SEPOLIA:
@@ -425,5 +442,9 @@ def blockchain_type_to_network_type(
         return Network.b3
     elif blockchain_type == AvailableBlockchainType.B3_SEPOLIA:
         return Network.b3_sepolia
+    elif blockchain_type == AvailableBlockchainType.RONIN:
+        return Network.ronin
+    elif blockchain_type == AvailableBlockchainType.RONIN_SAIGON:
+        return Network.ronin_saigon
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
