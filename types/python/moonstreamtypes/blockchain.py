@@ -20,8 +20,6 @@ from moonstreamdb.models import (
     AvalancheFujiTransaction,
     AvalancheLabel,
     AvalancheTransaction,
-    B3Block,
-    B3SepoliaBlock,
     BlastBlock,
     BlastLabel,
     BlastSepoliaBlock,
@@ -164,9 +162,7 @@ def get_block_model(
         BlastSepoliaBlock,
         ProofOfPlayApexBlock,
         MantleBlock,
-        MantleSepoliaBlock,
-        B3Block,
-        B3SepoliaBlock,
+        MantleSepoliaBlock
     ]
 ]:
     """
@@ -194,9 +190,7 @@ def get_block_model(
             BlastSepoliaBlock,
             ProofOfPlayApexBlock,
             MantleBlock,
-            MantleSepoliaBlock,
-            B3Block,
-            B3SepoliaBlock,
+            MantleSepoliaBlock
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -241,10 +235,6 @@ def get_block_model(
         block_model = MantleBlock
     elif blockchain_type == AvailableBlockchainType.MANTLE_SEPOLIA:
         block_model = MantleSepoliaBlock
-    elif blockchain_type == AvailableBlockchainType.B3:
-        block_model = B3Block
-    elif blockchain_type == AvailableBlockchainType.B3_SEPOLIA:
-        block_model = B3SepoliaBlock
     else:
         raise Exception("Unsupported blockchain type provided")
 
