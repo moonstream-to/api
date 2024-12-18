@@ -20,8 +20,6 @@ from moonstreamdb.models import (
     AvalancheFujiTransaction,
     AvalancheLabel,
     AvalancheTransaction,
-    B3Block,
-    B3SepoliaBlock,
     BlastBlock,
     BlastLabel,
     BlastSepoliaBlock,
@@ -81,6 +79,7 @@ from moonstreamdbv3.models import EthereumLabel as EthereumLabelV3
 from moonstreamdbv3.models import (
     Game7OrbitArbitrumSepoliaLabel as Game7OrbitArbitrumSepoliaLabelV3,
 )
+from moonstreamdbv3.models import Game7Label as Game7LabelV3
 from moonstreamdbv3.models import Game7TestnetLabel as Game7TestnetLabelV3
 from moonstreamdbv3.models import ImxZkevmLabel as ImxZkevmLabelV3
 from moonstreamdbv3.models import ImxZkevmSepoliaLabel as ImxZkevmSepoliaLabelV3
@@ -99,7 +98,8 @@ from moonstreamdbv3.models import ZkSyncEraLabel as ZkSyncEraLabelV3
 from moonstreamdbv3.models import ZkSyncEraSepoliaLabel as ZkSyncEraSepoliaLabelV3
 from moonstreamdbv3.models import B3Label as B3LabelV3
 from moonstreamdbv3.models import B3SepoliaLabel as B3SepoliaLabelV3
-
+from moonstreamdbv3.models import RoninLabel as RoninLabelV3
+from moonstreamdbv3.models import RoninSaigonLabel as RoninSaigonLabelV3
 
 class AvailableBlockchainType(Enum):
     ETHEREUM = "ethereum"
@@ -118,6 +118,7 @@ class AvailableBlockchainType(Enum):
     ARBITRUM_SEPOLIA = "arbitrum_sepolia"
     GAME7_ORBIT_ARBITRUM_SEPOLIA = "game7_orbit_arbitrum_sepolia"
     GAME7_TESTNET = "game7_testnet"
+    GAME7 = "game7"
     XAI = "xai"
     XAI_SEPOLIA = "xai_sepolia"
     AVALANCHE = "avalanche"
@@ -133,6 +134,8 @@ class AvailableBlockchainType(Enum):
     IMX_ZKEVM_SEPOLIA = "imx_zkevm_sepolia"
     B3 = "b3"
     B3_SEPOLIA = "b3_sepolia"
+    RONIN = "ronin"
+    RONIN_SAIGON = "ronin_saigon"
 
 
 def get_block_model(
@@ -159,9 +162,7 @@ def get_block_model(
         BlastSepoliaBlock,
         ProofOfPlayApexBlock,
         MantleBlock,
-        MantleSepoliaBlock,
-        B3Block,
-        B3SepoliaBlock,
+        MantleSepoliaBlock
     ]
 ]:
     """
@@ -189,9 +190,7 @@ def get_block_model(
             BlastSepoliaBlock,
             ProofOfPlayApexBlock,
             MantleBlock,
-            MantleSepoliaBlock,
-            B3Block,
-            B3SepoliaBlock,
+            MantleSepoliaBlock
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -236,10 +235,6 @@ def get_block_model(
         block_model = MantleBlock
     elif blockchain_type == AvailableBlockchainType.MANTLE_SEPOLIA:
         block_model = MantleSepoliaBlock
-    elif blockchain_type == AvailableBlockchainType.B3:
-        block_model = B3Block
-    elif blockchain_type == AvailableBlockchainType.B3_SEPOLIA:
-        block_model = B3SepoliaBlock
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -438,6 +433,8 @@ def get_label_model(
             label_model = Game7OrbitArbitrumSepoliaLabelV3
         elif blockchain_type == AvailableBlockchainType.GAME7_TESTNET:
             label_model = Game7TestnetLabelV3
+        elif blockchain_type == AvailableBlockchainType.GAME7:
+            label_model = Game7LabelV3
         elif blockchain_type == AvailableBlockchainType.XAI:
             label_model = XaiLabelV3
         elif blockchain_type == AvailableBlockchainType.XAI_SEPOLIA:
@@ -468,6 +465,10 @@ def get_label_model(
             label_model = B3LabelV3
         elif blockchain_type == AvailableBlockchainType.B3_SEPOLIA:
             label_model = B3SepoliaLabelV3
+        elif blockchain_type == AvailableBlockchainType.RONIN:
+            label_model = RoninLabelV3
+        elif blockchain_type == AvailableBlockchainType.RONIN_SAIGON:
+            label_model = RoninSaigonLabelV3
         else:
             raise Exception("Unsupported blockchain type provided")
     else:
