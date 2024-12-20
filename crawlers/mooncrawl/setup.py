@@ -39,7 +39,7 @@ setup(
         "fastapi",
         "moonstreamdb>=0.4.5",
         "moonstreamdb-v3>=0.0.16",
-        "moonstream-types>=0.0.6",
+        "moonstream-types>=0.0.9",
         "moonstream>=0.1.1",
         "moonworm[moonstream]>=0.9.3",
         "humbug",

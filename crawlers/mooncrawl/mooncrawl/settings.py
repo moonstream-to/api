@@ -5,18 +5,13 @@ from uuid import UUID
 from bugout.app import Bugout
 from moonstreamtypes.blockchain import AvailableBlockchainType
 
-# Bugout
+
+# APIs
+## Bugout
 BUGOUT_BROOD_URL = os.environ.get("BUGOUT_BROOD_URL", "https://auth.bugout.dev")
 BUGOUT_SPIRE_URL = os.environ.get("BUGOUT_SPIRE_URL", "https://spire.bugout.dev")
 
 bugout_client = Bugout(brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIRE_URL)
-
-
-MOONSTREAM_API_URL = os.environ.get("MOONSTREAM_API_URL", "https://api.moonstream.to")
-MOONSTREAM_ENGINE_URL = os.environ.get(
-    "MOONSTREAM_ENGINE_URL", "https://engineapi.moonstream.to"
-)
-
 
 BUGOUT_REQUEST_TIMEOUT_SECONDS_RAW = os.environ.get(
     "MOONSTREAM_BUGOUT_TIMEOUT_SECONDS", 30
@@ -30,6 +25,21 @@ except:
 
 
 HUMBUG_REPORTER_CRAWLERS_TOKEN = os.environ.get("HUMBUG_REPORTER_CRAWLERS_TOKEN")
+
+
+## Moonstream
+MOONSTREAM_API_URL = os.environ.get("MOONSTREAM_API_URL", "https://api.moonstream.to")
+
+## Moonstream Engine
+MOONSTREAM_ENGINE_URL = os.environ.get(
+    "MOONSTREAM_ENGINE_URL", "https://engineapi.moonstream.to"
+)
+
+## Moonstream DB
+MOONSTREAM_DB_V3_CONTROLLER_API = os.environ.get(
+    "MOONSTREAM_DB_V3_CONTROLLER_API", "https://mdb-v3-api.moonstream.to"
+)
+
 
 # Origin
 RAW_ORIGINS = os.environ.get("MOONSTREAM_CORS_ALLOWED_ORIGINS")
@@ -381,6 +391,7 @@ multicall_contracts: Dict[AvailableBlockchainType, str] = {
     AvailableBlockchainType.BLAST: "0xcA11bde05977b3631167028862bE2a173976CA11",
     AvailableBlockchainType.MANTLE: "0xcA11bde05977b3631167028862bE2a173976CA11",
     AvailableBlockchainType.MANTLE_SEPOLIA: "0xcA11bde05977b3631167028862bE2a173976CA11",
+    AvailableBlockchainType.GAME7_TESTNET: "0xcA11bde05977b3631167028862bE2a173976CA11",
 }
 
 

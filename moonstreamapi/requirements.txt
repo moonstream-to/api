@@ -39,6 +39,7 @@ MarkupSafe==2.1.1
 moonstream==0.1.1
 moonstreamdb==0.4.5
 moonstreamdb-v3==0.0.18
+moonstreamtypes==0.0.9
 multiaddr==0.0.9
 multidict==6.0.2
 netaddr==0.8.0

@@ -13,13 +13,6 @@ import boto3  # type: ignore
 from bugout.data import BugoutJournalEntity, BugoutResource
 from fastapi import BackgroundTasks, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from moonstreamdb.blockchain import (
-    AvailableBlockchainType,
-    get_block_model,
-    get_label_model,
-    get_transaction_model,
-)
-from sqlalchemy import text
 
 from . import data
 from .actions import (
@@ -27,6 +20,9 @@ from .actions import (
     generate_s3_access_links,
     get_entity_subscription_collection_id,
     query_parameter_hash,
+    prepare_query,
+    resolve_table_names,
+    QueryTextClauseException,
 )
 from .middleware import MoonstreamHTTPException
 from .settings import (
@@ -230,43 +226,20 @@ async def queries_data_update_handler(
         logger.error(f"Unhandled query execute exception, error: {e}")
         raise MoonstreamHTTPException(status_code=500)
 
-    requested_query = request_data.query
+    # Resolve table names based on the request data default ethereum
+    tables = resolve_table_names(request_data)
 
-    blockchain_table = "polygon_labels"
-    if request_data.blockchain:
-        if request_data.blockchain not in [i.value for i in AvailableBlockchainType]:
-            logger.error(f"Unknown blockchain {request_data.blockchain}")
-            raise MoonstreamHTTPException(status_code=403, detail="Unknown blockchain")
-
-        blockchain = AvailableBlockchainType(request_data.blockchain)
-
-        requested_query = (
-            requested_query.replace(
-                "__transactions_table__",
-                get_transaction_model(blockchain).__tablename__,
-            )
-            .replace(
-                "__blocks_table__",
-                get_block_model(blockchain).__tablename__,
-            )
-            .replace(
-                "__labels_table__",
-                get_label_model(blockchain).__tablename__,
-            )
-        )
-
-        blockchain_table = get_label_model(blockchain).__tablename__
-
-    # Check if it can transform to TextClause
+    # Prepare the query with the resolved table names
     try:
-        query = text(requested_query)
+        query = prepare_query(request_data.query, tables, query_id)
+    except QueryTextClauseException as e:
+        logger.error(f"Error preparing query for query id: {query_id}, error: {e}")
+        raise MoonstreamHTTPException(status_code=500, detail="Error preparing query")
     except Exception as e:
-        logger.error(
-            f"Can't parse query {query_id} to TextClause in drones /query_update endpoint, error: {e}"
-        )
-        raise MoonstreamHTTPException(status_code=500, detail="Can't parse query")
+        logger.error(f"Error preparing query for query id: {query_id}, error: {e}")
+        raise MoonstreamHTTPException(status_code=500, detail="Error preparing query")
 
-    # Get requried keys for query
+    # Get required keys for query
     expected_query_parameters = query._bindparams.keys()
 
     # request.params validations
@@ -301,9 +274,9 @@ async def queries_data_update_handler(
             params_hash=params_hash,
             customer_id=request_data.customer_id,
             instance_id=request_data.instance_id,
-            blockchain_table=blockchain_table,
+            blockchain_table=tables["labels_table"],
+            # Add any additional parameters needed for the task
         )
-
     except Exception as e:
         logger.error(f"Unhandled query execute exception, error: {e}")
         raise MoonstreamHTTPException(status_code=500)
