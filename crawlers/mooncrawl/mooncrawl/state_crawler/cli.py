@@ -195,6 +195,7 @@ def process_multicall_result(
                 "call_data": multicall_calls[index][1],
                 "block_number": block_number,
                 "block_timestamp": block_timestamp,
+                "block_hash": block_hash,
                 "status": encoded_data[0],
                 "error": str(e),
                 "v3": call.get("v3", False),
