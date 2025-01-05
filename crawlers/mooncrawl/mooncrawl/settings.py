@@ -3,9 +3,11 @@ from typing import Dict, Optional
 from uuid import UUID
 
 from bugout.app import Bugout
-from moonstreamtypes.blockchain import AvailableBlockchainType
+from moonstreamtypes.blockchain import AvailableBlockchainType  # type: ignore
+from moonstream.client import Moonstream  # type: ignore
 
-# Bugout
+# APIs
+## Bugout
 BUGOUT_BROOD_URL = os.environ.get("BUGOUT_BROOD_URL", "https://auth.bugout.dev")
 BUGOUT_SPIRE_URL = os.environ.get("BUGOUT_SPIRE_URL", "https://spire.bugout.dev")
 
@@ -30,6 +32,24 @@ except:
 
 
 HUMBUG_REPORTER_CRAWLERS_TOKEN = os.environ.get("HUMBUG_REPORTER_CRAWLERS_TOKEN")
+
+
+## Moonstream
+MOONSTREAM_API_URL = os.environ.get("MOONSTREAM_API_URL", "https://api.moonstream.to")
+
+moonstream_client = Moonstream()
+
+
+## Moonstream Engine
+MOONSTREAM_ENGINE_URL = os.environ.get(
+    "MOONSTREAM_ENGINE_URL", "https://engineapi.moonstream.to"
+)
+
+## Moonstream DB
+MOONSTREAM_DB_V3_CONTROLLER_API = os.environ.get(
+    "MOONSTREAM_DB_V3_CONTROLLER_API", "https://mdb-v3-api.moonstream.to"
+)
+
 
 # Origin
 RAW_ORIGINS = os.environ.get("MOONSTREAM_CORS_ALLOWED_ORIGINS")
