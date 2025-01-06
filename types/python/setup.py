@@ -7,7 +7,7 @@ with open("README.md") as ifp:
     long_description = ifp.read()
 
 setup(
-    name="moonstream-types",
+    name="moonstream_types",
     version=VERSION,
     author="Moonstream.to",
     author_email="engineers@moonstream.to",
@@ -34,7 +34,7 @@ setup(
     zip_safe=False,
     install_requires=[
         "moonstreamdb>=0.4.5",
-        "moonstreamdb-v3>=0.1.2",
+        "moonstreamdb_v3>=0.1.3",
     ],
     extras_require={
         "dev": ["black", "isort", "mypy"],
