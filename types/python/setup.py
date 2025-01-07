@@ -7,7 +7,7 @@ with open("README.md") as ifp:
     long_description = ifp.read()
 
 setup(
-    name="moonstream_types",
+    name="moonstream-types",
     version=VERSION,
     author="Moonstream.to",
     author_email="engineers@moonstream.to",
@@ -38,6 +38,6 @@ setup(
     ],
     extras_require={
         "dev": ["black", "isort", "mypy"],
-        "distribute": ["setuptools", "twine", "wheel"],
+        "distribute": ["build", "twine"],
     },
 )
