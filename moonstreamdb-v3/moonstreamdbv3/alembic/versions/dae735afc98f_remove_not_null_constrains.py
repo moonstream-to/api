@@ -431,9 +431,6 @@ def downgrade() -> None:
     op.alter_column('mumbai_labels', 'transaction_hash',
                existing_type=sa.VARCHAR(length=128),
                nullable=False)
-    op.alter_column('mantle_sepolia_labels', 'address',
-               existing_type=postgresql.BYTEA(),
-               nullable=True)
     op.alter_column('mantle_sepolia_labels', 'block_timestamp',
                existing_type=sa.BIGINT(),
                nullable=False)
@@ -443,9 +440,6 @@ def downgrade() -> None:
     op.alter_column('mantle_sepolia_labels', 'transaction_hash',
                existing_type=sa.VARCHAR(length=128),
                nullable=False)
-    op.alter_column('mantle_labels', 'address',
-               existing_type=postgresql.BYTEA(),
-               nullable=True)
     op.alter_column('mantle_labels', 'block_timestamp',
                existing_type=sa.BIGINT(),
                nullable=False)
