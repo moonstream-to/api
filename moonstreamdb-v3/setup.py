@@ -7,7 +7,7 @@ with open("README.md") as ifp:
     long_description = ifp.read()
 
 setup(
-    name="moonstreamdb_v3",
+    name="moonstreamdb-v3",
     version=VERSION,
     author="Bugout.dev",
     author_email="engineers@bugout.dev",
@@ -35,6 +35,6 @@ setup(
     install_requires=["alembic", "psycopg2-binary", "sqlalchemy>=2.0.4"],
     extras_require={
         "dev": ["black", "isort", "mypy"],
-        "distribute": ["setuptools", "twine", "wheel"],
+        "distribute": ["build", "twine"],
     },
 )
