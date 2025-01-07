@@ -85,7 +85,7 @@ class EvmBasedLabel(Base):  # type: ignore
 
     transaction_hash = Column(
         VARCHAR(128),
-        nullable=False,
+        nullable=True,
         index=True,
     )
     log_index = Column(Integer, nullable=True)
@@ -95,8 +95,8 @@ class EvmBasedLabel(Base):  # type: ignore
         nullable=False,
         index=True,
     )
-    block_hash = Column(VARCHAR(256), nullable=False)
-    block_timestamp = Column(BigInteger, nullable=False)
+    block_hash = Column(VARCHAR(256), nullable=True)
+    block_timestamp = Column(BigInteger, nullable=True)
 
     caller_address = Column(
         LargeBinary,
