@@ -34,10 +34,10 @@ setup(
     zip_safe=False,
     install_requires=[
         "moonstreamdb>=0.4.5",
-        "moonstreamdb-v3>=0.1.2",
+        "moonstreamdb-v3>=0.1.4",
     ],
     extras_require={
         "dev": ["black", "isort", "mypy"],
-        "distribute": ["setuptools", "twine", "wheel"],
+        "distribute": ["build", "twine"],
     },
 )

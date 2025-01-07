@@ -7,7 +7,7 @@ on:
 
 defaults:
   run:
-    working-directory: backend
+    working-directory: moonstreamapi
 
 jobs:
   publish:
@@ -26,5 +26,5 @@ jobs:
           TWINE_USERNAME: "__token__"
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN_MOONSTREAMAPI }}
         run: |
-          python setup.py sdist bdist_wheel
+          python -m build
           twine upload dist/*

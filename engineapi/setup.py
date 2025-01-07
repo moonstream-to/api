@@ -29,7 +29,7 @@ setup(
     ],
     extras_require={
         "dev": ["alembic", "black", "mypy", "isort"],
-        "distribute": ["setuptools", "twine", "wheel"],
+        "distribute": ["build", "twine"],
     },
     description="Command line interface for Moonstream Engine API",
     long_description=long_description,

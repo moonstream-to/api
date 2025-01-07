@@ -35,6 +35,6 @@ setup(
     install_requires=["alembic", "psycopg2-binary", "sqlalchemy>=2.0.4"],
     extras_require={
         "dev": ["black", "isort", "mypy"],
-        "distribute": ["setuptools", "twine", "wheel"],
+        "distribute": ["build", "twine"],
     },
 )
