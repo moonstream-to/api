@@ -7,7 +7,7 @@ on:
 
 defaults:
   run:
-    working-directory: backend
+    working-directory: moonstreamapi
 
 jobs:
   publish:
