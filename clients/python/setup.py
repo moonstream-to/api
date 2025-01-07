@@ -22,7 +22,7 @@ setup(
             "types-requests",
             "types-dataclasses",
         ],
-        "distribute": ["setuptools", "twine", "wheel"],
+        "distribute": ["build", "twine"],
     },
     description="Moonstream: Open source blockchain analytics",
     long_description=long_description,
