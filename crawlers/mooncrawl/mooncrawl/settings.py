@@ -510,3 +510,8 @@ MOONSTREAM_DB_V3_CONTROLLER_API = os.environ.get(
 MOONSTREAM_DB_V3_SCHEMA_NAME = os.environ.get(
     "MOONSTREAM_DB_V3_SCHEMA_NAME", "blockchain"
 )
+
+
+METADATA_TASKS_JOURNAL_ID = os.environ.get(
+    "METADATA_TASKS_JOURNAL_ID", ""
+)

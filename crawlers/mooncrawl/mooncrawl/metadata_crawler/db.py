@@ -67,7 +67,6 @@ def metadata_to_label(
             address=HexBytes(token_uri_data.address),
             block_number=token_uri_data.block_number,
             # Use a fixed tx hash for metadata since it's not from a transaction
-            transaction_hash="0x2653135e31407726a25dd8d304878578cdfcc7d69a2b319d1aca4a37ed66956a",
             block_timestamp=token_uri_data.block_timestamp,
             block_hash=token_uri_data.block_hash if hasattr(token_uri_data, 'block_hash') else None,
         )
@@ -99,13 +98,13 @@ def commit_session(db_session: Session) -> None:
 
 
 def get_uris_of_tokens(
-    db_session: Session, blockchain_type: AvailableBlockchainType
+    db_session: Session, blockchain_type: AvailableBlockchainType, version: int = 2
 ) -> List[TokenURIs]:
     """
     Get meatadata URIs.
     """
 
-    label_model = get_label_model(blockchain_type)
+    label_model = get_label_model(blockchain_type, version=version)
 
     table = label_model.__tablename__
 
@@ -152,13 +151,13 @@ def get_uris_of_tokens(
 
 
 def get_current_metadata_for_address(
-    db_session: Session, blockchain_type: AvailableBlockchainType, address: str
+    db_session: Session, blockchain_type: AvailableBlockchainType, address: str, version: int = 2
 ):
     """
     Get existing metadata.
     """
 
-    label_model = get_label_model(blockchain_type)
+    label_model = get_label_model(blockchain_type, version=version)
 
     table = label_model.__tablename__
 
@@ -188,7 +187,7 @@ def get_current_metadata_for_address(
 
 
 def get_tokens_id_wich_may_updated(
-    db_session: Session, blockchain_type: AvailableBlockchainType, address: str
+    db_session: Session, blockchain_type: AvailableBlockchainType, address: str, version: int = 2
 ):
     """
     Returns a list of tokens which may have updated information.
@@ -202,7 +201,7 @@ def get_tokens_id_wich_may_updated(
     Required integration with entity API and opcodes crawler.
     """
 
-    label_model = get_label_model(blockchain_type)
+    label_model = get_label_model(blockchain_type, version=version)
 
     table = label_model.__tablename__
 
@@ -358,7 +357,10 @@ def get_tokens_to_crawl(
     """
     tokens_uri_by_address = {}
 
-    if spire_job and "query_api" in spire_job:
+    if spire_job:
+        if "query_api" not in spire_job:
+            raise ValueError("Query API is not specified in Spire job")
+
         # Get tokens from Query API
         query_config = spire_job["query_api"]
         client = Moonstream()
@@ -390,7 +392,8 @@ def upsert_metadata_labels(
     blockchain_type: AvailableBlockchainType,
     metadata_batch: List[Tuple[TokenURIs, Optional[Dict[str, Any]]]],
     v3: bool = False,
-    update_existing: bool = False,
+    db_batch_size: int = 100,
+
 ) -> None:
     """
     Batch upsert metadata labels - update if exists, insert if not.
@@ -398,10 +401,12 @@ def upsert_metadata_labels(
     try:
         version = 3 if v3 else 2
         label_model = get_label_model(blockchain_type, version=version)
+
         
         # Prepare batch of labels
         labels_data = []
         for token_uri_data, metadata in metadata_batch:
+
             if v3:
                 # V3 structure
                 label_data = {
@@ -416,7 +421,6 @@ def upsert_metadata_labels(
                     "label_data": label_data,
                     "address": HexBytes(token_uri_data.address),
                     "block_number": token_uri_data.block_number,
-                    "transaction_hash": "0x2653135e31407726a25dd8d304878578cdfcc7d69a2b319d1aca4a37ed66956a",
                     "block_timestamp": token_uri_data.block_timestamp,
                     "block_hash": getattr(token_uri_data, 'block_hash', None),
                 })
@@ -442,40 +446,8 @@ def upsert_metadata_labels(
 
         # Create insert statement
         insert_stmt = insert(label_model).values(labels_data)
-
-        if v3:
-            # V3 upsert
-            result_stmt = insert_stmt.on_conflict_do_update(
-                index_elements=[
-                    label_model.label,
-                    label_model.label_name,
-                    label_model.address,
-                    label_model.label_data["token_id"].astext,
-                ],
-                set_=dict(
-                    label_data=insert_stmt.excluded.label_data,
-                    block_number=insert_stmt.excluded.block_number,
-                    block_timestamp=insert_stmt.excluded.block_timestamp,
-                    block_hash=insert_stmt.excluded.block_hash,
-                    updated_at=datetime.now(),
-                ),
-                
-            )
-        else:
-            # V2 upsert
-            result_stmt = insert_stmt.on_conflict_do_update(
-                index_elements=[
-                    label_model.label,
-                    label_model.address,
-                    label_model.label_data["token_id"].astext,
-                ],
-                set_=dict(
-                    label_data=insert_stmt.excluded.label_data,
-                    block_number=insert_stmt.excluded.block_number,
-                    block_timestamp=insert_stmt.excluded.block_timestamp,
-                    updated_at=datetime.now(),
-                ),
-            )
+        result_stmt = insert_stmt.on_conflict_do_nothing(
+        )
 
         db_session.execute(result_stmt)
 

@@ -226,3 +226,27 @@ def get_customer_db_uri(
     except Exception as e:
         logger.error(f"Error get customer db uri: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+
+
+## DB V3 
+
+def request_connection_string(
+    customer_id: str,
+    instance_id: int,
+    token: str,
+    user: str = "seer",  # token with write access
+) -> str:
+    """
+    Request connection string from the Moonstream API.
+    Default user is seer with write access
+    """
+    response = requests.get(
+        f"{MOONSTREAM_DB_V3_CONTROLLER_API}/customers/{customer_id}/instances/{instance_id}/creds/{user}/url",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    response.raise_for_status()
+
+    return response.text.replace('"', "")
+
