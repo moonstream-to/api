@@ -242,7 +242,7 @@ def request_connection_string(
     user: str = "seer",  # token with write access
 ) -> str:
     """
-    Request connection string from the Moonstream API.
+    Request connection string from the Moonstream DB V3 Controller API.
     Default user is seer with write access
     """
     response = requests.get(
