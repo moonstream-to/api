@@ -7,7 +7,6 @@ from sqlalchemy.dialects.postgresql import insert
 
 from datetime import datetime
 
-##from moonstreamdb.blockchain import AvailableBlockchainType, get_label_model
 from moonstreamtypes.blockchain import AvailableBlockchainType, get_label_model
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
@@ -19,6 +18,7 @@ from ..settings import (
     METADATA_CRAWLER_LABEL,
     VIEW_STATE_CRAWLER_LABEL,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
+    MOONSTREAM_PUBLIC_QUERIES_USER_TOKEN,
     bugout_client as bc,
     moonstream_client as mc,
 )
@@ -271,14 +271,14 @@ def get_tokens_id_wich_may_updated(
 
 
 def clean_labels_from_db(
-    db_session: Session, blockchain_type: AvailableBlockchainType, address: str
+    db_session: Session, blockchain_type: AvailableBlockchainType, address: str, version: int = 2
 ):
     """
     Remove existing labels.
     But keep the latest one for each token.
     """
 
-    label_model = get_label_model(blockchain_type)
+    label_model = get_label_model(blockchain_type, version=version)
 
     table = label_model.__tablename__
 
@@ -315,19 +315,34 @@ def clean_labels_from_db(
 
 def get_tokens_from_query_api(
     client: Moonstream,
+    blockchain_type: AvailableBlockchainType,
     query_name: str,
     params: dict,
     token: str,
+    customer_id: Optional[str] = None,
+    instance_id: Optional[str] = None,
 ) -> List[TokenURIs]:
     """
     Get token URIs from Query API results
     """
+
+    query_params = {}
+    
+    if customer_id and instance_id:
+        query_params["customer_id"] = customer_id
+        query_params["instance_id"] = instance_id
+
     try:
         data = recive_S3_data_from_query(
             client=client,
             token=token,
             query_name=query_name,
-            params=params,
+            params={},
+            query_params=query_params,
+            custom_body={
+                "blockchain": blockchain_type.value,
+                "params": params,
+            }
         )
         
         # Convert query results to TokenURIs format
@@ -367,9 +382,12 @@ def get_tokens_to_crawl(
         
         tokens = get_tokens_from_query_api(
             client=client,
+            blockchain_type=blockchain_type,
             query_name=query_config["name"],
             params=query_config["params"],
-            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            token=MOONSTREAM_PUBLIC_QUERIES_USER_TOKEN,
+            customer_id=spire_job["customer_id"],
+            instance_id=spire_job["instance_id"],
         )
         
         # Group by address
@@ -401,7 +419,6 @@ def upsert_metadata_labels(
     try:
         version = 3 if v3 else 2
         label_model = get_label_model(blockchain_type, version=version)
-
         
         # Prepare batch of labels
         labels_data = []
@@ -449,7 +466,11 @@ def upsert_metadata_labels(
         result_stmt = insert_stmt.on_conflict_do_nothing(
         )
 
-        db_session.execute(result_stmt)
+        result = db_session.execute(result_stmt)
+        engine = db_session.get_bind()
+        logger.info(f"Database URL: {engine.engine.url}")
+        
+        db_session.commit()
 
     except Exception as err:
         logger.error(f"Error batch upserting metadata labels: {err}")

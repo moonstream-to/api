@@ -116,6 +116,7 @@ def recive_S3_data_from_query(
     client: Moonstream,
     token: Union[str, uuid.UUID],
     query_name: str,
+    query_params: Dict[str, Any] = {},
     params: Dict[str, Any] = {},
     time_await: int = 2,
     max_retries: int = 30,
@@ -136,15 +137,18 @@ def recive_S3_data_from_query(
     if custom_body:
         headers = {
             "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
         }
         json = custom_body
 
         response = requests.post(
             url=f"{client.api.endpoints[ENDPOINT_QUERIES]}/{query_name}/update_data",
             headers=headers,
+            params=query_params,
             json=json,
             timeout=5,
         )
+
         data_url = MoonstreamQueryResultUrl(url=response.json()["url"])
     else:
         data_url = client.exec_query(

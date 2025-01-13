@@ -8,11 +8,13 @@ from sqlalchemy.orm import Session
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.error import HTTPError
 
+from bugout.exceptions import BugoutResponseException
 from moonstreamtypes.blockchain import AvailableBlockchainType
+from moonstreamdb.blockchain import AvailableBlockchainType as AvailableBlockchainTypeV2
 
 
 from ..actions import get_all_entries_from_search, request_connection_string
-from ..settings import MOONSTREAM_ADMIN_ACCESS_TOKEN, METADATA_TASKS_JOURNAL_ID
+from ..settings import MOONSTREAM_ADMIN_ACCESS_TOKEN, MOONSTREAM_METADATA_TASKS_JOURNAL, MOONSTREAM_PUBLIC_QUERIES_USER_TOKEN
 from ..db import yield_db_preping_session_ctx, yield_db_read_only_preping_session_ctx, create_moonstream_engine, sessionmaker
 from ..data import TokenURIs
 from .db import (
@@ -77,6 +79,8 @@ def crawl_uri(metadata_uri: str) -> Any:
         except HTTPError as error:
             logger.error(f"request end with error statuscode: {error.code}")
             retry += 1
+            if error.code == 404:
+                return None
             continue
         except Exception as err:
             logger.error(err)
@@ -233,11 +237,16 @@ def process_address_metadata(
             v3=True
         )
 
+        db_session.commit()
+
         clean_labels_from_db(
             db_session=db_session,
             blockchain_type=blockchain_type,
             address=address,
+            version=3
         )
+
+        db_session.commit()
 
 
 
@@ -248,7 +257,6 @@ def parse_metadata(
     batch_size: int,
     max_recrawl: int,
     threads: int,
-    spire: bool = False,
     custom_db_uri: Optional[str] = None,
 ):
     """
@@ -257,62 +265,66 @@ def parse_metadata(
     logger.info("Starting metadata crawler")
     logger.info(f"Processing blockchain {blockchain_type.value}")
 
-    # Get tokens to crawl v2 flow
-    with yield_db_read_only_preping_session_ctx() as db_session_read_only:
-        tokens_uri_by_address = get_tokens_to_crawl(
-            db_session_read_only,
-            blockchain_type,
-            {},
-        )
-
-
-        # Process each address
-    for address, tokens in tokens_uri_by_address.items():
-        process_address_metadata_with_leak(
-            address=address,
-            blockchain_type=blockchain_type,
-            batch_size=batch_size,
-            max_recrawl=max_recrawl,
-            threads=threads,
-            tokens=tokens,
-        )
-
-    
-
-
-    spire_jobs = []
-    
-    if spire == True:
-        # Get all jobs for this blockchain from Spire
-        search_query = f"#metadata-job #{blockchain_type.value}"
+    # Check if blockchain exists in v2 package
+    if blockchain_type.value in [chain.value for chain in AvailableBlockchainTypeV2]:
         try:
-            entries = get_all_entries_from_search(
-                journal_id=METADATA_TASKS_JOURNAL_ID,
-                search_query=search_query,
-                token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
-                content=True,
-                limit=1000,
-            )
-            
-            logger.info(f"Found {len(entries)} metadata jobs for blockchain {blockchain_type.value}")
-            
-            for entry in entries:
-                try:
-                    if not entry.content:
-                        continue
-                    
-                    job = json.loads(entry.content)
-                    if job.get("blockchain") != blockchain_type.value:
-                        logger.warning(f"Skipping job with mismatched blockchain: {job.get('blockchain')} != {blockchain_type.value}")
-                        continue
-                    spire_jobs.append(job)
-                except Exception as err:
-                    id = entry.entry_url.split("/")[-1]
-                    logger.error(f"Error parsing job from entry {id}: {err}")
-                    continue
+            logger.info(f"Processing v2 blockchain: {blockchain_type.value}")
+            # Get tokens to crawl v2 flow
+            with yield_db_read_only_preping_session_ctx() as db_session_read_only:
+                tokens_uri_by_address = get_tokens_to_crawl(
+                    db_session_read_only,
+                    blockchain_type,
+                    {},
+                )
+
+            # Process each address
+            for address, tokens in tokens_uri_by_address.items():
+                process_address_metadata_with_leak(
+                    address=address,
+                    blockchain_type=blockchain_type,
+                    batch_size=batch_size,
+                    max_recrawl=max_recrawl,
+                    threads=threads,
+                    tokens=tokens,
+                )
         except Exception as err:
-            logger.error(f"Error fetching jobs from journal: {err}")
-            return
+            logger.error(f"V2 flow failed: {err}, continuing with Spire flow")
+
+    # Continue with Spire flow regardless of v2 result
+    spire_jobs = []
+
+    # Get all jobs for this blockchain from Spire
+    search_query = f"#metadata-job #{blockchain_type.value}"
+    try:
+        entries = get_all_entries_from_search(
+            journal_id=MOONSTREAM_METADATA_TASKS_JOURNAL,
+            search_query=search_query,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            content=True,
+            limit=1000,
+        )
+        
+        logger.info(f"Found {len(entries)} metadata jobs for blockchain {blockchain_type.value}")
+        
+        for entry in entries:
+            try:
+                if not entry.content:
+                    continue
+                
+                job = json.loads(entry.content)
+                if job.get("blockchain") != blockchain_type.value:
+                    logger.warning(f"Skipping job with mismatched blockchain: {job.get('blockchain')} != {blockchain_type.value}")
+                    continue
+                spire_jobs.append(job)
+            except Exception as err:
+                id = entry.entry_url.split("/")[-1]
+                logger.error(f"Error parsing job from entry {id}: {err}")
+                continue
+    except BugoutResponseException as err:
+        logger.error(f"Bugout error fetching jobs from journal: {err.detail}")
+    except Exception as err:
+        logger.error(f"Error fetching jobs from journal: {err}")
+        return
 
     # Process each job
 
@@ -369,7 +381,7 @@ def parse_metadata(
     except Exception as err:
         logger.error(f"Error processing jobs: {err}")
         raise err
-    
+     
     finally:
         for session in sessions_by_customer.values():
             try:
@@ -388,7 +400,6 @@ def handle_crawl(args: argparse.Namespace) -> None:
         args.commit_batch_size,
         args.max_recrawl,
         args.threads,
-        args.spire,
         args.custom_db_uri,
     )
 
@@ -430,12 +441,6 @@ def main() -> None:
         type=int,
         default=4,
         help="Amount of threads for crawling",
-    )
-    metadata_crawler_parser.add_argument(
-        "--spire",
-        type=bool,
-        default=False,
-        help="If true, use spire jobs to crawl metadata",
     )
     metadata_crawler_parser.add_argument(
         "--custom-db-uri",
