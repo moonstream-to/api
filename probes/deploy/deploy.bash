@@ -32,7 +32,7 @@ set -eu
 echo
 echo
 echo -e "${PREFIX_INFO} Install checkenv"
-HOME=/home/ubuntu /usr/local/go/bin/go install github.com/bugout-dev/checkenv@latest
+HOME=/home/ubuntu /usr/local/go/bin/go install github.com/bugout-dev/checkenv@v0.0.4
 
 echo
 echo
