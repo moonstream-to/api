@@ -13,13 +13,6 @@ BUGOUT_SPIRE_URL = os.environ.get("BUGOUT_SPIRE_URL", "https://spire.bugout.dev"
 
 bugout_client = Bugout(brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIRE_URL)
 
-
-MOONSTREAM_API_URL = os.environ.get("MOONSTREAM_API_URL", "https://api.moonstream.to")
-MOONSTREAM_ENGINE_URL = os.environ.get(
-    "MOONSTREAM_ENGINE_URL", "https://engineapi.moonstream.to"
-)
-
-
 BUGOUT_REQUEST_TIMEOUT_SECONDS_RAW = os.environ.get(
     "MOONSTREAM_BUGOUT_TIMEOUT_SECONDS", 30
 )
