@@ -14,7 +14,7 @@ from moonstreamdb.blockchain import AvailableBlockchainType as AvailableBlockcha
 
 
 from ..actions import get_all_entries_from_search, request_connection_string
-from ..settings import MOONSTREAM_ADMIN_ACCESS_TOKEN, MOONSTREAM_METADATA_TASKS_JOURNAL, MOONSTREAM_PUBLIC_QUERIES_USER_TOKEN
+from ..settings import MOONSTREAM_ADMIN_ACCESS_TOKEN, MOONSTREAM_METADATA_TASKS_JOURNAL, MOONSTREAM_PUBLIC_QUERIES_DATA_ACCESS_TOKEN
 from ..db import yield_db_preping_session_ctx, yield_db_read_only_preping_session_ctx, create_moonstream_engine, sessionmaker
 from ..data import TokenURIs
 from .db import (

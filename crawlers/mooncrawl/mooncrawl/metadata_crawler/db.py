@@ -18,7 +18,7 @@ from ..settings import (
     METADATA_CRAWLER_LABEL,
     VIEW_STATE_CRAWLER_LABEL,
     MOONSTREAM_ADMIN_ACCESS_TOKEN,
-    MOONSTREAM_PUBLIC_QUERIES_USER_TOKEN,
+    MOONSTREAM_PUBLIC_QUERIES_DATA_ACCESS_TOKEN,
     bugout_client as bc,
     moonstream_client as mc,
 )
@@ -385,7 +385,7 @@ def get_tokens_to_crawl(
             blockchain_type=blockchain_type,
             query_name=query_config["name"],
             params=query_config["params"],
-            token=MOONSTREAM_PUBLIC_QUERIES_USER_TOKEN,
+            token=MOONSTREAM_PUBLIC_QUERIES_DATA_ACCESS_TOKEN,
             customer_id=spire_job["customer_id"],
             instance_id=spire_job["instance_id"],
         )
