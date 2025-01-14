@@ -123,11 +123,10 @@ def process_address_metadata_with_leak(
         try:
             logger.info(f"Starting to crawl metadata for address: {address}")
 
+            leak_rate = 0
             if len(maybe_updated) > 0:
                 free_spots = len(maybe_updated) / max_recrawl
-                if free_spots > 1:
-                    leak_rate = 0
-                else:
+                if free_spots < 1:
                     leak_rate = 1 - (
                         len(already_parsed) - max_recrawl + len(maybe_updated)
                     ) / len(already_parsed)
