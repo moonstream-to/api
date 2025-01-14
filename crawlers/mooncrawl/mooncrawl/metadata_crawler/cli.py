@@ -216,12 +216,21 @@ def process_address_metadata(
     """
 
 
+    logger.info(f"Processing address {address} with {len(tokens)} tokens")
 
+    total_tokens = len(tokens)
+    total_chunks = (total_tokens + batch_size - 1) // batch_size
 
-    for requests_chunk in [
+    for chunk_index, requests_chunk in enumerate([
         tokens[i : i + batch_size]
         for i in range(0, len(tokens), batch_size)
-    ]:
+    ]):
+        logger.info(
+            f"Processing chunk {chunk_index + 1}/{total_chunks} "
+            f"({len(requests_chunk)} tokens) for address {address}"
+        )
+
+
         metadata_batch = []
         with ThreadPoolExecutor(max_workers=threads) as executor:
             future_to_token = {
@@ -241,6 +250,8 @@ def process_address_metadata(
             v3=True
         )
 
+        logger.info(f"Wrote {len(metadata_batch)} labels for {address}")
+
         db_session.commit()
 
         clean_labels_from_db(
@@ -251,9 +262,6 @@ def process_address_metadata(
         )
 
         db_session.commit()
-
-
-
     
 
 def parse_metadata(
