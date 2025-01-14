@@ -122,22 +122,27 @@ def process_address_metadata_with_leak(
     with yield_db_preping_session_ctx() as db_session:
         try:
             logger.info(f"Starting to crawl metadata for address: {address}")
+            logger.info(f"Maybe updated: {len(maybe_updated)}")
 
-            leak_rate = 0
-            if len(maybe_updated) > 0:
-                free_spots = len(maybe_updated) / max_recrawl
-                if free_spots < 1:
-                    leak_rate = 1 - (
-                        len(already_parsed) - max_recrawl + len(maybe_updated)
-                    ) / len(already_parsed)
+            # Calculate how many tokens we can 'leak' so total recrawled (maybe_updated + leaked) <= max_recrawl
+            num_already_parsed = len(already_parsed)
+            num_maybe_updated = len(maybe_updated)
+            free_spots = max(0, max_recrawl - num_maybe_updated)
 
-            parsed_with_leak = leak_of_crawled_uri(
-                already_parsed, leak_rate, maybe_updated
-            )
+            if num_already_parsed > 0 and free_spots > 0:
+                leak_rate = free_spots / num_already_parsed
+            else:
+                leak_rate = 0
 
             logger.info(
                 f"Leak rate: {leak_rate} for {address} with maybe updated {len(maybe_updated)}"
             )
+
+            # TODO: Fully random leak is not correct, we should leak based on created_at
+            parsed_with_leak = leak_of_crawled_uri(
+                already_parsed, leak_rate, maybe_updated
+            )
+
             logger.info(f"Already parsed: {len(already_parsed)} for {address}")
             logger.info(f"Amount of tokens to parse: {len(tokens)} for {address}")
 

@@ -466,9 +466,7 @@ def upsert_metadata_labels(
         result_stmt = insert_stmt.on_conflict_do_nothing(
         )
 
-        result = db_session.execute(result_stmt)
-        engine = db_session.get_bind()
-        logger.info(f"Database URL: {engine.engine.url}")
+        db_session.execute(result_stmt)
         
         db_session.commit()
 
