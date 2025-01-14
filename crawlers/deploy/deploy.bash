@@ -217,6 +217,14 @@ MANTLE_SEPOLIA_HISTORICAL_CRAWL_EVENTS_TIMER_FILE="mantle-sepolia-historical-cra
 MANTLE_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE="mantle-sepolia-historical-crawl-transactions.service"
 MANTLE_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE="mantle-sepolia-historical-crawl-transactions.timer"
 
+# Game7
+GAME7_METADATA_SERVICE_FILE="game7-metadata.service"
+GAME7_METADATA_TIMER_FILE="game7-metadata.timer"
+
+# Game7 testnet
+GAME7_TESTNET_METADATA_SERVICE_FILE="game7-testnet-metadata.service"
+GAME7_TESTNET_METADATA_TIMER_FILE="game7-testnet-metadata.timer"
+
 set -eu
 
 echo
@@ -1109,3 +1117,24 @@ cp "${SCRIPT_DIR}/${MANTLE_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE}" 
 cp "${SCRIPT_DIR}/${MANTLE_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${MANTLE_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${MANTLE_SEPOLIA_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE}"
+
+
+# Game7
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Game7 metadata service and timer with: ${GAME7_METADATA_SERVICE_FILE}, ${GAME7_METADATA_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${GAME7_METADATA_SERVICE_FILE}" "${SCRIPT_DIR}/${GAME7_METADATA_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${GAME7_METADATA_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${GAME7_METADATA_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${GAME7_METADATA_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${GAME7_METADATA_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${GAME7_METADATA_TIMER_FILE}"
+
+# Game7 testnet
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Game7 testnet metadata service and timer with: ${GAME7_TESTNET_METADATA_SERVICE_FILE}, ${GAME7_TESTNET_METADATA_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${GAME7_TESTNET_METADATA_SERVICE_FILE}" "${SCRIPT_DIR}/${GAME7_TESTNET_METADATA_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${GAME7_TESTNET_METADATA_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${GAME7_TESTNET_METADATA_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${GAME7_TESTNET_METADATA_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${GAME7_TESTNET_METADATA_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${GAME7_TESTNET_METADATA_TIMER_FILE}"
