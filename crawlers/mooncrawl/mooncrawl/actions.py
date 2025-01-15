@@ -18,7 +18,11 @@ from moonstream.client import (  # type: ignore
 )
 
 from .middleware import MoonstreamHTTPException
-from .settings import bugout_client as bc
+from .settings import (
+    bugout_client as bc,
+    MOONSTREAM_DB_V3_CONTROLLER_API,
+    MOONSTREAM_ADMIN_ACCESS_TOKEN,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -204,3 +208,21 @@ def get_all_entries_from_search(
             results.extend(existing_methods.results)  # type: ignore
 
     return results
+
+
+def get_customer_db_uri(
+    customer_id: str,
+    instance_id: str,
+    user: str,
+) -> str:
+
+    try:
+        response = requests.get(
+            f"{MOONSTREAM_DB_V3_CONTROLLER_API}/customers/{customer_id}/instances/{instance_id}/creds/{user}/url",
+            headers={"Authorization": f"Bearer {MOONSTREAM_ADMIN_ACCESS_TOKEN}"},
+        )
+        response.raise_for_status()
+        return response.text.replace('"', "")
+    except Exception as e:
+        logger.error(f"Error get customer db uri: {str(e)}")
+        raise MoonstreamHTTPException(status_code=500, internal_error=e)

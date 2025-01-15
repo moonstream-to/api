@@ -5,13 +5,11 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -107,7 +105,7 @@ func proxyErrorHandler(proxy *httputil.ReverseProxy, url *url.URL) {
 	}
 }
 
-func Server() {
+func Server(configPath, listeningHostAddr, listeningPort string, enableHealthCheck bool) error {
 	// Create Access ID cache
 	CreateAccessCache()
 
@@ -117,47 +115,26 @@ func Server() {
 	consent := humbug.CreateHumbugConsent(humbug.True)
 	reporter, err = humbug.CreateHumbugReporter(consent, "moonstream-node-balancer", sessionID, HUMBUG_REPORTER_NB_TOKEN)
 	if err != nil {
-		fmt.Printf("Invalid Humbug Crash configuration, err: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("invalid Humbug Crash configuration, err: %v", err)
 	}
 	// Record system information
 	reporter.Publish(humbug.SystemReport())
 
 	// Fetch access id for internal usage (crawlers, infrastructure, etc)
-	resources, err := bugoutClient.Brood.GetResources(
-		NB_CONTROLLER_TOKEN,
-		MOONSTREAM_APPLICATION_ID,
-		map[string]string{"access_id": NB_CONTROLLER_ACCESS_ID},
-	)
-	if err != nil {
-		fmt.Printf("Unable to get user with provided access identifier, err: %v\n", err)
-		os.Exit(1)
+	resources, getErr := GetResources(NB_CONTROLLER_TOKEN, NB_CONTROLLER_ACCESS_ID, "")
+	if getErr != nil {
+		return fmt.Errorf("unable to get user with provided access identifier, err: %v", getErr)
 	}
 	if len(resources.Resources) == 1 {
-		resourceData, err := json.Marshal(resources.Resources[0].ResourceData)
-		if err != nil {
-			fmt.Printf("Unable to encode resource data interface to json, err: %v\n", err)
-			os.Exit(1)
+		clientAccess, parseErr := ParseResourceDataToClientAccess(resources.Resources[0])
+		if parseErr != nil {
+			return parseErr
 		}
-		var clientResourceData ClientResourceData
-		err = json.Unmarshal(resourceData, &clientResourceData)
-		if err != nil {
-			fmt.Printf("Unable to decode resource data json to structure, err: %v\n", err)
-			os.Exit(1)
-		}
-		internalUsageAccess = ClientAccess{
-			ClientResourceData: ClientResourceData{
-				UserID:           clientResourceData.UserID,
-				AccessID:         clientResourceData.AccessID,
-				Name:             clientResourceData.Name,
-				Description:      clientResourceData.Description,
-				BlockchainAccess: clientResourceData.BlockchainAccess,
-				ExtendedMethods:  clientResourceData.ExtendedMethods,
-			},
-		}
+		internalUsageAccess = *clientAccess
+
 		log.Printf(
 			"Internal crawlers access set, resource id: %s, blockchain access: %t, extended methods: %t",
-			resources.Resources[0].Id, clientResourceData.BlockchainAccess, clientResourceData.ExtendedMethods,
+			resources.Resources[0].Id, internalUsageAccess.ClientResourceData.BlockchainAccess, internalUsageAccess.ClientResourceData.ExtendedMethods,
 		)
 
 	} else if len(resources.Resources) == 0 {
@@ -173,15 +150,13 @@ func Server() {
 		}
 		fmt.Printf("There are no provided NB_CONTROLLER_ACCESS_ID records in Brood resources. Using provided with environment variable or randomly generated\n")
 	} else {
-		fmt.Printf("User with provided access identifier has wrong number of resources: %d\n", len(resources.Resources))
-		os.Exit(1)
+		return fmt.Errorf("user with provided access identifier has wrong number of resources: %d\n", len(resources.Resources))
 	}
 
 	// Fill NodeConfigList with initial nodes from environment variables
-	err = LoadConfig(stateCLI.configPathFlag)
+	err = LoadConfig(configPath)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		return err
 	}
 	supportedBlockchains = make(map[string]bool)
 
@@ -189,8 +164,7 @@ func Server() {
 	for i, nodeConfig := range nodeConfigs {
 		endpoint, err := url.Parse(nodeConfig.Endpoint)
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			return err
 		}
 
 		// Append to supported blockchain set
@@ -218,7 +192,9 @@ func Server() {
 		proxyToEndpoint.ModifyResponse = func(w *http.Response) error {
 			// Remove proxy headers
 			for k := range w.Header {
-				w.Header.Del(k)
+				if k == "Access-Control-Allow-Origin" || k == "Access-Control-Allow-Methods" || k == "Access-Control-Allow-Credentials" || k == "Access-Control-Allow-Headers" {
+					w.Header.Del(k)
+				}
 			}
 			return nil
 		}
@@ -249,7 +225,7 @@ func Server() {
 	commonHandler = panicMiddleware(commonHandler)
 
 	server := http.Server{
-		Addr:         fmt.Sprintf("%s:%s", stateCLI.listeningAddrFlag, stateCLI.listeningPortFlag),
+		Addr:         fmt.Sprintf("%s:%s", listeningHostAddr, listeningPort),
 		Handler:      commonHandler,
 		ReadTimeout:  40 * time.Second,
 		WriteTimeout: 40 * time.Second,
@@ -257,17 +233,18 @@ func Server() {
 
 	// Start node health checking and current block fetching
 	blockchainPool.HealthCheck()
-	if stateCLI.enableHealthCheckFlag {
-		go initHealthCheck(stateCLI.enableDebugFlag)
+	if enableHealthCheck {
+		go initHealthCheck(NB_ENABLE_DEBUG)
 	}
 
 	// Start access id cache cleaning
-	go initCacheCleaning(stateCLI.enableDebugFlag)
+	go initCacheCleaning(NB_ENABLE_DEBUG)
 
-	log.Printf("Starting node load balancer HTTP server at %s:%s", stateCLI.listeningAddrFlag, stateCLI.listeningPortFlag)
+	log.Printf("Starting node load balancer HTTP server at %s:%s", listeningHostAddr, listeningPort)
 	err = server.ListenAndServe()
 	if err != nil {
-		fmt.Printf("Failed to start server listener, err: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to start server listener, err: %v", err)
 	}
+
+	return nil
 }

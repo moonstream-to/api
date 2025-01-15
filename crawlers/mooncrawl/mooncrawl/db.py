@@ -7,6 +7,7 @@ from moonstreamdb.db import (
     MOONSTREAM_POOL_SIZE,
     create_moonstream_engine,
 )
+from moonstreamdbv3.db import DBEngine
 from sqlalchemy.orm import Session, sessionmaker
 
 from .settings import (

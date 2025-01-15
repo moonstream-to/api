@@ -22,6 +22,7 @@ class SubscriptionTypes(Enum):
         "game7_orbit_arbitrum_sepolia_smartcontract"
     )
     GAME7_TESTNET_BLOCKCHAIN = "game7_testnet_smartcontract"
+    GAME7_BLOCKCHAIN = "game7_smartcontract"
     XAI_BLOCKCHAIN = "xai_smartcontract"
     XAI_SEPOLIA_BLOCKCHAIN = "xai_sepolia_smartcontract"
     AVALANCHE_BLOCKCHAIN = "avalanche_smartcontract"
@@ -37,7 +38,8 @@ class SubscriptionTypes(Enum):
     IMX_ZKEVM_SEPOLIA_BLOCKCHAIN = "imx_zkevm_sepolia_smartcontract"
     B3_BLOCKCHAIN = "b3_smartcontract"
     B3_SEPOLIA_BLOCKCHAIN = "b3_sepolia_smartcontract"
-
+    RONIN_BLOCKCHAIN = "ronin_smartcontract"
+    RONIN_SAIGON_BLOCKCHAIN = "ronin_saigon_smartcontract"
 
 def blockchain_type_to_subscription_type(
     blockchain_type: AvailableBlockchainType,
@@ -74,6 +76,8 @@ def blockchain_type_to_subscription_type(
         return SubscriptionTypes.GAME7_ORBIT_ARBITRUM_SEPOLIA_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.GAME7_TESTNET:
         return SubscriptionTypes.GAME7_TESTNET_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.GAME7:
+        return SubscriptionTypes.GAME7_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.XAI:
         return SubscriptionTypes.XAI_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.XAI_SEPOLIA:
@@ -104,6 +108,10 @@ def blockchain_type_to_subscription_type(
         return SubscriptionTypes.B3_BLOCKCHAIN
     elif blockchain_type == AvailableBlockchainType.B3_SEPOLIA:
         return SubscriptionTypes.B3_SEPOLIA_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.RONIN:
+        return SubscriptionTypes.RONIN_BLOCKCHAIN
+    elif blockchain_type == AvailableBlockchainType.RONIN_SAIGON:
+        return SubscriptionTypes.RONIN_SAIGON_BLOCKCHAIN
     else:
         raise ValueError(f"Unknown blockchain type: {blockchain_type}")
 
@@ -125,6 +133,7 @@ subscription_id_by_blockchain = {
     "arbitrum_sepolia": "arbitrum_sepolia_smartcontract",
     "game7_orbit_arbitrum_sepolia": "game7_orbit_arbitrum_sepolia_smartcontract",
     "game7_testnet": "game7_testnet_smartcontract",
+    "game7": "game7_smartcontract",
     "xai": "xai_smartcontract",
     "xai_sepolia": "xai_sepolia_smartcontract",
     "avalanche": "avalanche_smartcontract",
@@ -140,6 +149,8 @@ subscription_id_by_blockchain = {
     "imx_zkevm_sepolia": "imx_zkevm_sepolia_smartcontract",
     "b3": "b3_smartcontract",
     "b3_sepolia": "b3_sepolia_smartcontract",
+    "ronin": "ronin_smartcontract",
+    "ronin_saigon": "ronin_saigon_smartcontract",
 }
 
 blockchain_by_subscription_id = {
@@ -159,6 +170,7 @@ blockchain_by_subscription_id = {
     "arbitrum_sepolia_blockchain": "arbitrum_sepolia",
     "game7_orbit_arbitrum_sepolia_blockchain": "game7_orbit_arbitrum_sepolia",
     "game7_testnet_blockchain": "game7_testnet",
+    "game7_blockchain": "game7",
     "xai_blockchain": "xai",
     "xai_sepolia_blockchain": "xai_sepolia",
     "avalanche_blockchain": "avalanche",
@@ -202,4 +214,6 @@ blockchain_by_subscription_id = {
     "imx_zkevm_sepolia_smartcontract": "imx_zkevm_sepolia",
     "b3_smartcontract": "b3",
     "b3_sepolia_smartcontract": "b3_sepolia",
+    "ronin_smartcontract": "ronin",
+    "ronin_saigon_smartcontract": "ronin_saigon",
 }

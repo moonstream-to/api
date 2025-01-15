@@ -1,5 +1,13 @@
 package main
 
+import (
+	"log"
+	"os"
+)
+
 func main() {
-	cli()
+	app := NodebalancerAppCli()
+	if err := app.Run(os.Args); err != nil {
+		log.Fatal(err)
+	}
 }
