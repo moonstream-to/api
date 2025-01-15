@@ -60,6 +60,7 @@ class TokenURIs(BaseModel):
     block_number: str
     block_timestamp: str
     address: str
+    block_hash: Optional[str] = None # for v3 only
 
 
 class ViewTasks(BaseModel):

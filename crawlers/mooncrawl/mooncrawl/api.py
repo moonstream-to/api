@@ -13,12 +13,7 @@ import boto3  # type: ignore
 from bugout.data import BugoutJournalEntity, BugoutResource
 from fastapi import BackgroundTasks, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from moonstreamdb.blockchain import (
-    AvailableBlockchainType,
-    get_block_model,
-    get_label_model,
-    get_transaction_model,
-)
+from moonstreamtypes.blockchain import AvailableBlockchainType, get_block_model, get_label_model, get_transaction_model
 from sqlalchemy import text
 
 from . import data
@@ -232,6 +227,11 @@ async def queries_data_update_handler(
 
     requested_query = request_data.query
 
+    version = 2
+
+    if request_data.customer_id and request_data.instance_id:
+        version = 3
+
     blockchain_table = "polygon_labels"
     if request_data.blockchain:
         if request_data.blockchain not in [i.value for i in AvailableBlockchainType]:
@@ -240,22 +240,23 @@ async def queries_data_update_handler(
 
         blockchain = AvailableBlockchainType(request_data.blockchain)
 
-        requested_query = (
-            requested_query.replace(
-                "__transactions_table__",
-                get_transaction_model(blockchain).__tablename__,
-            )
-            .replace(
-                "__blocks_table__",
-                get_block_model(blockchain).__tablename__,
-            )
-            .replace(
+        blockchain_table = get_label_model(blockchain, version).__tablename__
+        requested_query = requested_query.replace(
                 "__labels_table__",
-                get_label_model(blockchain).__tablename__,
-            )
+                blockchain_table
         )
+        if version == 2:
+            (
+                requested_query.replace(
+                    "__transactions_table__",
+                    get_transaction_model(blockchain).__tablename__,
+                )
+                .replace(
+                    "__blocks_table__",
+                    get_block_model(blockchain).__tablename__,
+                )
 
-        blockchain_table = get_label_model(blockchain).__tablename__
+            )
 
     # Check if it can transform to TextClause
     try:

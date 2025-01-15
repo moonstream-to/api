@@ -116,6 +116,7 @@ def recive_S3_data_from_query(
     client: Moonstream,
     token: Union[str, uuid.UUID],
     query_name: str,
+    query_params: Dict[str, Any] = {},
     params: Dict[str, Any] = {},
     time_await: int = 2,
     max_retries: int = 30,
@@ -136,15 +137,18 @@ def recive_S3_data_from_query(
     if custom_body:
         headers = {
             "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
         }
         json = custom_body
 
         response = requests.post(
             url=f"{client.api.endpoints[ENDPOINT_QUERIES]}/{query_name}/update_data",
             headers=headers,
+            params=query_params,
             json=json,
             timeout=5,
         )
+
         data_url = MoonstreamQueryResultUrl(url=response.json()["url"])
     else:
         data_url = client.exec_query(
@@ -226,3 +230,27 @@ def get_customer_db_uri(
     except Exception as e:
         logger.error(f"Error get customer db uri: {str(e)}")
         raise MoonstreamHTTPException(status_code=500, internal_error=e)
+
+
+
+## DB V3 
+
+def request_connection_string(
+    customer_id: str,
+    instance_id: int,
+    token: str,
+    user: str = "seer",  # token with write access
+) -> str:
+    """
+    Request connection string from the Moonstream DB V3 Controller API.
+    Default user is seer with write access
+    """
+    response = requests.get(
+        f"{MOONSTREAM_DB_V3_CONTROLLER_API}/customers/{customer_id}/instances/{instance_id}/creds/{user}/url",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    response.raise_for_status()
+
+    return response.text.replace('"', "")
+
