@@ -24,7 +24,7 @@ from bugout.exceptions import BugoutResponseException
 from bugout.journal import SearchOrder
 from ens.utils import is_valid_ens_name  # type: ignore
 from eth_utils.address import is_address  # type: ignore
-from moonstreamdb.blockchain import AvailableBlockchainType
+from moonstreamtypes.blockchain import AvailableBlockchainType
 from moonstreamdb.models import EthereumLabel
 from moonstreamdb.subscriptions import blockchain_by_subscription_id
 from moonstreamdbv3.models_indexes import AbiJobs, AbiSubscriptions

@@ -2,7 +2,7 @@ import os
 from typing import Dict, Optional
 
 from bugout.app import Bugout
-from moonstreamdb.blockchain import AvailableBlockchainType
+from moonstreamtypes.blockchain import AvailableBlockchainType
 from moonstreamdbv3.db import MoonstreamDBIndexesEngine
 
 # Bugout
@@ -284,6 +284,13 @@ MOONSTREAM_B3_SEPOLIA_WEB3_PROVIDER_URI = os.environ.get(
 )
 if MOONSTREAM_B3_SEPOLIA_WEB3_PROVIDER_URI == "":
     raise Exception("MOONSTREAM_B3_SEPOLIA_WEB3_PROVIDER_URI env variable is not set")
+
+MOONSTREAM_GAME7_WEB3_PROVIDER_URI = os.environ.get(
+    "MOONSTREAM_GAME7_WEB3_PROVIDER_URI", ""
+)
+if MOONSTREAM_GAME7_WEB3_PROVIDER_URI == "":
+    raise Exception("MOONSTREAM_GAME7_WEB3_PROVIDER_URI env variable is not set")
+
 
 
 ## QueryAPI

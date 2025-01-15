@@ -4,7 +4,7 @@ from uuid import UUID
 
 from eth_abi import decode_single, encode_single
 from eth_utils import function_signature_to_4byte_selector
-from moonstreamdb.blockchain import AvailableBlockchainType
+from moonstreamtypes.blockchain import AvailableBlockchainType
 from web3 import Web3
 from web3._utils.abi import normalize_event_input_types
 from web3.contract import ContractFunction
@@ -39,6 +39,11 @@ from .settings import (
     MOONSTREAM_GAME7_TESTNET_WEB3_PROVIDER_URI,
     MOONSTREAM_B3_WEB3_PROVIDER_URI,
     MOONSTREAM_B3_SEPOLIA_WEB3_PROVIDER_URI,
+    MOONSTREAM_GAME7_WEB3_PROVIDER_URI,
+    MOONSTREAM_GAME7_TESTNET_WEB3_PROVIDER_URI,
+    MOONSTREAM_SEPOLIA_WEB3_PROVIDER_URI,
+    MOONSTREAM_IMX_ZKEVM_WEB3_PROVIDER_URI,
+    MOONSTREAM_IMX_ZKEVM_SEPOLIA_WEB3_PROVIDER_URI,
     NB_ACCESS_ID_HEADER,
     multicall_contract_abi,
     multicall_contracts,
@@ -133,6 +138,16 @@ def connect(
             web3_uri = MOONSTREAM_B3_WEB3_PROVIDER_URI
         elif blockchain_type == AvailableBlockchainType.B3_SEPOLIA:
             web3_uri = MOONSTREAM_B3_SEPOLIA_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.SEPOLIA:
+            web3_uri = MOONSTREAM_SEPOLIA_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.GAME7:
+            web3_uri = MOONSTREAM_GAME7_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.GAME7_TESTNET:
+            web3_uri = MOONSTREAM_GAME7_TESTNET_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.IMX_ZKEVM:
+            web3_uri = MOONSTREAM_IMX_ZKEVM_WEB3_PROVIDER_URI
+        elif blockchain_type == AvailableBlockchainType.IMX_ZKEVM_SEPOLIA:
+            web3_uri = MOONSTREAM_IMX_ZKEVM_SEPOLIA_WEB3_PROVIDER_URI
         else:
             raise Exception("Wrong blockchain type provided for web3 URI")
 

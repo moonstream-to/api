@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Optional, Union, cast
 from bugout.data import BugoutSearchResult, BugoutSearchResultAsEntity
 from bugout.exceptions import BugoutResponseException
 from fastapi import APIRouter, BackgroundTasks, Depends, Form, Path, Query, Request
-from moonstreamdb.blockchain import AvailableBlockchainType
+from moonstreamtypes.blockchain import AvailableBlockchainType
 from web3 import Web3
 
 from .. import data
@@ -836,7 +836,8 @@ async def address_info(request: Request, address: str = Query(...)):
 
         except Exception as e:
             logger.error(f"Error reading contract info from web3: {str(e)}")
-            raise MoonstreamHTTPException(status_code=500, internal_error=e)
+            continue  # Skip failing blockchain and continue with others
+
     if len(contract_info) == 0:
         raise MoonstreamHTTPException(
             status_code=404,
