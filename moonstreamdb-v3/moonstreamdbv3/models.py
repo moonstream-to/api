@@ -125,48 +125,17 @@ class EvmBasedLabel(Base):  # type: ignore
     )
 
 
-# class EthereumTransaction(Base):  # type: ignore
-#     __tablename__ = "ethereum_transactions"
-
-#     hash = Column(
-#         VARCHAR(256), primary_key=True, unique=True, nullable=False, index=True
-#     )
-#     block_number = Column(
-#         BigInteger,
-#         ForeignKey("ethereum_blocks.block_number", ondelete="CASCADE"),
-#         nullable=False,
-#         index=True,
-#     )
-#     from_address = Column(VARCHAR(256), index=True)
-#     to_address = Column(VARCHAR(256), index=True)
-#     gas = Column(Numeric(precision=78, scale=0), index=True)
-#     gas_price = Column(Numeric(precision=78, scale=0), index=True)
-#     max_fee_per_gas = Column(Numeric(precision=78, scale=0), nullable=True)
-#     max_priority_fee_per_gas = Column(Numeric(precision=78, scale=0), nullable=True)
-#     input = Column(Text)
-#     nonce = Column(VARCHAR(256))
-#     transaction_index = Column(BigInteger)
-#     transaction_type = Column(Integer, nullable=True)
-#     value = Column(Numeric(precision=78, scale=0), index=True)
-
-#     indexed_at = Column(
-#         DateTime(timezone=True), server_default=utcnow(), nullable=False
-#     )
-
-
 class EvmBasedTransaction(Base):  # type: ignore
     __abstract__ = True
 
     hash = Column(
         VARCHAR(256), primary_key=True, unique=True, nullable=False, index=True
     )
-    block_number = (
-        Column(
+    block_number = Column(
             BigInteger,
             nullable=False,
             index=True,
-        ),
-    )
+        )
     block_timestamp = Column(BigInteger, nullable=False, index=True)
     block_hash = Column(VARCHAR(256), nullable=False, index=True)
     from_address = Column(LargeBinary, index=True)
@@ -1711,6 +1680,10 @@ class RoninLabel(EvmBasedLabel):  # type: ignore
     )
 
 
+class RoninTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "ronin_transactions"
+
+
 class RoninSaigonLabel(EvmBasedLabel):  # type: ignore
     __tablename__ = "ronin_saigon_labels"
 
@@ -1756,5 +1729,5 @@ class RoninSaigonLabel(EvmBasedLabel):  # type: ignore
     )
 
 
-class RoninTransaction(EvmBasedTransaction):  # type: ignore
-    __tablename__ = "ronin_transactions"
+class RoninSaigonTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "ronin_saigon_transactions"
