@@ -36,10 +36,10 @@ jsonschema==4.17.0
 lru-dict==1.1.8
 Mako==1.2.3
 MarkupSafe==2.1.1
-moonstream==0.1.1
-moonstreamdb==0.4.5
-moonstreamdb-v3==0.0.18
-moonstreamtypes==0.0.9
+moonstream==0.1.2
+moonstreamdb==0.4.6
+moonstreamdb-v3==0.1.4
+moonstream-types==0.0.11
 multiaddr==0.0.9
 multidict==6.0.2
 netaddr==0.8.0

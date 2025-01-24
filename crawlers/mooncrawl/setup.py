@@ -37,10 +37,10 @@ setup(
         "bugout>=0.2.13",
         "chardet",
         "fastapi",
-        "moonstreamdb>=0.4.5",
-        "moonstreamdb-v3>=0.0.16",
-        "moonstream-types>=0.0.9",
-        "moonstream>=0.1.1",
+        "moonstreamdb>=0.4.6",
+        "moonstreamdb-v3>=0.1.4",
+        "moonstream-types>=0.0.11",
+        "moonstream>=0.1.2",
         "moonworm[moonstream]>=0.9.3",
         "humbug",
         "pydantic==1.9.2",
@@ -52,7 +52,7 @@ setup(
     ],
     extras_require={
         "dev": ["black", "isort", "mypy", "types-requests", "types-python-dateutil"],
-        "distribute": ["setuptools", "twine", "wheel"],
+        "distribute": ["build", "twine"],
     },
     entry_points={
         "console_scripts": [

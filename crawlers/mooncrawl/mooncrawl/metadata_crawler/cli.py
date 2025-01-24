@@ -3,20 +3,31 @@ import json
 import logging
 import random
 import urllib.request
-from concurrent.futures import ThreadPoolExecutor
-from typing import Any, Dict, List, Optional
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from sqlalchemy.orm import Session
+from typing import Any, Dict, List, Optional, Tuple
 from urllib.error import HTTPError
 
-from moonstreamdb.blockchain import AvailableBlockchainType
+from bugout.exceptions import BugoutResponseException
+from moonstreamtypes.blockchain import AvailableBlockchainType
+from moonstreamdb.blockchain import AvailableBlockchainType as AvailableBlockchainTypeV2
 
-from ..db import yield_db_preping_session_ctx, yield_db_read_only_preping_session_ctx
+
+from ..actions import get_all_entries_from_search, request_connection_string
+from ..settings import MOONSTREAM_ADMIN_ACCESS_TOKEN, MOONSTREAM_METADATA_TASKS_JOURNAL, MOONSTREAM_PUBLIC_QUERIES_DATA_ACCESS_TOKEN
+from ..db import yield_db_preping_session_ctx, yield_db_read_only_preping_session_ctx, create_moonstream_engine, sessionmaker
+from ..data import TokenURIs
 from .db import (
     clean_labels_from_db,
     get_current_metadata_for_address,
     get_tokens_id_wich_may_updated,
     get_uris_of_tokens,
     metadata_to_label,
+    get_tokens_to_crawl,
+    upsert_metadata_labels,
 )
+
+from ..settings import moonstream_client as mc
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -50,7 +61,6 @@ def crawl_uri(metadata_uri: str) -> Any:
     result = None
     while retry < 3:
         try:
-
             if metadata_uri.startswith("ipfs://"):
                 metadata_uri = metadata_uri.replace(
                     "ipfs://", "https://ipfs.io/ipfs/", 1
@@ -61,10 +71,7 @@ def crawl_uri(metadata_uri: str) -> Any:
 
             response = urllib.request.urlopen(req, timeout=10)
 
-            if (
-                metadata_uri.startswith("data:application/json")
-                or response.status == 200
-            ):
+            if metadata_uri.startswith("data:application/json") or response.status == 200:
                 result = json.loads(response.read())
                 break
             retry += 1
@@ -72,6 +79,8 @@ def crawl_uri(metadata_uri: str) -> Any:
         except HTTPError as error:
             logger.error(f"request end with error statuscode: {error.code}")
             retry += 1
+            if error.code == 404:
+                return None
             continue
         except Exception as err:
             logger.error(err)
@@ -81,167 +90,329 @@ def crawl_uri(metadata_uri: str) -> Any:
     return result
 
 
+def process_address_metadata_with_leak(
+    address: str,
+    blockchain_type: AvailableBlockchainType,
+    batch_size: int,
+    max_recrawl: int,
+    threads: int,
+    tokens: List[TokenURIs],
+) -> None:
+    """
+    Process metadata for a single address with v3 support
+    """
+    with yield_db_read_only_preping_session_ctx() as db_session_read_only:
+        try:
+
+            already_parsed = get_current_metadata_for_address(
+                db_session=db_session_read_only,
+                blockchain_type=blockchain_type,
+                address=address,
+            )
+
+            maybe_updated = get_tokens_id_wich_may_updated(
+                db_session=db_session_read_only,
+                blockchain_type=blockchain_type,
+                address=address,
+            )
+        except Exception as err:
+            logger.warning(f"Error while getting metadata state for address {address}: {err}")
+            return
+
+    with yield_db_preping_session_ctx() as db_session:
+        try:
+            logger.info(f"Starting to crawl metadata for address: {address}")
+            logger.info(f"Maybe updated: {len(maybe_updated)}")
+
+            # Calculate how many tokens we can 'leak' so total recrawled (maybe_updated + leaked) <= max_recrawl
+            num_already_parsed = len(already_parsed)
+            num_maybe_updated = len(maybe_updated)
+            free_spots = max(0, max_recrawl - num_maybe_updated)
+
+            if num_already_parsed > 0 and free_spots > 0:
+                leak_rate = free_spots / num_already_parsed
+            else:
+                leak_rate = 0
+
+            logger.info(
+                f"Leak rate: {leak_rate} for {address} with maybe updated {len(maybe_updated)}"
+            )
+
+            # TODO: Fully random leak is not correct, we should leak based on created_at
+            parsed_with_leak = leak_of_crawled_uri(
+                already_parsed, leak_rate, maybe_updated
+            )
+
+            logger.info(f"Already parsed: {len(already_parsed)} for {address}")
+            logger.info(f"Amount of tokens to parse: {len(tokens)} for {address}")
+
+            # Remove already parsed tokens
+            new_tokens = [
+                token for token in tokens
+                if token.token_id not in parsed_with_leak
+            ]
+
+            for requests_chunk in [
+                new_tokens[i : i + batch_size]
+                for i in range(0, len(new_tokens), batch_size)
+            ]:
+                metadata_batch = []
+                try:
+
+                    # Gather all metadata in parallel
+                    with ThreadPoolExecutor(max_workers=threads) as executor:
+                        future_to_token = {
+                            executor.submit(crawl_uri, token.token_uri): token
+                            for token in requests_chunk
+                        }
+                        for future in as_completed(future_to_token):
+                            token = future_to_token[future]
+                            try:
+                                metadata = future.result(timeout=10)
+                                if metadata:
+                                    metadata_batch.append((token, metadata))
+                            except Exception as e:
+                                logger.error(f"Error fetching metadata for token {token.token_id}: {e}")
+                                continue
+
+                    if metadata_batch:
+                        # Batch upsert all metadata
+                        upsert_metadata_labels(
+                            db_session=db_session,
+                            blockchain_type=blockchain_type,
+                            metadata_batch=metadata_batch,
+                            v3=False
+                        )
+                        
+                        clean_labels_from_db(
+                            db_session=db_session,
+                            blockchain_type=blockchain_type,
+                            address=address,
+                        )
+                        logger.info(f"Write {len(metadata_batch)} labels for {address}")
+
+                except Exception as err:
+                    logger.warning(f"Error while writing labels for address {address}: {err}")
+                    db_session.rollback()
+
+        except Exception as err:
+            logger.warning(f"Error while crawling metadata for address {address}: {err}")
+            db_session.rollback()
+
+
+
+def process_address_metadata(
+    address: str,
+    blockchain_type: AvailableBlockchainType,
+    db_session: Session,
+    batch_size: int,
+    max_recrawl: int,
+    threads: int,
+    tokens: List[TokenURIs],
+) -> None:
+    """
+    Process metadata for a single address with v3 support
+    Leak logic is implemented in sql statement
+    """
+
+
+    logger.info(f"Processing address {address} with {len(tokens)} tokens")
+
+    total_tokens = len(tokens)
+    total_chunks = (total_tokens + batch_size - 1) // batch_size
+
+    for chunk_index, requests_chunk in enumerate([
+        tokens[i : i + batch_size]
+        for i in range(0, len(tokens), batch_size)
+    ]):
+        logger.info(
+            f"Processing chunk {chunk_index + 1}/{total_chunks} "
+            f"({len(requests_chunk)} tokens) for address {address}"
+        )
+
+
+        metadata_batch = []
+        with ThreadPoolExecutor(max_workers=threads) as executor:
+            future_to_token = {
+                executor.submit(crawl_uri, token.token_uri): token
+                for token in requests_chunk
+            }
+            for future in as_completed(future_to_token):
+                token = future_to_token[future]
+                metadata = future.result(timeout=10)
+                metadata_batch.append((token, metadata))
+
+
+        upsert_metadata_labels(
+            db_session=db_session,
+            blockchain_type=blockchain_type,
+            metadata_batch=metadata_batch,
+            v3=True
+        )
+
+        logger.info(f"Wrote {len(metadata_batch)} labels for {address}")
+
+        db_session.commit()
+
+        clean_labels_from_db(
+            db_session=db_session,
+            blockchain_type=blockchain_type,
+            address=address,
+            version=3
+        )
+
+        db_session.commit()
+    
+
 def parse_metadata(
     blockchain_type: AvailableBlockchainType,
     batch_size: int,
     max_recrawl: int,
     threads: int,
+    custom_db_uri: Optional[str] = None,
 ):
     """
     Parse all metadata of tokens.
     """
-
     logger.info("Starting metadata crawler")
     logger.info(f"Processing blockchain {blockchain_type.value}")
 
-    # run crawling of levels
-    with yield_db_read_only_preping_session_ctx() as db_session_read_only:
+    # Check if blockchain exists in v2 package
+    if blockchain_type.value in [chain.value for chain in AvailableBlockchainTypeV2]:
         try:
-            # get all tokens with uri
-            logger.info("Requesting all tokens with uri from database")
-            uris_of_tokens = get_uris_of_tokens(db_session_read_only, blockchain_type)
+            logger.info(f"Processing v2 blockchain: {blockchain_type.value}")
+            # Get tokens to crawl v2 flow
+            with yield_db_read_only_preping_session_ctx() as db_session_read_only:
+                tokens_uri_by_address = get_tokens_to_crawl(
+                    db_session_read_only,
+                    blockchain_type,
+                    {},
+                )
 
-            tokens_uri_by_address: Dict[str, Any] = {}
-
-            for token_uri_data in uris_of_tokens:
-                if token_uri_data.address not in tokens_uri_by_address:
-                    tokens_uri_by_address[token_uri_data.address] = []
-                tokens_uri_by_address[token_uri_data.address].append(token_uri_data)
-
+            # Process each address
+            for address, tokens in tokens_uri_by_address.items():
+                process_address_metadata_with_leak(
+                    address=address,
+                    blockchain_type=blockchain_type,
+                    batch_size=batch_size,
+                    max_recrawl=max_recrawl,
+                    threads=threads,
+                    tokens=tokens,
+                )
         except Exception as err:
-            logger.error(f"Error while requesting tokens with uri from database: {err}")
-            return
+            logger.error(f"V2 flow failed: {err}, continuing with Spire flow")
 
-    for address in tokens_uri_by_address:
-        with yield_db_read_only_preping_session_ctx() as db_session_read_only:
+    # Continue with Spire flow regardless of v2 result
+    spire_jobs = []
+
+    # Get all jobs for this blockchain from Spire
+    search_query = f"#metadata-job #{blockchain_type.value}"
+    try:
+        entries = get_all_entries_from_search(
+            journal_id=MOONSTREAM_METADATA_TASKS_JOURNAL,
+            search_query=search_query,
+            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
+            content=True,
+            limit=1000,
+        )
+        
+        logger.info(f"Found {len(entries)} metadata jobs for blockchain {blockchain_type.value}")
+        
+        for entry in entries:
             try:
-                already_parsed = get_current_metadata_for_address(
-                    db_session=db_session_read_only,
-                    blockchain_type=blockchain_type,
-                    address=address,
-                )
-
-                maybe_updated = get_tokens_id_wich_may_updated(
-                    db_session=db_session_read_only,
-                    blockchain_type=blockchain_type,
-                    address=address,
-                )
+                if not entry.content:
+                    continue
+                
+                job = json.loads(entry.content)
+                if job.get("blockchain") != blockchain_type.value:
+                    logger.warning(f"Skipping job with mismatched blockchain: {job.get('blockchain')} != {blockchain_type.value}")
+                    continue
+                spire_jobs.append(job)
             except Exception as err:
-                logger.warning(err)
-                logger.warning(
-                    f"Error while requesting metadata for address: {address}"
-                )
+                id = entry.entry_url.split("/")[-1]
+                logger.error(f"Error parsing job from entry {id}: {err}")
                 continue
+    except BugoutResponseException as err:
+        logger.error(f"Bugout error fetching jobs from journal: {err.detail}")
+    except Exception as err:
+        logger.error(f"Error fetching jobs from journal: {err}")
+        return
 
-        with yield_db_preping_session_ctx() as db_session:
+    # Process each job
+
+    # sessions list for each customer and instance
+    sessions_by_customer: Dict[Tuple[str, str], Session] = {}
+
+    # all sessions in one try block
+    try: 
+        for job in spire_jobs:
             try:
-                logger.info(f"Starting to crawl metadata for address: {address}")
+                customer_id = job.get("customer_id")
+                instance_id = job.get("instance_id")
 
-                leak_rate = 0.0
-
-                if len(maybe_updated) > 0:
-                    free_spots = len(maybe_updated) / max_recrawl
-
-                    if free_spots > 1:
-                        leak_rate = 0
+                if (customer_id, instance_id) not in sessions_by_customer:
+                    # Create session
+                    # Assume fetch_connection_string fetches the connection string
+                    if custom_db_uri:
+                        connection_string = custom_db_uri
                     else:
-                        leak_rate = 1 - (
-                            len(already_parsed) - max_recrawl + len(maybe_updated)
-                        ) / len(already_parsed)
-
-                parsed_with_leak = leak_of_crawled_uri(
-                    already_parsed, leak_rate, maybe_updated
-                )
-
-                logger.info(
-                    f"Leak rate: {leak_rate} for {address} with maybe updated {len(maybe_updated)}"
-                )
-
-                logger.info(f"Already parsed: {len(already_parsed)} for {address}")
-
-                logger.info(
-                    f"Amount of state in database: {len(tokens_uri_by_address[address])} for {address}"
-                )
-
-                logger.info(
-                    f"Amount of tokens parsed with leak: {len(parsed_with_leak)} for {address}"
-                )
-
-                # Remove already parsed tokens
-                new_tokens_uri_by_address = [
-                    token_uri_data
-                    for token_uri_data in tokens_uri_by_address[address]
-                    if token_uri_data.token_id not in parsed_with_leak
-                ]
-
-                logger.info(
-                    f"Amount of tokens to parse: {len(new_tokens_uri_by_address)} for {address}"
-                )
-
-                for requests_chunk in [
-                    new_tokens_uri_by_address[i : i + batch_size]
-                    for i in range(0, len(new_tokens_uri_by_address), batch_size)
-                ]:
-                    writed_labels = 0
-                    db_session.commit()
-
-                    try:
-                        with db_session.begin():
-                            for token_uri_data in requests_chunk:
-                                with ThreadPoolExecutor(
-                                    max_workers=threads
-                                ) as executor:
-                                    future = executor.submit(
-                                        crawl_uri, token_uri_data.token_uri
-                                    )
-                                    metadata = future.result(timeout=10)
-                                db_session.add(
-                                    metadata_to_label(
-                                        blockchain_type=blockchain_type,
-                                        metadata=metadata,
-                                        token_uri_data=token_uri_data,
-                                    )
-                                )
-                                writed_labels += 1
-
-                            if writed_labels > 0:
-                                clean_labels_from_db(
-                                    db_session=db_session,
-                                    blockchain_type=blockchain_type,
-                                    address=address,
-                                )
-                                logger.info(
-                                    f"Write {writed_labels} labels for {address}"
-                                )
-                        # trasaction is commited here
-                    except Exception as err:
-                        logger.warning(err)
-                        logger.warning(
-                            f"Error while writing labels for address: {address}"
+                        connection_string = request_connection_string(
+                            customer_id=customer_id,
+                            instance_id=instance_id,
+                            token=MOONSTREAM_ADMIN_ACCESS_TOKEN,
                         )
-                        db_session.rollback()
+                    engine = create_moonstream_engine(connection_string, 2, 100000)
+                    session = sessionmaker(bind=engine)
+                    try:
+                        sessions_by_customer[(customer_id, instance_id)] = session()
+                    except Exception as e:
+                        logger.error(f"Connection to {engine} failed: {e}")
+                        continue
 
-                clean_labels_from_db(
-                    db_session=db_session,
-                    blockchain_type=blockchain_type,
-                    address=address,
-                )
+                
+                # Get tokens to crawl
+                tokens_uri_by_address = get_tokens_to_crawl(
+                    sessions_by_customer[(customer_id, instance_id)],
+                    blockchain_type,
+                    job,
+                ) 
+
+                for address, tokens in tokens_uri_by_address.items():
+                    process_address_metadata(
+                        address=address,
+                        blockchain_type=blockchain_type,
+                        db_session=sessions_by_customer[(customer_id, instance_id)],
+                        batch_size=batch_size,
+                        max_recrawl=max_recrawl,
+                        threads=threads,
+                        tokens=tokens,
+                    )
             except Exception as err:
-                logger.warning(err)
-                logger.warning(f"Error while crawling metadata for address: {address}")
-                db_session.rollback()
+                logger.error(f"Error processing job: {err}")
                 continue
+    except Exception as err:
+        logger.error(f"Error processing jobs: {err}")
+        raise err
+     
+    finally:
+        for session in sessions_by_customer.values():
+            try:
+                session.close()
+            except Exception as err:
+                logger.error(f"Error closing session: {err}")
 
 
 def handle_crawl(args: argparse.Namespace) -> None:
     """
     Parse all metadata of tokens.
     """
-
     blockchain_type = AvailableBlockchainType(args.blockchain)
-
     parse_metadata(
-        blockchain_type, args.commit_batch_size, args.max_recrawl, args.threads
+        blockchain_type,
+        args.commit_batch_size,
+        args.max_recrawl,
+        args.threads,
+        args.custom_db_uri,
     )
 
 
@@ -259,7 +430,7 @@ def main() -> None:
         "--blockchain",
         "-b",
         type=str,
-        help="Type of blockchain wich writng in database",
+        help="Type of blockchain which writing in database",
         required=True,
     )
     metadata_crawler_parser.add_argument(
@@ -282,6 +453,11 @@ def main() -> None:
         type=int,
         default=4,
         help="Amount of threads for crawling",
+    )
+    metadata_crawler_parser.add_argument(
+        "--custom-db-uri",
+        type=str,
+        help="Custom db uri to use for crawling",
     )
     metadata_crawler_parser.set_defaults(func=handle_crawl)
 

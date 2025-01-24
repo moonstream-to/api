@@ -3,8 +3,8 @@ from typing import Dict, Optional
 from uuid import UUID
 
 from bugout.app import Bugout
-from moonstreamtypes.blockchain import AvailableBlockchainType
-
+from moonstreamtypes.blockchain import AvailableBlockchainType  # type: ignore
+from moonstream.client import Moonstream  # type: ignore
 
 # APIs
 ## Bugout
@@ -29,6 +29,9 @@ HUMBUG_REPORTER_CRAWLERS_TOKEN = os.environ.get("HUMBUG_REPORTER_CRAWLERS_TOKEN"
 
 ## Moonstream
 MOONSTREAM_API_URL = os.environ.get("MOONSTREAM_API_URL", "https://api.moonstream.to")
+
+moonstream_client = Moonstream()
+
 
 ## Moonstream Engine
 MOONSTREAM_ENGINE_URL = os.environ.get(
@@ -501,3 +504,19 @@ MOONSTREAM_DB_V3_CONTROLLER_API = os.environ.get(
 MOONSTREAM_DB_V3_SCHEMA_NAME = os.environ.get(
     "MOONSTREAM_DB_V3_SCHEMA_NAME", "blockchain"
 )
+
+
+MOONSTREAM_METADATA_TASKS_JOURNAL = os.environ.get(
+    "MOONSTREAM_METADATA_TASKS_JOURNAL", ""
+)
+
+
+### MOONSTREAM_PUBLIC_QUERIES_USER_TOKEN
+
+MOONSTREAM_PUBLIC_QUERIES_DATA_ACCESS_TOKEN = os.environ.get(
+    "MOONSTREAM_PUBLIC_QUERIES_DATA_ACCESS_TOKEN", ""
+)
+if MOONSTREAM_PUBLIC_QUERIES_DATA_ACCESS_TOKEN == "":
+    raise ValueError(
+        "MOONSTREAM_PUBLIC_QUERIES_DATA_ACCESS_TOKEN environment variable must be set"
+    )
