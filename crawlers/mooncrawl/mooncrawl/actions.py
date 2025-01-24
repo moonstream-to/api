@@ -135,7 +135,6 @@ def recive_S3_data_from_query(
     time_await: int = 2,
     max_retries: int = 30,
     custom_body: Optional[Dict[str, Any]] = None,
-    customer_params: Optional[Dict[str, Any]] = {},
 ) -> Any:
     """
     Await the query to be update data on S3 with if_modified_since and return new the data.

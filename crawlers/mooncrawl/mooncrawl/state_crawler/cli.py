@@ -105,7 +105,8 @@ def execute_query(query: Dict[str, Any], token: str) -> Any:
         token=token,
         query_name=query_url,
         custom_body=body,
-        customer_params=query_params,
+        params=params,
+        query_params=query_params,
     )
 
     # extract the keys as a list
