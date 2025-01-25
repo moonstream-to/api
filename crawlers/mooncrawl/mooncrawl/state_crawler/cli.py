@@ -149,9 +149,7 @@ def perform_multicall(
     multicall_method: Any, multicall_calls: List[tuple], block_identifier: str
 ) -> Any:
     """Performs the multicall and returns the result."""
-    return multicall_method(False, calls=multicall_calls).call(
-        block_identifier=block_identifier
-    )
+    return multicall_method(False, calls=multicall_calls).call(block_identifier=block_identifier)
 
 
 def process_multicall_result(

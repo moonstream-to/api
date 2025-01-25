@@ -401,7 +401,7 @@ multicall_contracts: Dict[AvailableBlockchainType, str] = {
     AvailableBlockchainType.MANTLE: "0xcA11bde05977b3631167028862bE2a173976CA11",
     AvailableBlockchainType.MANTLE_SEPOLIA: "0xcA11bde05977b3631167028862bE2a173976CA11",
     AvailableBlockchainType.GAME7_TESTNET: "0xcA11bde05977b3631167028862bE2a173976CA11",
-    AvailableBlockchainType.GAME7: "0xcA11bde05977b3631167028862bE2a173976CA11",
+    AvailableBlockchainType.GAME7: "0x1422d8aC9b5E102E6EbA56F0949a2377AB3D8CE9",
 }
 
 
