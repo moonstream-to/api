@@ -43,13 +43,16 @@ var (
 	NB_ENABLE_DEBUG = false
 
 	NB_CONNECTION_RETRIES          = 2
-	NB_CONNECTION_RETRIES_INTERVAL = time.Millisecond * 10
+	NB_CONNECTION_RETRIES_INTERVAL = time.Millisecond * 10000
 	NB_HEALTH_CHECK_INTERVAL       = os.Getenv("NB_HEALTH_CHECK_INTERVAL")
 	NB_HEALTH_CHECK_CALL_TIMEOUT   = time.Second * 2
 
-	NB_CACHE_CLEANING_INTERVAL          = time.Second * 10
-	NB_CACHE_ACCESS_ID_LIFETIME         = int64(120) // 2 minutes
-	NB_CACHE_ACCESS_ID_SESSION_LIFETIME = int64(600) // 10 minutes
+	NB_CACHE_CLEANING_INTERVAL              = 10
+	NB_CACHE_CLEANING_INTERVAL_RAW          = os.Getenv("NB_CACHE_CLEANING_INTERVAL")
+	NB_CACHE_ACCESS_ID_LIFETIME             = int64(120) // After 2 minutes, the access ID will be deleted from the cache if there has been no activity
+	NB_CACHE_ACCESS_ID_LIFETIME_RAW         = os.Getenv("NB_CACHE_ACCESS_ID_LIFETIME")
+	NB_CACHE_ACCESS_ID_SESSION_LIFETIME     = int64(900) // After 15 minutes, the access ID will be deleted from the cache to refresh access limits
+	NB_CACHE_ACCESS_ID_SESSION_LIFETIME_RAW = os.Getenv("NB_CACHE_ACCESS_ID_SESSION_LIFETIME")
 
 	NB_MAX_COUNTER_NUMBER = uint64(10000000)
 
@@ -94,6 +97,35 @@ func CheckEnvVarSet() {
 	}
 	for _, o := range strings.Split(MOONSTREAM_CORS_ALLOWED_ORIGINS, ",") {
 		CORS_WHITELIST_MAP[o] = true
+	}
+
+	// Cache variables
+	if NB_CACHE_CLEANING_INTERVAL_RAW != "" {
+		nbCacheCleaningInterval, atoiErr := strconv.Atoi(NB_CACHE_CLEANING_INTERVAL_RAW)
+		if atoiErr != nil {
+			log.Printf("Unable to parse environment variable NB_CACHE_CLEANING_INTERVAL as integer and set to default %d, err: %v", NB_CACHE_CLEANING_INTERVAL, atoiErr)
+		} else {
+			NB_CACHE_CLEANING_INTERVAL = nbCacheCleaningInterval
+			fmt.Println(123, NB_CACHE_CLEANING_INTERVAL)
+		}
+	}
+
+	if NB_CACHE_ACCESS_ID_LIFETIME_RAW != "" {
+		nbCacheAccessIdLifetime, atoiErr := strconv.Atoi(NB_CACHE_ACCESS_ID_LIFETIME_RAW)
+		if atoiErr != nil {
+			log.Printf("Unable to parse environment variable NB_CACHE_ACCESS_ID_LIFETIME as integer and set to default %d, err: %v", NB_CACHE_ACCESS_ID_LIFETIME, atoiErr)
+		} else {
+			NB_CACHE_ACCESS_ID_LIFETIME = int64(nbCacheAccessIdLifetime)
+		}
+	}
+
+	if NB_CACHE_ACCESS_ID_SESSION_LIFETIME_RAW != "" {
+		nbCacheAccessIdSessionLifetime, atoiErr := strconv.Atoi(NB_CACHE_ACCESS_ID_SESSION_LIFETIME_RAW)
+		if atoiErr != nil {
+			log.Printf("Unable to parse environment variable NB_CACHE_ACCESS_ID_SESSION_LIFETIME as integer and set to default %d, err: %v", NB_CACHE_ACCESS_ID_SESSION_LIFETIME, atoiErr)
+		} else {
+			NB_CACHE_ACCESS_ID_SESSION_LIFETIME = int64(nbCacheAccessIdSessionLifetime)
+		}
 	}
 }
 
