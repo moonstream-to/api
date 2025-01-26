@@ -30,6 +30,11 @@ echo
 echo -e "${PREFIX_INFO} Install checkenv"
 HOME=/home/ubuntu /usr/local/go/bin/go install github.com/bugout-dev/checkenv@v0.0.4
 
+if [ ! -d "${SECRETS_DIR}" ]; then
+  mkdir "${SECRETS_DIR}"
+  echo -e "${PREFIX_WARN} Created new secrets directory"
+fi
+
 echo
 echo
 echo -e "${PREFIX_INFO} Add instance local IP to parameters"
@@ -38,10 +43,6 @@ echo "AWS_LOCAL_IPV4=$(ec2metadata --local-ipv4)" > "${PARAMETERS_ENV_PATH}"
 echo
 echo
 echo -e "${PREFIX_INFO} Retrieving addition deployment parameters"
-if [ ! -d "${SECRETS_DIR}" ]; then
-  mkdir "${SECRETS_DIR}"
-  echo -e "${PREFIX_WARN} Created new secrets directory"
-fi
 AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" /home/ubuntu/go/bin/checkenv show aws_ssm+nodebalancer:true >> "${PARAMETERS_ENV_PATH}"
 
 echo
