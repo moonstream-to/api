@@ -44,7 +44,8 @@ var (
 
 	NB_CONNECTION_RETRIES          = 2
 	NB_CONNECTION_RETRIES_INTERVAL = time.Second * 5
-	NB_HEALTH_CHECK_INTERVAL       = os.Getenv("NB_HEALTH_CHECK_INTERVAL")
+	NB_HEALTH_CHECK_INTERVAL       = 30
+	NB_HEALTH_CHECK_INTERVAL_RAW   = os.Getenv("NB_HEALTH_CHECK_INTERVAL")
 	NB_HEALTH_CHECK_CALL_TIMEOUT   = time.Second * 2
 
 	NB_CACHE_CLEANING_INTERVAL              = 10
@@ -99,6 +100,16 @@ func CheckEnvVarSet() {
 		CORS_WHITELIST_MAP[o] = true
 	}
 
+	// Health check variables
+	if NB_HEALTH_CHECK_INTERVAL_RAW != "" {
+		healthCheckInterval, atoiErr := strconv.Atoi(NB_HEALTH_CHECK_INTERVAL_RAW)
+		if atoiErr != nil {
+			log.Printf("Unable to parse environment variable NB_HEALTH_CHECK_INTERVAL as integer and set to default %d, err: %v", NB_HEALTH_CHECK_INTERVAL, atoiErr)
+		} else {
+			NB_HEALTH_CHECK_INTERVAL = healthCheckInterval
+		}
+	}
+
 	// Cache variables
 	if NB_CACHE_CLEANING_INTERVAL_RAW != "" {
 		nbCacheCleaningInterval, atoiErr := strconv.Atoi(NB_CACHE_CLEANING_INTERVAL_RAW)
@@ -106,7 +117,6 @@ func CheckEnvVarSet() {
 			log.Printf("Unable to parse environment variable NB_CACHE_CLEANING_INTERVAL as integer and set to default %d, err: %v", NB_CACHE_CLEANING_INTERVAL, atoiErr)
 		} else {
 			NB_CACHE_CLEANING_INTERVAL = nbCacheCleaningInterval
-			fmt.Println(123, NB_CACHE_CLEANING_INTERVAL)
 		}
 	}
 

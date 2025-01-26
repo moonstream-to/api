@@ -27,11 +27,7 @@ var (
 
 // initHealthCheck runs a routine for check status of the nodes every 5 seconds
 func initHealthCheck(debug bool) {
-	healthCheckInterval, convErr := strconv.Atoi(NB_HEALTH_CHECK_INTERVAL)
-	if convErr != nil {
-		healthCheckInterval = 30
-	}
-	t := time.NewTicker(time.Second * time.Duration(healthCheckInterval))
+	t := time.NewTicker(time.Second * time.Duration(NB_HEALTH_CHECK_INTERVAL))
 	for {
 		select {
 		case <-t.C:
