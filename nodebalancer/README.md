@@ -123,3 +123,71 @@ python migrations/migrations.py run --key 20230522 \
     --token-new-owner "$MOONSTREAM_ADMIN_OR_OTHER_CONTROLLER" \
     --new-application-id "$MOONSTREAM_APPLICATION_ID"
 ```
+
+## Balances Endpoint
+
+The `/balances` endpoint allows you to retrieve token balances for a specified Ethereum address across multiple blockchains.
+
+### Request
+
+```
+GET /balances?address=<ethereumAddress>
+```
+
+Parameters:
+- `address` (required): The Ethereum address to query balances for
+
+### Response
+
+The endpoint returns a JSON object with the following structure:
+
+```json
+{
+    "balances": {
+        "ethereum": {
+            "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2": "1000000000000000000",
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F": "2000000000000000000",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "3000000000000000"
+        },
+        "polygon": {
+            "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270": "4000000000000000000",
+            "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174": "5000000000000000",
+            "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063": "6000000000000000000"
+        }
+    }
+}
+```
+
+Where:
+- The outer object contains a `balances` field mapping blockchain names to token balances
+- Each blockchain object maps token contract addresses to their respective balances
+- All balances are returned as strings in the token's smallest unit (e.g., wei for ETH)
+
+### Features
+
+1. **Caching**: Responses are cached for 10 seconds to minimize blockchain RPC calls
+2. **Multicall**: Uses Multicall3 contract to batch balance queries for efficiency
+3. **Error Handling**: Individual token or blockchain failures don't affect other results
+
+### Supported Tokens
+
+#### Ethereum
+- WETH: `0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2`
+- DAI: `0x6B175474E89094C44Da98b954EedeAC495271d0F`
+- USDC: `0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48`
+
+#### Polygon
+- WMATIC: `0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270`
+- USDC: `0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174`
+- DAI: `0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063`
+
+### Error Responses
+
+- 400 Bad Request: Invalid Ethereum address
+- 500 Internal Server Error: Server-side errors
+
+### Example
+
+```bash
+curl "http://localhost:8080/balances?address=0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+```
