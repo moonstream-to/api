@@ -25,6 +25,8 @@ var (
 
 	bugoutClient *bugout.BugoutClient
 
+	contractsConfig ContractsConfig
+
 	// Bugout client
 	// TODO(kompotkot): Find out why it cuts out the port
 	BUGOUT_BROOD_URL = "https://auth.bugout.dev"
@@ -171,13 +173,12 @@ type NodeConfig struct {
 type TokenConfig map[string]string
 
 type ChainConfig struct {
-	Multicall3 string      `json:"multicall3"`
-	Tokens     TokenConfig `json:"tokens"`
+	Multicall3  string      `json:"multicall3"`
+	Tokens      TokenConfig `json:"tokens"`
+	NativeToken string      `json:"native_token"`
 }
 
 type ContractsConfig map[string]ChainConfig
-
-var contractsConfig ContractsConfig
 
 func LoadConfig(configPath string) error {
 	rawBytes, err := ioutil.ReadFile(configPath)
@@ -194,10 +195,6 @@ func LoadConfig(configPath string) error {
 }
 
 func LoadContractsConfig(configPath string) error {
-
-	if configPath == "" {
-		return nil
-	}
 
 	// Read config file
 	data, err := os.ReadFile(filepath.Join(configPath))

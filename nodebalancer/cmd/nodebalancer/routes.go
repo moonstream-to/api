@@ -130,6 +130,11 @@ func balancesRoute(w http.ResponseWriter, r *http.Request) {
 	// Get address from query params
 	address := r.URL.Query().Get("address")
 
+	if address == "" {
+		http.Error(w, "Address is required", http.StatusBadRequest)
+		return
+	}
+
 	// Check cache first
 	cacheKey := fmt.Sprintf("balances:%s", address)
 	if cachedData, found := balancesCache.Get(cacheKey); found {

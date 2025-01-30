@@ -124,13 +124,6 @@ func getBalances(ctx context.Context, address string) (BalancesResponse, error) 
 				return
 			}
 
-			// Get token list for this blockchain
-			tokens := getTokenList(blockchain)
-			if len(tokens) == 0 {
-				resultChan <- chainResult{blockchain: blockchain, balances: make(ChainBalances)}
-				return
-			}
-
 			// Connect to client
 			client, err := ethclient.Dial(node.Endpoint.String())
 			if err != nil {
@@ -139,14 +132,34 @@ func getBalances(ctx context.Context, address string) (BalancesResponse, error) 
 			}
 			defer client.Close()
 
-			// Try Multicall3 first
-			chainBalances, err := getBalancesMulticall(chainCtx, client, tokens, checksumAddress, blockchain)
+			// Initialize chain balances
+			chainBalances := make(ChainBalances)
+
+			// Get native token balance first
+			nativeBalance, err := client.BalanceAt(chainCtx, common.HexToAddress(checksumAddress), nil)
 			if err != nil {
-				// Fallback to individual calls
-				chainBalances, err = getBalancesFallback(chainCtx, client, tokens, checksumAddress)
+				log.Printf("Failed to get native balance for %s: %v", blockchain, err)
+			} else {
+				nativeSymbol := getNativeTokenSymbol(blockchain)
+				chainBalances[nativeSymbol] = nativeBalance.String()
+			}
+
+			// Get token list for this blockchain
+			tokens := getTokenList(blockchain)
+			if len(tokens) > 0 {
+				// Try Multicall3 first for ERC20 tokens
+				tokenBalances, err := getBalancesMulticall(chainCtx, client, tokens, checksumAddress, blockchain)
 				if err != nil {
-					resultChan <- chainResult{blockchain: blockchain, err: err}
-					return
+					// Fallback to individual calls
+					tokenBalances, err = getBalancesFallback(chainCtx, client, tokens, checksumAddress)
+					if err != nil {
+						resultChan <- chainResult{blockchain: blockchain, err: err}
+						return
+					}
+				}
+				// Merge token balances into chain balances
+				for token, balance := range tokenBalances {
+					chainBalances[token] = balance
 				}
 			}
 
@@ -235,4 +248,11 @@ func getTokenList(blockchain string) []string {
 		return tokens
 	}
 	return nil
+}
+
+func getNativeTokenSymbol(blockchain string) string {
+	if chain, ok := contractsConfig[blockchain]; ok {
+		return chain.NativeToken
+	}
+	return ""
 }
