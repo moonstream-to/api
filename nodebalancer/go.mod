@@ -1,8 +1,6 @@
 module github.com/bugout-dev/moonstream/nodes/node_balancer
 
-go 1.22
-
-toolchain go1.22.11
+go 1.17
 
 require (
 	github.com/bugout-dev/bugout-go v0.4.6
