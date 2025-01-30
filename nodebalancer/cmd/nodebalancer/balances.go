@@ -63,14 +63,12 @@ func getBalancesMulticall(ctx context.Context, client *ethclient.Client, tokens 
 		CallOpts: bind.CallOpts{Context: ctx},
 	}
 
-	// Solidity: function tryBlockAndAggregate(bool requireSuccess, (address,bytes)[] calls) payable returns(uint256 blockNumber, bytes32 blockHash, (bool,bytes)[] returnData)
 	var result []interface{}
 	err = session.Contract.Multicall3Caller.contract.Call(&session.CallOpts, &result, "tryBlockAndAggregate", false, calls)
 	if err != nil {
 		return nil, fmt.Errorf("multicall failed: %v", err)
 	}
 
-	// tryBlockAndAggregate returns (uint256 blockNumber, bytes32 blockHash, (bool,bytes)[] returnData)
 	if len(result) != 3 {
 		return nil, fmt.Errorf("unexpected result length: got %d, want 3", len(result))
 	}
@@ -220,41 +218,6 @@ func createBalanceOfCallData(address string) []byte {
 	// Combine method ID and parameters
 	return append(methodID, paddedAddress...)
 }
-
-// func getTokenList(blockchain string) []string {
-// 	// TODO: This should be moved to a configuration file
-// 	switch blockchain {
-// 	case "ethereum":
-// 		return []string{
-// 			"0x0000000000000000000000000000000000000000", // WETH
-// 			"0x6B175474E89094C44Da98b954EedeAC495271d0F", // DAI
-// 			"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", // USDC
-// 			"0xdAC17F958D2ee523a2206206994597C13D831ec7", // USDT
-// 		}
-// 	case "polygon":
-// 		return []string{
-// 			"0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270", // WMATIC
-// 			"0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", // USDC
-// 			"0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063", // DAI
-// 			"0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619", // WETH
-// 			"0xc2132D05D31c914a87C6611C10748AEb04B58e8F", // USDT
-// 		}
-// 	default:
-// 		return nil
-// 	}
-// }
-
-// func getMulticall3Address(blockchain string) string {
-// 	// TODO: Move to config
-// 	switch blockchain {
-// 	case "ethereum":
-// 		return "0xcA11bde05977b3631167028862bE2a173976CA11"
-// 	case "polygon":
-// 		return "0xcA11bde05977b3631167028862bE2a173976CA11"
-// 	default:
-// 		return ""
-// 	}
-// }
 
 func getMulticall3Address(blockchain string) string {
 	if chain, ok := contractsConfig[blockchain]; ok {
