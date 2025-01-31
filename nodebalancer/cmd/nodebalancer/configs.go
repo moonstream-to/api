@@ -31,6 +31,7 @@ var (
 	// TODO(kompotkot): Find out why it cuts out the port
 	BUGOUT_BROOD_URL = "https://auth.bugout.dev"
 	// BUGOUT_BROOD_URL              = os.Getenv("BUGOUT_BROOD_URL")
+	NB_BUGOUT_TIMEOUT_SECONDS = 10
 	NB_BUGOUT_TIMEOUT_SECONDS_RAW = os.Getenv("NB_BUGOUT_TIMEOUT_SECONDS")
 
 	// Bugout and application configuration
@@ -81,11 +82,14 @@ var (
 )
 
 func CreateBugoutClient() (*bugout.BugoutClient, error) {
-	bugoutTimeoutSeconds, err := strconv.Atoi(NB_BUGOUT_TIMEOUT_SECONDS_RAW)
-	if err != nil {
-		return nil, fmt.Errorf("unable to parse environment variable as integer: %v", err)
+	bugoutTimeoutSeconds, atoiErr := strconv.Atoi(NB_BUGOUT_TIMEOUT_SECONDS_RAW)
+	if atoiErr != nil {
+		log.Printf("Unable to parse environment variable NB_BUGOUT_TIMEOUT_SECONDS as integer and set to default %d, err: %v", NB_BUGOUT_TIMEOUT_SECONDS, atoiErr)
+	} else {
+		NB_BUGOUT_TIMEOUT_SECONDS = bugoutTimeoutSeconds
 	}
-	NB_BUGOUT_TIMEOUT_SECONDS := time.Duration(bugoutTimeoutSeconds) * time.Second
+
+	NB_BUGOUT_TIMEOUT_SECONDS := time.Duration(NB_BUGOUT_TIMEOUT_SECONDS) * time.Second
 
 	bugoutClient := bugout.ClientBrood(BUGOUT_BROOD_URL, NB_BUGOUT_TIMEOUT_SECONDS)
 	return &bugoutClient, nil
