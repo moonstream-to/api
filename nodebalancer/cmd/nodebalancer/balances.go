@@ -107,8 +107,16 @@ func getBalances(ctx context.Context, address string) (BalancesResponse, error) 
 	// Count active goroutines
 	var wg sync.WaitGroup
 
+	// get supported blockchains which are present in contractsConfig
+	supportedBlockchainsFiltered := make(map[string]bool)
+	for blockchain := range contractsConfig {
+		if _, ok := supportedBlockchains[blockchain]; ok {
+			supportedBlockchainsFiltered[blockchain] = true
+		}
+	}
+
 	// Process each blockchain in parallel
-	for blockchain := range supportedBlockchains {
+	for blockchain := range supportedBlockchainsFiltered {
 		wg.Add(1)
 		go func(blockchain string) {
 			defer wg.Done()
