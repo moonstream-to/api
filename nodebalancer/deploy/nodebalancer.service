@@ -14,7 +14,7 @@ ExecStart=/home/ubuntu/api/nodebalancer/nodebalancer server \
     --port 8544 \
     --healthcheck \
     --config /home/ubuntu/.nodebalancer/config.json \
-    --contracts-config /home/ubuntu/.nodebalancer/contractsConfig.json
+    --contracts-config /home/ubuntu/nodebalancer-secrets/contractsConfig.json
 SyslogIdentifier=nodebalancer
 
 [Install]
