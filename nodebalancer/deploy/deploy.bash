@@ -49,7 +49,7 @@ AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" /home/ubuntu/go/bin/checkenv show aws
 
 echo
 echo
-log_handler "Retrieve nodebalancer contracts config"
+echo -e "${PREFIX_INFO} Retrieve nodebalancer contracts config"
 AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" aws ssm get-parameter --name "NB_CONTRACTS_CONFIG_JSON" --output text --query Parameter.Value > "${NB_CONTRACTS_CONFIG_PATH}"
 
 echo
