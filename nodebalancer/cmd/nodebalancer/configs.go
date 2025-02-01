@@ -25,10 +25,13 @@ var (
 
 	bugoutClient *bugout.BugoutClient
 
+	contractsConfig ContractsConfig
+
 	// Bugout client
 	// TODO(kompotkot): Find out why it cuts out the port
 	BUGOUT_BROOD_URL = "https://auth.bugout.dev"
 	// BUGOUT_BROOD_URL              = os.Getenv("BUGOUT_BROOD_URL")
+	NB_BUGOUT_TIMEOUT_SECONDS = 10
 	NB_BUGOUT_TIMEOUT_SECONDS_RAW = os.Getenv("NB_BUGOUT_TIMEOUT_SECONDS")
 
 	// Bugout and application configuration
@@ -55,6 +58,11 @@ var (
 	NB_CACHE_ACCESS_ID_SESSION_LIFETIME     = int64(900) // After 15 minutes, the access ID will be deleted from the cache to refresh access limits
 	NB_CACHE_ACCESS_ID_SESSION_LIFETIME_RAW = os.Getenv("NB_CACHE_ACCESS_ID_SESSION_LIFETIME")
 
+	NB_BALANCES_CACHE_EXPIRATION            = 10
+	NB_BALANCES_CACHE_EXPIRATION_RAW        = os.Getenv("NB_BALANCES_CACHE_EXPIRATION")
+	NB_BALANCES_CACHE_CLEANING_INTERVAL     = 20
+	NB_BALANCES_CACHE_CLEANING_INTERVAL_RAW = os.Getenv("NB_BALANCES_CACHE_CLEANING_INTERVAL")
+
 	NB_MAX_COUNTER_NUMBER = uint64(10000000)
 
 	// Client configuration
@@ -74,11 +82,14 @@ var (
 )
 
 func CreateBugoutClient() (*bugout.BugoutClient, error) {
-	bugoutTimeoutSeconds, err := strconv.Atoi(NB_BUGOUT_TIMEOUT_SECONDS_RAW)
-	if err != nil {
-		return nil, fmt.Errorf("unable to parse environment variable as integer: %v", err)
+	bugoutTimeoutSeconds, atoiErr := strconv.Atoi(NB_BUGOUT_TIMEOUT_SECONDS_RAW)
+	if atoiErr != nil {
+		log.Printf("Unable to parse environment variable NB_BUGOUT_TIMEOUT_SECONDS as integer and set to default %d, err: %v", NB_BUGOUT_TIMEOUT_SECONDS, atoiErr)
+	} else {
+		NB_BUGOUT_TIMEOUT_SECONDS = bugoutTimeoutSeconds
 	}
-	NB_BUGOUT_TIMEOUT_SECONDS := time.Duration(bugoutTimeoutSeconds) * time.Second
+
+	NB_BUGOUT_TIMEOUT_SECONDS := time.Duration(NB_BUGOUT_TIMEOUT_SECONDS) * time.Second
 
 	bugoutClient := bugout.ClientBrood(BUGOUT_BROOD_URL, NB_BUGOUT_TIMEOUT_SECONDS)
 	return &bugoutClient, nil
@@ -137,6 +148,24 @@ func CheckEnvVarSet() {
 			NB_CACHE_ACCESS_ID_SESSION_LIFETIME = int64(nbCacheAccessIdSessionLifetime)
 		}
 	}
+
+	if NB_BALANCES_CACHE_EXPIRATION_RAW != "" {
+		nbBalancesCacheExpiration, atoiErr := strconv.Atoi(NB_BALANCES_CACHE_EXPIRATION_RAW)
+		if atoiErr != nil {
+			log.Printf("Unable to parse environment variable NB_BALANCES_CACHE_EXPIRATION as integer and set to default %d, err: %v", NB_BALANCES_CACHE_EXPIRATION, atoiErr)
+		} else {
+			NB_BALANCES_CACHE_EXPIRATION = nbBalancesCacheExpiration
+		}
+	}
+
+	if NB_BALANCES_CACHE_CLEANING_INTERVAL_RAW != "" {
+		nbBalancesCacheCleaningInterval, atoiErr := strconv.Atoi(NB_BALANCES_CACHE_CLEANING_INTERVAL_RAW)
+		if atoiErr != nil {
+			log.Printf("Unable to parse environment variable NB_BALANCES_CACHE_CLEANING_INTERVAL as integer and set to default %d, err: %v", NB_BALANCES_CACHE_CLEANING_INTERVAL, atoiErr)
+		} else {
+			NB_BALANCES_CACHE_CLEANING_INTERVAL = nbBalancesCacheCleaningInterval
+		}
+	}
 }
 
 // Nodes configuration
@@ -144,6 +173,16 @@ type NodeConfig struct {
 	Blockchain string `json:"blockchain"`
 	Endpoint   string `json:"endpoint"`
 }
+
+type TokenConfig map[string]string
+
+type ChainConfig struct {
+	Multicall3  string      `json:"multicall3"`
+	Tokens      TokenConfig `json:"tokens"`
+	NativeToken string      `json:"native_token"`
+}
+
+type ContractsConfig map[string]ChainConfig
 
 func LoadConfig(configPath string) error {
 	rawBytes, err := ioutil.ReadFile(configPath)
@@ -156,6 +195,23 @@ func LoadConfig(configPath string) error {
 		return err
 	}
 	nodeConfigs = *nodeConfigsTemp
+	return nil
+}
+
+func LoadContractsConfig(configPath string) error {
+
+	// Read config file
+	data, err := os.ReadFile(filepath.Join(configPath))
+	if err != nil {
+		return err
+	}
+
+	// Parse JSON
+	err = json.Unmarshal(data, &contractsConfig)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

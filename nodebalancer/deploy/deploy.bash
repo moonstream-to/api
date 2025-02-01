@@ -17,6 +17,8 @@ PREFIX_CRIT="${C_RED}[CRIT]${C_RESET} [$(date +%d-%m\ %T)]"
 AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
 APP_DIR="${APP_DIR:-/home/ubuntu/api}"
 SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/nodebalancer-secrets}"
+CONFIGS_DIR="${CONFIGS_DIR:-/home/ubuntu/.nodebalancer}"
+NB_CONTRACTS_CONFIG_PATH="${CONFIGS_DIR}/contractsConfig.json"
 PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
 SCRIPT_DIR="$(realpath $(dirname $0))"
 
@@ -44,6 +46,11 @@ echo
 echo
 echo -e "${PREFIX_INFO} Retrieving addition deployment parameters"
 AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" /home/ubuntu/go/bin/checkenv show aws_ssm+nodebalancer:true >> "${PARAMETERS_ENV_PATH}"
+
+echo
+echo
+log_handler "Retrieve nodebalancer contracts config"
+AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" aws ssm get-parameter --name "NB_CONTRACTS_CONFIG_JSON" --output text --query Parameter.Value > "${NB_CONTRACTS_CONFIG_PATH}"
 
 echo
 echo

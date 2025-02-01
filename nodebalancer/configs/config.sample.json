@@ -1,0 +1,18 @@
+[
+  {
+    "blockchain": "ethereum",
+    "endpoint": "https://mainnet.infura.io",
+    "tags": [
+      "external",
+      "sample"
+    ]
+  },
+  {
+    "blockchain": "polygon",
+    "endpoint": "https://polygon-mainnet.infura.io",
+    "tags": [
+      "external",
+      "sample"
+    ]
+  }
+]
