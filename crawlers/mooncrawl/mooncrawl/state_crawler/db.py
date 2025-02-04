@@ -54,7 +54,6 @@ def view_call_to_label(
             ### bytea
             address=HexBytes(call["address"]),
             block_number=call["block_number"],
-            transaction_hash="0x2653135e31407726a25dd8d304878578cdfcc7d69a2b319d1aca4a37ed66956a",
             block_timestamp=call["block_timestamp"],
             block_hash=call["block_hash"],
         )
