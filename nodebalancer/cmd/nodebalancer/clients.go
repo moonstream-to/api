@@ -84,7 +84,7 @@ func (ca *ClientAccess) UpdateClientResourceCallCounter(tsNow int64) error {
 		[]string{},
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("resource %s update error %v", ca.ResourceID, err)
 	}
 	log.Printf("Resource %s updated\n", updatedResource.Id)
 
