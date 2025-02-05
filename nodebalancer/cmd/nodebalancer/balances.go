@@ -23,10 +23,10 @@ type TokenBalance struct {
 type ChainBalances map[string]string
 
 type ChainInfo struct {
-	ChainID       string        `json:"chain_id"`
-	CanonicalName string        `json:"canonical_name"`
-	ImageURL      string        `json:"image_url"`
-	Balances      ChainBalances `json:"balances"`
+	ChainID  string        `json:"chain_id"`
+	Name     string        `json:"name"`
+	ImageURL string        `json:"image_url"`
+	Balances ChainBalances `json:"balances"`
 }
 
 // Map of blockchain -> token balances
@@ -200,10 +200,10 @@ func getBalances(ctx context.Context, address string) (BalancesResponse, error) 
 		}
 		if len(result.balances) > 0 {
 			response[contractsConfig[result.blockchain].ChainID] = ChainInfo{
-				ChainID:       contractsConfig[result.blockchain].ChainID,
-				CanonicalName: result.blockchain,
-				ImageURL:      contractsConfig[result.blockchain].ImageURL,
-				Balances:      result.balances,
+				ChainID:  contractsConfig[result.blockchain].ChainID,
+				Name:     result.blockchain,
+				ImageURL: contractsConfig[result.blockchain].ImageURL,
+				Balances: result.balances,
 			}
 		}
 	}

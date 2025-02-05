@@ -145,7 +145,7 @@ The endpoint returns a JSON object with the following structure:
 {
   "1": {
     "chain_id": "1",
-    "canonical_name": "ethereum",
+    "name": "ethereum",
     "image_url": "https://example.com/eth.png",
     "balances": {
       "0x0000000000000000000000000000000000000000": "1000000000000000000",
@@ -155,7 +155,7 @@ The endpoint returns a JSON object with the following structure:
   },
   "137": {
     "chain_id": "137", 
-    "canonical_name": "polygon",
+    "name": "polygon",
     "image_url": "https://example.com/matic.png",
     "balances": {
       "0x0000000000000000000000000000000000000000": "4000000000000000000",
@@ -170,7 +170,7 @@ Where:
 - The top-level keys are chain IDs (e.g. "1" for Ethereum, "137" for Polygon)
 - Each chain object contains:
   - `chain_id`: The chain identifier as a string
-  - `canonical_name`: The human-readable name of the chain
+  - `name`: The human-readable name of the chain
   - `image_url`: URL to the chain's logo/image
   - `balances`: Map of token addresses to their balances
     - Native token (ETH, MATIC etc) is represented by the zero address: `0x0000000000000000000000000000000000000000`
