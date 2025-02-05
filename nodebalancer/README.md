@@ -143,22 +143,38 @@ The endpoint returns a JSON object with the following structure:
 
 ```json
 {
-	"ethereum": {
-		"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2": "1000000000000000000",
-		"0x6B175474E89094C44Da98b954EedeAC495271d0F": "2000000000000000000",
-		"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "3000000000000000"
-	},
-	"polygon": {
-		"0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270": "4000000000000000000",
-		"0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174": "5000000000000000",
-		"0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063": "6000000000000000000"
-	}
+  "1": {
+    "chain_id": "1",
+    "canonical_name": "ethereum",
+    "image_url": "https://example.com/eth.png",
+    "balances": {
+      "0x0000000000000000000000000000000000000000": "1000000000000000000",
+      "0xdac17f958d2ee523a2206206994597c13d831ec7": "2000000000000000000",
+      "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48": "3000000000000000"
+    }
+  },
+  "137": {
+    "chain_id": "137", 
+    "canonical_name": "polygon",
+    "image_url": "https://example.com/matic.png",
+    "balances": {
+      "0x0000000000000000000000000000000000000000": "4000000000000000000",
+      "0x2791bca1f2de4661ed88a30c99a7a9449aa84174": "5000000000000000",
+      "0xc2132d05d31c914a87c6611c10748aeb04b58e8f": "6000000000000000000"
+    }
+  }
 }
 ```
 
 Where:
-- Each blockchain object maps token contract addresses to their respective balances
-- All balances are returned as strings in the token's smallest unit (e.g., wei for ETH)
+- The top-level keys are chain IDs (e.g. "1" for Ethereum, "137" for Polygon)
+- Each chain object contains:
+  - `chain_id`: The chain identifier as a string
+  - `canonical_name`: The human-readable name of the chain
+  - `image_url`: URL to the chain's logo/image
+  - `balances`: Map of token addresses to their balances
+    - Native token (ETH, MATIC etc) is represented by the zero address: `0x0000000000000000000000000000000000000000`
+    - All balances are returned as strings in the token's smallest unit (e.g., wei for ETH)
 
 ### Features
 
@@ -172,27 +188,43 @@ Where:
 curl "http://localhost:8080/balances?address=0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
 ```
 
-### Contracts Config
+### Contracts Config Structure
+
+The `contracts.json` file should follow this structure:
+
 ```json
 {
-    "ethereum": {
-        "multicall3": "0xcA11bde05977b3631167028862bE2a173976CA11",
-        "tokens": {
-            "WETH": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-            "DAI": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-            "USDC": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-            "USDT": "0xdAC17F958D2ee523a2206206994597C13D831ec7"
-        }
-    },
-    "polygon": {
-        "multicall3": "0xcA11bde05977b3631167028862bE2a173976CA11",
-        "tokens": {
-            "WMATIC": "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
-            "USDC": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-            "DAI": "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063",
-            "WETH": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
-            "USDT": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F"
-        }
+  "ethereum": {
+    "multicall3": "0xcA11bde05977b3631167028862bE2a173976CA11",
+    "chain_id": "1",
+    "name": "Ethereum",
+    "image_url": "https://example.com/eth.png",
+    "native_token": "ETH",
+    "tokens": {
+      "0xdac17f958d2ee523a2206206994597c13d831ec7": "USDT",
+      "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48": "USDC"
     }
+  },
+  "polygon": {
+    "multicall3": "0xcA11bde05977b3631167028862bE2a173976CA11",
+    "chain_id": "137",
+    "name": "Polygon",
+    "image_url": "https://example.com/matic.png",
+    "native_token": "MATIC",
+    "tokens": {
+      "0x2791bca1f2de4661ed88a30c99a7a9449aa84174": "USDC",
+      "0xc2132d05d31c914a87c6611c10748aeb04b58e8f": "USDT"
+    }
+  }
 }
 ```
+
+Where:
+- Top-level keys are blockchain identifiers used internally
+- Each chain configuration contains:
+  - `multicall3`: Address of the Multicall3 contract on that chain
+  - `chain_id`: The chain identifier (e.g. "1" for Ethereum)
+  - `name`: Human-readable name of the chain
+  - `image_url`: URL to the chain's logo/image
+  - `native_token`: Symbol for the chain's native token (ETH, MATIC etc)
+  - `tokens`: Map of token addresses to their symbols
