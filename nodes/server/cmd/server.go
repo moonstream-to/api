@@ -17,7 +17,7 @@ func InitServer() {
 	var blockchain string
 	flag.StringVar(&listeningAddr, "host", "127.0.0.1", "Server listening address")
 	flag.StringVar(&listeningPort, "port", "8080", "Server listening port")
-	flag.StringVar(&blockchain, "blockchain", "", "Blockchain to work with (ethereum/polygon/xdai)")
+	flag.StringVar(&blockchain, "blockchain", "", "Blockchain to work with (ethereum/polygon/xdai/evmos)")
 	flag.Parse()
 
 	es := extendedServer{blockchain: blockchain}

@@ -32,7 +32,7 @@ func (es *extendedServer) pingGethRoute(w http.ResponseWriter, req *http.Request
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
-	if es.blockchain != "ethereum" && es.blockchain != "polygon" && es.blockchain != "xdai" {
+	if es.blockchain != "ethereum" && es.blockchain != "polygon" && es.blockchain != "xdai" && es.blockchain != "evmos" {
 		log.Printf("Unaccepted blockchain type: %s", es.blockchain)
 		http.Error(w, http.StatusText(400), http.StatusBadRequest)
 		return

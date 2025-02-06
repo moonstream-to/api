@@ -1,0 +1,26 @@
+[Unit]
+Description=Evmos node client
+StartLimitIntervalSec=500
+StartLimitBurst=5
+After=network.target
+
+[Service]
+Restart=on-failure
+RestartSec=5s
+EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
+ExecStart=/home/ubuntu/go/bin/evmosd start \
+    --home /mnt/disks/nodes/evmos \
+    --json-rpc.enable true \
+    --json-rpc.api "eth,web3,net" \
+    --json-rpc.address "127.0.0.1:8545" \
+    --json-rpc.ws-address "127.0.0.1:8546" \
+    --grpc-web.address "127.0.0.1:9091" \
+    --grpc.address "127.0.0.1:9090"
+Type=simple
+User=ubuntu
+ExecStop=/bin/kill -s SIGINT -$MAINPID
+TimeoutStopSec=180
+SyslogIdentifier=evmos
+
+[Install]
+WantedBy=multi-user.target
