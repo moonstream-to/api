@@ -27,6 +27,7 @@ class Event:
     event_name: str
     args: Dict[str, Any]
     address: str
+    block_hash: str
     block_number: int
     block_timestamp: int
     transaction_hash: str
@@ -154,6 +155,7 @@ def _crawl_events(
                 event_name=raw_event["event"],
                 args=raw_event["args"],
                 address=raw_event["address"],
+                block_hash=raw_event["blockHash"],
                 block_number=raw_event["blockNumber"],
                 block_timestamp=raw_event["blockTimestamp"],
                 transaction_hash=raw_event["transactionHash"],
@@ -209,6 +211,7 @@ def _autoscale_crawl_events(
                 event_name=raw_event["event"],
                 args=raw_event["args"],
                 address=raw_event["address"],
+                block_hash=raw_event["blockHash"],
                 block_number=raw_event["blockNumber"],
                 block_timestamp=raw_event["blockTimestamp"],
                 transaction_hash=raw_event["transactionHash"],
