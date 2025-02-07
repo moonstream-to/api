@@ -611,7 +611,6 @@ def delete_seer_subscription(
 ) -> None:
     """
     Delete seer subscription from db
-    If there are no more subscriptions for this address,abi_selector delete all abis
     """
 
     ## Delete subscription from db
