@@ -612,9 +612,10 @@ def delete_seer_subscription(
     """
     Delete seer subscription from db
     """
-    
+    ### TEMPORARY disable deleting abi jobs from db
+    ### TODO(ANDREY): fix this
     try:
-        db_session.query(AbiSubscriptions).filter(
+        db_session.query(AbiSubscriptions).filter(  
             AbiSubscriptions.subscription_id == subscription_id
         ).delete(synchronize_session=False)
         db_session.commit()
@@ -622,7 +623,6 @@ def delete_seer_subscription(
         logger.error(f"Error deleting subscription from db: {str(e)}")
         db_session.rollback()
         return
-
 
 def add_abi_to_db(
     db_session: Session,
