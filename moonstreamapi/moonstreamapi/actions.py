@@ -612,13 +612,6 @@ def delete_seer_subscription(
     """
     Delete seer subscription from db
     """
-
-    ## Delete subscription from db
-    associated_jobs = db_session.query(AbiSubscriptions.abi_job_id).filter(
-        AbiSubscriptions.subscription_id == subscription_id
-    ).all()
-    job_ids = [job_id for (job_id,) in associated_jobs]
-    # Delete subscription from db
     
     try:
         db_session.query(AbiSubscriptions).filter(
@@ -630,15 +623,6 @@ def delete_seer_subscription(
         db_session.rollback()
         return
 
-    if job_ids:
-        try:
-            db_session.query(AbiJobs).filter(
-                AbiJobs.id.in_(job_ids)
-            ).delete(synchronize_session=False)
-            db_session.commit()
-        except Exception as e:
-            logger.error(f"Error deleting abi jobs from db: {str(e)}")
-            db_session.rollback()
 
 def add_abi_to_db(
     db_session: Session,
