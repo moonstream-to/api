@@ -615,35 +615,31 @@ def delete_seer_subscription(
     """
 
     ## Delete subscription from db
-
+    associated_jobs = db_session.query(AbiSubscriptions.abi_job_id).filter(
+        AbiSubscriptions.subscription_id == subscription_id
+    ).all()
+    job_ids = [job_id for (job_id,) in associated_jobs]
+    # Delete subscription from db
+    
     try:
         db_session.query(AbiSubscriptions).filter(
             AbiSubscriptions.subscription_id == subscription_id
         ).delete(synchronize_session=False)
         db_session.commit()
     except Exception as e:
-        logger.error(f"Error delete subscription from db: {str(e)}")
+        logger.error(f"Error deleting subscription from db: {str(e)}")
         db_session.rollback()
+        return
 
-    not_connected_abi_jobs = (
-        db_session.query(AbiJobs)
-        .join(AbiSubscriptions, AbiJobs.id == AbiSubscriptions.abi_job_id, isouter=True)
-        .filter(AbiSubscriptions.subscription_id == None)
-        .cte("not_connected_abi_jobs")
-    )
-
-    ## Delete abi jobs from db
-
-    try:
-        db_session.query(AbiJobs).filter(
-            AbiJobs.id.in_(db_session.query(not_connected_abi_jobs.c.id))
-        ).delete(synchronize_session=False)
-
-        db_session.commit()
-    except Exception as e:
-        logger.error(f"Error delete abi jobs from db: {str(e)}")
-        db_session.rollback()
-
+    if job_ids:
+        try:
+            db_session.query(AbiJobs).filter(
+                AbiJobs.id.in_(job_ids)
+            ).delete(synchronize_session=False)
+            db_session.commit()
+        except Exception as e:
+            logger.error(f"Error deleting abi jobs from db: {str(e)}")
+            db_session.rollback()
 
 def add_abi_to_db(
     db_session: Session,
