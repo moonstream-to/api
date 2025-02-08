@@ -36,4 +36,5 @@ setup(
         "Topic :: Software Development :: Libraries",
     ],
     url="https://github.com/bugout-dev/moonstream",
+    entry_points={"console_scripts": ["moonstream=moonstream.cli:main"]},
 )
