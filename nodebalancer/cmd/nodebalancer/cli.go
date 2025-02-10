@@ -525,6 +525,11 @@ var CommonCommands = []*cli.Command{
 				Required: true,
 			},
 			&cli.StringFlag{
+				Name:     "contracts-config",
+				Usage:    "Path to contracts configuration file",
+				Required: true,
+			},
+			&cli.StringFlag{
 				Name:  "host",
 				Usage: "Server listening address",
 				Value: "127.0.0.1",
@@ -555,7 +560,7 @@ var CommonCommands = []*cli.Command{
 
 			CheckEnvVarSet()
 
-			servErr := Server(c.String("config"), c.String("host"), c.String("port"), c.Bool("healthcheck"))
+			servErr := Server(c.String("config"), c.String("contracts-config"), c.String("host"), c.String("port"), c.Bool("healthcheck"))
 			if servErr != nil {
 				return servErr
 			}
