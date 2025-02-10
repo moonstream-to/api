@@ -1,9 +1,9 @@
 [Unit]
-Description=Execute Ethereum state crawler each 10m
+Description=Execute Ethereum state crawler each 5m
 
 [Timer]
 OnBootSec=15s
-OnUnitActiveSec=10m
+OnUnitActiveSec=5m
 
 [Install]
 WantedBy=timers.target

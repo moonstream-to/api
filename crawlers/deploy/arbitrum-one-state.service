@@ -1,11 +1,11 @@
 [Unit]
-Description=Execute Game7 state crawler
+Description=Execute Arbitrum one state crawler
 After=network.target
 
 [Service]
 Type=oneshot
 WorkingDirectory=/home/ubuntu/moonstream/crawlers/mooncrawl
 EnvironmentFile=/home/ubuntu/moonstream-secrets/app.env
-ExecStart=/home/ubuntu/moonstream-env/bin/python -m mooncrawl.state_crawler.cli crawl-jobs --moonstream-token "${MOONSTREAM_PUBLIC_QUERIES_DATA_ACCESS_TOKEN}" --blockchain game7
+ExecStart=/home/ubuntu/moonstream-env/bin/python -m mooncrawl.state_crawler.cli crawl-jobs --moonstream-token "${MOONSTREAM_PUBLIC_QUERIES_DATA_ACCESS_TOKEN}" --blockchain arbitrum_one
 CPUWeight=60
-SyslogIdentifier=game7-state
+SyslogIdentifier=arbitrum-one-state
