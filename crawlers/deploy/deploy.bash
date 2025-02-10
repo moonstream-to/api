@@ -47,6 +47,10 @@ ETHEREUM_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE="ethereum-historical-crawl-tra
 ETHEREUM_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE="ethereum-historical-crawl-events.service"
 ETHEREUM_HISTORICAL_CRAWL_EVENTS_TIMER_FILE="ethereum-historical-crawl-events.timer"
 
+## Sepolia services files
+SEPOLIA_STATE_SERVICE_FILE="ethereum-sepolia-state.service"
+SEPOLIA_STATE_TIMER_FILE="ethereum-sepolia-state.timer"
+
 # Polygon service files
 POLYGON_SYNCHRONIZE_SERVICE="polygon-synchronize.service"
 POLYGON_MISSING_SERVICE_FILE="polygon-missing.service"
@@ -124,12 +128,16 @@ ARBITRUM_ONE_HISTORICAL_CRAWL_TRANSACTIONS_SERVICE_FILE="arbitrum-one-historical
 ARBITRUM_ONE_HISTORICAL_CRAWL_TRANSACTIONS_TIMER_FILE="arbitrum-one-historical-crawl-transactions.timer"
 ARBITRUM_ONE_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE="arbitrum-one-historical-crawl-events.service"
 ARBITRUM_ONE_HISTORICAL_CRAWL_EVENTS_TIMER_FILE="arbitrum-one-historical-crawl-events.timer"
+ARBITRUM_ONE_STATE_SERVICE_FILE="arbitrum-one-state.service"
+ARBITRUM_ONE_STATE_TIMER_FILE="arbitrum-one-state.timer"
 
 # Arbitrum Sepolia
 ARBITRUM_SEPOLIA_MISSING_SERVICE_FILE="arbitrum-sepolia-missing.service"
 ARBITRUM_SEPOLIA_MISSING_TIMER_FILE="arbitrum-sepolia-missing.timer"
 ARBITRUM_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE="arbitrum-sepolia-moonworm-crawler.service"
 ARBITRUM_SEPOLIA_SYNCHRONIZE_SERVICE="arbitrum-sepolia-synchronize.service"
+ARBITRUM_SEPOLIA_STATE_SERVICE_FILE="arbitrum-sepolia-state.service"
+ARBITRUM_SEPOLIA_STATE_TIMER_FILE="arbitrum-sepolia-state.timer"
 
 # Xai
 XAI_MISSING_SERVICE_FILE="xai-missing.service"
@@ -228,6 +236,8 @@ GAME7_STATE_CLEAN_TIMER_FILE="game7-state-clean.timer"
 # Game7 testnet
 GAME7_TESTNET_METADATA_SERVICE_FILE="game7-testnet-metadata.service"
 GAME7_TESTNET_METADATA_TIMER_FILE="game7-testnet-metadata.timer"
+GAME7_TESTNET_STATE_SERVICE_FILE="game7-testnet-state.service"
+GAME7_TESTNET_STATE_TIMER_FILE="game7-testnet-state.timer"
 
 set -eu
 
@@ -357,6 +367,20 @@ cp "${SCRIPT_DIR}/${ETHEREUM_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}" "/home/ubuntu/
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ETHEREUM_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
 
+
+## Sepolia
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Sepolia state service and timer with: ${SEPOLIA_STATE_SERVICE_FILE}, ${SEPOLIA_STATE_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${SEPOLIA_STATE_SERVICE_FILE}" "${SCRIPT_DIR}/${SEPOLIA_STATE_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${SEPOLIA_STATE_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${SEPOLIA_STATE_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${SEPOLIA_STATE_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${SEPOLIA_STATE_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${SEPOLIA_STATE_TIMER_FILE}"
+
+
+## Polygon
 
 echo
 echo
@@ -713,6 +737,14 @@ cp "${SCRIPT_DIR}/${ARBITRUM_ONE_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}" "/home/ubu
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ARBITRUM_ONE_HISTORICAL_CRAWL_EVENTS_TIMER_FILE}"
 
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Arbitrum one state service and timer with: ${ARBITRUM_ONE_STATE_SERVICE_FILE}, ${ARBITRUM_ONE_STATE_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ARBITRUM_ONE_STATE_SERVICE_FILE}" "${SCRIPT_DIR}/${ARBITRUM_ONE_STATE_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ARBITRUM_ONE_STATE_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ARBITRUM_ONE_STATE_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ARBITRUM_ONE_STATE_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ARBITRUM_ONE_STATE_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ARBITRUM_ONE_STATE_TIMER_FILE}"
 
 # Arbitrum Sepolia
 echo
@@ -739,6 +771,15 @@ chmod 644 "${SCRIPT_DIR}/${ARBITRUM_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
 cp "${SCRIPT_DIR}/${ARBITRUM_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ARBITRUM_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ARBITRUM_SEPOLIA_MOONWORM_CRAWLER_SERVICE_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Arbitrum Sepolia state service and timer with: ${ARBITRUM_SEPOLIA_STATE_SERVICE_FILE}, ${ARBITRUM_SEPOLIA_STATE_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ARBITRUM_SEPOLIA_STATE_SERVICE_FILE}" "${SCRIPT_DIR}/${ARBITRUM_SEPOLIA_STATE_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ARBITRUM_SEPOLIA_STATE_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ARBITRUM_SEPOLIA_STATE_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ARBITRUM_SEPOLIA_STATE_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ARBITRUM_SEPOLIA_STATE_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ARBITRUM_SEPOLIA_STATE_TIMER_FILE}"
 
 # Xai
 echo
@@ -1161,3 +1202,12 @@ cp "${SCRIPT_DIR}/${GAME7_TESTNET_METADATA_SERVICE_FILE}" "/home/ubuntu/.config/
 cp "${SCRIPT_DIR}/${GAME7_TESTNET_METADATA_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${GAME7_TESTNET_METADATA_TIMER_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${GAME7_TESTNET_METADATA_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Game7 testnet state service and timer with: ${GAME7_TESTNET_STATE_SERVICE_FILE}, ${GAME7_TESTNET_STATE_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${GAME7_TESTNET_STATE_SERVICE_FILE}" "${SCRIPT_DIR}/${GAME7_TESTNET_STATE_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${GAME7_TESTNET_STATE_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${GAME7_TESTNET_STATE_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${GAME7_TESTNET_STATE_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${GAME7_TESTNET_STATE_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${GAME7_TESTNET_STATE_TIMER_FILE}"
