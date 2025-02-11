@@ -230,8 +230,6 @@ GAME7_METADATA_SERVICE_FILE="game7-metadata.service"
 GAME7_METADATA_TIMER_FILE="game7-metadata.timer"
 GAME7_STATE_SERVICE_FILE="game7-state.service"
 GAME7_STATE_TIMER_FILE="game7-state.timer"
-GAME7_STATE_CLEAN_SERVICE_FILE="game7-state-clean.service"
-GAME7_STATE_CLEAN_TIMER_FILE="game7-state-clean.timer"
 
 # Game7 testnet
 GAME7_TESTNET_METADATA_SERVICE_FILE="game7-testnet-metadata.service"
@@ -1182,16 +1180,6 @@ cp "${SCRIPT_DIR}/${GAME7_STATE_SERVICE_FILE}" "/home/ubuntu/.config/systemd/use
 cp "${SCRIPT_DIR}/${GAME7_STATE_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${GAME7_STATE_TIMER_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${GAME7_STATE_TIMER_FILE}"
-
-echo
-echo
-echo -e "${PREFIX_INFO} Replacing existing Game7 state clean service and timer with: ${GAME7_STATE_CLEAN_SERVICE_FILE}, ${GAME7_STATE_CLEAN_TIMER_FILE}"
-chmod 644 "${SCRIPT_DIR}/${GAME7_STATE_CLEAN_SERVICE_FILE}" "${SCRIPT_DIR}/${GAME7_STATE_CLEAN_TIMER_FILE}"
-cp "${SCRIPT_DIR}/${GAME7_STATE_CLEAN_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${GAME7_STATE_CLEAN_SERVICE_FILE}"
-cp "${SCRIPT_DIR}/${GAME7_STATE_CLEAN_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${GAME7_STATE_CLEAN_TIMER_FILE}"
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${GAME7_STATE_CLEAN_TIMER_FILE}"
-
 
 # Game7 testnet
 echo
