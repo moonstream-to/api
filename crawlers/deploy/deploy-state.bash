@@ -33,8 +33,8 @@ ETHEREUM_METADATA_SERVICE_FILE="ethereum-metadata.service"
 ETHEREUM_METADATA_TIMER_FILE="ethereum-metadata.timer"
 
 # Ethereum Sepolia
-ETHEREUM_SEPOLIA_STATE_SERVICE_FILE="ethereum-sepolia-state.service"
-ETHEREUM_SEPOLIA_STATE_TIMER_FILE="ethereum-sepolia-state.timer"
+SEPOLIA_STATE_SERVICE_FILE="sepolia-state.service"
+SEPOLIA_STATE_TIMER_FILE="sepolia-state.timer"
 
 # Polygon service files
 POLYGON_STATE_SERVICE_FILE="polygon-state.service"
@@ -162,12 +162,12 @@ XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ETHEREUM
 
 echo
 echo
-echo -e "${PREFIX_INFO} Replacing existing Ethereum Sepolia state service and timer with: ${ETHEREUM_SEPOLIA_STATE_SERVICE_FILE}, ${ETHEREUM_SEPOLIA_STATE_TIMER_FILE}"
-chmod 644 "${SCRIPT_DIR}/${ETHEREUM_SEPOLIA_STATE_SERVICE_FILE}" "${SCRIPT_DIR}/${ETHEREUM_SEPOLIA_STATE_TIMER_FILE}"
-cp "${SCRIPT_DIR}/${ETHEREUM_SEPOLIA_STATE_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ETHEREUM_SEPOLIA_STATE_SERVICE_FILE}"
-cp "${SCRIPT_DIR}/${ETHEREUM_SEPOLIA_STATE_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ETHEREUM_SEPOLIA_STATE_TIMER_FILE}"
+echo -e "${PREFIX_INFO} Replacing existing Ethereum Sepolia state service and timer with: ${SEPOLIA_STATE_SERVICE_FILE}, ${SEPOLIA_STATE_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${SEPOLIA_STATE_SERVICE_FILE}" "${SCRIPT_DIR}/${SEPOLIA_STATE_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${SEPOLIA_STATE_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${SEPOLIA_STATE_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${SEPOLIA_STATE_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${SEPOLIA_STATE_TIMER_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
-XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ETHEREUM_SEPOLIA_STATE_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${SEPOLIA_STATE_TIMER_FILE}"
 
 
 # Polygon
