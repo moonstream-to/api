@@ -511,15 +511,20 @@ def recursive_unpack(
 def build_interfaces(
     contracts_ABIs: Dict[str, Any], contracts_methods: Dict[str, Any], web3_client: Web3
 ) -> Dict[str, Any]:
-    """Builds contract interfaces."""
+    """Builds contract interfaces with deduplication of ABIs."""
     interfaces = {}
     for contract_address in contracts_ABIs:
-        abis = [
-            contracts_ABIs[contract_address][method_hash]
-            for method_hash in contracts_methods[contract_address]
-        ]
+        # Use a dictionary to deduplicate ABIs by function signature
+        unique_abis = {}
+        for method_hash in contracts_methods[contract_address]:
+            abi = contracts_ABIs[contract_address][method_hash]
+            # Create a unique key based on name and input types
+            if abi["name"] not in unique_abis:
+                unique_abis[abi["name"]] = abi
+
         interfaces[contract_address] = web3_client.eth.contract(
-            address=web3_client.toChecksumAddress(contract_address), abi=abis
+            address=web3_client.toChecksumAddress(contract_address),
+            abi=list(unique_abis.values())
         )
     return interfaces
 
@@ -651,7 +656,6 @@ def parse_jobs(
                 customer_id,
                 instance_id,
             )
-
         interfaces = build_interfaces(contracts_ABIs, contracts_methods, web3_client)
 
         call_tree_levels = sorted(calls.keys(), reverse=True)[:-1]
