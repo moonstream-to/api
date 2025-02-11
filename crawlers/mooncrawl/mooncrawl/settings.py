@@ -254,6 +254,12 @@ if MOONSTREAM_NODE_GAME7_TESTNET_A_EXTERNAL_URI == "":
         "MOONSTREAM_NODE_GAME7_TESTNET_A_EXTERNAL_URI env variable is not set"
     )
 
+MOONSTREAM_NODE_GAME7_A_EXTERNAL_URI = os.environ.get(
+    "MOONSTREAM_NODE_GAME7_A_EXTERNAL_URI", ""
+)
+if MOONSTREAM_NODE_GAME7_A_EXTERNAL_URI == "":
+    raise Exception("MOONSTREAM_NODE_GAME7_A_EXTERNAL_URI env variable is not set")
+
 
 MOONSTREAM_NODE_SEPOLIA_A_EXTERNAL_URI = os.environ.get(
     "MOONSTREAM_NODE_SEPOLIA_A_EXTERNAL_URI", ""
@@ -394,6 +400,8 @@ multicall_contracts: Dict[AvailableBlockchainType, str] = {
     AvailableBlockchainType.BLAST: "0xcA11bde05977b3631167028862bE2a173976CA11",
     AvailableBlockchainType.MANTLE: "0xcA11bde05977b3631167028862bE2a173976CA11",
     AvailableBlockchainType.MANTLE_SEPOLIA: "0xcA11bde05977b3631167028862bE2a173976CA11",
+    AvailableBlockchainType.GAME7_TESTNET: "0xcA11bde05977b3631167028862bE2a173976CA11",
+    AvailableBlockchainType.GAME7: "0x1422d8aC9b5E102E6EbA56F0949a2377AB3D8CE9",
 }
 
 

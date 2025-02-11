@@ -1,0 +1,9 @@
+[Unit]
+Description=Execute Game7 state clean labels crawler each 5m
+
+[Timer]
+OnBootSec=50s
+OnUnitActiveSec=5m
+
+[Install]
+WantedBy=timers.target
