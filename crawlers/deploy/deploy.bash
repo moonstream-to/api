@@ -48,8 +48,8 @@ ETHEREUM_HISTORICAL_CRAWL_EVENTS_SERVICE_FILE="ethereum-historical-crawl-events.
 ETHEREUM_HISTORICAL_CRAWL_EVENTS_TIMER_FILE="ethereum-historical-crawl-events.timer"
 
 ## Sepolia services files
-SEPOLIA_STATE_SERVICE_FILE="ethereum-sepolia-state.service"
-SEPOLIA_STATE_TIMER_FILE="ethereum-sepolia-state.timer"
+SEPOLIA_STATE_SERVICE_FILE="sepolia-state.service"
+SEPOLIA_STATE_TIMER_FILE="sepolia-state.timer"
 
 # Polygon service files
 POLYGON_SYNCHRONIZE_SERVICE="polygon-synchronize.service"
