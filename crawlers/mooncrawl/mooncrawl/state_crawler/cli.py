@@ -131,6 +131,23 @@ def execute_query(query: Dict[str, Any], token: str) -> Any:
     return result
 
 
+def read_result_from_bugout(token: str, query: str, journal_id: str) -> Any:
+    """Reads the result from the bugout journal."""
+    existing_methods = bc.search(
+        token=token,
+        journal_id=journal_id,
+        query=query,
+        content=True,
+        timeout=30.0,
+        limit=1
+        )
+    end_time = time.time()
+    if len(existing_methods.results) == 0:
+        return None
+    
+    return existing_methods.results[0].content
+
+
 def encode_calls(calls: List[Dict[str, Any]]) -> List[tuple]:
     """Encodes the call data for multicall."""
     multicall_calls = []
@@ -451,6 +468,20 @@ def recursive_unpack(
         # Add response to responses
         responses[generated_hash] = response
         return generated_hash
+    if method_abi["type"] == "bugout_read":
+        response = read_result_from_bugout(method_abi["token"], method_abi["query"], method_abi["journal_id"])
+        if response is None:
+            raise ValueError(f"No response found for bugout_read call {method_abi}")
+        generated_hash = hashlib.md5(
+            json.dumps(
+                method_abi,
+                sort_keys=True,
+                indent=4,
+                separators=(",", ": "),
+            ).encode("utf-8")
+        ).hexdigest()
+        responses[generated_hash] = json.loads(response)
+        return generated_hash
 
     abi = {
         "inputs": [],
@@ -467,7 +498,7 @@ def recursive_unpack(
         if isinstance(input["value"], (int, list, str)):
             abi["inputs"].append(input)
         elif isinstance(input["value"], dict):
-            if input["value"]["type"] in ["function", "queryAPI"]:
+            if input["value"]["type"] in ["function", "queryAPI", "bugout_read"]:
                 hash_link = recursive_unpack(
                     input["value"],
                     level + 1,
