@@ -163,7 +163,7 @@ def add_block(db_session, block: Any, blockchain_type: AvailableBlockchainType) 
         size=block.size,
         state_root=block.stateRoot.hex(),
         timestamp=block.timestamp,
-        total_difficulty=block.totalDifficulty,
+        total_difficulty=block.get("totalDifficulty", None),
         transactions_root=block.transactionsRoot.hex(),
     )
     if blockchain_type == AvailableBlockchainType.XDAI:
