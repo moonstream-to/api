@@ -66,6 +66,12 @@ from moonstreamdb.models import (
     ZkSyncEraTestnetLabel,
     ZkSyncEraTestnetTransaction,
     ZkSyncEraTransaction,
+    Game7Block,
+    Game7Label,
+    Game7Transaction,
+    Game7TestnetBlock,
+    Game7TestnetLabel,
+    Game7TestnetTransaction,
 )
 from moonstreamdbv3.models import AmoyLabel as AmoyLabelV3
 from moonstreamdbv3.models import ArbitrumNovaLabel as ArbitrumNovaLabelV3
@@ -271,6 +277,16 @@ MODELS: Dict[Network, Dict[str, Base]] = {
         "blocks": MantleSepoliaBlock,
         "labels": MantleSepoliaLabel,
         "transactions": MantleSepoliaTransaction,
+    },
+    Network.game7: {
+        "blocks": Game7Block,
+        "labels": Game7Label,
+        "transactions": Game7Transaction,
+    },
+    Network.game7_testnet: {
+        "blocks": Game7TestnetBlock,
+        "labels": Game7TestnetLabel,
+        "transactions": Game7TestnetTransaction,
     },
 }
 

@@ -41,6 +41,7 @@ class SubscriptionTypes(Enum):
     RONIN_BLOCKCHAIN = "ronin_smartcontract"
     RONIN_SAIGON_BLOCKCHAIN = "ronin_saigon_smartcontract"
 
+
 def blockchain_type_to_subscription_type(
     blockchain_type: AvailableBlockchainType,
 ) -> SubscriptionTypes:

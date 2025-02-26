@@ -33,7 +33,7 @@ setup(
     package_data={"moonstreamtypes": ["py.typed"]},
     zip_safe=False,
     install_requires=[
-        "moonstreamdb>=0.4.5",
+        "moonstreamdb>=0.4.7",
         "moonstreamdb-v3>=0.1.4",
     ],
     extras_require={

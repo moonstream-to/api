@@ -65,6 +65,12 @@ from moonstreamdb.models import (
     ZkSyncEraTestnetLabel,
     ZkSyncEraTestnetTransaction,
     ZkSyncEraTransaction,
+    Game7Block,
+    Game7Label,
+    Game7Transaction,
+    Game7TestnetBlock,
+    Game7TestnetLabel,
+    Game7TestnetTransaction,
 )
 from moonstreamdbv3.models import AmoyLabel as AmoyLabelV3
 from moonstreamdbv3.models import ArbitrumNovaLabel as ArbitrumNovaLabelV3
@@ -100,6 +106,7 @@ from moonstreamdbv3.models import B3Label as B3LabelV3
 from moonstreamdbv3.models import B3SepoliaLabel as B3SepoliaLabelV3
 from moonstreamdbv3.models import RoninLabel as RoninLabelV3
 from moonstreamdbv3.models import RoninSaigonLabel as RoninSaigonLabelV3
+
 
 class AvailableBlockchainType(Enum):
     ETHEREUM = "ethereum"
@@ -162,7 +169,9 @@ def get_block_model(
         BlastSepoliaBlock,
         ProofOfPlayApexBlock,
         MantleBlock,
-        MantleSepoliaBlock
+        MantleSepoliaBlock,
+        Game7Block,
+        Game7TestnetBlock,
     ]
 ]:
     """
@@ -190,7 +199,9 @@ def get_block_model(
             BlastSepoliaBlock,
             ProofOfPlayApexBlock,
             MantleBlock,
-            MantleSepoliaBlock
+            MantleSepoliaBlock,
+            Game7Block,
+            Game7TestnetBlock,
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -235,6 +246,10 @@ def get_block_model(
         block_model = MantleBlock
     elif blockchain_type == AvailableBlockchainType.MANTLE_SEPOLIA:
         block_model = MantleSepoliaBlock
+    elif blockchain_type == AvailableBlockchainType.GAME7:
+        block_model = Game7Block
+    elif blockchain_type == AvailableBlockchainType.GAME7_TESTNET:
+        block_model = Game7TestnetBlock
     else:
         raise Exception("Unsupported blockchain type provided")
 
@@ -267,6 +282,8 @@ def get_label_model(
         ProofOfPlayApexLabel,
         MantleLabel,
         MantleSepoliaLabel,
+        Game7Label,
+        Game7TestnetLabel,
         EthereumLabelV3,
         SepoliaLabelV3,
         PolygonLabelV3,
@@ -328,6 +345,8 @@ def get_label_model(
             ProofOfPlayApexLabel,
             MantleLabel,
             MantleSepoliaLabel,
+            Game7Label,
+            Game7TestnetLabel,
             EthereumLabelV3,
             SepoliaLabelV3,
             PolygonLabelV3,
@@ -402,6 +421,10 @@ def get_label_model(
             label_model = MantleLabel
         elif blockchain_type == AvailableBlockchainType.MANTLE_SEPOLIA:
             label_model = MantleSepoliaLabel
+        elif blockchain_type == AvailableBlockchainType.GAME7:
+            label_model = Game7Label
+        elif blockchain_type == AvailableBlockchainType.GAME7_TESTNET:
+            label_model = Game7TestnetLabel
         else:
             raise Exception("Unsupported blockchain type provided")
     elif version == 3:
@@ -501,6 +524,8 @@ def get_transaction_model(
         ProofOfPlayApexTransaction,
         MantleTransaction,
         MantleSepoliaTransaction,
+        Game7Transaction,
+        Game7TestnetTransaction,
     ]
 ]:
     """
@@ -529,6 +554,8 @@ def get_transaction_model(
             ProofOfPlayApexTransaction,
             MantleTransaction,
             MantleSepoliaTransaction,
+            Game7Transaction,
+            Game7TestnetTransaction,
         ]
     ]
     if blockchain_type == AvailableBlockchainType.ETHEREUM:
@@ -573,6 +600,10 @@ def get_transaction_model(
         transaction_model = MantleTransaction
     elif blockchain_type == AvailableBlockchainType.MANTLE_SEPOLIA:
         transaction_model = MantleSepoliaTransaction
+    elif blockchain_type == AvailableBlockchainType.GAME7:
+        transaction_model = Game7Transaction
+    elif blockchain_type == AvailableBlockchainType.GAME7_TESTNET:
+        transaction_model = Game7TestnetTransaction
     else:
         raise Exception("Unsupported blockchain type provided")
 
