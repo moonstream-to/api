@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type PingResponse struct {
@@ -122,4 +123,40 @@ func lbJSONRPCHandler(w http.ResponseWriter, r *http.Request, blockchain string,
 		http.Error(w, fmt.Sprintf("Unacceptable data source %s", currentClientAccess.requestedDataSource), http.StatusBadRequest)
 		return
 	}
+}
+
+// balancesRoute handles the /balances endpoint
+func balancesRoute(w http.ResponseWriter, r *http.Request) {
+	// Get address from query params
+	address := r.URL.Query().Get("address")
+
+	if address == "" {
+		http.Error(w, "Address is required", http.StatusBadRequest)
+		return
+	}
+
+	// Check cache first
+	cacheKey := fmt.Sprintf("balances:%s", address)
+	if cachedData, found := balancesCache.Get(cacheKey); found {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(cachedData.([]byte))
+		return
+	}
+
+	// Get balances
+	response, err := getBalances(r.Context(), address)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Cache the response
+	responseBytes, err := json.Marshal(response)
+	if err == nil {
+		balancesCache.Set(cacheKey, responseBytes, 10*time.Second)
+	}
+
+	// Send response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }

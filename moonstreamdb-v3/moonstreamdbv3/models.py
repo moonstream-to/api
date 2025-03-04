@@ -32,7 +32,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.compiler import compiles
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.sql import expression, text
 
 """
@@ -75,6 +75,42 @@ def pg_utcnow(element, compiler, **kwargs):
 class EvmBasedLabel(Base):  # type: ignore
     __abstract__ = True
 
+    @declared_attr
+    def __table_args__(cls):
+        return (
+            Index(
+                f"ix_{cls.__tablename__}_addr_block_num",
+                "address", "block_number", unique=False
+            ),
+            Index(
+                f"ix_{cls.__tablename__}_addr_block_ts",
+                "address", "block_timestamp", unique=False
+            ),
+            Index(
+                f"ix_{cls.__tablename__}_label_addr_name",
+                "label", "address", "label_name", unique=False
+            ),
+            Index(
+                f"uk_{cls.__tablename__}_tx_hash_tx_call",
+                "transaction_hash", unique=True,
+                postgresql_where=text("label='seer' and label_type='tx_call'")
+            ),
+            Index(
+                f"uk_{cls.__tablename__}_tx_hash_log_idx_evt",
+                "transaction_hash", "log_index", unique=True,
+                postgresql_where=text("label='seer' and label_type='event'")
+            ),
+            Index(
+                f"uk_{cls.__tablename__}_tx_hash_tx_call_raw",
+                "transaction_hash", unique=True,
+                postgresql_where=text("label='seer-raw' and label_type='tx_call'")
+            ),
+            Index(
+                f"uk_{cls.__tablename__}_tx_hash_log_idx_evt_raw",
+                "transaction_hash", "log_index", unique=True,
+                postgresql_where=text("label='seer-raw' and label_type='event'")
+            )
+        )
     id = Column(
         UUID(as_uuid=True),
         primary_key=True,
@@ -155,490 +191,144 @@ class EvmBasedTransaction(Base):  # type: ignore
     )
 
 
+## Labels
+
 class EthereumLabel(EvmBasedLabel):  # type: ignore
     __tablename__ = "ethereum_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_ethereum_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_ethereum_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_ethereum_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_ethereum_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_ethereum_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_ethereum_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
-
-
-class EthereumTransaction(EvmBasedTransaction):  # type: ignore
-    __tablename__ = "ethereum_transactions"
-
 
 class SepoliaLabel(EvmBasedLabel):  # type: ignore
     __tablename__ = "sepolia_labels"
 
-    __table_args__ = (
-        Index(
-            "ix_sepolia_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_sepolia_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_sepolia_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_sepolia_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_sepolia_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_sepolia_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
+class PolygonLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "polygon_labels"
+
+class MumbaiLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "mumbai_labels"
+
+class AmoyLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "amoy_labels"
+
+class XDaiLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "xdai_labels"
+
+class ZkSyncEraLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "zksync_era_labels"
+
+class ZkSyncEraSepoliaLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "zksync_era_sepolia_labels"
+
+class BaseLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "base_labels"
+
+class ArbitrumNovaLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "arbitrum_nova_labels"
+
+class ArbitrumOneLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "arbitrum_one_labels"
+
+class ArbitrumSepoliaLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "arbitrum_sepolia_labels"
+
+class Game7OrbitArbitrumSepoliaLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "game7_orbit_arbitrum_sepolia_labels"
+
+class XaiLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "xai_labels"
+
+class XaiSepoliaLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "xai_sepolia_labels"
+
+class AvalancheLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "avalanche_labels"
+
+class AvalancheFujiLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "avalanche_fuji_labels"
+
+class BlastLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "blast_labels"
+
+class BlastSepoliaLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "blast_sepolia_labels"
+
+class ProofOfPlayApexLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "proofofplay_apex_labels"
+
+class StarknetLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "starknet_labels"
+
+class StarknetSepoliaLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "starknet_sepolia_labels"
+
+class MantleLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "mantle_labels"
+
+class MantleSepoliaLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "mantle_sepolia_labels"
+
+class ImxZkevmLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "imx_zkevm_labels"
+
+class ImxZkevmSepoliaLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "imx_zkevm_sepolia_labels"
+
+class Game7Label(EvmBasedLabel):  # type: ignore
+    __tablename__ = "game7_labels"
+
+class Game7TestnetLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "game7_testnet_labels"
+
+class B3Label(EvmBasedLabel):  # type: ignore
+    __tablename__ = "b3_labels"
+
+class B3SepoliaLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "b3_sepolia_labels"
+
+class RoninLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "ronin_labels"
+
+class RoninSaigonLabel(EvmBasedLabel):  # type: ignore
+    __tablename__ = "ronin_saigon_labels"
+
+
+
+
+
+## Transactions
+
+class EthereumTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "ethereum_transactions"
 
 
 class SepoliaTransaction(EvmBasedTransaction):  # type: ignore
     __tablename__ = "sepolia_transactions"
 
 
-class PolygonLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "polygon_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_polygon_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_polygon_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_polygon_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_polygon_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_polygon_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_polygon_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
-
-
 class PolygonTransaction(EvmBasedTransaction):  # type: ignore
     __tablename__ = "polygon_transactions"
-
-
-class MumbaiLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "mumbai_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_mumbai_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_mumbai_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_mumbai_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_mumbai_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_mumbai_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_mumbai_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
 
 
 class MumbaiTransaction(EvmBasedTransaction):  # type: ignore
     __tablename__ = "mumbai_transactions"
 
 
-class AmoyLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "amoy_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_amoy_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_amoy_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_amoy_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_amoy_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_amoy_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_amoy_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
-
-
 class AmoyTransaction(EvmBasedTransaction):  # type: ignore
     __tablename__ = "amoy_transactions"
-
-
-class XDaiLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "xdai_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_xdai_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_xdai_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_xdai_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_xdai_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_xdai_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_xdai_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
 
 
 class XDaiTransaction(EvmBasedTransaction):  # type: ignore
     __tablename__ = "xdai_transactions"
 
 
-class ZkSyncEraLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "zksync_era_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_zksync_era_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_zksync_era_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_zksync_era_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_zksync_era_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_zksync_era_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_zksync_era_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
-
-
 class ZkSyncEraTransaction(EvmBasedTransaction):  # type: ignore
     __tablename__ = "zksync_era_transactions"
-
-
-class ZkSyncEraSepoliaLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "zksync_era_sepolia_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_zksync_era_sepolia_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_zksync_era_sepolia_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_zksync_era_sepolia_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_zksync_era_sepolia_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_zksync_era_sepolia_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_zksync_era_sepolia_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
 
 
 class ZkSyncEraSepoliaTransaction(EvmBasedTransaction):  # type: ignore
     __tablename__ = "zksync_era_sepolia_transactions"
 
 
-class BaseLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "base_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_base_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_base_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_base_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_base_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_base_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_base_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
-
-
 class BaseTransaction(EvmBasedTransaction):  # type: ignore
     __tablename__ = "base_transactions"
-
-
-class ArbitrumNovaLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "arbitrum_nova_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_arbitrum_nova_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_arbitrum_nova_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_arbitrum_nova_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_arbitrum_nova_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_arbitrum_nova_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_arbitrum_nova_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
 
 
 class ArbitrumNovaTransaction(EvmBasedTransaction):  # type: ignore
@@ -646,501 +336,42 @@ class ArbitrumNovaTransaction(EvmBasedTransaction):  # type: ignore
 
     l1_block_number = Column(BigInteger, nullable=True)
 
-
-class ArbitrumOneLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "arbitrum_one_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_arbitrum_one_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_arbitrum_one_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_arbitrum_one_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_arbitrum_one_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_arbitrum_one_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_arbitrum_one_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
-
-
 class ArbitrumOneTransaction(EvmBasedTransaction):  # type: ignore
     __tablename__ = "arbitrum_one_transactions"
 
     l1_block_number = Column(BigInteger, nullable=True)
-
-
-class ArbitrumSepoliaLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "arbitrum_sepolia_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_arbitrum_sepolia_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_arbitrum_sepolia_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_arbitrum_sepolia_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_arbitrum_sepolia_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_arbitrum_sepolia_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_arbitrum_sepolia_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
-
 
 class ArbitrumSepoliaTransaction(EvmBasedTransaction):  # type: ignore
     __tablename__ = "arbitrum_sepolia_transactions"
 
     l1_block_number = Column(BigInteger, nullable=True)
 
-
-class Game7OrbitArbitrumSepoliaLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "game7_orbit_arbitrum_sepolia_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_g7o_arbitrum_sepolia_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_g7o_arbitrum_sepolia_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_g7o_arbitrum_sepolia_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_g7o_arbitrum_sepolia_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_g7o_arbitrum_sepolia_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_g7o_arbitrum_sepolia_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
-
-
 class Game7OrbitArbitrumSepoliaTransaction(EvmBasedTransaction):  # type: ignore
     __tablename__ = "game7_orbit_arbitrum_sepolia_transactions"
 
     l1_block_number = Column(BigInteger, nullable=True)
-
-
-class XaiLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "xai_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_xai_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_xai_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_xai_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_xai_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_xai_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_xai_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
-
 
 class XaiTransaction(EvmBasedTransaction):  # type: ignore
     __tablename__ = "xai_transactions"
 
     l1_block_number = Column(BigInteger, nullable=True)
 
-
-class XaiSepoliaLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "xai_sepolia_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_xai_sepolia_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_xai_sepolia_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_xai_sepolia_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_xai_sepolia_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_xai_sepolia_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_xai_sepolia_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
-
-
 class XaiSepoliaTransaction(EvmBasedTransaction):  # type: ignore
     __tablename__ = "xai_sepolia_transactions"
 
     l1_block_number = Column(BigInteger, nullable=True)
 
-
-class AvalancheLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "avalanche_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_avalanche_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_avalanche_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_avalanche_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_avalanche_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_avalanche_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_avalanche_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
-
-
 class AvalancheTransaction(EvmBasedTransaction):  # type: ignore
     __tablename__ = "avalanche_transactions"
-
-
-class AvalancheFujiLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "avalanche_fuji_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_avalanche_fuji_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_avalanche_fuji_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_avalanche_fuji_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_avalanche_fuji_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_avalanche_fuji_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_avalanche_fuji_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
-
 
 class AvalancheFujiTransaction(EvmBasedTransaction):  # type: ignore
     __tablename__ = "avalanche_fuji_transactions"
 
-
-class BlastLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "blast_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_blast_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_blast_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_blast_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_blast_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_blast_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_blast_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
-
-
 class BlastTransaction(EvmBasedTransaction):  # type: ignore
     __tablename__ = "blast_transactions"
 
-
-class BlastSepoliaLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "blast_sepolia_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_blast_sepolia_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_blast_sepolia_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_blast_sepolia_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_blast_sepolia_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_blast_sepolia_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_blast_sepolia_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
-
-
 class BlastSepoliaTransaction(EvmBasedTransaction):  # type: ignore
     __tablename__ = "blast_sepolia_transactions"
-
-
-class ProofOfPlayApexLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "proofofplay_apex_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_proofofplay_apex_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_proofofplay_apex_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_proofofplay_apex_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_proofofplay_apex_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_proofofplay_apex_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_proofofplay_apex_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
 
 
 class ProofOfPlayApexTransaction(EvmBasedTransaction):  # type: ignore
@@ -1149,335 +380,20 @@ class ProofOfPlayApexTransaction(EvmBasedTransaction):  # type: ignore
     l1_block_number = Column(BigInteger, nullable=True)
 
 
-class StarknetLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "starknet_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_starknet_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_starknet_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_starknet_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_starknet_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_starknet_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_starknet_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
-
-
-class StarknetSepoliaLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "starknet_sepolia_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_starknet_sepolia_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_starknet_sepolia_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_starknet_sepolia_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_starknet_sepolia_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_starknet_sepolia_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_starknet_sepolia_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
-
-
-class MantleLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "mantle_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_mantle_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_mantle_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_mantle_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_mantle_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_mantle_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_mantle_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
-
-
 class MantleTransaction(EvmBasedTransaction):  # type: ignore
     __tablename__ = "mantle_transactions"
-
-
-class MantleSepoliaLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "mantle_sepolia_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_mantle_sepolia_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_mantle_sepolia_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_mantle_sepolia_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_mantle_sepolia_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_mantle_sepolia_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_mantle_sepolia_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
 
 
 class MantleSepoliaTransaction(EvmBasedTransaction):  # type: ignore
     __tablename__ = "mantle_sepolia_transactions"
 
 
-class ImxZkevmLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "imx_zkevm_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_imx_zkevm_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_imx_zkevm_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_imx_zkevm_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_imx_zkevm_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_imx_zkevm_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_imx_zkevm_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
-
-
 class ImxZkevmTransaction(EvmBasedTransaction):  # type: ignore
     __tablename__ = "imx_zkevm_transactions"
 
 
-class ImxZkevmSepoliaLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "imx_zkevm_sepolia_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_imx_zkevm_sepolia_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_imx_zkevm_sepolia_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_imx_zkevm_sepolia_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_imx_zkevm_sepolia_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_imx_zkevm_sepolia_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_imx_zkevm_sepolia_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
-
-
 class ImxZkevmSepoliaTransaction(EvmBasedTransaction):  # type: ignore
     __tablename__ = "imx_zkevm_sepolia_transactions"
-
-
-class Game7Label(EvmBasedLabel):  # type: ignore
-    __tablename__ = "game7_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_game7_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_game7_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_game7_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_game7_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_game7_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_game7_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
 
 
 class Game7Transaction(EvmBasedTransaction):  # type: ignore
@@ -1486,50 +402,6 @@ class Game7Transaction(EvmBasedTransaction):  # type: ignore
     l1_block_number = Column(BigInteger, nullable=True)
 
 
-class Game7TestnetLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "game7_testnet_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_game7_testnet_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_game7_testnet_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_game7_testnet_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_game7_testnet_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_game7_testnet_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_game7_testnet_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
-
 
 class Game7TestnetTransaction(EvmBasedTransaction):  # type: ignore
     __tablename__ = "game7_testnet_transactions"
@@ -1537,196 +409,17 @@ class Game7TestnetTransaction(EvmBasedTransaction):  # type: ignore
     l1_block_number = Column(BigInteger, nullable=True)
 
 
-class B3Label(EvmBasedLabel):  # type: ignore
-    __tablename__ = "b3_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_b3_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_b3_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_b3_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_b3_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_b3_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_b3_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
-
-
 class B3Transaction(EvmBasedTransaction):  # type: ignore
     __tablename__ = "b3_transactions"
 
-
-class B3SepoliaLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "b3_sepolia_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_b3_sepolia_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_b3_sepolia_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_b3_sepolia_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_b3_sepolia_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_b3_sepolia_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_b3_sepolia_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
 
 
 class B3SepoliaTransaction(EvmBasedTransaction):  # type: ignore
     __tablename__ = "b3_sepolia_transactions"
 
 
-class RoninLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "ronin_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_ronin_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_ronin_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_ronin_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_ronin_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_ronin_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_ronin_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
-
-
 class RoninTransaction(EvmBasedTransaction):  # type: ignore
     __tablename__ = "ronin_transactions"
-
-
-class RoninSaigonLabel(EvmBasedLabel):  # type: ignore
-    __tablename__ = "ronin_saigon_labels"
-
-    __table_args__ = (
-        Index(
-            "ix_ronin_saigon_labels_addr_block_num",
-            "address",
-            "block_number",
-            unique=False,
-        ),
-        Index(
-            "ix_ronin_saigon_labels_addr_block_ts",
-            "address",
-            "block_timestamp",
-            unique=False,
-        ),
-        Index(
-            "uk_ronin_saigon_labels_tx_hash_tx_call",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_ronin_saigon_labels_tx_hash_log_idx_evt",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer' and label_type='event'"),
-        ),
-        Index(
-            "uk_ronin_saigon_labels_tx_hash_tx_call_raw",
-            "transaction_hash",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='tx_call'"),
-        ),
-        Index(
-            "uk_ronin_saigon_labels_tx_hash_log_idx_evt_raw",
-            "transaction_hash",
-            "log_index",
-            unique=True,
-            postgresql_where=text("label='seer-raw' and label_type='event'"),
-        ),
-    )
 
 
 class RoninSaigonTransaction(EvmBasedTransaction):  # type: ignore

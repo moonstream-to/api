@@ -1,8 +1,8 @@
 """Add raw transactions
 
-Revision ID: 3ea877d6e22d
-Revises: dae735afc98f
-Create Date: 2025-01-16 12:47:48.572482
+Revision ID: bebe640146b6
+Revises: c79044e047fe
+Create Date: 2025-03-04 00:34:20.551263
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = '3ea877d6e22d'
-down_revision: Union[str, None] = 'dae735afc98f'
+revision: str = 'bebe640146b6'
+down_revision: Union[str, None] = 'c79044e047fe'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -869,7 +869,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_zksync_era_transactions_hash'), 'zksync_era_transactions', ['hash'], unique=True)
     op.create_index(op.f('ix_zksync_era_transactions_to_address'), 'zksync_era_transactions', ['to_address'], unique=False)
     op.create_index(op.f('ix_zksync_era_transactions_value'), 'zksync_era_transactions', ['value'], unique=False)
-   # ### end Alembic commands ###
+    # ### end Alembic commands ###
 
 
 def downgrade() -> None:

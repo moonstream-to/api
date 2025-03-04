@@ -32,6 +32,10 @@ ETHEREUM_STATE_CLEAN_TIMER_FILE="ethereum-state-clean.timer"
 ETHEREUM_METADATA_SERVICE_FILE="ethereum-metadata.service"
 ETHEREUM_METADATA_TIMER_FILE="ethereum-metadata.timer"
 
+# Ethereum Sepolia
+SEPOLIA_STATE_SERVICE_FILE="sepolia-state.service"
+SEPOLIA_STATE_TIMER_FILE="sepolia-state.timer"
+
 # Polygon service files
 POLYGON_STATE_SERVICE_FILE="polygon-state.service"
 POLYGON_STATE_TIMER_FILE="polygon-state.timer"
@@ -46,6 +50,13 @@ ZKSYNC_ERA_STATE_TIMER_FILE="zksync-era-state.timer"
 ZKSYNC_ERA_STATE_CLEAN_SERVICE_FILE="zksync-era-state-clean.service"
 ZKSYNC_ERA_STATE_CLEAN_TIMER_FILE="zksync-era-state-clean.timer"
 
+# Arbitrum one
+ARBITRUM_ONE_STATE_SERVICE_FILE="arbitrum-one-state.service"
+ARBITRUM_ONE_STATE_TIMER_FILE="arbitrum-one-state.timer"
+
+# Arbitrum Sepolia
+ARBITRUM_SEPOLIA_STATE_SERVICE_FILE="arbitrum-sepolia-state.service"
+ARBITRUM_SEPOLIA_STATE_TIMER_FILE="arbitrum-sepolia-state.timer"
 
 # Xai
 XAI_STATE_SERVICE_FILE="xai-state.service"
@@ -62,6 +73,19 @@ XAI_SEPOLIA_STATE_CLEAN_SERVICE_FILE="xai-sepolia-state-clean.service"
 XAI_SEPOLIA_STATE_CLEAN_TIMER_FILE="xai-sepolia-state-clean.timer"
 XAI_SEPOLIA_METADATA_SERVICE_FILE="xai-sepolia-metadata.service"
 XAI_SEPOLIA_METADATA_TIMER_FILE="xai-sepolia-metadata.timer"
+
+# Game7
+GAME7_METADATA_SERVICE_FILE="game7-metadata.service"
+GAME7_METADATA_TIMER_FILE="game7-metadata.timer"
+GAME7_STATE_SERVICE_FILE="game7-state.service"
+GAME7_STATE_TIMER_FILE="game7-state.timer"
+
+# Game7 testnet
+GAME7_TESTNET_METADATA_SERVICE_FILE="game7-testnet-metadata.service"
+GAME7_TESTNET_METADATA_TIMER_FILE="game7-testnet-metadata.timer"
+GAME7_TESTNET_STATE_SERVICE_FILE="game7-testnet-state.service"
+GAME7_TESTNET_STATE_TIMER_FILE="game7-testnet-state.timer"
+
 
 set -eu
 
@@ -131,6 +155,21 @@ cp "${SCRIPT_DIR}/${ETHEREUM_METADATA_TIMER_FILE}" "/home/ubuntu/.config/systemd
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ETHEREUM_METADATA_TIMER_FILE}"
 
+
+# Ethereum Sepolia
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Ethereum Sepolia state service and timer with: ${SEPOLIA_STATE_SERVICE_FILE}, ${SEPOLIA_STATE_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${SEPOLIA_STATE_SERVICE_FILE}" "${SCRIPT_DIR}/${SEPOLIA_STATE_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${SEPOLIA_STATE_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${SEPOLIA_STATE_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${SEPOLIA_STATE_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${SEPOLIA_STATE_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${SEPOLIA_STATE_TIMER_FILE}"
+
+
+# Polygon
+
 echo
 echo
 echo -e "${PREFIX_INFO} Replacing existing Polygon state service and timer with: ${POLYGON_STATE_SERVICE_FILE}, ${POLYGON_STATE_TIMER_FILE}"
@@ -176,6 +215,31 @@ cp "${SCRIPT_DIR}/${ZKSYNC_ERA_STATE_CLEAN_TIMER_FILE}" "/home/ubuntu/.config/sy
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000"  systemctl --user restart --no-block "${ZKSYNC_ERA_STATE_CLEAN_TIMER_FILE}"
 
+# Arbitrum one
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Arbitrum one state service and timer with: ${ARBITRUM_ONE_STATE_SERVICE_FILE}, ${ARBITRUM_ONE_STATE_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ARBITRUM_ONE_STATE_SERVICE_FILE}" "${SCRIPT_DIR}/${ARBITRUM_ONE_STATE_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ARBITRUM_ONE_STATE_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ARBITRUM_ONE_STATE_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ARBITRUM_ONE_STATE_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ARBITRUM_ONE_STATE_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ARBITRUM_ONE_STATE_TIMER_FILE}"
+
+
+# Arbitrum Sepolia
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Arbitrum Sepolia state service and timer with: ${ARBITRUM_SEPOLIA_STATE_SERVICE_FILE}, ${ARBITRUM_SEPOLIA_STATE_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${ARBITRUM_SEPOLIA_STATE_SERVICE_FILE}" "${SCRIPT_DIR}/${ARBITRUM_SEPOLIA_STATE_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${ARBITRUM_SEPOLIA_STATE_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${ARBITRUM_SEPOLIA_STATE_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${ARBITRUM_SEPOLIA_STATE_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${ARBITRUM_SEPOLIA_STATE_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${ARBITRUM_SEPOLIA_STATE_TIMER_FILE}"
+
+
+# Xai
 
 echo
 echo
@@ -230,3 +294,43 @@ cp "${SCRIPT_DIR}/${XAI_SEPOLIA_METADATA_SERVICE_FILE}" "/home/ubuntu/.config/sy
 cp "${SCRIPT_DIR}/${XAI_SEPOLIA_METADATA_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${XAI_SEPOLIA_METADATA_TIMER_FILE}"
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
 XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${XAI_SEPOLIA_METADATA_TIMER_FILE}"
+
+# Game7
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Game7 metadata service and timer with: ${GAME7_METADATA_SERVICE_FILE}, ${GAME7_METADATA_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${GAME7_METADATA_SERVICE_FILE}" "${SCRIPT_DIR}/${GAME7_METADATA_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${GAME7_METADATA_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${GAME7_METADATA_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${GAME7_METADATA_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${GAME7_METADATA_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${GAME7_METADATA_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Game7 state service and timer with: ${GAME7_STATE_SERVICE_FILE}, ${GAME7_STATE_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${GAME7_STATE_SERVICE_FILE}" "${SCRIPT_DIR}/${GAME7_STATE_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${GAME7_STATE_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${GAME7_STATE_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${GAME7_STATE_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${GAME7_STATE_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${GAME7_STATE_TIMER_FILE}"
+
+# Game7 testnet
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Game7 testnet metadata service and timer with: ${GAME7_TESTNET_METADATA_SERVICE_FILE}, ${GAME7_TESTNET_METADATA_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${GAME7_TESTNET_METADATA_SERVICE_FILE}" "${SCRIPT_DIR}/${GAME7_TESTNET_METADATA_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${GAME7_TESTNET_METADATA_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${GAME7_TESTNET_METADATA_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${GAME7_TESTNET_METADATA_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${GAME7_TESTNET_METADATA_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${GAME7_TESTNET_METADATA_TIMER_FILE}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Replacing existing Game7 testnet state service and timer with: ${GAME7_TESTNET_STATE_SERVICE_FILE}, ${GAME7_TESTNET_STATE_TIMER_FILE}"
+chmod 644 "${SCRIPT_DIR}/${GAME7_TESTNET_STATE_SERVICE_FILE}" "${SCRIPT_DIR}/${GAME7_TESTNET_STATE_TIMER_FILE}"
+cp "${SCRIPT_DIR}/${GAME7_TESTNET_STATE_SERVICE_FILE}" "/home/ubuntu/.config/systemd/user/${GAME7_TESTNET_STATE_SERVICE_FILE}"
+cp "${SCRIPT_DIR}/${GAME7_TESTNET_STATE_TIMER_FILE}" "/home/ubuntu/.config/systemd/user/${GAME7_TESTNET_STATE_TIMER_FILE}"
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user daemon-reload
+XDG_RUNTIME_DIR="/run/user/1000" systemctl --user restart --no-block "${GAME7_TESTNET_STATE_TIMER_FILE}"

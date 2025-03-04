@@ -18,6 +18,7 @@ setup(
         "moonstream>=0.1.2",
         "moonstreamdb>=0.4.6",
         "moonstreamdb-v3>=0.1.3",
+        "moonstream-types>=0.0.11",
         "humbug",
         "pydantic==1.10.2",
         "pyevmasm",

@@ -195,7 +195,7 @@ func (ac *AccessCache) Cleanup() (int64, int64) {
 }
 
 func initCacheCleaning(debug bool) {
-	t := time.NewTicker(NB_CACHE_CLEANING_INTERVAL)
+	t := time.NewTicker(time.Second * time.Duration(NB_CACHE_CLEANING_INTERVAL))
 	for {
 		select {
 		case <-t.C:

@@ -123,3 +123,108 @@ python migrations/migrations.py run --key 20230522 \
     --token-new-owner "$MOONSTREAM_ADMIN_OR_OTHER_CONTROLLER" \
     --new-application-id "$MOONSTREAM_APPLICATION_ID"
 ```
+
+## Balances Endpoint
+
+The `/balances` endpoint allows you to retrieve token balances for a specified Ethereum address across multiple blockchains.
+
+### Request
+
+```
+GET /balances?address=<ethereumAddress>
+```
+
+Parameters:
+- `address` (required): The Ethereum address to query balances for
+
+### Response
+
+The endpoint returns a JSON object with the following structure:
+
+```json
+{
+  "1": {
+    "chain_id": "1",
+    "name": "ethereum",
+    "image_url": "https://example.com/eth.png",
+    "balances": {
+      "0x0000000000000000000000000000000000000000": "1000000000000000000",
+      "0xdac17f958d2ee523a2206206994597c13d831ec7": "2000000000000000000",
+      "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48": "3000000000000000"
+    }
+  },
+  "137": {
+    "chain_id": "137", 
+    "name": "polygon",
+    "image_url": "https://example.com/matic.png",
+    "balances": {
+      "0x0000000000000000000000000000000000000000": "4000000000000000000",
+      "0x2791bca1f2de4661ed88a30c99a7a9449aa84174": "5000000000000000",
+      "0xc2132d05d31c914a87c6611c10748aeb04b58e8f": "6000000000000000000"
+    }
+  }
+}
+```
+
+Where:
+- The top-level keys are chain IDs (e.g. "1" for Ethereum, "137" for Polygon)
+- Each chain object contains:
+  - `chain_id`: The chain identifier as a string
+  - `name`: The human-readable name of the chain
+  - `image_url`: URL to the chain's logo/image
+  - `balances`: Map of token addresses to their balances
+    - Native token (ETH, MATIC etc) is represented by the zero address: `0x0000000000000000000000000000000000000000`
+    - All balances are returned as strings in the token's smallest unit (e.g., wei for ETH)
+
+### Features
+
+1. **Caching**: Responses are cached for 10 seconds to minimize blockchain RPC calls
+2. **Multicall**: Uses Multicall3 contract to batch balance queries for efficiency
+3. **Error Handling**: Individual token or blockchain failures don't affect other 
+
+### Example
+
+```bash
+curl "http://localhost:8080/balances?address=0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+```
+
+### Contracts Config Structure
+
+The `contracts.json` file should follow this structure:
+
+```json
+{
+  "ethereum": {
+    "multicall3": "0xcA11bde05977b3631167028862bE2a173976CA11",
+    "chain_id": "1",
+    "name": "Ethereum",
+    "image_url": "https://example.com/eth.png",
+    "native_token": "ETH",
+    "tokens": {
+      "0xdac17f958d2ee523a2206206994597c13d831ec7": "USDT",
+      "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48": "USDC"
+    }
+  },
+  "polygon": {
+    "multicall3": "0xcA11bde05977b3631167028862bE2a173976CA11",
+    "chain_id": "137",
+    "name": "Polygon",
+    "image_url": "https://example.com/matic.png",
+    "native_token": "MATIC",
+    "tokens": {
+      "0x2791bca1f2de4661ed88a30c99a7a9449aa84174": "USDC",
+      "0xc2132d05d31c914a87c6611c10748aeb04b58e8f": "USDT"
+    }
+  }
+}
+```
+
+Where:
+- Top-level keys are blockchain identifiers used internally
+- Each chain configuration contains:
+  - `multicall3`: Address of the Multicall3 contract on that chain
+  - `chain_id`: The chain identifier (e.g. "1" for Ethereum)
+  - `name`: Human-readable name of the chain
+  - `image_url`: URL to the chain's logo/image
+  - `native_token`: Symbol for the chain's native token (ETH, MATIC etc)
+  - `tokens`: Map of token addresses to their symbols

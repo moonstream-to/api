@@ -13,7 +13,8 @@ ExecStart=/home/ubuntu/api/nodebalancer/nodebalancer server \
     --host "${AWS_LOCAL_IPV4}" \
     --port 8544 \
     --healthcheck \
-    --config /home/ubuntu/.nodebalancer/config.json
+    --config /home/ubuntu/.nodebalancer/config.json \
+    --contracts-config /home/ubuntu/nodebalancer-secrets/contractsConfig.json
 SyslogIdentifier=nodebalancer
 
 [Install]

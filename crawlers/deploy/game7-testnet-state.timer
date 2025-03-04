@@ -1,5 +1,5 @@
 [Unit]
-Description=Execute Ethereum state crawler each 5m
+Description=Execute Game7 testnet state crawler each 5m
 
 [Timer]
 OnBootSec=15s

@@ -10,12 +10,12 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 
 	humbug "github.com/bugout-dev/humbug/go/pkg"
 	"github.com/google/uuid"
+	"github.com/patrickmn/go-cache"
 )
 
 var (
@@ -23,15 +23,13 @@ var (
 
 	// Crash reporter
 	reporter *humbug.HumbugReporter
+	// Cache for balances
+	balancesCache *cache.Cache
 )
 
 // initHealthCheck runs a routine for check status of the nodes every 5 seconds
 func initHealthCheck(debug bool) {
-	healthCheckInterval, convErr := strconv.Atoi(NB_HEALTH_CHECK_INTERVAL)
-	if convErr != nil {
-		healthCheckInterval = 30
-	}
-	t := time.NewTicker(time.Second * time.Duration(healthCheckInterval))
+	t := time.NewTicker(time.Second * time.Duration(NB_HEALTH_CHECK_INTERVAL))
 	for {
 		select {
 		case <-t.C:
@@ -105,9 +103,17 @@ func proxyErrorHandler(proxy *httputil.ReverseProxy, url *url.URL) {
 	}
 }
 
-func Server(configPath, listeningHostAddr, listeningPort string, enableHealthCheck bool) error {
+func Server(nodesConfigPath, contractsConfigPath, listeningHostAddr, listeningPort string, enableHealthCheck bool) error {
+	// Initialize Balances cache
+	balancesCache = cache.New(time.Duration(NB_BALANCES_CACHE_EXPIRATION)*time.Second, time.Duration(NB_BALANCES_CACHE_CLEANING_INTERVAL)*time.Second)
+
 	// Create Access ID cache
 	CreateAccessCache()
+
+	// Load contracts configuration
+	if err := LoadContractsConfig(contractsConfigPath); err != nil {
+		return fmt.Errorf("failed to load contracts config: %v", err)
+	}
 
 	// Configure Humbug reporter to handle errors
 	var err error
@@ -125,6 +131,7 @@ func Server(configPath, listeningHostAddr, listeningPort string, enableHealthChe
 	if getErr != nil {
 		return fmt.Errorf("unable to get user with provided access identifier, err: %v", getErr)
 	}
+
 	if len(resources.Resources) == 1 {
 		clientAccess, parseErr := ParseResourceDataToClientAccess(resources.Resources[0])
 		if parseErr != nil {
@@ -154,7 +161,7 @@ func Server(configPath, listeningHostAddr, listeningPort string, enableHealthChe
 	}
 
 	// Fill NodeConfigList with initial nodes from environment variables
-	err = LoadConfig(configPath)
+	err = LoadConfig(nodesConfigPath)
 	if err != nil {
 		return err
 	}
@@ -216,6 +223,7 @@ func Server(configPath, listeningHostAddr, listeningPort string, enableHealthChe
 
 	serveMux := http.NewServeMux()
 	serveMux.Handle("/nb/", accessMiddleware(http.HandlerFunc(lbHandler)))
+	serveMux.HandleFunc("/balances", balancesRoute)
 	log.Println("Authentication middleware enabled")
 	serveMux.HandleFunc("/ping", pingRoute)
 

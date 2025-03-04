@@ -17,6 +17,7 @@ PREFIX_CRIT="${C_RED}[CRIT]${C_RESET} [$(date +%d-%m\ %T)]"
 AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
 APP_DIR="${APP_DIR:-/home/ubuntu/api}"
 SECRETS_DIR="${SECRETS_DIR:-/home/ubuntu/nodebalancer-secrets}"
+NB_CONTRACTS_CONFIG_PATH="${SECRETS_DIR}/contractsConfig.json"
 PARAMETERS_ENV_PATH="${SECRETS_DIR}/app.env"
 SCRIPT_DIR="$(realpath $(dirname $0))"
 
@@ -30,6 +31,11 @@ echo
 echo -e "${PREFIX_INFO} Install checkenv"
 HOME=/home/ubuntu /usr/local/go/bin/go install github.com/bugout-dev/checkenv@v0.0.4
 
+if [ ! -d "${SECRETS_DIR}" ]; then
+  mkdir "${SECRETS_DIR}"
+  echo -e "${PREFIX_WARN} Created new secrets directory"
+fi
+
 echo
 echo
 echo -e "${PREFIX_INFO} Add instance local IP to parameters"
@@ -38,11 +44,12 @@ echo "AWS_LOCAL_IPV4=$(ec2metadata --local-ipv4)" > "${PARAMETERS_ENV_PATH}"
 echo
 echo
 echo -e "${PREFIX_INFO} Retrieving addition deployment parameters"
-if [ ! -d "${SECRETS_DIR}" ]; then
-  mkdir "${SECRETS_DIR}"
-  echo -e "${PREFIX_WARN} Created new secrets directory"
-fi
 AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" /home/ubuntu/go/bin/checkenv show aws_ssm+nodebalancer:true >> "${PARAMETERS_ENV_PATH}"
+
+echo
+echo
+echo -e "${PREFIX_INFO} Retrieve nodebalancer contracts config"
+AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" aws ssm get-parameter --name "NB_CONTRACTS_CONFIG_JSON" --output text --query Parameter.Value > "${NB_CONTRACTS_CONFIG_PATH}"
 
 echo
 echo

@@ -3,20 +3,15 @@ from typing import Dict, Optional
 from uuid import UUID
 
 from bugout.app import Bugout
-from moonstreamtypes.blockchain import AvailableBlockchainType
+from moonstreamtypes.blockchain import AvailableBlockchainType  # type: ignore
+from moonstream.client import Moonstream  # type: ignore
 
-# Bugout
+# APIs
+## Bugout
 BUGOUT_BROOD_URL = os.environ.get("BUGOUT_BROOD_URL", "https://auth.bugout.dev")
 BUGOUT_SPIRE_URL = os.environ.get("BUGOUT_SPIRE_URL", "https://spire.bugout.dev")
 
 bugout_client = Bugout(brood_api_url=BUGOUT_BROOD_URL, spire_api_url=BUGOUT_SPIRE_URL)
-
-
-MOONSTREAM_API_URL = os.environ.get("MOONSTREAM_API_URL", "https://api.moonstream.to")
-MOONSTREAM_ENGINE_URL = os.environ.get(
-    "MOONSTREAM_ENGINE_URL", "https://engineapi.moonstream.to"
-)
-
 
 BUGOUT_REQUEST_TIMEOUT_SECONDS_RAW = os.environ.get(
     "MOONSTREAM_BUGOUT_TIMEOUT_SECONDS", 30
@@ -30,6 +25,24 @@ except:
 
 
 HUMBUG_REPORTER_CRAWLERS_TOKEN = os.environ.get("HUMBUG_REPORTER_CRAWLERS_TOKEN")
+
+
+## Moonstream
+MOONSTREAM_API_URL = os.environ.get("MOONSTREAM_API_URL", "https://api.moonstream.to")
+
+moonstream_client = Moonstream()
+
+
+## Moonstream Engine
+MOONSTREAM_ENGINE_URL = os.environ.get(
+    "MOONSTREAM_ENGINE_URL", "https://engineapi.moonstream.to"
+)
+
+## Moonstream DB
+MOONSTREAM_DB_V3_CONTROLLER_API = os.environ.get(
+    "MOONSTREAM_DB_V3_CONTROLLER_API", "https://mdb-v3-api.moonstream.to"
+)
+
 
 # Origin
 RAW_ORIGINS = os.environ.get("MOONSTREAM_CORS_ALLOWED_ORIGINS")
@@ -241,6 +254,12 @@ if MOONSTREAM_NODE_GAME7_TESTNET_A_EXTERNAL_URI == "":
         "MOONSTREAM_NODE_GAME7_TESTNET_A_EXTERNAL_URI env variable is not set"
     )
 
+MOONSTREAM_NODE_GAME7_A_EXTERNAL_URI = os.environ.get(
+    "MOONSTREAM_NODE_GAME7_A_EXTERNAL_URI", ""
+)
+if MOONSTREAM_NODE_GAME7_A_EXTERNAL_URI == "":
+    raise Exception("MOONSTREAM_NODE_GAME7_A_EXTERNAL_URI env variable is not set")
+
 
 MOONSTREAM_NODE_SEPOLIA_A_EXTERNAL_URI = os.environ.get(
     "MOONSTREAM_NODE_SEPOLIA_A_EXTERNAL_URI", ""
@@ -381,6 +400,8 @@ multicall_contracts: Dict[AvailableBlockchainType, str] = {
     AvailableBlockchainType.BLAST: "0xcA11bde05977b3631167028862bE2a173976CA11",
     AvailableBlockchainType.MANTLE: "0xcA11bde05977b3631167028862bE2a173976CA11",
     AvailableBlockchainType.MANTLE_SEPOLIA: "0xcA11bde05977b3631167028862bE2a173976CA11",
+    AvailableBlockchainType.GAME7_TESTNET: "0xcA11bde05977b3631167028862bE2a173976CA11",
+    AvailableBlockchainType.GAME7: "0x1422d8aC9b5E102E6EbA56F0949a2377AB3D8CE9",
 }
 
 
@@ -490,3 +511,19 @@ MOONSTREAM_DB_V3_CONTROLLER_API = os.environ.get(
 MOONSTREAM_DB_V3_SCHEMA_NAME = os.environ.get(
     "MOONSTREAM_DB_V3_SCHEMA_NAME", "blockchain"
 )
+
+
+MOONSTREAM_METADATA_TASKS_JOURNAL = os.environ.get(
+    "MOONSTREAM_METADATA_TASKS_JOURNAL", ""
+)
+
+
+### MOONSTREAM_PUBLIC_QUERIES_USER_TOKEN
+
+MOONSTREAM_PUBLIC_QUERIES_DATA_ACCESS_TOKEN = os.environ.get(
+    "MOONSTREAM_PUBLIC_QUERIES_DATA_ACCESS_TOKEN", ""
+)
+if MOONSTREAM_PUBLIC_QUERIES_DATA_ACCESS_TOKEN == "":
+    raise ValueError(
+        "MOONSTREAM_PUBLIC_QUERIES_DATA_ACCESS_TOKEN environment variable must be set"
+    )

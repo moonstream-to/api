@@ -1,5 +1,5 @@
 [Unit]
-Description=Execute Ethereum state crawler each 5m
+Description=Execute Sepolia state crawler each 5m
 
 [Timer]
 OnBootSec=15s
