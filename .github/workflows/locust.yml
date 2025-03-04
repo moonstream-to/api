@@ -4,7 +4,7 @@ on: [pull_request_target]
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: PR head repo
         id: head_repo_name
