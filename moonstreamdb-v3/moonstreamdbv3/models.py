@@ -27,6 +27,7 @@ from sqlalchemy import (
     Integer,
     LargeBinary,
     MetaData,
+    Numeric,
     Text,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -160,6 +161,38 @@ class EvmBasedLabel(Base):  # type: ignore
     )
 
 
+class EvmBasedTransaction(Base):  # type: ignore
+    __abstract__ = True
+
+    hash = Column(
+        VARCHAR(256), primary_key=True, unique=True, nullable=False, index=True
+    )
+    block_number = Column(
+            BigInteger,
+            nullable=False,
+            index=True,
+        )
+    block_timestamp = Column(BigInteger, nullable=False, index=True)
+    block_hash = Column(VARCHAR(256), nullable=False, index=True)
+    from_address = Column(LargeBinary, index=True)
+    to_address = Column(LargeBinary, index=True)
+    gas = Column(Numeric(precision=78, scale=0), index=True)
+    gas_price = Column(Numeric(precision=78, scale=0), index=True)
+    max_fee_per_gas = Column(Numeric(precision=78, scale=0), nullable=True)
+    max_priority_fee_per_gas = Column(Numeric(precision=78, scale=0), nullable=True)
+    input = Column(Text)
+    nonce = Column(VARCHAR(256))
+    transaction_index = Column(BigInteger)
+    transaction_type = Column(Integer, nullable=True)
+    value = Column(Numeric(precision=78, scale=0), index=True)
+
+    indexed_at = Column(
+        DateTime(timezone=True), server_default=utcnow(), nullable=False
+    )
+
+
+## Labels
+
 class EthereumLabel(EvmBasedLabel):  # type: ignore
     __tablename__ = "ethereum_labels"
 
@@ -256,3 +289,138 @@ class RoninLabel(EvmBasedLabel):  # type: ignore
 class RoninSaigonLabel(EvmBasedLabel):  # type: ignore
     __tablename__ = "ronin_saigon_labels"
 
+
+
+
+
+## Transactions
+
+class EthereumTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "ethereum_transactions"
+
+
+class SepoliaTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "sepolia_transactions"
+
+
+class PolygonTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "polygon_transactions"
+
+
+class MumbaiTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "mumbai_transactions"
+
+
+class AmoyTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "amoy_transactions"
+
+
+class XDaiTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "xdai_transactions"
+
+
+class ZkSyncEraTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "zksync_era_transactions"
+
+
+class ZkSyncEraSepoliaTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "zksync_era_sepolia_transactions"
+
+
+class BaseTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "base_transactions"
+
+
+class ArbitrumNovaTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "arbitrum_nova_transactions"
+
+    l1_block_number = Column(BigInteger, nullable=True)
+
+class ArbitrumOneTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "arbitrum_one_transactions"
+
+    l1_block_number = Column(BigInteger, nullable=True)
+
+class ArbitrumSepoliaTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "arbitrum_sepolia_transactions"
+
+    l1_block_number = Column(BigInteger, nullable=True)
+
+class Game7OrbitArbitrumSepoliaTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "game7_orbit_arbitrum_sepolia_transactions"
+
+    l1_block_number = Column(BigInteger, nullable=True)
+
+class XaiTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "xai_transactions"
+
+    l1_block_number = Column(BigInteger, nullable=True)
+
+class XaiSepoliaTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "xai_sepolia_transactions"
+
+    l1_block_number = Column(BigInteger, nullable=True)
+
+class AvalancheTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "avalanche_transactions"
+
+class AvalancheFujiTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "avalanche_fuji_transactions"
+
+class BlastTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "blast_transactions"
+
+class BlastSepoliaTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "blast_sepolia_transactions"
+
+
+class ProofOfPlayApexTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "proofofplay_apex_transactions"
+
+    l1_block_number = Column(BigInteger, nullable=True)
+
+
+class MantleTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "mantle_transactions"
+
+
+class MantleSepoliaTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "mantle_sepolia_transactions"
+
+
+class ImxZkevmTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "imx_zkevm_transactions"
+
+
+class ImxZkevmSepoliaTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "imx_zkevm_sepolia_transactions"
+
+
+class Game7Transaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "game7_transactions"
+
+    l1_block_number = Column(BigInteger, nullable=True)
+
+
+
+class Game7TestnetTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "game7_testnet_transactions"
+
+    l1_block_number = Column(BigInteger, nullable=True)
+
+
+class B3Transaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "b3_transactions"
+
+
+
+class B3SepoliaTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "b3_sepolia_transactions"
+
+
+class RoninTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "ronin_transactions"
+
+
+class RoninSaigonTransaction(EvmBasedTransaction):  # type: ignore
+    __tablename__ = "ronin_saigon_transactions"
